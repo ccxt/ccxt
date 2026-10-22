@@ -101,11 +101,9 @@ impl crate::exchange_generated::ExchangeBase for BitbnsCore {
                 "nonce" => self.nonce(),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_status" => self.parse_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction_status_by_type" => self.parse_transaction_status_by_type(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
@@ -631,12 +629,12 @@ impl BitbnsCore {
         //         },
         //     ]
         //
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         let mut rawMarkets: Value = self.to_array(response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_315: bool = true;
-            while { if !__for_first_315 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_315 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawMarkets.len() as i64) as f64) } {
+            let mut __for_first_332: bool = true;
+            while { if !__for_first_332 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_332 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawMarkets.len() as i64) as f64) } {
             let mut market: Value = rawMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut id: Value = self.safe_string_k(market.clone(), "id", &[]);
             let mut baseId: Value = self.safe_string_k(market.clone(), "base", &[]);
@@ -672,7 +670,7 @@ impl BitbnsCore {
             if usdt {
                 uppercaseId = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, Value::Str("_".into())).into()), quoteId).into()));
             }
-            append_to_array(&mut result, Value::Map({
+            result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id);
                     m.insert("uppercaseId".to_string(), uppercaseId);
@@ -738,7 +736,7 @@ impl BitbnsCore {
             }));
         }
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
@@ -895,13 +893,13 @@ impl BitbnsCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut keys: Value = object_keys(&data);
+        let mut keys: Value = Value::Array(data.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_316: bool = true;
-            while { if !__for_first_316 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_316 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_333: bool = true;
+            while { if !__for_first_333 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_333 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut parts: Value = split(&key, &Value::Str("availableorder".into()));
+            let mut parts: Value = Value::Array(key.as_str().map(|__s| __s.split("availableorder").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             let mut numParts: f64 = ((parts.len() as i64) as f64);
             if numParts > ((1i64) as f64) {
                 let mut currencyId: Value = self.safe_string(parts, Value::Int(1), &[]);
@@ -945,7 +943,7 @@ impl BitbnsCore {
     Value::Null
 }
 
-    pub fn parse_status(&self, mut status: Value) -> Value {
+    pub fn parse_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("-1".to_string(), Value::Str("cancelled".into()));
@@ -954,9 +952,7 @@ impl BitbnsCore {
                 m.insert("2".to_string(), Value::Str("done".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1008,7 +1004,7 @@ impl BitbnsCore {
         if (data.as_deref() == Some("Successfully cancelled the order")) {
             status = Value::Str("cancelled".into());
         }  else {
-            status = self.parse_status(status.clone());
+            status = self.parse_status(status.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1080,7 +1076,7 @@ impl BitbnsCore {
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("side".to_string(), to_upper(&side));
+                m.insert("side".to_string(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("uppercaseId")).cloned().unwrap_or(Value::Null));
                 m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
             m
@@ -1625,7 +1621,7 @@ impl BitbnsCore {
     Value::Null
 }
 
-    pub fn parse_transaction_status_by_type(&self, mut status: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction_status_by_type(&self, mut status: Value, optional_args: &[Value]) -> Option<String> {
         let mut type_var = get_arg(optional_args, 0, Value::Null);
         let mut statusesByType: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1652,9 +1648,7 @@ impl BitbnsCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -1796,19 +1790,20 @@ impl BitbnsCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("www".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("www".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
         let mut urls: Value = self.urls.clone();
-        if !(in_op(&urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api)) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have a testnet/sandbox URL for ".into())).into()), api).into()), Value::Str(" endpoints".into()))));
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        if !(in_op(&urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &apiName)) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have a testnet/sandbox URL for ".into())).into()), apiName).into()), Value::Str(" endpoints".into()))));
         }
-        if (api.as_str() != Some("www")) {
+        if (apiName.as_str() != Some("www")) {
             self.check_required_credentials(&[]);
         }
         let mut apiKeyHeaders: Value = Value::Map({
@@ -1816,21 +1811,21 @@ impl BitbnsCore {
                 m.insert("X-BITBNS-APIKEY".to_string(), self.apiKey.clone());
             m
         });
-        let mut requestHeaders: Value = (if (api.as_str() != Some("www")) { apiKeyHeaders } else { headers });
-        let mut baseApiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api, &[]);
+        let mut requestHeaders: Value = (if (apiName.as_str() != Some("www")) { apiKeyHeaders } else { Value::Null });
+        let mut baseApiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName, &[]);
         if (baseApiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut baseUrl: Value = self.implode_hostname(baseApiUrl);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut nonce: Value = to_string_val(&self.nonce());
-        let mut queryLength: f64 = ((object_keys(&query).len() as i64) as f64);
+        let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
+        let mut queryLength: f64 = ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64);
         let mut postBody: Value = Value::Str("{}".into());
         if queryLength > ((0i64) as f64) {
             postBody = json_stringify(&query);
         }
-        let mut requestBody: Value = (if (method.as_str() == Some("POST")) { postBody } else { body });
+        let mut requestBody: Value = (if (method.as_str() == Some("POST")) { postBody } else { Value::Null });
         if (method.as_str() == Some("GET")) {
             if queryLength > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])).into())).into());

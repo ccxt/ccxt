@@ -35,7 +35,7 @@ export default class xt extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
-    fetchSpotMarkets(params?: any): Promise<Market[]>;
+    fetchSpotMarkets(params?: Dict): Promise<Market[]>;
     fetchSwapAndFutureMarkets(params?: Dict): Promise<Market[]>;
     parseMarkets(markets: any): List;
     parseMarket(market: Dict): Market;
@@ -182,7 +182,7 @@ export default class xt extends Exchange {
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     createSpotOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: Num, params?: Dict): Promise<Order>;
-    createContractOrder(symbol: string, type: OrderType, side: any, amount: any, price?: Num, params?: Dict): Promise<Order>;
+    createContractOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name xt#fetchOrder
@@ -493,7 +493,7 @@ export default class xt extends Exchange {
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name xt#fetchTradingFee
@@ -631,10 +631,10 @@ export default class xt extends Exchange {
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: string, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: {}): {
         url: string;
         method: string;
-        body: any;
+        body: Str;
         headers: Dict;
     };
 }

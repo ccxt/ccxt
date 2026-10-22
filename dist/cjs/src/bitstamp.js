@@ -798,7 +798,7 @@ class bitstamp extends bitstamp$1["default"] {
         const timestamp = this.safeInteger(options, 'timestamp');
         const expires = this.safeInteger(options, 'expires', 1000);
         const now = this.milliseconds();
-        if ((timestamp === undefined) || ((now - timestamp) > expires)) {
+        if ((timestamp === undefined) || ((expires !== undefined) && ((now - timestamp) > expires))) {
             const response = await this.publicGetMarkets(params);
             //
             //    [
@@ -822,7 +822,9 @@ class bitstamp extends bitstamp$1["default"] {
                 'timestamp': now,
             });
         }
-        return this.safeValue(this.options['fetchMarkets'], 'response');
+        const cache = this.safeDict(this.options, 'fetchMarkets', {});
+        const markets = this.safeList(cache, 'response', []);
+        return markets;
     }
     /**
      * @method
@@ -1208,8 +1210,8 @@ class bitstamp extends bitstamp$1["default"] {
             }
             else {
                 // string unix epoch in seconds
-                timestamp = parseInt(datetimeString);
-                timestamp = timestamp * 1000;
+                const seconds = this.parseToInt(datetimeString);
+                timestamp = seconds * 1000;
             }
         }
         // if it is a private trade
@@ -1350,43 +1352,46 @@ class bitstamp extends bitstamp$1["default"] {
         const until = this.safeInteger(params, 'until');
         const untilIsDefined = (until !== undefined);
         const limitResolved = (limit === undefined) ? 1000 : limit;
-        if (limit === undefined) {
-            if (since === undefined) {
-                request['limit'] = limitResolved;
+        if (limit !== undefined) {
+            if (since !== undefined) {
+                const start = this.parseToInt(since / 1000);
+                request['start'] = start;
                 if (untilIsDefined) {
-                    const end = this.parseToInt(until / 1000);
-                    request['start'] = end - (duration * limitResolved) - 1;
-                    request['end'] = end;
+                    // Math.min (start + duration * limit - 1, untilSeconds) on integers
+                    const untilSeconds = this.parseToInt(until / 1000);
+                    request['end'] = ((untilSeconds - start) < duration * limit - 1) ? untilSeconds : this.sum(start, duration * limit - 1);
+                }
+                else {
+                    request['end'] = this.sum(start, duration * limit - 1);
+                }
+            }
+            else if (untilIsDefined) {
+                const untilEnd = this.parseToInt(until / 1000);
+                request['end'] = untilEnd;
+                request['start'] = untilEnd - (duration * limit) - 1;
+            }
+            request['limit'] = Math.min(limit, 1000); // min 1, max 1000
+        }
+        else {
+            if (since === undefined) {
+                request['limit'] = 1000;
+                if (untilIsDefined) {
+                    const untilEndDefault = this.parseToInt(until / 1000);
+                    request['start'] = untilEndDefault - (duration * 1000) - 1;
+                    request['end'] = untilEndDefault;
                 }
             }
             else {
-                const start = this.parseToInt(since / 1000);
-                request['start'] = start;
+                const startDefault = this.parseToInt(since / 1000);
+                request['start'] = startDefault;
                 if (untilIsDefined) {
                     request['end'] = this.parseToInt(until / 1000);
                 }
                 else {
-                    request['end'] = this.sum(start, duration * limitResolved - 1);
+                    request['end'] = this.sum(startDefault, duration * 1000 - 1);
                 }
-                request['limit'] = limitResolved;
+                request['limit'] = 1000;
             }
-        }
-        else {
-            if (since !== undefined) {
-                const start = this.parseToInt(since / 1000);
-                request['start'] = start;
-                let end = this.sum(start, duration * limitResolved - 1);
-                if (untilIsDefined) {
-                    end = Math.min(end, this.parseToInt(until / 1000));
-                }
-                request['end'] = end;
-            }
-            else if (untilIsDefined) {
-                const end = this.parseToInt(until / 1000);
-                request['end'] = end;
-                request['start'] = end - (duration * limitResolved) - 1;
-            }
-            request['limit'] = Math.min(limitResolved, 1000); // min 1, max 1000
         }
         const paramsOmitted = this.omit(params, 'until');
         const response = await this.publicGetOhlcPair(this.extend(request, paramsOmitted));
@@ -2152,11 +2157,11 @@ class bitstamp extends bitstamp$1["default"] {
             amount = this.safeString(transaction, 'amount');
         }
         else if (currency !== undefined) {
-            amount = this.safeString(transaction, currency['id'], amount);
+            amount = this.safeString(transaction, currency['id']);
             feeCurrency = currency['code'];
         }
         else if ((code !== undefined) && (currencyId !== undefined)) {
-            amount = this.safeString(transaction, currencyId, amount);
+            amount = this.safeString(transaction, currencyId);
             feeCurrency = code;
         }
         if (amount !== undefined) {
@@ -2418,7 +2423,8 @@ class bitstamp extends bitstamp$1["default"] {
         else {
             const parsedTransaction = this.parseTransaction(item, currency);
             let direction = undefined;
-            const hasTransactionCurrency = !('amount' in item) && ('currency' in parsedTransaction) && (parsedTransaction['currency'] !== undefined);
+            const transactionCurrency = this.safeString(parsedTransaction, 'currency');
+            const hasTransactionCurrency = !('amount' in item) && (transactionCurrency !== undefined);
             let currencyResolved = currency;
             if (hasTransactionCurrency) {
                 currencyResolved = this.currency(this.safeString(parsedTransaction, 'currency'));
@@ -2427,7 +2433,7 @@ class bitstamp extends bitstamp$1["default"] {
                 const amount = this.safeString(item, 'amount');
                 direction = Precise["default"].stringGt(amount, '0') ? 'in' : 'out';
             }
-            else if (('currency' in parsedTransaction) && parsedTransaction['currency'] !== undefined) {
+            else if (transactionCurrency !== undefined) {
                 const amount = this.safeString(item, this.safeString(currencyResolved, 'id'));
                 direction = Precise["default"].stringGt(amount, '0') ? 'in' : 'out';
             }
@@ -2606,7 +2612,7 @@ class bitstamp extends bitstamp$1["default"] {
         const name = this.getCurrencyName(code);
         // the per-currency implicit methods (privatePostBtcAddress etc.) all route
         // through request(), called here directly to avoid dynamic dispatch
-        const response = await this.request(name + '_address/', 'private', 'POST', params);
+        const response = await this.request(name + '_address/', ['private'], 'POST', params);
         const address = this.safeString(response, 'address');
         const tag = this.safeString2(response, 'memo_id', 'destination_tag');
         this.checkAddress(address);
@@ -2659,7 +2665,7 @@ class bitstamp extends bitstamp$1["default"] {
             request['address'] = address;
             // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
             // route through request(), called here directly to avoid dynamic dispatch
-            response = await this.request(name + '_withdrawal/', 'private', 'POST', this.extend(request, paramsWithdrawTag));
+            response = await this.request(name + '_withdrawal/', ['private'], 'POST', this.extend(request, paramsWithdrawTag));
         }
         else {
             currency = this.currency(code);
@@ -2743,8 +2749,9 @@ class bitstamp extends bitstamp$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2752,7 +2759,7 @@ class bitstamp extends bitstamp$1["default"] {
         url += this.version + '/';
         url += this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        const isPrivatePost = (api !== 'public') && (method === 'POST');
+        const isPrivatePost = (apiName !== 'public') && (method === 'POST');
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
         const emptyPostBody = this.urlencode({ 'foo': 'bar' });
@@ -2760,12 +2767,12 @@ class bitstamp extends bitstamp$1["default"] {
         if (Object.keys(query).length > 0) {
             postBody = this.urlencode(query);
         }
-        let requestBody = body;
+        let requestBody = undefined;
         if (isPrivatePost) {
             requestBody = postBody;
         }
         let privateHeaders = undefined;
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
@@ -2795,7 +2802,7 @@ class bitstamp extends bitstamp$1["default"] {
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             privateHeaders['X-Auth-Signature'] = signature;
         }
-        const requestHeaders = (api === 'public') ? headers : privateHeaders;
+        const requestHeaders = (apiName === 'public') ? undefined : privateHeaders;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

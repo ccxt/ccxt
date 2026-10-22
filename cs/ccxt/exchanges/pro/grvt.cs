@@ -82,7 +82,7 @@ public partial class grvt : ccxt.grvt
         //     prev_sequence_number: "0",
         //  }
         //
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }

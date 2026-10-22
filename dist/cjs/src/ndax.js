@@ -681,8 +681,8 @@ class ndax extends ndax$1["default"] {
         });
     }
     parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 6, amountKey = 8, countOrIdKey = 2) {
-        let nonce = undefined;
-        let latestTimestamp = timestamp;
+        let nonce = this.safeInteger(this.safeList(orderbook, 0), 0);
+        let latestTimestamp = this.safeInteger([timestamp], 0);
         const result = {
             'symbol': symbol,
             'bids': [],
@@ -693,23 +693,13 @@ class ndax extends ndax$1["default"] {
         };
         for (let i = 0; i < orderbook.length; i++) {
             const level = orderbook[i];
-            if (latestTimestamp === undefined) {
-                latestTimestamp = this.safeInteger(level, 2);
+            const newTimestamp = this.safeInteger(level, 2);
+            if ((newTimestamp !== undefined) && ((latestTimestamp === undefined) || (newTimestamp > latestTimestamp))) {
+                latestTimestamp = newTimestamp;
             }
-            else {
-                const newTimestamp = this.safeInteger(level, 2);
-                if (newTimestamp !== undefined) {
-                    latestTimestamp = Math.max(latestTimestamp, newTimestamp);
-                }
-            }
-            if (nonce === undefined) {
-                nonce = this.safeInteger(level, 0);
-            }
-            else {
-                const newNonce = this.safeInteger(level, 0);
-                if (newNonce !== undefined) {
-                    nonce = Math.max(nonce, newNonce);
-                }
+            const newNonce = this.safeInteger(level, 0);
+            if ((newNonce !== undefined) && ((nonce === undefined) || (newNonce > nonce))) {
+                nonce = newNonce;
             }
             const bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             const levelSide = this.safeInteger(level, 9);
@@ -1622,7 +1612,7 @@ class ndax extends ndax$1["default"] {
             // 'OrderIdOCO': 0, // The order ID if One Cancels the Other.
             // 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side': orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-            'Quantity': (amountString === undefined) ? undefined : parseFloat(amountString),
+            'Quantity': (amountString === undefined) ? undefined : this.parseNumber(amountString),
             'OrderType': orderType, // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
@@ -1633,7 +1623,7 @@ class ndax extends ndax$1["default"] {
             if (limitPriceString === undefined) {
                 limitPriceString = '0';
             }
-            request['LimitPrice'] = parseFloat(limitPriceString);
+            request['LimitPrice'] = this.parseNumber(limitPriceString);
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
@@ -1679,7 +1669,7 @@ class ndax extends ndax$1["default"] {
         const orderSide = (side === 'buy') ? 0 : 1;
         const amountString = this.amountToPrecision(symbol, amount);
         const request = {
-            'OrderIdToReplace': parseInt(id),
+            'OrderIdToReplace': this.parseToInt(id),
             'InstrumentId': this.parseToInt(market['id']),
             'omsId': omsId,
             'AccountId': accountId,
@@ -1692,7 +1682,7 @@ class ndax extends ndax$1["default"] {
             // 'OrderIdOCO': 0, // The order ID if One Cancels the Other.
             // 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side': orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-            'Quantity': (amountString === undefined) ? undefined : parseFloat(amountString),
+            'Quantity': (amountString === undefined) ? undefined : this.parseNumber(amountString),
             'OrderType': this.safeInteger(this.options['orderTypes'], this.capitalize(type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
@@ -1703,7 +1693,7 @@ class ndax extends ndax$1["default"] {
             if (limitPriceString === undefined) {
                 limitPriceString = '0';
             }
-            request['LimitPrice'] = parseFloat(limitPriceString);
+            request['LimitPrice'] = this.parseNumber(limitPriceString);
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
@@ -1883,7 +1873,7 @@ class ndax extends ndax$1["default"] {
             request['ClOrderId'] = clientOrderId;
         }
         else {
-            request['OrderId'] = parseInt(id);
+            request['OrderId'] = this.parseToInt(id);
         }
         const paramsOmitted = this.omit(params, ['clientOrderId', 'ClOrderId']);
         const response = await this.privatePostCancelOrder(this.extend(request, paramsOmitted));
@@ -2097,7 +2087,7 @@ class ndax extends ndax$1["default"] {
         const request = {
             'omsId': omsId,
             'AccountId': accountId,
-            'OrderId': parseInt(id),
+            'OrderId': this.parseToInt(id),
         };
         const response = await this.privateGetGetOrderStatus(this.extend(request, paramsOmitted));
         //
@@ -2178,7 +2168,7 @@ class ndax extends ndax$1["default"] {
         const request = {
             'OMSId': this.parseToInt(omsId),
             // 'AccountId': accountId,
-            'OrderId': parseInt(id),
+            'OrderId': this.parseToInt(id),
         };
         const response = await this.privatePostGetOrderHistoryByOrderId(this.extend(request, params));
         //
@@ -2690,16 +2680,17 @@ class ndax extends ndax$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let bodySigned = undefined;
         let headersSigned = undefined;
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + this.implodeParams(path, params);
         let query = this.omit(params, this.extractParams(path));
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (path === 'Authenticate') {
                 const auth = this.login + ':' + this.password;
                 const auth64 = this.stringToBase64(auth);
@@ -2722,7 +2713,7 @@ class ndax extends ndax$1["default"] {
                 url += '?' + this.urlencode(query);
             }
         }
-        else if (api === 'private') {
+        else if (apiName === 'private') {
             this.checkRequiredCredentials();
             const sessionToken = this.safeString(this.options, 'sessionToken');
             if (sessionToken === undefined) {
@@ -2751,8 +2742,8 @@ class ndax extends ndax$1["default"] {
                 }
             }
         }
-        const headersResolved = (headersSigned === undefined) ? headers : headersSigned;
-        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        const headersResolved = headersSigned;
+        const bodyResolved = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

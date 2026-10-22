@@ -326,7 +326,7 @@ public partial class tokocrypto : Exchange
                 { "reverseNetworks", new Dictionary<string, object>() {
                     { "tronscan.org", "TRC20" },
                     { "etherscan.io", "ERC20" },
-                    { "bscscan.com", "BSC" },
+                    { "bscscan.com", "BEP20" },
                     { "explorer.binance.org", "BEP2" },
                     { "bithomp.com", "XRP" },
                     { "bloks.io", "EOS" },
@@ -1151,7 +1151,7 @@ public partial class tokocrypto : Exchange
         string? takerOrMaker = null;
         if ((buyerMaker != null))
         {
-            side = ((buyerMaker == true)) ? "sell" : "buy"; // this is reversed intentionally
+            side = buyerMaker == true ? "sell" : "buy"; // this is reversed intentionally
             takerOrMaker = "taker";
         } else if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("side")))
         {
@@ -1590,7 +1590,7 @@ public partial class tokocrypto : Exchange
         int maxLimit = 1500;
         string? price = this.safeString(parameters, "price");
         Int64? until = this.safeInteger(parameters, "until");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"price", "until"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"price", "until"}));
         object limitValue = ((limit == null)) ? defaultLimit : mathMin(limit, maxLimit);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
@@ -1985,9 +1985,13 @@ public partial class tokocrypto : Exchange
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
         // only supported for spot/margin api
-        object typeResolved = ((postOnly == true)) ? "LIMIT_MAKER" : type;
+        object typeResolved = postOnly ? "LIMIT_MAKER" : type;
         // post only is expressed by the order type here, not by a time force
-        string? timeInForceResolved = ((postOnly == true)) ? null : requestedTimeInForce;
+        string? timeInForceResolved = requestedTimeInForce;
+        if (postOnly)
+        {
+            timeInForceResolved = null;
+        }
         string initialUppercaseType = ((string)typeResolved).ToUpper();
         string uppercaseType = initialUppercaseType;
         object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
@@ -1995,7 +1999,7 @@ public partial class tokocrypto : Exchange
         object paramsRequest = this.omit(paramsPostOnly, this.arrayConcat(new List<object>() {"clientId", "clientOrderId", "timeInForce"}, triggerKeys));
         if ((triggerPrice != null))
         {
-            if ((postOnly == true))
+            if (postOnly)
             {
                 throw new InvalidOrder ((this.id + " createOrder() does not support post only trigger orders, the venue has no post only trigger order type")) ;
             }
@@ -2550,7 +2554,7 @@ public partial class tokocrypto : Exchange
             tag = null;
         }
         this.checkAddress(address);
-        return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", this.safeString(data, "network") },             { "address", address },             { "tag", tag },         });
+        return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", this.networkIdToCode(this.safeString(data, "network"), code) },             { "address", address },             { "tag", tag },         });
     }
 
     /**
@@ -2690,7 +2694,7 @@ public partial class tokocrypto : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(withdrawals, currency, since, limit));
     }
 
-    public virtual object parseTransactionStatusByType(string? status, object type = null)
+    public virtual string? parseTransactionStatusByType(string? status, string? type = null)
     {
         Dictionary<string, object> statusesByType = new Dictionary<string, object>() {
             { "deposit", new Dictionary<string, object>() {
@@ -2708,7 +2712,7 @@ public partial class tokocrypto : Exchange
             } },
         };
         IDictionary<string, object> statuses = this.safeDict(statusesByType, type, new Dictionary<string, object>() {});
-        return this.safeString(statuses, status, status);
+        return ((string?)((object)(this.safeString(statuses, status, status))));
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
@@ -2819,7 +2823,7 @@ public partial class tokocrypto : Exchange
             { "txid", txid },
             { "type", type },
             { "currency", code },
-            { "network", this.safeString(transaction, "network") },
+            { "network", this.networkIdToCode(this.safeString(transaction, "network"), code) },
             { "amount", this.safeNumber(transaction, "amount") },
             { "status", this.parseTransactionStatusByType(this.safeString(transaction, "status"), type) },
             { "timestamp", timestamp },
@@ -2892,37 +2896,38 @@ public partial class tokocrypto : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        if (!(inOp(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), api)))
+        object apiName = getValue(api, 0);
+        if (!(inOp(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), apiName)))
         {
-            throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + (api)) + " endpoints")) ;
+            throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + (apiName)) + " endpoints")) ;
         }
-        string? baseApiUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), api);
+        string? baseApiUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = baseApiUrl;
         url = url + ("/" + path);
-        if ((api is "wapi"))
+        if ((apiName is "wapi"))
         {
             url = url + ".html";
         }
         bool userDataStream = ((path == "userDataStream")) || ((path == "listenKey"));
         if (userDataStream)
         {
-            if (((this.apiKey != null)) && (!isEqual(this.apiKey, "")))
+            if (((this.apiKey != null)) && (!(this.apiKey == "")))
             {
                 // v1 special case for userDataStream
                 Dictionary<string, object> headersStream = new Dictionary<string, object>() {
                     { "X-MBX-APIKEY", this.apiKey },
                     { "Content-Type", "application/x-www-form-urlencoded" },
                 };
-                object bodyStream = ((method != "GET")) ? this.urlencode(parameters) : body;
+                string? bodyStream = ((method != "GET")) ? this.urlencode(parameters) : null;
                 return new Dictionary<string, object>() {
                     { "url", url },
                     { "method", method },
@@ -2933,7 +2938,7 @@ public partial class tokocrypto : Exchange
             {
                 throw new AuthenticationError ((this.id + " userDataStream endpoint requires `apiKey` credential")) ;
             }
-        } else if (((api is "private")) || ((api is "sapi") && (path != "system/status")) || (isEqual(api, "sapiV3")) || ((api is "wapi") && (path != "systemStatus")) || ((api is "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || ((api is "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")))
+        } else if (((apiName is "private")) || ((apiName is "sapi") && (path != "system/status")) || ((apiName is "sapiV3")) || ((apiName is "wapi") && (path != "systemStatus")) || ((apiName is "dapiPrivate")) || ((apiName is "dapiPrivateV2")) || ((apiName is "fapiPrivate")) || ((apiName is "fapiPrivateV2")))
         {
             this.checkRequiredCredentials();
             string? query = null;
@@ -2950,7 +2955,7 @@ public partial class tokocrypto : Exchange
             {
                 extendedParams["recvWindow"] = recvWindow;
             }
-            if (((api is "sapi")) && ((path == "asset/dust")))
+            if (((apiName is "sapi")) && ((path == "asset/dust")))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             } else if (((path == "batchOrders")) || (path.IndexOf("sub-account", StringComparison.Ordinal) >= 0) || ((path == "capital/withdraw/apply")) || (path.IndexOf("staking", StringComparison.Ordinal) >= 0))
@@ -2965,11 +2970,11 @@ public partial class tokocrypto : Exchange
             Dictionary<string, object> headersSigned = new Dictionary<string, object>() {
                 { "X-MBX-APIKEY", this.apiKey },
             };
-            bool queryInUrl = ((method == "GET")) || ((method == "DELETE")) || ((api is "wapi"));
-            object bodySigned = query;
+            bool queryInUrl = ((method == "GET")) || ((method == "DELETE")) || ((apiName is "wapi"));
+            string? bodySigned = query;
             if (queryInUrl)
             {
-                bodySigned = body;
+                bodySigned = null;
             }
             if (queryInUrl)
             {
@@ -2994,8 +2999,8 @@ public partial class tokocrypto : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 
@@ -3008,7 +3013,7 @@ public partial class tokocrypto : Exchange
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if (isGreaterThanOrEqual(code, 400))
+        if ((Convert.ToInt64(code) >= 400))
         {
             if (((string)body).IndexOf("Price * QTY is zero or less", StringComparison.Ordinal) >= 0)
             {
@@ -3031,7 +3036,7 @@ public partial class tokocrypto : Exchange
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         bool? success = this.safeBool(response, "success", true);
         object parsedMessage = null;
-        if ((success != true))
+        if (success != true)
         {
             string? messageInner = this.safeString(response, "msg");
             if ((messageInner != null))
@@ -3078,7 +3083,7 @@ public partial class tokocrypto : Exchange
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
             throw new ExchangeError (feedback) ;
         }
-        if ((success != true))
+        if (success != true)
         {
             throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }
@@ -3099,12 +3104,13 @@ public partial class tokocrypto : Exchange
             return ((IDictionary<string,object>)config)["noPoolId"];
         } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
         {
-            object limit = getValue(parameters, "limit");
+            Int64? limit = this.safeInteger(parameters, "limit");
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
             for (int i = 0; i < byLimit.Count; i++)
             {
                 object entry = byLimit[i];
-                if (isLessThanOrEqual(limit, getValue(entry, 0)))
+                Int64? entryLimit = this.safeInteger(entry, 0);
+                if (((limit != null)) && ((entryLimit != null)) && ((limit == null || limit <= entryLimit)))
                 {
                     return getValue(entry, 1);
                 }

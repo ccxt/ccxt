@@ -328,12 +328,10 @@ public partial class hollaex : Exchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
-                { "api-expires", this.parseToInt(divide(this.timeout, 1000)) },
+                { "api-expires", this.parseToInt(((double?)this.parseToInt(this.timeout) / 1000)) },
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "btc" },
-                    { "ETH", "eth" },
                     { "ERC20", "eth" },
-                    { "TRX", "trx" },
                     { "TRC20", "trx" },
                     { "XRP", "xrp" },
                     { "XLM", "xlm" },
@@ -993,7 +991,7 @@ public partial class hollaex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < this.symbols.Count; i++)
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = (this.symbols != null && i < this.symbols.Count ? this.symbols[i] : null);
             Dictionary<string, object> market = this.market(symbol);
             string? makerString = this.safeString(makerFees, (market.ContainsKey("id") ? market["id"] : null));
             string? takerString = this.safeString(takerFees, (market.ContainsKey("id") ? market["id"] : null));
@@ -1045,19 +1043,17 @@ public partial class hollaex : Exchange
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
         }
-        Int64? until = this.safeInteger(paramsPaginate, "until");
-        Int64 timeDelta = multiply(multiply(this.parseTimeframe(timeframeVar), maxLimit), 1000);
-        object start = since;
         Int64 now = this.milliseconds();
-        if ((until == null))
+        // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        Int64? until = this.safeInteger(paramsPaginate, "until", now);
+        Int64 timeDelta = (((Int64)this.parseTimeframe(timeframeVar) * maxLimit) * 1000);
+        if ((since == null))
         {
-            until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
-        }
-        if ((start == null))
+            request["from"] = this.parseToInt(((double?)((until - timeDelta)) / 1000)); // convert to seconds
+        } else
         {
-            start = subtract(until, timeDelta);
+            request["from"] = this.parseToInt(((double?)since / 1000)); // convert to seconds
         }
-        request["from"] = this.parseToInt(divide(start, 1000)); // convert to seconds
         request["to"] = this.parseToInt(((double?)until / 1000)); // convert to seconds
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, "until");
         List<object> response = await this.publicGetChart(this.extend(request, paramsOmitted));
@@ -1485,7 +1481,7 @@ public partial class hollaex : Exchange
                 { "post_only", true },
             };
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"}));
         Dictionary<string, object> response = await this.privatePostOrder(this.extend(request, paramsOmitted));
         //
         //     {
@@ -1669,11 +1665,11 @@ public partial class hollaex : Exchange
         this.checkAddress(address);
         string? currencyId = this.safeString(depositAddress, "currency");
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
-        string? network = this.safeString(depositAddress, "network");
+        string? networkId = this.safeString(depositAddress, "network");
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null) },
-            { "network", network },
+            { "network", this.networkIdToCode(networkId, (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null)) },
             { "address", address },
             { "tag", tag },
         };
@@ -1696,7 +1692,7 @@ public partial class hollaex : Exchange
             await this.loadMarkets();
         }
         string? network = this.safeString(parameters, "network");
-        object paramsOmitted = this.omit(parameters, "network");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "network"));
         Dictionary<string, object> response = await this.privateGetUser(paramsOmitted);
         //
         //     {
@@ -1750,7 +1746,7 @@ public partial class hollaex : Exchange
             addresses = wallet;
         } else
         {
-            addresses = this.filterBy(wallet, "network", network);
+            addresses = this.filterBy(wallet, "network", this.networkCodeToId(network));
         }
         return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(addresses, codes, false));
     }
@@ -1987,10 +1983,11 @@ public partial class hollaex : Exchange
         }
         string? currencyId = this.safeString(transaction, "currency");
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
-        object status = this.safeValue(transaction, "status");
+        bool? completed = this.safeBool(transaction, "status");
         bool? dismissed = this.safeBool(transaction, "dismissed");
         bool? rejected = this.safeBool(transaction, "rejected");
-        if ((status is true))
+        string? status = null;
+        if ((completed == true))
         {
             status = "ok";
         } else if ((dismissed == true))
@@ -2224,9 +2221,9 @@ public partial class hollaex : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(coins, codes, "symbol"));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
@@ -2246,10 +2243,11 @@ public partial class hollaex : Exchange
         string url = (apiUrl + requestPath);
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if ((api is "private"))
+        if ((getValue(api, 0) is "private"))
         {
             this.checkRequiredCredentials();
-            Int64? defaultExpires = this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(divide(this.timeout, 1000)));
+            Int64? timeoutMs = this.parseToInt(this.timeout);
+            Int64? defaultExpires = this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(((double?)timeoutMs / 1000)));
             Int64 expires = this.sum(this.seconds(), defaultExpires);
             string expiresString = expires.ToString();
             string auth = ((method + requestPath) + expiresString);
@@ -2269,8 +2267,8 @@ public partial class hollaex : Exchange
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             requestHeaders["api-signature"] = signature;
         }
-        object bodyResult = ((requestBody == null)) ? body : requestBody;
-        object headersResult = ((requestHeaders == null)) ? headers : requestHeaders;
+        string? bodyResult = requestBody;
+        Dictionary<string, object> headersResult = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -2286,7 +2284,8 @@ public partial class hollaex : Exchange
         {
             return null;
         }
-        if ((isGreaterThanOrEqual(code, 400)) && (isLessThanOrEqual(code, 503)))
+        Int64? statusCode = this.parseToInt(code);
+        if (((statusCode >= 400)) && ((statusCode == null || statusCode <= 503)))
         {
             //
             //  { "message": "Invalid token" }

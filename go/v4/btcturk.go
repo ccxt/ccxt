@@ -308,12 +308,12 @@ func (this *Btcturk) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Btcturk) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Btcturk) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Btcturk) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Btcturk) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -370,7 +370,7 @@ func (this *Btcturk) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...
 	var data map[string]any = SafeMapTyped(response, "data")
 	var markets []any = SafeListTypedDefault(data, "symbols", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseMarkets(markets)}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
 }
 func (this *Btcturk) ParseMarket(entry any) any {
@@ -480,12 +480,12 @@ func (this *Btcturk) ParseBalance(response any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Btcturk) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Btcturk) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances] {
+	ch := make(chan AsyncResult[Balances], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Btcturk) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Btcturk) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -520,7 +520,7 @@ func (this *Btcturk) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
 	//       ]
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseBalance(response)}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
 	return nil
 }
 
@@ -534,12 +534,12 @@ func (this *Btcturk) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Btcturk) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Btcturk) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBook] {
+	ch := make(chan AsyncResult[OrderBook], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Btcturk) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Btcturk) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -577,7 +577,7 @@ func (this *Btcturk) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sym
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(data, market["symbol"], timestamp, "bids", "asks", 0, 1)}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, market["symbol"], timestamp, "bids", "asks", 0, 1))}
 	return nil
 }
 func (this *Btcturk) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -652,12 +652,12 @@ func (this *Btcturk) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Btcturk) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Btcturk) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {
+	ch := make(chan AsyncResult[map[string]Ticker], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Btcturk) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Btcturk) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -679,7 +679,7 @@ func (this *Btcturk) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 	response := r1.Value
 	var tickers []any = SafeListTyped(response, "data")
 
-	ch <- AsyncResult[any]{Value: this.ParseTickers(tickers, symbols)}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbols))}
 	return nil
 }
 
@@ -692,12 +692,12 @@ func (this *Btcturk) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Btcturk) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Btcturk) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker] {
+	ch := make(chan AsyncResult[Ticker], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Btcturk) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Btcturk) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -714,10 +714,10 @@ func (this *Btcturk) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers map[string]any = MapTyped(r1.Value)
+	var tickers map[string]any = StructResultMap(r1.Value, TickerMapToMap)
 	var ticker map[string]any = SafeMapTyped(tickers, symbol)
 
-	ch <- AsyncResult[map[string]any]{Value: ticker}
+	ch <- AsyncResult[Ticker]{Value: TickerFromMap(ticker)}
 	return nil
 }
 func (this *Btcturk) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -796,12 +796,12 @@ func (this *Btcturk) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Btcturk) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Btcturk) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Btcturk) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Btcturk) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -854,7 +854,7 @@ func (this *Btcturk) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 		dataList = ArrayTyped(data)
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(dataList, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(dataList, market, since, limit))}
 	return nil
 }
 func (this *Btcturk) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
@@ -886,12 +886,12 @@ func (this *Btcturk) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Btcturk) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Btcturk) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV] {
+	ch := make(chan AsyncResult[[]OHLCV], 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1h")
@@ -915,31 +915,39 @@ func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
-	request["to"] = this.ParseToInt((float64(*until) / 1000))
+	var untilSeconds int64 = this.ParseToInt((float64(*until) / 1000))
+	request["to"] = untilSeconds
 	if since != nil {
 		request["from"] = this.ParseToInt(float64(*since) / 1000)
 	}
-	var limitDefaulted any = limit
-	if (since == nil) && (limit == nil) {
-		limitDefaulted = 100 // default value
-	}
-	var limitResolved any = func() any {
-		if !IsEqual(limitDefaulted, nil) {
-			return mathMin(limitDefaulted, 11000)
+	var limitResolved any = nil
+	if limit != nil {
+		limitResolved = limit
+		if *limit > 11000 {
+			limitResolved = 11000 // max 11000 candles diapason can be covered
 		}
-		return nil
-	}() // max 11000 candles diapason can be covered
+	} else if since == nil {
+		limitResolved = 100 // default value
+	}
 	if !IsEqual(limitResolved, nil) {
 		if timeframe == "1y" {
 			panic(BadRequest(this.Id + " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\""))
 		}
 		var seconds int64 = this.ParseTimeframe(timeframe)
-		var limitSeconds any = Multiply(seconds, (Subtract(limitResolved, 1)))
+		var limitCount int64 = func() int64 {
+			if limit == nil {
+				return 100
+			}
+			return min(*limit, 11000)
+		}()
+		var limitSeconds any = (seconds * (limitCount - 1))
 		if since != nil {
 			var to any = Add(this.ParseToInt(float64(*since)/1000), limitSeconds)
-			request["to"] = mathMin(request["to"], to)
+			if to.(int64) < untilSeconds {
+				request["to"] = to
+			}
 		} else {
-			request["from"] = Subtract(this.ParseToInt(float64(0)/1000), limitSeconds)
+			request["from"] = Subtract(0, limitSeconds)
 		}
 	}
 
@@ -984,7 +992,7 @@ func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 	//        ]
 	//    }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(response, market, timeframe, since, limitResolved)}
+	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(response, market, timeframe, since, limitResolved))}
 	return nil
 }
 func (this *Btcturk) ParseOHLCVs(ohlcvs any, optionalArgs ...any) []any {
@@ -1033,12 +1041,12 @@ func (this *Btcturk) ParseOHLCVs(ohlcvs any, optionalArgs ...any) []any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btcturk) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Btcturk) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Btcturk) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Btcturk) createOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1075,7 +1083,7 @@ func (this *Btcturk) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
 
@@ -1089,12 +1097,12 @@ func (this *Btcturk) createOrderBody(ch chan AsyncResult[map[string]any], symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btcturk) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Btcturk) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Btcturk) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Btcturk) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1118,9 +1126,9 @@ func (this *Btcturk) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	//        "code": 0
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
+	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
 		"info": response,
-	}))}
+	})}
 	return nil
 }
 
@@ -1135,12 +1143,12 @@ func (this *Btcturk) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btcturk) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Btcturk) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Btcturk) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Btcturk) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1174,7 +1182,7 @@ func (this *Btcturk) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	var bids []any = SafeListTypedDefault(data, "bids", []any{})
 	var asks []any = SafeListTypedDefault(data, "asks", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(this.ArrayConcat(bids, asks), market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(this.ArrayConcat(bids, asks), market, since, limit))}
 	return nil
 }
 
@@ -1189,12 +1197,12 @@ func (this *Btcturk) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btcturk) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Btcturk) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Btcturk) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Btcturk) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1251,7 +1259,7 @@ func (this *Btcturk) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 	// }
 	var data []any = SafeListTyped(response, "data")
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(data, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
 }
 func (this *Btcturk) ParseOrderStatus(status *string) *string {
@@ -1343,12 +1351,12 @@ func (this *Btcturk) ParseOrder(order any, optionalArgs ...any) Order {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Btcturk) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Btcturk) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Btcturk) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Btcturk) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1403,27 +1411,24 @@ func (this *Btcturk) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 		dataList = ArrayTyped(data)
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(dataList, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(dataList, market, since, limit))}
 	return nil
 }
 func (this *Btcturk) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Btcturk) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	if this.Id == "btctrader" {
 		panic(ExchangeError(this.Id + " is an abstract base API for BTCExchange, BTCTurk"))
 	}
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -1436,12 +1441,12 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) any {
 	}
 	var requestBody any = nil
 	if isQueryMethod {
-		requestBody = body
+		requestBody = nil
 	} else {
 		requestBody = this.Json(params)
 	}
 	var privateHeaders any = nil
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var secret []byte = this.Base64ToBinary(this.Secret)
@@ -1453,12 +1458,7 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) any {
 			"Content-Type": "application/json",
 		}
 	}
-	var requestHeaders any = func() any {
-		if privateHeaders != nil {
-			return privateHeaders
-		}
-		return headers
-	}()
+	var requestHeaders any = privateHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -1508,7 +1508,7 @@ func (this *Btcturk) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
+	var res []MarketInterface = r.Value
 	return res, nil
 }
 
@@ -1525,7 +1525,7 @@ func (this *Btcturk) FetchBalance(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 
@@ -1550,7 +1550,7 @@ func (this *Btcturk) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 	if r.Err != nil {
 		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Value)
+	var res OrderBook = r.Value
 	return res, nil
 }
 
@@ -1574,7 +1574,7 @@ func (this *Btcturk) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -1598,7 +1598,7 @@ func (this *Btcturk) FetchTicker(symbol string, options ...FetchTickerOptions) (
 	if r.Err != nil {
 		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(r.Value)
+	var res Ticker = r.Value
 	return res, nil
 }
 
@@ -1624,7 +1624,7 @@ func (this *Btcturk) FetchTrades(symbol string, options ...FetchTradesOptions) (
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -1652,7 +1652,7 @@ func (this *Btcturk) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 
@@ -1680,7 +1680,7 @@ func (this *Btcturk) CreateOrder(symbol string, typeVar string, side string, amo
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -1705,7 +1705,7 @@ func (this *Btcturk) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -1731,7 +1731,7 @@ func (this *Btcturk) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -1757,7 +1757,7 @@ func (this *Btcturk) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -1783,7 +1783,7 @@ func (this *Btcturk) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -1809,6 +1809,9 @@ func (this *Btcturk) CancelOrderWithClientOrderId(clientOrderId string, options 
 }
 func (this *Btcturk) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
+}
+func (this *Btcturk) ClosePosition(symbol string, options ...ClosePositionOptions) (Order, error) {
+	return this.exchangeTyped.ClosePosition(symbol, options...)
 }
 func (this *Btcturk) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
 	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)

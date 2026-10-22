@@ -213,20 +213,16 @@ class binance extends Exchange {
          * @param {array} [$rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
          * @return {array[]} raw market topic objects
          */
-        $maxTopicsResolved = ($maxTopics === null) ? $this->safe_integer($this->options, 'maxFetchMarketsLimit', 200) : $maxTopics;
-        $pageLimit = $this->safe_integer($this->options, 'marketsPageLimit', 100);
-        if ($pageLimit > 100) {
-            $pageLimit = 100;
-        }
+        $maxTopicsOption = $this->safe_integer($this->options, 'maxFetchMarketsLimit', 200);
+        $maxTopicsResolved = ($maxTopics !== null) ? $maxTopics : $maxTopicsOption;
+        $pageLimitOption = $this->safe_integer($this->options, 'marketsPageLimit', 100);
+        $pageLimit = ($pageLimitOption > 100) ? 100 : $pageLimitOption;
         $collected = array();
         $offset = 0;
         while (true) {
-            $reqLimit = $pageLimit;
             $collectedLength = count($collected);
             $remaining = $maxTopicsResolved - $collectedLength;
-            if ($remaining < $reqLimit) {
-                $reqLimit = $remaining;
-            }
+            $reqLimit = ($remaining < $pageLimit) ? $remaining : $pageLimit;
             if ($reqLimit <= 0) {
                 break;
             }
@@ -273,7 +269,7 @@ class binance extends Exchange {
                 $collected[] = $pageTopics[$i];
             }
             $hasMore = $this->safe_bool($response, 'hasMore', false);
-            if (($hasMore !== true) || ($pageTopicsLength < $reqLimit)) {
+            if ((!$hasMore) || ($pageTopicsLength < $reqLimit)) {
                 break;
             }
             $offset = $this->sum($offset, $pageTopicsLength);
@@ -361,7 +357,7 @@ class binance extends Exchange {
          * @return {array[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
          */
         $allowUnscopedFetchEvents = $this->safe_bool($this->options, 'allowUnscopedFetchEvents', false);
-        if ($allowUnscopedFetchEvents !== true) {
+        if (!$allowUnscopedFetchEvents) {
             $this->require_event_query($params);
         }
         $queries = $this->parse_search_queries($params);
@@ -468,12 +464,8 @@ class binance extends Exchange {
         $seen = array();
         $collected = array();
         $queriesLength = count($queries);
-        $limitResolved = $limit;
-        if ($limit === null) {
-            $limitResolved = 20;
-        } elseif ($limit > 50) {
-            $limitResolved = 50;
-        }
+        $limitValue = ($limit === null) ? 20 : $limit;
+        $limitResolved = ($limitValue > 50) ? 50 : $limitValue;
         for ($qi = 0; $qi < $queriesLength; $qi++) {
             $request = array(
                 'query' => $queries[$qi],
@@ -507,7 +499,7 @@ class binance extends Exchange {
         }
         $capped = $collected;
         $collectedLength = count($collected);
-        if (($limitResolved !== null) && ($collectedLength > $limitResolved)) {
+        if ($collectedLength > $limitResolved) {
             $capped = $this->array_slice($collected, 0, $limitResolved);
         }
         return Async\await($this->complete_raw_topics($capped));
@@ -531,7 +523,7 @@ class binance extends Exchange {
         return $this->safe_dict($events, 0);
     }
 
-    public function parse_event(array $rawTopic): mixed {
+    public function parse_event(array $rawTopic): array {
         /**
          * @ignore
          * parses a raw binance market topic (with nested markets) into the unified event shape
@@ -1341,10 +1333,10 @@ class binance extends Exchange {
         // }
         //
         $data = $this->safe_list($response, 'positions', array());
-        $positions = $this->parse_prediction_positions($data);
         if ($outcomes === null) {
-            return $positions;
+            return $this->parse_prediction_positions($data);
         }
+        $positions = $this->parse_prediction_positions($data);
         $filtered = array();
         $positionsLength = count($positions);
         for ($i = 0; $i < $positionsLength; $i++) {
@@ -1635,9 +1627,8 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a wallet
          */
-        $cachedWallet = $this->safe_dict($this->options, 'wallet');
-        if ($cachedWallet !== null) {
-            return $cachedWallet;
+        if ($this->safe_dict($this->options, 'wallet') !== null) {
+            return $this->safe_dict($this->options, 'wallet');
         }
         $walletAddress = $this->handle_option_string_and_params($params, $methodName, 'walletAddress', $this->walletAddress)[0];
         $response = Async\await($this->sapiPrivateGetWalletList());
@@ -1654,23 +1645,18 @@ class binance extends Exchange {
         //
         $wallets = $this->safe_list($response, 'wallets', array());
         if ($walletAddress === null) {
-            $cachedWallet = $this->safe_dict($wallets, 0);
-            $this->options['wallet'] = $cachedWallet;
-            return $cachedWallet;
+            $this->options['wallet'] = $this->safe_dict($wallets, 0);
+            return $this->safe_dict($this->options, 'wallet');
         }
         $walletLength = count($wallets);
         for ($i = 0; $i < $walletLength; $i++) {
             $w = $this->safe_string($wallets[$i], 'walletAddress', '');
             if ($w === $walletAddress) {
-                $cachedWallet = $wallets[$i];
-                break;
+                $this->options['wallet'] = $wallets[$i];
+                return $this->safe_dict($this->options, 'wallet');
             }
         }
-        if ($cachedWallet === null) {
-            throw new NotSupported($this->id . 'fetchWallet could\'n find wallet ' . $walletAddress);
-        }
-        $this->options['wallet'] = $cachedWallet;
-        return $cachedWallet;
+        throw new NotSupported($this->id . 'fetchWallet could\'n find wallet ' . $walletAddress);
     }
 
     public function fetch_quote(array $request, $params = array()): PromiseInterface {
@@ -1999,7 +1985,7 @@ class binance extends Exchange {
         return null;
     }
 
-    public function sign(string $path, mixed $api = 'sapi', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('sapi'), $method = 'GET', $params = array()) {
         /**
          * @ignore
          * builds the request URL and attaches the standard binance SAPI HMAC-SHA256 $signature — every prediction endpoint is signed
@@ -2007,11 +1993,9 @@ class binance extends Exchange {
          * @param {string|string[]} [$api] the $api group and access level
          * @param {string} [$method] HTTP $method
          * @param {array} [$params] request parameters
-         * @param {array} [$headers] request $headers
-         * @param {array} [$body] request $body
-         * @return {array} a dictionary with $url, $method, $body and $headers
+         * @return {array} a dictionary with $url, $method, body and headers
          */
-        $apiGroup = gettype($api) === 'string' ? $api : $api[0];
+        $apiGroup = $api[0];
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['sapi']);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
@@ -2032,7 +2016,7 @@ class binance extends Exchange {
         $headersValue = array(
             'X-MBX-APIKEY' => $this->apiKey,
         );
-        $bodyValue = $body;
+        $bodyValue = null;
         if (($method === 'GET') || ($method === 'DELETE')) {
             $url = $url . '?' . $querystring;
         } else {

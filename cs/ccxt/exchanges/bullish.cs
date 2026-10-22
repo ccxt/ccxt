@@ -1515,11 +1515,11 @@ public partial class bullish : Exchange
         {
             throw new NotSupported ((((this.id + " safeDeterministicCall() does not support the ") + (method)) + " method")) ;
         }
-        object errors = 0;
+        Int64 errors = 0;
         Dictionary<string, object> paramsOmitted = this.omit(paramsMaxRetries, "until");
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
-        while (isLessThanOrEqual(errors, maxRetries))
+        while ((errors <= maxRetries))
         {
             try
             {
@@ -1539,8 +1539,8 @@ public partial class bullish : Exchange
                 {
                     throw e;
                 }
-                errors = add(errors, 1);
-                if (isGreaterThan(errors, maxRetries))
+                errors = errors + 1;
+                if (((maxRetries == null || errors > maxRetries)))
                 {
                     throw e;
                 }
@@ -1589,19 +1589,25 @@ public partial class bullish : Exchange
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("createdAtDatetime[lte]", request, paramsPaginate);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
-        object until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
+        Int64? untilParam = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
+        object until = null;
+        if ((untilParam != null))
+        {
+            until = untilParam;
+        }
         int duration = this.parseTimeframe(timeframeVar);
-        Int64 maxDelta = ((1000L * duration) * maxLimit);
+        Int64 maxDelta = (((Int64)duration * maxLimit) * 1000);
         object startTime = since;
         // both of since and until are required
-        if ((startTime == null) && (until == null))
+        if ((since == null) && (untilParam == null))
         {
-            until = this.milliseconds();
-            startTime = subtract(until, maxDelta);
-        } else if ((startTime == null))
+            Int64 now = this.milliseconds();
+            until = now;
+            startTime = (now - maxDelta);
+        } else if (((since == null)) && ((untilParam != null)))
         {
-            startTime = subtract(until, maxDelta);
-        } else if ((until == null))
+            startTime = (untilParam - maxDelta);
+        } else if ((untilParam == null))
         {
             until = this.sum(startTime, maxDelta);
         }
@@ -1803,11 +1809,11 @@ public partial class bullish : Exchange
         Int64 ninetyDays = ((((90L * 24L) * 60) * 60) * 1000);
         Int64 now = this.milliseconds();
         Int64 allowedSince = (now - ninetyDays);
-        if (((since != null)) && (isLessThan(since, allowedSince)))
+        if (((since != null)) && (((since == null || since < allowedSince))))
         {
             throw new BadRequest ((((this.id + " ") + method) + "() only allows fetching entries up to 90 days in the past")) ;
         }
-        object paramsOmitted = this.omit(parameters, "paginate");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "paginate"));
         Dictionary<string, object> paramsExtended = this.extend(paramsOmitted, new Dictionary<string, object>() {
             { "paginationDirection", "backward" },
         });
@@ -1826,28 +1832,36 @@ public partial class bullish : Exchange
         parameters ??= new Dictionary<string, object>();
         sinceKey ??= "createdAtDatetime[gte]";
         untilKey ??= "createdAtDatetime[lte]";
-        object until = this.safeInteger(parameters, "until");
-        bool sinceFromUntil = ((since == null)) && (!(until == null));
+        Int64? untilParam = this.safeInteger(parameters, "until");
+        object until = null;
+        if ((untilParam != null))
+        {
+            until = untilParam;
+        }
+        bool sinceFromUntil = ((since == null)) && ((untilParam != null));
         object paramsResult = parameters;
         if (sinceFromUntil)
         {
             paramsResult = this.omit(parameters, "until");
         }
-        if (((since != null)) || (!(until == null)))
+        if (((since != null)) || ((untilParam != null)))
         {
             Int64 timeDelta = ((((7L * 24L) * 60) * 60) * 1000); // 7 days
             object sinceResolved = since;
-            if ((since == null))
+            if (((since == null)) && ((untilParam != null)))
             {
-                sinceResolved = subtract(until, timeDelta);
+                sinceResolved = (untilParam - timeDelta);
             }
-            if (((since != null)) && ((until == null)))
+            if (((since != null)) && ((untilParam == null)))
             {
-                until = this.sum(since, timeDelta);
                 Int64 now = this.milliseconds();
-                if (isGreaterThan(until, now))
+                Int64 latestSince = (now - timeDelta);
+                if (isGreaterThan(since, latestSince))
                 {
                     until = now;
+                } else
+                {
+                    until = this.sum(since, timeDelta);
                 }
             }
             string? sinceDate = this.iso8601(sinceResolved);
@@ -1861,10 +1875,14 @@ public partial class bullish : Exchange
     public virtual object getClosestLimit(Int64? limit)
     {
         int pageSize = 5;
-        if (((limit > 5)) && (isLessThan(limit, 26)))
+        if ((limit == null))
+        {
+            return pageSize;
+        }
+        if (((limit > 5)) && (((limit == null || limit < 26))))
         {
             pageSize = 25;
-        } else if (((limit > 25)) && (isLessThan(limit, 51)))
+        } else if (((limit > 25)) && (((limit == null || limit < 51))))
         {
             pageSize = 50;
         } else if ((limit > 50))
@@ -2140,7 +2158,7 @@ public partial class bullish : Exchange
         {
             request["price"] = this.priceToPrecision(symbol, price);
         }
-        object paramsOmitted = ((postOnly == true)) ? this.omit(parameters, "postOnly") : parameters;
+        object paramsOmitted = postOnly == true ? this.omit(parameters, "postOnly") : parameters;
         Dictionary<string, object> response = await this.privatePostV2Command(this.extend(request, paramsOmitted));
         return this.parseOrder(response, market);
     }
@@ -2577,11 +2595,10 @@ public partial class bullish : Exchange
     public async virtual Task<object> loadAccount(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? tradingAccountId = null;
-        object paramsTradingAccountId = null;
-        (string?, object) tradingAccountIdparamsTradingAccountIdVariable = this.handleOptionStringAndParams(parameters, "loadAccount", "tradingAccountId");
-        tradingAccountId = tradingAccountIdparamsTradingAccountIdVariable.Item1;
-        paramsTradingAccountId = tradingAccountIdparamsTradingAccountIdVariable.Item2;
+        (string?, object) tradingAccountIdOptionparamsTradingAccountIdVariable = this.handleOptionStringAndParams(parameters, "loadAccount", "tradingAccountId");
+        string? tradingAccountIdOption = tradingAccountIdOptionparamsTradingAccountIdVariable.Item1;
+        IDictionary<string, object> paramsTradingAccountId = ((IDictionary<string, object>)tradingAccountIdOptionparamsTradingAccountIdVariable.Item2);
+        string? tradingAccountId = tradingAccountIdOption;
         if ((tradingAccountId == null))
         {
             List<object> response = await this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId);
@@ -2602,7 +2619,7 @@ public partial class bullish : Exchange
             throw new ArgumentsRequired ((this.id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")) ;
         }
         this.options["tradingAccountId"] = tradingAccountId;
-        return tradingAccountId;
+        return this.safeString(this.options, "tradingAccountId");
     }
 
     /**
@@ -2741,16 +2758,17 @@ public partial class bullish : Exchange
         IList<object> safeResponse = this.toArray(response);
         int length = (safeResponse?.Count ?? 0);
         IDictionary<string, object> data = this.safeDict(safeResponse, 0, new Dictionary<string, object>() {});
-        object network = null;
-        network = this.handleNetworkCodeAndParams(parameters).Item1;
-        bool networkDefinedByUser = (network != null);
+        (string?, object) networkAndParams = this.handleNetworkCodeAndParams(parameters);
+        string? networkParam = networkAndParams.Item1;
+        bool networkDefinedByUser = (networkParam != null);
+        string? network = networkParam;
         if ((length > 1) || (networkDefinedByUser))
         {
             // some currencies have multiple networks
             if ((network == null))
             {
                 // use default network if not specified and multiple are available
-                network = this.defaultNetworkCode(code);
+                network = this.safeString(this.safeDict(this.options, "defaultNetworks", new Dictionary<string, object>() {}), code, this.safeString(this.options, "defaultNetwork"));
             }
             if ((network != null))
             {
@@ -2760,7 +2778,7 @@ public partial class bullish : Exchange
                     IDictionary<string, object> entry = this.safeDict(safeResponse, i, new Dictionary<string, object>() {});
                     string? networkId = this.safeString(entry, "network");
                     string? networkCode = this.networkIdToCode(networkId, code);
-                    if (isEqual(network, networkCode))
+                    if ((network == networkCode))
                     {
                         data = entry;
                         break;
@@ -3141,7 +3159,7 @@ public partial class bullish : Exchange
         };
     }
 
-    public virtual string? parseTransferStatus(object status)
+    public virtual string? parseTransferStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "CLOSED", "ok" },
@@ -3182,7 +3200,7 @@ public partial class bullish : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         Int64? until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
         // current endpoint requires both since and until parameters
-        if ((startTimestamp == null))
+        if ((since == null))
         {
             startTimestamp = (now - ((((1000L * 60L) * 60) * 24) * 90)); // Only the last 90 days of data is available for querying
         }
@@ -3232,9 +3250,9 @@ public partial class bullish : Exchange
         };
     }
 
-    public virtual object getTimestamp()
+    public virtual Int64? getTimestamp()
     {
-        return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
+        return ((Int64?)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)))));
     }
 
     /**
@@ -3352,26 +3370,27 @@ public partial class bullish : Exchange
         }, market);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object requestHeaders = headers;
-        object requestBody = body;
+        object apiName = getValue(api, 0);
+        Dictionary<string, object> requestHeaders = null;
+        string? requestBody = null;
         object request = this.omit(parameters, this.extractParams(path));
         string endpoint = ("/" + this.implodeParams(path, parameters));
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (apiUrl + endpoint);
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             string nonce = this.microseconds().ToString();
-            string timestamp = this.getTimestamp().ToString();
+            string timestamp = ((object)this.getTimestamp()).ToString();
             if ((method == "GET"))
             {
                 string payload = ((((timestamp + nonce) + method) + "/trading-api/") + path);
@@ -3384,7 +3403,7 @@ public partial class bullish : Exchange
             } else if ((method == "POST"))
             {
                 requestBody = this.json(parameters);
-                string payload = (((((timestamp + nonce) + method) + "/trading-api/") + path) + (requestBody));
+                string payload = (((((timestamp + nonce) + method) + "/trading-api/") + path) + requestBody);
                 string digest = ((string)this.hash(this.encode(payload), sha256, "hex"));
                 string signature = this.hmac(this.encode(digest), this.encode(this.secret), sha256, "hex");
                 requestHeaders = new Dictionary<string, object>() {
@@ -3393,17 +3412,17 @@ public partial class bullish : Exchange
                     { "BX-SIGNATURE", signature },
                     { "Content-Type", "application/json" },
                 };
-                ((IDictionary<string,object>)requestHeaders)["Content-Type"] = "application/json";
+                requestHeaders["Content-Type"] = "application/json";
                 string? rateLimitToken = this.safeString(request, "rateLimitToken");
                 if ((rateLimitToken != null))
                 {
-                    ((IDictionary<string,object>)requestHeaders)["BX-RATE-LIMIT-TOKEN"] = rateLimitToken;
+                    requestHeaders["BX-RATE-LIMIT-TOKEN"] = rateLimitToken;
                 }
             }
             if ((path == "v1/users/hmac/login"))
             {
                 requestHeaders = ((requestHeaders == null)) ? new Dictionary<string, object>() {} : requestHeaders;
-                ((IDictionary<string,object>)requestHeaders)["BX-PUBLIC-KEY"] = this.apiKey;
+                requestHeaders["BX-PUBLIC-KEY"] = this.apiKey;
             } else
             {
                 object token = this.token;
@@ -3412,7 +3431,7 @@ public partial class bullish : Exchange
                     throw new AuthenticationError ((this.id + " requires a token, please call signIn() first")) ;
                 }
                 requestHeaders = ((requestHeaders == null)) ? new Dictionary<string, object>() {} : requestHeaders;
-                ((IDictionary<string,object>)requestHeaders)["Authorization"] = ("Bearer " + (token));
+                requestHeaders["Authorization"] = ("Bearer " + (token));
             }
         }
         if ((method == "GET"))

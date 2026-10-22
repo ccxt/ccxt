@@ -91,7 +91,7 @@ public partial class phemex : ccxt.phemex
         return requestId;
     }
 
-    public virtual Dictionary<string, object> parseSwapTicker(object ticker, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseSwapTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -296,11 +296,11 @@ public partial class phemex : ccxt.phemex
         List<object> tickers = new List<object>() {};
         if ((message != null && message.ContainsKey("market24h")))
         {
-            object ticker = this.safeValue(message, "market24h");
+            IDictionary<string, object> ticker = this.safeDict(message, "market24h", new Dictionary<string, object>() {});
             tickers.Add(this.parseSwapTicker(ticker));
         } else if ((message != null && message.ContainsKey("spot_market24h")))
         {
-            object ticker = this.safeValue(message, "spot_market24h");
+            IDictionary<string, object> ticker = this.safeDict(message, "spot_market24h", new Dictionary<string, object>() {});
             tickers.Add(ccxt.BaseExchange.FromTicker(this.parseTicker(ticker)));
         } else if ((message != null && message.ContainsKey("data")))
         {
@@ -313,7 +313,7 @@ public partial class phemex : ccxt.phemex
         for (int i = 0; i < (tickers?.Count ?? 0); i++)
         {
             Dictionary<string, object> ticker = ((Dictionary<string, object>)tickers[i]);
-            object symbol = (ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null);
+            object symbol = (ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null);
             string messageHash = ("ticker:" + (symbol));
             Int64? timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
             ticker["timestamp"] = timestamp;
@@ -1049,7 +1049,8 @@ public partial class phemex : ccxt.phemex
             string? symbol = parsed.symbol;
             if ((type == null))
             {
-                type = ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT")) ? "perpetual" : (market.ContainsKey("type") ? market["type"] : null);
+                string? marketSettle = this.safeString(market, "settle");
+                type = (marketSettle == "USDT") ? "perpetual" : (market.ContainsKey("type") ? market["type"] : null);
             }
             if ((symbol != null))
             {
@@ -1713,7 +1714,7 @@ public partial class phemex : ccxt.phemex
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         Int64 requestId = this.seconds();
         bool settleIsUSDT = ((this.safeString(parameters, "settle", "") == "USDT"));
-        object paramsOmitted = this.omit(parameters, "settle");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "settle"));
         string channel = "aop.subscribe";
         if ((type is "spot"))
         {
@@ -1744,7 +1745,7 @@ public partial class phemex : ccxt.phemex
         if ((future == null))
         {
             Int64? expiryDelta = this.safeInteger(this.options, "expires", 120);
-            object expiration = add(this.seconds(), expiryDelta);
+            object expiration = (this.seconds() + expiryDelta);
             string payload = (this.apiKey + expiration.ToString());
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
             string method = "user.auth";

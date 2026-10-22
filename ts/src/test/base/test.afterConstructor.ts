@@ -113,13 +113,6 @@ function helperTestProperties () {
     // options
     //
     assert (exchange.options !== undefined);
-    // const defaultNetworkCodeReplacements = [
-    //     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-    //     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-    //     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-    //     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-    // ];
-    // testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
 
     //
     // credentials
@@ -203,9 +196,9 @@ function helperTestProperties () {
     assert (testSharedMethods.exchangeProp (exchange, 'enableRateLimit') === true, 'enableRateLimit should be true');
     assert (testSharedMethods.exchangeProp (exchange, 'rateLimiterAlgorithm') === 'leakyBucket', 'rateLimiterAlgorithm should be "leakyBucket"');
     assert (testSharedMethods.exchangeProp (exchange, 'rateLimit') === 2000, 'rateLimit should be 2000');
-    assert (exchange.certified === false, 'certified should be false');
-    assert (exchange.pro === false, 'pro should be false');
-    assert (exchange.alias === false, 'alias should be false');
+    assert (!exchange.certified, 'certified should be false');
+    assert (!exchange.pro, 'pro should be false');
+    assert (!exchange.alias, 'alias should be false');
     const httpExceptionKeys = [ '400', '401', '403', '404', '405', '407', '408', '409', '410', '418', '422', '429', '451', '500', '501', '502', '503', '504', '511', '520', '521', '522', '525', '526', '530' ];
     // php errors with below, bcz integer key cast
     // testSharedMethods.assertDeepEqual (exchange, {}, 'httpExceptionKeys', Object.keys (testSharedMethods.exchangeProp (exchange, 'httpExceptions')), httpExceptionKeys); // todo: add better deepAssert with error classes
@@ -264,7 +257,7 @@ function helperTestProperties () {
     };
     testSharedMethods.assertDeepEqual (exchange, {}, 'status', exchange.status, status);
     assert (exchange.timeout === 10000, 'timeout should be 10000');
-    assert (exchange.verbose === false, 'verbose should be false');
+    assert (!exchange.verbose, 'verbose should be false');
     // assert (testSharedMethods.exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); // todo WS
     assert (testSharedMethods.exchangeProp (exchange, 'reloadingMarkets') !== true, 'reloadingMarkets should be false');
     assert (testSharedMethods.exchangeProp (exchange, 'marketsLoading') === undefined, 'marketsLoading should be undefined');

@@ -266,7 +266,7 @@ class tokocrypto extends tokocrypto$1["default"] {
                 'reverseNetworks': {
                     'tronscan.org': 'TRC20',
                     'etherscan.io': 'ERC20',
-                    'bscscan.com': 'BSC',
+                    'bscscan.com': 'BEP20',
                     'explorer.binance.org': 'BEP2',
                     'bithomp.com': 'XRP',
                     'bloks.io': 'EOS',
@@ -1062,7 +1062,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         const buyerMaker = this.safeBool2(trade, 'm', 'isBuyerMaker');
         let takerOrMaker = undefined;
         if (buyerMaker !== undefined) {
-            side = (buyerMaker === true) ? 'sell' : 'buy'; // this is reversed intentionally
+            side = (buyerMaker) ? 'sell' : 'buy'; // this is reversed intentionally
             takerOrMaker = 'taker';
         }
         else if ('side' in trade) {
@@ -1836,16 +1836,19 @@ class tokocrypto extends tokocrypto$1["default"] {
         const isPostOnlyTimeInForce = (requestedTimeInForce === 'GTX');
         const [postOnly, paramsPostOnly] = this.handlePostOnly(isMarketOrder, isPostOnlyTimeInForce, params);
         // only supported for spot/margin api
-        const typeResolved = (postOnly === true) ? 'LIMIT_MAKER' : type;
+        const typeResolved = (postOnly) ? 'LIMIT_MAKER' : type;
         // post only is expressed by the order type here, not by a time force
-        const timeInForceResolved = (postOnly === true) ? undefined : requestedTimeInForce;
+        let timeInForceResolved = requestedTimeInForce;
+        if (postOnly) {
+            timeInForceResolved = undefined;
+        }
         const initialUppercaseType = typeResolved.toUpperCase();
         let uppercaseType = initialUppercaseType;
         const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
         const triggerKeys = (triggerPrice !== undefined) ? ['triggerPrice', 'stopPrice'] : [];
         let paramsRequest = this.omit(paramsPostOnly, this.arrayConcat(['clientId', 'clientOrderId', 'timeInForce'], triggerKeys));
         if (triggerPrice !== undefined) {
-            if (postOnly === true) {
+            if (postOnly) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() does not support post only trigger orders, the venue has no post only trigger order type');
             }
             if (uppercaseType === 'MARKET') {
@@ -2351,7 +2354,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         return {
             'info': response,
             'currency': code,
-            'network': this.safeString(data, 'network'),
+            'network': this.networkIdToCode(this.safeString(data, 'network'), code),
             'address': address,
             'tag': tag,
         };
@@ -2596,7 +2599,7 @@ class tokocrypto extends tokocrypto$1["default"] {
             'txid': txid,
             'type': type,
             'currency': code,
-            'network': this.safeString(transaction, 'network'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network'), code),
             'amount': this.safeNumber(transaction, 'amount'),
             'status': this.parseTransactionStatusByType(this.safeString(transaction, 'status'), type),
             'timestamp': timestamp,
@@ -2661,17 +2664,18 @@ class tokocrypto extends tokocrypto$1["default"] {
         //
         return this.parseTransaction(response, currency);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (!(api in this.urls['api']['rest'])) {
-            throw new errors.NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        if (!(apiName in this.urls['api']['rest'])) {
+            throw new errors.NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
-        const baseApiUrl = this.safeString(this.urls['api']['rest'], api);
+        const baseApiUrl = this.safeString(this.urls['api']['rest'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = baseApiUrl;
         url += '/' + path;
-        if (api === 'wapi') {
+        if (apiName === 'wapi') {
             url += '.html';
         }
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
@@ -2682,14 +2686,14 @@ class tokocrypto extends tokocrypto$1["default"] {
                     'X-MBX-APIKEY': this.apiKey,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
-                const bodyStream = (method !== 'GET') ? this.urlencode(params) : body;
+                const bodyStream = (method !== 'GET') ? this.urlencode(params) : undefined;
                 return { 'url': url, 'method': method, 'body': bodyStream, 'headers': headersStream };
             }
             else {
                 throw new errors.AuthenticationError(this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
         }
-        else if ((api === 'private') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV3') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
+        else if ((apiName === 'private') || (apiName === 'sapi' && path !== 'system/status') || (apiName === 'sapiV3') || (apiName === 'wapi' && path !== 'systemStatus') || (apiName === 'dapiPrivate') || (apiName === 'dapiPrivateV2') || (apiName === 'fapiPrivate') || (apiName === 'fapiPrivateV2')) {
             this.checkRequiredCredentials();
             let query = undefined;
             const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
@@ -2703,7 +2707,7 @@ class tokocrypto extends tokocrypto$1["default"] {
             if (recvWindow !== undefined) {
                 extendedParams['recvWindow'] = recvWindow;
             }
-            if ((api === 'sapi') && (path === 'asset/dust')) {
+            if ((apiName === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             }
             else if ((path === 'batchOrders') || (path.indexOf('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf('staking') >= 0)) {
@@ -2717,10 +2721,10 @@ class tokocrypto extends tokocrypto$1["default"] {
             const headersSigned = {
                 'X-MBX-APIKEY': this.apiKey,
             };
-            const queryInUrl = (method === 'GET') || (method === 'DELETE') || (api === 'wapi');
+            const queryInUrl = (method === 'GET') || (method === 'DELETE') || (apiName === 'wapi');
             let bodySigned = query;
             if (queryInUrl) {
-                bodySigned = body;
+                bodySigned = undefined;
             }
             if (queryInUrl) {
                 url += '?' + query;
@@ -2735,7 +2739,7 @@ class tokocrypto extends tokocrypto$1["default"] {
                 url += '?' + this.urlencode(params);
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 418) || (code === 429)) {
@@ -2762,7 +2766,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool(response, 'success', true);
         let parsedMessage = undefined;
-        if (success !== true) {
+        if (!success) {
             const messageInner = this.safeString(response, 'msg');
             if (messageInner !== undefined) {
                 try {
@@ -2806,7 +2810,7 @@ class tokocrypto extends tokocrypto$1["default"] {
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
             throw new errors.ExchangeError(feedback);
         }
-        if (success !== true) {
+        if (!success) {
             throw new errors.ExchangeError(this.id + ' ' + body);
         }
         return undefined;
@@ -2822,11 +2826,12 @@ class tokocrypto extends tokocrypto$1["default"] {
             return config['noPoolId'];
         }
         else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = params['limit'];
+            const limit = this.safeInteger(params, 'limit');
             const byLimit = this.safeList(config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
-                if (limit <= entry[0]) {
+                const entryLimit = this.safeInteger(entry, 0);
+                if ((limit !== undefined) && (entryLimit !== undefined) && (limit <= entryLimit)) {
                     return entry[1];
                 }
             }

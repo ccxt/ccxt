@@ -169,8 +169,7 @@ class poloniex extends poloniex$1["default"] {
             if (symbols === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' subscribe() symbols is required');
             }
-            const ids = this.marketIds(symbols);
-            marketIds = (ids === undefined) ? [] : ids;
+            marketIds = this.marketIds(symbols);
         }
         const symbolsSuffix = (symbols === undefined) ? '' : symbols.join(',');
         let symbolsHash = undefined;
@@ -581,7 +580,7 @@ class poloniex extends poloniex$1["default"] {
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool(options, 'awaitBalanceSnapshot', true);
-        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
+        if ((fetchBalanceSnapshot) && (awaitBalanceSnapshot)) {
             await client.future(name + ':fetchBalanceSnapshot');
         }
         return await this.subscribe(name, name, true, undefined, params);
@@ -592,7 +591,7 @@ class poloniex extends poloniex$1["default"] {
         }
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot === true) {
+        if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -676,8 +675,8 @@ class poloniex extends poloniex$1["default"] {
         //        ]
         //    }
         //
-        let data = this.safeValue(message, 'data');
-        data = this.safeValue(data, 0);
+        const dataList = this.safeList(message, 'data');
+        const data = this.safeDict(dataList, 0);
         const channel = this.safeString(message, 'channel');
         const marketId = this.safeString(data, 'symbol');
         const symbol = this.safeSymbol(marketId);
@@ -1190,14 +1189,15 @@ class poloniex extends poloniex$1["default"] {
             const asks = this.safeList(item, 'asks');
             const bids = this.safeList(item, 'bids');
             if (snapshot || update) {
-                if (snapshot && !(symbol in this.orderbooks)) {
-                    this.orderbooks[symbol] = this.orderBook({}, limit);
+                let orderbook = this.safeValue(this.orderbooks, symbol);
+                if (snapshot && (orderbook === undefined)) {
+                    orderbook = this.orderBook({}, limit);
+                    this.orderbooks[symbol] = orderbook;
                 }
-                if (!(symbol in this.orderbooks)) {
-                    // a delta can arrive before the snapshot, it cannot be applied without a book
+                if (orderbook === undefined) {
+                    // a delta before the snapshot (or after the book was dropped) cannot be applied
                     continue;
                 }
-                const orderbook = this.orderbooks[symbol];
                 if (snapshot) {
                     // reset the existing orderbook in place instead of
                     // replacing it: a consumer awakened earlier keeps a

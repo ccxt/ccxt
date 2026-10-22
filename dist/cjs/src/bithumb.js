@@ -367,9 +367,8 @@ class bithumb extends bithumb$1["default"] {
             },
             'options': {
                 'generation': 2, // either API generation 1 or 2
-                // Bithumb v2 ticker endpoint returns HTTP 414 when the `markets` query string is too long.
-                // Keep this conservative to reduce requests while staying below URL-length limits.
-                'fetchTickersGeneration2MaxMarketIdsPerRequest': 300,
+                // Bithumb v2 ticker endpoint rejects more than 200 ids in `markets`
+                'fetchTickersGeneration2MaxMarketIdsPerRequest': 200,
                 'createMarketBuyOrderRequiresPrice': true,
                 'quoteCurrencies': {
                     'KRW': {
@@ -994,27 +993,19 @@ class bithumb extends bithumb$1["default"] {
             }
             const marketIdsChunks = [];
             const promises = [];
-            if (symbols !== undefined) {
-                request['markets'] = marketIds.join(',');
-                marketIdsChunks.push(marketIds);
-                promises.push(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
-            }
-            else {
-                let maxMarketIdsPerRequest = this.safeInteger(this.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 300);
-                if ((maxMarketIdsPerRequest === undefined) || (maxMarketIdsPerRequest < 1)) {
-                    maxMarketIdsPerRequest = 300;
-                }
-                let marketIdsChunk = [];
-                for (let i = 0; i < marketIdsLength; i++) {
-                    marketIdsChunk.push(marketIds[i]);
-                    const marketIdsChunkLength = marketIdsChunk.length;
-                    const isLastMarketId = (i === (marketIdsLength - 1));
-                    if ((marketIdsChunkLength >= maxMarketIdsPerRequest) || isLastMarketId) {
-                        marketIdsChunks.push(marketIdsChunk);
-                        request['markets'] = marketIdsChunk.join(',');
-                        promises.push(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
-                        marketIdsChunk = [];
-                    }
+            // the exchange rejects more than 200 market ids per request
+            const maxMarketIdsOption = this.safeInteger(this.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200);
+            const maxMarketIdsPerRequest = this.parseToInt(((maxMarketIdsOption === undefined) || (maxMarketIdsOption < 1)) ? 200 : maxMarketIdsOption);
+            let marketIdsChunk = [];
+            for (let i = 0; i < marketIdsLength; i++) {
+                marketIdsChunk.push(marketIds[i]);
+                const marketIdsChunkLength = marketIdsChunk.length;
+                const isLastMarketId = (i === (marketIdsLength - 1));
+                if ((marketIdsChunkLength >= maxMarketIdsPerRequest) || isLastMarketId) {
+                    marketIdsChunks.push(marketIdsChunk);
+                    request['markets'] = marketIdsChunk.join(',');
+                    promises.push(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
+                    marketIdsChunk = [];
                 }
             }
             //
@@ -1057,9 +1048,9 @@ class bithumb extends bithumb$1["default"] {
                     response = response['data'];
                 }
                 let expectedMarketId = undefined;
-                const marketIdsChunk = this.safeList(marketIdsChunks, i, []);
-                const firstMarketId = this.safeString(marketIdsChunk, 0);
-                if ((firstMarketId !== undefined) && (this.safeString(marketIdsChunk, 1) === undefined)) {
+                const requestedMarketIds = this.safeList(marketIdsChunks, i, []);
+                const firstMarketId = this.safeString(requestedMarketIds, 0);
+                if ((firstMarketId !== undefined) && (this.safeString(requestedMarketIds, 1) === undefined)) {
                     expectedMarketId = firstMarketId;
                 }
                 let tickers = [];
@@ -1154,7 +1145,7 @@ class bithumb extends bithumb$1["default"] {
                     const currencyId = currencyIds[j];
                     const ticker = data[currencyId];
                     const base = this.safeCurrencyCode(currencyId);
-                    if ((base === undefined) || (quote === undefined)) {
+                    if (base === undefined) {
                         continue;
                     }
                     const symbol = base + '/' + quote;
@@ -1465,26 +1456,33 @@ class bithumb extends bithumb$1["default"] {
         //     }
         //
         // a workaround for their bug in date format, hours are not 0-padded
-        let timestamp = this.safeInteger(trade, 'timestamp');
-        const isGenerationTwo = (timestamp !== undefined);
+        const generationTwoTimestamp = this.safeInteger(trade, 'timestamp');
+        let timestamp = generationTwoTimestamp;
+        const isGenerationTwo = (generationTwoTimestamp !== undefined);
         const transactionDatetime = this.safeString(trade, 'transaction_date');
         if (transactionDatetime !== undefined) {
             const parts = transactionDatetime.split(' ');
             const numParts = parts.length;
             if (numParts > 1) {
                 const transactionDate = parts[0];
-                let transactionTime = parts[1];
-                if (transactionTime.length < 8) {
-                    transactionTime = '0' + transactionTime;
+                const rawTransactionTime = this.safeString(parts, 1, '');
+                let transactionTime = rawTransactionTime;
+                if (rawTransactionTime.length < 8) {
+                    transactionTime = '0' + rawTransactionTime;
                 }
-                timestamp = this.parse8601(transactionDate + ' ' + transactionTime);
+                const kstTimestamp = this.parse8601(transactionDate + ' ' + transactionTime);
+                timestamp = kstTimestamp;
+                if ((kstTimestamp !== undefined) && (!isGenerationTwo)) {
+                    timestamp = kstTimestamp - 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
+                }
             }
             else {
-                timestamp = this.safeIntegerProduct(trade, 'transaction_date', 0.001);
+                const productTimestamp = this.safeIntegerProduct(trade, 'transaction_date', 0.001);
+                timestamp = productTimestamp;
+                if ((productTimestamp !== undefined) && (!isGenerationTwo)) {
+                    timestamp = productTimestamp - 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
+                }
             }
-        }
-        if ((timestamp !== undefined) && (!isGenerationTwo)) {
-            timestamp -= 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
         }
         const type = undefined;
         let side = this.safeStringLower2(trade, 'ask_bid', 'type');
@@ -1501,10 +1499,8 @@ class bithumb extends bithumb$1["default"] {
         const marketId = this.safeString(trade, 'market');
         const marketResolved = this.safeMarket(marketId, market);
         const priceString = this.safeString2(trade, 'price', 'trade_price');
-        let amountString = this.safeString(trade, 'trade_volume');
-        if (amountString === undefined) {
-            amountString = this.fixCommaNumber(this.safeString2(trade, 'units_traded', 'units'));
-        }
+        const tradeVolume = this.safeString(trade, 'trade_volume');
+        const amountString = (tradeVolume === undefined) ? this.fixCommaNumber(this.safeString2(trade, 'units_traded', 'units')) : tradeVolume;
         const costString = this.safeString(trade, 'total');
         let fee = undefined;
         const feeCostString = this.safeString(trade, 'fee');
@@ -1626,7 +1622,7 @@ class bithumb extends bithumb$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' createOrders() requires a non-empty orders array');
         }
         const ordersRequests = [];
-        let orderSymbols = [];
+        const orderSymbols = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict(orders, i);
             const symbol = this.safeString(rawOrder, 'symbol');
@@ -1648,8 +1644,8 @@ class bithumb extends bithumb$1["default"] {
             const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
-        orderSymbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
-        const market = this.market(orderSymbols[0]);
+        const symbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
+        const market = this.market(symbols[0]);
         const request = {
             'batch_orders': ordersRequests,
         };
@@ -1728,21 +1724,16 @@ class bithumb extends bithumb$1["default"] {
             if (side === 'buy') {
                 typeRequest = 'price';
                 // for market buy it requires the amount of quote currency to spend
-                let cost = this.safeString(paramsOrder, 'cost');
+                const costParam = this.safeString(paramsOrder, 'cost');
                 const [createMarketBuyOrderRequiresPrice, paramsRequiresPrice] = this.handleOptionBoolAndParams(this.omit(paramsOrder, 'cost'), 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 paramsOrder = paramsRequiresPrice;
+                const amountString = this.numberToString(amount);
+                let cost = (costParam === undefined) ? amountString : costParam;
                 if (createMarketBuyOrderRequiresPrice) {
-                    if ((price === undefined) && (cost === undefined)) {
+                    if ((price === undefined) && (costParam === undefined)) {
                         throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                     }
-                    else {
-                        const amountString = this.numberToString(amount);
-                        const priceString = this.numberToString(price);
-                        cost = Precise["default"].stringMul(amountString, priceString);
-                    }
-                }
-                else {
-                    cost = (cost === undefined) ? this.numberToString(amount) : cost;
+                    cost = Precise["default"].stringMul(amountString, this.numberToString(price));
                 }
                 request['price'] = this.priceToPrecision(symbol, cost);
             }
@@ -2746,7 +2737,7 @@ class bithumb extends bithumb$1["default"] {
                 }
                 request['address'] = address;
                 request['currency'] = currency['id'];
-                request['net_type'] = network;
+                request['net_type'] = this.networkCodeToId(network, code);
                 request['amount'] = this.numberToString(amount);
                 if (destinationRequest !== undefined) {
                     request['secondary_address'] = destinationRequest;
@@ -2778,7 +2769,7 @@ class bithumb extends bithumb$1["default"] {
             request['currency'] = currency['id'];
             request['units'] = amount;
             if (network !== undefined) {
-                request['net_type'] = network;
+                request['net_type'] = this.networkCodeToId(network, code);
             }
             if (destinationRequest !== undefined) {
                 request['destination'] = destinationRequest;
@@ -2843,7 +2834,7 @@ class bithumb extends bithumb$1["default"] {
             'txid': this.safeString(transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': this.safeString(transaction, 'net_type'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'net_type'), currencyResolved['code']),
             'addressFrom': undefined,
             'address': undefined,
             'addressTo': undefined,
@@ -3172,7 +3163,7 @@ class bithumb extends bithumb$1["default"] {
         if (network === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' ' + code + ' createDepositAddress() requires a network parameter');
         }
-        request['net_type'] = network;
+        request['net_type'] = this.networkCodeToId(network, code);
         const response = await this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, paramsOmitted));
         //
         //     {
@@ -3212,7 +3203,7 @@ class bithumb extends bithumb$1["default"] {
         if (network === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' ' + code + ' fetchDepositAddress() requires a network parameter');
         }
-        request['net_type'] = network;
+        request['net_type'] = this.networkCodeToId(network, code);
         const response = await this.privateGetV1DepositsCoinAddress(this.extend(request, paramsOmitted));
         //
         //     {
@@ -3276,7 +3267,7 @@ class bithumb extends bithumb$1["default"] {
         return {
             'info': response,
             'currency': code,
-            'network': this.safeString(response, 'net_type'),
+            'network': this.networkIdToCode(this.safeString(response, 'net_type'), code),
             'address': address,
             'tag': this.safeString(response, 'secondary_address'),
         };
@@ -3327,11 +3318,12 @@ class bithumb extends bithumb$1["default"] {
         }
         return result;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let requestHeaders = undefined;
         let requestBody = undefined;
         const endpoint = '/' + this.implodeParams(path, params);
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -3340,7 +3332,7 @@ class bithumb extends bithumb$1["default"] {
         const queryKeys = Object.keys(query);
         const queryKeysLength = queryKeys.length;
         const hasQuery = (queryKeysLength > 0);
-        if (api === 'public') {
+        if (apiName === 'public') {
             requestHeaders = {
                 'OPEN-API-PARTNER': 'CCXT',
             };
@@ -3382,11 +3374,11 @@ class bithumb extends bithumb$1["default"] {
                 requestHeaders['Authorization'] = 'Bearer ' + token;
             }
             else {
-                requestBody = this.urlencode(this.extend({
+                const encodedBody = this.urlencode(this.extend({
                     'endpoint': endpoint,
                 }, query));
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                const bodyParts = requestBody.split('%20');
+                const bodyParts = encodedBody.split('%20');
                 requestBody = bodyParts.join('+');
                 const nonce = this.nonce().toString();
                 const auth = endpoint + "\0" + requestBody + "\0" + nonce; // eslint-disable-line quotes
@@ -3402,8 +3394,8 @@ class bithumb extends bithumb$1["default"] {
                 };
             }
         }
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

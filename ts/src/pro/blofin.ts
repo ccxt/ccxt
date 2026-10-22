@@ -73,13 +73,6 @@ export default class blofin extends blofinRest {
         return 'ping';
     }
 
-    handlePong (client: Client, message: any) {
-        //
-        //   'pong'
-        //
-        client.lastPong = this.milliseconds ();
-    }
-
     /**
      * @method
      * @name blofin#watchTrades
@@ -516,9 +509,6 @@ export default class blofin extends blofinRest {
         //     }
         //
         const marketType = 'swap'; // for now
-        if (!(marketType in this.balance)) {
-            this.balance[marketType] = {};
-        }
         this.balance[marketType] = this.parseWsBalance (message);
         const messageHash = marketType + ':balance';
         client.resolve (this.balance[marketType], messageHash);
@@ -783,7 +773,7 @@ export default class blofin extends blofinRest {
         return await this.watchMultiple (url, messageHashes, this.deepExtend (request, paramsMarketType), messageHashes);
     }
 
-    getSubscriptionRequest (args: any) {
+    getSubscriptionRequest (args: List): Dict {
         return {
             'op': 'subscribe',
             'args': args,
@@ -806,7 +796,6 @@ export default class blofin extends blofinRest {
         //
         const methods = {
             // public
-            'pong': this.handlePong,
             'trades': this.handleTrades,
             'books': this.handleOrderBook,
             'tickers': this.handleTicker,
@@ -820,7 +809,8 @@ export default class blofin extends blofinRest {
         };
         let method: any = undefined;
         if (message === 'pong') {
-            method = this.safeValue (methods, 'pong');
+            client.lastPong = this.milliseconds ();
+            return;
         } else {
             const event = this.safeString (message, 'event');
             if (event === 'subscribe') {

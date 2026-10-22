@@ -846,33 +846,35 @@ public class Coinsph extends CoinsphApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
+        if ((config.containsKey("noSymbol")) && !((switch ((Object)(parameters)) { case List<?> j39v13 -> j39v13.contains("symbol"); case Map<?, ?> j39v12 -> j39v12.containsKey("symbol"); case null, default -> false; })))
         {
             return config.get("noSymbol");
-        } else if ((config.containsKey("noSymbolAndNoSymbols")) && !(Helpers.inOp(parameters, "symbol")) && !(Helpers.inOp(parameters, "symbols")))
+        } else if ((config.containsKey("noSymbolAndNoSymbols")) && !((switch ((Object)(parameters)) { case List<?> j39v11 -> j39v11.contains("symbol"); case Map<?, ?> j39v10 -> j39v10.containsKey("symbol"); case null, default -> false; })) && !((switch ((Object)(parameters)) { case List<?> j39v9 -> j39v9.contains("symbols"); case Map<?, ?> j39v8 -> j39v8.containsKey("symbols"); case null, default -> false; })))
         {
             return config.get("noSymbolAndNoSymbols");
-        } else if ((config.containsKey("byNumberOfSymbols")) && (Helpers.inOp(parameters, "symbols")))
+        } else if ((config.containsKey("byNumberOfSymbols")) && ((switch ((Object)(parameters)) { case List<?> j39v7 -> j39v7.contains("symbols"); case Map<?, ?> j39v6 -> j39v6.containsKey("symbols"); case null, default -> false; })))
         {
             Object symbols = Helpers.GetValue(parameters, "symbols");
-            Integer symbolsAmount = Helpers.getArrayLength(symbols);
+            Integer symbolsAmount = (switch ((Object)(symbols)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; });
             List<Object> byNumberOfSymbols = (List<Object>) this.safeList(config, "byNumberOfSymbols", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byNumberOfSymbols).size(); i++)
             {
                 Object entry = (byNumberOfSymbols == null || i < 0 || i >= byNumberOfSymbols.size() ? null : byNumberOfSymbols.get(i));
-                if (Helpers.isGreaterThanOrEqual(symbolsAmount, Helpers.GetValue(entry, 0)))
+                Long threshold = this.safeInteger(entry, 0);
+                if (!java.util.Objects.equals(threshold, null) && (threshold == null || (symbolsAmount != null && symbolsAmount >= threshold)))
                 {
                     return Helpers.GetValue(entry, 1);
                 }
             }
-        } else if ((config.containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
+        } else if ((config.containsKey("byLimit")) && ((switch ((Object)(parameters)) { case List<?> j39v2 -> j39v2.contains("limit"); case Map<?, ?> j39v1 -> j39v1.containsKey("limit"); case null, default -> false; })))
         {
-            Object limit = Helpers.GetValue(parameters, "limit");
+            Long limit = this.safeInteger(parameters, "limit");
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {
                 Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));
-                if (Helpers.isGreaterThanOrEqual(limit, Helpers.GetValue(entry, 0)))
+                Long threshold = this.safeInteger(entry, 0);
+                if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(threshold, null) && (threshold == null || (limit != null && limit >= threshold)))
                 {
                     return Helpers.GetValue(entry, 1);
                 }
@@ -1019,37 +1021,37 @@ public class Coinsph extends CoinsphApi
                 Map<String, Object> amountLimits = (Map<String, Object>) this.safeDict(limits, "LOT_SIZE", new HashMap<String, Object>() {{}});
                 Map<String, Object> priceLimits = (Map<String, Object>) this.safeDict(limits, "PRICE_FILTER", new HashMap<String, Object>() {{}});
                 Map<String, Object> costLimits = (Map<String, Object>) this.safeDict(limits, "NOTIONAL", new HashMap<String, Object>() {{}});
-                ((List<Object>)result).add(Helpers.newMap(
-                    "id", id,
-                    "symbol", ((base + "/") + quote),
-                    "base", base,
-                    "quote", quote,
-                    "settle", null,
-                    "baseId", baseId,
-                    "quoteId", quoteId,
-                    "settleId", null,
-                    "type", "spot",
-                    "spot", true,
-                    "margin", false,
-                    "swap", false,
-                    "future", false,
-                    "option", false,
-                    "active", java.util.Objects.equals(this.safeStringLower(market, "status"), "trading"),
-                    "contract", false,
-                    "linear", null,
-                    "inverse", null,
-                    "taker", null,
-                    "maker", null,
-                    "contractSize", null,
-                    "expiry", null,
-                    "expiryDatetime", null,
-                    "strike", null,
-                    "optionType", null,
-                    "precision", new HashMap<String, Object>() {{
+                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v14 = new HashMap<String, Object>();
+                    j39v14.put("id", id);
+                    j39v14.put("symbol", ((base + "/") + quote));
+                    j39v14.put("base", base);
+                    j39v14.put("quote", quote);
+                    j39v14.put("settle", null);
+                    j39v14.put("baseId", baseId);
+                    j39v14.put("quoteId", quoteId);
+                    j39v14.put("settleId", null);
+                    j39v14.put("type", "spot");
+                    j39v14.put("spot", true);
+                    j39v14.put("margin", false);
+                    j39v14.put("swap", false);
+                    j39v14.put("future", false);
+                    j39v14.put("option", false);
+                    j39v14.put("active", java.util.Objects.equals(this.safeStringLower(market, "status"), "trading"));
+                    j39v14.put("contract", false);
+                    j39v14.put("linear", null);
+                    j39v14.put("inverse", null);
+                    j39v14.put("taker", null);
+                    j39v14.put("maker", null);
+                    j39v14.put("contractSize", null);
+                    j39v14.put("expiry", null);
+                    j39v14.put("expiryDatetime", null);
+                    j39v14.put("strike", null);
+                    j39v14.put("optionType", null);
+                    j39v14.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Coinsph.this.parseNumber(Coinsph.this.safeString(amountLimits, "stepSize")) );
                         put( "price", Coinsph.this.parseNumber(Coinsph.this.safeString(priceLimits, "tickSize")) );
-                    }},
-                    "limits", new HashMap<String, Object>() {{
+                    }});
+                    j39v14.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -1066,10 +1068,10 @@ public class Coinsph extends CoinsphApi
                             put( "min", Coinsph.this.parseNumber(Coinsph.this.safeString(costLimits, "minNotional")) );
                             put( "max", null );
                         }} );
-                    }},
-                    "created", null,
-                    "info", market
-                ));
+                    }});
+                    j39v14.put("created", null);
+                    j39v14.put("info", market);
+                    yield j39v14; } }));
             }
             this.setMarkets(result, (Object) null);
             return result;
@@ -1338,17 +1340,15 @@ public class Coinsph extends CoinsphApi
                     request.put("endTime", until);
                 } else
                 {
-                    Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-                    Object endTimeByLimit = this.sum(since, Helpers.multiply(duration, ((limitResolved - 1L))));
+                    Object endTimeByLimit = this.sum(since, ((((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L) * (limitResolved - 1L)));
                     Long now = this.milliseconds();
-                    request.put("endTime", Helpers.mathMin(endTimeByLimit, now));
+                    request.put("endTime", (now == null ? null : (((Number) endTimeByLimit).doubleValue() < ((Number) now).doubleValue() ? (Object) (endTimeByLimit) : (Object) (now))));
                 }
             } else if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", until);
                 // since work properly only when it is "younger" than last "limit" candle
-                Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-                request.put("startTime", Helpers.subtract(until, (Helpers.multiply(duration, ((limitResolved - 1L))))));
+                request.put("startTime", (until - ((((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L) * (limitResolved - 1L))));
             }
             request.put("limit", limitResolved);
             Map<String, Object> paramsOmitted = this.omit(parameters, "until");
@@ -1560,16 +1560,18 @@ public class Coinsph extends CoinsphApi
         if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeString(trade, "commissionAsset");
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null)
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null));
+                fee = hx4NewMap0;
+            }
         }
         Boolean isBuyer = (Boolean) this.safeBool2(trade, "isBuyer", "isBuyerMaker", (Object) null);
         String side = null;
         if (!java.util.Objects.equals(isBuyer, null))
         {
-            side = (((java.util.Objects.equals(isBuyer, true)))) ? "buy" : "sell";
+            side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
         }
         String isMaker = this.safeString(trade, "isMaker");
         String takerOrMaker = null;
@@ -1769,7 +1771,7 @@ public class Coinsph extends CoinsphApi
             Object paramsBase = (((!java.util.Objects.equals(paramsQuote, null)))) ? paramsQuote : paramsType;
             Object paramsRequest = this.omit(paramsBase, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
             Map<String, Object> response = new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(testOrder, true))
+            if (Boolean.TRUE.equals(testOrder))
             {
                 response = (this.privatePostOpenapiV1OrderTest(this.extend(request, paramsRequest))).join();
             } else
@@ -2317,7 +2319,7 @@ public class Coinsph extends CoinsphApi
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagparamsWithdrawTagVariable).get(1);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "withdraw", (Object) null);
             Boolean warning = (Boolean) this.safeBool(options, "warning", true);
-            if (java.util.Objects.equals(warning, true))
+            if (Boolean.TRUE.equals(warning))
             {
                 throw new InvalidAddress((this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
             }
@@ -2564,13 +2566,15 @@ public class Coinsph extends CoinsphApi
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "currency", code,
-                "cost", feeCost
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("currency", code);
+                hx4NewMap1.put("cost", feeCost);
+                fee = hx4NewMap1;
+            }
         }
-        String network = this.safeString(transaction, "network");
-        Boolean intern = java.util.Objects.equals(network, "Internal");
+        String networkId = this.safeString(transaction, "network");
+        Boolean intern = java.util.Objects.equals(networkId, "Internal");
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("info", transaction);
@@ -2578,7 +2582,7 @@ public class Coinsph extends CoinsphApi
             h2kMap0.put("txid", txid);
             h2kMap0.put("timestamp", timestamp);
             h2kMap0.put("datetime", this.iso8601(timestamp));
-            h2kMap0.put("network", network);
+            h2kMap0.put("network", this.networkIdToCode(networkId, code));
             h2kMap0.put("address", address);
             h2kMap0.put("addressTo", address);
             h2kMap0.put("addressFrom", null);
@@ -2675,7 +2679,7 @@ public class Coinsph extends CoinsphApi
         }};
     }
 
-    public Object urlEncodeQuery(Map<String, Object> query)
+    public String urlEncodeQuery(Map<String, Object> query)
     {
         String encodedArrayParams = "";
         Map<String, Object> remainingQuery = query;
@@ -2691,7 +2695,7 @@ public class Coinsph extends CoinsphApi
                 }
                 Object innerArray = (query == null || key == null ? null : query.get(key));
                 remainingQuery = this.omit(remainingQuery, key);
-                Object encodedArrayParam = this.parseArrayParam(innerArray, key);
+                String encodedArrayParam = this.parseArrayParam(innerArray, key);
                 encodedArrayParams = (encodedArrayParams + encodedArrayParam);
             }
         }
@@ -2705,18 +2709,19 @@ public class Coinsph extends CoinsphApi
         }
     }
 
-    public Object parseArrayParam(Object array, Object key)
+    public String parseArrayParam(Object array, Object key)
     {
         String stringifiedArray = this.json(array);
-        stringifiedArray = Helpers.replace(stringifiedArray, (String)"[", (String)"%5B");
-        stringifiedArray = Helpers.replace(stringifiedArray, (String)"]", (String)"%5D");
+        stringifiedArray = (stringifiedArray == null ? null : ((String)stringifiedArray).replaceFirst(java.util.regex.Pattern.quote("["), "%5B"));
+        stringifiedArray = (stringifiedArray == null ? null : ((String)stringifiedArray).replaceFirst(java.util.regex.Pattern.quote("]"), "%5D"));
         String urlEncodedParam = ((key + "=") + stringifiedArray);
         return urlEncodedParam;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2724,7 +2729,7 @@ public class Coinsph extends CoinsphApi
         Object query = this.omit(parameters, this.extractParams(path));
         String endpoint = (String) this.implodeParams(path, parameters);
         String url = ((apiUrl + "/") + endpoint);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             Helpers.addElementToObject(query, "timestamp", this.milliseconds());
@@ -2737,7 +2742,7 @@ public class Coinsph extends CoinsphApi
                     Helpers.addElementToObject(query, "recvWindow", defaultRecvWindow);
                 }
             }
-            Object signedQuery = this.urlEncodeQuery(Helpers.toMapArg(query));
+            Object signedQuery = this.urlEncodeQuery(((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
             String signature = (String) this.hmac(this.encode(signedQuery), this.encode(this.secret), sha256());
             url = ((((url + "?") + signedQuery) + "&signature=") + signature);
             Map<String, Object> signedHeaders = new HashMap<String, Object>() {{
@@ -2747,13 +2752,13 @@ public class Coinsph extends CoinsphApi
                 HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
                 h2kMap1.put("url", url);
                 h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-                h2kMap1.put("body", body);
+                h2kMap1.put("body", null);
                 h2kMap1.put("headers", signedHeaders);
                 return h2kMap1;
             }
         }
-        Object encodedQuery = this.urlEncodeQuery(Helpers.toMapArg(query));
-        if ((((String)encodedQuery).length() != 0))
+        String encodedQuery = this.urlEncodeQuery(((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+        if ((encodedQuery.length() != 0))
         {
             url = (url + ("?" + encodedQuery));
         }
@@ -2761,8 +2766,8 @@ public class Coinsph extends CoinsphApi
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);
             h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap2.put("body", body);
-            h2kMap2.put("headers", headers);
+            h2kMap2.put("body", null);
+            h2kMap2.put("headers", null);
             return h2kMap2;
         }
     }

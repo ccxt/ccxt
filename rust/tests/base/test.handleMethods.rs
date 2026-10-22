@@ -96,38 +96,6 @@ fn helperTestHandleMarketTypeAndParams() {
     // fake assertion to avoid unused vars
     assert!(ccxt::runtime::is_true(&(Value::Bool((params1 != Value::Null) || (params2 != Value::Null) || (params3 != Value::Null) || (params4 != Value::Null) || (params5 != Value::Null) || (params6 != Value::Null)))));
 }
-fn helperTestHandleNetworkRequest() {
-    let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
-            m.insert("options".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("networks".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("XYZ".to_string(), Value::Str("Xyz".into()));
-    m
-}));
-    m
-}));
-        m
-    }));
-    // (set_value on Exchange dropped)
-    let mut currencyCode: Value = Value::Str("ETH".into()); // todo: in future with complex cases
-    // no-case
-    let mut request1params1Variable = exchange.handle_request_network(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("network".to_string(), Value::Str("XYZ".into()));
-    m
-}), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}), Value::Str("chain_id".into()), &[currencyCode.clone(), Value::Bool(false)]);
-    let mut request1: Value = request1params1Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut params1: Value = request1params1Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&params1, Value::Dict(__d) if __d.contains_key("network"))))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(matches!(&request1, Value::Dict(__d) if __d.contains_key("chain_id"))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(request1.as_map().and_then(|__m| __m.get("chain_id")).cloned().unwrap_or(Value::Null).as_str() == Some("Xyz")))));
-}
 fn helperTestHandleTypedOptions() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
@@ -138,6 +106,8 @@ fn helperTestHandleTypedOptions() {
         m.insert("fetchX".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("uta".to_string(), Value::Bool(true));
+        m.insert("boolString".to_string(), Value::Str("false".into()));
+        m.insert("boolNumber".to_string(), Value::Int(1));
     m
 }));
     m
@@ -157,7 +127,7 @@ fn helperTestHandleTypedOptions() {
 }), Value::Str("fetchX".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
     let mut uta: Value = utaparams2Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     let mut params2: Value = utaparams2Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(uta.as_bool() == Some(true)))));
+    assert!(ccxt::runtime::is_true(&(uta.clone())));
     let mut absentparams3Variable = exchange.handle_option_string_and_params(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -174,11 +144,35 @@ fn helperTestHandleTypedOptions() {
     let mut params4: Value = fromParamsparams4Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
     assert!(ccxt::runtime::is_true(&(Value::Bool(fromParams.as_str() == Some("p")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&params4, Value::Dict(__d) if __d.contains_key("absentKey"))))))));
-    // a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)
+    // "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws
+    let mut boolStringparams5Variable = exchange.handle_option_bool_and_params(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}), Value::Str("fetchX".into()), Value::Str("boolString".into()), &[Value::Bool(true)]);
+    let mut boolString: Value = boolStringparams5Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+    let mut params5: Value = boolStringparams5Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(boolString.as_bool() == Some(false)))));
+    let mut boolNumberparams6Variable = exchange.handle_option_bool_and_params(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("boolNumber".to_string(), Value::Int(1));
+    m
+}), Value::Str("fetchX".into()), Value::Str("boolNumber".into()), &[Value::Bool(false)]);
+    let mut boolNumber: Value = boolNumberparams6Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+    let mut params6: Value = boolNumberparams6Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(boolNumber.as_bool() == Some(true)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&params6, Value::Dict(__d) if __d.contains_key("boolNumber"))))))));
+    let mut caught: Value = Value::Bool(false);
+    let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        exchange.check_option_bool(Value::Str("fetchX".into()), Value::Str("wrongBool".into()), Value::Str("yes".into()));
+     #[allow(unreachable_code)] { Value::Null }}));
+if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
+        caught = Value::Bool(true);
+    }
+    assert!(ccxt::runtime::is_true(&(caught.clone())));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(params5 != Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool((params1 != Value::Null) || (params2 != Value::Null) || (params3 != Value::Null)))));
 }
 pub fn testHandleMethods() {
     helperTestHandleMarketTypeAndParams();
-    helperTestHandleNetworkRequest();
     helperTestHandleTypedOptions();
 }

@@ -1461,10 +1461,10 @@ class testMainClass {
         const watchOrderBookSkips = this.getSkips (exchange, 'watchOrderBook');
         const fetchOrderBookSkips = this.getSkips (exchange, 'fetchOrderBook');
         // ensure with hardcoded list of required methods
-        if (this.wsTests && (exchange.safeBool (exchange.has, 'watchOrderBook', false) !== true) && typeof watchOrderBookSkips !== 'string') {
+        if (this.wsTests && (!exchange.safeBool (exchange.has, 'watchOrderBook', false)) && typeof watchOrderBookSkips !== 'string') {
             dump ('[TEST_FAILURE] Method "watchOrderBook" is not set in "has", please check the "has" property of exchange');
             exitScript (1);
-        } else if (!this.wsTests && (exchange.safeBool (exchange.has, 'fetchOrderBook', false) !== true) && typeof fetchOrderBookSkips !== 'string') {
+        } else if (!this.wsTests && (!exchange.safeBool (exchange.has, 'fetchOrderBook', false)) && typeof fetchOrderBookSkips !== 'string') {
             dump ('[TEST_FAILURE] Method "fetchOrderBook" is not set in "has", please check the "has" property of exchange');
             exitScript (1);
         }
@@ -1919,6 +1919,78 @@ class testMainClass {
         return true;
     }
 
+    assertStaticIsolatedPosition (exchange: Exchange, entry: any) {
+        if (!exchange.isDictionary (entry)) {
+            return true;
+        }
+        const marginMode = exchange.safeString (entry, 'marginMode');
+        if (marginMode !== 'isolated') {
+            return true;
+        }
+        const side = exchange.safeString (entry, 'side');
+        const entryPrice = exchange.safeNumber (entry, 'entryPrice');
+        const liquidationPrice = exchange.safeNumber (entry, 'liquidationPrice');
+        const contracts = exchange.safeNumber (entry, 'contracts');
+        const contractSize = exchange.safeNumber (entry, 'contractSize');
+        const maintenanceMargin = exchange.safeNumber (entry, 'maintenanceMargin');
+        const collateral = exchange.safeNumber (entry, 'collateral');
+        const initialMargin = exchange.safeNumber (entry, 'initialMargin');
+        const unrealizedPnl = exchange.safeNumber (entry, 'unrealizedPnl');
+        if ((entryPrice !== undefined) && (liquidationPrice !== undefined) && (entryPrice > 0) && (liquidationPrice > 0)) {
+            if (side === 'long') {
+                this.assertStaticError (liquidationPrice < entryPrice, 'isolated long liquidationPrice should be less than entryPrice', entryPrice, liquidationPrice);
+            } else if (side === 'short') {
+                this.assertStaticError (liquidationPrice > entryPrice, 'isolated short liquidationPrice should be greater than entryPrice', entryPrice, liquidationPrice);
+            }
+        }
+        let entryMargin = undefined;
+        if (collateral !== undefined) {
+            if ((unrealizedPnl !== undefined) && (collateral !== initialMargin)) {
+                entryMargin = collateral - unrealizedPnl;
+            } else {
+                entryMargin = collateral;
+            }
+        } else if (initialMargin !== undefined) {
+            entryMargin = initialMargin;
+        }
+        if ((entryMargin !== undefined) && (entryPrice !== undefined) && (liquidationPrice !== undefined) && (contracts !== undefined) && (contractSize !== undefined) && (maintenanceMargin !== undefined)) {
+            if ((entryMargin > 0) && (entryPrice > 0) && (liquidationPrice > 0) && (contracts > 0) && (contractSize > 0) && (maintenanceMargin > 0)) {
+                const symbol = exchange.safeString (entry, 'symbol');
+                const market = (symbol !== undefined) ? exchange.safeDict (exchange.markets, symbol) : undefined;
+                const isInverse = (market !== undefined) && exchange.safeBool (market, 'inverse', false);
+                let priceDiff = 0;
+                if (isInverse) {
+                    const invEntry = 1 / entryPrice;
+                    const invLiq = 1 / liquidationPrice;
+                    priceDiff = (invEntry > invLiq) ? (invEntry - invLiq) : (invLiq - invEntry);
+                } else {
+                    priceDiff = (entryPrice > liquidationPrice) ? (entryPrice - liquidationPrice) : (liquidationPrice - entryPrice);
+                }
+                const lossFromEntry = priceDiff * contracts * contractSize;
+                const calculatedMm = entryMargin - lossFromEntry;
+                this.assertStaticError (calculatedMm > 0, 'isolated position remaining collateral at liquidationPrice should be greater than 0', maintenanceMargin, calculatedMm);
+                const mmDiff = (calculatedMm > maintenanceMargin) ? (calculatedMm - maintenanceMargin) : (maintenanceMargin - calculatedMm);
+                const maxTolerance = entryMargin * 0.05;
+                this.assertStaticError (mmDiff <= maxTolerance, 'isolated position maintenanceMargin does not match remaining collateral at liquidationPrice', maintenanceMargin, calculatedMm);
+            }
+        }
+        return true;
+    }
+
+    assertStaticIsolatedPositions (exchange: Exchange, method: string, output: any) {
+        if ((method === 'fetchPosition') || (method === 'fetchPositions') || (method === 'fetchPositionsForSymbol') || (method === 'fetchPositionsRisk')) {
+            if (Array.isArray (output)) {
+                const outputLength = output.length;
+                for (let i = 0; i < outputLength; i++) {
+                    this.assertStaticIsolatedPosition (exchange, output[i]);
+                }
+            } else if (exchange.isDictionary (output)) {
+                this.assertStaticIsolatedPosition (exchange, output);
+            }
+        }
+        return true;
+    }
+
     assertStaticResponseOutput (exchange: Exchange, skipKeys: string[], computedResult: any, storedResult: any) {
         this.assertNewAndStoredOutput (exchange, skipKeys, computedResult, storedResult, false);
     }
@@ -2007,9 +2079,11 @@ class testMainClass {
             if (!isSync ()) {
                 const unifiedResult = await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
                 this.assertStaticResponseOutput (mockedExchange, skipKeys, unifiedResult, expectedResult);
+                this.assertStaticIsolatedPositions (mockedExchange, method, expectedResult);
             } else {
                 const unifiedResultSync = callExchangeMethodDynamicallySync (exchange, method, this.sanitizeDataInput (data['input']));
                 this.assertStaticResponseOutput (mockedExchange, skipKeys, unifiedResultSync, expectedResult);
+                this.assertStaticIsolatedPositions (mockedExchange, method, expectedResult);
             }
         }
         catch (e) {
@@ -2201,7 +2275,7 @@ class testMainClass {
                 // and would leak state across entries otherwise
                 const exchange = this.initOfflineExchange (exchangeName, true);
                 const isDisabled = exchange.safeBool (result, 'disabled', false);
-                if (isDisabled === true) {
+                if (isDisabled) {
                     continue;
                 }
                 const disabledString = exchange.safeString (result, 'disabled', '');
@@ -2231,6 +2305,14 @@ class testMainClass {
                 exchange.extendExchangeOptions (globalOptions);
                 const testExchangeOptions = exchange.safeValue (result, 'options', {});
                 exchange.extendExchangeOptions (testExchangeOptions);
+                const apiKey = exchange.safeString (result, 'apiKey');
+                if (!exchange.isEmptyString (apiKey)) {
+                    exchange.apiKey = (apiKey as string).toString ();
+                }
+                const secret = exchange.safeString (result, 'secret');
+                if (!exchange.isEmptyString (secret)) {
+                    exchange.secret = (secret as string).toString ();
+                }
                 const skipKeys = this.effectiveSkipKeys (exchange, exchangeData, result);
                 await this.testWsStatically (exchange, method, skipKeys, result);
                 if (!isSync ()) {
@@ -2329,6 +2411,10 @@ class testMainClass {
             options['apiKey'] = "";
             options['secret'] = "";
         }
+        if (exchangeName === 'backpack') {
+            // Ed25519 requires a base64-encoded 32-byte seed, not the generic dummy secret.
+            options['secret'] = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
+        }
         const exchange = initExchange (exchangeName, options, isWs);
         if (currencies !== undefined) {
             exchange.currencies = currencies;
@@ -2406,7 +2492,7 @@ class testMainClass {
                     continue;
                 }
                 const isDisabled = exchange.safeBool (result, 'disabled', false);
-                if (isDisabled === true) {
+                if (isDisabled) {
                     continue;
                 }
                 const disabledString = exchange.safeString (result, 'disabled', '');
@@ -2414,11 +2500,11 @@ class testMainClass {
                     continue;
                 }
                 const isDisabledCSharp = exchange.safeBool (result, 'disabledCS', false);
-                if ((isDisabledCSharp === true) && (this.lang === 'C#')) {
+                if ((isDisabledCSharp) && (this.lang === 'C#')) {
                     continue;
                 }
                 const isDisabledGo = exchange.safeBool (result, 'disabledGO', false);
-                if ((isDisabledGo === true) && (this.lang === 'GO')) {
+                if ((isDisabledGo) && (this.lang === 'GO')) {
                     continue;
                 }
                 const isDisabledRust = exchange.safeBool (result, 'disabledRS', false);
@@ -2426,7 +2512,7 @@ class testMainClass {
                     continue;
                 }
                 const isDisabledJava = exchange.safeBool (result, 'disabledJava', false);
-                if ((isDisabledJava === true) && (this.lang === 'java')) {
+                if ((isDisabledJava) && (this.lang === 'java')) {
                     continue;
                 }
                 const type = exchange.safeString (exchangeData, 'outputType');
@@ -2482,15 +2568,15 @@ class testMainClass {
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 exchange.extendExchangeOptions (exchange.deepExtend (oldExchangeOptions, testExchangeOptions));
                 const isDisabled = exchange.safeBool (result, 'disabled', false);
-                if (isDisabled === true) {
+                if (isDisabled) {
                     continue;
                 }
                 const isDisabledCSharp = exchange.safeBool (result, 'disabledCS', false);
-                if ((isDisabledCSharp === true) && (this.lang === 'C#')) {
+                if ((isDisabledCSharp) && (this.lang === 'C#')) {
                     continue;
                 }
                 const isDisabledPHP = exchange.safeBool (result, 'disabledPHP', false);
-                if ((isDisabledPHP === true) && (this.lang === 'PHP')) {
+                if ((isDisabledPHP) && (this.lang === 'PHP')) {
                     continue;
                 }
                 if ((testName !== undefined) && (testName !== description)) {
@@ -2498,7 +2584,7 @@ class testMainClass {
                 }
 
                 const isDisabledGO = exchange.safeBool (result, 'disabledGO', false);
-                if ((isDisabledGO === true) && (this.lang === 'GO')) {
+                if ((isDisabledGO) && (this.lang === 'GO')) {
                     continue;
                 }
                 const isDisabledRust = exchange.safeBool (result, 'disabledRS', false);
@@ -2506,7 +2592,7 @@ class testMainClass {
                     continue;
                 }
                 const isDisabledJava = exchange.safeBool (result, 'disabledJava', false);
-                if ((isDisabledJava === true) && (this.lang === 'java')) {
+                if ((isDisabledJava) && (this.lang === 'java')) {
                     continue;
                 }
                 const skipKeys = this.effectiveSkipKeys (exchange, exchangeData, result);
@@ -2543,27 +2629,27 @@ class testMainClass {
         // prediction-market exchanges exist only in the async namespaces in python/php,
         // so their fixtures declare asyncOnly and the sync harness skips them
         const isAsyncOnly = exchange.safeBool (exchangeData, 'asyncOnly', false);
-        if ((isAsyncOnly === true) && isSync ()) {
+        if ((isAsyncOnly) && isSync ()) {
             dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is async-only, skipped by the sync test harness');
             return true;
         }
         const isDisabledPy = exchange.safeBool (exchangeData, 'disabledPy', false);
-        if ((isDisabledPy === true) && (this.lang === 'PY')) {
+        if ((isDisabledPy) && (this.lang === 'PY')) {
             dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in python');
             return true;
         }
         const isDisabledPHP = exchange.safeBool (exchangeData, 'disabledPHP', false);
-        if ((isDisabledPHP === true) && (this.lang === 'PHP')) {
+        if ((isDisabledPHP) && (this.lang === 'PHP')) {
             dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in php');
             return true;
         }
         const isDisabledCSharp = exchange.safeBool (exchangeData, 'disabledCS', false);
-        if ((isDisabledCSharp === true) && (this.lang === 'C#')) {
+        if ((isDisabledCSharp) && (this.lang === 'C#')) {
             dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in c#');
             return true;
         }
         const isDisabledGO = exchange.safeBool (exchangeData, 'disabledGO', false);
-        if ((isDisabledGO === true) && (this.lang === 'GO')) {
+        if ((isDisabledGO) && (this.lang === 'GO')) {
             dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in go');
             return true;
         }
@@ -2573,7 +2659,7 @@ class testMainClass {
             return true;
         }
         const isDisabledJava = exchange.safeBool (exchangeData, 'disabledJava', false);
-        if ((isDisabledJava === true) && (this.lang === 'java')) {
+        if ((isDisabledJava) && (this.lang === 'java')) {
             dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in java');
             return true;
         }
@@ -2741,6 +2827,36 @@ class testMainClass {
         // inverse swap
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
         assert (clientOrderIdInverse.startsWith (inverseSwapId) === true, 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + inverseSwapId);
+        // defaultType swap routes spot-style symbols by defaultSubType: unset or linear -> USDⓈ-M, inverse -> COIN-M
+        exchange.extendExchangeOptions ({ 'defaultType': 'swap' });
+        let swapNoSubTypeRequest: Dict = {};
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            swapNoSubTypeRequest = this.urlencodedToDict (exchange.last_request_body);
+        }
+        const swapNoSubTypeId = swapNoSubTypeRequest['newClientOrderId'];
+        assert (swapNoSubTypeId.startsWith (swapId) === true, 'binance - defaultType swap without subType clientOrderId: ' + swapNoSubTypeId + ' does not start with swapId' + swapId);
+        exchange.extendExchangeOptions ({ 'defaultSubType': 'linear' });
+        let swapLinearRequest: Dict = {};
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            swapLinearRequest = this.urlencodedToDict (exchange.last_request_body);
+        }
+        const swapLinearId = swapLinearRequest['newClientOrderId'];
+        assert (swapLinearId.startsWith (swapId) === true, 'binance - defaultType swap linear clientOrderId: ' + swapLinearId + ' does not start with swapId' + swapId);
+        exchange.extendExchangeOptions ({ 'defaultSubType': 'inverse' });
+        let swapInverseRequest: Dict = {};
+        try {
+            await exchange.createOrder ('BTC/USD', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            swapInverseRequest = this.urlencodedToDict (exchange.last_request_body);
+        }
+        const swapInverseId = swapInverseRequest['newClientOrderId'];
+        assert (swapInverseId.startsWith (inverseSwapId) === true, 'binance - defaultType swap inverse clientOrderId: ' + swapInverseId + ' does not start with inverseSwapId' + inverseSwapId);
+        exchange.extendExchangeOptions ({ 'defaultType': 'spot' });
+        exchange.extendExchangeOptions ({ 'defaultSubType': 'linear' });
         // linear swap conditional order
         let swapAlgoOrderRequest: Dict = {};
         try {
@@ -2830,7 +2946,7 @@ class testMainClass {
         const inverseConditionalBatchOrder = exchange.safeDict (inverseConditionalBatchOrders, 0, {});
         const inverseConditionalClientOrderId = exchange.safeString (inverseConditionalBatchOrder, 'newClientOrderId');
         assert (inverseConditionalClientOrderId !== undefined, 'binance createOrders - inverse conditional order must send newClientOrderId');
-        assert (inverseConditionalClientOrderId.startsWith (inverseSwapId) === true, 'binance createOrders - inverse conditional clientOrderId: ' + inverseConditionalClientOrderId + ' does not start with inverseSwapId' + inverseSwapId);
+        assert (inverseConditionalClientOrderId.startsWith (inverseSwapId), 'binance createOrders - inverse conditional clientOrderId: ' + inverseConditionalClientOrderId + ' does not start with inverseSwapId' + inverseSwapId);
         // quarterly futures use the prefix of their fapi/dapi side, not the inverse one
         let linearFutureOrderRequest: Dict = {};
         try {
@@ -2857,7 +2973,7 @@ class testMainClass {
         }
         const optionClientOrderId = exchange.safeString (optionOrderRequest, 'clientOrderId');
         assert (optionClientOrderId !== undefined, 'binance - option order must send clientOrderId');
-        assert (optionClientOrderId.startsWith (inverseSwapId) === true, 'binance - option clientOrderId: ' + optionClientOrderId + ' does not start with the option broker id ' + inverseSwapId);
+        assert (optionClientOrderId.startsWith (inverseSwapId), 'binance - option clientOrderId: ' + optionClientOrderId + ' does not start with the option broker id ' + inverseSwapId);
         // the implicit order endpoints inject the broker id of their api section
         // skipped in the sync flavours: callExchangeMethodDynamically is async-only there
         if (!isSync ()) {
@@ -2879,7 +2995,7 @@ class testMainClass {
             const implicitDapiBatchOrder = exchange.safeDict (implicitDapiBatchOrders, 0, {});
             const implicitDapiBatchClientOrderId = exchange.safeString (implicitDapiBatchOrder, 'newClientOrderId');
             assert (implicitDapiBatchClientOrderId !== undefined, 'binance - implicit dapi batch order must inject newClientOrderId');
-            assert (implicitDapiBatchClientOrderId.startsWith (inverseSwapId) === true, 'binance - implicit dapi batch clientOrderId: ' + implicitDapiBatchClientOrderId + ' does not start with inverseSwapId' + inverseSwapId);
+            assert (implicitDapiBatchClientOrderId.startsWith (inverseSwapId), 'binance - implicit dapi batch clientOrderId: ' + implicitDapiBatchClientOrderId + ' does not start with inverseSwapId' + inverseSwapId);
             // the implicit algo order endpoints take clientAlgoId instead of newClientOrderId
             let implicitFapiAlgoOrderRequest: Dict = {};
             try {
@@ -2889,7 +3005,7 @@ class testMainClass {
             }
             const implicitFapiClientAlgoId = exchange.safeString (implicitFapiAlgoOrderRequest, 'clientAlgoId');
             assert (implicitFapiClientAlgoId !== undefined, 'binance - implicit fapi algo order must inject clientAlgoId');
-            assert (implicitFapiClientAlgoId.startsWith (swapId) === true, 'binance - implicit fapi clientAlgoId: ' + implicitFapiClientAlgoId + ' does not start with swapId' + swapId);
+            assert (implicitFapiClientAlgoId.startsWith (swapId), 'binance - implicit fapi clientAlgoId: ' + implicitFapiClientAlgoId + ' does not start with swapId' + swapId);
             // the papi order endpoints resolve the broker id from the path, not from the api section
             let implicitPapiUmOrderRequest: Dict = {};
             try {
@@ -2899,7 +3015,7 @@ class testMainClass {
             }
             const implicitPapiUmClientOrderId = exchange.safeString (implicitPapiUmOrderRequest, 'newClientOrderId');
             assert (implicitPapiUmClientOrderId !== undefined, 'binance - implicit papi um order must inject newClientOrderId');
-            assert (implicitPapiUmClientOrderId.startsWith (swapId) === true, 'binance - implicit papi um clientOrderId: ' + implicitPapiUmClientOrderId + ' does not start with swapId' + swapId);
+            assert (implicitPapiUmClientOrderId.startsWith (swapId), 'binance - implicit papi um clientOrderId: ' + implicitPapiUmClientOrderId + ' does not start with swapId' + swapId);
             let implicitPapiCmOrderRequest: Dict = {};
             try {
                 await callExchangeMethodDynamically (exchange, 'papiPostCmOrder', [ { 'symbol': 'ETHUSD_PERP', 'side': 'SELL', 'type': 'LIMIT', 'quantity': '1', 'price': '4100', 'timeInForce': 'GTC' } ]);
@@ -2908,7 +3024,7 @@ class testMainClass {
             }
             const implicitPapiCmClientOrderId = exchange.safeString (implicitPapiCmOrderRequest, 'newClientOrderId');
             assert (implicitPapiCmClientOrderId !== undefined, 'binance - implicit papi cm order must inject newClientOrderId');
-            assert (implicitPapiCmClientOrderId.startsWith (inverseSwapId) === true, 'binance - implicit papi cm clientOrderId: ' + implicitPapiCmClientOrderId + ' does not start with inverseSwapId' + inverseSwapId);
+            assert (implicitPapiCmClientOrderId.startsWith (inverseSwapId), 'binance - implicit papi cm clientOrderId: ' + implicitPapiCmClientOrderId + ' does not start with inverseSwapId' + inverseSwapId);
             let implicitPapiMarginOrderRequest: Dict = {};
             try {
                 await callExchangeMethodDynamically (exchange, 'papiPostMarginOrder', [ { 'symbol': 'BTCUSDT', 'side': 'BUY', 'type': 'LIMIT', 'quantity': '0.001', 'price': '20000', 'timeInForce': 'GTC' } ]);
@@ -2917,7 +3033,7 @@ class testMainClass {
             }
             const implicitPapiMarginClientOrderId = exchange.safeString (implicitPapiMarginOrderRequest, 'newClientOrderId');
             assert (implicitPapiMarginClientOrderId !== undefined, 'binance - implicit papi margin order must inject newClientOrderId');
-            assert (implicitPapiMarginClientOrderId.startsWith (spotId) === true, 'binance - implicit papi margin clientOrderId: ' + implicitPapiMarginClientOrderId + ' does not start with spotId' + spotId);
+            assert (implicitPapiMarginClientOrderId.startsWith (spotId), 'binance - implicit papi margin clientOrderId: ' + implicitPapiMarginClientOrderId + ' does not start with spotId' + spotId);
             let implicitSapiMarginOrderRequest: Dict = {};
             try {
                 await callExchangeMethodDynamically (exchange, 'sapiPostMarginOrder', [ { 'symbol': 'BTCUSDT', 'side': 'BUY', 'type': 'LIMIT', 'quantity': '0.001', 'price': '20000', 'timeInForce': 'GTC' } ]);
@@ -2926,7 +3042,7 @@ class testMainClass {
             }
             const implicitSapiMarginClientOrderId = exchange.safeString (implicitSapiMarginOrderRequest, 'newClientOrderId');
             assert (implicitSapiMarginClientOrderId !== undefined, 'binance - implicit sapi margin order must inject newClientOrderId');
-            assert (implicitSapiMarginClientOrderId.startsWith (spotId) === true, 'binance - implicit sapi margin clientOrderId: ' + implicitSapiMarginClientOrderId + ' does not start with spotId' + spotId);
+            assert (implicitSapiMarginClientOrderId.startsWith (spotId), 'binance - implicit sapi margin clientOrderId: ' + implicitSapiMarginClientOrderId + ' does not start with spotId' + spotId);
             // the papi um algo order endpoint takes clientAlgoId
             let implicitPapiUmAlgoOrderRequest: Dict = {};
             try {
@@ -2936,7 +3052,7 @@ class testMainClass {
             }
             const implicitPapiUmClientAlgoId = exchange.safeString (implicitPapiUmAlgoOrderRequest, 'clientAlgoId');
             assert (implicitPapiUmClientAlgoId !== undefined, 'binance - implicit papi um algo order must inject clientAlgoId');
-            assert (implicitPapiUmClientAlgoId.startsWith (swapId) === true, 'binance - implicit papi um clientAlgoId: ' + implicitPapiUmClientAlgoId + ' does not start with swapId' + swapId);
+            assert (implicitPapiUmClientAlgoId.startsWith (swapId), 'binance - implicit papi um clientAlgoId: ' + implicitPapiUmClientAlgoId + ' does not start with swapId' + swapId);
             // the papi cm conditional order endpoint takes newClientStrategyId
             let implicitPapiCmConditionalOrderRequest: Dict = {};
             try {
@@ -2946,7 +3062,7 @@ class testMainClass {
             }
             const implicitPapiCmStrategyId = exchange.safeString (implicitPapiCmConditionalOrderRequest, 'newClientStrategyId');
             assert (implicitPapiCmStrategyId !== undefined, 'binance - implicit papi cm conditional order must inject newClientStrategyId');
-            assert (implicitPapiCmStrategyId.startsWith (inverseSwapId) === true, 'binance - implicit papi cm newClientStrategyId: ' + implicitPapiCmStrategyId + ' does not start with inverseSwapId' + inverseSwapId);
+            assert (implicitPapiCmStrategyId.startsWith (inverseSwapId), 'binance - implicit papi cm newClientStrategyId: ' + implicitPapiCmStrategyId + ' does not start with inverseSwapId' + inverseSwapId);
             let implicitPapiUmConditionalOrderRequest: Dict = {};
             try {
                 await callExchangeMethodDynamically (exchange, 'papiPostUmConditionalOrder', [ { 'symbol': 'ETHUSDT', 'side': 'SELL', 'strategyType': 'STOP', 'quantity': '1', 'price': '4100', 'stopPrice': '4200', 'timeInForce': 'GTC' } ]);
@@ -2955,7 +3071,7 @@ class testMainClass {
             }
             const implicitPapiUmStrategyId = exchange.safeString (implicitPapiUmConditionalOrderRequest, 'newClientStrategyId');
             assert (implicitPapiUmStrategyId !== undefined, 'binance - implicit papi um conditional order must inject newClientStrategyId');
-            assert (implicitPapiUmStrategyId.startsWith (swapId) === true, 'binance - implicit papi um newClientStrategyId: ' + implicitPapiUmStrategyId + ' does not start with swapId' + swapId);
+            assert (implicitPapiUmStrategyId.startsWith (swapId), 'binance - implicit papi um newClientStrategyId: ' + implicitPapiUmStrategyId + ' does not start with swapId' + swapId);
             // the eapi order endpoints take clientOrderId
             let implicitEapiOrderRequest: Dict = {};
             try {
@@ -2965,7 +3081,7 @@ class testMainClass {
             }
             const implicitEapiClientOrderId = exchange.safeString (implicitEapiOrderRequest, 'clientOrderId');
             assert (implicitEapiClientOrderId !== undefined, 'binance - implicit eapi order must inject clientOrderId');
-            assert (implicitEapiClientOrderId.startsWith (inverseSwapId) === true, 'binance - implicit eapi clientOrderId: ' + implicitEapiClientOrderId + ' does not start with the option broker id ' + inverseSwapId);
+            assert (implicitEapiClientOrderId.startsWith (inverseSwapId), 'binance - implicit eapi clientOrderId: ' + implicitEapiClientOrderId + ' does not start with the option broker id ' + inverseSwapId);
             let implicitEapiBatchRequest: Dict = {};
             try {
                 await callExchangeMethodDynamically (exchange, 'eapiPrivatePostBatchOrders', [ { 'batchOrders': [ { 'symbol': 'ETH-231229-800-C', 'side': 'BUY', 'type': 'LIMIT', 'quantity': '1', 'price': '100' } ] } ]);
@@ -2976,7 +3092,7 @@ class testMainClass {
             const implicitEapiBatchOrder = exchange.safeDict (implicitEapiBatchOrders, 0, {});
             const implicitEapiBatchClientOrderId = exchange.safeString (implicitEapiBatchOrder, 'clientOrderId');
             assert (implicitEapiBatchClientOrderId !== undefined, 'binance - implicit eapi batch order must inject clientOrderId');
-            assert (implicitEapiBatchClientOrderId.startsWith (inverseSwapId) === true, 'binance - implicit eapi batch clientOrderId: ' + implicitEapiBatchClientOrderId + ' does not start with the option broker id ' + inverseSwapId);
+            assert (implicitEapiBatchClientOrderId.startsWith (inverseSwapId), 'binance - implicit eapi batch clientOrderId: ' + implicitEapiBatchClientOrderId + ' does not start with the option broker id ' + inverseSwapId);
             // the equity order endpoint takes clientOrderId
             let implicitEquityOrderRequest: Dict = {};
             try {
@@ -2986,7 +3102,7 @@ class testMainClass {
             }
             const implicitEquityClientOrderId = exchange.safeString (implicitEquityOrderRequest, 'clientOrderId');
             assert (implicitEquityClientOrderId !== undefined, 'binance - implicit equity order must inject clientOrderId');
-            assert (implicitEquityClientOrderId.startsWith (spotId) === true, 'binance - implicit equity clientOrderId: ' + implicitEquityClientOrderId + ' does not start with spotId' + spotId);
+            assert (implicitEquityClientOrderId.startsWith (spotId), 'binance - implicit equity clientOrderId: ' + implicitEquityClientOrderId + ' does not start with spotId' + spotId);
             // the order list endpoints inject a listClientOrderId and one client order id per leg
             let implicitOcoListRequest: Dict = {};
             try {
@@ -2998,9 +3114,9 @@ class testMainClass {
             const ocoAboveClientOrderId = exchange.safeString (implicitOcoListRequest, 'aboveClientOrderId');
             const ocoBelowClientOrderId = exchange.safeString (implicitOcoListRequest, 'belowClientOrderId');
             assert (ocoListClientOrderId !== undefined, 'binance - implicit oco list must inject listClientOrderId');
-            assert (ocoListClientOrderId.startsWith (spotId) === true, 'binance - implicit oco listClientOrderId: ' + ocoListClientOrderId + ' does not start with spotId' + spotId);
-            assert ((ocoAboveClientOrderId !== undefined) && (ocoAboveClientOrderId.startsWith (spotId) === true), 'binance - implicit oco aboveClientOrderId must inject the spot broker id');
-            assert ((ocoBelowClientOrderId !== undefined) && (ocoBelowClientOrderId.startsWith (spotId) === true), 'binance - implicit oco belowClientOrderId must inject the spot broker id');
+            assert (ocoListClientOrderId.startsWith (spotId), 'binance - implicit oco listClientOrderId: ' + ocoListClientOrderId + ' does not start with spotId' + spotId);
+            assert ((ocoAboveClientOrderId !== undefined) && (ocoAboveClientOrderId.startsWith (spotId)), 'binance - implicit oco aboveClientOrderId must inject the spot broker id');
+            assert ((ocoBelowClientOrderId !== undefined) && (ocoBelowClientOrderId.startsWith (spotId)), 'binance - implicit oco belowClientOrderId must inject the spot broker id');
             let implicitOtocoListRequest: Dict = {};
             try {
                 await callExchangeMethodDynamically (exchange, 'privatePostOrderListOtoco', [ { 'symbol': 'BTCUSDT', 'workingType': 'LIMIT', 'workingSide': 'BUY', 'workingPrice': '100000', 'workingQuantity': '0.001', 'pendingSide': 'SELL', 'pendingQuantity': '0.001', 'pendingAboveType': 'LIMIT_MAKER', 'pendingAbovePrice': '110000', 'pendingBelowType': 'STOP_LOSS', 'pendingBelowStopPrice': '95000' } ]);
@@ -3010,9 +3126,9 @@ class testMainClass {
             const otocoWorkingClientOrderId = exchange.safeString (implicitOtocoListRequest, 'workingClientOrderId');
             const otocoPendingAboveClientOrderId = exchange.safeString (implicitOtocoListRequest, 'pendingAboveClientOrderId');
             const otocoPendingBelowClientOrderId = exchange.safeString (implicitOtocoListRequest, 'pendingBelowClientOrderId');
-            assert ((otocoWorkingClientOrderId !== undefined) && (otocoWorkingClientOrderId.startsWith (spotId) === true), 'binance - implicit otoco workingClientOrderId must inject the spot broker id');
-            assert ((otocoPendingAboveClientOrderId !== undefined) && (otocoPendingAboveClientOrderId.startsWith (spotId) === true), 'binance - implicit otoco pendingAboveClientOrderId must inject the spot broker id');
-            assert ((otocoPendingBelowClientOrderId !== undefined) && (otocoPendingBelowClientOrderId.startsWith (spotId) === true), 'binance - implicit otoco pendingBelowClientOrderId must inject the spot broker id');
+            assert ((otocoWorkingClientOrderId !== undefined) && (otocoWorkingClientOrderId.startsWith (spotId)), 'binance - implicit otoco workingClientOrderId must inject the spot broker id');
+            assert ((otocoPendingAboveClientOrderId !== undefined) && (otocoPendingAboveClientOrderId.startsWith (spotId)), 'binance - implicit otoco pendingAboveClientOrderId must inject the spot broker id');
+            assert ((otocoPendingBelowClientOrderId !== undefined) && (otocoPendingBelowClientOrderId.startsWith (spotId)), 'binance - implicit otoco pendingBelowClientOrderId must inject the spot broker id');
             let implicitSapiMarginOcoRequest: Dict = {};
             try {
                 await callExchangeMethodDynamically (exchange, 'sapiPostMarginOrderOco', [ { 'symbol': 'BTCUSDT', 'side': 'SELL', 'quantity': '0.001', 'price': '110000', 'stopPrice': '95000' } ]);
@@ -3021,8 +3137,8 @@ class testMainClass {
             }
             const sapiMarginOcoLimitClientOrderId = exchange.safeString (implicitSapiMarginOcoRequest, 'limitClientOrderId');
             const sapiMarginOcoStopClientOrderId = exchange.safeString (implicitSapiMarginOcoRequest, 'stopClientOrderId');
-            assert ((sapiMarginOcoLimitClientOrderId !== undefined) && (sapiMarginOcoLimitClientOrderId.startsWith (spotId) === true), 'binance - implicit sapi margin oco limitClientOrderId must inject the spot broker id');
-            assert ((sapiMarginOcoStopClientOrderId !== undefined) && (sapiMarginOcoStopClientOrderId.startsWith (spotId) === true), 'binance - implicit sapi margin oco stopClientOrderId must inject the spot broker id');
+            assert ((sapiMarginOcoLimitClientOrderId !== undefined) && (sapiMarginOcoLimitClientOrderId.startsWith (spotId)), 'binance - implicit sapi margin oco limitClientOrderId must inject the spot broker id');
+            assert ((sapiMarginOcoStopClientOrderId !== undefined) && (sapiMarginOcoStopClientOrderId.startsWith (spotId)), 'binance - implicit sapi margin oco stopClientOrderId must inject the spot broker id');
             let implicitPapiMarginOcoRequest: Dict = {};
             try {
                 await callExchangeMethodDynamically (exchange, 'papiPostMarginOrderOco', [ { 'symbol': 'BTCUSDT', 'side': 'SELL', 'quantity': '0.001', 'price': '110000', 'stopPrice': '95000' } ]);
@@ -3030,11 +3146,11 @@ class testMainClass {
                 implicitPapiMarginOcoRequest = this.urlencodedToDict (exchange.last_request_body);
             }
             const papiMarginOcoListClientOrderId = exchange.safeString (implicitPapiMarginOcoRequest, 'listClientOrderId');
-            assert ((papiMarginOcoListClientOrderId !== undefined) && (papiMarginOcoListClientOrderId.startsWith (spotId) === true), 'binance - implicit papi margin oco listClientOrderId must inject the spot broker id');
+            assert ((papiMarginOcoListClientOrderId !== undefined) && (papiMarginOcoListClientOrderId.startsWith (spotId)), 'binance - implicit papi margin oco listClientOrderId must inject the spot broker id');
             const papiMarginOcoLimitClientOrderId = exchange.safeString (implicitPapiMarginOcoRequest, 'limitClientOrderId');
             const papiMarginOcoStopClientOrderId = exchange.safeString (implicitPapiMarginOcoRequest, 'stopClientOrderId');
-            assert ((papiMarginOcoLimitClientOrderId !== undefined) && (papiMarginOcoLimitClientOrderId.startsWith (spotId) === true), 'binance - implicit papi margin oco limitClientOrderId must inject the spot broker id');
-            assert ((papiMarginOcoStopClientOrderId !== undefined) && (papiMarginOcoStopClientOrderId.startsWith (spotId) === true), 'binance - implicit papi margin oco stopClientOrderId must inject the spot broker id');
+            assert ((papiMarginOcoLimitClientOrderId !== undefined) && (papiMarginOcoLimitClientOrderId.startsWith (spotId)), 'binance - implicit papi margin oco limitClientOrderId must inject the spot broker id');
+            assert ((papiMarginOcoStopClientOrderId !== undefined) && (papiMarginOcoStopClientOrderId.startsWith (spotId)), 'binance - implicit papi margin oco stopClientOrderId must inject the spot broker id');
             let implicitLegacyOcoRequest: Dict = {};
             try {
                 await callExchangeMethodDynamically (exchange, 'privatePostOrderOco', [ { 'symbol': 'BTCUSDT', 'side': 'SELL', 'quantity': '0.001', 'price': '110000', 'stopPrice': '95000' } ]);
@@ -3044,9 +3160,9 @@ class testMainClass {
             const legacyOcoListClientOrderId = exchange.safeString (implicitLegacyOcoRequest, 'listClientOrderId');
             const legacyOcoLimitClientOrderId = exchange.safeString (implicitLegacyOcoRequest, 'limitClientOrderId');
             const legacyOcoStopClientOrderId = exchange.safeString (implicitLegacyOcoRequest, 'stopClientOrderId');
-            assert ((legacyOcoListClientOrderId !== undefined) && (legacyOcoListClientOrderId.startsWith (spotId) === true), 'binance - implicit legacy oco listClientOrderId must inject the spot broker id');
-            assert ((legacyOcoLimitClientOrderId !== undefined) && (legacyOcoLimitClientOrderId.startsWith (spotId) === true), 'binance - implicit legacy oco limitClientOrderId must inject the spot broker id');
-            assert ((legacyOcoStopClientOrderId !== undefined) && (legacyOcoStopClientOrderId.startsWith (spotId) === true), 'binance - implicit legacy oco stopClientOrderId must inject the spot broker id');
+            assert ((legacyOcoListClientOrderId !== undefined) && (legacyOcoListClientOrderId.startsWith (spotId)), 'binance - implicit legacy oco listClientOrderId must inject the spot broker id');
+            assert ((legacyOcoLimitClientOrderId !== undefined) && (legacyOcoLimitClientOrderId.startsWith (spotId)), 'binance - implicit legacy oco limitClientOrderId must inject the spot broker id');
+            assert ((legacyOcoStopClientOrderId !== undefined) && (legacyOcoStopClientOrderId.startsWith (spotId)), 'binance - implicit legacy oco stopClientOrderId must inject the spot broker id');
             let implicitOtoListRequest: Dict = {};
             try {
                 await callExchangeMethodDynamically (exchange, 'privatePostOrderListOto', [ { 'symbol': 'BTCUSDT', 'workingType': 'LIMIT', 'workingSide': 'BUY', 'workingPrice': '100000', 'workingQuantity': '0.001', 'pendingType': 'MARKET', 'pendingSide': 'SELL', 'pendingQuantity': '0.001' } ]);
@@ -3056,9 +3172,9 @@ class testMainClass {
             const otoListClientOrderId = exchange.safeString (implicitOtoListRequest, 'listClientOrderId');
             const otoWorkingClientOrderId = exchange.safeString (implicitOtoListRequest, 'workingClientOrderId');
             const otoPendingClientOrderId = exchange.safeString (implicitOtoListRequest, 'pendingClientOrderId');
-            assert ((otoListClientOrderId !== undefined) && (otoListClientOrderId.startsWith (spotId) === true), 'binance - implicit oto listClientOrderId must inject the spot broker id');
-            assert ((otoWorkingClientOrderId !== undefined) && (otoWorkingClientOrderId.startsWith (spotId) === true), 'binance - implicit oto workingClientOrderId must inject the spot broker id');
-            assert ((otoPendingClientOrderId !== undefined) && (otoPendingClientOrderId.startsWith (spotId) === true), 'binance - implicit oto pendingClientOrderId must inject the spot broker id');
+            assert ((otoListClientOrderId !== undefined) && (otoListClientOrderId.startsWith (spotId)), 'binance - implicit oto listClientOrderId must inject the spot broker id');
+            assert ((otoWorkingClientOrderId !== undefined) && (otoWorkingClientOrderId.startsWith (spotId)), 'binance - implicit oto workingClientOrderId must inject the spot broker id');
+            assert ((otoPendingClientOrderId !== undefined) && (otoPendingClientOrderId.startsWith (spotId)), 'binance - implicit oto pendingClientOrderId must inject the spot broker id');
             let implicitOpoListRequest: Dict = {};
             try {
                 await callExchangeMethodDynamically (exchange, 'privatePostOrderListOpo', [ { 'symbol': 'BTCUSDT', 'workingType': 'LIMIT', 'workingSide': 'BUY', 'workingPrice': '100000', 'workingQuantity': '0.001', 'pendingType': 'MARKET', 'pendingSide': 'SELL', 'pendingQuantity': '0.001' } ]);
@@ -3068,9 +3184,9 @@ class testMainClass {
             const opoListClientOrderId = exchange.safeString (implicitOpoListRequest, 'listClientOrderId');
             const opoWorkingClientOrderId = exchange.safeString (implicitOpoListRequest, 'workingClientOrderId');
             const opoPendingClientOrderId = exchange.safeString (implicitOpoListRequest, 'pendingClientOrderId');
-            assert ((opoListClientOrderId !== undefined) && (opoListClientOrderId.startsWith (spotId) === true), 'binance - implicit opo listClientOrderId must inject the spot broker id');
-            assert ((opoWorkingClientOrderId !== undefined) && (opoWorkingClientOrderId.startsWith (spotId) === true), 'binance - implicit opo workingClientOrderId must inject the spot broker id');
-            assert ((opoPendingClientOrderId !== undefined) && (opoPendingClientOrderId.startsWith (spotId) === true), 'binance - implicit opo pendingClientOrderId must inject the spot broker id');
+            assert ((opoListClientOrderId !== undefined) && (opoListClientOrderId.startsWith (spotId)), 'binance - implicit opo listClientOrderId must inject the spot broker id');
+            assert ((opoWorkingClientOrderId !== undefined) && (opoWorkingClientOrderId.startsWith (spotId)), 'binance - implicit opo workingClientOrderId must inject the spot broker id');
+            assert ((opoPendingClientOrderId !== undefined) && (opoPendingClientOrderId.startsWith (spotId)), 'binance - implicit opo pendingClientOrderId must inject the spot broker id');
             let implicitOpocoListRequest: Dict = {};
             try {
                 await callExchangeMethodDynamically (exchange, 'privatePostOrderListOpoco', [ { 'symbol': 'BTCUSDT', 'workingType': 'LIMIT', 'workingSide': 'BUY', 'workingPrice': '100000', 'workingQuantity': '0.001', 'pendingSide': 'SELL', 'pendingQuantity': '0.001', 'pendingAboveType': 'LIMIT_MAKER', 'pendingAbovePrice': '110000', 'pendingBelowType': 'STOP_LOSS', 'pendingBelowStopPrice': '95000' } ]);
@@ -3081,10 +3197,10 @@ class testMainClass {
             const opocoWorkingClientOrderId = exchange.safeString (implicitOpocoListRequest, 'workingClientOrderId');
             const opocoPendingAboveClientOrderId = exchange.safeString (implicitOpocoListRequest, 'pendingAboveClientOrderId');
             const opocoPendingBelowClientOrderId = exchange.safeString (implicitOpocoListRequest, 'pendingBelowClientOrderId');
-            assert ((opocoListClientOrderId !== undefined) && (opocoListClientOrderId.startsWith (spotId) === true), 'binance - implicit opoco listClientOrderId must inject the spot broker id');
-            assert ((opocoWorkingClientOrderId !== undefined) && (opocoWorkingClientOrderId.startsWith (spotId) === true), 'binance - implicit opoco workingClientOrderId must inject the spot broker id');
-            assert ((opocoPendingAboveClientOrderId !== undefined) && (opocoPendingAboveClientOrderId.startsWith (spotId) === true), 'binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id');
-            assert ((opocoPendingBelowClientOrderId !== undefined) && (opocoPendingBelowClientOrderId.startsWith (spotId) === true), 'binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id');
+            assert ((opocoListClientOrderId !== undefined) && (opocoListClientOrderId.startsWith (spotId)), 'binance - implicit opoco listClientOrderId must inject the spot broker id');
+            assert ((opocoWorkingClientOrderId !== undefined) && (opocoWorkingClientOrderId.startsWith (spotId)), 'binance - implicit opoco workingClientOrderId must inject the spot broker id');
+            assert ((opocoPendingAboveClientOrderId !== undefined) && (opocoPendingAboveClientOrderId.startsWith (spotId)), 'binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id');
+            assert ((opocoPendingBelowClientOrderId !== undefined) && (opocoPendingBelowClientOrderId.startsWith (spotId)), 'binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id');
             // the cancel-replace endpoint creates a new order and takes newClientOrderId for it
             let implicitCancelReplaceRequest: Dict = {};
             try {
@@ -3094,7 +3210,7 @@ class testMainClass {
             }
             const cancelReplaceClientOrderId = exchange.safeString (implicitCancelReplaceRequest, 'newClientOrderId');
             assert (cancelReplaceClientOrderId !== undefined, 'binance - implicit cancel-replace must inject newClientOrderId');
-            assert (cancelReplaceClientOrderId.startsWith (spotId) === true, 'binance - implicit cancel-replace newClientOrderId: ' + cancelReplaceClientOrderId + ' does not start with spotId' + spotId);
+            assert (cancelReplaceClientOrderId.startsWith (spotId), 'binance - implicit cancel-replace newClientOrderId: ' + cancelReplaceClientOrderId + ' does not start with spotId' + spotId);
         }
         if (!isSync ()) {
             await close (exchange);
@@ -3502,17 +3618,28 @@ class testMainClass {
 
     async testCoinbaseinternational () {
         const exchange = this.initOfflineExchange ('coinbaseinternational');
+        // ECDSA (P-256) auth-token signing needs a hex-encoded secret, unlike the generic dummy one
+        exchange.secret = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+        // pre-seed the gateway access token so createOrder signs the order directly instead of
+        // making a prior (offline-unreachable) public/auth network call
+        exchange.token = 'token';
+        const tokenExpires = exchange.milliseconds () + 100000;
+        exchange.options['v2TokenExpires'] = tokenExpires;
         exchange.options['portfolio'] = 'random';
         const id = 'nfqkvdjp';
         assert (exchange.options['brokerId'] === id, 'id not in options');
-        let request: Dict = {};
+        let clientOrderId: Str = undefined;
         try {
             await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            request = jsonParse (exchange.last_request_body);
+            // buy/sell are GET endpoints, so the label is in the query string, not a JSON body
+            const url = exchange.last_request_url as string;
+            const urlParts = url.split ('?');
+            assert (urlParts.length > 1, 'last_request_url has no query string: ' + url);
+            const query = this.urlencodedToDict (urlParts[1]);
+            clientOrderId = query['label'];
         }
-        const clientOrderId = request['client_order_id'];
-        assert (clientOrderId.startsWith (id.toString ()) === true, 'clientOrderId does not start with id');
+        assert (clientOrderId !== undefined && clientOrderId.startsWith (id.toString ()) === true, 'clientOrderId does not start with id');
         if (!isSync ()) {
             await close (exchange);
         }

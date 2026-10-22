@@ -194,7 +194,7 @@ export default class weex extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name weex#fetchFundingRates
@@ -317,7 +317,7 @@ export default class weex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createContractOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
-    createContractOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): any;
+    createContractOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): Dict;
     encodeTriggerPriceType(triggerPriceType: Str): Str;
     /**
      * @method
@@ -727,6 +727,6 @@ export default class weex extends Exchange {
      */
     fromSandboxMarketId(marketId: Str): Str;
     setSandboxMode(enable: boolean): void;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

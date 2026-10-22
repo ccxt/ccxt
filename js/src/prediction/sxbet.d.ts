@@ -92,7 +92,7 @@ export default class sxbet extends Exchange {
      * @param {object[]} rawMarkets the raw sx.bet market objects belonging to this fixture
      * @returns {object} an event structure
      */
-    parseEvent(fixtureId: string, rawMarkets: any[]): any;
+    parseEvent(fixtureId: string, rawMarkets: any[]): PredictionEvent;
     /**
      * @ignore
      * @method
@@ -149,7 +149,7 @@ export default class sxbet extends Exchange {
      * @param {string} hex the hex string, no '0x' prefix
      * @returns {int} the parsed integer
      */
-    hexToInt(hex: string): number;
+    hexToInt(hex: string): int;
     /**
      * @ignore
      * @method
@@ -491,7 +491,7 @@ export default class sxbet extends Exchange {
     pong(client: Client, message?: any): Promise<void>;
     subscribeSxbetChannel(messageHash: string, channel: string): Promise<any>;
     handleMessage(client: Client, message: any): void;
-    handleCentrifugoFrame(client: Client, msg: any): void;
+    handleCentrifugoFrame(client: Client, msg: Dict): void;
     /**
      * @method
      * @name sxbet#watchOrderBook
@@ -579,14 +579,12 @@ export default class sxbet extends Exchange {
      * @name sxbet#sign
      * @description builds the request url and attaches the x-sx-api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: Dict): {
         url: string;
         method: string;
         body: any;

@@ -19,7 +19,10 @@ func testFetchMarginModesBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICore
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	marginModes := r.Value
+	var marginModes any = nil
+	if !ccxt.StructAbsent(r.Value) {
+		marginModes = ccxt.StructBox(r.Value, ccxt.MarginModeMapToMap)
+	}
 	AssertDictionaryResponse(exchange, method, marginModes, symbol)
 	var marginModeKeys []string = ObjectKeys(marginModes)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol)

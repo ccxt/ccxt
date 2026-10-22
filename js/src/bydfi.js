@@ -625,18 +625,28 @@ export default class bydfi extends Exchange {
         return orderBook;
     }
     getClosestLimit(limit) {
-        const limits = [5, 10, 20, 50, 100, 500, 1000];
-        let result = 1000;
-        for (let i = 0; i < limits.length; i++) {
-            if (limit === undefined) {
-                throw new ArgumentsRequired(this.id + ' getClosestLimit() requires a limit argument');
-            }
-            if (limit <= limits[i]) {
-                result = limits[i];
-                break;
-            }
+        if (limit === undefined) {
+            throw new ArgumentsRequired(this.id + ' getClosestLimit() requires a limit argument');
         }
-        return result;
+        if (limit <= 5) {
+            return 5;
+        }
+        else if (limit <= 10) {
+            return 10;
+        }
+        else if (limit <= 20) {
+            return 20;
+        }
+        else if (limit <= 50) {
+            return 50;
+        }
+        else if (limit <= 100) {
+            return 100;
+        }
+        else if (limit <= 500) {
+            return 500;
+        }
+        return 1000;
     }
     /**
      * @method
@@ -702,7 +712,7 @@ export default class bydfi extends Exchange {
             await this.loadMarkets();
         }
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate === true) {
+        if (paginate) {
             const maxLimit = 500;
             const paramsPaginate = this.extend(this.omit(params, 'paginate'), { 'paginationDirection': 'backward' });
             const paginatedResponse = await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, paramsPaginate, maxLimit, true);
@@ -844,7 +854,7 @@ export default class bydfi extends Exchange {
         const maxLimit = 500; // docs says max 1500, but in practice only 500 works
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
         }
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -852,32 +862,33 @@ export default class bydfi extends Exchange {
             'symbol': market['id'],
             'interval': interval,
         };
-        let startTime = since;
         let numberOfCandles = maxLimit;
         if (limit !== undefined && limit !== null && limit !== 0) {
-            numberOfCandles = limit;
+            numberOfCandles = this.parseToInt(limit);
         }
-        let until = undefined;
-        let paramsUntil = undefined;
-        [until, paramsUntil] = this.handleOptionIntegerAndParams(paramsPaginate, 'fetchOHLCV', 'until');
+        const [untilParam, paramsUntil] = this.handleOptionIntegerAndParams(paramsPaginate, 'fetchOHLCV', 'until');
         const now = this.milliseconds();
         const duration = this.parseTimeframe(timeframe) * 1000;
         const timeDelta = duration * numberOfCandles;
-        if (startTime === undefined && until === undefined) {
+        let startTime = since;
+        let until = untilParam;
+        if (since === undefined && untilParam === undefined) {
             startTime = now - timeDelta;
             until = now;
         }
-        else if (until === undefined) {
-            if (startTime === undefined) {
-                throw new ArgumentsRequired(this.id + ' fetchOHLCV() requires a since or until argument');
-            }
-            until = startTime + timeDelta;
-            if (until > now) {
-                until = now;
+        else if (untilParam !== undefined) {
+            if (since === undefined) {
+                const untilInt = this.parseToInt(untilParam);
+                startTime = untilInt - timeDelta;
             }
         }
-        else if (startTime === undefined) {
-            startTime = until - timeDelta;
+        else {
+            if (since === undefined) {
+                throw new ArgumentsRequired(this.id + ' fetchOHLCV() requires a since or until argument');
+            }
+            const sinceInt = this.parseToInt(since);
+            const sinceEnd = sinceInt + timeDelta;
+            until = (sinceEnd > now) ? now : sinceEnd;
         }
         request['startTime'] = startTime;
         request['endTime'] = until;
@@ -904,8 +915,7 @@ export default class bydfi extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const result = this.parseOHLCVs(data, market, timeframe, since, limit);
-        return result;
+        return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -1321,14 +1331,14 @@ export default class bydfi extends Exchange {
         if (hedged) {
             query = this.omit(query, 'reduceOnly');
             if (side === 'buy') {
-                request['positionSide'] = (reduceOnly === true) ? 'SHORT' : 'LONG';
+                request['positionSide'] = (reduceOnly) ? 'SHORT' : 'LONG';
             }
             else if (side === 'sell') {
-                request['positionSide'] = (reduceOnly === true) ? 'LONG' : 'SHORT';
+                request['positionSide'] = (reduceOnly) ? 'LONG' : 'SHORT';
             }
         }
         const closePosition = this.safeBool(query, 'closePosition', false);
-        if (closePosition !== true) {
+        if (!closePosition) {
             query = this.omit(query, 'closePosition');
             request['quantity'] = this.amountToPrecision(symbol, amount);
         }
@@ -1692,7 +1702,7 @@ export default class bydfi extends Exchange {
             await this.loadMarkets();
         }
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate === true) {
+        if (paginate) {
             const maxLimit = 500;
             const paramsPaginate = this.extend(this.omit(params, 'paginate'), { 'paginationDirection': 'backward' });
             const paginatedResponse = await this.fetchPaginatedCallDynamic('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate, maxLimit, true);
@@ -1761,28 +1771,28 @@ export default class bydfi extends Exchange {
         return this.parseOrders(data, market, since, limit);
     }
     handleSinceAndUntil(methodName, since = undefined, params = {}) {
-        let until = undefined;
-        let paramsUntil = undefined;
-        [until, paramsUntil] = this.handleOptionIntegerAndParams2(params, methodName, 'until', 'endTime');
+        const [untilParam, paramsUntil] = this.handleOptionIntegerAndParams2(params, methodName, 'until', 'endTime');
         const now = this.milliseconds();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         let startTime = since;
-        if (startTime === undefined) {
-            if (until === undefined) {
+        let until = untilParam;
+        if (since === undefined) {
+            if (untilParam !== undefined) {
+                // since is undefined but until is defined
+                startTime = untilParam - sevenDays;
+            }
+            else {
                 // both since and until are undefined
                 startTime = now - sevenDays;
                 until = now;
             }
-            else {
-                // since is undefined but until is defined
-                startTime = until - sevenDays;
-            }
         }
-        else if (until === undefined) {
+        else if (untilParam === undefined) {
             // until is undefined but since is defined
-            const delta = now - startTime;
+            const sinceInt = this.parseToInt(since);
+            const delta = now - sinceInt;
             if (delta > sevenDays) {
-                until = startTime + sevenDays;
+                until = sinceInt + sevenDays;
             }
             else {
                 until = now;
@@ -2170,6 +2180,11 @@ export default class bydfi extends Exchange {
             contracts = Precise.stringDiv(contracts, contractSize);
         }
         const timestamp = this.safeInteger(position, 'createTime');
+        // raw positionMargin is the margin held in the position; it reads 0 when the position is not isolated
+        let positionMargin = this.safeString(position, 'positionMargin');
+        if ((positionMargin !== undefined) && !Precise.stringGt(positionMargin, '0')) {
+            positionMargin = undefined;
+        }
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'id'),
@@ -2178,6 +2193,7 @@ export default class bydfi extends Exchange {
             'markPrice': this.parseNumber(this.safeString(position, 'markPrice')),
             'lastPrice': this.parseNumber(this.safeString(position, 'avgClosePositionPrice')),
             'notional': this.parseNumber(this.safeString(position, 'closePositionCost')),
+            'positionMargin': this.parseNumber(positionMargin),
             'collateral': undefined,
             'unrealizedPnl': this.parseNumber(this.safeString(position, 'unPnl')),
             'realizedPnl': this.parseNumber(this.safeString(position, 'positionProfits')),
@@ -2636,7 +2652,7 @@ export default class bydfi extends Exchange {
         const transfer = this.parseTransfer(response, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transfer['currency'] = code;
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -2665,7 +2681,7 @@ export default class bydfi extends Exchange {
         }
         const currency = this.currency(code);
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate === true) {
+        if (paginate) {
             const maxLimit = 50;
             const paramsPaginate = this.extend(this.omit(params, 'paginate'), { 'paginationDirection': 'backward' });
             const paginatedResponse = await this.fetchPaginatedCallDynamic('fetchTransfers', this.safeString(currency, 'code'), since, limit, paramsPaginate, maxLimit, true);
@@ -2766,7 +2782,8 @@ export default class bydfi extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('deposit', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('deposit', code, since, limit, params);
+        return this.toArray(transactions);
     }
     /**
      * @method
@@ -2780,9 +2797,10 @@ export default class bydfi extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('withdrawal', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('withdrawal', code, since, limit, params);
+        return this.toArray(transactions);
     }
-    async fetchTransactionsHelper(type, code, since, limit, params) {
+    async fetchTransactionsHelper(type, code = undefined, since = undefined, limit = undefined, params = {}) {
         let methodName = 'fetchWithdrawals';
         if (type === 'deposit') {
             methodName = 'fetchDeposits';
@@ -2795,7 +2813,7 @@ export default class bydfi extends Exchange {
         }
         const currency = this.currency(code);
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate === true) {
+        if (paginate) {
             const maxLimit = 50;
             const paramsPaginate = this.extend(this.omit(params, 'paginate'), { 'paginationDirection': 'backward' });
             const paginatedResponse = await this.fetchPaginatedCallDynamic(methodName, this.safeString(currency, 'code'), since, limit, paramsPaginate, maxLimit, true);
@@ -2804,28 +2822,28 @@ export default class bydfi extends Exchange {
         const request = {
             'asset': currency['id'],
         };
-        let until = undefined;
-        let paramsUntil = undefined;
-        [until, paramsUntil] = this.handleOptionIntegerAndParams2(params, 'fetchTransfers', 'until', 'endTime');
+        const [untilParam, paramsUntil] = this.handleOptionIntegerAndParams2(params, 'fetchTransfers', 'until', 'endTime');
         const now = this.milliseconds();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         let startTime = since;
-        if (startTime === undefined) {
-            if (until === undefined) {
+        let until = untilParam;
+        if (since === undefined) {
+            if (untilParam !== undefined) {
+                // since is undefined but until is defined
+                startTime = untilParam - sevenDays;
+            }
+            else {
                 // both since and until are undefined
                 startTime = now - sevenDays;
                 until = now;
             }
-            else {
-                // since is undefined but until is defined
-                startTime = until - sevenDays;
-            }
         }
-        else if (until === undefined) {
+        else if (untilParam === undefined) {
             // until is undefined but since is defined
-            const delta = now - startTime;
+            const sinceInt = this.parseToInt(since);
+            const delta = now - sinceInt;
             if (delta > sevenDays) {
-                until = startTime + sevenDays;
+                until = sinceInt + sevenDays;
             }
             else {
                 until = now;
@@ -2933,8 +2951,9 @@ export default class bydfi extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2950,7 +2969,7 @@ export default class bydfi extends Exchange {
         }
         let requestBody = undefined;
         let requestHeaders = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
             if (method === 'GET') {
@@ -2975,8 +2994,8 @@ export default class bydfi extends Exchange {
             }
         }
         url += endpoint;
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

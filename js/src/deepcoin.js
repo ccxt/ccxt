@@ -327,7 +327,7 @@ export default class deepcoin extends Exchange {
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'ARBITRUM': 'ARBITRUM',
-                    'BSC': 'BSC(BEP20)',
+                    'BEP20': 'BSC(BEP20)',
                     'SOL': 'SOL',
                     'BTC': 'Bitcoin',
                     'ADA': 'Cardano',
@@ -412,14 +412,14 @@ export default class deepcoin extends Exchange {
         else {
             types = this.safeList(this.options, 'fetchMarkets', types); // backward-support
         }
-        let promises = [];
+        const promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
             promises.push(this.fetchMarketsByType(types[i], params));
         }
-        promises = await Promise.all(promises);
-        for (let i = 0; i < promises.length; i++) {
-            result = this.arrayConcat(result, promises[i]);
+        const responses = await Promise.all(promises);
+        for (let i = 0; i < responses.length; i++) {
+            result = this.arrayConcat(result, responses[i]);
         }
         return result;
     }
@@ -686,9 +686,9 @@ export default class deepcoin extends Exchange {
             request['after'] = until;
         }
         const calculateUntil = this.safeBool(paramsPaginate, 'calculateUntil', false);
-        const keysToOmit = (calculateUntil === true) ? ['price', 'until', 'calculateUntil'] : ['price', 'until'];
+        const keysToOmit = (calculateUntil) ? ['price', 'until', 'calculateUntil'] : ['price', 'until'];
         const paramsOmitted = this.omit(paramsPaginate, keysToOmit);
-        if (calculateUntil === true) {
+        if (calculateUntil) {
             if (since !== undefined) {
                 // the exchange do not have a since param for this endpoint
                 // we calculate until (after) for correct pagination
@@ -1214,19 +1214,23 @@ export default class deepcoin extends Exchange {
         if ((network === undefined) || (network === '')) {
             network = defaultNetwork;
         }
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network);
+        }
         const paramsOmitted = (network !== undefined) ? this.omit(params, 'network') : params;
         const addressess = await this.fetchDepositAddresses([code], paramsOmitted);
         const length = addressess.length;
-        let address = this.safeDict(addressess, 0, {});
+        let index = 0;
         if ((network !== undefined) && (length > 1)) {
+            // the last entry on the requested network wins
             for (let i = 0; i < length; i++) {
-                const entry = addressess[i];
-                if (entry['network'] === network) {
-                    address = entry;
+                const entryNetwork = this.safeString(this.safeDict(addressess, i, {}), 'network');
+                if (entryNetwork === network) {
+                    index = i;
                 }
             }
         }
-        return address;
+        return this.safeDict(addressess, index, {});
     }
     parseDepositAddress(response, currency = undefined) {
         //
@@ -1431,7 +1435,7 @@ export default class deepcoin extends Exchange {
         const transfer = this.parseTransfer(data, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
@@ -1656,7 +1660,7 @@ export default class deepcoin extends Exchange {
             request['mrgPosition'] = mrgPosition;
             let posSide = undefined;
             const reduceOnly = this.safeBool(paramsMrgPosition, 'reduceOnly', false);
-            if (reduceOnly === true) {
+            if (reduceOnly) {
                 if (side === 'buy') {
                     posSide = 'short';
                 }
@@ -1741,7 +1745,7 @@ export default class deepcoin extends Exchange {
         request['isCrossMargin'] = isCrossMargin;
         request['tdMode'] = marginModeOption;
         if (market['swap'] === true) {
-            if (reduceOnly === true) {
+            if (reduceOnly) {
                 if (side === 'buy') {
                     request['posSide'] = 'short';
                 }
@@ -1960,7 +1964,7 @@ export default class deepcoin extends Exchange {
             request['limit'] = limit; // default 100
         }
         let response = undefined;
-        if (trigger === true) {
+        if (trigger) {
             if (methodName !== 'fetchCanceledAndClosedOrders') {
                 throw new BadRequest(this.id + ' ' + methodName + '() does not support trigger orders');
             }
@@ -2119,7 +2123,7 @@ export default class deepcoin extends Exchange {
         const trigger = this.safeBool(params, 'trigger', false);
         const paramsOmitted = this.omit(params, 'trigger');
         let response = undefined;
-        if (trigger === true) {
+        if (trigger) {
             request['instType'] = this.convertToInstrumentType(market['type']);
             //
             //     {
@@ -2232,7 +2236,7 @@ export default class deepcoin extends Exchange {
         };
         let response = undefined;
         const trigger = this.safeBool(params, 'trigger', false);
-        if (trigger === true) {
+        if (trigger) {
             const paramsOmitted = this.omit(params, 'trigger');
             response = await this.privatePostDeepcoinTradeCancelTriggerOrder(this.extend(request, paramsOmitted));
         }
@@ -2623,6 +2627,13 @@ export default class deepcoin extends Exchange {
         const marketId = this.safeString(position, 'instId');
         const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(position, 'cTime');
+        const marginMode = this.safeString(position, 'mgnMode');
+        const useMargin = this.safeNumber(position, 'useMargin');
+        // useMargin is the margin held in the position (excludes unrealized pnl)
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = useMargin;
+        }
         return this.safePosition({
             'symbol': marketResolved['symbol'],
             'id': this.safeString(position, 'posId'),
@@ -2633,17 +2644,18 @@ export default class deepcoin extends Exchange {
             'side': this.safeString(position, 'posSide'),
             'notional': undefined,
             'leverage': this.parseNumber(this.omitZero(this.safeString(position, 'lever'))),
-            'unrealizedPnl': undefined,
+            'unrealizedPnl': this.safeNumber(position, 'unrealizedProfit'),
             'realizedPnl': undefined,
+            'positionMargin': positionMargin,
             'collateral': undefined,
             'entryPrice': this.safeNumber(position, 'avgPx'),
             'markPrice': undefined,
             'liquidationPrice': this.safeNumber(position, 'liqPx'),
-            'marginMode': this.safeString(position, 'mgnMode'),
+            'marginMode': marginMode,
             'hedged': true,
-            'maintenanceMargin': this.safeNumber(position, 'useMargin'),
+            'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'initialMargin': undefined,
+            'initialMargin': useMargin,
             'initialMarginPercentage': undefined,
             'marginRatio': undefined,
             'lastUpdateTimestamp': this.safeInteger(position, 'uTime'),
@@ -3047,7 +3059,8 @@ export default class deepcoin extends Exchange {
         const data = this.safeList(response, 'data', []);
         return this.parseOrder(data, market);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let requestPath = path;
         if (method === 'GET') {
             const query = this.urlencode(params);
@@ -3055,12 +3068,12 @@ export default class deepcoin extends Exchange {
                 requestPath += '?' + query;
             }
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const url = apiUrl + '/' + requestPath;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds();
             const dateTime = this.iso8601(timestamp);
@@ -3071,7 +3084,7 @@ export default class deepcoin extends Exchange {
                 'DC-ACCESS-PASSPHRASE': this.password,
                 'appid': '200103',
             };
-            const requestBody = (method !== 'GET') ? this.json(params) : body;
+            const requestBody = (method !== 'GET') ? this.json(params) : undefined;
             if (method !== 'GET') {
                 privateHeaders['Content-Type'] = 'application/json';
                 payload += requestBody;
@@ -3080,7 +3093,7 @@ export default class deepcoin extends Exchange {
             privateHeaders['DC-ACCESS-SIGN'] = signature;
             return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const data = this.safeDict(response, 'data', {});

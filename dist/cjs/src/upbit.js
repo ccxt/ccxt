@@ -351,16 +351,16 @@ class upbit extends upbit$1["default"] {
         const walletLocked = this.safeBool(memberInfo, 'wallet_locked');
         const locked = this.safeBool(memberInfo, 'locked');
         let active = true;
-        if ((canWithdraw !== undefined) && (canWithdraw !== true)) {
+        if ((canWithdraw !== undefined) && (!canWithdraw)) {
             active = false;
         }
         else if (walletState !== 'working') {
             active = false;
         }
-        else if ((walletLocked !== undefined) && (walletLocked === true)) {
+        else if ((walletLocked !== undefined) && (walletLocked)) {
             active = false;
         }
-        else if ((locked !== undefined) && (locked === true)) {
+        else if ((locked !== undefined) && (locked)) {
             active = false;
         }
         const maxOnetimeWithdrawal = this.safeString(withdrawLimits, 'onetime');
@@ -1361,7 +1361,7 @@ class upbit extends upbit$1["default"] {
         }
         let response;
         const paramsRequest = this.omit(paramsOrdType, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test']);
-        if (test === true) {
+        if (test) {
             response = await this.privatePostOrdersTest(this.extend(request, paramsRequest));
         }
         else {
@@ -2415,8 +2415,9 @@ class upbit extends upbit$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2430,13 +2431,13 @@ class upbit extends upbit$1["default"] {
                 url += '?' + this.urlencode(query);
             }
         }
-        const hasBody = (api === 'private') && (method !== 'GET') && (method !== 'DELETE');
-        let requestBody = body;
+        const hasBody = (apiName === 'private') && (method !== 'GET') && (method !== 'DELETE');
+        let requestBody = undefined;
         if (hasBody) {
             requestBody = this.json(params);
         }
         let privateHeaders = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             privateHeaders = {};
             const nonce = this.uuid();
@@ -2460,7 +2461,7 @@ class upbit extends upbit$1["default"] {
             const token = rsa.jwt(request, this.encode(this.secret), sha2_js.sha256);
             privateHeaders['Authorization'] = 'Bearer ' + token;
         }
-        const requestHeaders = (api === 'private') ? privateHeaders : headers;
+        const requestHeaders = (apiName === 'private') ? privateHeaders : undefined;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

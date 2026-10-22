@@ -161,6 +161,9 @@ impl crate::exchange::DerivedExchange for BitstampCore {
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::market(&self.parent, symbol)
+    }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
@@ -451,7 +454,7 @@ impl BitstampCore {
         if (channel == Value::Null) {
             return;
         }
-        let mut parts: Value = split(&channel, &Value::Str("_".into()));
+        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split("_").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut marketId: Value = self.safe_string(parts, Value::Int(3), &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
         let mut storedOrderBook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
@@ -498,8 +501,8 @@ impl BitstampCore {
     pub fn handle_bid_asks(&self, mut bookSide: Value, mut bidAsks: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_139: bool = true;
-            while { if !__for_first_139 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_139 = false; i.as_f64().unwrap_or(f64::NAN) < ((bidAsks.len() as i64) as f64) } {
+            let mut __for_first_140: bool = true;
+            while { if !__for_first_140 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_140 = false; i.as_f64().unwrap_or(f64::NAN) < ((bidAsks.len() as i64) as f64) } {
             let mut bidAsk: Value = self.parse_order_book_bid_ask(bidAsks.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             bookSide.store_array(bidAsk);
         }
@@ -519,8 +522,8 @@ impl BitstampCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_140: bool = true;
-            while { if !__for_first_140 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_140 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_141: bool = true;
+            while { if !__for_first_141 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_141 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
             let mut delta: Value = self.safe_dict(deltas.clone(), i.clone(), &[]);
             let mut deltaNonce: Value = self.safe_integer_k(delta, "microtimestamp", &[]);
             if (deltaNonce.as_f64() == nonce.as_f64()) {
@@ -571,7 +574,7 @@ impl BitstampCore {
         let mut message: Value = self.extend(request, &[params]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -681,7 +684,7 @@ impl BitstampCore {
         if (channel == Value::Null) {
             return;
         }
-        let mut parts: Value = split(&channel, &Value::Str("_".into()));
+        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split("_").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut marketId: Value = self.safe_string(parts, Value::Int(2), &[]);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -757,7 +760,7 @@ impl BitstampCore {
         if (channel == Value::Null) {
             return;
         }
-        let mut parts: Value = split(&channel, &Value::Str("_".into()));
+        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split("_").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut marketId: Value = self.safe_string(parts, Value::Int(2), &[]);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -808,7 +811,7 @@ impl BitstampCore {
         });
         let mut orders: Value = self.subscribe_private(subscription, messageHash, &[params]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolValue, limit);
         }
         return self.filter_by_since_limit(orders, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -889,7 +892,7 @@ impl BitstampCore {
         });
         let mut trades: Value = self.subscribe_private(subscription, messageHash, &[params]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.clone(), limit);
         }
         return self.filter_by_symbol_since_limit(trades, &[symbolValue, since, limitResolved, Value::Bool(true)]);
@@ -1137,7 +1140,7 @@ impl BitstampCore {
         let mut filled: Value = self.safe_string_k(order.clone(), "amount_traded", &[]);
         let mut event: Option<String> = self.safe_string_k(order.clone(), "event", &[]).as_str().map(str::to_owned);
         let mut status: Value = Value::Null;
-        if is_true(&crate::precise::Precise::stringEq(&filled, &amount)) {
+        if crate::precise::Precise::stringEq(&filled, &amount).as_bool() == Some(true) {
             status = Value::Str("closed".into());
         }  else if (event.as_deref() == Some("order_deleted")) {
             status = Value::Str("canceled".into());
@@ -1183,13 +1186,13 @@ impl BitstampCore {
         if (channel == Value::Null) {
             return;
         }
-        let mut parts: Value = split(&channel, &Value::Str("_".into()));
+        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split("_").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut marketId: Value = self.safe_string(parts, Value::Int(3), &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
-        if !(in_op(&self.orderbooks, &symbol)) {
+        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
-        let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+        let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::Null);
         crate::set_value(&mut orderbook, &Value::Str("cache".into()), Value::from(vec![]));
 }
@@ -1271,8 +1274,8 @@ impl BitstampCore {
         let mut entries: Value = self.to_array(cache);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_141: bool = true;
-            while { if !__for_first_141 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_141 = false; i.as_f64().unwrap_or(f64::NAN) < ((entries.len() as i64) as f64) } {
+            let mut __for_first_142: bool = true;
+            while { if !__for_first_142 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_142 = false; i.as_f64().unwrap_or(f64::NAN) < ((entries.len() as i64) as f64) } {
             let mut entry: Value = entries.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut entrySymbol: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             if !(self.in_array(entrySymbol, symbols.clone()).as_bool() == Some(true)) {
@@ -1338,13 +1341,13 @@ impl BitstampCore {
                 m.insert("private-my_trades".to_string(), Value::Str("handle_my_trades".into()).clone());
             m
         });
-        let mut keys: Value = object_keys(&methods);
+        let mut keys: Value = Value::Array(methods.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_142: bool = true;
-            while { if !__for_first_142 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_142 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_143: bool = true;
+            while { if !__for_first_143 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_143 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if get_index_of(&channel, &key).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+            if Value::Int(channel.as_str().zip(key.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                 let mut method: Value = methods.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }

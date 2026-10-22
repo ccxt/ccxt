@@ -126,13 +126,6 @@ public partial class BaseTest
             // options
             //
             Assert(!isEqual(exchange.options, null));
-            // const defaultNetworkCodeReplacements = [
-            //     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-            //     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-            //     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-            //     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-            // ];
-            // AssertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
             //
             // credentials
             //
@@ -212,9 +205,9 @@ public partial class BaseTest
             Assert(isEqual(exchangeProp(exchange, "enableRateLimit"), true), "enableRateLimit should be true");
             Assert(isEqual(exchangeProp(exchange, "rateLimiterAlgorithm"), "leakyBucket"), "rateLimiterAlgorithm should be \"leakyBucket\"");
             Assert(isEqual(exchangeProp(exchange, "rateLimit"), 2000), "rateLimit should be 2000");
-            Assert(isEqual(exchange.certified, false), "certified should be false");
-            Assert(isEqual(exchange.pro, false), "pro should be false");
-            Assert(isEqual(exchange.alias, false), "alias should be false");
+            Assert(!isTrue(exchange.certified), "certified should be false");
+            Assert(!isTrue(exchange.pro), "pro should be false");
+            Assert(!isTrue(exchange.alias), "alias should be false");
             List<object> httpExceptionKeys = new List<object>() {"400", "401", "403", "404", "405", "407", "408", "409", "410", "418", "422", "429", "451", "500", "501", "502", "503", "504", "511", "520", "521", "522", "525", "526", "530"};
             // php errors with below, bcz integer key cast
             // AssertDeepEqual (exchange, {}, 'httpExceptionKeys', Object.keys (exchangeProp (exchange, 'httpExceptions')), httpExceptionKeys); // todo: add better deepAssert with error classes
@@ -285,7 +278,7 @@ public partial class BaseTest
             };
             AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "status", exchange.status, status);
             Assert(isEqual(exchange.timeout, 10000), "timeout should be 10000");
-            Assert(isEqual(exchange.verbose, false), "verbose should be false");
+            Assert(!isTrue(exchange.verbose), "verbose should be false");
             // Assert (exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); // todo WS
             Assert(!isEqual(exchangeProp(exchange, "reloadingMarkets"), true), "reloadingMarkets should be false");
             Assert(isEqual(exchangeProp(exchange, "marketsLoading"), null), "marketsLoading should be undefined");

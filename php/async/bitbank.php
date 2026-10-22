@@ -640,7 +640,11 @@ class bitbank extends Exchange {
         $windowLimit = ($limit === null) ? 1000 : $limit;
         $limitResolved = ($since === null) ? $windowLimit : $limit;
         $duration = $this->parse_timeframe($timeframe);
-        $sinceResolved = ($since === null) ? $this->milliseconds() - $duration * 1000 * $windowLimit : $since;
+        $windowMs = $duration * 1000 * 1000;
+        if ($limit !== null) {
+            $windowMs = $duration * 1000 * $limit;
+        }
+        $sinceResolved = ($since === null) ? $this->milliseconds() - $windowMs : $since;
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -752,7 +756,7 @@ class bitbank extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'UNFILLED' => 'open',
             'PARTIALLY_FILLED' => 'open',
@@ -1147,16 +1151,17 @@ class bitbank extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $query = $this->omit($params, $this->extract_params($path));
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $this->implode_hostname($apiUrl) . '/';
         $requestBody = null;
         $requestHeaders = null;
-        if (($api === 'public') || ($api === 'markets')) {
+        if (($apiName === 'public') || ($apiName === 'markets')) {
             $url .= $this->implode_params($path, $params);
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
@@ -1178,14 +1183,15 @@ class bitbank extends Exchange {
             }
             $url .= $this->version . '/' . $this->implode_params($path, $params);
             if ($method === 'POST') {
-                $requestBody = $this->json($query);
-                $auth .= $requestBody;
+                $jsonBody = $this->json($query);
+                $requestBody = $jsonBody;
+                $auth .= $jsonBody;
             } else {
                 $auth .= '/' . $this->version . '/' . $path;
                 if (count($query) > 0) {
-                    $query = $this->urlencode($query);
-                    $url .= '?' . $query;
-                    $auth .= '?' . $query;
+                    $queryString = $this->urlencode($query);
+                    $url .= '?' . $queryString;
+                    $auth .= '?' . $queryString;
                 }
             }
             $requestHeaders = array(
@@ -1200,8 +1206,8 @@ class bitbank extends Exchange {
                 $requestHeaders['ACCESS-NONCE'] = $nonce;
             }
         }
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

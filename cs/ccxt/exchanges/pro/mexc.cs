@@ -344,7 +344,7 @@ public partial class mexc : ccxt.mexc
             {
                 ticker = ccxt.BaseExchange.FromTicker(this.parseTicker(entry));
             }
-            string? symbol = ((string)GetValue(ticker, "symbol"));
+            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
             if ((symbol != null))
             {
                 this.tickers[(string)symbol] = ticker;
@@ -526,7 +526,7 @@ public partial class mexc : ccxt.mexc
     {
         parameters ??= new Dictionary<string, object>();
         bool? unsubscribed = this.safeBool(parameters, "unsubscribed", false);
-        object paramsOmitted = this.omit(parameters, new List<object>() {"unsubscribed"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"unsubscribed"}));
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot"));
         string method = "SUBSCRIPTION";
         if ((unsubscribed == true))
@@ -871,7 +871,7 @@ public partial class mexc : ccxt.mexc
         {
             return -1;
         }
-        if ((nonce < (firstDeltaNonce - 1)))
+        if (((nonce != null)) && ((firstDeltaNonce != null)) && ((nonce < (firstDeltaNonce - 1))))
         {
             return -1;
         }

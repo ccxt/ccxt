@@ -99,11 +99,16 @@ class DepositWithdrawFeeNetwork(TypedDict):
     percentage: NotRequired[Bool]
 
 
+class DepositWithdrawFeeNetworkEntry(TypedDict):
+    deposit: NotRequired[DepositWithdrawFeeNetwork]
+    withdraw: NotRequired[DepositWithdrawFeeNetwork]
+
+
 class DepositWithdrawFee(TypedDict):
     info: dict[str, Any]
     withdraw: NotRequired[DepositWithdrawFeeNetwork]
     deposit: NotRequired[DepositWithdrawFeeNetwork]
-    networks: NotRequired[dict[str, DepositWithdrawFeeNetwork]]
+    networks: NotRequired[dict[str, DepositWithdrawFeeNetworkEntry]]
 
 
 class Balance(TypedDict):
@@ -160,6 +165,7 @@ class Position(TypedDict):
     leverage: Num
     unrealizedPnl: Num
     realizedPnl: Num
+    positionMargin: Num
     collateral: Num
     entryPrice: Num
     markPrice: Num
@@ -268,6 +274,15 @@ class Balances(dict[str, Balance]):
 
 
 class OrderBook(TypedDict):
+    asks: list[list[Num]]
+    bids: list[list[Num]]
+    datetime: Str
+    timestamp: Int
+    nonce: Int
+    symbol: Str
+
+
+class OrderBookL3(TypedDict):
     asks: list[list[Num]]
     bids: list[list[Num]]
     datetime: Str

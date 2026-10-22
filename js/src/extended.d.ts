@@ -7,7 +7,7 @@ import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, 
 export default class extended extends Exchange {
     describe(): any;
     loadMarkets(reload?: boolean, params?: Dict): Promise<import("./base/types.js").Dictionary<Market>>;
-    indexByStringifiedNumericId(input: Dict): Dict | undefined;
+    indexByStringifiedNumericId(input: Dict): NullableDict;
     /**
      * @method
      * @name extended#fetchMarkets
@@ -149,7 +149,7 @@ export default class extended extends Exchange {
      * @returns {object[]} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OpenInterest[]>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name extended#fetchBalance
@@ -361,7 +361,7 @@ export default class extended extends Exchange {
     fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
     getExtendedStarkAmount(amount: string, resolution: Int, roundUp?: boolean): string;
-    fetchExtendedAccount(params?: {}): Promise<any>;
+    fetchExtendedAccount(params?: Dict): Promise<Dict>;
     createOrderSettlementData(isBuy: boolean, amountString: string, priceString: string, params?: Dict): Dict;
     createWithdrawalSettlementData(address: string, amountString: string, currency: Currency, account: Dict, params?: Dict): Dict;
     createTransferSettlementData(amountString: string, currency: Currency, account: Dict, toVault: string, toL2Key: string, params?: Dict): Dict;
@@ -534,5 +534,5 @@ export default class extended extends Exchange {
     getExtendedWithdrawalMsgHash(settlement: Dict, starkKey: string): string;
     getExtendedTransferMsgHash(settlement: Dict): string;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

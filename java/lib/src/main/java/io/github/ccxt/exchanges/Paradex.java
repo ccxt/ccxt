@@ -1184,7 +1184,6 @@ public class Paradex extends ParadexApi
                 put( "resolution", Paradex.this.safeString(Paradex.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
                 put( "symbol", market.get("id") );
             }};
-            Long maxLimit = 1000L; // exchange has undocumented limit slightly above, but this is reliable limit
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String price = this.safeString(parameters, "price");
             if (!java.util.Objects.equals(price, null))
@@ -1196,21 +1195,23 @@ public class Paradex extends ParadexApi
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Boolean hasEnd = (request.containsKey("end_at"));
             Map<String, Object> paramsOmitted = this.omit(paramsUntil, new ArrayList<Object>(Arrays.asList("price")));
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? maxLimit : Math.min(limit, maxLimit);
+            // exchange has undocumented limit slightly above, but 1000 is reliable limit
+            Object limitResolved = ((((java.util.Objects.equals(limit, null)) || ((limit > 1000))))) ? 1000 : limit;
+            Long windowLength = this.parseToInt(Helpers.multiply(Helpers.multiply(duration, (((Object) (switch ((Object) (this.parseToInt(limitResolved))) { case null -> (Object) null; case Long hx4J40v2 -> (Object) (hx4J40v2 + 1L); case Integer hx4J40v2 -> (Object) (hx4J40v2.longValue() + 1L); case Double hx4J40v2 -> (Object) (hx4J40v2 + ((double) 1L)); case String hx4J40v2 -> (Object) (hx4J40v2 + "1"); default -> (Object) null; })))), 1000));
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)requestUntil).put("start_at", since);
                 if (!Boolean.TRUE.equals(hasEnd))
                 {
-                    ((Map<String, Object>)requestUntil).put("end_at", Helpers.subtract(Helpers.add(since, Helpers.multiply(Helpers.multiply(duration, (Helpers.add(limitResolved, 1))), 1000)), 1));
+                    Long sinceInt = this.parseToInt(since);
+                    ((Map<String, Object>)requestUntil).put("end_at", Helpers.subtract((sinceInt + windowLength), 1));
                 }
             } else
             {
-                if (!Boolean.TRUE.equals(hasEnd))
-                {
-                    ((Map<String, Object>)requestUntil).put("end_at", this.milliseconds());
-                }
-                ((Map<String, Object>)requestUntil).put("start_at", Helpers.add(Helpers.subtract(((Map<String, Object>)requestUntil).get("end_at"), Helpers.multiply(Helpers.multiply(duration, (Helpers.add(limitResolved, 1))), 1000)), 1));
+                Long endAtRaw = ((Boolean.TRUE.equals(hasEnd))) ? this.safeInteger(requestUntil, "end_at", 0) : this.milliseconds();
+                Long endAt = this.parseToInt(endAtRaw);
+                ((Map<String, Object>)requestUntil).put("end_at", endAt);
+                ((Map<String, Object>)requestUntil).put("start_at", ((endAt - windowLength) + 1L));
             }
             Map<String, Object> response = (this.publicGetMarketsKlines(this.extend(requestUntil, paramsOmitted))).join();
             //
@@ -1462,7 +1463,7 @@ public class Paradex extends ParadexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            FundingRates rates = (this.fetchFundingRates(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(market.get("symbol")))), parameters)).join();
+            FundingRates rates = (this.fetchFundingRates(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
             Map<String, Object> rate = (Map<String, Object>) this.safeDict(rates, market.get("symbol"), (Object) null);
             if (java.util.Objects.equals(rate, null))
             {
@@ -1819,7 +1820,7 @@ public class Paradex extends ParadexApi
         }}, marketResolved);
     }
 
-    public Object hashMessage(Object message)
+    public String hashMessage(Object message)
     {
         Object hashed = this.hash(message, keccak(), "hex");
         return ("0x" + hashed);
@@ -1844,41 +1845,11 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> cachedConfig = (Map<String, Object>) this.safeDict(this.options, "systemConfig", (Object) null);
-            if (!java.util.Objects.equals(cachedConfig, null))
+            if (java.util.Objects.equals(this.safeDict(this.options, "systemConfig", (Object) null), null))
             {
-                return cachedConfig;
+                Map<String, Object> response = (this.publicGetSystemConfig(new HashMap<String, Object>() {{}})).join();
+                Helpers.addElementToObject(this.options, "systemConfig", response);
             }
-            Map<String, Object> response = (this.publicGetSystemConfig(new HashMap<String, Object>() {{}})).join();
-            //
-            // {
-            //     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
-            //     "starknet_fullnode_rpc_url": "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7",
-            //     "starknet_chain_id": "PRIVATE_SN_POTC_SEPOLIA",
-            //     "block_explorer_url": "https://voyager.testnet.paradex.trade/",
-            //     "paraclear_address": "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6",
-            //     "paraclear_decimals": 8,
-            //     "paraclear_account_proxy_hash": "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9",
-            //     "paraclear_account_hash": "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e",
-            //     "oracle_address": "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f",
-            //     "bridged_tokens": [
-            //         {
-            //             "name": "TEST USDC",
-            //             "symbol": "USDC",
-            //             "decimals": 6,
-            //             "l1_token_address": "0x29A873159D5e14AcBd63913D4A7E2df04570c666",
-            //             "l1_bridge_address": "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C",
-            //             "l2_token_address": "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e",
-            //             "l2_bridge_address": "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef"
-            //         }
-            //     ],
-            //     "l1_core_contract_address": "0x582CC5d9b509391232cd544cDF9da036e55833Af",
-            //     "l1_operator_address": "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB",
-            //     "l1_chain_id": "11155111",
-            //     "liquidation_fee": "0.2"
-            // }
-            //
-            Helpers.addElementToObject(this.options, "systemConfig", response);
             return this.safeDict(this.options, "systemConfig", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -1890,7 +1861,7 @@ public class Paradex extends ParadexApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> systemConfig = (this.getSystemConfig()).join();
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(l1, false), true))
+            if (java.util.Objects.requireNonNullElse(l1, false))
             {
                 Map<String, Object> l1D = new HashMap<String, Object>() {{
                     put( "name", "Paradex" );
@@ -1914,28 +1885,26 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> cachedAccount = (Map<String, Object>) this.safeDict(this.options, "paradexAccount", (Object) null);
-            if (!java.util.Objects.equals(cachedAccount, null))
+            if (java.util.Objects.equals(this.safeDict(this.options, "paradexAccount", (Object) null), null))
             {
-                return cachedAccount;
-            }
-            this.checkRequiredCredentials(true);
-            Map<String, Object> systemConfig = (this.getSystemConfig()).join();
-            Map<String, Object> domain = (this.prepareParadexDomain(true)).join();
-            Map<String, Object> messageTypes = new HashMap<String, Object>() {{
-                put( "Constant", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+                this.checkRequiredCredentials(true);
+                Map<String, Object> systemConfig = (this.getSystemConfig()).join();
+                Map<String, Object> domain = (this.prepareParadexDomain(true)).join();
+                Map<String, Object> messageTypes = new HashMap<String, Object>() {{
+                    put( "Constant", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "action" );
         put( "type", "string" );
     }})) );
-            }};
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "action", "STARK Key" );
-            }};
-            Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
-            String signature = this.signMessage(msg, this.privateKey);
-            Object account = this.retrieveStarkAccount(signature, systemConfig.get("paraclear_account_hash"), systemConfig.get("paraclear_account_proxy_hash"));
-            Helpers.addElementToObject(this.options, "paradexAccount", account);
-            return account;
+                }};
+                Map<String, Object> message = new HashMap<String, Object>() {{
+                    put( "action", "STARK Key" );
+                }};
+                Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
+                String signature = this.signMessage(msg, this.privateKey);
+                Object account = this.retrieveStarkAccount(signature, systemConfig.get("paraclear_account_hash"), systemConfig.get("paraclear_account_proxy_hash"));
+                Helpers.addElementToObject(this.options, "paradexAccount", account);
+            }
+            return this.safeDict(this.options, "paradexAccount", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
@@ -1973,7 +1942,7 @@ public class Paradex extends ParadexApi
         return BaseExchange.supplyAsync(() -> {
 
             String cachedToken = this.safeString(this.options, "authToken");
-            Long now = this.nonce();
+            Long now = this.parseToInt(this.nonce());
             if (!java.util.Objects.equals(cachedToken, null))
             {
                 Long cachedExpires = this.safeInteger(this.options, "expires");
@@ -1988,7 +1957,7 @@ public class Paradex extends ParadexApi
             }
             Map<String, Object> account = (this.retrieveAccount()).join();
             // https://docs.paradex.trade/api-reference/general-information/authentication
-            Object expires = (now + 180L);
+            Long expires = (Long) (now + 180L);
             Map<String, Object> req = new HashMap<String, Object>();
             req.put("method", "POST");
             req.put("path", "/v1/auth");
@@ -2280,13 +2249,13 @@ public class Paradex extends ParadexApi
         return (Map<String, Object>) (this.extend(request, paramsOmitted));
     }
 
-    public CompletableFuture<Map<String, Object>> signOrderRequest(Map<String, Object> request, Object modify)
+    public CompletableFuture<Map<String, Object>> signOrderRequest(Map<String, Object> request, Boolean modify)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> account = (this.retrieveAccount()).join();
-            Long now = this.nonce();
+            Long now = this.parseToInt(this.nonce());
             String orderType = this.safeString(request, "type");
             if (java.util.Objects.equals(orderType, null))
             {
@@ -2320,7 +2289,7 @@ public class Paradex extends ParadexApi
         put( "type", "felt" );
     }}));
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(modify, false)))
+            if (java.util.Objects.requireNonNullElse(modify, false))
             {
                 orderReq.put("id", request.get("id"));
                 ((List<Object>)orderFields).add(new HashMap<String, Object>() {{
@@ -2339,9 +2308,11 @@ public class Paradex extends ParadexApi
             Map<String, Object> domain = (this.prepareParadexDomain(false)).join();
             Object msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, account.get("address"));
             Object signature = this.starknetSign(msg, account.get("privateKey"));
-            request.put("signature", signature);
-            Helpers.addElementToObject(request, "signature_timestamp", orderReq.get("timestamp"));
-            return request;
+            Map<String, Object> signedRequest = this.extend(request, new HashMap<String, Object>() {{
+                put( "signature", signature );
+                put( "signature_timestamp", orderReq.get("timestamp") );
+            }});
+            return signedRequest;
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
@@ -2554,15 +2525,16 @@ public class Paradex extends ParadexApi
             List<Object> responseOrders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> parsedOrders = this.parseOrders(responseOrders, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             List<Object> errors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rejected = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)errors).size(); i++)
             {
                 Object error = (errors == null || i < 0 || i >= errors.size() ? null : errors.get(i));
-                ((List<Object>)parsedOrders).add(this.safeOrder(new HashMap<String, Object>() {{
+                ((List<Object>)rejected).add(this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", error );
                     put( "status", "rejected" );
                 }}, (Map<String, Object>) null));
             }
-            return parsedOrders;
+            return this.arrayConcat(parsedOrders, rejected);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2691,13 +2663,13 @@ public class Paradex extends ParadexApi
                 {
                     orderStatus = "rejected";
                 }
-                ((List<Object>)orders).add(this.safeOrder(Helpers.newMap(
-                    "info", result,
-                    "id", this.safeString(result, "id"),
-                    "clientOrderId", this.safeString(result, "client_id"),
-                    "status", orderStatus,
-                    "symbol", market.get("symbol")
-                ), market));
+                ((List<Object>)orders).add(this.safeOrder((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("info", result);
+                    j39v1.put("id", this.safeString(result, "id"));
+                    j39v1.put("clientOrderId", this.safeString(result, "client_id"));
+                    j39v1.put("status", orderStatus);
+                    j39v1.put("symbol", market.get("symbol"));
+                    yield j39v1; } }), market));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -3014,7 +2986,7 @@ public class Paradex extends ParadexApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "token");
@@ -3131,7 +3103,7 @@ public class Paradex extends ParadexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            List<Position> positions = (this.fetchPositions(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(market.get("symbol")))), parameters)).join();
+            List<Position> positions = (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), parameters)).join();
             return this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
         }).thenApply(Position::new);
 
@@ -4252,13 +4224,14 @@ public class Paradex extends ParadexApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String version = this.version;
         Object pathValue = path;
         if ((((String)path).indexOf("v2/") == 0))
         {
-            pathValue = Helpers.replace(((String)path), "v2/", "");
+            pathValue = (path == null ? null : ((String)path).replaceFirst("v2/", ""));
         }
         if ((((String)path).indexOf("v2/") == 0))
         {
@@ -4271,13 +4244,13 @@ public class Paradex extends ParadexApi
         }
         String url = ((this.implodeHostname(baseApiUrl) + "/") + this.implodeParams(pathValue, parameters));
         Object query = this.omit(parameters, this.extractParams(pathValue));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        } else if (java.util.Objects.equals(apiName, "private"))
         {
             Map<String, Object> privateHeaders = new HashMap<String, Object>() {{
                 put( "Accept", "application/json" );
@@ -4330,7 +4303,7 @@ public class Paradex extends ParadexApi
             //         url += '?' + this.urlencode (query);
             //     }
             // }
-            String bodyResolved = (((!java.util.Objects.equals(privateBody, null)))) ? privateBody : body;
+            String bodyResolved = privateBody;
             {
                 HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
                 h2kMap4.put("url", url);
@@ -4344,8 +4317,8 @@ public class Paradex extends ParadexApi
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
             h2kMap5.put("url", url);
             h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap5.put("body", body);
-            h2kMap5.put("headers", headers);
+            h2kMap5.put("body", null);
+            h2kMap5.put("headers", null);
             return h2kMap5;
         }
     }

@@ -776,11 +776,8 @@ class derive extends derive$1["default"] {
      */
     async getMarketsPaginated(request, params = {}) {
         let allInstruments = [];
-        let maxPages = 25;
-        let paramsOmitted = {};
-        [maxPages, paramsOmitted] = this.handleOptionAndParams(params, 'getMarketsPaginated', 'maxMarketPages', maxPages);
-        let pageSize = 1000;
-        [pageSize, paramsOmitted] = this.handleOptionAndParams(paramsOmitted, 'getMarketsPaginated', 'maxMarketsPerPage', pageSize);
+        const [maxPages, paramsMaxPages] = this.handleOptionIntegerAndParams(params, 'getMarketsPaginated', 'maxMarketPages', 25);
+        const [pageSize, paramsOmitted] = this.handleOptionAndParams(paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000);
         let page = 1;
         for (let i = 0; i < maxPages; i++) {
             const requestExtension = {
@@ -1406,12 +1403,9 @@ class derive extends derive$1["default"] {
         if (limit !== undefined && limit > 1000) {
             limitResolved = 1000;
         }
-        if (limitResolved !== undefined) {
+        if (limit !== undefined) {
             // the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
-            let pageSize = limitResolved * 2;
-            if (pageSize > 1000) {
-                pageSize = 1000; // default 100, max 1000
-            }
+            const pageSize = (limit > 500) ? 1000 : limit * 2; // default 100, max 1000
             request['page_size'] = pageSize;
         }
         if (since !== undefined) {
@@ -1578,32 +1572,30 @@ class derive extends derive$1["default"] {
         const until = this.safeInteger(paramsPrice, 'until');
         const paramsOmitted = this.omit(paramsPrice, ['until']);
         const duration = this.parseTimeframe(timeframe);
-        let end = undefined;
+        let untilSeconds = this.seconds();
         if (until !== undefined) {
-            end = this.parseToInt(until / 1000);
+            untilSeconds = this.parseToInt(until / 1000);
         }
-        else {
-            end = this.seconds();
-        }
-        let limitResolved = limit;
-        if (limitResolved === undefined) {
-            limitResolved = (since !== undefined) ? 5000 : 1000;
+        // the venue keeps only the latest 5000 buckets of the requested window
+        const defaultLimit = (since === undefined) ? 1000 : 5000;
+        let limitResolved = this.parseToInt(defaultLimit);
+        if (limit !== undefined) {
+            limitResolved = this.parseToInt(limit);
         }
         if (limitResolved > 5000) {
-            limitResolved = 5000; // the venue keeps only the latest 5000 buckets of the requested window
+            limitResolved = this.parseToInt(5000);
         }
-        let start = undefined;
+        const span = this.parseToInt(limitResolved * duration);
+        const windowStart = this.parseToInt(untilSeconds - span);
+        let start = windowStart;
+        let end = untilSeconds;
         if (since !== undefined) {
-            start = this.parseToInt(since / 1000);
+            const sinceSeconds = this.parseToInt(since / 1000);
+            start = sinceSeconds;
             // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
-            const calculatedEnd = limitResolved * duration;
-            const maxEnd = this.sum(start, calculatedEnd);
-            if (maxEnd < end) {
-                end = maxEnd;
+            if (sinceSeconds < windowStart) {
+                end = this.sum(sinceSeconds, span);
             }
-        }
-        else {
-            start = end - limitResolved * duration;
         }
         const request = {
             'period': period,
@@ -1896,7 +1888,7 @@ class derive extends derive$1["default"] {
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         // EIP712Domain (name "Matching", version "1.0", verifyingContract 0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD) precomputed for chainId 1 (mainnet) and 11155111 (sepolia testnet)
         let DOMAIN_SEPARATOR = 'da616dfabb88681b08e1592820a41d55ddc62d68de110e327ae99d734506fe19';
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             DOMAIN_SEPARATOR = '24d674cd5f2b9d564691c51e9d88f649b99246a2244dd74ce27b96578d773e85';
         }
         const binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
@@ -2070,7 +2062,7 @@ class derive extends derive$1["default"] {
         request['signature'] = signature;
         const paramsOmitted = this.omit(paramsDeriveWalletAddress, ['reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLossPrice', 'takeProfitPrice', 'trigger_price_type']);
         let response;
-        if (test === true) {
+        if (test) {
             response = await this.privatePostOrderDebug(this.extend(request, paramsOmitted));
         }
         else {
@@ -2344,7 +2336,7 @@ class derive extends derive$1["default"] {
         }
         else {
             request['order_id'] = id;
-            if (isTrigger === true) {
+            if (isTrigger) {
                 response = await this.privatePostCancelTriggerOrder(this.extend(request, paramsOmitted));
             }
             else {
@@ -2607,7 +2599,7 @@ class derive extends derive$1["default"] {
             market = this.market(symbol);
         }
         let response;
-        if (isTrigger === true) {
+        if (isTrigger) {
             response = await this.privatePostGetTriggerOrders(this.extend(request, paramsDeriveSubaccountId));
         }
         else {
@@ -3135,6 +3127,8 @@ class derive extends derive$1["default"] {
         const markPrice = this.safeString(position, 'mark_price');
         const timestamp = this.safeInteger(position, 'creation_timestamp');
         const unrealisedPnl = this.safeString(position, 'unrealized_pnl');
+        const initialMarginString = Precise["default"].stringAbs(this.safeString(position, 'initial_margin'));
+        const maintenanceMarginString = Precise["default"].stringAbs(this.safeString(position, 'maintenance_margin'));
         size = Precise["default"].stringAbs(size);
         const notional = Precise["default"].stringMul(size, markPrice);
         return this.safePosition({
@@ -3144,11 +3138,11 @@ class derive extends derive$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastUpdateTimestamp': undefined,
-            'initialMargin': this.safeNumber(position, 'initial_margin'),
-            'initialMarginPercentage': undefined,
-            'maintenanceMargin': this.safeNumber(position, 'maintenance_margin'),
-            'maintenanceMarginPercentage': undefined,
-            'entryPrice': undefined,
+            'initialMargin': this.parseNumber(initialMarginString),
+            'initialMarginPercentage': this.parseNumber(Precise["default"].stringDiv(initialMarginString, notional, 8)),
+            'maintenanceMargin': this.parseNumber(maintenanceMarginString),
+            'maintenanceMarginPercentage': this.parseNumber(Precise["default"].stringDiv(maintenanceMarginString, notional, 8)),
+            'entryPrice': this.safeNumber2(position, 'average_price', 'average_price_excl_fees'),
             'notional': this.parseNumber(notional),
             'leverage': this.safeNumber(position, 'leverage'),
             'unrealizedPnl': this.parseNumber(unrealisedPnl),
@@ -3628,7 +3622,7 @@ class derive extends derive$1["default"] {
         }
         const fromId = this.parseToInt(fromAccount);
         // the destination is optional on the subaccount-creation path, an undefined must not reach the int conversion
-        const toId = (toAccount === undefined) ? 0 : this.parseToInt(toAccount);
+        const toId = this.parseToInt((toAccount === undefined) ? 0 : toAccount);
         const amountString = this.numberToString(amount);
         const maxFeeUsd = this.safeString(params, 'max_fee_usd', '0');
         const newSubaccountManager = this.safeInteger(params, 'new_subaccount_manager', 0);
@@ -4261,8 +4255,9 @@ class derive extends derive$1["default"] {
         // signs the auth timestamp and feeds incrementingNonce (), which nonceString () extends to the nanosecond-scale action nonce; must be unique per wallet (error 11017) while staying a valid date (error 11018)
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -4271,13 +4266,12 @@ class derive extends derive$1["default"] {
             const postHeaders = {
                 'Content-Type': 'application/json',
             };
-            if (api === 'private') {
+            if (apiName === 'private') {
                 const now = this.numberToString(this.nonce());
                 const signature = this.signMessage(now, this.privateKey);
-                let deriveWalletAddress = this.safeString(this.options, 'deriveWalletAddress');
-                if ((deriveWalletAddress === undefined) || (deriveWalletAddress === '')) {
-                    deriveWalletAddress = this.walletAddress; // v3: the owner wallet is the user's own EOA
-                }
+                const configuredWalletAddress = this.safeString(this.options, 'deriveWalletAddress');
+                // v3: the owner wallet is the user's own EOA
+                const deriveWalletAddress = ((configuredWalletAddress === undefined) || (configuredWalletAddress === '')) ? this.walletAddress : configuredWalletAddress;
                 postHeaders['X-DeriveWallet'] = deriveWalletAddress;
                 postHeaders['X-DeriveTimestamp'] = now;
                 postHeaders['X-DeriveSignature'] = signature;
@@ -4285,7 +4279,7 @@ class derive extends derive$1["default"] {
             const postBody = this.json(params);
             return { 'url': url, 'method': method, 'body': postBody, 'headers': postHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 }
 

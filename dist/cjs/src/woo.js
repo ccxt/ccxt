@@ -346,7 +346,6 @@ class woo extends woo$1["default"] {
                 'sandboxMode': false,
                 'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
-                    'TRX': 'TRX', // WOO X renamed the network id from TRON to TRX
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
@@ -1637,7 +1636,7 @@ class woo extends woo$1["default"] {
         }
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         const paramsOmitted = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent', 'trigger', 'stop']);
-        const isConditional = (isTrigger === true) || isTrailing || (triggerPrice !== undefined) || (this.safeValue(paramsOmitted, 'childOrders') !== undefined);
+        const isConditional = (isTrigger) || isTrailing || (triggerPrice !== undefined) || (this.safeValue(paramsOmitted, 'childOrders') !== undefined);
         let response = undefined;
         if (isConditional) {
             if (isByClientOrder) {
@@ -1691,7 +1690,7 @@ class woo extends woo$1["default"] {
     async cancelOrder(id, symbol = undefined, params = {}) {
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         const paramsOmitted = this.omit(params, ['trigger', 'stop']);
-        if ((isTrigger !== true) && (symbol === undefined)) {
+        if ((!isTrigger) && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -1707,7 +1706,7 @@ class woo extends woo$1["default"] {
         const paramsOmitted2 = this.omit(paramsOmitted, ['clOrdID', 'clientOrderId', 'client_order_id']);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response = undefined;
-        if (isTrigger === true) {
+        if (isTrigger) {
             if (isByClientOrder) {
                 request['clientAlgoOrderId'] = clientOrderIdExchangeSpecific;
             }
@@ -1800,8 +1799,12 @@ class woo extends woo$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        let triggerAfter = 0;
+        if ((timeout !== undefined) && (timeout > 0)) {
+            triggerAfter = (timeout > 900000) ? 900000 : timeout;
+        }
         const request = {
-            'triggerAfter': (timeout > 0) ? Math.min(timeout, 900000) : 0,
+            'triggerAfter': triggerAfter,
         };
         const response = await this.v3PrivatePostTradeCancelAllAfter(this.extend(request, params));
         //
@@ -3224,7 +3227,7 @@ class woo extends woo$1["default"] {
         const transfer = this.parseTransfer(data, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transfer['amount'] = amount;
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -3403,7 +3406,7 @@ class woo extends woo$1["default"] {
             'amount': amount,
             'addressTo': address,
             'tag': tagWithdrawTag,
-            'network': network,
+            'network': this.safeString(this.networkAliases, network, network),
             'type': 'withdrawal',
             'status': 'pending',
         });
@@ -3461,7 +3464,7 @@ class woo extends woo$1["default"] {
     nonce() {
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
     }
-    sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, section = ['public'], method = 'GET', params = {}) {
         let requestHeaders = undefined;
         let requestBody = undefined;
         const version = this.safeString(section, 0);
@@ -3490,7 +3493,7 @@ class woo extends woo$1["default"] {
             this.checkRequiredCredentials();
             if (method === 'POST' && (path === 'trade/algoOrder' || path === 'trade/order')) {
                 const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-                if (isSandboxMode !== true) {
+                if (!isSandboxMode) {
                     const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
                     const brokerId = this.safeString(this.options, 'brokerId', applicationId);
                     const isTrigger = path.indexOf('algo') > -1;
@@ -3540,8 +3543,8 @@ class woo extends woo$1["default"] {
             }
             requestHeaders['x-api-signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
         }
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -4320,6 +4323,11 @@ class woo extends woo$1["default"] {
         size = Precise["default"].stringAbs(size);
         const notional = Precise["default"].stringMul(size, markPrice);
         const positionSide = this.safeString(position, 'positionSide'); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
+        const marginMode = this.safeStringLower2(position, 'marginMode', 'margin_mode');
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = this.safeNumber2(position, 'isolatedMarginAmount', 'isolated_margin_amount');
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -4341,8 +4349,9 @@ class woo extends woo$1["default"] {
             'liquidationPrice': this.safeNumber2(position, 'estLiqPrice', 'est_liq_price'),
             'markPrice': this.parseNumber(markPrice),
             'lastPrice': undefined,
+            'positionMargin': positionMargin,
             'collateral': undefined,
-            'marginMode': this.safeStringLower2(position, 'marginMode', 'margin_mode'),
+            'marginMode': marginMode,
             'side': side,
             'percentage': undefined,
             'hedged': positionSide !== 'BOTH',
@@ -4742,7 +4751,7 @@ class woo extends woo$1["default"] {
         const networkKeys = Object.keys(networks);
         for (let i = 0; i < networkKeys.length; i++) {
             const network = networkKeys[i];
-            if (network === 'ETH') {
+            if (network === 'ERC20') {
                 return network;
             }
         }

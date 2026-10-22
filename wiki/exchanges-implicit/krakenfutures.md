@@ -53,7 +53,7 @@ response := <-krakenfutures.PublicGetFeeschedules(params)
 
 Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; everything else in `params` is sent as the query string or request body. **Cost** is the rate-limiter weight of each call.
 
-📚 **Official krakenfutures API documentation:** [docs.kraken.com](https://docs.kraken.com/api/docs/futures-api/trading/market-data/)
+📚 **Official krakenfutures API documentation:** [docs.kraken.com](https://docs.kraken.com/exchange/guides/futures/rest)
 
 > 55 implicit endpoints across 4 access groups.
 

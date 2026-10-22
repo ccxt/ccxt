@@ -684,7 +684,12 @@ public partial class bitbank : Exchange
         Int64? windowLimit = ((limit == null)) ? 1000 : limit;
         Int64? limitResolved = ((since == null)) ? windowLimit : limit;
         int duration = this.parseTimeframe(timeframeVar);
-        object sinceResolved = ((since == null)) ? subtract(this.milliseconds(), ((duration * 1000L) * windowLimit)) : since;
+        Int64? windowMs = ((duration * 1000L) * 1000);
+        if ((limit != null))
+        {
+            windowMs = ((duration * 1000L) * limit);
+        }
+        object sinceResolved = ((since == null)) ? (this.milliseconds() - windowMs) : since;
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1108,7 +1113,7 @@ public partial class bitbank : Exchange
         string? tagWithdrawTag = ((string)(tagAndParams != null && 0 < tagAndParams.Count ? tagAndParams[0] : null));
         object paramsWithdrawTag = (tagAndParams != null && 1 < tagAndParams.Count ? tagAndParams[1] : null);
         this.checkAddress(address, code, tagWithdrawTag);
-        if (!(inOp(paramsWithdrawTag, "uuid")))
+        if (!((paramsWithdrawTag is IDictionary<string, object> inOpDict0 && inOpDict0.ContainsKey("uuid"))))
         {
             throw new ExchangeError ((this.id + " uuid is required for withdrawal")) ;
         }
@@ -1192,13 +1197,14 @@ public partial class bitbank : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         object query = this.omit(parameters, this.extractParams(path));
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1206,7 +1212,7 @@ public partial class bitbank : Exchange
         string url = (this.implodeHostname(apiUrl) + "/");
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if (((api is "public")) || ((api is "markets")))
+        if (((apiName is "public")) || ((apiName is "markets")))
         {
             url = url + this.implodeParams(path, parameters);
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
@@ -1233,16 +1239,17 @@ public partial class bitbank : Exchange
             url = url + ((this.version + "/") + this.implodeParams(path, parameters));
             if ((method == "POST"))
             {
-                requestBody = this.json(query);
-                auth = auth + requestBody;
+                string jsonBody = this.json(query);
+                requestBody = jsonBody;
+                auth = auth + jsonBody;
             } else
             {
                 auth = auth + ((("/" + this.version) + "/") + path);
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    query = this.urlencode(query);
-                    url = url + ("?" + (query));
-                    auth = auth + ("?" + (query));
+                    string queryString = this.urlencode(query);
+                    url = url + ("?" + queryString);
+                    auth = auth + ("?" + queryString);
                 }
             }
             requestHeaders = new Dictionary<string, object>() {
@@ -1259,8 +1266,8 @@ public partial class bitbank : Exchange
                 requestHeaders["ACCESS-NONCE"] = nonce;
             }
         }
-        object bodyResolved = ((requestBody == null)) ? body : requestBody;
-        object headersResolved = ((requestHeaders == null)) ? headers : requestHeaders;
+        string? bodyResolved = requestBody;
+        Dictionary<string, object> headersResolved = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

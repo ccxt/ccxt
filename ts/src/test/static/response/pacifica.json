@@ -511,13 +511,14 @@
                         "markPrice": null,
                         "notional": null,
                         "leverage": null,
-                        "collateral": "0",
+                        "positionMargin": null,
+                        "collateral": 0,
                         "initialMargin": null,
                         "maintenanceMargin": null,
                         "initialMarginPercentage": null,
                         "maintenanceMarginPercentage": null,
                         "unrealizedPnl": null,
-                        "liquidationPrice": null,
+                        "liquidationPrice": 102443.420678,
                         "marginMode": "cross",
                         "percentage": null
                     }

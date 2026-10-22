@@ -78,13 +78,6 @@ class blofin extends \ccxt\async\blofin {
         return 'ping';
     }
 
-    public function handle_pong(Client $client, mixed $message) {
-        //
-        //   'pong'
-        //
-        $client->lastPong = $this->milliseconds();
-    }
-
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }
@@ -559,9 +552,6 @@ class blofin extends \ccxt\async\blofin {
         //     }
         //
         $marketType = 'swap'; // for now
-        if (!(is_array($this->balance) && array_key_exists($marketType ?? '', $this->balance))) {
-            $this->balance[$marketType] = array();
-        }
         $this->balance[$marketType] = $this->parse_ws_balance($message);
         $messageHash = $marketType . ':balance';
         $client->resolve($this->balance[$marketType], $messageHash);
@@ -846,7 +836,7 @@ class blofin extends \ccxt\async\blofin {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $paramsMarketType), $messageHashes));
     }
 
-    public function get_subscription_request(mixed $args) {
+    public function get_subscription_request(array $args): array {
         return array(
             'op' => 'subscribe',
             'args' => $args,
@@ -869,7 +859,6 @@ class blofin extends \ccxt\async\blofin {
         //
         $methods = array(
             // public
-            'pong' => array($this, 'handle_pong'),
             'trades' => array($this, 'handle_trades'),
             'books' => array($this, 'handle_order_book'),
             'tickers' => array($this, 'handle_ticker'),
@@ -883,7 +872,8 @@ class blofin extends \ccxt\async\blofin {
         );
         $method = null;
         if ($message === 'pong') {
-            $method = $this->safe_value($methods, 'pong');
+            $client->lastPong = $this->milliseconds();
+            return;
         } else {
             $event = $this->safe_string($message, 'event');
             if ($event === 'subscribe') {

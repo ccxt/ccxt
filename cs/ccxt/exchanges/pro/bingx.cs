@@ -334,15 +334,8 @@ public partial class bingx : ccxt.bingx
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
-        object inverse = false;
-        if ((isInverse == null))
-        {
-            inverse = (((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true);
-        } else
-        {
-            inverse = isInverse;
-        }
-        string baseVolumeKey = isTrue(inverse) ? "m" : "v";
+        bool inverse = ((isInverse is true)) || (((isInverse == null)) && ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true)));
+        string baseVolumeKey = inverse ? "m" : "v";
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", timestamp },
@@ -458,7 +451,7 @@ public partial class bingx : ccxt.bingx
             limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
         }
         IList<object> result = this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
-        if (isEqual(this.handleOption("watchTrades", "ignoreDuplicates", true), true))
+        if ((this.handleOption("watchTrades", "ignoreDuplicates", true) is true))
         {
             object filtered = this.removeRepeatedTradesFromArray(result);
             filtered = this.sortBy(filtered, "timestamp");
@@ -962,7 +955,7 @@ public partial class bingx : ccxt.bingx
         IDictionary<string, object> marketOptions = this.safeDict(this.options, marketType);
         IDictionary<string, object> timeframes = this.safeDict(marketOptions, "timeframes", new Dictionary<string, object>() {});
         string? unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
-        if (isEqual(this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), rawTimeframe), null))
+        if ((this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), rawTimeframe) == null))
         {
             string? subscriptionHash = dataType;
             IDictionary<string, object> subscription = this.safeDict(client.subscriptions, subscriptionHash);
@@ -1236,7 +1229,7 @@ public partial class bingx : ccxt.bingx
         }
         string uuid = this.uuid();
         string? baseUrl = null;
-        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = null;
         if ((type == "swap"))
         {
             if (subType == "inverse")
@@ -1364,7 +1357,7 @@ public partial class bingx : ccxt.bingx
         if ((fetchBalanceSnapshot == true))
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type, subType});
@@ -1380,11 +1373,11 @@ public partial class bingx : ccxt.bingx
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", type }, { "subType", subType }, }));
         this.balance[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
-            client.resolve(getValue(this.balance, type), add(type, ":balance"));
+            client.resolve((this.balance != null && type != null && this.balance.ContainsKey((string)type) ? this.balance[(string)type] : null), add(type, ":balance"));
         }
     }
 
@@ -1472,7 +1465,7 @@ public partial class bingx : ccxt.bingx
         if ((fetchPositionsSnapshot == true))
         {
             object messageHash = add(type, ":fetchPositionsSnapshot");
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash, type});
@@ -1492,13 +1485,13 @@ public partial class bingx : ccxt.bingx
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
             double? contracts = this.safeNumber(position, "contracts", 0);
-            if ((contracts > 0))
+            if (((contracts != null)) && ((contracts > 0)))
             {
                 cache.append(position);
             }
         }
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -1708,7 +1701,7 @@ public partial class bingx : ccxt.bingx
         Int64 time = this.milliseconds();
         Int64? lastAuthenticatedTime = this.safeInteger(this.options, "lastAuthenticatedTime", 0);
         Int64? listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000); // 1 hour
-        if (isGreaterThan((time - lastAuthenticatedTime), listenKeyRefreshRate))
+        if (((listenKeyRefreshRate != null)) && (((time - lastAuthenticatedTime) > listenKeyRefreshRate)))
         {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
@@ -1885,7 +1878,7 @@ public partial class bingx : ccxt.bingx
                     // Match both id and symbol: several cached orders can share a symbol.
                     for (int i = 0; i < (stored?.Count ?? 0); i++)
                     {
-                        object previousOrder = getValue(stored, i);
+                        object previousOrder = (stored != null && i < stored.Count ? stored[i] : null);
                         if (((this.safeString(previousOrder, "id") == orderId)) && ((this.safeString(previousOrder, "symbol") == this.safeString(parsedOrder, "symbol"))))
                         {
                             Int64? previousTimestamp = this.safeInteger(previousOrder, "lastUpdateTimestamp");

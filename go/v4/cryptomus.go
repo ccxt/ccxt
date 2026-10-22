@@ -350,12 +350,12 @@ func (this *Cryptomus) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Cryptomus) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cryptomus) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Cryptomus) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -387,7 +387,7 @@ func (this *Cryptomus) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs .
 	//
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseMarkets(result)}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(result))}
 	return nil
 }
 func (this *Cryptomus) ParseMarket(market any) any {
@@ -493,12 +493,12 @@ func (this *Cryptomus) ParseMarket(market any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Cryptomus) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cryptomus) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Cryptomus) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -531,7 +531,7 @@ func (this *Cryptomus) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArg
 	var groupedById map[string]any = this.GroupBy(coins, "currency_code")
 	var groupedArray []any = ObjectValues(groupedById)
 
-	ch <- AsyncResult[any]{Value: this.ParseCurrencies(groupedArray)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(groupedArray)}
 	return nil
 }
 func (this *Cryptomus) ParseCurrency(rawCurrency any) map[string]any {
@@ -596,12 +596,12 @@ func (this *Cryptomus) ParseCurrency(rawCurrency any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Cryptomus) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cryptomus) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {
+	ch := make(chan AsyncResult[map[string]Ticker], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Cryptomus) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -636,7 +636,7 @@ func (this *Cryptomus) fetchTickersBody(ch chan AsyncResult[any], optionalArgs .
 	//
 	var data []any = SafeListTyped(response, "data")
 
-	ch <- AsyncResult[any]{Value: this.ParseTickers(data, symbolsNormalized)}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbolsNormalized))}
 	return nil
 }
 func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -689,12 +689,12 @@ func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Cryptomus) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Cryptomus) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBook] {
+	ch := make(chan AsyncResult[OrderBook], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Cryptomus) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -714,7 +714,12 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan AsyncResult[map[string]any], s
 	}
 	var level int = 0
 	var levelOptionparamsLevelVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchOrderBook", "level", level)
-	levelOption := GetValue(levelOptionparamsLevelVariable, 0)
+	levelOption := func() any {
+		if p, _ := levelOptionparamsLevelVariable[0].(*int64); p != nil {
+			return *p
+		}
+		return nil
+	}()
 	paramsLevel := levelOptionparamsLevelVariable[1]
 	request["level"] = levelOption
 
@@ -745,7 +750,7 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan AsyncResult[map[string]any], s
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	var timestamp *int64 = this.SafeTimestamp(data, "timestamp")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"))}
 	return nil
 }
 
@@ -760,12 +765,12 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan AsyncResult[map[string]any], s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Cryptomus) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cryptomus) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Cryptomus) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -811,7 +816,7 @@ func (this *Cryptomus) fetchTradesBody(ch chan AsyncResult[any], symbol any, opt
 		dataList = ArrayTyped(data)
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(dataList, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(dataList, market, since, limit))}
 	return nil
 }
 func (this *Cryptomus) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -856,12 +861,12 @@ func (this *Cryptomus) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Cryptomus) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cryptomus) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances] {
+	ch := make(chan AsyncResult[Balances], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Cryptomus) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -893,7 +898,7 @@ func (this *Cryptomus) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs .
 	//
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseBalance(result)}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(result))}
 	return nil
 }
 func (this *Cryptomus) ParseBalance(balance any) map[string]any {
@@ -937,12 +942,12 @@ func (this *Cryptomus) ParseBalance(balance any) map[string]any {
  * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cryptomus) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Cryptomus) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Cryptomus) createOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -976,7 +981,12 @@ func (this *Cryptomus) createOrderBody(ch chan AsyncResult[map[string]any], symb
 	var amountToString *string = this.NumberToString(amount)
 	var priceToString *string = this.NumberToString(price)
 	var costParamparamsCostVariable []any = this.HandleParamString(paramsOmitted, "cost")
-	costParam := GetValue(costParamparamsCostVariable, 0)
+	costParam := func() any {
+		if p, _ := costParamparamsCostVariable[0].(*string); p != nil {
+			return *p
+		}
+		return nil
+	}()
 	paramsCost := GetValue(costParamparamsCostVariable, 1)
 	var cost any = costParam
 	var response map[string]any = nil
@@ -1033,7 +1043,7 @@ func (this *Cryptomus) createOrderBody(ch chan AsyncResult[map[string]any], symb
 	//         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 
@@ -1047,12 +1057,12 @@ func (this *Cryptomus) createOrderBody(ch chan AsyncResult[map[string]any], symb
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cryptomus) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Cryptomus) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Cryptomus) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1080,9 +1090,9 @@ func (this *Cryptomus) cancelOrderBody(ch chan AsyncResult[map[string]any], id a
 	//         "success": true
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
+	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
 		"info": response,
-	}))}
+	})}
 	return nil
 }
 
@@ -1102,12 +1112,12 @@ func (this *Cryptomus) cancelOrderBody(ch chan AsyncResult[map[string]any], id a
  * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cryptomus) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
-	ch := make(chan AsyncResult[[]any], 1)
+func (this *Cryptomus) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1191,7 +1201,7 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]an
 		orders = append(orders, OrderToMap(this.ParseOrder(order, market)))
 	}
 
-	ch <- AsyncResult[[]any]{Value: orders}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(orders)}
 	return nil
 }
 
@@ -1211,12 +1221,12 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]an
  * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cryptomus) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cryptomus) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Cryptomus) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1269,7 +1279,7 @@ func (this *Cryptomus) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArg
 	//     }
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(result, market, nil, nil)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(result, market, nil, nil))}
 	return nil
 }
 func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) Order {
@@ -1405,12 +1415,12 @@ func (this *Cryptomus) ParseOrderStatus(optionalArgs ...any) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *Cryptomus) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cryptomus) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]TradingFeeInterface] {
+	ch := make(chan AsyncResult[map[string]TradingFeeInterface], 1)
 	go this.fetchTradingFeesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Cryptomus) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFeeInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1481,7 +1491,7 @@ func (this *Cryptomus) fetchTradingFeesBody(ch chan AsyncResult[any], optionalAr
 	var symbols []string = this.Symbols
 	if symbols == nil {
 
-		ch <- AsyncResult[any]{Value: result}
+		ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
 		return nil
 	}
 	for i := 0; i < len(symbols); i++ {
@@ -1497,7 +1507,7 @@ func (this *Cryptomus) fetchTradingFeesBody(ch chan AsyncResult[any], optionalAr
 		}
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
 	return nil
 }
 func (this *Cryptomus) ParseFeeTiers(feeTiers []any, optionalArgs ...any) map[string]any {
@@ -1521,24 +1531,21 @@ func (this *Cryptomus) ParseFeeTiers(feeTiers []any, optionalArgs ...any) map[st
 	}
 }
 func (this *Cryptomus) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var endpoint string = this.ImplodeParams(path, params)
 	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + endpoint
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var jsonParams string = ""
 		var privateHeaders map[string]any = map[string]any{
@@ -1561,7 +1568,7 @@ func (this *Cryptomus) Sign(path string, optionalArgs ...any) any {
 			if method != "GET" {
 				return SafeStringPtr(jsonParams)
 			}
-			return body
+			return nil
 		}()
 		return map[string]any{
 			"url":     url,
@@ -1578,8 +1585,8 @@ func (this *Cryptomus) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Cryptomus) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
@@ -1632,7 +1639,7 @@ func (this *Cryptomus) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
+	var res []MarketInterface = r.Value
 	return res, nil
 }
 
@@ -1673,7 +1680,7 @@ func (this *Cryptomus) FetchTickers(options ...FetchTickersOptions) (Tickers, er
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -1699,7 +1706,7 @@ func (this *Cryptomus) FetchOrderBook(symbol string, options ...FetchOrderBookOp
 	if r.Err != nil {
 		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Value)
+	var res OrderBook = r.Value
 	return res, nil
 }
 
@@ -1725,7 +1732,7 @@ func (this *Cryptomus) FetchTrades(symbol string, options ...FetchTradesOptions)
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -1742,7 +1749,7 @@ func (this *Cryptomus) FetchBalance(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 
@@ -1773,7 +1780,7 @@ func (this *Cryptomus) CreateOrder(symbol string, typeVar string, side string, a
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -1798,7 +1805,7 @@ func (this *Cryptomus) CancelOrder(id string, options ...CancelOrderOptions) (Or
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 func (this *Cryptomus) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
@@ -1812,7 +1819,7 @@ func (this *Cryptomus) FetchCanceledAndClosedOrders(options ...FetchCanceledAndC
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -1843,7 +1850,7 @@ func (this *Cryptomus) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Ord
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -1860,7 +1867,7 @@ func (this *Cryptomus) FetchTradingFees(params ...any) (TradingFees, error) {
 	if r.Err != nil {
 		return TradingFees{}, r.Err
 	}
-	var res TradingFees = NewTradingFees(r.Value)
+	var res TradingFees = TradingFees{TradingFees: r.Value}
 	return res, nil
 }
 
@@ -1886,6 +1893,9 @@ func (this *Cryptomus) CancelOrderWithClientOrderId(clientOrderId string, option
 }
 func (this *Cryptomus) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
+}
+func (this *Cryptomus) ClosePosition(symbol string, options ...ClosePositionOptions) (Order, error) {
+	return this.exchangeTyped.ClosePosition(symbol, options...)
 }
 func (this *Cryptomus) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
 	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)

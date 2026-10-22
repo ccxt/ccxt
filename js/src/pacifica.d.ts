@@ -168,9 +168,7 @@ export default class pacifica extends Exchange {
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): [Dict, Str];
-    batchOrdersRequest(actions: any[]): {
-        actions: any[];
-    };
+    batchOrdersRequest(actions: any[]): Dict;
     createOrdersRequest(orders: OrderRequest[], params?: Dict): Dict;
     /**
      * @method
@@ -455,7 +453,7 @@ export default class pacifica extends Exchange {
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name pacifica#fetchLedger
@@ -611,8 +609,8 @@ export default class pacifica extends Exchange {
     revokeBuilderCode(builderCode: string, params?: Dict): Promise<Dict>;
     handleOriginAndSingleAddress(methodName: string, params: Dict): [Str, Dict];
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: Dict): any;
     sortJsonKeys(value: any): any;
     prepareMessage(header: Dict, payload: Dict): string;
     signMessage(header: Dict, payload: Dict, privateKey: string): string;

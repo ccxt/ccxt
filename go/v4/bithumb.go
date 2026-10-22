@@ -501,7 +501,7 @@ func (this *Bithumb) Describe() any {
 		},
 		"options": map[string]any{
 			"generation": 2,
-			"fetchTickersGeneration2MaxMarketIdsPerRequest": 300,
+			"fetchTickersGeneration2MaxMarketIdsPerRequest": 200,
 			"createMarketBuyOrderRequiresPrice":             true,
 			"quoteCurrencies": map[string]any{
 				"KRW": map[string]any{
@@ -549,12 +549,7 @@ func (this *Bithumb) AmountToPrecision(symbol any, amount any) *string {
 }
 func (this *Bithumb) GetGen2MarketId(market any) any {
 	var marketId *string = this.SafeString(market, "id")
-	if (marketId != nil) && (func() int {
-		if marketId == nil {
-			return -1
-		}
-		return strings.Index(*marketId, "-")
-	}() >= 0) {
+	if (marketId != nil) && (strings.Index(*marketId, "-") >= 0) {
 		return marketId
 	}
 	var quoteId *string = this.SafeString2(market, "quoteId", "quote")
@@ -572,12 +567,12 @@ func (this *Bithumb) GetGen2MarketId(market any) any {
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Bithumb) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -585,7 +580,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...
 	var result []any = []any{}
 	var request map[string]any = map[string]any{}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchMarkets", "generation", 2)
-	if IsEqual(generation, 2) {
+	if generation == 2 {
 		request["isDetails"] = true
 
 		r := <-this.PublicGetV1MarketAll(this.Extend(request, paramsGeneration))
@@ -786,7 +781,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...
 		}
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
 func (this *Bithumb) ParseBalance(response any) map[string]any {
@@ -842,7 +837,7 @@ func (this *Bithumb) ParseBalance(response any) map[string]any {
 			}
 			account["free"] = this.SafeString(entry, "balance")
 			account["used"] = this.SafeString(entry, "locked")
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result).(map[string]any)
@@ -858,12 +853,12 @@ func (this *Bithumb) ParseBalance(response any) map[string]any {
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Bithumb) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances] {
+	ch := make(chan AsyncResult[Balances], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bithumb) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -877,7 +872,7 @@ func (this *Bithumb) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchBalance", "generation", 2)
 	var response any = nil
-	if IsEqual(generation, 2) {
+	if generation == 2 {
 
 		r1 := <-this.PrivateGetV1Accounts(paramsGeneration)
 		if r1.Err != nil {
@@ -896,7 +891,7 @@ func (this *Bithumb) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
 		response = r2.Raw
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseBalance(response)}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
 	return nil
 }
 
@@ -912,12 +907,12 @@ func (this *Bithumb) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Bithumb) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bithumb) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBook] {
+	ch := make(chan AsyncResult[OrderBook], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -937,7 +932,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sym
 	var response any = nil
 	var data any = nil
 	var timestamp *int64 = nil
-	if IsEqual(generation, 2) {
+	if generation == 2 {
 		request["markets"] = this.GetGen2MarketId(market)
 
 		r1 := <-this.PublicGetV1Orderbook(this.Extend(request, paramsGeneration))
@@ -1019,7 +1014,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sym
 		timestamp = this.SafeInteger(data, "timestamp")
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"))}
 	return nil
 }
 func (this *Bithumb) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -1161,12 +1156,12 @@ func (this *Bithumb) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bithumb) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {
+	ch := make(chan AsyncResult[map[string]Ticker], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1183,7 +1178,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchTickers", "generation", 2)
 	var request map[string]any = map[string]any{}
 	var result map[string]any = map[string]any{}
-	if IsEqual(generation, 2) {
+	if generation == 2 {
 		// Bithumb v2 ticker payloads are inconsistent for all-market calls,
 		// so we aggregate 300 markets per request only when symbols are not provided.
 		var marketIds []any = []any{}
@@ -1201,36 +1196,34 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 		var marketIdsLength int = len(marketIds)
 		if marketIdsLength == 0 {
 
-			ch <- AsyncResult[any]{Value: result}
+			ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(result)}
 			return nil
 		}
 		var marketIdsChunks []any = []any{}
 		var promises []any = []any{}
-		if symbols != nil {
-			request["markets"] = Join(marketIds, ",")
-			marketIdsChunks = append(marketIdsChunks, marketIds)
-			promises = append(promises, this.PublicGetV1Ticker(this.Extend(request, paramsGeneration)))
-		} else {
-			var maxMarketIdsPerRequest any = this.SafeInteger(this.Options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300)
-			if (IsEqual(maxMarketIdsPerRequest, nil)) || (IsLessThan(maxMarketIdsPerRequest, 1)) {
-				maxMarketIdsPerRequest = 300
+		// the exchange rejects more than 200 market ids per request
+		var maxMarketIdsOption *int64 = this.SafeInteger(this.Options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200)
+		var maxMarketIdsPerRequest int64 = this.ParseToInt(func() any {
+			if (maxMarketIdsOption == nil) || (*maxMarketIdsOption < 1) {
+				return 200
 			}
-			var marketIdsChunk []any = []any{}
-			for i := 0; i < marketIdsLength; i++ {
-				marketIdsChunk = append(marketIdsChunk, func() any {
-					if i >= 0 && i < len(marketIds) {
-						return DerefScalar(marketIds[i])
-					}
-					return nil
-				}())
-				var marketIdsChunkLength int = len(marketIdsChunk)
-				var isLastMarketId bool = (i == (marketIdsLength - 1))
-				if (IsGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || isLastMarketId {
-					marketIdsChunks = append(marketIdsChunks, marketIdsChunk)
-					request["markets"] = Join(marketIdsChunk, ",")
-					promises = append(promises, this.PublicGetV1Ticker(this.Extend(request, paramsGeneration)))
-					marketIdsChunk = []any{}
+			return maxMarketIdsOption
+		}())
+		var marketIdsChunk []any = []any{}
+		for i := 0; i < marketIdsLength; i++ {
+			marketIdsChunk = append(marketIdsChunk, func() any {
+				if i >= 0 && i < len(marketIds) {
+					return DerefScalar(marketIds[i])
 				}
+				return nil
+			}())
+			var marketIdsChunkLength int = len(marketIdsChunk)
+			var isLastMarketId bool = (i == (marketIdsLength - 1))
+			if (int64(marketIdsChunkLength) >= maxMarketIdsPerRequest) || isLastMarketId {
+				marketIdsChunks = append(marketIdsChunks, marketIdsChunk)
+				request["markets"] = Join(marketIdsChunk, ",")
+				promises = append(promises, this.PublicGetV1Ticker(this.Extend(request, paramsGeneration)))
+				marketIdsChunk = []any{}
 			}
 		}
 		//
@@ -1278,9 +1271,9 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 				response = GetValue(response, "data")
 			}
 			var expectedMarketId any = nil
-			var marketIdsChunk []any = SafeListTyped(marketIdsChunks, i)
-			var firstMarketId *string = this.SafeString(marketIdsChunk, 0)
-			if (firstMarketId != nil) && (this.SafeString(marketIdsChunk, 1) == nil) {
+			var requestedMarketIds []any = SafeListTyped(marketIdsChunks, i)
+			var firstMarketId *string = this.SafeString(requestedMarketIds, 0)
+			if (firstMarketId != nil) && (this.SafeString(requestedMarketIds, 1) == nil) {
 				expectedMarketId = firstMarketId
 			}
 			var tickers []any = []any{}
@@ -1317,7 +1310,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 				if symbol == nil {
 					continue
 				}
-				AddElementToObject(result, symbol, TickerToMap(this.ParseTicker(entry, market)))
+				result[*symbol] = TickerToMap(this.ParseTicker(entry, market))
 			}
 		}
 	} else {
@@ -1379,7 +1372,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 				var currencyId string = currencyIds[j]
 				var ticker any = data[currencyId]
 				var base *string = this.SafeCurrencyCode(currencyId)
-				if (base == nil) || (IsEqual(quote, nil)) {
+				if base == nil {
 					continue
 				}
 				var symbol string = *base + "/" + quote
@@ -1390,7 +1383,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 		}
 	}
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(result, "symbol", symbols)}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(result, "symbol", symbols))}
 	return nil
 }
 
@@ -1405,12 +1398,12 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bithumb) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bithumb) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker] {
+	ch := make(chan AsyncResult[Ticker], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Bithumb) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1427,7 +1420,7 @@ func (this *Bithumb) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	var data any = map[string]any{}
-	if IsEqual(generation, 2) {
+	if generation == 2 {
 		request["markets"] = this.GetGen2MarketId(market)
 
 		r1 := <-this.PublicGetV1Ticker(this.Extend(request, paramsGeneration))
@@ -1499,7 +1492,7 @@ func (this *Bithumb) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 		data = this.SafeDict(response, "data", map[string]any{})
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(data, market))}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(data, market)}
 	return nil
 }
 func (this *Bithumb) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
@@ -1559,12 +1552,12 @@ func (this *Bithumb) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Bithumb) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV] {
+	ch := make(chan AsyncResult[[]OHLCV], 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1587,7 +1580,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	var data any = []any{}
-	if IsEqual(generation, 2) {
+	if generation == 2 {
 		request["market"] = this.GetGen2MarketId(market)
 		if limit != nil {
 			request["count"] = limit
@@ -1693,7 +1686,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 		data = this.SafeList(response, "data", []any{})
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(data, market, timeframe, since, limit)}
+	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 	return nil
 }
 func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -1756,8 +1749,9 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) Trade {
 	// a workaround for their bug in date format, hours are not 0-padded
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = DerefScalar(this.SafeInteger(trade, "timestamp"))
-	var isGenerationTwo bool = (!IsEqual(timestamp, nil))
+	var generationTwoTimestamp *int64 = this.SafeInteger(trade, "timestamp")
+	var timestamp any = generationTwoTimestamp
+	var isGenerationTwo bool = (generationTwoTimestamp != nil)
 	var transactionDatetime *string = this.SafeString(trade, "transaction_date")
 	if transactionDatetime != nil {
 		var parts []string = strings.Split(*transactionDatetime, " ")
@@ -1769,26 +1763,23 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) Trade {
 				}
 				return nil
 			}())
-			var transactionTime any = func() any {
-				if 1 >= 0 && 1 < len(parts) {
-					return parts[1]
-				}
-				return nil
-			}()
-			if GetLength(transactionTime) < 8 {
-				transactionTime = Add("0", transactionTime)
+			var rawTransactionTime *string = this.SafeString(parts, 1, "")
+			var transactionTime *string = rawTransactionTime
+			if len(*rawTransactionTime) < 8 {
+				transactionTime = SafeStringPtr("0" + *rawTransactionTime)
 			}
-			if derefPtr := this.Parse8601(Add(*transactionDate+" ", transactionTime)); derefPtr != nil {
-				timestamp = *derefPtr
-			} else {
-				timestamp = nil
+			var kstTimestamp *int64 = this.Parse8601(*transactionDate + " " + *transactionTime)
+			timestamp = kstTimestamp
+			if (kstTimestamp != nil) && (!isGenerationTwo) {
+				timestamp = (*kstTimestamp - (9 * 3600000)) // they report UTC + 9 hours, server in Korean timezone
 			}
 		} else {
-			timestamp = this.SafeIntegerProduct(trade, "transaction_date", 0.001)
+			var productTimestamp *int64 = this.SafeIntegerProduct(trade, "transaction_date", 0.001)
+			timestamp = productTimestamp
+			if (productTimestamp != nil) && (!isGenerationTwo) {
+				timestamp = (*productTimestamp - (9 * 3600000)) // they report UTC + 9 hours, server in Korean timezone
+			}
 		}
-	}
-	if (!IsEqual(timestamp, nil)) && (!isGenerationTwo) {
-		timestamp = Subtract(timestamp, 9*3600000) // they report UTC + 9 hours, server in Korean timezone
 	}
 	var typeVar any = nil
 	var side *string = this.SafeStringLower2(trade, "ask_bid", "type")
@@ -1803,13 +1794,13 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var marketId *string = this.SafeString(trade, "market")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var priceString *string = this.SafeString2(trade, "price", "trade_price")
-	var amountString any
-	if derefPtr := this.SafeString(trade, "trade_volume"); derefPtr != nil {
-		amountString = *derefPtr
-	}
-	if IsEqual(amountString, nil) {
-		amountString = this.FixCommaNumber(this.SafeString2(trade, "units_traded", "units"))
-	}
+	var tradeVolume *string = this.SafeString(trade, "trade_volume")
+	var amountString any = func() any {
+		if tradeVolume == nil {
+			return this.FixCommaNumber(this.SafeString2(trade, "units_traded", "units"))
+		}
+		return tradeVolume
+	}()
 	var costString *string = this.SafeString(trade, "total")
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
@@ -1851,12 +1842,12 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bithumb) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Bithumb) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1880,7 +1871,7 @@ func (this *Bithumb) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 	}
 	var response any = nil
 	var data any = []any{}
-	if IsEqual(generation, 2) {
+	if generation == 2 {
 		request["market"] = this.GetGen2MarketId(market)
 
 		r1 := <-this.PublicGetV1TradesTicks(this.Extend(request, paramsGeneration))
@@ -1931,7 +1922,7 @@ func (this *Bithumb) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 		data = this.SafeList(response, "data", []any{})
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(data, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
 }
 
@@ -1948,12 +1939,12 @@ func (this *Bithumb) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) createOrdersBody(ch chan AsyncResult[any], orders any, optionalArgs ...any) any {
+func (this *Bithumb) createOrdersBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1966,7 +1957,7 @@ func (this *Bithumb) createOrdersBody(ch chan AsyncResult[any], orders any, opti
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "createOrders", "generation", 2)
-	if !IsEqual(generation, 2) {
+	if generation != 2 {
 		panic(BadRequest(this.Id + " createOrders is only supported for the generation 2 API"))
 	}
 	var ordersCount int = GetArrayLength(orders)
@@ -1974,14 +1965,14 @@ func (this *Bithumb) createOrdersBody(ch chan AsyncResult[any], orders any, opti
 		panic(ArgumentsRequired(this.Id + " createOrders() requires a non-empty orders array"))
 	}
 	var ordersRequests []any = []any{}
-	var orderSymbols any = []any{}
+	var orderSymbols []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires each order to have a symbol"))
 		}
-		AppendToArray(&orderSymbols, symbol)
+		orderSymbols = append(orderSymbols, symbol)
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		if typeVar == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires each order to have a type"))
@@ -1993,11 +1984,16 @@ func (this *Bithumb) createOrdersBody(ch chan AsyncResult[any], orders any, opti
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
-		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams))
+		var orderRequest map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
-	orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
-	var market map[string]any = this.Market(GetValue(orderSymbols, 0))
+	var symbols []string = this.MarketSymbols(orderSymbols, nil, false, true, true)
+	var market map[string]any = this.Market(func() any {
+		if 0 >= 0 && 0 < len(symbols) {
+			return symbols[0]
+		}
+		return nil
+	}())
 	var request map[string]any = map[string]any{
 		"batch_orders": ordersRequests,
 	}
@@ -2023,10 +2019,10 @@ func (this *Bithumb) createOrdersBody(ch chan AsyncResult[any], orders any, opti
 	//
 	var data []any = SafeListTypedDefault(response, "batch_orders_response", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(data, market)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market))}
 	return nil
 }
-func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
+func (this *Bithumb) CreateOrderRequest(symbol *string, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	/**
 	 * @method
 	 * @ignore
@@ -2094,24 +2090,21 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		if IsEqual(side, "buy") {
 			typeRequest = "price"
 			// for market buy it requires the amount of quote currency to spend
-			var cost any = DerefScalar(this.SafeString(paramsOrder, "cost"))
+			var costParam *string = this.SafeString(paramsOrder, "cost")
 			createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(this.Omit(paramsOrder, "cost"), "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			paramsOrder = paramsRequiresPrice
-			if createMarketBuyOrderRequiresPrice {
-				if (price == nil) && (IsEqual(cost, nil)) {
-					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
-				} else {
-					var amountString *string = this.NumberToString(amount)
-					var priceString *string = this.NumberToString(price)
-					cost = Precise.StringMul(amountString, priceString)
+			var amountString *string = this.NumberToString(amount)
+			var cost any = func() any {
+				if costParam == nil {
+					return amountString
 				}
-			} else {
-				cost = func() any {
-					if IsEqual(cost, nil) {
-						return this.NumberToString(amount)
-					}
-					return cost
-				}()
+				return costParam
+			}()
+			if createMarketBuyOrderRequiresPrice {
+				if (price == nil) && (costParam == nil) {
+					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
+				}
+				cost = Precise.StringMul(amountString, this.NumberToString(price))
 			}
 			request["price"] = this.PriceToPrecision(symbol, cost)
 		} else {
@@ -2155,12 +2148,12 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bithumb) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Bithumb) createOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2178,8 +2171,8 @@ func (this *Bithumb) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	var request map[string]any = map[string]any{}
 	var market map[string]any = this.Market(symbol)
 	var response map[string]any = nil
-	if IsEqual(generation, 2) {
-		request = this.CreateOrderRequest(symbol, typeVar, side, amount, price, paramsGeneration)
+	if generation == 2 {
+		request = this.CreateOrderRequest(SafeStringPtr(symbol), typeVar, side, amount, price, paramsGeneration)
 
 		r1 := <-this.PrivatePostV2Orders(request)
 		if r1.Err != nil {
@@ -2226,13 +2219,13 @@ func (this *Bithumb) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 		panic(InvalidOrder(this.Id + " createOrder() did not return an order id"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.Extend(OrderToMap(this.ParseOrder(response, market)), map[string]any{
+	ch <- AsyncResult[Order]{Value: OrderFromMap(this.Extend(OrderToMap(this.ParseOrder(response, market)), map[string]any{
 		"info":   response,
 		"symbol": symbol,
 		"type":   typeVar,
 		"side":   side,
 		"id":     id,
-	})}
+	}))}
 	return nil
 }
 
@@ -2247,12 +2240,12 @@ func (this *Bithumb) createOrderBody(ch chan AsyncResult[map[string]any], symbol
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], symbol string, cost any, optionalArgs ...any) any {
+func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2265,7 +2258,7 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], 
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "createMarketBuyOrderWithCost", "generation", 2)
-	if !IsEqual(generation, 2) {
+	if generation != 2 {
 		panic(BadRequest(this.Id + " createMarketBuyOrderWithCost() is only supported for the generation 2 API"))
 	}
 	AddElementToObject(paramsGeneration, "createMarketBuyOrderRequiresPrice", false)
@@ -2274,11 +2267,11 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes185415 map[string]any = r1.Value
-	if retRes185415 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+	var retRes184815 map[string]any = StructResultMap(r1.Value, OrderToMap)
+	if retRes184815 == nil {
+		ch <- AsyncResult[Order]{}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes185415}
+		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes184815)}
 	}
 	return nil
 }
@@ -2298,14 +2291,14 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], 
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) CreateTwapOrderAsync(symbol string, side string, amount any, duration any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Bithumb) CreateTwapOrderAsync(symbol string, side string, amount any, duration any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createTwapOrderBody(ch, symbol, side, amount, duration, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) createTwapOrderBody(ch chan EndpointResult[map[string]any], symbol string, side string, amount any, duration any, optionalArgs ...any) any {
+func (this *Bithumb) createTwapOrderBody(ch chan AsyncResult[Order], symbol string, side string, amount any, duration any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
+	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -2316,7 +2309,7 @@ func (this *Bithumb) createTwapOrderBody(ch chan EndpointResult[map[string]any],
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "createTwapOrder", "generation", 2)
-	if !IsEqual(generation, 2) {
+	if generation != 2 {
 		panic(BadRequest(this.Id + " createTwapOrder() is only supported for the generation 2 API"))
 	}
 	var market map[string]any = this.Market(symbol)
@@ -2348,8 +2341,7 @@ func (this *Bithumb) createTwapOrderBody(ch chan EndpointResult[map[string]any],
 	//         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
 	//     }
 	//
-	chValue := OrderToMap(this.ParseOrder(response, market))
-	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 
@@ -2369,12 +2361,12 @@ func (this *Bithumb) createTwapOrderBody(ch chan EndpointResult[map[string]any],
  * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bithumb) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2398,7 +2390,7 @@ func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	var data any = nil
-	if IsEqual(generation, 2) {
+	if generation == 2 {
 		if twap != nil && *twap {
 			if !IsEqual(market, nil) {
 				request["market"] = this.GetGen2MarketId(market)
@@ -2532,7 +2524,7 @@ func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 	}
 	var parsedOrder map[string]any = this.Extend(data, orderData)
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(parsedOrder, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(parsedOrder, market)}
 	return nil
 }
 func (this *Bithumb) ParseOrderStatus(status *string) *string {
@@ -2670,12 +2662,7 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) Order {
 	var datetime *string = this.SafeString(order, "created_at")
 	var timestamp any = nil
 	if datetime != nil {
-		if func() int {
-			if datetime == nil {
-				return -1
-			}
-			return strings.Index(*datetime, "+09:00")
-		}() > -1 {
+		if strings.Index(*datetime, "+09:00") > -1 {
 			var normalized string = strings.Replace(*datetime, "+09:00", "Z", 1)
 			var normalizedTimestamp *int64 = this.Parse8601(normalized)
 			if normalizedTimestamp != nil {
@@ -2805,12 +2792,12 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) Order {
  * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bithumb) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2838,7 +2825,7 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	var response map[string]any = nil
-	if IsEqual(generation, 2) {
+	if generation == 2 {
 		var twap *bool = this.SafeBool(paramsGeneration, "twap", false)
 		if twap != nil && *twap {
 			AddElementToObject(paramsGeneration, "state", "progress")
@@ -2850,9 +2837,9 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var orders []any = ListTyped(r1.Value)
+		var orders []any = OrdersToList(r1.Value)
 
-		ch <- AsyncResult[any]{Value: this.FilterBySinceLimit(orders, since, limit)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySinceLimit(orders, since, limit))}
 		return nil
 	} else {
 		if symbol == nil {
@@ -2874,7 +2861,7 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(data, market, since, limitResolved)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limitResolved))}
 	return nil
 }
 
@@ -2894,12 +2881,12 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
  * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bithumb) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2918,7 +2905,7 @@ func (this *Bithumb) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchOrders", "generation", 2)
-	if !IsEqual(generation, 2) {
+	if generation != 2 {
 		panic(BadRequest(this.Id + " fetchOrders is only supported for the generation 2 API"))
 	}
 	var request map[string]any = map[string]any{}
@@ -3014,7 +3001,7 @@ func (this *Bithumb) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		data = response
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(data, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
 }
 
@@ -3033,12 +3020,12 @@ func (this *Bithumb) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
  * @param {bool} [params.twap] if you want to fetch generation 2 twap orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bithumb) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3055,9 +3042,9 @@ func (this *Bithumb) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var orders []any = ListTyped(r.Value)
+	var orders []any = OrdersToList(r.Value)
 
-	ch <- AsyncResult[any]{Value: this.FilterBySinceLimit(orders, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySinceLimit(orders, since, limit))}
 	return nil
 }
 
@@ -3076,12 +3063,12 @@ func (this *Bithumb) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArg
  * @param {bool} [params.twap] if you want to fetch generation 2 twap orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
-	ch := make(chan AsyncResult[[]any], 1)
+func (this *Bithumb) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Bithumb) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3098,9 +3085,9 @@ func (this *Bithumb) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optiona
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var orders []any = ListTyped(r.Value)
+	var orders []any = OrdersToList(r.Value)
 
-	ch <- AsyncResult[[]any]{Value: this.FilterBySinceLimit(orders, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySinceLimit(orders, since, limit))}
 	return nil
 }
 
@@ -3119,12 +3106,12 @@ func (this *Bithumb) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optiona
  * @param {bool} [params.twap] if you want to cancel a generation 2 twap order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bithumb) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3148,7 +3135,7 @@ func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 	var twap *bool = this.SafeBool(paramsGeneration, "twap", false)
 	var paramsOmitted any = this.Omit(paramsGeneration, "twap")
 	var clientOrderId *string = this.SafeString2(paramsOmitted, "clientOrderId", "client_order_id")
-	var useClientOrderId bool = !(twap != nil && *twap) && (IsEqual(generation, 2)) && (clientOrderId != nil)
+	var useClientOrderId bool = !(twap != nil && *twap) && (generation == 2) && (clientOrderId != nil)
 	var paramsRequest any = paramsOmitted
 	if useClientOrderId {
 		paramsRequest = this.Omit(paramsOmitted, []any{"clientOrderId"})
@@ -3162,7 +3149,7 @@ func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 			request["order_id"] = id
 		}
 	}
-	if IsEqual(generation, 2) {
+	if generation == 2 {
 		if twap != nil && *twap {
 
 			r1 := <-this.PrivateDeleteV1Twap(this.Extend(request, paramsRequest))
@@ -3211,9 +3198,9 @@ func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 		response = r3.Value
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.Extend(OrderToMap(this.ParseOrder(response, market)), map[string]any{
+	ch <- AsyncResult[Order]{Value: OrderFromMap(this.Extend(OrderToMap(this.ParseOrder(response, market)), map[string]any{
 		"id": id,
-	})}
+	}))}
 	return nil
 }
 
@@ -3229,12 +3216,12 @@ func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalArgs ...any) any {
+func (this *Bithumb) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3249,7 +3236,7 @@ func (this *Bithumb) cancelOrdersBody(ch chan AsyncResult[any], ids any, optiona
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "cancelOrders", "generation", 2)
-	if !IsEqual(generation, 2) {
+	if generation != 2 {
 		panic(BadRequest(this.Id + " cancelOrders is only supported for the generation 2 API"))
 	}
 	var market map[string]any = nil
@@ -3288,15 +3275,15 @@ func (this *Bithumb) cancelOrdersBody(ch chan AsyncResult[any], ids any, optiona
 	//
 	var data []any = SafeListTypedDefault(response, "success", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(data, market)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market))}
 	return nil
 }
-func (this *Bithumb) CancelUnifiedOrderAsync(order any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) CancelUnifiedOrderAsync(order any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelUnifiedOrderBody(ch, order, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) cancelUnifiedOrderBody(ch chan AsyncResult[any], order any, optionalArgs ...any) any {
+func (this *Bithumb) cancelUnifiedOrderBody(ch chan AsyncResult[Order], order any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3309,11 +3296,11 @@ func (this *Bithumb) cancelUnifiedOrderBody(ch chan AsyncResult[any], order any,
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes265215 map[string]any = r.Value
-	if retRes265215 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+	var retRes264615 map[string]any = StructResultMap(r.Value, OrderToMap)
+	if retRes264615 == nil {
+		ch <- AsyncResult[Order]{}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes265215}
+		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes264615)}
 	}
 	return nil
 }
@@ -3344,14 +3331,14 @@ func (this *Bithumb) cancelUnifiedOrderBody(ch chan AsyncResult[any], order any,
  * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bithumb) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Bithumb) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bithumb) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
+	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -3363,7 +3350,12 @@ func (this *Bithumb) withdrawBody(ch chan EndpointResult[map[string]any], code s
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "withdraw", "generation", 2)
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(paramsGeneration, "tag")
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	tagWithdrawTag := func() any {
+		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
+			return *p
+		}
+		return nil
+	}()
 	paramsWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1)
 	this.CheckAddress(address, code, tagWithdrawTag)
 	var network *string = this.SafeString2(paramsWithdrawTag, "network", "net_type")
@@ -3379,9 +3371,9 @@ func (this *Bithumb) withdrawBody(ch chan EndpointResult[map[string]any], code s
 	}
 	if requiresDestination {
 		var destination *string = this.SafeString2(paramsNetwork, "destination", "secondary_address")
-		if (IsEqual(tagWithdrawTag, nil)) && (destination == nil) {
+		if (tagWithdrawTag == nil) && (destination == nil) {
 			panic(ArgumentsRequired(this.Id + " " + code + " withdraw() requires a tag or an extra destination param"))
-		} else if !IsEqual(tagWithdrawTag, nil) {
+		} else if tagWithdrawTag != nil {
 			destinationRequest = tagWithdrawTag
 		} else {
 			destinationRequest = destination
@@ -3389,7 +3381,7 @@ func (this *Bithumb) withdrawBody(ch chan EndpointResult[map[string]any], code s
 	}
 	var receiverType *string = this.SafeString2(paramsDestination, "receiver_type", "cust_type_cd")
 	var paramsReceiverType any = this.Omit(paramsDestination, []any{"receiver_type", "cust_type_cd"})
-	if IsEqual(generation, 2) {
+	if generation == 2 {
 		if code == "KRW" {
 			var twoFactorType *string = this.SafeString(paramsReceiverType, "two_factor_type")
 			if twoFactorType == nil {
@@ -3410,7 +3402,7 @@ func (this *Bithumb) withdrawBody(ch chan EndpointResult[map[string]any], code s
 			}
 			request["address"] = address
 			request["currency"] = currency["id"]
-			request["net_type"] = network
+			request["net_type"] = this.NetworkCodeToId(network, code)
 			request["amount"] = this.NumberToString(amount)
 			if !IsEqual(destinationRequest, nil) {
 				request["secondary_address"] = destinationRequest
@@ -3430,7 +3422,7 @@ func (this *Bithumb) withdrawBody(ch chan EndpointResult[map[string]any], code s
 		request["currency"] = currency["id"]
 		request["units"] = amount
 		if network != nil {
-			request["net_type"] = network
+			request["net_type"] = this.NetworkCodeToId(network, code)
 		}
 		if !IsEqual(destinationRequest, nil) {
 			request["destination"] = destinationRequest
@@ -3452,11 +3444,10 @@ func (this *Bithumb) withdrawBody(ch chan EndpointResult[map[string]any], code s
 		response = r3.Value
 	}
 
-	chValue := this.ParseTransaction(response, currency)
-	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
+	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
-func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
+func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
 	//
 	// generation 1: withdraw
 	//
@@ -3489,24 +3480,19 @@ func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) map[
 	if derefPtr := this.Parse8601(datetime); derefPtr != nil {
 		timestamp = *derefPtr
 	}
-	if (datetime != nil) && (func() int {
-		if datetime == nil {
-			return -1
-		}
-		return strings.Index(*datetime, "+09:00")
-	}() > -1) {
+	if (datetime != nil) && (strings.Index(*datetime, "+09:00") > -1) {
 		var normalized string = strings.Replace(*datetime, "+09:00", "Z", 1)
 		var normalizedTimestamp *int64 = this.Parse8601(normalized)
 		if normalizedTimestamp != nil {
 			timestamp = (*normalizedTimestamp - (9 * 3600000))
 		}
 	}
-	return map[string]any{
+	return TransactionFromMap(map[string]any{
 		"id":          this.SafeString(transaction, "uuid"),
 		"txid":        this.SafeString(transaction, "txid"),
 		"timestamp":   timestamp,
 		"datetime":    datetime,
-		"network":     this.SafeString(transaction, "net_type"),
+		"network":     this.NetworkIdToCode(this.SafeString(transaction, "net_type"), currencyResolved["code"]),
 		"addressFrom": nil,
 		"address":     nil,
 		"addressTo":   nil,
@@ -3526,7 +3512,7 @@ func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) map[
 			"rate":     nil,
 		},
 		"info": transaction,
-	}
+	})
 }
 func (this *Bithumb) ParseTransactionStatusByType(status *string, optionalArgs ...any) *string {
 	typeVar := GetArg(optionalArgs, 0, nil)
@@ -3565,12 +3551,12 @@ func (this *Bithumb) ParseTransactionStatusByType(status *string, optionalArgs .
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} a list response from the exchange
  */
-func (this *Bithumb) FetchWithdrawalWhitelistAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) FetchWithdrawalWhitelistAsync(optionalArgs ...any) <-chan AsyncResult[[]map[string]any] {
+	ch := make(chan AsyncResult[[]map[string]any], 1)
 	go this.fetchWithdrawalWhitelistBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchWithdrawalWhitelistBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bithumb) fetchWithdrawalWhitelistBody(ch chan AsyncResult[[]map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3583,7 +3569,7 @@ func (this *Bithumb) fetchWithdrawalWhitelistBody(ch chan AsyncResult[any], opti
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchWithdrawalWhitelist", "generation", 2)
-	if !IsEqual(generation, 2) {
+	if generation != 2 {
 		panic(BadRequest(this.Id + " fetchWithdrawalWhitelist() is only supported for the generation 2 API"))
 	}
 
@@ -3591,7 +3577,7 @@ func (this *Bithumb) fetchWithdrawalWhitelistBody(ch chan AsyncResult[any], opti
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Raw
+	response := r1.Value
 
 	//
 	//     [
@@ -3607,7 +3593,7 @@ func (this *Bithumb) fetchWithdrawalWhitelistBody(ch chan AsyncResult[any], opti
 	//         },
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: response}
+	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(response)}
 	return nil
 }
 
@@ -3623,12 +3609,12 @@ func (this *Bithumb) fetchWithdrawalWhitelistBody(ch chan AsyncResult[any], opti
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bithumb) FetchWithdrawalAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bithumb) FetchWithdrawalAsync(id any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+	ch := make(chan AsyncResult[Transaction], 1)
 	go this.fetchWithdrawalBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchWithdrawalBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Bithumb) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3643,7 +3629,7 @@ func (this *Bithumb) fetchWithdrawalBody(ch chan AsyncResult[map[string]any], id
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchWithdrawal", "generation", 2)
-	if !IsEqual(generation, 2) {
+	if generation != 2 {
 		panic(BadRequest(this.Id + " fetchWithdrawal() is only supported for the generation 2 API"))
 	}
 	if code == nil {
@@ -3678,7 +3664,7 @@ func (this *Bithumb) fetchWithdrawalBody(ch chan AsyncResult[map[string]any], id
 	//         "txid": null
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTransaction(response, currency)}
+	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
 
@@ -3700,12 +3686,12 @@ func (this *Bithumb) fetchWithdrawalBody(ch chan AsyncResult[map[string]any], id
  * @param {string[]} [params.txids] an array of txid strings
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bithumb) FetchWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) FetchWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction] {
+	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchWithdrawalsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bithumb) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3724,7 +3710,7 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchWithdrawals", "generation", 2)
-	if !IsEqual(generation, 2) {
+	if generation != 2 {
 		panic(BadRequest(this.Id + " fetchWithdrawals() is only supported for the generation 2 API"))
 	}
 	var request map[string]any = map[string]any{}
@@ -3736,22 +3722,22 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 	if code != nil && *code == "KRW" {
 		currency = this.Currency(code)
 
-		listEp3504 := <-this.PrivateGetV1WithdrawsKrw(this.Extend(request, paramsGeneration))
-		if listEp3504.Err != nil {
-			panic(listEp3504.Err)
+		listEp3494 := <-this.PrivateGetV1WithdrawsKrw(this.Extend(request, paramsGeneration))
+		if listEp3494.Err != nil {
+			panic(listEp3494.Err)
 		}
-		response = listEp3504.Value
+		response = listEp3494.Value
 	} else {
 		if code != nil {
 			currency = this.Currency(code)
-			request["currency"] = GetValue(currency, "id")
+			request["currency"] = currency["id"]
 		}
 
-		listEp3511 := <-this.PrivateGetV1Withdraws(this.Extend(request, paramsGeneration))
-		if listEp3511.Err != nil {
-			panic(listEp3511.Err)
+		listEp3501 := <-this.PrivateGetV1Withdraws(this.Extend(request, paramsGeneration))
+		if listEp3501.Err != nil {
+			panic(listEp3501.Err)
 		}
-		response = listEp3511.Value
+		response = listEp3501.Value
 	}
 
 	//
@@ -3771,7 +3757,7 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransactions(response, currency, since, limit)}
+	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response, currency, since, limit))}
 	return nil
 }
 
@@ -3787,12 +3773,12 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bithumb) FetchDepositAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bithumb) FetchDepositAsync(id any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+	ch := make(chan AsyncResult[Transaction], 1)
 	go this.fetchDepositBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchDepositBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Bithumb) fetchDepositBody(ch chan AsyncResult[Transaction], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3807,7 +3793,7 @@ func (this *Bithumb) fetchDepositBody(ch chan AsyncResult[map[string]any], id an
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchDeposit", "generation", 2)
-	if !IsEqual(generation, 2) {
+	if generation != 2 {
 		panic(BadRequest(this.Id + " fetchDeposit() is only supported for the generation 2 API"))
 	}
 	if code == nil {
@@ -3842,7 +3828,7 @@ func (this *Bithumb) fetchDepositBody(ch chan AsyncResult[map[string]any], id an
 	//         "txid": null
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTransaction(response, currency)}
+	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
 
@@ -3864,12 +3850,12 @@ func (this *Bithumb) fetchDepositBody(ch chan AsyncResult[map[string]any], id an
  * @param {string[]} [params.txids] an array of txid strings
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bithumb) FetchDepositsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) FetchDepositsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction] {
+	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchDepositsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bithumb) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3888,7 +3874,7 @@ func (this *Bithumb) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchDeposits", "generation", 2)
-	if !IsEqual(generation, 2) {
+	if generation != 2 {
 		panic(BadRequest(this.Id + " fetchDeposits() is only supported for the generation 2 API"))
 	}
 	var request map[string]any = map[string]any{}
@@ -3900,22 +3886,22 @@ func (this *Bithumb) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 	if code != nil && *code == "KRW" {
 		currency = this.Currency(code)
 
-		listEp3650 := <-this.PrivateGetV1DepositsKrw(this.Extend(request, paramsGeneration))
-		if listEp3650.Err != nil {
-			panic(listEp3650.Err)
+		listEp3640 := <-this.PrivateGetV1DepositsKrw(this.Extend(request, paramsGeneration))
+		if listEp3640.Err != nil {
+			panic(listEp3640.Err)
 		}
-		response = listEp3650.Value
+		response = listEp3640.Value
 	} else {
 		if code != nil {
 			currency = this.Currency(code)
-			request["currency"] = GetValue(currency, "id")
+			request["currency"] = currency["id"]
 		}
 
-		listEp3657 := <-this.PrivateGetV1Deposits(this.Extend(request, paramsGeneration))
-		if listEp3657.Err != nil {
-			panic(listEp3657.Err)
+		listEp3647 := <-this.PrivateGetV1Deposits(this.Extend(request, paramsGeneration))
+		if listEp3647.Err != nil {
+			panic(listEp3647.Err)
 		}
-		response = listEp3657.Value
+		response = listEp3647.Value
 	}
 
 	//
@@ -3935,7 +3921,7 @@ func (this *Bithumb) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransactions(response, currency, since, limit)}
+	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response, currency, since, limit))}
 	return nil
 }
 
@@ -3950,12 +3936,12 @@ func (this *Bithumb) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {string} [params.network] the blockchain network to create a deposit address on
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Bithumb) CreateDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) CreateDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[DepositAddress] {
+	ch := make(chan AsyncResult[DepositAddress], 1)
 	go this.createDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) createDepositAddressBody(ch chan AsyncResult[any], code string, optionalArgs ...any) any {
+func (this *Bithumb) createDepositAddressBody(ch chan AsyncResult[DepositAddress], code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3968,7 +3954,7 @@ func (this *Bithumb) createDepositAddressBody(ch chan AsyncResult[any], code str
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "createDepositAddress", "generation", 2)
-	if !IsEqual(generation, 2) {
+	if generation != 2 {
 		panic(BadRequest(this.Id + " createDepositAddress() is only supported for the generation 2 API"))
 	}
 	var currency map[string]any = this.Currency(code)
@@ -3980,7 +3966,7 @@ func (this *Bithumb) createDepositAddressBody(ch chan AsyncResult[any], code str
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " " + code + " createDepositAddress() requires a network parameter"))
 	}
-	request["net_type"] = network
+	request["net_type"] = this.NetworkCodeToId(network, code)
 
 	r1 := <-this.PrivatePostV1DepositsGenerateCoinAddress(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
@@ -3996,7 +3982,7 @@ func (this *Bithumb) createDepositAddressBody(ch chan AsyncResult[any], code str
 	//         "secondary_address": null
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(response, currency)}
+	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
 
@@ -4011,12 +3997,12 @@ func (this *Bithumb) createDepositAddressBody(ch chan AsyncResult[any], code str
  * @param {string} [params.network] network for fetch deposit address
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Bithumb) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[DepositAddress] {
+	ch := make(chan AsyncResult[DepositAddress], 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchDepositAddressBody(ch chan AsyncResult[any], code string, optionalArgs ...any) any {
+func (this *Bithumb) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4029,7 +4015,7 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchDepositAddress", "generation", 2)
-	if !IsEqual(generation, 2) {
+	if generation != 2 {
 		panic(BadRequest(this.Id + " fetchDepositAddress() is only supported for the generation 2 API"))
 	}
 	var currency map[string]any = this.Currency(code)
@@ -4041,7 +4027,7 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " " + code + " fetchDepositAddress() requires a network parameter"))
 	}
-	request["net_type"] = network
+	request["net_type"] = this.NetworkCodeToId(network, code)
 
 	r1 := <-this.PrivateGetV1DepositsCoinAddress(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
@@ -4057,7 +4043,7 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 	//         "secondary_address": null
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseDepositAddress(response, currency)}
+	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(response, currency)}
 	return nil
 }
 
@@ -4071,12 +4057,12 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
  */
-func (this *Bithumb) FetchDepositAddressesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) FetchDepositAddressesAsync(optionalArgs ...any) <-chan AsyncResult[[]DepositAddress] {
+	ch := make(chan AsyncResult[[]DepositAddress], 1)
 	go this.fetchDepositAddressesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchDepositAddressesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bithumb) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddress], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -4091,15 +4077,15 @@ func (this *Bithumb) fetchDepositAddressesBody(ch chan AsyncResult[any], optiona
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchDepositAddresses", "generation", 2)
-	if !IsEqual(generation, 2) {
+	if generation != 2 {
 		panic(BadRequest(this.Id + " fetchDepositAddresses() is only supported for the generation 2 API"))
 	}
 
-	listEp3820 := <-this.PrivateGetV1DepositsCoinAddresses(paramsGeneration)
-	if listEp3820.Err != nil {
-		panic(listEp3820.Err)
+	listEp3810 := <-this.PrivateGetV1DepositsCoinAddresses(paramsGeneration)
+	if listEp3810.Err != nil {
+		panic(listEp3810.Err)
 	}
-	var response []any = listEp3820.Value
+	var response []any = listEp3810.Value
 
 	//
 	//     [
@@ -4111,10 +4097,10 @@ func (this *Bithumb) fetchDepositAddressesBody(ch chan AsyncResult[any], optiona
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseDepositAddresses(response, codes, false, map[string]any{})}
+	ch <- AsyncResult[[]DepositAddress]{Value: DepositAddressesFromList(this.ParseDepositAddresses(response, codes, false, map[string]any{}))}
 	return nil
 }
-func (this *Bithumb) ParseDepositAddress(response any, optionalArgs ...any) map[string]any {
+func (this *Bithumb) ParseDepositAddress(response any, optionalArgs ...any) DepositAddress {
 	//
 	// generation 2: createDepositAddress, fetchDepositAddress, fetchDepositAddresses
 	//
@@ -4134,29 +4120,29 @@ func (this *Bithumb) ParseDepositAddress(response any, optionalArgs ...any) map[
 		panic(ExchangeError(this.Id + " parseDepositAddress() could not find deposit_address"))
 	}
 	this.CheckAddress(address)
-	return map[string]any{
+	return DepositAddressFromMap(map[string]any{
 		"info":     response,
 		"currency": code,
-		"network":  this.SafeString(response, "net_type"),
+		"network":  this.NetworkIdToCode(this.SafeString(response, "net_type"), code),
 		"address":  address,
 		"tag":      this.SafeString(response, "secondary_address"),
-	}
+	})
 }
-func (this *Bithumb) FixCommaNumber(numberStr any) any {
+func (this *Bithumb) FixCommaNumber(numberStr *string) any {
 	// some endpoints need this https://github.com/ccxt/ccxt/issues/11031
-	if IsEqual(numberStr, nil) {
+	if numberStr == nil {
 		return nil
 	}
-	var finalNumberStr any = numberStr
-	for GetIndexOf(finalNumberStr, ",") > -1 {
-		finalNumberStr = Replace(finalNumberStr, ",", "")
+	var finalNumberStr *string = numberStr
+	for strings.Index(*finalNumberStr, ",") > -1 {
+		finalNumberStr = SafeStringPtr(strings.Replace(*finalNumberStr, ",", "", 1))
 	}
 	return finalNumberStr
 }
 func (this *Bithumb) Nonce() any {
 	return this.Milliseconds()
 }
-func (this *Bithumb) UrlencodeWithArrayBrackets(query any) any {
+func (this *Bithumb) UrlencodeWithArrayBrackets(query any) string {
 	var keys []string = ObjectKeys(query)
 	var result string = ""
 	for i := 0; i < len(keys); i++ {
@@ -4188,20 +4174,17 @@ func (this *Bithumb) UrlencodeWithArrayBrackets(query any) any {
 	return result
 }
 func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var requestHeaders map[string]any = nil
-	var requestBody any = nil
+	var requestBody *string = nil
 	var endpoint string = "/" + this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -4210,7 +4193,7 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 	var queryKeys []string = ObjectKeys(query)
 	var queryKeysLength int = len(queryKeys)
 	var hasQuery bool = (queryKeysLength > 0)
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		requestHeaders = map[string]any{
 			"OPEN-API-PARTNER": "CCXT",
 		}
@@ -4234,7 +4217,7 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 			if (method != "GET") && (method != "DELETE") {
 				AddElementToObject(requestHeaders, "Content-Type", "application/json")
 				if hasQuery {
-					requestBody = this.Json(query)
+					requestBody = SafeStringPtr(this.Json(query))
 					auth = this.UrlencodeWithArrayBrackets(query)
 				}
 			} else if hasQuery {
@@ -4254,14 +4237,14 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 			var token string = Jwt(request, this.Encode(this.Secret), sha256)
 			AddElementToObject(requestHeaders, "Authorization", "Bearer "+token)
 		} else {
-			requestBody = this.Urlencode(this.Extend(map[string]any{
+			var encodedBody string = this.Urlencode(this.Extend(map[string]any{
 				"endpoint": endpoint,
 			}, query))
 			// bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-			var bodyParts []string = Split(requestBody, "%20")
-			requestBody = strings.Join(bodyParts, "+")
+			var bodyParts []string = strings.Split(encodedBody, "%20")
+			requestBody = SafeStringPtr(strings.Join(bodyParts, "+"))
 			var nonce string = ToString(this.Nonce())
-			var auth any = Add(Add(Add(endpoint+"//"+"0", requestBody), "//"+"0"), nonce) // eslint-disable-line quotes
+			var auth string = endpoint + "//" + "0" + *requestBody + "//" + "0" + nonce // eslint-disable-line quotes
 			var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)
 			var signature64 string = this.StringToBase64(signature)
 			requestHeaders = map[string]any{
@@ -4274,18 +4257,8 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 	}
-	var headersResult any = func() any {
-		if requestHeaders != nil {
-			return requestHeaders
-		}
-		return headers
-	}()
-	var bodyResult any = func() any {
-		if requestBody != nil {
-			return requestBody
-		}
-		return body
-	}()
+	var headersResult any = requestHeaders
+	var bodyResult *string = requestBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -4367,7 +4340,7 @@ func (this *Bithumb) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
+	var res []MarketInterface = r.Value
 	return res, nil
 }
 
@@ -4386,7 +4359,7 @@ func (this *Bithumb) FetchBalance(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 
@@ -4413,7 +4386,7 @@ func (this *Bithumb) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 	if r.Err != nil {
 		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Value)
+	var res OrderBook = r.Value
 	return res, nil
 }
 
@@ -4439,7 +4412,7 @@ func (this *Bithumb) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -4465,7 +4438,7 @@ func (this *Bithumb) FetchTicker(symbol string, options ...FetchTickerOptions) (
 	if r.Err != nil {
 		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(r.Value)
+	var res Ticker = r.Value
 	return res, nil
 }
 
@@ -4497,7 +4470,7 @@ func (this *Bithumb) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 
@@ -4525,7 +4498,7 @@ func (this *Bithumb) FetchTrades(symbol string, options ...FetchTradesOptions) (
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -4553,7 +4526,7 @@ func (this *Bithumb) CreateOrders(orders []OrderRequest, options ...CreateOrders
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -4590,7 +4563,7 @@ func (this *Bithumb) CreateOrder(symbol string, typeVar string, side string, amo
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -4616,7 +4589,7 @@ func (this *Bithumb) CreateMarketBuyOrderWithCost(symbol string, cost float64, o
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -4646,7 +4619,7 @@ func (this *Bithumb) CreateTwapOrder(symbol string, side string, amount float64,
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Raw)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -4677,7 +4650,7 @@ func (this *Bithumb) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -4708,7 +4681,7 @@ func (this *Bithumb) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -4739,7 +4712,7 @@ func (this *Bithumb) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -4769,7 +4742,7 @@ func (this *Bithumb) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -4799,7 +4772,7 @@ func (this *Bithumb) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -4829,7 +4802,7 @@ func (this *Bithumb) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -4856,7 +4829,7 @@ func (this *Bithumb) CancelOrders(ids []string, options ...CancelOrdersOptions) 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 func (this *Bithumb) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrderOptions) (Order, error) {
@@ -4870,7 +4843,7 @@ func (this *Bithumb) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrd
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -4911,7 +4884,7 @@ func (this *Bithumb) Withdraw(code string, amount float64, address string, optio
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Raw)
+	var res Transaction = r.Value
 	return res, nil
 }
 
@@ -4924,12 +4897,12 @@ func (this *Bithumb) Withdraw(code string, amount float64, address string, optio
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} a list response from the exchange
  */
-func (this *Bithumb) FetchWithdrawalWhitelist(params ...any) (map[string]any, error) {
+func (this *Bithumb) FetchWithdrawalWhitelist(params ...any) ([]map[string]any, error) {
 	r := <-this.FetchWithdrawalWhitelistAsync(params...)
 	if r.Err != nil {
-		return map[string]any{}, r.Err
+		return nil, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res []map[string]any = r.Value
 	return res, nil
 }
 
@@ -4956,7 +4929,7 @@ func (this *Bithumb) FetchWithdrawal(id string, options ...FetchWithdrawalOption
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = r.Value
 	return res, nil
 }
 
@@ -4989,7 +4962,7 @@ func (this *Bithumb) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 
@@ -5016,7 +4989,7 @@ func (this *Bithumb) FetchDeposit(id string, options ...FetchDepositOptions) (Tr
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = r.Value
 	return res, nil
 }
 
@@ -5049,7 +5022,7 @@ func (this *Bithumb) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 
@@ -5075,7 +5048,7 @@ func (this *Bithumb) CreateDepositAddress(code string, options ...CreateDepositA
 	if r.Err != nil {
 		return DepositAddress{}, r.Err
 	}
-	var res DepositAddress = NewDepositAddress(r.Value)
+	var res DepositAddress = r.Value
 	return res, nil
 }
 
@@ -5101,7 +5074,7 @@ func (this *Bithumb) FetchDepositAddress(code string, options ...FetchDepositAdd
 	if r.Err != nil {
 		return DepositAddress{}, r.Err
 	}
-	var res DepositAddress = NewDepositAddress(r.Value)
+	var res DepositAddress = r.Value
 	return res, nil
 }
 
@@ -5126,7 +5099,7 @@ func (this *Bithumb) FetchDepositAddresses(options ...FetchDepositAddressesOptio
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []DepositAddress = NewDepositAddressArray(r.Value)
+	var res []DepositAddress = r.Value
 	return res, nil
 }
 
@@ -5149,6 +5122,9 @@ func (this *Bithumb) CancelOrderWithClientOrderId(clientOrderId string, options 
 }
 func (this *Bithumb) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
+}
+func (this *Bithumb) ClosePosition(symbol string, options ...ClosePositionOptions) (Order, error) {
+	return this.exchangeTyped.ClosePosition(symbol, options...)
 }
 func (this *Bithumb) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
 	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)

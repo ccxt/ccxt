@@ -649,7 +649,7 @@ class coinmate(Exchange, ImplicitAPI):
         items = self.safe_list(response, 'data', [])
         return self.parse_transactions(items, None, since, limit)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'COMPLETED': 'ok',
             'WAITING': 'pending',
@@ -711,7 +711,7 @@ class coinmate(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'txid'),
             'type': self.safe_string_lower(transaction, 'transferType'),
             'currency': code,
-            'network': self.safe_string(transaction, 'walletType'),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'walletType'), code),
             'amount': self.safe_number(transaction, 'amount'),
             'status': self.parse_transaction_status(self.safe_string(transaction, 'transferStatus')),
             'timestamp': timestamp,
@@ -801,7 +801,7 @@ class coinmate(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         transaction = self.parse_transaction(data, currency)
         fillResponseFromRequest = self.safe_bool(withdrawOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest is True:
+        if fillResponseFromRequest:
             transaction['amount'] = amount
             transaction['currency'] = code
             transaction['address'] = address
@@ -1020,7 +1020,7 @@ class coinmate(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
@@ -1029,7 +1029,7 @@ class coinmate(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -1228,14 +1228,15 @@ class coinmate(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         bodySigned = None
         headersSigned = None
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + path
-        if api == 'public':
+        if apiName == 'public':
             if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
@@ -1253,8 +1254,8 @@ class coinmate(Exchange, ImplicitAPI):
             headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        headersResolved = headers if (headersSigned is None) else headersSigned
-        bodyResolved = body if (bodySigned is None) else bodySigned
+        headersResolved = headersSigned
+        bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

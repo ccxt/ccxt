@@ -59,12 +59,12 @@ func (this *Independentreserve) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Independentreserve) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Independentreserve) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Independentreserve) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol any, optionalArgs ...any) any {
+func (this *Independentreserve) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -95,7 +95,7 @@ func (this *Independentreserve) watchTradesBody(ch chan ccxt.AsyncResult[[]any],
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(trades, since, limit, "timestamp", true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limit, "timestamp", true))}
 	return nil
 }
 func (this *Independentreserve) HandleTrades(client any, message map[string]any) {
@@ -122,7 +122,7 @@ func (this *Independentreserve) HandleTrades(client any, message map[string]any)
 	var symbol *string = this.SafeSymbol(marketId, nil, "-")
 	var messageHash string = "trades:" + *symbol
 	var stored any = this.SafeValue(this.Trades, symbol)
-	if ccxt.IsEqual(stored, nil) {
+	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
@@ -287,7 +287,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	}
 	var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
-	if (checksum == true) && (receivedSnapshot != nil && *receivedSnapshot == true) {
+	if (checksum == true) && (receivedSnapshot != nil && *receivedSnapshot) {
 		var storedAsks ccxt.IOrderBookSide = orderbook.GetAsks()
 		var storedBids ccxt.IOrderBookSide = orderbook.GetBids()
 		var asksLength int = ccxt.GetArrayLength(storedAsks)
@@ -313,7 +313,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 			return
 		}
 	}
-	if receivedSnapshot != nil && *receivedSnapshot == true {
+	if receivedSnapshot != nil && *receivedSnapshot {
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }
@@ -371,7 +371,7 @@ func (this *Independentreserve) HandleMessage(client any, message any) {
 		}
 		return this.SafeValue(handlers, event)
 	}()
-	if !ccxt.IsEqual(handler, nil) {
+	if handler != nil {
 		ccxt.CallDynamically(handler, client, message)
 		return
 	}
@@ -413,7 +413,7 @@ func (this *Independentreserve) WatchTrades(symbol string, options ...ccxt.Watch
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	var res []ccxt.Trade = r.Value
 	return res, nil
 }
 

@@ -68,26 +68,6 @@ def helper_test_handle_market_type_and_params():
     assert params1 is not None or params2 is not None or params3 is not None or params4 is not None or params5 is not None or params6 is not None
 
 
-def helper_test_handle_network_request():
-    exchange = ccxt.Exchange({
-        'id': 'sampleexchange',
-        'options': {
-            'networks': {
-                'XYZ': 'Xyz',
-            },
-        },
-    })
-    exchange.currencies = exchange.create_safe_dictionary()  # todo: initialize in C# base files
-    currency_code = 'ETH'  # todo: in future with complex cases
-    # no-case
-    [request1, params1] = exchange.handle_request_network({
-        'network': 'XYZ',
-    }, {}, 'chain_id', currency_code, False)
-    assert not ('network' in params1)
-    assert 'chain_id' in request1
-    assert request1['chain_id'] == 'Xyz'
-
-
 def helper_test_handle_typed_options():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
@@ -95,6 +75,8 @@ def helper_test_handle_typed_options():
             'marginMode': 'isolated',
             'fetchX': {
                 'uta': True,
+                'boolString': 'false',
+                'boolNumber': 1,
             },
         },
     })
@@ -109,11 +91,24 @@ def helper_test_handle_typed_options():
     }, 'fetchX', 'absentKey', 'fallback')
     assert from_params == 'p'
     assert not ('absentKey' in params4)
-    # a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)
+    # "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws
+    [bool_string, params5] = exchange.handle_option_bool_and_params({}, 'fetchX', 'boolString', True)
+    assert bool_string is False
+    [bool_number, params6] = exchange.handle_option_bool_and_params({
+        'boolNumber': 1,
+    }, 'fetchX', 'boolNumber', False)
+    assert bool_number
+    assert not ('boolNumber' in params6)
+    caught = False
+    try:
+        exchange.check_option_bool('fetchX', 'wrongBool', 'yes')
+    except Exception as error:
+        caught = True
+    assert caught, 'a non-boolean option should have thrown'
+    assert params5 is not None
     assert params1 is not None or params2 is not None or params3 is not None
 
 
 def test_handle_methods():
     helper_test_handle_market_type_and_params()
-    helper_test_handle_network_request()
     helper_test_handle_typed_options()

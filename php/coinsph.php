@@ -676,7 +676,7 @@ class coinsph extends Exchange {
         ));
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             return $config['noSymbol'];
         } elseif ((is_array($config) && array_key_exists('noSymbolAndNoSymbols' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params)) && !(is_array($params) && array_key_exists('symbols' ?? '', $params))) {
@@ -687,16 +687,18 @@ class coinsph extends Exchange {
             $byNumberOfSymbols = $this->safe_list($config, 'byNumberOfSymbols', array());
             for ($i = 0; $i < count($byNumberOfSymbols); $i++) {
                 $entry = $byNumberOfSymbols[$i];
-                if ($symbolsAmount >= $entry[0]) {
+                $threshold = $this->safe_integer($entry, 0);
+                if ($threshold !== null && $symbolsAmount >= $threshold) {
                     return $entry[1];
                 }
             }
         } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
-            $limit = $params['limit'];
+            $limit = $this->safe_integer($params, 'limit');
             $byLimit = $this->safe_list($config, 'byLimit', array());
             for ($i = 0; $i < count($byLimit); $i++) {
                 $entry = $byLimit[$i];
-                if ($limit >= $entry[0]) {
+                $threshold = $this->safe_integer($entry, 0);
+                if ($limit !== null && $threshold !== null && $limit >= $threshold) {
                     return $entry[1];
                 }
             }
@@ -1102,16 +1104,14 @@ class coinsph extends Exchange {
             if ($until !== null) {
                 $request['endTime'] = $until;
             } else {
-                $duration = $this->parse_timeframe($timeframe) * 1000;
-                $endTimeByLimit = $this->sum($since, $duration * ($limitResolved - 1));
+                $endTimeByLimit = $this->sum($since, $this->parse_timeframe($timeframe) * 1000 * ($limitResolved - 1));
                 $now = $this->milliseconds();
                 $request['endTime'] = min($endTimeByLimit, $now);
             }
         } elseif ($until !== null) {
             $request['endTime'] = $until;
             // since work properly only when it is "younger" than last "limit" candle
-            $duration = $this->parse_timeframe($timeframe) * 1000;
-            $request['startTime'] = $until - ($duration * ($limitResolved - 1));
+            $request['startTime'] = $until - ($this->parse_timeframe($timeframe) * 1000 * ($limitResolved - 1));
         }
         $request['limit'] = $limitResolved;
         $paramsOmitted = $this->omit($params, 'until');
@@ -1306,7 +1306,7 @@ class coinsph extends Exchange {
         $isBuyer = $this->safe_bool_2($trade, 'isBuyer', 'isBuyerMaker');
         $side = null;
         if ($isBuyer !== null) {
-            $side = ($isBuyer === true) ? 'buy' : 'sell';
+            $side = ($isBuyer) ? 'buy' : 'sell';
         }
         $isMaker = $this->safe_string($trade, 'isMaker');
         $takerOrMaker = null;
@@ -1476,7 +1476,7 @@ class coinsph extends Exchange {
         $paramsBase = ($paramsQuote !== null) ? $paramsQuote : $paramsType;
         $paramsRequest = $this->omit($paramsBase, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         $response = array();
-        if ($testOrder === true) {
+        if ($testOrder) {
             $response = $this->privatePostOpenapiV1OrderTest($this->extend($request, $paramsRequest));
         } else {
             $response = $this->privatePostOpenapiV1Order($this->extend($request, $paramsRequest));
@@ -1750,7 +1750,7 @@ class coinsph extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_side(?string $status) {
+    public function parse_order_side(?string $status): ?string {
         $statuses = array(
             'BUY' => 'buy',
             'SELL' => 'sell',
@@ -1761,7 +1761,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function encode_order_side(?string $status) {
+    public function encode_order_side(?string $status): ?string {
         $statuses = array(
             'buy' => 'BUY',
             'sell' => 'SELL',
@@ -1772,7 +1772,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $status) {
+    public function parse_order_type(?string $status): ?string {
         $statuses = array(
             'MARKET' => 'market',
             'LIMIT' => 'limit',
@@ -1788,7 +1788,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function encode_order_type(?string $status) {
+    public function encode_order_type(?string $status): ?string {
         $statuses = array(
             'market' => 'MARKET',
             'limit' => 'LIMIT',
@@ -1804,7 +1804,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'open',
             'FILLED' => 'closed',
@@ -1819,7 +1819,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_time_in_force(?string $status) {
+    public function parse_order_time_in_force(?string $status): ?string {
         $statuses = array(
             'GTC' => 'GTC',
             'FOK' => 'FOK',
@@ -1938,7 +1938,7 @@ class coinsph extends Exchange {
         list($tag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         $options = $this->safe_dict($this->options, 'withdraw');
         $warning = $this->safe_bool($options, 'warning', true);
-        if ($warning === true) {
+        if ($warning) {
             throw new InvalidAddress($this->id . " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
         $networkCode = $this->safe_string($paramsWithdrawTag, 'network');
@@ -2156,15 +2156,15 @@ class coinsph extends Exchange {
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
-        $network = $this->safe_string($transaction, 'network');
-        $internal = $network === 'Internal';
+        $networkId = $this->safe_string($transaction, 'network');
+        $internal = $networkId === 'Internal';
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $network,
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
@@ -2182,7 +2182,7 @@ class coinsph extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             '0' => 'pending',
             '1' => 'ok',
@@ -2250,7 +2250,7 @@ class coinsph extends Exchange {
         );
     }
 
-    public function url_encode_query(array $query = array()) {
+    public function url_encode_query(array $query = array()): string {
         $encodedArrayParams = '';
         $remainingQuery = $query;
         $keys = is_array($query) ? array_keys($query) : array();
@@ -2282,15 +2282,16 @@ class coinsph extends Exchange {
         return $urlEncodedParam;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $query = $this->omit($params, $this->extract_params($path));
         $endpoint = $this->implode_params($path, $params);
         $url = $apiUrl . '/' . $endpoint;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $query['timestamp'] = $this->milliseconds();
             $recvWindow = $this->safe_integer($query, 'recvWindow');
@@ -2306,13 +2307,13 @@ class coinsph extends Exchange {
             $signedHeaders = array(
                 'X-COINS-APIKEY' => $this->apiKey,
             );
-            return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $signedHeaders );
+            return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => $signedHeaders );
         }
         $encodedQuery = $this->url_encode_query($query);
         if (strlen($encodedQuery) !== 0) {
             $url .= '?' . $encodedQuery;
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

@@ -948,9 +948,9 @@ impl Nado {
     }
 
     /// Typed wrapper around `fetchL3OrderBook`.
-    pub async fn fetch_l3_order_book(&mut self, symbol: &str, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<OrderBook> {
+    pub async fn fetch_l3_order_book(&mut self, symbol: &str, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<OrderBookL3> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_l3_order_book(Value::from(symbol), &[limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(OrderBook::from_value(v))
+        Ok(OrderBookL3::from_value(v))
     }
 
     /// Typed wrapper around `watchOrderBookForSymbols`.

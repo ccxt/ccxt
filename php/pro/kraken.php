@@ -138,7 +138,7 @@ class kraken extends \ccxt\async\kraken {
         }
         $isMarket = ($type === 'market');
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($isMarket, false, $params);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $request['params']['post_only'] = true;
         }
         $clientOrderId = $this->safe_string($paramsPostOnly, 'clientOrderId');
@@ -1130,15 +1130,11 @@ class kraken extends \ccxt\async\kraken {
 
     public function format_number(string $data): string {
         $parts = explode('.', $data);
-        $integer = $this->safe_string($parts, 0);
+        $integer = $this->safe_string($parts, 0, '');
         $decimals = $this->safe_string($parts, 1, '');
         $joinedResult = $integer . $decimals;
-        $i = 0;
-        while ($joinedResult[$i] === '0') {
-            $i += 1;
-        }
-        if ($i > 0) {
-            $joinedResult = mb_substr($joinedResult, $i);
+        while ((strlen($joinedResult) > 0) && ($joinedResult[0] === '0')) {
+            $joinedResult = mb_substr($joinedResult, 1);
         }
         return $joinedResult;
     }
@@ -1184,8 +1180,9 @@ class kraken extends \ccxt\async\kraken {
         $subscription = $this->safe_value($client->subscriptions, $authenticated);
         $now = $this->seconds();
         $start = $this->safe_integer($subscription, 'start');
-        $expires = $this->safe_integer($subscription, 'expires');
-        if (($subscription === null) || (($subscription !== null) && ($start . $expires) <= $now)) {
+        $expires = $this->safe_integer($subscription, 'expires', -1);
+        $expired = ($start !== null) && ($expires >= 0) && ($start <= ($now - $expires));
+        if (($subscription === null) || $expired) {
             // single-flight leader election, see
             // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
             // above is followed by an awaited privatePostGetWebSocketsToken (),
@@ -1483,8 +1480,9 @@ class kraken extends \ccxt\async\kraken {
                 if ($length === $limit && ($previousOrder === null)) {
                     $first = $stored[0];
                     $symbolsByOrderId = $this->safe_dict($this->options, 'symbolsByOrderId', array());
-                    if (is_array($symbolsByOrderId) && array_key_exists($first['id'] ?? '', $symbolsByOrderId)) {
-                        unset($symbolsByOrderId[$first['id']]);
+                    $firstId = $this->safe_string($first, 'id');
+                    if (($firstId !== null) && (is_array($symbolsByOrderId) && array_key_exists($firstId ?? '', $symbolsByOrderId))) {
+                        unset($symbolsByOrderId[$firstId]);
                     }
                 }
                 $stored->append($newOrder);

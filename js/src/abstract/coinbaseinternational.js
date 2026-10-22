@@ -7,179 +7,383 @@
 // -------------------------------------------------------------------------------
 import { Exchange as _Exchange } from '../base/Exchange.js';
 class Exchange extends _Exchange {
-    v1PublicGetAssets(params = {}) {
-        return this.request("assets", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicPostAuth(params = {}) {
+        return this.request('auth', ['public'], 'POST', params, { 'cost': 1 });
     }
-    v1PublicGetAssetsAssets(params = {}) {
-        return this.request("assets/{assets}", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetDisableHeartbeat(params = {}) {
+        return this.request('disable_heartbeat', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PublicGetAssetsAssetNetworks(params = {}) {
-        return this.request("assets/{asset}/networks", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetAnnouncements(params = {}) {
+        return this.request('get_announcements', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PublicGetInstruments(params = {}) {
-        return this.request("instruments", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetBlockRfqTrades(params = {}) {
+        return this.request('get_block_rfq_trades', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PublicGetInstrumentsInstrument(params = {}) {
-        return this.request("instruments/{instrument}", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetBookSummaryByCurrency(params = {}) {
+        return this.request('get_book_summary_by_currency', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PublicGetInstrumentsInstrumentQuote(params = {}) {
-        return this.request("instruments/{instrument}/quote", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetBookSummaryByInstrument(params = {}) {
+        return this.request('get_book_summary_by_instrument', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PublicGetInstrumentsInstrumentFunding(params = {}) {
-        return this.request("instruments/{instrument}/funding", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetComboDetails(params = {}) {
+        return this.request('get_combo_details', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PublicGetInstrumentsInstrumentCandles(params = {}) {
-        return this.request("instruments/{instrument}/candles", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetComboIds(params = {}) {
+        return this.request('get_combo_ids', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PublicGetInstrumentsVolumesDaily(params = {}) {
-        return this.request("instruments/volumes/daily", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetCombos(params = {}) {
+        return this.request('get_combos', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PublicGetPositionOffsets(params = {}) {
-        return this.request("position-offsets", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetContractSize(params = {}) {
+        return this.request('get_contract_size', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PublicGetFeeRateTiers(params = {}) {
-        return this.request("fee-rate-tiers", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetCurrencies(params = {}) {
+        return this.request('get_currencies', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetAddressBook(params = {}) {
-        return this.request("address-book", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetDeliveryPrices(params = {}) {
+        return this.request('get_delivery_prices', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetOrders(params = {}) {
-        return this.request("orders", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetExpirations(params = {}) {
+        return this.request('get_expirations', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetOrdersId(params = {}) {
-        return this.request("orders/{id}", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetFundingChartData(params = {}) {
+        return this.request('get_funding_chart_data', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetIndexIndexComposition(params = {}) {
-        return this.request("index/{index}/composition", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetFundingRateHistory(params = {}) {
+        return this.request('get_funding_rate_history', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetIndexIndexCompositionHistory(params = {}) {
-        return this.request("index/{index}/composition-history", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetFundingRateValue(params = {}) {
+        return this.request('get_funding_rate_value', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetIndexIndexPrice(params = {}) {
-        return this.request("index/{index}/price", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetHistoricalVolatility(params = {}) {
+        return this.request('get_historical_volatility', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetIndexIndexCandles(params = {}) {
-        return this.request("index/{index}/candles", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetIndexChartData(params = {}) {
+        return this.request('get_index_chart_data', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetPortfolios(params = {}) {
-        return this.request("portfolios", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetIndexPrice(params = {}) {
+        return this.request('get_index_price', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetPortfoliosPortfolio(params = {}) {
-        return this.request("portfolios/{portfolio}", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetIndexPriceNames(params = {}) {
+        return this.request('get_index_price_names', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetPortfoliosPortfolioDetail(params = {}) {
-        return this.request("portfolios/{portfolio}/detail", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetInstrument(params = {}) {
+        return this.request('get_instrument', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetPortfoliosPortfolioSummary(params = {}) {
-        return this.request("portfolios/{portfolio}/summary", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetInstruments(params = {}) {
+        return this.request('get_instruments', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetPortfoliosPortfolioBalances(params = {}) {
-        return this.request("portfolios/{portfolio}/balances", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetLastSettlementsByCurrency(params = {}) {
+        return this.request('get_last_settlements_by_currency', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetPortfoliosPortfolioBalancesAsset(params = {}) {
-        return this.request("portfolios/{portfolio}/balances/{asset}", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetLastSettlementsByInstrument(params = {}) {
+        return this.request('get_last_settlements_by_instrument', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetPortfoliosPortfolioPositions(params = {}) {
-        return this.request("portfolios/{portfolio}/positions", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetLastTradesByCurrency(params = {}) {
+        return this.request('get_last_trades_by_currency', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetPortfoliosPortfolioPositionsInstrument(params = {}) {
-        return this.request("portfolios/{portfolio}/positions/{instrument}", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetLastTradesByCurrencyAndTime(params = {}) {
+        return this.request('get_last_trades_by_currency_and_time', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetPortfoliosPortfolioPositionLimits(params = {}) {
-        return this.request("portfolios/{portfolio}/position-limits", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetLastTradesByInstrument(params = {}) {
+        return this.request('get_last_trades_by_instrument', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetPortfoliosPortfolioPositionLimitsPositions(params = {}) {
-        return this.request("portfolios/{portfolio}/position-limits/positions", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetLastTradesByInstrumentAndTime(params = {}) {
+        return this.request('get_last_trades_by_instrument_and_time', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument(params = {}) {
-        return this.request("portfolios/{portfolio}/position-limits/positions/{instrument}", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetMarkPriceHistory(params = {}) {
+        return this.request('get_mark_price_history', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetPortfoliosFills(params = {}) {
-        return this.request("portfolios/fills", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetOrderBook(params = {}) {
+        return this.request('get_order_book', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetPortfoliosPortfolioFills(params = {}) {
-        return this.request("portfolios/{portfolio}/fills", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetOrderBookByInstrumentId(params = {}) {
+        return this.request('get_order_book_by_instrument_id', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetPortfoliosFeeRates(params = {}) {
-        return this.request("portfolios/fee-rates", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetSupportedIndexNames(params = {}) {
+        return this.request('get_supported_index_names', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetPortfoliosPortfolioLoans(params = {}) {
-        return this.request("portfolios/{portfolio}/loans", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetTime(params = {}) {
+        return this.request('get_time', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetPortfoliosPortfolioLoansAsset(params = {}) {
-        return this.request("portfolios/{portfolio}/loans/{asset}", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetTradeVolumes(params = {}) {
+        return this.request('get_trade_volumes', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetPortfoliosPortfolioLoansAssetAvailability(params = {}) {
-        return this.request("portfolios/{portfolio}/loans/{asset}/availability", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetTradingviewChartData(params = {}) {
+        return this.request('get_tradingview_chart_data', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetPortfoliosPortfolioMarginCallStatus(params = {}) {
-        return this.request("portfolios/{portfolio}/margin-call-status", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetGetVolatilityIndexData(params = {}) {
+        return this.request('get_volatility_index_data', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetTransfers(params = {}) {
-        return this.request("transfers", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetHello(params = {}) {
+        return this.request('hello', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetTransfersTransferUuid(params = {}) {
-        return this.request("transfers/{transfer_uuid}", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetSetHeartbeat(params = {}) {
+        return this.request('set_heartbeat', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit(params = {}) {
-        return this.request("transfers/withdraw/{portfolio}/{asset}/counterparty-withdrawal-limit", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+    publicGetStatus(params = {}) {
+        return this.request('status', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivatePostOrders(params = {}) {
-        return this.request("orders", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    publicGetSubscribe(params = {}) {
+        return this.request('subscribe', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivatePostPortfolios(params = {}) {
-        return this.request("portfolios", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    publicGetTest(params = {}) {
+        return this.request('test', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivatePostPortfoliosMargin(params = {}) {
-        return this.request("portfolios/margin", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    publicGetTicker(params = {}) {
+        return this.request('ticker', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivatePostPortfoliosPortfolioCrossCollateralEnabled(params = {}) {
-        return this.request("portfolios/{portfolio}/cross-collateral-enabled", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    publicGetTickersByCurrency(params = {}) {
+        return this.request('tickers_by_currency', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivatePostPortfoliosPortfolioAutoMarginEnabled(params = {}) {
-        return this.request("portfolios/{portfolio}/auto-margin-enabled", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    publicGetUnsubscribe(params = {}) {
+        return this.request('unsubscribe', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivatePostPortfoliosPortfolioLoansAsset(params = {}) {
-        return this.request("portfolios/{portfolio}/loans/{asset}", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    publicGetUnsubscribeAll(params = {}) {
+        return this.request('unsubscribe_all', ['public'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivatePostPortfoliosPortfolioLoansAssetPreview(params = {}) {
-        return this.request("portfolios/{portfolio}/loans/{asset}/preview", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    privateGetAcceptBlockRfq(params = {}) {
+        return this.request('accept_block_rfq', ['private'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivatePostPortfoliosTransfer(params = {}) {
-        return this.request("portfolios/transfer", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    privateGetAddBlockRfqQuote(params = {}) {
+        return this.request('add_block_rfq_quote', ['private'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivatePostPortfoliosTransferPosition(params = {}) {
-        return this.request("portfolios/transfer-position", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    privateGetApproveBlockTrade(params = {}) {
+        return this.request('approve_block_trade', ['private'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivatePostTransfersWithdraw(params = {}) {
-        return this.request("transfers/withdraw", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    privateGetBuy(params = {}) {
+        return this.request('buy', ['private'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivatePostTransfersAddress(params = {}) {
-        return this.request("transfers/address", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    privateGetCancel(params = {}) {
+        return this.request('cancel', ['private'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivatePostTransfersCreateCounterpartyId(params = {}) {
-        return this.request("transfers/create-counterparty-id", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    privateGetCancelAll(params = {}) {
+        return this.request('cancel_all', ['private'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivatePostTransfersValidateCounterpartyId(params = {}) {
-        return this.request("transfers/validate-counterparty-id", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    privateGetCancelAllBlockRfqQuotes(params = {}) {
+        return this.request('cancel_all_block_rfq_quotes', ['private'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivatePostTransfersWithdrawCounterparty(params = {}) {
-        return this.request("transfers/withdraw/counterparty", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+    privateGetCancelAllByCurrency(params = {}) {
+        return this.request('cancel_all_by_currency', ['private'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivatePutOrdersId(params = {}) {
-        return this.request("orders/{id}", ["v1", "private"], 'PUT', params, undefined, undefined, { "cost": 1 });
+    privateGetCancelAllByCurrencyPair(params = {}) {
+        return this.request('cancel_all_by_currency_pair', ['private'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivatePutPortfoliosPortfolio(params = {}) {
-        return this.request("portfolios/{portfolio}", ["v1", "private"], 'PUT', params, undefined, undefined, { "cost": 1 });
+    privateGetCancelAllByInstrument(params = {}) {
+        return this.request('cancel_all_by_instrument', ['private'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateDeleteOrders(params = {}) {
-        return this.request("orders", ["v1", "private"], 'DELETE', params, undefined, undefined, { "cost": 1 });
+    privateGetCancelAllByKindOrType(params = {}) {
+        return this.request('cancel_all_by_kind_or_type', ['private'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivateDeleteOrdersId(params = {}) {
-        return this.request("orders/{id}", ["v1", "private"], 'DELETE', params, undefined, undefined, { "cost": 1 });
+    privateGetCancelBlockRfq(params = {}) {
+        return this.request('cancel_block_rfq', ['private'], 'GET', params, { 'cost': 1 });
     }
-    v1PrivatePatchPortfoliosPortfolio(params = {}) {
-        return this.request("portfolios/{portfolio}", ["v1", "private"], 'PATCH', params, undefined, undefined, { "cost": 1 });
+    privateGetCancelBlockRfqQuote(params = {}) {
+        return this.request('cancel_block_rfq_quote', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetCancelBlockRfqTrigger(params = {}) {
+        return this.request('cancel_block_rfq_trigger', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetCancelByLabel(params = {}) {
+        return this.request('cancel_by_label', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetChangeMarginModel(params = {}) {
+        return this.request('change_margin_model', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetClosePosition(params = {}) {
+        return this.request('close_position', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetCreateBlockRfq(params = {}) {
+        return this.request('create_block_rfq', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetCreateCombo(params = {}) {
+        return this.request('create_combo', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetDisableCancelOnDisconnect(params = {}) {
+        return this.request('disable_cancel_on_disconnect', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetEdit(params = {}) {
+        return this.request('edit', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetEditBlockRfqQuote(params = {}) {
+        return this.request('edit_block_rfq_quote', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetEditByLabel(params = {}) {
+        return this.request('edit_by_label', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetEnableCancelOnDisconnect(params = {}) {
+        return this.request('enable_cancel_on_disconnect', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetExecuteBlockTrade(params = {}) {
+        return this.request('execute_block_trade', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetAccessLog(params = {}) {
+        return this.request('get_access_log', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetAccountSummaries(params = {}) {
+        return this.request('get_account_summaries', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetAccountSummary(params = {}) {
+        return this.request('get_account_summary', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetBlockRfqMakers(params = {}) {
+        return this.request('get_block_rfq_makers', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetBlockRfqQuotes(params = {}) {
+        return this.request('get_block_rfq_quotes', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetBlockRfqUserInfo(params = {}) {
+        return this.request('get_block_rfq_user_info', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetBlockRfqs(params = {}) {
+        return this.request('get_block_rfqs', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetBlockTrade(params = {}) {
+        return this.request('get_block_trade', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetBlockTradeRequests(params = {}) {
+        return this.request('get_block_trade_requests', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetBlockTrades(params = {}) {
+        return this.request('get_block_trades', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetBrokerTradeRequests(params = {}) {
+        return this.request('get_broker_trade_requests', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetBrokerTrades(params = {}) {
+        return this.request('get_broker_trades', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetCancelOnDisconnect(params = {}) {
+        return this.request('get_cancel_on_disconnect', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetLegPrices(params = {}) {
+        return this.request('get_leg_prices', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetLeverage(params = {}) {
+        return this.request('get_leverage', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetMargins(params = {}) {
+        return this.request('get_margins', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetMaxOrderSize(params = {}) {
+        return this.request('get_max_order_size', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetOpenOrders(params = {}) {
+        return this.request('get_open_orders', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetOpenOrdersByCurrency(params = {}) {
+        return this.request('get_open_orders_by_currency', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetOpenOrdersByInstrument(params = {}) {
+        return this.request('get_open_orders_by_instrument', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetOpenOrdersByLabel(params = {}) {
+        return this.request('get_open_orders_by_label', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetOrderHistoryByCurrency(params = {}) {
+        return this.request('get_order_history_by_currency', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetOrderHistoryByInstrument(params = {}) {
+        return this.request('get_order_history_by_instrument', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetOrderMarginByIds(params = {}) {
+        return this.request('get_order_margin_by_ids', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetOrderState(params = {}) {
+        return this.request('get_order_state', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetOrderStateByLabel(params = {}) {
+        return this.request('get_order_state_by_label', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetPmeParams(params = {}) {
+        return this.request('get_pme_params', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetPosition(params = {}) {
+        return this.request('get_position', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetPositions(params = {}) {
+        return this.request('get_positions', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetRiskProfile(params = {}) {
+        return this.request('get_risk_profile', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetSettlementHistoryByCurrency(params = {}) {
+        return this.request('get_settlement_history_by_currency', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetSettlementHistoryByInstrument(params = {}) {
+        return this.request('get_settlement_history_by_instrument', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetSubaccounts(params = {}) {
+        return this.request('get_subaccounts', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetSubaccountsDetails(params = {}) {
+        return this.request('get_subaccounts_details', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetTradingLimits(params = {}) {
+        return this.request('get_trading_limits', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetTransactionLog(params = {}) {
+        return this.request('get_transaction_log', ['private'], 'GET', params, { 'cost': 10 });
+    }
+    privateGetGetTriggerOrderHistory(params = {}) {
+        return this.request('get_trigger_order_history', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetUserLocks(params = {}) {
+        return this.request('get_user_locks', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetUserTradesByCurrency(params = {}) {
+        return this.request('get_user_trades_by_currency', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetUserTradesByCurrencyAndTime(params = {}) {
+        return this.request('get_user_trades_by_currency_and_time', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetUserTradesByInstrument(params = {}) {
+        return this.request('get_user_trades_by_instrument', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetUserTradesByInstrumentAndTime(params = {}) {
+        return this.request('get_user_trades_by_instrument_and_time', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetGetUserTradesByOrder(params = {}) {
+        return this.request('get_user_trades_by_order', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetInvalidateBlockTradeSignature(params = {}) {
+        return this.request('invalidate_block_trade_signature', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetLogout(params = {}) {
+        return this.request('logout', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetPmeSimulate(params = {}) {
+        return this.request('pme/simulate', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetRejectBlockTrade(params = {}) {
+        return this.request('reject_block_trade', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetSell(params = {}) {
+        return this.request('sell', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetSetLeverage(params = {}) {
+        return this.request('set_leverage', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetSimulateBlockTrade(params = {}) {
+        return this.request('simulate_block_trade', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetSimulatePortfolio(params = {}) {
+        return this.request('simulate_portfolio', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetSubscribe(params = {}) {
+        return this.request('subscribe', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetSubmitTransferBetweenSubaccounts(params = {}) {
+        return this.request('submit_transfer_between_subaccounts', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetUnsubscribe(params = {}) {
+        return this.request('unsubscribe', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetUnsubscribeAll(params = {}) {
+        return this.request('unsubscribe_all', ['private'], 'GET', params, { 'cost': 1 });
+    }
+    privateGetVerifyBlockTrade(params = {}) {
+        return this.request('verify_block_trade', ['private'], 'GET', params, { 'cost': 1 });
     }
 }
 export default Exchange;

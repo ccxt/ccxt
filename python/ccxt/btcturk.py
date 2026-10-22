@@ -709,23 +709,29 @@ class btcturk(Exchange, ImplicitAPI):
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),  # allows the user to pass custom timeframes if needed
         }
         until = self.safe_integer(params, 'until', self.milliseconds())
-        request['to'] = self.parse_to_int((until / 1000))
+        untilSeconds = self.parse_to_int((until / 1000))
+        request['to'] = untilSeconds
         if since is not None:
             request['from'] = self.parse_to_int(since / 1000)
-        limitDefaulted = limit
-        if (since is None) and (limit is None):
-            limitDefaulted = 100  # default value
-        limitResolved = min(limitDefaulted, 11000) if (limitDefaulted is not None) else None  # max 11000 candles diapason can be covered
+        limitResolved = None
+        if limit is not None:
+            limitResolved = limit
+            if limit > 11000:
+                limitResolved = 11000  # max 11000 candles diapason can be covered
+        elif since is None:
+            limitResolved = 100  # default value
         if limitResolved is not None:
             if timeframe == '1y':  # difficult with leap years
                 raise BadRequest(self.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"')
             seconds = self.parse_timeframe(timeframe)
-            limitSeconds = seconds * (limitResolved - 1)
+            limitCount = 100 if (limit is None) else min(limit, 11000)
+            limitSeconds = seconds * (limitCount - 1)
             if since is not None:
                 to = self.parse_to_int(since / 1000) + limitSeconds
-                request['to'] = min(request['to'], to)
+                if to < untilSeconds:
+                    request['to'] = to
             else:
-                request['from'] = self.parse_to_int(0 / 1000) - limitSeconds
+                request['from'] = 0 - limitSeconds
         response = self.graphGetKlinesHistory(self.extend(request, params))
         #
         #    {
@@ -916,7 +922,7 @@ class btcturk(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data')
         return self.parse_orders(data, market, since, limit)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'Untouched': 'open',
             'Partial': 'open',
@@ -1039,10 +1045,11 @@ class btcturk(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         if self.id == 'btctrader':
             raise ExchangeError(self.id + ' is an abstract base API for BTCExchange, BTCTurk')
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + path
@@ -1052,11 +1059,11 @@ class btcturk(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(params)
         requestBody = None
         if isQueryMethod:
-            requestBody = body
+            requestBody = None
         else:
             requestBody = self.json(params)
         privateHeaders = None
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             secret = self.base64_to_binary(self.secret)
@@ -1067,7 +1074,7 @@ class btcturk(Exchange, ImplicitAPI):
                 'X-Signature': self.hmac(self.encode(auth), secret, hashlib.sha256, 'base64'),
                 'Content-Type': 'application/json',
             }
-        requestHeaders = privateHeaders if (privateHeaders is not None) else headers
+        requestHeaders = privateHeaders
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

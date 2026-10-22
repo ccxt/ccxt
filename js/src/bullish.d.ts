@@ -315,7 +315,7 @@ export default class bullish extends Exchange {
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionType(type: Str): Str;
     parseTransactionStatus(status: Str): Str;
-    loadAccount(params?: Dict): Promise<string>;
+    loadAccount(params?: Dict): Promise<Str>;
     /**
      * @method
      * @name bullish#fetchAccounts
@@ -420,8 +420,8 @@ export default class bullish extends Exchange {
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     /**
      * @method
      * @name bullish#signIn

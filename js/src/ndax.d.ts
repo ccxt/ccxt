@@ -1,5 +1,5 @@
 import Exchange from './abstract/ndax.js';
-import type { IndexType, Balances, Currency, CurrencyInterface, Int, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, NullableDict, Status } from './base/types.js';
+import type { IndexType, Balances, Currency, CurrencyInterface, Int, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, Status } from './base/types.js';
 /**
  * @class ndax
  * @augments Exchange
@@ -136,7 +136,7 @@ export default class ndax extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
-    parseOrderStatus(status: Str): string | undefined;
+    parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -294,7 +294,7 @@ export default class ndax extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
-    parseTransactionStatusByType(status?: Str, type?: Str): string | undefined;
+    parseTransactionStatusByType(status?: Str, type?: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -309,6 +309,6 @@ export default class ndax extends Exchange {
      */
     withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     nonce(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

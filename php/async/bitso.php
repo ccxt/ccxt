@@ -890,10 +890,12 @@ class bitso extends Exchange {
                 $duration = $this->parse_timeframe($timeframe);
                 $request['end'] = $this->sum($since, $duration * $limit * 1000);
             }
-        } elseif ($limit !== null) {
-            $now = $this->milliseconds();
-            $request['end'] = $now;
-            $request['start'] = $now - $this->parse_timeframe($timeframe) * 1000 * $limit;
+        } else {
+            if ($limit !== null) {
+                $now = $this->milliseconds();
+                $request['end'] = $now;
+                $request['start'] = $now - $this->parse_timeframe($timeframe) * 1000 * $limit;
+            }
         }
         $response = Async\await($this->publicGetOhlc($this->extend($request, $params)));
         //
@@ -1353,7 +1355,7 @@ class bitso extends Exchange {
         return $canceledOrders;
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'partial-fill' => 'open', // this is a common substitution in ccxt
             'partially filled' => 'open',
@@ -1416,13 +1418,13 @@ class bitso extends Exchange {
 
     private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = 25, $params = array()) {
         /**
-         * fetch all unfilled currently open $orders
+         * fetch all unfilled currently open orders
          *
-         * @see https://docs.bitso.com/bitso-api/docs/list-open-$orders
+         * @see https://docs.bitso.com/bitso-api/docs/list-open-orders
          *
          * @param {string} $symbol unified $market $symbol
-         * @param {int} [$since] the earliest time in ms to fetch open $orders for
-         * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of  open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -1452,8 +1454,7 @@ class bitso extends Exchange {
         );
         $response = Async\await($this->privateGetOpenOrders($this->extend($request, $paramsMarker)));
         $payload = $this->safe_list($response, 'payload', array());
-        $orders = $this->parse_orders($payload, $market, $since, $limit);
-        return $orders;
+        return $this->parse_orders($payload, $market, $since, $limit);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -1747,7 +1748,7 @@ class bitso extends Exchange {
             }
             if ($code !== null) {
                 $result[$code] = array(
-                    'deposit' => $this->safe_value($this->safe_dict($result, $code), 'deposit'),
+                    'deposit' => $this->safe_number($this->safe_dict($result, $code), 'deposit'),
                     'withdraw' => $this->safe_number($withdrawalFees, $currencyId),
                     'info' => array(
                         'deposit' => $this->safe_value($this->safe_dict($this->safe_dict($result, $code), 'info'), 'deposit'),
@@ -2040,7 +2041,7 @@ class bitso extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'pending' => 'pending',
             'in_progress' => 'pending',
@@ -2054,9 +2055,9 @@ class bitso extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $requestHeaders = null;
+        $requestBody = null;
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET' || $method === 'DELETE') {
@@ -2069,7 +2070,7 @@ class bitso extends Exchange {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . $endpoint;
-        if ($api === 'private') {
+        if ($api[0] === 'private') {
             $this->check_required_credentials();
             // bitso rejects a nonce that is not higher than the previous one (error 104)
             $nonce = (string) $this->incrementing_nonce();
@@ -2078,8 +2079,9 @@ class bitso extends Exchange {
             $request = implode('', $content);
             if ($method !== 'GET' && $method !== 'DELETE') {
                 if (count($query) > 0) {
-                    $requestBody = $this->json($query);
-                    $request .= $requestBody;
+                    $jsonBody = $this->json($query);
+                    $requestBody = $jsonBody;
+                    $request .= $jsonBody;
                 }
             }
             $signature = $this->hmac($this->encode($request), $this->encode($this->secret), 'sha256');
@@ -2108,7 +2110,7 @@ class bitso extends Exchange {
                     $success = false;
                 }
             }
-            if ($success !== true) {
+            if (!$success) {
                 $feedback = $this->id . ' ' . $this->json($response);
                 $error = $this->safe_dict($response, 'error');
                 if ($error === null) {

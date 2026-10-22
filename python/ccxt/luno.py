@@ -768,7 +768,7 @@ class luno(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             # todo add other statuses
             'PENDING': 'open',
@@ -1375,8 +1375,8 @@ class luno(Exchange, ImplicitAPI):
         self.load_accounts()
         currency = None
         id = self.safe_string(params, 'id')  # account id
-        min_row = self.safe_value(params, 'min_row')
-        max_row = self.safe_value(params, 'max_row')
+        minRowParam = self.safe_integer(params, 'min_row')
+        maxRowParam = self.safe_integer(params, 'max_row')
         if id is None:
             if code is None:
                 raise ArgumentsRequired(self.id + ' fetchLedger() requires a currency code argument if no account id specified in params')
@@ -1386,17 +1386,15 @@ class luno(Exchange, ImplicitAPI):
             if account is None:
                 raise ExchangeError(self.id + ' fetchLedger() could not find account id for ' + code)
             id = self.safe_string(account, 'id')
-        if min_row is None and max_row is None:
-            max_row = 0  # Default to most recent transactions
-            min_row = -1000  # Maximum number of records supported
-        elif min_row is None or max_row is None:
+        if (minRowParam is None or maxRowParam is None) and (minRowParam is not None or maxRowParam is not None):
             raise ExchangeError(self.id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined")
-        if limit is not None and max_row - min_row > limit:
-            if max_row <= 0:
-                min_row = max_row - limit
-            elif min_row > 0:
-                max_row = min_row + limit
-        if max_row - min_row > 1000:
+        maxRowBase = self.safe_integer(params, 'max_row', 0)  # Default to most recent transactions
+        minRowBase = self.safe_integer(params, 'min_row', -1000)  # Maximum number of records supported
+        limitApplies = (limit is not None) and (maxRowBase - minRowBase > limit)
+        min_row = maxRowBase - limit if (limitApplies and (limit is not None) and maxRowBase <= 0) else minRowBase
+        max_row = minRowBase + limit if (limitApplies and maxRowBase > 0 and minRowBase > 0) else maxRowBase
+        limitAdjusts = limitApplies and (maxRowBase <= 0 or minRowBase > 0)  # max_row - min_row becomes limit
+        if (limitAdjusts and limit > 1000) or (not limitAdjusts and maxRowBase - minRowBase > 1000):
             raise ExchangeError(self.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")
         request = {
             'id': id,
@@ -1632,8 +1630,9 @@ class luno(Exchange, ImplicitAPI):
         result['withdraw']['percentage'] = False
         return self.assign_default_deposit_withdraw_fees(result, currency)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + self.version + '/' + self.implode_params(path, params)
@@ -1641,14 +1640,14 @@ class luno(Exchange, ImplicitAPI):
         requestHeaders = None
         if len(query) > 0:
             url += '?' + self.urlencode(query)
-        if (api == 'private') or (api == 'exchangePrivate'):
+        if (apiName == 'private') or (apiName == 'exchangePrivate'):
             self.check_required_credentials()
             auth = self.string_to_base64(self.apiKey + ':' + self.secret)
             requestHeaders = {
                 'Authorization': 'Basic ' + auth,
             }
-        headersResolved = headers if (requestHeaders is None) else requestHeaders
-        return {'url': url, 'method': method, 'body': body, 'headers': headersResolved}
+        headersResolved = requestHeaders
+        return {'url': url, 'method': method, 'body': None, 'headers': headersResolved}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

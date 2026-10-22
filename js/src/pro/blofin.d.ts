@@ -1,10 +1,9 @@
 import blofinRest from '../blofin.js';
-import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order, Position, FundingRate, Dict } from '../base/types.js';
+import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order, Position, FundingRate, List, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class blofin extends blofinRest {
     describe(): any;
     ping(client: Client): string;
-    handlePong(client: Client, message: any): void;
     /**
      * @method
      * @name blofin#watchTrades
@@ -181,10 +180,7 @@ export default class blofin extends blofinRest {
     watchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     handleFundingRate(client: Client, message: Dict): void;
     watchMultipleWrapper(isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray?: any, params?: Dict): Promise<any>;
-    getSubscriptionRequest(args: any): {
-        op: string;
-        args: any;
-    };
+    getSubscriptionRequest(args: List): Dict;
     handleMessage(client: Client, message: any): void;
     authenticate(params?: Dict): Promise<void>;
 }

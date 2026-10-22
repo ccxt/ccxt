@@ -161,6 +161,9 @@ impl crate::exchange::DerivedExchange for BullishCore {
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::market(&self.parent, symbol)
+    }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
@@ -315,7 +318,7 @@ impl BullishCore {
     pub fn ping(&mut self, mut client: Value) -> Value {
         // bullish does not support built-in ws protocol-level ping-pong
         // https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--keep-websocket-open
-        let mut id: Value = to_string_val(&self.request_id());
+        let mut id: Value = Value::Str(format!("{}", self.request_id()).into());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
@@ -359,7 +362,7 @@ impl BullishCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut id: Value = to_string_val(&self.request_id());
+        let mut id: Value = Value::Str(format!("{}", self.request_id()).into());
         let mut message: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
@@ -397,7 +400,7 @@ impl BullishCore {
             m
         });
         add_element_to_object(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("cookies".into()), cookies);
-        let mut id: Value = to_string_val(&self.request_id());
+        let mut id: Value = Value::Str(format!("{}", self.request_id()).into());
         let mut message: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
@@ -446,7 +449,7 @@ impl BullishCore {
         });
         let mut trades: Value = self.watch_public(url, messageHash, &[request, params]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -490,16 +493,16 @@ impl BullishCore {
         let mut market: Value = self.market(symbol.clone());
         let mut rawTrades: Value = self.safe_list_k(data, "trades", &[Value::from(vec![])]);
         let mut trades: Value = self.parse_trades(rawTrades, &[market.clone()]);
-        if !(in_op(&self.trades, &symbol)) {
+        if !(matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut tradesArrayCache = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArrayCache); }
         }
-        let mut tradesArray: Value = get_value(&self.trades, &symbol);
+        let mut tradesArray: Value = self.trades.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_175: bool = true;
-            while { if !__for_first_175 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_175 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+            let mut __for_first_176: bool = true;
+            while { if !__for_first_176 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_176 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             tradesArray.append(trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
@@ -608,7 +611,7 @@ impl BullishCore {
         }
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker::".into()), symbol).into());
-        client.resolve(&[get_value(&self.tickers, &symbol), messageHash]);
+        client.resolve(&[self.tickers.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash]);
 }
 
 /*
@@ -678,10 +681,10 @@ impl BullishCore {
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into());
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
-        if !(in_op(&self.orderbooks, &symbol)) {
+        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
-        let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+        let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         let mut bids: Value = self.separate_bids_or_asks(self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]));
         let mut asks: Value = self.separate_bids_or_asks(self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]));
         let mut snapshot: Value = Value::Map({
@@ -702,20 +705,20 @@ impl BullishCore {
 }
 
     pub fn separate_bids_or_asks(&self, mut entry: Value) -> Value {
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_176: bool = true;
-            while { if !__for_first_176 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_176 = false; i.as_f64().unwrap_or(f64::NAN) < ((entry.len() as i64) as f64) } {
-            if (mod_val(&i, &Value::Int(2)).as_f64() != Some(0.0)) {
+            let mut __for_first_177: bool = true;
+            while { if !__for_first_177 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_177 = false; i.as_f64().unwrap_or(f64::NAN) < ((entry.len() as i64) as f64) } {
+            if ((match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null }).as_f64() != Some(0.0)) {
                 continue;
             }
             let mut price: Value = self.safe_string(entry.clone(), i.clone(), &[]);
             let mut amount: Value = self.safe_string(entry.clone(), (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[]);
-            append_to_array(&mut result, Value::from(vec![price, amount]));
+            result.push(Value::from(vec![price, amount]));
         }
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
@@ -762,7 +765,7 @@ impl BullishCore {
         }
         let mut orders: Value = self.watch_private(messageHash, subscribeHash, &[request, paramsOmitted]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
         }
         return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
@@ -824,7 +827,7 @@ impl BullishCore {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-            append_to_array(&mut rawOrders, data); // update is a single order
+            if let Value::Arr(__a) = &mut rawOrders { std::sync::Arc::make_mut(__a).push(data); }; // update is a single order
         }  else {
             rawOrders = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }); // snapshot is a list of orders
         }
@@ -841,8 +844,8 @@ impl BullishCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_177: bool = true;
-                while { if !__for_first_177 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_177 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrders.len() as i64) as f64) } {
+                let mut __for_first_178: bool = true;
+                while { if !__for_first_178 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_178 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrders.len() as i64) as f64) } {
                 let mut rawOrder: Value = rawOrders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut parsedOrder: Value = self.parse_order(rawOrder, &[]);
                 orders.append(parsedOrder.clone());
@@ -857,8 +860,8 @@ impl BullishCore {
             let mut keys: Value = object_keys(&symbols);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_178: bool = true;
-                while { if !__for_first_178 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_178 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+                let mut __for_first_179: bool = true;
+                while { if !__for_first_179 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_179 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut hashSymbol: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), hashSymbol).into());
                 client.resolve(&[self.orders.clone(), symbolMessageHash]);
@@ -909,7 +912,7 @@ impl BullishCore {
         }
         let mut trades: Value = self.watch_private(messageHash, subscribeHash, &[request, paramsOmitted]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -964,7 +967,7 @@ impl BullishCore {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-            append_to_array(&mut rawTrades, data); // update is a single trade
+            if let Value::Arr(__a) = &mut rawTrades { std::sync::Arc::make_mut(__a).push(data); }; // update is a single trade
         }  else {
             rawTrades = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }); // snapshot is a list of trades
         }
@@ -981,8 +984,8 @@ impl BullishCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_179: bool = true;
-                while { if !__for_first_179 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_179 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
+                let mut __for_first_180: bool = true;
+                while { if !__for_first_180 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_180 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
                 let mut rawTrade: Value = rawTrades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut parsedTrade: Value = self.parse_trade(rawTrade, &[]);
                 trades.append(parsedTrade.clone());
@@ -997,8 +1000,8 @@ impl BullishCore {
             let mut keys: Value = object_keys(&symbols);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_180: bool = true;
-                while { if !__for_first_180 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_180 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+                let mut __for_first_181: bool = true;
+                while { if !__for_first_181 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_181 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut hashSymbol: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), hashSymbol).into());
                 client.resolve(&[self.myTrades.clone(), symbolMessageHash]);
@@ -1089,7 +1092,7 @@ impl BullishCore {
         if (tradingAccountId == Value::Null) {
             return;
         }
-        if !(in_op(&self.balance, &tradingAccountId)) {
+        if !(matches!((&self.balance, &tradingAccountId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tradingAccountId), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1102,8 +1105,8 @@ impl BullishCore {
             let mut parsedKeys: Value = object_keys(&parsed);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_181: bool = true;
-                while { if !__for_first_181 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_181 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsedKeys.len() as i64) as f64) } {
+                let mut __for_first_182: bool = true;
+                while { if !__for_first_182 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_182 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsedKeys.len() as i64) as f64) } {
                 let mut parsedKey: Value = parsedKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 add_element_to_object(get_value_mut(&mut self.balance, &tradingAccountId), &parsedKey, parsed.as_map().and_then(|__m| parsedKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
             }
@@ -1127,8 +1130,8 @@ impl BullishCore {
         }
         let mut messageHash: Value = Value::Str("balance".into());
         let mut tradingAccountIdHash: Value = Value::Str(format!("{}{}", Value::Str("::".into()), tradingAccountId).into());
-        client.resolve(&[get_value(&self.balance, &tradingAccountId), messageHash.clone()]);
-        client.resolve(&[get_value(&self.balance, &tradingAccountId), Value::Str(format!("{}{}", messageHash, tradingAccountIdHash).into())]);
+        client.resolve(&[self.balance.as_map().and_then(|__m| tradingAccountId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash.clone()]);
+        client.resolve(&[self.balance.as_map().and_then(|__m| tradingAccountId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", messageHash, tradingAccountIdHash).into())]);
 }
 
 /*
@@ -1161,7 +1164,7 @@ impl BullishCore {
             symbolsNormalized = self.market_symbols(&[symbols]);
         }
         if hasSymbols && (symbolsNormalized != Value::Null) {
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), join(&symbolsNormalized, &Value::Str(",".into()))).into())).into());
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())).into())).into());
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1169,7 +1172,7 @@ impl BullishCore {
             m
         });
         let mut positions: Value = self.watch_private(messageHash, subscribeHash, &[request, params]).await;
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }
         return self.filter_by_symbols_since_limit(positions, &[symbolsNormalized, since, limit, Value::Bool(true)]);
@@ -1190,7 +1193,7 @@ impl BullishCore {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-            append_to_array(&mut rawPositions, data);
+            if let Value::Arr(__a) = &mut rawPositions { std::sync::Arc::make_mut(__a).push(data); }
         }  else {
             rawPositions = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         }
@@ -1201,23 +1204,23 @@ impl BullishCore {
         let mut newPositions: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_182: bool = true;
-            while { if !__for_first_182 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_182 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawPositions.len() as i64) as f64) } {
+            let mut __for_first_183: bool = true;
+            while { if !__for_first_183 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_183 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawPositions.len() as i64) as f64) } {
             let mut rawPosition: Value = rawPositions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut position: Value = self.parse_position(rawPosition, &[]);
             positions.append(position.clone());
-            append_to_array(&mut newPositions, position);
+            if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position); }
         }
         }
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("positions::".into()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_183: bool = true;
-            while { if !__for_first_183 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_183 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
+            let mut __for_first_184: bool = true;
+            while { if !__for_first_184 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_184 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
             let mut messageHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut parts: Value = split(&messageHash, &Value::Str("::".into()));
+            let mut parts: Value = Value::Array(messageHash.as_str().map(|__s| __s.split("::").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             let mut symbolsString: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-            let mut symbols: Value = split(&symbolsString, &Value::Str(",".into()));
+            let mut symbols: Value = Value::Array(symbolsString.as_str().map(|__s| __s.split(",").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             let mut symbolPositions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
             if !(self.is_empty(symbolPositions.clone()).as_bool() == Some(true)) {
                 client.resolve(&[symbolPositions, messageHash]);

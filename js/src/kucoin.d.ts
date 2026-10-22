@@ -1011,7 +1011,7 @@ export default class kucoin extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
-    parseTransactionStatus(status: Str): string | undefined;
+    parseTransactionStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -1184,10 +1184,10 @@ export default class kucoin extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
+    calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: Dict): any;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: Str;
-        rate: Num;
+        rate: number;
         period: number;
         timestamp: Int;
         datetime: string | undefined;
@@ -1317,6 +1317,7 @@ export default class kucoin extends Exchange {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     /**
      * @method
      * @name kucoin#setLeverage
@@ -1587,7 +1588,7 @@ export default class kucoin extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterests(symbols?: Strings, params?: Dict): Promise<OpenInterests>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name kucoin#fetchOpenInterestHistory
@@ -1612,7 +1613,7 @@ export default class kucoin extends Exchange {
      * @returns {boolean} true if unified account is enabled, false otherwise
      */
     isUTAEnabled(params?: Dict): Promise<boolean>;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     /**
      * @method

@@ -1010,7 +1010,7 @@ public partial class bitvavo : Exchange
         string? takerOrMaker = null;
         if ((taker != null))
         {
-            takerOrMaker = ((taker == true)) ? "taker" : "maker";
+            takerOrMaker = taker == true ? "taker" : "maker";
         }
         string? feeCostString = this.safeString(trade, "fee");
         Dictionary<string, object> fee = null;
@@ -1086,7 +1086,7 @@ public partial class bitvavo : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < this.symbols.Count; i++)
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = (this.symbols != null && i < this.symbols.Count ? this.symbols[i] : null);
             result[(string)symbol] = new Dictionary<string, object>() {
                 { "info", fees },
                 { "symbol", symbol },
@@ -1221,19 +1221,17 @@ public partial class bitvavo : Exchange
             int duration = this.parseTimeframe(timeframeVar);
             request["start"] = since;
             object sinceLimit = ((limit == null)) ? 1440 : mathMin(limit, 1440);
-            request["end"] = this.sum(since, multiply(multiply(sinceLimit, duration), 1000));
+            request["end"] = this.sum(since, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(sinceLimit, duration), 1000));
         }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end", request, parameters);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
-        object limitResolved = limit;
-        if (((since != null)) && ((limit == null)))
+        if ((limit != null))
         {
-            limitResolved = 1440;
-        }
-        if (!(limitResolved == null))
+            requestUntil["limit"] = mathMin(limit, 1440); // default 1440, max 1440
+        } else if ((since != null))
         {
-            requestUntil["limit"] = mathMin(limitResolved, 1440); // default 1440, max 1440
+            requestUntil["limit"] = 1440;
         }
         return this.extend(requestUntil, paramsUntil);
     }
@@ -1400,7 +1398,7 @@ public partial class bitvavo : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         object subaccountId = this.safeString(parameters, "subaccountId");
-        object paramsOmitted = this.omit(parameters, "subaccountId");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "subaccountId"));
         string? direction = null;
         if (((fromAccount == "master")) && ((toAccount == "master")))
         {
@@ -1659,7 +1657,7 @@ public partial class bitvavo : Exchange
         bool postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         string? stopLossPrice = this.safeString(parameters, "stopLossPrice"); // trigger when price crosses from above to below this value
         string? takeProfitPrice = this.safeString(parameters, "takeProfitPrice"); // trigger when price crosses from below to above this value
-        object paramsOmitted = this.omit(parameters, new List<object>() {"timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"}));
         object paramsCost = paramsOmitted;
         if (isMarketOrder)
         {
@@ -1832,7 +1830,7 @@ public partial class bitvavo : Exchange
         Dictionary<string, object> market = this.market(symbol);
         double? amountRemaining = this.safeNumber(parameters, "amountRemaining");
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerAmount"});
-        object paramsOmitted = this.omit(parameters, new List<object>() {"amountRemaining", "triggerPrice", "stopPrice", "triggerAmount"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"amountRemaining", "triggerPrice", "stopPrice", "triggerAmount"}));
         if ((price != null))
         {
             request["price"] = this.priceToPrecision(symbol, price);
@@ -2959,13 +2957,14 @@ public partial class bitvavo : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(response, codes, "symbol"));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object requestHeaders = headers;
-        object requestBody = body;
+        object apiName = getValue(api, 0);
+        Dictionary<string, object> requestHeaders = null;
+        string? requestBody = null;
         object query = this.omit(parameters, this.extractParams(path));
         string url = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         bool getOrDelete = ((method == "GET")) || ((method == "DELETE"));
@@ -2976,10 +2975,10 @@ public partial class bitvavo : Exchange
                 url = url + ("?" + this.urlencode(query));
             }
         }
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
-            object payload = "";
+            string? payload = "";
             if (!getOrDelete)
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
@@ -2989,7 +2988,7 @@ public partial class bitvavo : Exchange
                 }
             }
             string timestamp = this.milliseconds().ToString();
-            string? auth = ((string)(((timestamp + method) + url) + (payload)));
+            string? auth = ((string)(((timestamp + method) + url) + payload));
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             string? accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
             requestHeaders = new Dictionary<string, object>() {
@@ -3000,10 +2999,10 @@ public partial class bitvavo : Exchange
             };
             if (!getOrDelete)
             {
-                ((IDictionary<string,object>)requestHeaders)["Content-Type"] = "application/json";
+                requestHeaders["Content-Type"] = "application/json";
             }
         }
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;

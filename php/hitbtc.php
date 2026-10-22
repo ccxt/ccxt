@@ -480,14 +480,14 @@ class hitbtc extends Exchange {
             'options' => array(
                 'defaultNetwork' => 'ERC20',
                 'defaultNetworks' => array(
-                    'ETH' => 'ETH',
+                    'ETH' => 'ERC20',
                     'USDT' => 'TRC20',
                 ),
                 'networks' => array(
                     // mainnet network ids are in lowercase for BTC & ETH
                     'BTC' => 'btc',
                     'OMNI' => 'BTC',
-                    'ETH' => 'eth',
+                    // native ETH mainnet id is 'eth', ERC20 tokens use 'ETH'
                     'ERC20' => 'ETH',
                     'ETC' => 'ETC',
                     'BEP20' => 'BSC',
@@ -849,8 +849,9 @@ class hitbtc extends Exchange {
             if ($contract) {
                 $contractSize = $this->parse_number('1');
                 $settleId = $feeCurrencyId;
-                $settle = $this->safe_currency_code($settleId);
-                $linear = (($quote !== null) && ($quote === $settle));
+                $settleCode = $this->safe_currency_code($settleId);
+                $settle = $settleCode;
+                $linear = ($quote === $settleCode);
                 $inverse = !$linear;
                 $symbol = $symbol . ':' . $settle;
                 if ($future) {
@@ -985,8 +986,9 @@ class hitbtc extends Exchange {
         for ($j = 0; $j < count($rawNetworks); $j++) {
             $rawNetwork = $rawNetworks[$j];
             $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
-            $networkCode = $this->network_id_to_code($networkId, $code);
-            $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : $code; // as hitbtc is white label, ensure we safeguard from possible bugs
+            $rawNetworkCode = $this->network_id_to_code($networkId, $code);
+            $networkCodeUpper = ($rawNetworkCode !== null) ? strtoupper($rawNetworkCode) : null;
+            $networkCode = ($networkCodeUpper !== null) ? $this->safe_string($this->networkAliases, $networkCodeUpper, $networkCodeUpper) : $code; // as hitbtc is white label, ensure we safeguard from possible bugs
             if ($networkCode !== null) {
                 $networks[$networkCode] = array(
                     'info' => $rawNetwork,
@@ -1044,7 +1046,8 @@ class hitbtc extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $network = $this->safe_string_upper($params, 'network');
+        $networkInput = $this->safe_string_upper($params, 'network');
+        $network = ($networkInput !== null) ? $this->safe_string($this->networkAliases, $networkInput, $networkInput) : null;
         if (($network !== null) && ($code === 'USDT')) {
             $networks = $this->safe_dict($this->options, 'networks');
             $parsedNetwork = $this->safe_string($networks, $network);
@@ -1087,7 +1090,8 @@ class hitbtc extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $network = $this->safe_string_upper($params, 'network');
+        $networkInput = $this->safe_string_upper($params, 'network');
+        $network = ($networkInput !== null) ? $this->safe_string($this->networkAliases, $networkInput, $networkInput) : null;
         if (($network !== null) && ($code === 'USDT')) {
             $networks = $this->safe_dict($this->options, 'networks');
             $parsedNetwork = $this->safe_string($networks, $network);
@@ -1457,7 +1461,7 @@ class hitbtc extends Exchange {
         $taker = $this->safe_bool($trade, 'taker');
         $takerOrMaker = null;
         if ($taker !== null) {
-            $takerOrMaker = ($taker === true) ? 'taker' : 'maker';
+            $takerOrMaker = ($taker) ? 'taker' : 'maker';
         } else {
             $takerOrMaker = 'taker'; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
@@ -1541,7 +1545,7 @@ class hitbtc extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, $params);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'CREATED' => 'pending',
             'PENDING' => 'pending',
@@ -1653,7 +1657,7 @@ class hitbtc extends Exchange {
         /**
          * fetch history of deposits and withdrawals
          *
-         * @see https://api.hitbtc.com/#get-transactions-history
+         * @see https://api.hitbtc.com/#get-$transactions-history
          *
          * @param {string} [$code] unified currency $code for the currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
@@ -1661,14 +1665,15 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        return $this->fetch_transactions_helper('DEPOSIT,WITHDRAW', $code, $since, $limit, $params);
+        $transactions = $this->fetch_transactions_helper('DEPOSIT,WITHDRAW', $code, $since, $limit, $params);
+        return $this->to_array($transactions);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all deposits made to an account
          *
-         * @see https://api.hitbtc.com/#get-transactions-history
+         * @see https://api.hitbtc.com/#get-$transactions-history
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
@@ -1676,14 +1681,15 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        return $this->fetch_transactions_helper('DEPOSIT', $code, $since, $limit, $params);
+        $transactions = $this->fetch_transactions_helper('DEPOSIT', $code, $since, $limit, $params);
+        return $this->to_array($transactions);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
          *
-         * @see https://api.hitbtc.com/#get-transactions-history
+         * @see https://api.hitbtc.com/#get-$transactions-history
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -1691,7 +1697,8 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        return $this->fetch_transactions_helper('WITHDRAW', $code, $since, $limit, $params);
+        $transactions = $this->fetch_transactions_helper('WITHDRAW', $code, $since, $limit, $params);
+        return $this->to_array($transactions);
     }
 
     public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array()): array {
@@ -2014,7 +2021,14 @@ class hitbtc extends Exchange {
             }
         }
         $parsed = $this->parse_orders($response, $market, $since, $limit);
-        return $this->filter_by_array($parsed, 'status', array( 'closed', 'canceled' ), false);
+        $result = array();
+        for ($i = 0; $i < count($parsed); $i++) {
+            $status = $this->safe_string($parsed[$i], 'status');
+            if (($status === 'closed') || ($status === 'canceled')) {
+                $result[] = $parsed[$i];
+            }
+        }
+        return $result;
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -2501,7 +2515,7 @@ class hitbtc extends Exchange {
         return array( $request, $paramsOmitted );
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'new' => 'open',
             'suspended' => 'open',
@@ -2772,7 +2786,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function convert_currency_network(string $code, ?float $amount, mixed $fromNetwork, mixed $toNetwork, $params = array()): array {
+    public function convert_currency_network(string $code, ?float $amount, string $fromNetwork, string $toNetwork, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2780,10 +2794,12 @@ class hitbtc extends Exchange {
             throw new ExchangeError($this->id . ' convertCurrencyNetwork() only supports USDT currently');
         }
         $networks = $this->safe_dict($this->options, 'networks', array());
-        $fromNetworkValue = strtoupper($fromNetwork);
-        $toNetworkValue = strtoupper($toNetwork);
-        $fromNetworkValue2 = $this->safe_string($networks, $fromNetworkValue); // handle ETH>ERC20 alias
-        $toNetworkValue2 = $this->safe_string($networks, $toNetworkValue); // handle ETH>ERC20 alias
+        $fromNetworkUpper = strtoupper($fromNetwork);
+        $toNetworkUpper = strtoupper($toNetwork);
+        $fromNetworkValue = $this->safe_string($this->networkAliases, $fromNetworkUpper, $fromNetworkUpper);
+        $toNetworkValue = $this->safe_string($this->networkAliases, $toNetworkUpper, $toNetworkUpper);
+        $fromNetworkValue2 = $this->safe_string($networks, $fromNetworkValue); // unified code to exchange id
+        $toNetworkValue2 = $this->safe_string($networks, $toNetworkValue); // unified code to exchange id
         if ($fromNetworkValue2 === $toNetworkValue2) {
             throw new BadRequest($this->id . ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork');
         }
@@ -2831,7 +2847,8 @@ class hitbtc extends Exchange {
             $request['payment_id'] = $tagWithdrawTag;
         }
         $networks = $this->safe_dict($this->options, 'networks', array());
-        $network = $this->safe_string_upper($paramsWithdrawTag, 'network');
+        $networkInput = $this->safe_string_upper($paramsWithdrawTag, 'network');
+        $network = ($networkInput !== null) ? $this->safe_string($this->networkAliases, $networkInput, $networkInput) : null;
         if (($network !== null) && ($code === 'USDT')) {
             $parsedNetwork = $this->safe_string($networks, $network);
             if ($parsedNetwork !== null) {
@@ -2844,7 +2861,7 @@ class hitbtc extends Exchange {
         }
         $withdrawOptions = $this->safe_dict($this->options, 'withdraw', array());
         $includeFee = $this->safe_bool($withdrawOptions, 'includeFee', false);
-        if ($includeFee === true) {
+        if ($includeFee) {
             $request['include_fee'] = true;
         }
         $response = $this->privatePostWalletCryptoWithdraw($this->extend($request, $paramsOmitted));
@@ -2912,7 +2929,7 @@ class hitbtc extends Exchange {
             $fundingRate = $this->parse_funding_rate($rawFundingRate, $marketInner);
             $fundingRates[$symbol] = $fundingRate;
         }
-        return $this->filter_by_array($fundingRates, 'symbol', $symbolsNormalized);
+        return $this->index_by($this->filter_by_array($fundingRates, 'symbol', $symbolsNormalized, false), 'symbol');
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -3301,7 +3318,7 @@ class hitbtc extends Exchange {
             $openInterest = $this->safe_dict($response, $marketId, array());
             $results[] = $this->parse_open_interest($openInterest, $marketInner);
         }
-        return $this->filter_by_array($results, 'symbol', $symbolsNormalized);
+        return $this->index_by($this->filter_by_array($results, 'symbol', $symbolsNormalized, false), 'symbol');
     }
 
     public function fetch_open_interest(string $symbol, $params = array()): array {
@@ -3422,7 +3439,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, ?string $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, float $amount, ?string $type, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3743,8 +3760,9 @@ class hitbtc extends Exchange {
             $networkEntry = $this->safe_dict($networks, $j);
             $networkId = $this->safe_string($networkEntry, 'network');
             $code = $this->safe_string($currency, 'code');
-            $networkCode = $this->network_id_to_code($networkId, $code);
-            $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : null;
+            $rawNetworkCode = $this->network_id_to_code($networkId, $code);
+            $networkCodeUpper = ($rawNetworkCode !== null) ? strtoupper($rawNetworkCode) : null;
+            $networkCode = ($networkCodeUpper !== null) ? $this->safe_string($this->networkAliases, $networkCodeUpper, $networkCodeUpper) : null;
             $withdrawFee = $this->safe_number($networkEntry, 'payout_fee');
             $isDefault = $this->safe_bool($networkEntry, 'default');
             $withdrawResult = array(
@@ -3818,7 +3836,7 @@ class hitbtc extends Exchange {
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_bool($params, 'margin', false);
         list($marginMode, $paramsMarginMode) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
-        if (($marginMode === null) && (($defaultType === 'margin') || ($isMargin === true))) {
+        if (($marginMode === null) && (($defaultType === 'margin') || ($isMargin))) {
             return array( 'isolated', $paramsMarginMode );
         }
         return array( $marginMode, $paramsMarginMode );
@@ -3853,10 +3871,11 @@ class hitbtc extends Exchange {
         return null;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $query = $this->omit($params, $this->extract_params($path));
         $implodedPath = $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -3873,8 +3892,8 @@ class hitbtc extends Exchange {
                 $url = $url . $getRequest;
             }
         }
-        $bodyResolved = ($method === 'GET') ? $body : $this->json($params);
-        if ($api === 'private') {
+        $bodyResolved = ($method === 'GET') ? null : $this->json($params);
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->nonce();
             $payload = array( $method, '/api/3/' . $implodedPath );

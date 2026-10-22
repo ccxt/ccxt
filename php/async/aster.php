@@ -1020,10 +1020,11 @@ class aster extends Exchange {
             $spot = false;
             $swap = true;
             $settleId = $this->safe_string($market, 'marginAsset');
-            $settle = $this->safe_currency_code($settleId);
-            $symbol = $base . '/' . $quote . ':' . $settle;
-            $linear = $settle === $quote;
-            $inverse = $settle === $base;
+            $settleCode = $this->safe_currency_code($settleId);
+            $settle = $settleCode;
+            $symbol = $base . '/' . $quote . ':' . $settleCode;
+            $linear = $settleCode === $quote;
+            $inverse = $settleCode === $base;
             $contractSize = $this->safe_number_2($market, 'contractSize', 'unit', $this->parse_number('1'));
         } else {
             $spot = true;
@@ -1373,7 +1374,7 @@ class aster extends Exchange {
             $request = $this->handle_until_option('endTime', $request, $params);
         }
         // use historical endpoint for targeted requests
-        if (is_array($request) && array_key_exists('startTime' ?? '', $request)) {
+        if ($sinceDefined) {
             if ($market['swap'] === true) {
                 $response = Async\await($this->fapiPublicGetV3AggTrades($this->extend($request, $params)));
             } else {
@@ -1794,7 +1795,7 @@ class aster extends Exchange {
             $results[] = $priceData;
         }
         $symbolsNormalized2 = $this->market_symbols($symbolsNormalized);
-        return $this->filter_by_array($results, 'symbol', $symbolsNormalized2);
+        return $this->index_by($this->filter_by_array($results, 'symbol', $symbolsNormalized2, false), 'symbol');
     }
 
     public function parse_last_price(array $entry, ?array $market = null): array {
@@ -2306,7 +2307,7 @@ class aster extends Exchange {
         return $this->parse_trading_fee($response, $market);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'open',
             'PARTIALLY_FILLED' => 'open',
@@ -2318,7 +2319,7 @@ class aster extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             'LIMIT' => 'limit',
             'MARKET' => 'market',
@@ -2962,7 +2963,7 @@ class aster extends Exchange {
             $priceIsRequired = true;
             $triggerPriceIsRequired = true;
         } elseif (($uppercaseType === 'STOP_MARKET') || ($uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            if ($closePosition !== true) {
+            if (!$closePosition) {
                 $quantityIsRequired = true;
             }
             $triggerPriceIsRequired = true;
@@ -2997,9 +2998,7 @@ class aster extends Exchange {
             if ($stopPrice === null) {
                 throw new InvalidOrder($this->id . ' createOrder() requires a stopPrice extra param for a ' . $type . ' order');
             }
-            if ($stopPrice !== null) {
-                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
-            }
+            $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
         }
         list($tifOption, $paramsTifOption) = $this->handle_option_string_and_params($params, 'createOrder', 'timeInForce');
         $tifIsMissing = $timeInForceIsRequired && ($this->safe_string($params, 'timeInForce') === null) && ($this->safe_string($request, 'timeInForce') === null);
@@ -3732,7 +3731,7 @@ class aster extends Exchange {
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
             $bracket = $leverageBracket[$i];
-            if (Precise::string_lt($notionalStringAbs, $bracket[0])) {
+            if (Precise::string_lt($notionalStringAbs, $this->safe_string($bracket, 0))) {
                 break;
             }
             $maintenanceMarginPercentageString = $this->safe_string($bracket, 1);
@@ -3801,7 +3800,9 @@ class aster extends Exchange {
         } else {
             $collateralString = $this->safe_string($position, 'isolatedMargin');
         }
-        $collateralString = ($collateralString === null) ? '0' : $collateralString;
+        if ($collateralString === null) {
+            $collateralString = '0';
+        }
         $collateral = $this->parse_number($collateralString);
         $markPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'markPrice')));
         $timestamp = $this->safe_integer($position, 'updateTime');
@@ -3819,7 +3820,7 @@ class aster extends Exchange {
         $initialMarginPercentageString = null;
         $leverageString = $this->safe_string($position, 'leverage');
         if ($leverageString !== null) {
-            $leverage = intval($leverageString);
+            $leverage = $this->parse_to_int($leverageString);
             $rational = $this->is_round_number(fmod(1000, $leverage));
             $initialMarginPercentageString = Precise::string_div('1', $leverageString, 8);
             if (!$rational) {
@@ -3840,6 +3841,10 @@ class aster extends Exchange {
         }
         $positionSide = $this->safe_string($position, 'positionSide');
         $hedged = $positionSide !== 'BOTH';
+        $isolatedWalletString = null;
+        if ($marginMode === 'isolated') {
+            $isolatedWalletString = $this->safe_string($position, 'isolatedWallet');
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -3849,6 +3854,7 @@ class aster extends Exchange {
             'unrealizedPnl' => $unrealizedPnl,
             'leverage' => $this->parse_number($leverageString),
             'liquidationPrice' => $liquidationPrice,
+            'positionMargin' => $this->parse_number($isolatedWalletString),
             'collateral' => $collateral,
             'notional' => $notional,
             'markPrice' => $markPrice,
@@ -3987,9 +3993,10 @@ class aster extends Exchange {
             if (!$filterClosed || $isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
                 if (is_array($balances) && array_key_exists($code ?? '', $balances)) {
+                    $balance = $this->safe_dict($balances, $code);
                     $parsed = $this->parse_account_position($this->extend($position, array(
-                        'crossMargin' => $balances[$code]['crossMargin'],
-                        'crossWalletBalance' => $balances[$code]['crossWalletBalance'],
+                        'crossMargin' => $this->safe_string($balance, 'crossMargin'),
+                        'crossWalletBalance' => $this->safe_string($balance, 'crossWalletBalance'),
                     )), $market);
                     $result[] = $parsed;
                 }
@@ -4003,15 +4010,12 @@ class aster extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market, null, 'contract');
         $symbol = $this->safe_string($marketResolved, 'symbol');
         $leverageString = $this->safe_string($position, 'leverage');
-        $leverage = ($leverageString !== null) ? intval($leverageString) : null;
         $initialMarginString = $this->safe_string($position, 'initialMargin');
         $initialMargin = $this->parse_number($initialMarginString);
         $initialMarginPercentageString = null;
         if ($leverageString !== null) {
             $initialMarginPercentageString = Precise::string_div('1', $leverageString, 8);
-            if ($leverage === null) {
-                throw new ExchangeError($this->id . ' parseAccountPosition() missing leverage');
-            }
+            $leverage = $this->parse_to_int($leverageString);
             $rational = $this->is_round_number(fmod(1000, $leverage));
             if (!$rational) {
                 $initialMarginPercentageString = Precise::string_div(Precise::string_add($initialMarginPercentageString, '1e-8'), '1', 8);
@@ -4040,7 +4044,7 @@ class aster extends Exchange {
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
             $bracket = $leverageBracket[$i];
-            if (Precise::string_lt($notionalStringAbs, $bracket[0])) {
+            if (Precise::string_lt($notionalStringAbs, $this->safe_string($bracket, 0))) {
                 break;
             }
             $maintenanceMarginPercentageString = $this->safe_string($bracket, 1);
@@ -4052,10 +4056,13 @@ class aster extends Exchange {
         if ($timestamp === 0) {
             $timestamp = null;
         }
-        $isolated = $this->safe_bool($position, 'isolated');
-        if ($isolated === null) {
+        $isolatedRaw = $this->safe_bool($position, 'isolated');
+        $isolated = false;
+        if ($isolatedRaw === null) {
             $isolatedMarginRaw = $this->safe_string($position, 'isolatedMargin');
             $isolated = !Precise::string_eq($isolatedMarginRaw, '0');
+        } else {
+            $isolated = ($isolatedRaw === true);
         }
         $marginMode = null;
         $collateralString = null;
@@ -4124,8 +4131,7 @@ class aster extends Exchange {
             $pricePrecisionPlusOne = $pricePrecision + 1;
             $pricePrecisionPlusOneString = (string) $pricePrecisionPlusOne;
             // round half up
-            $rounder = new Precise('5e-' . $pricePrecisionPlusOneString);
-            $rounderString = (string) $rounder;
+            $rounderString = '5e-' . $pricePrecisionPlusOneString;
             $liquidationPriceRoundedString = Precise::string_add($rounderString, $liquidationPriceStringRaw);
             $truncatedLiquidationPrice = Precise::string_div($liquidationPriceRoundedString, '1', $pricePrecision);
             if ($truncatedLiquidationPrice === null) {
@@ -4140,6 +4146,10 @@ class aster extends Exchange {
         }
         $positionSide = $this->safe_string($position, 'positionSide');
         $hedged = $positionSide !== 'BOTH';
+        $isolatedWalletString = null;
+        if ($marginMode === 'isolated') {
+            $isolatedWalletString = $this->safe_string($position, 'isolatedWallet');
+        }
         return array(
             'info' => $position,
             'id' => null,
@@ -4159,6 +4169,7 @@ class aster extends Exchange {
             'marginRatio' => $marginRatio,
             'liquidationPrice' => $liquidationPrice,
             'markPrice' => null,
+            'positionMargin' => $this->parse_number($isolatedWalletString),
             'collateral' => $collateral,
             'marginMode' => $marginMode,
             'side' => $side,
@@ -4250,7 +4261,7 @@ class aster extends Exchange {
         return $this->options['leverageBrackets'];
     }
 
-    public function keccak_message(mixed $message) {
+    public function keccak_message(mixed $message): string {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
@@ -4326,6 +4337,9 @@ class aster extends Exchange {
         // TODO: check how ARBI signature would work
         $networks = $this->safe_dict($this->options, 'networks', array());
         $network = $this->safe_string_upper($paramsWithdrawTag, 'network');
+        if ($network !== null) {
+            $network = $this->safe_string($this->networkAliases, $network, $network); // accepts aliases like ETH for ERC20
+        }
         $network = $this->safe_string($networks, $network, $network);
         if (($chainId === null) && ($network !== null)) {
             $chainIds = $this->safe_dict($this->options, 'networksToChainId', array());
@@ -4443,7 +4457,7 @@ class aster extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function hash_message(mixed $binaryMessage) {
+    public function hash_message(mixed $binaryMessage): string {
         // const binaryMessage = this.encode (message);
         $binaryMessageLength = $this->binary_length($binaryMessage);
         $x19 = $this->base16_to_binary('19');
@@ -4461,17 +4475,18 @@ class aster extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $baseApiUrl . '/' . $path;
-        if ($api === 'fapiPublic' || $api === 'sapiPublic') {
+        if ($apiName === 'fapiPublic' || $apiName === 'sapiPublic') {
             if (count($params) > 0) {
                 $url .= '?' . $this->rawencode($params);
             }
-        } elseif ($api === 'fapiPrivate' || $api === 'sapiPrivate') {
+        } elseif ($apiName === 'fapiPrivate' || $apiName === 'sapiPrivate') {
             $this->check_required_credentials();
             $nonce = $this->milliseconds() * 1000;
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
@@ -4540,7 +4555,7 @@ class aster extends Exchange {
                 return array( 'url' => $url, 'method' => $method, 'body' => $queryString, 'headers' => $formHeaders );
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function encode_values_with_json(array $values): string {
@@ -4609,11 +4624,11 @@ class aster extends Exchange {
 
     private function do_initialize_client($params = array()) {
         $builderFee = $this->safe_bool($params, 'builderFee', $this->safe_bool($this->options, 'builderFee', true)); // we shouldn't omit here
-        if ($builderFee !== true) {
+        if (!$builderFee) {
             return false; // skip if builder fee is not enabled
         }
         $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
-        if ($approvedBuilderFee === true) {
+        if ($approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
         $result = Async\await($this->fapiPrivateGetV3Builder());
@@ -4630,10 +4645,11 @@ class aster extends Exchange {
         $approvedBuilders = $result;
         $length = count($approvedBuilders);
         $found = false;
+        $builderAddress = $this->safe_string($this->options, 'builder');
         for ($i = 0; $i < $length; $i++) {
             $builderInfo = $this->safe_dict($approvedBuilders, $i, array());
             $builderAccountId = $this->safe_string($builderInfo, 'builderAddress');
-            if ($builderAccountId === $this->safe_string($this->options, 'builder')) {
+            if ($builderAccountId === $builderAddress) {
                 $found = true;
                 break;
             }

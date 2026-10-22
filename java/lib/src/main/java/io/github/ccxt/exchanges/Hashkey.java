@@ -521,7 +521,7 @@ public class Hashkey extends HashkeyApi
                     put( "TRC20", "TRC20" );
                     put( "Tron", "TRC20" );
                     put( "TON", "TON" );
-                    put( "BSC(BEP20)", "BSC" );
+                    put( "BSC(BEP20)", "BEP20" );
                     put( "Klaytn", "KLAYTN" );
                 }} );
                 put( "defaultNetwork", "ERC20" );
@@ -1382,13 +1382,13 @@ public class Hashkey extends HashkeyApi
         {
             Object network = (networks == null || j < 0 || j >= networks.size() ? null : networks.get(j));
             String networkId = this.safeString(network, "chainType");
-            Object networkCode = this.networkCodeToId(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                parsedNetworks.put((String)networkCode, Helpers.newMap(
-    "id", networkId,
-    "network", networkCode,
-    "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+                mapLiteral6.put("id", networkId);
+                mapLiteral6.put("network", networkCode);
+                mapLiteral6.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", Hashkey.this.safeNumber(network, "minWithdrawQuantity", (Object) null) );
             put( "max", Hashkey.this.parseNumber(Hashkey.this.omitZero(Hashkey.this.safeString(network, "maxWithdrawQuantity"))) );
@@ -1397,14 +1397,14 @@ public class Hashkey extends HashkeyApi
             put( "min", Hashkey.this.safeNumber(network, "minDepositQuantity", (Object) null) );
             put( "max", null );
         }} );
-    }},
-    "active", null,
-    "deposit", this.safeBool(network, "allowDeposit", (Object) null),
-    "withdraw", this.safeBool(network, "allowWithdraw", (Object) null),
-    "fee", this.safeNumber(network, "withdrawFee", (Object) null),
-    "precision", null,
-    "info", network
-));
+    }});
+                mapLiteral6.put("active", null);
+                mapLiteral6.put("deposit", this.safeBool(network, "allowDeposit", (Object) null));
+                mapLiteral6.put("withdraw", this.safeBool(network, "allowWithdraw", (Object) null));
+                mapLiteral6.put("fee", this.safeNumber(network, "withdrawFee", (Object) null));
+                mapLiteral6.put("precision", null);
+                mapLiteral6.put("info", network);
+                parsedNetworks.put(networkCode, mapLiteral6);
             }
         }
         String rawType = this.safeString(rawCurrency, "tokenType");
@@ -1413,17 +1413,17 @@ public class Hashkey extends HashkeyApi
         {
             type = "fiat";
         }
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("id", currencyId);
-        mapLiteral6.put("code", code);
-        mapLiteral6.put("precision", null);
-        mapLiteral6.put("type", type);
-        mapLiteral6.put("name", this.safeString(rawCurrency, "coinFullName"));
-        mapLiteral6.put("active", null);
-        mapLiteral6.put("deposit", this.safeBool(rawCurrency, "allowDeposit", (Object) null));
-        mapLiteral6.put("withdraw", this.safeBool(rawCurrency, "allowWithdraw", (Object) null));
-        mapLiteral6.put("fee", null);
-        mapLiteral6.put("limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("id", currencyId);
+        mapLiteral7.put("code", code);
+        mapLiteral7.put("precision", null);
+        mapLiteral7.put("type", type);
+        mapLiteral7.put("name", this.safeString(rawCurrency, "coinFullName"));
+        mapLiteral7.put("active", null);
+        mapLiteral7.put("deposit", this.safeBool(rawCurrency, "allowDeposit", (Object) null));
+        mapLiteral7.put("withdraw", this.safeBool(rawCurrency, "allowWithdraw", (Object) null));
+        mapLiteral7.put("fee", null);
+        mapLiteral7.put("limits", new HashMap<String, Object>() {{
                 put( "deposit", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -1433,9 +1433,9 @@ public class Hashkey extends HashkeyApi
                     put( "max", null );
                 }} );
             }});
-        mapLiteral6.put("networks", parsedNetworks);
-        mapLiteral6.put("info", rawCurrency);
-        return this.safeCurrencyStructure(mapLiteral6);
+        mapLiteral7.put("networks", parsedNetworks);
+        mapLiteral7.put("info", rawCurrency);
+        return this.safeCurrencyStructure(mapLiteral7);
     }
 
     /**
@@ -1716,26 +1716,28 @@ public class Hashkey extends HashkeyApi
         }
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", this.parseNumber(feeCost),
-                "currency", this.safeCurrencyCode(feeCurrncyId, (Map<String, Object>) null)
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", this.parseNumber(feeCost));
+                hx4NewMap0.put("currency", this.safeCurrencyCode(feeCurrncyId, (Map<String, Object>) null));
+                fee = hx4NewMap0;
+            }
         }
-        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-        mapLiteral7.put("id", this.safeString2(trade, "id", "tradeId"));
-        mapLiteral7.put("timestamp", timestamp);
-        mapLiteral7.put("datetime", this.iso8601(timestamp));
-        mapLiteral7.put("symbol", marketResolved.get("symbol"));
-        mapLiteral7.put("side", side);
-        mapLiteral7.put("price", this.safeString2(trade, "p", "price"));
-        mapLiteral7.put("amount", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("q", "qty", "quantity"))));
-        mapLiteral7.put("cost", null);
-        mapLiteral7.put("takerOrMaker", takerOrMaker);
-        mapLiteral7.put("type", null);
-        mapLiteral7.put("order", this.safeString(trade, "orderId"));
-        mapLiteral7.put("fee", fee);
-        mapLiteral7.put("info", trade);
-        return this.safeTrade(mapLiteral7, marketResolved);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("id", this.safeString2(trade, "id", "tradeId"));
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("symbol", marketResolved.get("symbol"));
+        mapLiteral8.put("side", side);
+        mapLiteral8.put("price", this.safeString2(trade, "p", "price"));
+        mapLiteral8.put("amount", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("q", "qty", "quantity"))));
+        mapLiteral8.put("cost", null);
+        mapLiteral8.put("takerOrMaker", takerOrMaker);
+        mapLiteral8.put("type", null);
+        mapLiteral8.put("order", this.safeString(trade, "orderId"));
+        mapLiteral8.put("fee", fee);
+        mapLiteral8.put("info", trade);
+        return this.safeTrade(mapLiteral8, marketResolved);
     }
 
     /**
@@ -1928,28 +1930,28 @@ public class Hashkey extends HashkeyApi
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(marketResolved.get("contractSize")));
         }
-        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-        mapLiteral8.put("symbol", symbol);
-        mapLiteral8.put("timestamp", timestamp);
-        mapLiteral8.put("datetime", this.iso8601(timestamp));
-        mapLiteral8.put("high", this.safeString(ticker, "h"));
-        mapLiteral8.put("low", this.safeString(ticker, "l"));
-        mapLiteral8.put("bid", this.safeString(ticker, "b"));
-        mapLiteral8.put("bidVolume", null);
-        mapLiteral8.put("ask", this.safeString(ticker, "a"));
-        mapLiteral8.put("askVolume", null);
-        mapLiteral8.put("vwap", null);
-        mapLiteral8.put("open", this.safeString(ticker, "o"));
-        mapLiteral8.put("close", last);
-        mapLiteral8.put("last", last);
-        mapLiteral8.put("previousClose", null);
-        mapLiteral8.put("change", null);
-        mapLiteral8.put("percentage", null);
-        mapLiteral8.put("average", null);
-        mapLiteral8.put("baseVolume", baseVolume);
-        mapLiteral8.put("quoteVolume", this.safeString(ticker, "qv"));
-        mapLiteral8.put("info", ticker);
-        return this.safeTicker(mapLiteral8, marketResolved);
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("symbol", symbol);
+        mapLiteral9.put("timestamp", timestamp);
+        mapLiteral9.put("datetime", this.iso8601(timestamp));
+        mapLiteral9.put("high", this.safeString(ticker, "h"));
+        mapLiteral9.put("low", this.safeString(ticker, "l"));
+        mapLiteral9.put("bid", this.safeString(ticker, "b"));
+        mapLiteral9.put("bidVolume", null);
+        mapLiteral9.put("ask", this.safeString(ticker, "a"));
+        mapLiteral9.put("askVolume", null);
+        mapLiteral9.put("vwap", null);
+        mapLiteral9.put("open", this.safeString(ticker, "o"));
+        mapLiteral9.put("close", last);
+        mapLiteral9.put("last", last);
+        mapLiteral9.put("previousClose", null);
+        mapLiteral9.put("change", null);
+        mapLiteral9.put("percentage", null);
+        mapLiteral9.put("average", null);
+        mapLiteral9.put("baseVolume", baseVolume);
+        mapLiteral9.put("quoteVolume", this.safeString(ticker, "qv"));
+        mapLiteral9.put("info", ticker);
+        return this.safeTicker(mapLiteral9, marketResolved);
     }
 
     /**
@@ -2147,7 +2149,7 @@ public class Hashkey extends HashkeyApi
      * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
      * @param {string} code unified currency code (default is 'USDT')
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
+     * @param {string} [params.network] network for fetch deposit address (default is 'ERC20')
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters)
@@ -2166,8 +2168,8 @@ public class Hashkey extends HashkeyApi
             List<Object> networkCodeInParamsparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
             String networkCodeInParams = (String) ((List<Object>) networkCodeInParamsparamsNetworkCodeVariable).get(0);
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeInParamsparamsNetworkCodeVariable).get(1);
-            Object networkCode = (((java.util.Objects.equals(networkCodeInParams, null)))) ? this.defaultNetworkCode(code) : networkCodeInParams;
-            request.put("chainType", this.networkCodeToId((String) (networkCode), code));
+            String networkCode = (((java.util.Objects.equals(networkCodeInParams, null)))) ? this.safeString(this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}}), code, this.safeString(this.options, "defaultNetwork")) : networkCodeInParams;
+            request.put("chainType", this.networkCodeToId(networkCode, code));
             Map<String, Object> response = (this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsNetworkCode))).join();
             //
             //     {
@@ -2181,8 +2183,8 @@ public class Hashkey extends HashkeyApi
             //         "coinType": "ERC20_TOKEN"
             //     }
             //
-            Object depositAddress = this.parseDepositAddress((Map<String, Object>) (response), currency);
-            ((Map<String, Object>)depositAddress).put("network", networkCode);
+            Map<String, Object> depositAddress = (Map<String, Object>) this.parseDepositAddress((Map<String, Object>) (response), currency);
+            depositAddress.put("network", networkCode);
             return depositAddress;
         }).thenApply(DepositAddress::new);
 
@@ -2467,7 +2469,7 @@ public class Hashkey extends HashkeyApi
         if (java.util.Objects.equals(status, null))
         {
             Boolean success = (Boolean) this.safeBool(transaction, "success", false); // for withdraw
-            if (java.util.Objects.equals(success, true))
+            if (Boolean.TRUE.equals(success))
             {
                 status = "ok";
             } else
@@ -2488,10 +2490,12 @@ public class Hashkey extends HashkeyApi
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", code
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("cost", feeCost);
+                hx4NewMap1.put("currency", code);
+                fee = hx4NewMap1;
+            }
         }
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
@@ -2588,7 +2592,7 @@ public class Hashkey extends HashkeyApi
         String currencyId = this.safeString(currency, "id");
         String status = null;
         Boolean success = (Boolean) this.safeBool(transfer, "success", false);
-        if (java.util.Objects.equals(success, true))
+        if (Boolean.TRUE.equals(success))
         {
             status = "ok";
         }
@@ -2822,24 +2826,24 @@ public class Hashkey extends HashkeyApi
         String afterString = this.safeString(item, "total");
         Double after = this.parseNumber(afterString);
         String status = "ok";
-        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-        mapLiteral9.put("info", item);
-        mapLiteral9.put("id", id);
-        mapLiteral9.put("timestamp", timestamp);
-        mapLiteral9.put("datetime", this.iso8601(timestamp));
-        mapLiteral9.put("account", account);
-        mapLiteral9.put("direction", direction);
-        mapLiteral9.put("referenceId", null);
-        mapLiteral9.put("referenceAccount", null);
-        mapLiteral9.put("type", type);
-        mapLiteral9.put("currency", code);
-        mapLiteral9.put("symbol", null);
-        mapLiteral9.put("amount", amount);
-        mapLiteral9.put("before", null);
-        mapLiteral9.put("after", after);
-        mapLiteral9.put("status", status);
-        mapLiteral9.put("fee", null);
-        return this.safeLedgerEntry(mapLiteral9, currencyResolved);
+        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+        mapLiteral10.put("info", item);
+        mapLiteral10.put("id", id);
+        mapLiteral10.put("timestamp", timestamp);
+        mapLiteral10.put("datetime", this.iso8601(timestamp));
+        mapLiteral10.put("account", account);
+        mapLiteral10.put("direction", direction);
+        mapLiteral10.put("referenceId", null);
+        mapLiteral10.put("referenceAccount", null);
+        mapLiteral10.put("type", type);
+        mapLiteral10.put("currency", code);
+        mapLiteral10.put("symbol", null);
+        mapLiteral10.put("amount", amount);
+        mapLiteral10.put("before", null);
+        mapLiteral10.put("after", after);
+        mapLiteral10.put("status", status);
+        mapLiteral10.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral10, currencyResolved);
     }
 
     /**
@@ -3968,36 +3972,36 @@ public class Hashkey extends HashkeyApi
         {
             feeCurrncyId = null;
         }
-        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
-        mapLiteral10.put("id", this.safeString(order, "orderId"));
-        mapLiteral10.put("clientOrderId", this.safeString(order, "clientOrderId"));
-        mapLiteral10.put("datetime", this.iso8601(timestamp));
-        mapLiteral10.put("timestamp", timestamp);
-        mapLiteral10.put("lastTradeTimestamp", null);
-        mapLiteral10.put("lastUpdateTimestamp", this.safeInteger(order, "updateTime"));
-        mapLiteral10.put("status", this.parseOrderStatus(status));
-        mapLiteral10.put("symbol", marketResolved.get("symbol"));
-        mapLiteral10.put("type", type);
-        mapLiteral10.put("timeInForce", timeInForce);
-        mapLiteral10.put("side", side);
-        mapLiteral10.put("price", price);
-        mapLiteral10.put("average", average);
-        mapLiteral10.put("amount", this.omitZero(this.safeString(order, "origQty")));
-        mapLiteral10.put("filled", this.safeString(order, "executedQty"));
-        mapLiteral10.put("remaining", null);
-        mapLiteral10.put("triggerPrice", this.omitZero(this.safeString(order, "stopPrice")));
-        mapLiteral10.put("takeProfitPrice", null);
-        mapLiteral10.put("stopLossPrice", null);
-        mapLiteral10.put("cost", this.omitZero(this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty")));
-        mapLiteral10.put("trades", null);
         HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
-        mapLiteral11.put("currency", this.safeCurrencyCode(feeCurrncyId, (Map<String, Object>) null));
-        mapLiteral11.put("cost", this.omitZero(this.safeString(order, "feeAmount")));
-        mapLiteral10.put("fee", mapLiteral11);
-        mapLiteral10.put("reduceOnly", reduceOnly);
-        mapLiteral10.put("postOnly", postOnly);
-        mapLiteral10.put("info", order);
-        return this.safeOrder(mapLiteral10, marketResolved);
+        mapLiteral11.put("id", this.safeString(order, "orderId"));
+        mapLiteral11.put("clientOrderId", this.safeString(order, "clientOrderId"));
+        mapLiteral11.put("datetime", this.iso8601(timestamp));
+        mapLiteral11.put("timestamp", timestamp);
+        mapLiteral11.put("lastTradeTimestamp", null);
+        mapLiteral11.put("lastUpdateTimestamp", this.safeInteger(order, "updateTime"));
+        mapLiteral11.put("status", this.parseOrderStatus(status));
+        mapLiteral11.put("symbol", marketResolved.get("symbol"));
+        mapLiteral11.put("type", type);
+        mapLiteral11.put("timeInForce", timeInForce);
+        mapLiteral11.put("side", side);
+        mapLiteral11.put("price", price);
+        mapLiteral11.put("average", average);
+        mapLiteral11.put("amount", this.omitZero(this.safeString(order, "origQty")));
+        mapLiteral11.put("filled", this.safeString(order, "executedQty"));
+        mapLiteral11.put("remaining", null);
+        mapLiteral11.put("triggerPrice", this.omitZero(this.safeString(order, "stopPrice")));
+        mapLiteral11.put("takeProfitPrice", null);
+        mapLiteral11.put("stopLossPrice", null);
+        mapLiteral11.put("cost", this.omitZero(this.safeString2(order, "cumulativeQuoteQty", "cummulativeQuoteQty")));
+        mapLiteral11.put("trades", null);
+        HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+        mapLiteral12.put("currency", this.safeCurrencyCode(feeCurrncyId, (Map<String, Object>) null));
+        mapLiteral12.put("cost", this.omitZero(this.safeString(order, "feeAmount")));
+        mapLiteral11.put("fee", mapLiteral12);
+        mapLiteral11.put("reduceOnly", reduceOnly);
+        mapLiteral11.put("postOnly", postOnly);
+        mapLiteral11.put("info", order);
+        return this.safeOrder(mapLiteral11, marketResolved);
     }
 
     public Object parseOrderSideAndReduceOnly(Object unparsed)
@@ -4326,7 +4330,7 @@ public class Hashkey extends HashkeyApi
             //         }
             //     ]
             //
-            return this.parsePositions(response, Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), new HashMap<String, Object>() {{}});
+            return this.parsePositions(response, ((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -4484,7 +4488,7 @@ public class Hashkey extends HashkeyApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String marginModeUpper = ((String)marginMode).toUpperCase();
-            Object marginModeValue = (((java.util.Objects.equals(marginModeUpper, "CROSSED")))) ? "CROSS" : marginModeUpper;
+            String marginModeValue = (((java.util.Objects.equals(marginModeUpper, "CROSSED")))) ? "CROSS" : marginModeUpper;
             if ((!java.util.Objects.equals(marginModeValue, "CROSS")) && (!java.util.Objects.equals(marginModeValue, "ISOLATED")))
             {
                 throw new ArgumentsRequired((this.id + " setMarginMode() marginMode must be either cross or isolated")) ;
@@ -4588,10 +4592,10 @@ public class Hashkey extends HashkeyApi
             //         "timestamp": "1726869763318"
             //     }
             //
-            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), Helpers.newMap(
-                "type", type,
-                "amount", amount
-            ));
+            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("type", type);
+                j39v1.put("amount", amount);
+                yield j39v1; } }));
         });
 
     }
@@ -4731,16 +4735,16 @@ public class Hashkey extends HashkeyApi
         {
             Object tier = (riskLimits == null || i < 0 || i >= riskLimits.size() ? null : riskLimits.get(i));
             String initialMarginRate = this.safeString(tier, "initialMargin");
-            ((List<Object>)tiers).add(Helpers.newMap(
-                "tier", this.sum(i, 1),
-                "symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null),
-                "currency", marketResolved.get("settle"),
-                "minNotional", null,
-                "maxNotional", this.safeNumber(tier, "quantity", (Object) null),
-                "maintenanceMarginRate", this.safeNumber(tier, "maintMargin", (Object) null),
-                "maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMarginRate)),
-                "info", tier
-            ));
+            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("tier", this.sum(i, 1));
+                j39v2.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
+                j39v2.put("currency", marketResolved.get("settle"));
+                j39v2.put("minNotional", null);
+                j39v2.put("maxNotional", this.safeNumber(tier, "quantity", (Object) null));
+                j39v2.put("maintenanceMarginRate", this.safeNumber(tier, "maintMargin", (Object) null));
+                j39v2.put("maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMarginRate)));
+                j39v2.put("info", tier);
+                yield j39v2; } }));
         }
         return tiers;
     }
@@ -4874,16 +4878,17 @@ public class Hashkey extends HashkeyApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((apiUrl + "/") + path);
         Object query = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             Long timestamp = this.milliseconds();
@@ -4906,9 +4911,9 @@ public class Hashkey extends HashkeyApi
                 headersSigned.put("Content-Type", "application/json");
                 bodySigned = this.json(this.safeList(parameters, "orders", (Object) null));
                 signature = this.hmac(this.encode(((String)this.customUrlencode(additionalParams))), this.encode(this.secret), sha256());
-                HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
-                mapLiteral12.put("signature", signature);
-                query = this.customUrlencode(this.extend(additionalParams, mapLiteral12));
+                HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+                mapLiteral13.put("signature", signature);
+                query = this.customUrlencode(this.extend(additionalParams, mapLiteral13));
                 url = (url + ("?" + query));
             } else
             {
@@ -4926,7 +4931,7 @@ public class Hashkey extends HashkeyApi
             }
             headersSigned.put("INPUT-SOURCE", this.safeString(this.options, "broker", "10000700011"));
             headersSigned.put("broker_sign", signature);
-            Object bodyResolved = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? body : bodySigned;
+            Object bodyResolved = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? null : bodySigned;
             {
                 HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
                 h2kMap3.put("url", url);
@@ -4947,8 +4952,8 @@ public class Hashkey extends HashkeyApi
             HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
             h2kMap4.put("url", url);
             h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap4.put("body", body);
-            h2kMap4.put("headers", headers);
+            h2kMap4.put("body", null);
+            h2kMap4.put("headers", null);
             return h2kMap4;
         }
     }
@@ -4983,7 +4988,7 @@ public class Hashkey extends HashkeyApi
                 }
             }
         }
-        if ((!Helpers.isEqual(code, 200)) || Boolean.TRUE.equals(errorInArray))
+        if ((!(code != null && ((Number) code).doubleValue() == 200)) || Boolean.TRUE.equals(errorInArray))
         {
             String feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(this.exceptions.get("broad"), responseCodeString, feedback);

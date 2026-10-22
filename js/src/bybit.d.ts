@@ -25,7 +25,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} [enableUnifiedMargin, enableUnifiedAccount]
      */
-    isUnifiedEnabled(params?: Dict): Promise<any[]>;
+    isUnifiedEnabled(params?: Dict): Promise<[boolean, boolean]>;
     /**
      * @method
      * @name bybit#upgradeUnifiedTradeAccount
@@ -742,7 +742,7 @@ export default class bybit extends Exchange {
      * @returns An array of open interest structures
      */
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OpenInterest[]>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name bybit#fetchCrossBorrowRate
@@ -874,7 +874,7 @@ export default class bybit extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     fetchTradingFees(params?: Dict): Promise<TradingFees>;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method
      * @name bybit#fetchDepositWithdrawFees
@@ -1128,6 +1128,6 @@ export default class bybit extends Exchange {
     fetchMarginMode(symbol: string, params?: Dict): Promise<MarginMode>;
     parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     parseMarginModeType(marginMode: Str): Str;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

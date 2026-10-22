@@ -708,7 +708,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'ACTIVE': 'open',
             'COMPLETED': 'closed',
@@ -784,10 +784,9 @@ class bitflyer(Exchange, ImplicitAPI):
             'count': limit,
         }
         response = await self.privateGetGetchildorders(self.extend(request, params))
-        orders = self.parse_orders(response, market, since, limit)
         if symbol is not None:
-            orders = self.filter_by(orders, 'symbol', symbol)
-        return orders
+            return self.filter_by(self.parse_orders(response, market, since, limit), 'symbol', symbol)
+        return self.parse_orders(response, market, since, limit)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params: dict = {}) -> list[Order]:
         """
@@ -1176,11 +1175,12 @@ class bitflyer(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         bodySigned = None
         headersSigned = None
         request = '/' + self.version + '/'
-        if api == 'private':
+        if apiName == 'private':
             request += 'me/'
         request += path
         if method == 'GET':
@@ -1191,23 +1191,24 @@ class bitflyer(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = self.implode_hostname(apiUrl)
         url = baseUrl + request
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             content = [nonce, method, request]
             auth = ''.join(content)
             if len(params) > 0:
                 if method != 'GET':
-                    bodySigned = self.json(params)
-                    auth += bodySigned
+                    body = self.json(params)
+                    bodySigned = body
+                    auth += body
             headersSigned = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
                 'ACCESS-SIGN': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
                 'Content-Type': 'application/json',
             }
-        headersResolved = headers if (headersSigned is None) else headersSigned
-        bodyResolved = body if (bodySigned is None) else bodySigned
+        headersResolved = headersSigned
+        bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

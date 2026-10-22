@@ -312,9 +312,10 @@ class bithumb(ccxt.async_support.bithumb):
         time = self.safe_string(ticker, 'time', '')
         kstDatetime = date[0:4] + '-' + date[4:6] + '-' + date[6:8] + 'T' + time[0:2] + ':' + time[2:4] + ':' + time[4:6]
         # date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
-        timestamp = self.parse8601(kstDatetime)
-        if timestamp is not None:
-            timestamp = (timestamp - 32400000)
+        timestamp = None
+        kstTimestamp = self.parse8601(kstDatetime)
+        if kstTimestamp is not None:
+            timestamp = kstTimestamp - 32400000
         marketId = self.safe_string(ticker, 'symbol')
         return self.safe_ticker({
             'symbol': self.safe_symbol(marketId, market, '_'),
@@ -657,7 +658,10 @@ class bithumb(ccxt.async_support.bithumb):
         marketId = self.safe_string(trade, 'symbol')
         datetime = self.safe_string(trade, 'contDtm')
         # that date is not UTC iso8601, but exchange's local time, -9hr difference
-        timestamp = self.parse_to_int(self.parse8601(datetime)) - 32400000
+        timestamp = None
+        kstTimestamp = self.parse8601(datetime)
+        if kstTimestamp is not None:
+            timestamp = kstTimestamp - 32400000
         sideId = self.safe_string(trade, 'buySellGb')
         return self.safe_trade({
             'id': None,

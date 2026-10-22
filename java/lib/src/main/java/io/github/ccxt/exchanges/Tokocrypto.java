@@ -356,7 +356,7 @@ public class Tokocrypto extends TokocryptoApi
                 put( "reverseNetworks", new HashMap<String, Object>() {{
                     put( "tronscan.org", "TRC20" );
                     put( "etherscan.io", "ERC20" );
-                    put( "bscscan.com", "BSC" );
+                    put( "bscscan.com", "BEP20" );
                     put( "explorer.binance.org", "BEP2" );
                     put( "bithomp.com", "XRP" );
                     put( "bloks.io", "EOS" );
@@ -1192,7 +1192,7 @@ public class Tokocrypto extends TokocryptoApi
         String takerOrMaker = null;
         if (!java.util.Objects.equals(buyerMaker, null))
         {
-            side = (((java.util.Objects.equals(buyerMaker, true)))) ? "sell" : "buy"; // this is reversed intentionally
+            side = ((Boolean.TRUE.equals(buyerMaker))) ? "sell" : "buy"; // this is reversed intentionally
             takerOrMaker = "taker";
         } else if (((Map<?, ?>)trade).containsKey("side"))
         {
@@ -2050,9 +2050,13 @@ public class Tokocrypto extends TokocryptoApi
             Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
             Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
             // only supported for spot/margin api
-            String typeResolved = (((java.util.Objects.equals(postOnly, true)))) ? "LIMIT_MAKER" : type;
+            String typeResolved = ((Boolean.TRUE.equals(postOnly))) ? "LIMIT_MAKER" : type;
             // post only is expressed by the order type here, not by a time force
-            String timeInForceResolved = (((java.util.Objects.equals(postOnly, true)))) ? null : requestedTimeInForce;
+            String timeInForceResolved = requestedTimeInForce;
+            if (Boolean.TRUE.equals(postOnly))
+            {
+                timeInForceResolved = null;
+            }
             String initialUppercaseType = typeResolved.toUpperCase();
             String uppercaseType = initialUppercaseType;
             Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
@@ -2060,7 +2064,7 @@ public class Tokocrypto extends TokocryptoApi
             Map<String, Object> paramsRequest = this.omit(paramsPostOnly, this.arrayConcat(new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "timeInForce")), triggerKeys));
             if (!java.util.Objects.equals(triggerPrice, null))
             {
-                if (java.util.Objects.equals(postOnly, true))
+                if (Boolean.TRUE.equals(postOnly))
                 {
                     throw new InvalidOrder((this.id + " createOrder() does not support post only trigger orders, the venue has no post only trigger order type")) ;
                 }
@@ -2646,7 +2650,7 @@ public class Tokocrypto extends TokocryptoApi
                 HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
                 h2kMap0.put("info", response);
                 h2kMap0.put("currency", code);
-                h2kMap0.put("network", this.safeString(data, "network"));
+                h2kMap0.put("network", this.networkIdToCode(this.safeString(data, "network"), code));
                 h2kMap0.put("address", address);
                 h2kMap0.put("tag", tag);
                 return h2kMap0;
@@ -2691,7 +2695,7 @@ public class Tokocrypto extends TokocryptoApi
                 Object endTime = this.sum(since, 7776000000L);
                 if (!java.util.Objects.equals(until, null))
                 {
-                    endTime = Helpers.mathMin(endTime, until);
+                    endTime = (endTime == null || until == null ? null : (((Number) endTime).doubleValue() < ((Number) until).doubleValue() ? (Object) (endTime) : (Object) (until)));
                 }
                 request.put("endTime", endTime);
             }
@@ -2930,7 +2934,7 @@ public class Tokocrypto extends TokocryptoApi
             h2kMap1.put("txid", txid);
             h2kMap1.put("type", type);
             h2kMap1.put("currency", code);
-            h2kMap1.put("network", this.safeString(transaction, "network"));
+            h2kMap1.put("network", this.networkIdToCode(this.safeString(transaction, "network"), code));
             h2kMap1.put("amount", this.safeNumber(transaction, "amount", (Object) null));
             h2kMap1.put("status", this.parseTransactionStatusByType(this.safeString(transaction, "status"), type));
             h2kMap1.put("timestamp", timestamp);
@@ -3008,20 +3012,21 @@ public class Tokocrypto extends TokocryptoApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        if (!(Helpers.inOp(((Map<String, Object>)this.urls.get("api")).get("rest"), java.util.Objects.requireNonNullElse(api, "public"))))
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        if (!((switch ((Object)(((Map<String, Object>)this.urls.get("api")).get("rest"))) { case List<?> j39v2 -> ((Object)(apiName)) != null && j39v2.contains(apiName); case Map<?, ?> j39v1 -> ((Object)(apiName)) instanceof String && j39v1.containsKey(apiName); case null, default -> false; })))
         {
-            throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + java.util.Objects.requireNonNullElse(api, "public")) + " endpoints")) ;
+            throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + apiName) + " endpoints")) ;
         }
-        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("rest"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("rest"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = baseApiUrl;
         url = (url + ("/" + path));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "wapi"))
+        if (java.util.Objects.equals(apiName, "wapi"))
         {
             url = (url + ".html");
         }
@@ -3035,7 +3040,7 @@ public class Tokocrypto extends TokocryptoApi
                     put( "X-MBX-APIKEY", Tokocrypto.this.apiKey );
                     put( "Content-Type", "application/x-www-form-urlencoded" );
                 }};
-                String bodyStream = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? this.urlencode(parameters) : body;
+                String bodyStream = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? this.urlencode(parameters) : null;
                 {
                     HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
                     h2kMap2.put("url", url);
@@ -3048,7 +3053,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 throw new AuthenticationError((this.id + " userDataStream endpoint requires `apiKey` credential")) ;
             }
-        } else if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapi") && !java.util.Objects.equals(path, "system/status")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiV3")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "wapi") && !java.util.Objects.equals(path, "systemStatus")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "dapiPrivate")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "dapiPrivateV2")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivate")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivateV2")))
+        } else if ((java.util.Objects.equals(apiName, "private")) || (java.util.Objects.equals(apiName, "sapi") && !java.util.Objects.equals(path, "system/status")) || (java.util.Objects.equals(apiName, "sapiV3")) || (java.util.Objects.equals(apiName, "wapi") && !java.util.Objects.equals(path, "systemStatus")) || (java.util.Objects.equals(apiName, "dapiPrivate")) || (java.util.Objects.equals(apiName, "dapiPrivateV2")) || (java.util.Objects.equals(apiName, "fapiPrivate")) || (java.util.Objects.equals(apiName, "fapiPrivateV2")))
         {
             this.checkRequiredCredentials(true);
             String query = null;
@@ -3065,7 +3070,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 extendedParams.put("recvWindow", recvWindow);
             }
-            if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapi")) && (java.util.Objects.equals(path, "asset/dust")))
+            if ((java.util.Objects.equals(apiName, "sapi")) && (java.util.Objects.equals(path, "asset/dust")))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             } else if ((java.util.Objects.equals(path, "batchOrders")) || (((String)path).indexOf("sub-account") >= 0) || (java.util.Objects.equals(path, "capital/withdraw/apply")) || (((String)path).indexOf("staking") >= 0))
@@ -3080,11 +3085,11 @@ public class Tokocrypto extends TokocryptoApi
             Map<String, Object> headersSigned = new HashMap<String, Object>() {{
                 put( "X-MBX-APIKEY", Tokocrypto.this.apiKey );
             }};
-            Boolean queryInUrl = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "wapi"));
+            Boolean queryInUrl = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")) || (java.util.Objects.equals(apiName, "wapi"));
             String bodySigned = query;
             if (Boolean.TRUE.equals(queryInUrl))
             {
-                bodySigned = body;
+                bodySigned = null;
             }
             if (Boolean.TRUE.equals(queryInUrl))
             {
@@ -3112,22 +3117,22 @@ public class Tokocrypto extends TokocryptoApi
             HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
             h2kMap4.put("url", url);
             h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap4.put("body", body);
-            h2kMap4.put("headers", headers);
+            h2kMap4.put("body", null);
+            h2kMap4.put("headers", null);
             return h2kMap4;
         }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if ((Helpers.isEqual(code, 418)) || (Helpers.isEqual(code, 429)))
+        if (((code != null && ((Number) code).doubleValue() == 418)) || ((code != null && ((Number) code).doubleValue() == 429)))
         {
             throw new DDoSProtection(((((((this.id + " ") + String.valueOf(code)) + " ") + reason) + " ") + body)) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if (Helpers.isGreaterThanOrEqual(code, 400))
+        if ((code != null && ((Number) code).doubleValue() >= 400))
         {
             if (((String)body).indexOf("Price * QTY is zero or less") >= 0)
             {
@@ -3150,7 +3155,7 @@ public class Tokocrypto extends TokocryptoApi
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         Boolean success = (Boolean) this.safeBool(response, "success", true);
         Object parsedMessage = null;
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             String messageInner = this.safeString(response, "msg");
             if (!java.util.Objects.equals(messageInner, null))
@@ -3197,7 +3202,7 @@ public class Tokocrypto extends TokocryptoApi
             this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
             throw new ExchangeError(feedback) ;
         }
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             throw new ExchangeError(((this.id + " ") + body)) ;
         }
@@ -3206,23 +3211,24 @@ public class Tokocrypto extends TokocryptoApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("noCoin")) && !(Helpers.inOp(parameters, "coin")))
+        if ((config.containsKey("noCoin")) && !((switch ((Object)(parameters)) { case List<?> j39v10 -> j39v10.contains("coin"); case Map<?, ?> j39v9 -> j39v9.containsKey("coin"); case null, default -> false; })))
         {
             return config.get("noCoin");
-        } else if ((config.containsKey("noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
+        } else if ((config.containsKey("noSymbol")) && !((switch ((Object)(parameters)) { case List<?> j39v8 -> j39v8.contains("symbol"); case Map<?, ?> j39v7 -> j39v7.containsKey("symbol"); case null, default -> false; })))
         {
             return config.get("noSymbol");
-        } else if ((config.containsKey("noPoolId")) && !(Helpers.inOp(parameters, "poolId")))
+        } else if ((config.containsKey("noPoolId")) && !((switch ((Object)(parameters)) { case List<?> j39v6 -> j39v6.contains("poolId"); case Map<?, ?> j39v5 -> j39v5.containsKey("poolId"); case null, default -> false; })))
         {
             return config.get("noPoolId");
-        } else if ((config.containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
+        } else if ((config.containsKey("byLimit")) && ((switch ((Object)(parameters)) { case List<?> j39v4 -> j39v4.contains("limit"); case Map<?, ?> j39v3 -> j39v3.containsKey("limit"); case null, default -> false; })))
         {
-            Object limit = Helpers.GetValue(parameters, "limit");
+            Long limit = this.safeInteger(parameters, "limit");
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {
                 Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));
-                if (Helpers.isLessThanOrEqual(limit, Helpers.GetValue(entry, 0)))
+                Long entryLimit = this.safeInteger(entry, 0);
+                if ((!java.util.Objects.equals(limit, null)) && (!java.util.Objects.equals(entryLimit, null)) && ((limit == null || (entryLimit != null && limit <= entryLimit))))
                 {
                     return Helpers.GetValue(entry, 1);
                 }

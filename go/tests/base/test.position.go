@@ -25,6 +25,7 @@ func TestPosition(exchange ccxt.ICoreExchange, skippedProperties any, method any
 			"marginRatio":                 true,
 			"liquidationPrice":            true,
 			"markPrice":                   true,
+			"positionMargin":              true,
 			"collateral":                  true,
 			"percentage":                  true,
 		}, skippedProperties)
@@ -47,12 +48,13 @@ func TestPosition(exchange ccxt.ICoreExchange, skippedProperties any, method any
 		"marginRatio":                 exchange.ParseNumber("1.234"),
 		"liquidationPrice":            exchange.ParseNumber("1.234"),
 		"markPrice":                   exchange.ParseNumber("1.234"),
+		"positionMargin":              exchange.ParseNumber("1.234"),
 		"collateral":                  exchange.ParseNumber("1.234"),
 		"marginMode":                  "cross",
 		"side":                        "long",
 		"percentage":                  exchange.ParseNumber("1.234"),
 	}
-	var emptyotAllowedFor []any = []any{"liquidationPrice", "initialMargin", "initialMarginPercentage", "maintenanceMargin", "maintenanceMarginPercentage", "marginRatio"}
+	var emptyotAllowedFor []any = []any{"positionMargin", "liquidationPrice", "initialMargin", "initialMarginPercentage", "maintenanceMargin", "maintenanceMarginPercentage", "marginRatio"}
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyotAllowedFor)
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now)
 	AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol)
@@ -72,4 +74,76 @@ func TestPosition(exchange ccxt.ICoreExchange, skippedProperties any, method any
 	AssertGreater(exchange, skippedProperties, method, entry, "liquidationPrice", "0")
 	AssertGreater(exchange, skippedProperties, method, entry, "markPrice", "0")
 	AssertGreater(exchange, skippedProperties, method, entry, "collateral", "0")
+	// AssertGreaterOrEqual (exchange, skippedProperties, method, entry, 'percentage', '0'); // percentage might be < 0
+	var marginMode any = ccxt.DerefScalar(exchange.SafeString(entry, "marginMode"))
+	if marginMode == "isolated" {
+		var logText any = LogTemplate(exchange, method, entry)
+		var side any = ccxt.DerefScalar(exchange.SafeString(entry, "side"))
+		var entryPriceString any = ccxt.DerefScalar(exchange.SafeString(entry, "entryPrice"))
+		var liquidationPriceString any = ccxt.DerefScalar(exchange.SafeString(entry, "liquidationPrice"))
+		var contractsString any = ccxt.DerefScalar(exchange.SafeString(entry, "contracts"))
+		var contractSizeString any = ccxt.DerefScalar(exchange.SafeString(entry, "contractSize"))
+		var maintenanceMarginString any = ccxt.DerefScalar(exchange.SafeString(entry, "maintenanceMargin"))
+		var collateralString any = ccxt.DerefScalar(exchange.SafeString(entry, "collateral"))
+		var initialMarginString any = ccxt.DerefScalar(exchange.SafeString(entry, "initialMargin"))
+		var unrealizedPnlString any = ccxt.DerefScalar(exchange.SafeString(entry, "unrealizedPnl"))
+		if (entryPriceString != nil) && (liquidationPriceString != nil) && ccxt.Precise.StringGt(entryPriceString, "0") && ccxt.Precise.StringGt(liquidationPriceString, "0") {
+			if side == "long" {
+				AssertLess(exchange, skippedProperties, method, entry, "liquidationPrice", entryPriceString)
+			} else if side == "short" {
+				AssertGreater(exchange, skippedProperties, method, entry, "liquidationPrice", entryPriceString)
+			}
+		}
+		var marginString any = ccxt.DerefScalar(exchange.SafeString(entry, "positionMargin"))
+		if (marginString != nil) && (collateralString != nil) && (unrealizedPnlString != nil) {
+			// collateral is margin + unrealizedPnl
+			var expectedCollateral *string = ccxt.Precise.StringAdd(marginString, unrealizedPnlString)
+			var collateralDiff *string = ccxt.Precise.StringAbs(ccxt.Precise.StringSub(collateralString, expectedCollateral))
+			var collateralTolerance *string = ccxt.Precise.StringMul(ccxt.Precise.StringAbs(marginString), "0.05")
+			Assert(ccxt.Precise.StringLe(collateralDiff, collateralTolerance), Add("collateral should equal margin + unrealizedPnl", logText))
+		}
+		var entryMarginString any = marginString
+		if (entryMarginString == nil) && (collateralString != nil) {
+			if (unrealizedPnlString != nil) && !ccxt.Precise.StringEq(collateralString, initialMarginString) {
+				entryMarginString = ccxt.Precise.StringSub(collateralString, unrealizedPnlString)
+			} else {
+				entryMarginString = collateralString
+			}
+		} else if (entryMarginString == nil) && (initialMarginString != nil) {
+			entryMarginString = initialMarginString
+		}
+		var hasEntryMargin bool = (entryMarginString != nil) && ccxt.Precise.StringGt(entryMarginString, "0")
+		var hasEntryPrice bool = (entryPriceString != nil) && ccxt.Precise.StringGt(entryPriceString, "0")
+		var hasLiqPrice bool = (liquidationPriceString != nil) && ccxt.Precise.StringGt(liquidationPriceString, "0")
+		var hasContracts bool = (contractsString != nil) && ccxt.Precise.StringGt(contractsString, "0")
+		var hasContractSize bool = (contractSizeString != nil) && ccxt.Precise.StringGt(contractSizeString, "0")
+		var hasMm bool = (maintenanceMarginString != nil) && ccxt.Precise.StringGt(maintenanceMarginString, "0")
+		if hasEntryMargin && hasEntryPrice && hasLiqPrice && hasContracts && hasContractSize && hasMm {
+			var symbolForMarket any = func() any {
+				if symbol != nil {
+					return symbol
+				}
+				return exchange.SafeString(entry, "symbol")
+			}()
+			var market any = nil
+			if (symbolForMarket != nil) && (!IsEqual(exchange.GetMarkets(), nil)) && (InOp(exchange.GetMarkets(), symbolForMarket)) {
+				market = exchange.Market(symbolForMarket)
+			}
+			var isInverse bool = (!IsEqual(market, nil)) && EvalTruthy(exchange.SafeBool(market, "inverse", false))
+			var priceDiff *string = nil
+			if isInverse {
+				var invEntry *string = ccxt.Precise.StringDiv("1", entryPriceString)
+				var invLiq *string = ccxt.Precise.StringDiv("1", liquidationPriceString)
+				priceDiff = ccxt.Precise.StringAbs(ccxt.Precise.StringSub(invEntry, invLiq))
+			} else {
+				priceDiff = ccxt.Precise.StringAbs(ccxt.Precise.StringSub(entryPriceString, liquidationPriceString))
+			}
+			var lossFromEntry *string = ccxt.Precise.StringMul(priceDiff, ccxt.Precise.StringMul(contractsString, contractSizeString))
+			var calculatedMm *string = ccxt.Precise.StringSub(entryMarginString, lossFromEntry)
+			Assert(ccxt.Precise.StringGt(calculatedMm, "0"), Add(Add(Add("isolated position remaining collateral at liquidationPrice (", calculatedMm), ") should be greater than 0"), logText))
+			var mmDiff *string = ccxt.Precise.StringAbs(ccxt.Precise.StringSub(calculatedMm, maintenanceMarginString))
+			var maxTolerance *string = ccxt.Precise.StringMul(entryMarginString, "0.05")
+			Assert(ccxt.Precise.StringLe(mmDiff, maxTolerance), Add(Add(Add(Add(Add("isolated position maintenanceMargin (", maintenanceMarginString), ") does not match remaining collateral at liquidationPrice ("), calculatedMm), ")"), logText))
+		}
+	}
 }

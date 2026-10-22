@@ -794,9 +794,11 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 if feed == 'open_orders_verbose':
                     messageHash = 'orders:verbose'
                 # get order without symbol
+                cancelledOrderId = self.safe_string(message, 'order_id')
                 for i in range(0, len(orders)):
                     currentOrder = orders[i]
-                    if currentOrder['id'] == message['order_id']:
+                    currentOrderId = self.safe_string(currentOrder, 'id')
+                    if currentOrderId == cancelledOrderId:
                         info = self.extend(self.safe_dict(currentOrder, 'info', {}), {
                             'reason': reason,
                         })
@@ -957,7 +959,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         status = None
         if isCancelled is not None:
             unparsedOrder = self.safe_value(order, 'order')
-            if isCancelled is True:
+            if isCancelled:
                 status = 'cancelled'
         marketId = self.safe_string(unparsedOrder, 'instrument')
         timestamp = self.safe_string(unparsedOrder, 'time')
@@ -1505,8 +1507,9 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         for i in range(0, len(trades)):
             trade = trades[i]
             parsedTrade = self.parse_ws_my_trade(trade)
-            if parsedTrade['symbol'] is not None:
-                tradeSymbols[parsedTrade['symbol']] = True
+            tradeSymbol = self.safe_string(parsedTrade, 'symbol')
+            if tradeSymbol is not None:
+                tradeSymbols[tradeSymbol] = True
             stored.append(parsedTrade)
         tradeSymbolKeys = list(tradeSymbols.keys())
         for i in range(0, len(tradeSymbolKeys)):

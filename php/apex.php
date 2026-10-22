@@ -838,7 +838,7 @@ class apex extends Exchange {
             'symbol' => $this->safe_string($market, 'id2'),
         );
         // default is 200 when requested with `since`, max 200
-        $limitResolved = ($limit === null) ? 200 : min($limit, 200);
+        $limitResolved = ($limit === null || $limit > 200) ? 200 : $limit;
         $request['limit'] = $limitResolved;
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end', $request, $params, 0.001);
         if ($since !== null) {
@@ -1241,7 +1241,7 @@ class apex extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'GOOD_TIL_CANCEL' => 'GOOD_TIL_CANCEL',
             'FILL_OR_KILL' => 'FILL_OR_KILL',
@@ -1251,7 +1251,7 @@ class apex extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         if ($status !== null) {
             $statuses = array(
                 'PENDING' => 'open',
@@ -1266,7 +1266,7 @@ class apex extends Exchange {
         return null;
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             'LIMIT' => 'limit',
             'MARKET' => 'market',
@@ -1279,12 +1279,11 @@ class apex extends Exchange {
     }
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
-        $marketResolved = null;
+        $marketResolved = $market;
         if ($market === null && $marketId !== null) {
-            $marketsMap = $this->markets;
             $marketsById = $this->markets_by_id;
-            if (($marketsMap !== null) && (is_array($marketsMap) && array_key_exists($marketId ?? '', $marketsMap))) {
-                $marketResolved = $marketsMap[$marketId];
+            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($marketId ?? '', $this->markets))) {
+                $marketResolved = $this->markets[$marketId];
             } elseif (($marketsById !== null) && (is_array($marketsById) && array_key_exists($marketId ?? '', $marketsById))) {
                 $marketResolved = $marketsById[$marketId];
             } else {
@@ -1293,18 +1292,17 @@ class apex extends Exchange {
                     $markets = $marketsById[$newMarketId];
                     $numMarkets = count($markets);
                     if ($numMarkets > 0) {
-                        if ($marketsById[$newMarketId][0]['id2'] === $marketId) {
-                            $marketResolved = $marketsById[$newMarketId][0];
+                        if ($markets[0]['id2'] === $marketId) {
+                            $marketResolved = $markets[0];
                         }
                     }
                 }
             }
         }
-        $marketValue = ($marketResolved === null) ? $market : $marketResolved;
-        return parent::safe_market($marketId, $marketValue, $delimiter, $marketType);
+        return parent::safe_market($marketId, $marketResolved, $delimiter, $marketType);
     }
 
-    public function generate_random_client_id_omni(?string $_accountId) {
+    public function generate_random_client_id_omni(?string $_accountId): string {
         $hasAccountId = ($_accountId !== null) && ($_accountId !== '');
         $accountId = null;
         if ($hasAccountId) {
@@ -1315,7 +1313,7 @@ class apex extends Exchange {
         return 'apexomni-' . $accountId . '-' . (string) $this->milliseconds() . '-' . (string) $this->rand_number(6);
     }
 
-    public function add_hyphen_before_usdt(string $symbol) {
+    public function add_hyphen_before_usdt(string $symbol): string {
         $uppercaseSymbol = strtoupper($symbol);
         $index = mb_strpos($uppercaseSymbol, 'USDT');
         $symbolChar = $this->safe_string($symbol, $index - 1);
@@ -1325,7 +1323,7 @@ class apex extends Exchange {
         return $symbol;
     }
 
-    public function get_seeds() {
+    public function get_seeds(): string {
         $seeds = $this->safe_string($this->options, 'seeds');
         if ($seeds === null) {
             throw new ArgumentsRequired($this->id . ' the "seeds" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options["seeds"] = XXXX');
@@ -1333,13 +1331,13 @@ class apex extends Exchange {
         return $seeds;
     }
 
-    public function get_account_id() {
+    public function get_account_id(): ?string {
         $accountId = $this->safe_string($this->options, 'accountId', '0');
         if ($accountId === '0') {
             $accountData = $this->fetch_account();
             $this->options['accountId'] = $this->safe_string($accountData, 'id', '0');
         }
-        return $this->options['accountId'];
+        return $this->safe_string($this->options, 'accountId');
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
@@ -1410,10 +1408,7 @@ class apex extends Exchange {
         $paramsOmitted2 = $this->omit($paramsOmitted, 'postOnly');
         $clientOrderId = $this->safe_string_n($paramsOmitted2, array( 'clientId', 'clientOrderId', 'client_order_id' ));
         $accountId = $this->get_account_id();
-        if ($clientOrderId === null) {
-            $clientOrderId = $this->generate_random_client_id_omni($accountId);
-        }
-        $finalClientOrderId = $clientOrderId; // java req
+        $finalClientOrderId = ($clientOrderId !== null) ? $clientOrderId : $this->generate_random_client_id_omni($accountId);
         $paramsOmitted3 = $this->omit($paramsOmitted2, array( 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
         $finalOrderPrice = $orderPrice; // java req
         $orderToSign = array(
@@ -1438,7 +1433,7 @@ class apex extends Exchange {
             'size' => $orderSize,
             'price' => $finalOrderPrice,
             'limitFee' => $limitFee,
-            'expiration' => (int) floor($timeNow / 1000 + 30 * 24 * 60 * 60),
+            'expiration' => $this->parse_to_int($timeNow / 1000) + 30 * 24 * 60 * 60,
             'timeInForce' => $timeInForce,
             'clientId' => $finalClientOrderId,
             'brokerId' => $this->safe_string($this->options, 'brokerId', '6956'),
@@ -1492,7 +1487,8 @@ class apex extends Exchange {
         $accountId = $this->safe_string($accountData, 'id', '');
         $currency = array();
         $assets = array();
-        if (strtolower($fromAccount) === 'contract') {
+        $isContract = strtolower($fromAccount) === 'contract';
+        if ($isContract) {
             $assets = $contractAssets;
         } else {
             $assets = $spotAssets;
@@ -1506,15 +1502,14 @@ class apex extends Exchange {
         $decimalsNum = $this->safe_number($currency, 'decimals', 0);
         $decimalsNumber = ($decimalsNum === null) ? 0 : $decimalsNum;
         $mathPowResult = (pow(10, $decimalsNumber));
-        $amountNumber = $this->parse_to_int($amount * $mathPowResult);
+        $amountNum = $this->parse_number($amount);
+        $amountValue = ($amountNum === null) ? 0 : $amountNum;
+        $amountNumber = $this->parse_to_int($amountValue * $mathPowResult);
         $timestampSeconds = $this->parse_to_int($this->milliseconds() / 1000);
         $clientOrderId = $this->safe_string_n($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
-        if ($clientOrderId === null) {
-            $clientOrderId = $this->generate_random_client_id_omni($this->safe_string($this->options, 'accountId'));
-        }
-        $finalClientOrderId = $clientOrderId; // java req
+        $finalClientOrderId = ($clientOrderId !== null) ? $clientOrderId : $this->generate_random_client_id_omni($this->safe_string($this->options, 'accountId'));
         $paramsOmitted = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
-        if (strtolower($fromAccount) === 'contract') {
+        if ($isContract) {
             $formattedUint32 = '4294967295';
             $zkSignAccountId = Precise::string_mod($accountId, $formattedUint32);
             $expireTime = $timestampSeconds + 3600 * 24 * 28;
@@ -2001,8 +1996,9 @@ class apex extends Exchange {
         ));
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -2013,7 +2009,7 @@ class apex extends Exchange {
             'Content-Type' => 'application/x-www-form-urlencoded',
         );
         $signPath = '/api/' . $path;
-        $signBody = $body;
+        $signBody = null;
         if (strtoupper($method) !== 'POST') {
             if (count($params) > 0) {
                 $signPath .= '?' . $this->rawencode($params);
@@ -2023,7 +2019,7 @@ class apex extends Exchange {
             $sortedQuery = $this->keysort($params);
             $signBody = $this->rawencode($sortedQuery);
         }
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
             $messageString = $timestamp . strtoupper($method) . $signPath;

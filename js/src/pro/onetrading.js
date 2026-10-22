@@ -1081,7 +1081,7 @@ export default class onetrading extends onetradingRest {
             if (subscription !== undefined) {
                 const ohlcvMarket = this.safeDict(subscription, marketId, {});
                 const marketSubscribed = this.safeBool(ohlcvMarket, timeframe, false);
-                if (marketSubscribed !== true) {
+                if (!marketSubscribed) {
                     type = 'UPDATE_SUBSCRIPTION';
                     client.subscriptions[subscriptionHash] = undefined;
                 }
@@ -1336,7 +1336,7 @@ export default class onetrading extends onetradingRest {
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
                     const marketSubscribed = this.safeBool(subscription, marketId, false);
-                    if (marketSubscribed !== true) {
+                    if (!marketSubscribed) {
                         type = 'UPDATE_SUBSCRIPTION';
                         client.subscriptions[subscriptionHash] = undefined;
                     }

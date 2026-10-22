@@ -363,6 +363,9 @@ class okx extends okx$1["default"] {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async watchFundingRate(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const symbolValue = this.symbol(symbol);
         const fr = await this.watchFundingRates([symbolValue], params);
         return fr[symbolValue];
@@ -455,6 +458,9 @@ class okx extends okx$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchTicker', 'channel', 'tickers');
         paramsChannel['channel'] = channel;
         const market = this.market(symbol);
@@ -508,6 +514,9 @@ class okx extends okx$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchMarkPrice(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchMarkPrice', 'channel', 'mark-price');
         paramsChannel['channel'] = channel;
         const market = this.market(symbol);
@@ -868,7 +877,7 @@ class okx extends okx$1["default"] {
         const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
         const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         let accessType = 'private';
-        if (isTrigger === true) {
+        if (isTrigger) {
             accessType = 'business';
         }
         await this.authenticate({ 'access': accessType });
@@ -1427,11 +1436,8 @@ class okx extends okx$1["default"] {
         const seqId = this.safeInteger(message, 'seqId');
         const prevSeqId = this.safeInteger(message, 'prevSeqId');
         const nonce = orderbook['nonce'];
-        let error = undefined;
         if (prevSeqId !== undefined && prevSeqId !== -1 && nonce !== prevSeqId) {
-            error = new errors.InvalidNonce(this.id + ' watchOrderBook received invalid nonce');
-        }
-        if (error !== undefined) {
+            const error = new errors.InvalidNonce(this.id + ' watchOrderBook received invalid nonce');
             delete client.subscriptions[messageHash];
             if (symbol !== undefined) {
                 delete this.orderbooks[symbol];
@@ -1796,12 +1802,12 @@ class okx extends okx$1["default"] {
             await this.loadMarkets();
         }
         let access = 'private';
-        if (isTrigger === true) {
+        if (isTrigger) {
             access = 'business';
         }
         await this.authenticate({ 'access': access });
         let channel = 'orders';
-        if (isTrigger === true) {
+        if (isTrigger) {
             channel = 'orders-algo';
         }
         let messageHash = channel + '::myTrades';
@@ -2000,7 +2006,7 @@ class okx extends okx$1["default"] {
             await this.loadMarkets();
         }
         let accessType = 'private';
-        if (isTrigger === true) {
+        if (isTrigger) {
             accessType = 'business';
         }
         await this.authenticate({ 'access': accessType });
@@ -2029,7 +2035,7 @@ class okx extends okx$1["default"] {
             'instType': uppercaseType,
         };
         let channel = 'orders';
-        if (isTrigger === true) {
+        if (isTrigger) {
             channel = 'orders-algo';
         }
         const orders = await this.subscribe('private', channel, channel, symbolResolved, this.extend(request, paramsMarginMode));
@@ -2457,6 +2463,34 @@ class okx extends okx$1["default"] {
         };
         return await this.watch(url, messageHash, request, messageHash);
     }
+    handleCancelOrders(client, message) {
+        //
+        //    {
+        //        "id": "1512",
+        //        "op": "batch-cancel-orders",
+        //        "data": [
+        //            {
+        //                "clOrdId": "",
+        //                "ordId": "2510789768709120",
+        //                "sCode": "0",
+        //                "sMsg": ""
+        //            }
+        //        ],
+        //        "code": "0",
+        //        "msg": ""
+        //    }
+        //
+        const messageHash = this.safeString(message, 'id');
+        let args = this.safeList(message, 'data', []);
+        args = this.filterBy(args, 'sCode', '0');
+        if (this.isEmpty(args)) {
+            const method = this.safeString(message, 'op');
+            const stringMsg = this.json(message);
+            this.handleErrors(1, '', client.url, method, {}, stringMsg, message, {}, {});
+        }
+        const orders = this.parseOrders(args, undefined, undefined, undefined);
+        client.resolve(orders, messageHash);
+    }
     handleCancelAllOrders(client, message) {
         //
         //    {
@@ -2619,6 +2653,7 @@ class okx extends okx$1["default"] {
                 'amend-order': this.handlePlaceOrders,
                 'batch-amend-orders': this.handlePlaceOrders,
                 'cancel-order': this.handlePlaceOrders,
+                'batch-cancel-orders': this.handleCancelOrders,
                 'mass-cancel': this.handleCancelAllOrders,
             };
             const method = this.safeValue(methods, event);
@@ -2691,6 +2726,10 @@ class okx extends okx$1["default"] {
         const subMessageHash = 'multi:' + channel + ':' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription(client, subMessageHash, messageHash);
+        // watchOHLCV subscribes through subscribe () under channel:marketId
+        if (symbol !== undefined) {
+            this.cleanUnsubscription(client, channel + ':' + this.marketId(symbol), undefined);
+        }
         if ((symbol !== undefined) && (timeframe !== undefined) && (timeframe in this.ohlcvs[symbol])) {
             delete this.ohlcvs[symbol][timeframe];
         }

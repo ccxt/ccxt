@@ -297,8 +297,8 @@ class bittrade extends bittrade$1["default"] {
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
         // only supports a limit of 150 at this time
-        const limitValue = (limit === undefined) ? 150 : limit;
-        const messageHash = 'market.' + market['id'] + '.mbp.' + limitValue.toString();
+        const limitValue = 150;
+        const messageHash = 'market.' + market['id'] + '.mbp.150';
         const api = this.safeString(this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
         const url = this.implodeParams(this.urls['api']['ws'][api]['public'], hostname);
@@ -343,7 +343,11 @@ class bittrade extends bittrade$1["default"] {
         const symbol = this.safeString(subscription, 'symbol');
         const messageHash = this.safeString(subscription, 'messageHash');
         const timestamp = this.safeInteger(message, 'ts');
-        const orderbook = this.orderbooks[symbol];
+        const orderbook = this.safeValue(this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            // the book was removed (unwatch/cleanCache) before the snapshot arrived
+            return;
+        }
         const data = this.safeDict(message, 'data');
         const snapshot = this.parseOrderBook(data, symbol);
         snapshot['nonce'] = this.safeInteger(data, 'seqNum');
@@ -428,7 +432,8 @@ class bittrade extends bittrade$1["default"] {
         if ((prevSeqNum === undefined) || (seqNum === undefined)) {
             return orderbook;
         }
-        if ((prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
+        const nonce = this.safeInteger(orderbook, 'nonce');
+        if ((nonce !== undefined) && (prevSeqNum <= nonce) && (seqNum > nonce)) {
             const asks = this.safeList(tick, 'asks', []);
             const bids = this.safeList(tick, 'bids', []);
             this.handleDeltas(orderbook['asks'], asks);
@@ -464,12 +469,19 @@ class bittrade extends bittrade$1["default"] {
         //     }
         //
         const messageHash = this.safeString(message, 'ch');
-        const ch = this.safeValue(message, 'ch');
+        const ch = this.safeString(message, 'ch');
+        if (ch === undefined) {
+            return;
+        }
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const symbol = this.safeSymbol(marketId);
-        const orderbook = this.orderbooks[symbol];
-        if (orderbook['nonce'] === undefined) {
+        const orderbook = this.safeValue(this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            // no active subscription holds a book for this symbol, drop the delta
+            return;
+        }
+        if (this.safeInteger(orderbook, 'nonce') === undefined) {
             orderbook.cache.push(message);
         }
         else {
@@ -553,7 +565,10 @@ class bittrade extends bittrade$1["default"] {
         //         }
         //     }
         //
-        const ch = this.safeValue(message, 'ch');
+        const ch = this.safeString(message, 'ch');
+        if (ch === undefined) {
+            return;
+        }
         const parts = ch.split('.');
         const type = this.safeString(parts, 0);
         if (type === 'market') {
@@ -600,8 +615,12 @@ class bittrade extends bittrade$1["default"] {
             const subscription = this.safeDict(subscriptionsById, id);
             if (subscription !== undefined) {
                 const errorCode = this.safeString(message, 'err-code');
+                const errorMessage = this.safeString(message, 'err-msg');
+                const feedback = this.id + ' ' + this.json(message);
                 try {
-                    this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, this.json(message));
+                    this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
+                    this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+                    throw new errors.ExchangeError(feedback);
                 }
                 catch (e) {
                     const messageHash = this.safeString(subscription, 'messageHash');

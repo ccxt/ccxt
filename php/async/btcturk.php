@@ -762,26 +762,34 @@ class btcturk extends Exchange {
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe), // allows the user to pass custom timeframes if needed
         );
         $until = $this->safe_integer($params, 'until', $this->milliseconds());
-        $request['to'] = $this->parse_to_int(($until / 1000));
+        $untilSeconds = $this->parse_to_int(($until / 1000));
+        $request['to'] = $untilSeconds;
         if ($since !== null) {
             $request['from'] = $this->parse_to_int($since / 1000);
         }
-        $limitDefaulted = $limit;
-        if (($since === null) && ($limit === null)) {
-            $limitDefaulted = 100; // default value
+        $limitResolved = null;
+        if ($limit !== null) {
+            $limitResolved = $limit;
+            if ($limit > 11000) {
+                $limitResolved = 11000; // max 11000 candles diapason can be covered
+            }
+        } elseif ($since === null) {
+            $limitResolved = 100; // default value
         }
-        $limitResolved = ($limitDefaulted !== null) ? min($limitDefaulted, 11000) : null; // max 11000 candles diapason can be covered
         if ($limitResolved !== null) {
             if ($timeframe === '1y') { // difficult with leap years
                 throw new BadRequest($this->id . ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             $seconds = $this->parse_timeframe($timeframe);
-            $limitSeconds = $seconds * ($limitResolved - 1);
+            $limitCount = ($limit === null) ? 100 : min($limit, 11000);
+            $limitSeconds = $seconds * ($limitCount - 1);
             if ($since !== null) {
                 $to = $this->parse_to_int($since / 1000) . $limitSeconds;
-                $request['to'] = min($request['to'], $to);
+                if ($to < $untilSeconds) {
+                    $request['to'] = $to;
+                }
             } else {
-                $request['from'] = $this->parse_to_int(0 / 1000) - $limitSeconds;
+                $request['from'] = 0 - $limitSeconds;
             }
         }
         $response = Async\await($this->graphGetKlinesHistory($this->extend($request, $params)));
@@ -1005,7 +1013,7 @@ class btcturk extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'Untouched' => 'open',
             'Partial' => 'open',
@@ -1139,11 +1147,12 @@ class btcturk extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         if ($this->id === 'btctrader') {
             throw new ExchangeError($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
         }
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -1156,12 +1165,12 @@ class btcturk extends Exchange {
         }
         $requestBody = null;
         if ($isQueryMethod) {
-            $requestBody = $body;
+            $requestBody = null;
         } else {
             $requestBody = $this->json($params);
         }
         $privateHeaders = null;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             $secret = base64_decode($this->secret);
@@ -1173,7 +1182,7 @@ class btcturk extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        $requestHeaders = ($privateHeaders !== null) ? $privateHeaders : $headers;
+        $requestHeaders = $privateHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 

@@ -2113,8 +2113,24 @@ impl Exchange {
     pub fn check_option_string(&self, _method_name: Value, _option_name: Value, value: Value) -> Value {
         value
     }
-    pub fn check_option_bool(&self, _method_name: Value, _option_name: Value, value: Value) -> Value {
-        value
+    // "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean panics BadRequest
+    pub fn check_option_bool(&self, method_name: Value, option_name: Value, value: Value) -> Value {
+        if value.is_null() {
+            return Value::Null;
+        }
+        let parsed = match &value {
+            Value::Bool(b) => Some(*b),
+            Value::Str(s) if s == "true" || s == "false" => Some(s == "true"),
+            Value::Int(n) if *n == 1 || *n == 0 => Some(*n == 1),
+            Value::Float(n) if *n == 1.0 || *n == 0.0 => Some(*n == 1.0),
+            _ => None,
+        };
+        if parsed.is_none() {
+            let label = if method_name.is_null() { "exchange-wide".to_string() } else { format!("{}()", stringify_param(&method_name)) };
+            let message = format!("{} {} option {} must be a boolean", stringify_param(&self.id), label, stringify_param(&option_name));
+            panic!("{}", crate::exchange_errors::create_error("BadRequest", message));
+        }
+        Value::Bool(parsed == Some(true))
     }
     pub fn check_option_integer(&self, _method_name: Value, _option_name: Value, value: Value) -> Value {
         value
@@ -2298,6 +2314,7 @@ impl Exchange {
         );
         put("reduceFees", &self.reduceFees);
         put("minFundingAddressLength", &self.minFundingAddressLength);
+        put("networkAliases", &self.networkAliases);
         put("MAX_VALUE", &self.MAX_VALUE);
         put("returnResponseHeaders", &self.returnResponseHeaders);
         put("httpExceptions", &self.httpExceptions);

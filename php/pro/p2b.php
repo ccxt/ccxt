@@ -310,8 +310,8 @@ class p2b extends \ccxt\async\p2b {
         //        "id": null
         //    }
         //
-        $data = $this->safe_list($message, 'params');
-        $data = $this->safe_list($data, 0);
+        $params = $this->safe_list($message, 'params');
+        $data = $this->safe_list($params, 0);
         $method = $this->safe_string($message, 'method');
         $splitMethod = explode('.', $method);
         $channel = $this->safe_string($splitMethod, 0);
@@ -473,7 +473,7 @@ class p2b extends \ccxt\async\p2b {
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             $orderbook = $this->orderbooks[$symbol];
         }
-        if ($isFullUpdate === true) {
+        if ($isFullUpdate) {
             // the first parameter signals whether the message carries all
             // records or only the changed ones, a full set replaces the book,
             // otherwise stale levels that left the depth window would linger

@@ -259,8 +259,9 @@ class sxbet extends Exchange {
         $pageSize = $this->safe_integer($this->options, 'marketsPageSize', 100);
         $maxPages = $this->safe_integer($this->options, 'maxMarketsPages', 50);
         $rawMarkets = array();
+        $collectCap = $this->safe_integer(array( 'limit' => $userLimit ), 'limit');
         $paginationKey = null;
-        $page = 0;
+        $page = $this->parse_to_int(0);
         while (true) {
             $request = array( 'pageSize' => $pageSize );
             if ($paginationKey !== null) {
@@ -274,9 +275,9 @@ class sxbet extends Exchange {
                 $rawMarkets[] = $pageMarkets[$i];
             }
             $paginationKey = $this->safe_string($result, 'nextKey');
-            $page = $this->sum($page, 1);
-            $collectedLength = count($rawMarkets);
-            if (($pageMarketsLength < $pageSize) || ($page >= $maxPages) || ($paginationKey === null) || (($userLimit !== null) && ($collectedLength >= $userLimit))) {
+            $page = $this->parse_to_int($page + 1);
+            $collectedLength = $this->parse_to_int(strlen($rawMarkets));
+            if (($pageMarketsLength < $pageSize) || ($page >= $maxPages) || ($paginationKey === null) || (($collectCap !== null) && ($collectedLength >= $collectCap))) {
                 break;
             }
         }
@@ -341,11 +342,7 @@ class sxbet extends Exchange {
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
         // letters+digits only so it survives shortenSlug in one atomic word)
-        // parseToInt-wrapped .length: the bare `const n = str.length;` statement is the php
-        // transpiler's ARRAY hint (count()), which breaks on a string — this form emits
-        // strlen()/len() correctly in both python and php
-        $hashLength = $this->parse_to_int(strlen($marketHash));
-        $hashSuffix = mb_substr($marketHash, $hashLength - 6);
+        $hashSuffix = mb_substr($marketHash, -6);
         $marketSlug = $this->shorten_slug($outcomeOneName) . '_' . $hashSuffix;
         $marketSymbol = $this->slug_to_market_symbol($eventSlug, $marketSlug);
         $status = $this->safe_string_upper($raw, 'status');
@@ -587,7 +584,7 @@ class sxbet extends Exchange {
         return false;
     }
 
-    public function parse_event(string $fixtureId, array $rawMarkets): mixed {
+    public function parse_event(string $fixtureId, array $rawMarkets): array {
         /**
          * @ignore
          * groups a fixture's $raw markets (all sharing one sportXeventId) into one unified event structure
@@ -597,7 +594,7 @@ class sxbet extends Exchange {
          */
         $marketsList = array();
         $anyActive = false;
-        $earliestGameTime = null;
+        $earliestGameTime = $this->safe_integer(array(), 'gameTime');
         $teamOneName = null;
         $teamTwoName = null;
         $leagueLabel = null;
@@ -617,9 +614,9 @@ class sxbet extends Exchange {
                 $teamTwoName = $this->safe_string($raw, 'teamTwoName');
                 $leagueLabel = $this->safe_string($raw, 'leagueLabel');
             }
-            $gameTime = $this->safe_string($raw, 'gameTime');
+            $gameTime = $this->safe_integer($raw, 'gameTime');
             // skip the zero sentinel for "no scheduled game time" so it can't become the epoch
-            if (($gameTime !== null) && ($gameTime !== '0') && (($earliestGameTime === null) || ($gameTime < $earliestGameTime))) {
+            if (($gameTime !== null) && ($gameTime !== 0) && (($earliestGameTime === null) || ($gameTime < $earliestGameTime))) {
                 $earliestGameTime = $gameTime;
             }
         }
@@ -739,13 +736,13 @@ class sxbet extends Exchange {
         $hex = $this->remove0x_prefix($result);
         // dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
         $lengthHex = mb_substr($hex, 64, 128 - 64);
-        $length = $this->hex_to_int($lengthHex);
+        $length = $this->parse_to_int($this->hex_to_int($lengthHex));
         $dataEnd = $this->sum(128, $length * 2);
         $dataHex = mb_substr($hex, 128, $dataEnd - 128);
         return $this->decode($this->base16_to_binary($dataHex));
     }
 
-    public function hex_to_int(string $hex): float {
+    public function hex_to_int(string $hex): int {
         /**
          * @ignore
          * parses a $hex string (no '0x' prefix) into an integer — plain digit-by-digit, since JS's parseInt ($hex, 16) two-argument form has no portable equivalent across languages/transpilers. Only used for small values (byte lengths, permit nonces), safe well within the float-precision range
@@ -755,11 +752,12 @@ class sxbet extends Exchange {
         $digits = '0123456789abcdef';
         $lowerHex = strtolower($hex);
         $hexLength = count($lowerHex);
-        $result = 0;
+        $result = $this->parse_to_int(0);
         for ($i = 0; $i < $hexLength; $i++) {
             $ch = $lowerHex[$i];
-            $digitValue = mb_strpos($digits, $ch);
-            $result = ($result * 16) . $digitValue;
+            $digitValue = $this->parse_to_int(mb_strpos($digits, $ch));
+            $shifted = $result * 16;
+            $result = $this->parse_to_int($this->sum($shifted, $digitValue));
         }
         return $result;
     }
@@ -807,7 +805,7 @@ class sxbet extends Exchange {
         }
         $proxy = Async\await($this->fetch_sxbet_proxy());
         $deployed = $this->safe_bool($proxy, 'deployed', false);
-        if ($deployed !== true) {
+        if (!$deployed) {
             Async\await($this->sxbetPrivatePostUserDeployProxy());
             // deployment is asynchronous - poll until the proxy exists
             for ($i = 0; $i < 30; $i++) {
@@ -915,7 +913,7 @@ class sxbet extends Exchange {
         // the venue has no post-only or trigger mechanics - reject the unified params instead
         // of forwarding fields the exchange would silently ignore
         $postOnly = $this->safe_bool($params, 'postOnly', false);
-        if ($postOnly === true) {
+        if ($postOnly) {
             throw new NotSupported($this->id . ' createOrder() does not support postOnly - GTC orders may cross on entry');
         }
         $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
@@ -1175,14 +1173,20 @@ class sxbet extends Exchange {
         $chunkCount = $this->parse_to_int($this->sum($idsLength, $chunkSize - 1) / $chunkSize);
         $result = array();
         for ($c = 0; $c < $chunkCount; $c++) {
-            $start = $c * $chunkSize;
-            $end = $start . $chunkSize;
-            if ($end > $idsLength) {
-                $end = $idsLength;
+            $chunkIndex = $this->parse_to_int($c);
+            $chunkWidth = $this->parse_to_int($chunkSize);
+            $start = $chunkIndex * $chunkWidth;
+            $nextChunkIndex = $chunkIndex + 1;
+            $chunkEnd = $nextChunkIndex * $chunkWidth;
+            $end = $chunkEnd;
+            if ($chunkEnd > $idsLength) {
+                $end = $this->parse_to_int($idsLength);
             }
             $orderItems = array();
-            for ($i = $start; $i < $end; $i++) {
-                $orderItems[] = array( 'orderId' => $ids[$i] );
+            $chunkIds = $this->array_slice($ids, $start, $end);
+            $chunkIdsLength = count($chunkIds);
+            for ($i = 0; $i < $chunkIdsLength; $i++) {
+                $orderItems[] = array( 'orderId' => $chunkIds[$i] );
             }
             $request = array( 'orders' => $orderItems );
             $response = Async\await($this->sxbetPrivateDeleteOrdersV3($this->extend($request, $params)));
@@ -1220,11 +1224,14 @@ class sxbet extends Exchange {
         } else {
             $response = Async\await($this->sxbetPrivateDeleteOrdersV3All($rest));
         }
-        $result = $this->parse_sxbet_cancel_response($response);
+        $result = array();
+        $result = $this->array_concat($result, $this->parse_sxbet_cancel_response($response));
         // both paths paginate their async submission - keep going on the SAME route while more remain
         $hasMore = $this->safe_bool($this->safe_dict($response, 'data', array()), 'hasMore', false);
-        $guard = 0;
-        while (($hasMore === true) && ($guard < 50)) {
+        for ($guard = 0; $guard < 50; $guard++) {
+            if (!$hasMore) {
+                break;
+            }
             $nextResponse = null;
             if ($isEventScoped) {
                 $nextRequest = array( 'eventId' => $eventId );
@@ -1234,7 +1241,6 @@ class sxbet extends Exchange {
             }
             $result = $this->array_concat($result, $this->parse_sxbet_cancel_response($nextResponse));
             $hasMore = $this->safe_bool($this->safe_dict($nextResponse, 'data', array()), 'hasMore', false);
-            $guard = $this->sum($guard, 1);
         }
         return $result;
     }
@@ -1332,14 +1338,17 @@ class sxbet extends Exchange {
         /**
          * @ignore
          * clamps a user $limit to the venue's hard perPage ceiling - every v3 listing route rejects perPage above 100, and deeper history is reachable through the nextKey cursor instead
-         * @param {int} $limit the user-requested $limit
+         * @param {int} $limit the user-$requested $limit
          * @return {int} the $limit clamped to at most 100
          */
-        $maxPerPage = 100;
         if ($limit === null) {
-            return null;
+            return $limit;
         }
-        return ($limit > $maxPerPage) ? $maxPerPage : $limit;
+        $requested = $this->parse_to_int($limit);
+        if ($requested >= 100) {
+            return 100;
+        }
+        return $limit;
     }
 
     public function fetch_open_orders(?string $outcome = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1549,7 +1558,7 @@ class sxbet extends Exchange {
         $isMaker = $this->safe_bool($fill, 'isMaker');
         $takerOrMaker = null;
         if ($isMaker !== null) {
-            $takerOrMaker = ($isMaker === true) ? 'maker' : 'taker';
+            $takerOrMaker = ($isMaker) ? 'maker' : 'taker';
         }
         return $this->safe_prediction_trade(array(
             'id' => $this->safe_string($fill, 'id'),
@@ -1744,13 +1753,13 @@ class sxbet extends Exchange {
          */
         $this->check_required_credentials();
         $request = array( 'status' => 'SETTLED' );
-        $wantedOutcomeId = null;
+        $outcomeObj = null;
         if ($outcome !== null) {
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $request['marketHash'] = $this->safe_string($outcomeObj['info'], 'marketHash', '');
-            $wantedOutcomeId = $this->safe_string($outcomeObj, 'outcomeId');
         }
+        $wantedOutcomeId = $this->safe_string($outcomeObj, 'outcomeId');
         if ($since !== null) {
             $request['startDate'] = $this->iso8601($since);
         }
@@ -1806,10 +1815,7 @@ class sxbet extends Exchange {
         $winner = $this->safe_integer($settlement, 'outcome');
         $isVoid = ($winner === 0);
         $heldNumber = ($isBettingOutcomeOne) ? 1 : 2;
-        $won = null;
-        if (($winner !== null) && !$isVoid) {
-            $won = ($winner === $heldNumber);
-        }
+        $won = (($winner !== null) && !$isVoid) ? ($winner === $heldNumber) : null;
         $usdcDecimals = '1000000';
         $stake = Precise::string_div($this->safe_string($trade, 'totalStake', '0'), $usdcDecimals, 6);
         $payout = Precise::string_div($this->safe_string($settlement, 'settleReturnAmount', '0'), $usdcDecimals, 6);
@@ -1980,10 +1986,14 @@ class sxbet extends Exchange {
         $chunkSize = $this->safe_integer($this->options, 'bestOddsBatchSize', 100);
         $chunkCount = $this->parse_to_int($this->sum($hashesLength, $chunkSize - 1) / $chunkSize);
         for ($c = 0; $c < $chunkCount; $c++) {
-            $start = $c * $chunkSize;
-            $end = $start . $chunkSize;
-            if ($end > $hashesLength) {
-                $end = $hashesLength;
+            $chunkIndex = $this->parse_to_int($c);
+            $chunkWidth = $this->parse_to_int($chunkSize);
+            $start = $chunkIndex * $chunkWidth;
+            $nextChunkIndex = $chunkIndex + 1;
+            $chunkEnd = $nextChunkIndex * $chunkWidth;
+            $end = $chunkEnd;
+            if ($chunkEnd > $hashesLength) {
+                $end = $this->parse_to_int($hashesLength);
             }
             $chunk = $this->array_slice($hashesOrder, $start, $end);
             $rows = Async\await($this->fetch_sxbet_best_odds($chunk, $params));
@@ -2123,17 +2133,13 @@ class sxbet extends Exchange {
         $sortedAsks = $this->safe_list($sides, 'asks', array());
         if ($limit !== null) {
             $bidsLength = count($sortedBids);
-            $bidsEnd = $limit;
-            if ($bidsEnd > $bidsLength) {
-                $bidsEnd = $bidsLength;
+            if ($limit < $bidsLength) {
+                $sortedBids = $this->array_slice($sortedBids, 0, $limit);
             }
-            $sortedBids = $this->array_slice($sortedBids, 0, $bidsEnd);
             $asksLength = count($sortedAsks);
-            $asksEnd = $limit;
-            if ($asksEnd > $asksLength) {
-                $asksEnd = $asksLength;
+            if ($limit < $asksLength) {
+                $sortedAsks = $this->array_slice($sortedAsks, 0, $limit);
             }
-            $sortedAsks = $this->array_slice($sortedAsks, 0, $asksEnd);
         }
         $timestamp = $this->milliseconds();
         return $this->safe_prediction_order_book(array(
@@ -2836,20 +2842,18 @@ class sxbet extends Exchange {
         return null;
     }
 
-    public function sign(string $path, mixed $api = 'sxbet', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('sxbet'), $method = 'GET', $params = array()) {
         /**
          * @ignore
          * builds the request $url and attaches the x-sx-$api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401
          * @param {string} $path the endpoint $path
-         * @param {string|string[]} $api the $api group and access level
+         * @param {string[]} $api the $api group and access level
          * @param {string} $method the http $method
          * @param {array} $params the request parameters
-         * @param {array} [$headers] request $headers
-         * @param {string} [$body] the request $body
-         * @return {array} a dict with $url, $method, $body and $headers
+         * @return {array} a dict with $url, $method, body and headers
          */
-        $apiGroup = gettype($api) === 'string' ? $api : $api[0];
-        $accessLevel = gettype($api) === 'string' ? 'public' : $api[1];
+        $apiGroup = $api[0];
+        $accessLevel = $this->safe_string($api, 1, 'public');
         if (($accessLevel === 'private') && ($this->apiKey === null)) {
             throw new AuthenticationError($this->id . ' ' . $path . ' is a private endpoint and requires the apiKey credential (the x-sx-api-key header)');
         }
@@ -2857,7 +2861,7 @@ class sxbet extends Exchange {
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['sxbet']);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $existingHeaders = ($headers !== null) ? $headers : array();
+        $existingHeaders = array();
         $headersExtended = $this->extend(array(
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
@@ -2872,7 +2876,7 @@ class sxbet extends Exchange {
             $hasOrdersList = (is_array($query) && array_key_exists('orders' ?? '', $query));
             $sendAsQuery = !$hasOrdersList;
         }
-        $bodyValue = $body;
+        $bodyValue = null;
         if ($sendAsQuery) {
             $querystring = $this->urlencode($query);
             if ($querystring !== '') {

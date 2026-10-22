@@ -577,11 +577,11 @@ export default class pacifica extends Exchange {
             return false;
         }
         const buildFee = this.safeBool(this.options, 'builderFee', true);
-        if (buildFee !== true) {
+        if (!buildFee) {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee === true) {
+        if (approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
         try {
@@ -723,7 +723,7 @@ export default class pacifica extends Exchange {
             contractSize = this.parseNumber('1');
             minLeverage = 1;
             maxLeverage = this.safeInteger(market, 'max_leverage');
-            crossMargin = isolatedOnly !== true;
+            crossMargin = !isolatedOnly;
             isolatedMargin = true;
         }
         const base = this.safeCurrencyCode(baseId);
@@ -926,7 +926,7 @@ export default class pacifica extends Exchange {
         const isIsolated = this.safeBool(setting, 'isolated', false);
         const leverage = this.safeInteger(setting, 'leverage');
         let marginMode = 'cross';
-        if (isIsolated === true) {
+        if (isIsolated) {
             marginMode = 'isolated';
         }
         return {
@@ -981,7 +981,7 @@ export default class pacifica extends Exchange {
     }
     async loadAccountSettings(refresh = false, params = {}) {
         let settings = this.handleOption('loadAccountSettings', 'settings');
-        if ((settings === undefined) || (refresh === true)) {
+        if ((settings === undefined) || (refresh)) {
             this.options['settings'] = this.createSafeDictionary();
             settings = await this.fetchAccountSettings(params);
             this.options['settings'] = settings;
@@ -1058,7 +1058,7 @@ export default class pacifica extends Exchange {
         // }
         const isIsolated = this.safeBool(setting, 'isolated', false);
         let marginMode = 'cross';
-        if (isIsolated === true) {
+        if (isIsolated) {
             marginMode = 'isolated';
         }
         return {
@@ -1191,7 +1191,8 @@ export default class pacifica extends Exchange {
         const oraclePx = this.safeNumber(info, 'oracle');
         const nextFundingRate = this.safeNumber(info, 'next_funding');
         const timestamp = this.safeInteger(info, 'timestamp');
-        const fundingTimestamp = (Math.floor(this.milliseconds() / 60 / 60 / 1000) + 1) * 60 * 60 * 1000;
+        const currentHour = this.parseToInt(this.milliseconds() / 60 / 60 / 1000);
+        const fundingTimestamp = (currentHour + 1) * 60 * 60 * 1000;
         return {
             'info': info,
             'symbol': symbol,
@@ -1251,18 +1252,15 @@ export default class pacifica extends Exchange {
         };
         const [requestUntil, paramsUntil] = this.handleUntilOption('end_time', request, paramsPaginate);
         const nowMillis = this.milliseconds();
-        let until = this.safeInteger(requestUntil, 'end_time');
-        if (until === undefined) {
-            if (limit !== undefined) {
-                until = since + (limit * (this.parseTimeframe(tf) * 1000)) - 1;
+        const requestedUntil = this.safeInteger(requestUntil, 'end_time');
+        if (requestedUntil === undefined) {
+            const durationMillis = this.parseTimeframe(tf) * 1000;
+            const candleCount = (limit === undefined) ? defaultMaxLimit : limit;
+            if (since !== undefined) {
+                const windowEnd = this.parseToInt(this.sum(since - 1, candleCount * durationMillis));
+                const until = (windowEnd > nowMillis) ? nowMillis : windowEnd;
+                requestUntil['end_time'] = until;
             }
-            if (until === undefined) {
-                until = since + (defaultMaxLimit * (this.parseTimeframe(tf) * 1000)) - 1;
-            }
-            if (until > nowMillis) {
-                until = nowMillis;
-            }
-            requestUntil['end_time'] = until;
         }
         const response = await this.publicGetKline(this.extend(requestUntil, paramsUntil));
         //
@@ -1561,7 +1559,7 @@ export default class pacifica extends Exchange {
         //
         const success = this.safeBool(response, 'success', false);
         let status = undefined;
-        if (success !== true) {
+        if (!success) {
             status = 'rejected';
         }
         else {
@@ -1719,8 +1717,9 @@ export default class pacifica extends Exchange {
         //  Cancel (Only common (limit) orders)
         //
         const lenActions = actions.length;
-        const maxLen = this.handleOption('batchOrdersRequest', 'batchOrdersMax');
-        if (maxLen !== undefined) {
+        const maxLenOption = this.handleOption('batchOrdersRequest', 'batchOrdersMax');
+        if (maxLenOption !== undefined) {
+            const maxLen = this.parseToInt(maxLenOption);
             if (lenActions > maxLen) {
                 throw new ExchangeError(this.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + this.numberToString(maxLen));
             }
@@ -1797,7 +1796,7 @@ export default class pacifica extends Exchange {
             const error = this.safeString(order, 'error');
             const success = this.safeBool(order, 'success', false);
             let status = undefined;
-            if ((error !== undefined) || (success !== true)) {
+            if ((error !== undefined) || (!success)) {
                 status = 'rejected';
             }
             else {
@@ -1858,7 +1857,7 @@ export default class pacifica extends Exchange {
             const error = this.safeString(order, 'error');
             const success = this.safeBool(order, 'success', false);
             let status = undefined;
-            if ((error !== undefined) || (success !== true)) {
+            if ((error !== undefined) || (!success)) {
                 status = 'closed';
             }
             else {
@@ -1972,7 +1971,7 @@ export default class pacifica extends Exchange {
         const isStopOrder = this.safeBool2(params, 'trigger', 'stop', false);
         const paramsOmitted = this.omit(params, ['expiryWindow', 'trigger', 'stop', 'clientOrderId']);
         let response = undefined;
-        if (isStopOrder === true) {
+        if (isStopOrder) {
             response = await this.privatePostOrdersStopCancel(this.extend(request, paramsOmitted));
         }
         else {
@@ -1987,7 +1986,7 @@ export default class pacifica extends Exchange {
         //
         const success = this.safeBool(response, 'success', false);
         let status = 'closed';
-        if (success === true) {
+        if (success) {
             status = 'canceled';
         }
         return this.safeOrder({ 'id': id, 'status': status, 'info': response, 'symbol': symbol });
@@ -1996,7 +1995,7 @@ export default class pacifica extends Exchange {
         const market = this.market(symbol);
         const isStopOrder = this.safeBool2(params, 'trigger', 'stop', false);
         let operationType = undefined;
-        if (isStopOrder === true) {
+        if (isStopOrder) {
             operationType = 'cancel_stop_order';
         }
         else {
@@ -2406,15 +2405,14 @@ export default class pacifica extends Exchange {
         // }
         //
         const data = this.addPaginationCursorToResult(response);
-        const orders = this.parseOrders(data, market, since, limit);
-        return orders;
+        return this.parseOrders(data, market, since, limit);
     }
     addPaginationCursorToResult(response) {
         const data = this.safeList(response, 'data', []);
         const paginationCursor = this.safeString(response, 'next_cursor');
         const hasMore = this.safeBool(response, 'has_more', false);
         const dataLength = data.length;
-        if (hasMore === true) {
+        if (hasMore) {
             if ((paginationCursor !== undefined) && (dataLength > 0)) {
                 const first = data[0];
                 first['next_cursor'] = paginationCursor;
@@ -2754,8 +2752,12 @@ export default class pacifica extends Exchange {
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = marketResolved['symbol'];
         const margin = this.safeString(position, 'margin');
-        const marginMode = (margin !== undefined && margin !== '0') ? 'isolated' : 'cross';
-        const isIsolated = (marginMode === 'isolated');
+        const rawIsolated = this.safeBool(position, 'isolated');
+        let isIsolated = (margin !== undefined && margin !== '0');
+        if (rawIsolated !== undefined) {
+            isIsolated = rawIsolated;
+        }
+        const marginMode = isIsolated ? 'isolated' : 'cross';
         let side = this.safeString(position, 'side');
         if (side !== undefined) {
             side = (side === 'bid') ? 'long' : 'short';
@@ -2776,13 +2778,13 @@ export default class pacifica extends Exchange {
             'markPrice': undefined,
             'notional': undefined,
             'leverage': undefined,
-            'collateral': margin,
+            'collateral': this.safeNumber(position, 'margin'),
             'initialMargin': undefined,
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
             'unrealizedPnl': undefined,
-            'liquidationPrice': undefined,
+            'liquidationPrice': this.safeNumber(position, 'liquidation_price'),
             'marginMode': marginMode,
             'percentage': undefined,
         });
@@ -3394,7 +3396,7 @@ export default class pacifica extends Exchange {
         const success = this.safeBool(transfer, 'success');
         let status = undefined;
         if (success !== undefined) {
-            status = (success === true) ? 'ok' : 'failed';
+            status = (success) ? 'ok' : 'failed';
         }
         return {
             'info': transfer,
@@ -3626,21 +3628,23 @@ export default class pacifica extends Exchange {
             this.throwExactlyMatchedException(this.exceptions['exact'], errorId, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback); // documented message prefixes are more specific than the http-status echo
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+            const statusCode = this.parseToInt(code);
             const codeAsString = code.toString();
-            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+            if ((statusCode < 400) || !(codeAsString in this.httpExceptions)) {
                 throw new ExchangeError(feedback); // unknown message
             }
         }
         return undefined;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        let requestBody = undefined;
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey = 'api';
         if (isTestnet) {
             urlKey = 'test';
         }
-        const baseApiUrl = this.safeString(this.urls[urlKey], api);
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls[urlKey], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -3728,7 +3732,7 @@ export default class pacifica extends Exchange {
             }
             if (builderCode !== undefined) {
                 const isOperationSupportBuilder = this.safeBool(this.options['builderSupportOperations'], operationType, false);
-                if (isOperationSupportBuilder === true) {
+                if (isOperationSupportBuilder) {
                     sigPayload['builder_code'] = builderCode;
                 }
             }

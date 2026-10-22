@@ -622,10 +622,8 @@ export default class latoken extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const timestamp = this.safeInteger (balance, 'timestamp');
             if (timestamp !== undefined) {
-                if (maxTimestamp === undefined) {
+                if ((maxTimestamp === undefined) || (timestamp > maxTimestamp)) {
                     maxTimestamp = timestamp;
-                } else {
-                    maxTimestamp = Math.max (maxTimestamp, timestamp);
                 }
             }
             const code = this.safeCurrencyCode (currencyId);
@@ -1116,7 +1114,7 @@ export default class latoken extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'ORDER_STATUS_PLACED': 'open',
             'ORDER_STATUS_CLOSED': 'closed',
@@ -1133,7 +1131,7 @@ export default class latoken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'ORDER_CONDITION_GOOD_TILL_CANCELLED': 'GTC',
             'ORDER_CONDITION_IMMEDIATE_OR_CANCEL': 'IOC',
@@ -1706,7 +1704,7 @@ export default class latoken extends Exchange {
         };
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'TRANSACTION_STATUS_CONFIRMED': 'ok',
             'TRANSACTION_STATUS_EXECUTED': 'ok',
@@ -1885,9 +1883,10 @@ export default class latoken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let requestHeaders: NullableDict = headers;
-        let requestBody: Str = body;
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
         let requestString = request;
         const query = this.omit (params, this.extractParams (path));
@@ -1897,7 +1896,7 @@ export default class latoken extends Exchange {
                 requestString += '?' + urlencodedQuery;
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const auth = method + request + urlencodedQuery;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha512);

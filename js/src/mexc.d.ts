@@ -197,7 +197,7 @@ export default class mexc extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
-    createSpotOrderRequest(market: any, type: Str, side: Str, amount: any, price?: Num, marginMode?: Str, params?: {}): any;
+    createSpotOrderRequest(market: any, type: Str, side: Str, amount: any, price?: Num, marginMode?: Str, params?: Dict): any;
     /**
      * @ignore
      * @method
@@ -214,7 +214,7 @@ export default class mexc extends Exchange {
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createSpotOrder(market: any, type: OrderType, side: any, amount: any, price?: Num, marginMode?: Str, params?: {}): Promise<Order>;
+    createSpotOrder(market: any, type: OrderType, side: any, amount: any, price?: Num, marginMode?: Str, params?: Dict): Promise<Order>;
     /**
      * @ignore
      * @method
@@ -241,7 +241,7 @@ export default class mexc extends Exchange {
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createSwapOrder(market: any, type: any, side: OrderSide, amount: any, price?: Num, marginMode?: Str, params?: {}): Promise<Order>;
+    createSwapOrder(market: any, type: any, side: OrderSide, amount: any, price?: Num, marginMode?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name mexc#createOrders
@@ -716,7 +716,7 @@ export default class mexc extends Exchange {
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method
      * @name mexc#fetchLeverage
@@ -759,6 +759,6 @@ export default class mexc extends Exchange {
      */
     setMarginMode(marginMode: string, symbol?: Str, params?: Dict): Promise<Dict>;
     nonce(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

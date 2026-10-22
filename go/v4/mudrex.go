@@ -235,33 +235,27 @@ func (this *Mudrex) Describe() any {
 	})
 }
 func (this *Mudrex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var apiUrls map[string]any = SafeMapTyped(this.Urls, "api")
-	var base *string = this.SafeString(apiUrls, api)
+	var base *string = this.SafeString(apiUrls, apiName)
 	if base == nil {
-		panic(ExchangeError(Add(this.Id+" unknown API namespace: ", api)))
+		panic(ExchangeError(this.Id + " unknown API namespace: " + *apiName))
 	}
 	var url string = *base + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestHeaders map[string]any = map[string]any{}
-	if headers != nil {
-		requestHeaders = this.Extend(map[string]any{}, headers)
-	}
 	var brokerId *string = this.SafeString(this.Options, "broker")
 	if brokerId != nil {
 		requestHeaders["Partner-Id"] = brokerId
 	}
 	var methodUpper string = strings.ToUpper(method)
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		requestHeaders["X-Authentication"] = this.Secret
 		if (methodUpper == "POST") || (methodUpper == "PATCH") || (methodUpper == "DELETE") {
@@ -306,7 +300,7 @@ func (this *Mudrex) HandleErrors(code any, reason any, url any, method any, head
 		return nil
 	}
 	var success *bool = this.SafeBool(response, "success", true)
-	if success == nil || *success != true {
+	if !(success != nil && *success) {
 		var errors []any = SafeListTyped(response, "errors")
 		var first map[string]any = SafeMapTyped(errors, 0)
 		var text *string = this.SafeString(first, "text", this.Json(response))
@@ -356,12 +350,12 @@ func (this *Mudrex) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
  * @param {string} [params.price] "mark" to fetch mark price candles
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Mudrex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Mudrex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV] {
+	ch := make(chan AsyncResult[[]OHLCV], 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -389,28 +383,36 @@ func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
 	}
 	// the endpoint requires an explicit time window (in seconds)
 	var duration int64 = this.ParseTimeframe(timeframe)
-	var requestLimit any = limit
-	if IsEqual(requestLimit, nil) {
-		requestLimit = 500
-	}
+	var requestLimit int64 = func() int64 {
+		if limit == nil {
+			return 500
+		}
+		return *limit
+	}()
 	var now int64 = this.Seconds()
-	var startTime any = nil
-	if since != nil {
-		startTime = this.ParseToInt(float64(*since) / 1000)
-	} else {
-		startTime = Subtract(now, Multiply(duration, requestLimit))
-	}
-	if startTime == nil {
-		panic(ExchangeError(this.Id + " fetchOHLCV() missing startTime"))
-	}
-	var endTime any = Add(startTime, Multiply(duration, requestLimit))
+	var windowLength int64 = (duration * requestLimit)
+	var defaultStart any = (now - windowLength)
+	var startTime int64 = this.ParseToInt(func() any {
+		if since != nil {
+			return (float64(*since) / 1000)
+		}
+		return defaultStart
+	}())
+	var windowEnd int64 = this.ParseToInt(Add(startTime, (duration * requestLimit)))
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"price", "until"})
-	if until != nil {
-		endTime = this.ParseToInt(float64(*until) / 1000)
-	} else if IsGreaterThan(endTime, now) {
-		endTime = now
-	}
+	var cappedEnd int64 = func() int64 {
+		if windowEnd > now {
+			return now
+		}
+		return windowEnd
+	}()
+	var endTime int64 = this.ParseToInt(func() any {
+		if until != nil {
+			return (float64(*until) / 1000)
+		}
+		return cappedEnd
+	}())
 	request["start_time"] = startTime
 	request["end_time"] = endTime
 	var response map[string]any = nil
@@ -443,7 +445,7 @@ func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
 	var assetTicks map[string]any = SafeMapTyped(data, "asset_ticks")
 	var ohlcvs []any = SafeListTypedDefault(assetTicks, ToLower(assetPair), []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)}
+	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit))}
 	return nil
 }
 
@@ -459,12 +461,12 @@ func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Mudrex) FetchMarkOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Mudrex) FetchMarkOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV] {
+	ch := make(chan AsyncResult[[]OHLCV], 1)
 	go this.fetchMarkOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchMarkOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Mudrex) fetchMarkOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -482,11 +484,11 @@ func (this *Mudrex) fetchMarkOHLCVBody(ch chan AsyncResult[any], symbol string, 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes35615 []any = ListTyped(r.Value)
-	if retRes35615 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+	var retRes34215 []any = OHLCVsToList(r.Value)
+	if retRes34215 == nil {
+		ch <- AsyncResult[[]OHLCV]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes35615}
+		ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes34215)}
 	}
 	return nil
 }
@@ -500,12 +502,12 @@ func (this *Mudrex) fetchMarkOHLCVBody(ch chan AsyncResult[any], symbol string, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *Mudrex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Mudrex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker] {
+	ch := make(chan AsyncResult[Ticker], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Mudrex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -530,7 +532,7 @@ func (this *Mudrex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
 	var response map[string]any = r1.Value
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(data, market))}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(data, market)}
 	return nil
 }
 
@@ -543,12 +545,12 @@ func (this *Mudrex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *Mudrex) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Mudrex) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {
+	ch := make(chan AsyncResult[map[string]Ticker], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Mudrex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -591,7 +593,7 @@ func (this *Mudrex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 		AddElementToObject(resultTickers, symbol, TickerToMap(this.ParseTicker(t, m)))
 	}
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(resultTickers, "symbol", symbols)}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(resultTickers, "symbol", symbols))}
 	return nil
 }
 func (this *Mudrex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -633,12 +635,12 @@ func (this *Mudrex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Mudrex) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Mudrex) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Mudrex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -647,7 +649,7 @@ func (this *Mudrex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
 	var offset any = 0
 	var pageLimit int = 100
 	var paging bool = true
-	for paging == true {
+	for paging {
 		var q map[string]any = this.Extend(map[string]any{
 			"limit":  pageLimit,
 			"offset": offset,
@@ -704,7 +706,7 @@ func (this *Mudrex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
 		}()))
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
 func (this *Mudrex) ParseMarket(asset any) any {
@@ -787,12 +789,12 @@ func (this *Mudrex) ParseMarket(asset any) any {
  * @param {string} [params.trade_currency] the settlement currency to query the balance for
  * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
  */
-func (this *Mudrex) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Mudrex) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances] {
+	ch := make(chan AsyncResult[Balances], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Mudrex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -839,7 +841,7 @@ func (this *Mudrex) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...a
 	}
 	AddElementToObject(response, "currency", currency)
 
-	ch <- AsyncResult[any]{Value: this.ParseBalance(response)}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
 	return nil
 }
 func (this *Mudrex) ParseBalance(response any) map[string]any {
@@ -874,12 +876,12 @@ func (this *Mudrex) ParseBalance(response any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
  */
-func (this *Mudrex) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Mudrex) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+	ch := make(chan AsyncResult[Leverage], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol any, optionalArgs ...any) any {
+func (this *Mudrex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -904,13 +906,13 @@ func (this *Mudrex) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbo
 	response := r1.Raw
 	var data map[string]any = SafeMapTyped(response, "data")
 
-	ch <- AsyncResult[map[string]any]{Value: map[string]any{
+	ch <- AsyncResult[Leverage]{Value: LeverageFromMap(map[string]any{
 		"info":          response,
 		"symbol":        symbol,
 		"marginMode":    this.SafeStringLower(data, "margin_type"),
 		"longLeverage":  this.SafeNumber(data, "leverage"),
 		"shortLeverage": this.SafeNumber(data, "leverage"),
-	}}
+	})}
 	return nil
 }
 
@@ -925,12 +927,12 @@ func (this *Mudrex) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbo
  * @param {string} [params.marginType] 'ISOLATED' (default) or 'CROSSED'
  * @returns {object} response from the exchange
  */
-func (this *Mudrex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Mudrex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) setLeverageBody(ch chan AsyncResult[any], leverage int64, optionalArgs ...any) any {
+func (this *Mudrex) setLeverageBody(ch chan AsyncResult[map[string]any], leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -961,9 +963,9 @@ func (this *Mudrex) setLeverageBody(ch chan AsyncResult[any], leverage int64, op
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Raw
+	response := r1.Value
 
-	ch <- AsyncResult[any]{Value: response}
+	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
 }
 
@@ -990,12 +992,12 @@ func (this *Mudrex) setLeverageBody(ch chan AsyncResult[any], leverage int64, op
  * @param {string} [params.trade_currency] the settlement currency for the order
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Mudrex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Mudrex) createOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1039,7 +1041,7 @@ func (this *Mudrex) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 		riskResponse := r1.Raw
 		var riskData any = this.SafeDict(riskResponse, "data", riskResponse)
 
-		ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(riskData, market))}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(riskData, market)}
 		return nil
 	}
 	var lev *int64 = this.SafeInteger(params, "leverage", 1)
@@ -1093,7 +1095,7 @@ func (this *Mudrex) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
 	var order map[string]any = OrderToMap(this.ParseOrder(merged, market))
 	order["info"] = data
 
-	ch <- AsyncResult[map[string]any]{Value: order}
+	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
 	return nil
 }
 
@@ -1111,12 +1113,12 @@ func (this *Mudrex) createOrderBody(ch chan AsyncResult[map[string]any], symbol 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Mudrex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) editOrderBody(ch chan AsyncResult[map[string]any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Mudrex) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1153,7 +1155,7 @@ func (this *Mudrex) editOrderBody(ch chan AsyncResult[map[string]any], id string
 	response := r1.Raw
 	var data any = this.SafeDict(response, "data", response)
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
 func (this *Mudrex) ParseOrderStatus(status *string) *string {
@@ -1251,12 +1253,12 @@ func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) Order {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Mudrex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Mudrex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1285,7 +1287,7 @@ func (this *Mudrex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 	response := r1.Raw
 	var data any = this.SafeDict(response, "data", response)
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
 
@@ -1299,12 +1301,12 @@ func (this *Mudrex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Mudrex) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Mudrex) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1333,7 +1335,7 @@ func (this *Mudrex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	response := r1.Raw
 	var data any = this.SafeDict(response, "data", response)
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
 
@@ -1349,12 +1351,12 @@ func (this *Mudrex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) FetchOrdersByStateAsync(state string, optionalArgs ...any) <-chan AsyncResult[[]any] {
-	ch := make(chan AsyncResult[[]any], 1)
+func (this *Mudrex) FetchOrdersByStateAsync(state string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersByStateBody(ch, state, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchOrdersByStateBody(ch chan AsyncResult[[]any], state string, optionalArgs ...any) any {
+func (this *Mudrex) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1409,7 +1411,7 @@ func (this *Mudrex) fetchOrdersByStateBody(ch chan AsyncResult[[]any], state str
 		}(), market)))
 	}
 
-	ch <- AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(orders, symbol, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbol, since, limit))}
 	return nil
 }
 
@@ -1424,12 +1426,12 @@ func (this *Mudrex) fetchOrdersByStateBody(ch chan AsyncResult[[]any], state str
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Mudrex) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Mudrex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1445,11 +1447,11 @@ func (this *Mudrex) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes99715 []any = r.Value
-	if retRes99715 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+	var retRes98315 []any = OrdersToList(r.Value)
+	if retRes98315 == nil {
+		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes99715}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes98315)}
 	}
 	return nil
 }
@@ -1465,12 +1467,12 @@ func (this *Mudrex) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Mudrex) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Mudrex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1486,11 +1488,11 @@ func (this *Mudrex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes101215 []any = r.Value
-	if retRes101215 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+	var retRes99815 []any = OrdersToList(r.Value)
+	if retRes99815 == nil {
+		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes101215}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes99815)}
 	}
 	return nil
 }
@@ -1506,12 +1508,12 @@ func (this *Mudrex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Mudrex) FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Mudrex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1527,11 +1529,11 @@ func (this *Mudrex) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes102715 []any = r.Value
-	if retRes102715 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+	var retRes101315 []any = OrdersToList(r.Value)
+	if retRes101315 == nil {
+		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes102715}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes101315)}
 	}
 	return nil
 }
@@ -1546,12 +1548,12 @@ func (this *Mudrex) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs
  * @param {string} [params.trade_currency] the settlement currency to query positions for
  * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *Mudrex) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Mudrex) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]Position] {
+	ch := make(chan AsyncResult[[]Position], 1)
 	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Mudrex) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1573,9 +1575,9 @@ func (this *Mudrex) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ..
 	}
 	var response map[string]any = r1.Value
 	var data any = this.SafeValue(response, "data", []any{})
-	if IsEqual(data, nil) {
+	if data == nil {
 
-		ch <- AsyncResult[any]{Value: []any{}}
+		ch <- AsyncResult[[]Position]{Value: PositionsFromList([]any{})}
 		return nil
 	}
 	var rows []any = this.ToArray(data)
@@ -1589,11 +1591,11 @@ func (this *Mudrex) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ..
 		}()
 		var symRaw *string = this.SafeString(p, "symbol")
 		var m map[string]any = this.SafeMarket(symRaw)
-		var pos map[string]any = MapTyped(this.ParsePosition(p, m))
+		var pos map[string]any = MapTyped(PositionToMap(this.ParsePosition(p, m)))
 		outPos = append(outPos, pos)
 	}
 
-	ch <- AsyncResult[any]{Value: this.FilterByArrayPositions(outPos, "symbol", symbols)}
+	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(outPos, "symbol", symbols))}
 	return nil
 }
 
@@ -1609,12 +1611,12 @@ func (this *Mudrex) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {string} [params.trade_currency] the settlement currency to filter positions by
  * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *Mudrex) FetchPositionsHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
-	ch := make(chan AsyncResult[[]any], 1)
+func (this *Mudrex) FetchPositionsHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]Position] {
+	ch := make(chan AsyncResult[[]Position], 1)
 	go this.fetchPositionsHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchPositionsHistoryBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Mudrex) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1667,10 +1669,10 @@ func (this *Mudrex) fetchPositionsHistoryBody(ch chan AsyncResult[[]any], option
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var positions any = this.ParsePositions(data, symbolsNormalized)
 
-	ch <- AsyncResult[[]any]{Value: this.FilterBySinceLimit(positions, since, limit)}
+	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}
 	return nil
 }
-func (this *Mudrex) ParsePosition(position any, optionalArgs ...any) any {
+func (this *Mudrex) ParsePosition(position any, optionalArgs ...any) Position {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketResolved map[string]any = this.SafeMarket(nil, market)
@@ -1696,7 +1698,7 @@ func (this *Mudrex) ParsePosition(position any, optionalArgs ...any) any {
 		notional = this.ParseNumber(Precise.StringMul(Precise.StringMul(quantityString, entryPriceString), contractSizeString))
 	}
 	var initialMargin *string = this.SafeString(position, "initial_margin")
-	return map[string]any{
+	return PositionFromMap(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "id"),
 		"symbol":                      symbol,
@@ -1712,6 +1714,7 @@ func (this *Mudrex) ParsePosition(position any, optionalArgs ...any) any {
 		"lastPrice":                   this.SafeNumber(position, "closed_price"),
 		"notional":                    notional,
 		"leverage":                    this.SafeInteger(position, "leverage"),
+		"positionMargin":              this.ParseNumber(initialMargin),
 		"collateral":                  this.ParseNumber(initialMargin),
 		"initialMargin":               this.ParseNumber(initialMargin),
 		"initialMarginPercentage":     nil,
@@ -1722,7 +1725,7 @@ func (this *Mudrex) ParsePosition(position any, optionalArgs ...any) any {
 		"liquidationPrice":            this.SafeNumber(position, "liquidation_price"),
 		"marginMode":                  "isolated",
 		"percentage":                  nil,
-	}
+	})
 }
 
 /**
@@ -1737,12 +1740,12 @@ func (this *Mudrex) ParsePosition(position any, optionalArgs ...any) any {
  * @param {float} [params.amount] the amount to close for a partial close, closes the whole position if not provided
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) ClosePositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Mudrex) ClosePositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.closePositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) closePositionBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Mudrex) closePositionBody(ch chan AsyncResult[Order], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	side := GetArg(optionalArgs, 0, nil)
@@ -1756,16 +1759,16 @@ func (this *Mudrex) closePositionBody(ch chan AsyncResult[any], symbol string, o
 			panic(r.Err)
 		}
 	}
+	var market map[string]any = this.Market(symbol)
 	var positionId *string = this.SafeString(params, "position_id")
 	var amount any = this.SafeValue(params, "amount")
 	if positionId == nil {
-		var market map[string]any = this.Market(symbol)
 
 		r1 := <-this.FetchPositionsAsync([]any{symbol}, params)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var positions []any = ListTyped(r1.Value)
+		var positions []any = PositionsToList(r1.Value)
 		for i := 0; i < len(positions); i++ {
 			var p any = GetValue(positions, i)
 			if (side != nil) && !IsEqual(GetValue(p, "side"), side) {
@@ -1783,7 +1786,7 @@ func (this *Mudrex) closePositionBody(ch chan AsyncResult[any], symbol string, o
 	var request map[string]any = map[string]any{
 		"position_id": positionId,
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		var orderType *string = this.SafeStringUpper(params, "order_type", "LIMIT")
 		request["order_type"] = orderType
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
@@ -1798,8 +1801,9 @@ func (this *Mudrex) closePositionBody(ch chan AsyncResult[any], symbol string, o
 			panic(r2.Err)
 		}
 		partialResponse := r2.Raw
+		var partialData any = this.SafeDict(partialResponse, "data", partialResponse)
 
-		ch <- AsyncResult[any]{Value: partialResponse}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(partialData, market)}
 		return nil
 	}
 	var closeParams map[string]any = this.OmitDict(params, []any{"position_id"})
@@ -1809,8 +1813,9 @@ func (this *Mudrex) closePositionBody(ch chan AsyncResult[any], symbol string, o
 		panic(r3.Err)
 	}
 	response := r3.Raw
+	var data any = this.SafeDict(response, "data", response)
 
-	ch <- AsyncResult[any]{Value: response}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
 
@@ -1825,12 +1830,12 @@ func (this *Mudrex) closePositionBody(ch chan AsyncResult[any], symbol string, o
  * @param {string} [params.position_id] the id of the position to add margin to, resolved from the symbol if not provided
  * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
  */
-func (this *Mudrex) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Mudrex) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) addMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
+func (this *Mudrex) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1849,7 +1854,7 @@ func (this *Mudrex) addMarginBody(ch chan AsyncResult[map[string]any], symbol st
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var positions []any = ListTyped(r1.Value)
+		var positions []any = PositionsToList(r1.Value)
 		for i := 0; i < len(positions); i++ {
 			var p any = GetValue(positions, i)
 			if IsEqual(GetValue(p, "symbol"), symbol) {
@@ -1873,7 +1878,7 @@ func (this *Mudrex) addMarginBody(ch chan AsyncResult[map[string]any], symbol st
 	}
 	response := r2.Raw
 
-	ch <- AsyncResult[map[string]any]{Value: this.Extend(response, map[string]any{})}
+	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.Extend(response, map[string]any{}))}
 	return nil
 }
 
@@ -1887,14 +1892,14 @@ func (this *Mudrex) addMarginBody(ch chan AsyncResult[map[string]any], symbol st
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
  */
-func (this *Mudrex) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Mudrex) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
+func (this *Mudrex) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
+	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -1902,11 +1907,11 @@ func (this *Mudrex) reduceMarginBody(ch chan EndpointResult[map[string]any], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes126715 map[string]any = r.Value
-	if retRes126715 == nil {
-		ch <- EndpointResult[map[string]any]{}
+	var retRes125615 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
+	if retRes125615 == nil {
+		ch <- AsyncResult[MarginModification]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes126715, Raw: retRes126715}
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes125615)}
 	}
 	return nil
 }
@@ -1924,12 +1929,12 @@ func (this *Mudrex) reduceMarginBody(ch chan EndpointResult[map[string]any], sym
  * @param {int} [params.paginationCalls] the maximum number of pages to request (default 10) - a symbol with few or no recent fills can exhaust the cap and return fewer than limit trades
  * @returns {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
-func (this *Mudrex) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Mudrex) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1952,19 +1957,21 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...
 		market = this.Market(symbol)
 	}
 	maxCalls, paramsPaginationCalls := this.HandleOptionIntegerAndParams(params, "fetchMyTrades", "paginationCalls", 10)
-	var pageSize any = 0
-	if limit != nil {
-		// every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
-		pageSize = *limit * 2
-	}
+	// every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
+	var pageSize any = func() any {
+		if limit == nil {
+			return 0
+		}
+		return *limit * 2
+	}()
 	var allRows []any = []any{}
 	var transactionsCount any = 0
 	var calls any = 0
 	var offset any = 0
 	var paging bool = true
-	for paging == true {
+	for paging {
 		var request map[string]any = map[string]any{}
-		if IsGreaterThan(pageSize, 0) {
+		if (limit != nil) && (*limit > 0) {
 			request["limit"] = pageSize
 			request["offset"] = offset
 		}
@@ -1976,7 +1983,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...
 		var response map[string]any = r1.Value
 		var data []any = SafeListTyped(response, "data")
 		var dataLength int = len(data)
-		for i := 0; i < dataLength; i++ {
+		for i := 0; i < len(data); i++ {
 			var entry any = func() any {
 				if i >= 0 && i < len(data) {
 					return DerefScalar(data[i])
@@ -1987,17 +1994,19 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...
 			if this.SafeString(entry, "fee_type") != nil && *this.SafeString(entry, "fee_type") == "TRANSACTION" {
 				// count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
 				if (market == nil) || (IsEqual(this.SafeString(entry, "symbol"), market["id"])) {
-					transactionsCount = this.Sum(transactionsCount, 1)
+					transactionsCount = Add(transactionsCount, 1)
 				}
 			}
 		}
-		calls = this.Sum(calls, 1)
+		calls = Add(calls, 1)
 		paging = false
 		// the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
-		if (limit != nil) && (dataLength == pageSize) && (IsLessThan(transactionsCount, limit)) && (IsLessThan(calls, maxCalls)) {
-			// this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
-			offset = this.Sum(offset, pageSize)
-			paging = true
+		if (limit != nil) && (dataLength == pageSize) {
+			if (int64(transactionsCount.(int)) < *limit) && (int64(calls.(int)) < maxCalls) {
+				// this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+				offset = this.Sum(offset, pageSize)
+				paging = true
+			}
 		}
 	}
 	// a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
@@ -2062,7 +2071,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...
 		}
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(rows, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(rows, market, since, limit))}
 	return nil
 }
 func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -2143,12 +2152,12 @@ func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
  */
-func (this *Mudrex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Mudrex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) transferBody(ch chan AsyncResult[map[string]any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Mudrex) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2195,7 +2204,7 @@ func (this *Mudrex) transferBody(ch chan AsyncResult[map[string]any], code strin
 	}
 	var data any = this.SafeDict(response, "data", response)
 
-	ch <- AsyncResult[map[string]any]{Value: map[string]any{
+	ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(map[string]any{
 		"info":        response,
 		"id":          this.SafeString(data, "id"),
 		"timestamp":   nil,
@@ -2205,7 +2214,7 @@ func (this *Mudrex) transferBody(ch chan AsyncResult[map[string]any], code strin
 		"fromAccount": fw,
 		"toAccount":   tw,
 		"status":      "ok",
-	}}
+	})}
 	return nil
 }
 
@@ -2249,7 +2258,7 @@ func (this *Mudrex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 
@@ -2276,7 +2285,7 @@ func (this *Mudrex) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptio
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 
@@ -2300,7 +2309,7 @@ func (this *Mudrex) FetchTicker(symbol string, options ...FetchTickerOptions) (T
 	if r.Err != nil {
 		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(r.Value)
+	var res Ticker = r.Value
 	return res, nil
 }
 
@@ -2324,7 +2333,7 @@ func (this *Mudrex) FetchTickers(options ...FetchTickersOptions) (Tickers, error
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -2341,7 +2350,7 @@ func (this *Mudrex) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
+	var res []MarketInterface = r.Value
 	return res, nil
 }
 
@@ -2360,7 +2369,7 @@ func (this *Mudrex) FetchBalance(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 
@@ -2384,7 +2393,7 @@ func (this *Mudrex) FetchLeverage(symbol string, options ...FetchLeverageOptions
 	if r.Err != nil {
 		return Leverage{}, r.Err
 	}
-	var res Leverage = NewLeverage(r.Value)
+	var res Leverage = r.Value
 	return res, nil
 }
 
@@ -2410,7 +2419,7 @@ func (this *Mudrex) SetLeverage(leverage int64, options ...SetLeverageOptions) (
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 
@@ -2448,7 +2457,7 @@ func (this *Mudrex) CreateOrder(symbol string, typeVar string, side string, amou
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -2477,7 +2486,7 @@ func (this *Mudrex) EditOrder(id string, symbol string, typeVar string, side str
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -2502,7 +2511,7 @@ func (this *Mudrex) CancelOrder(id string, options ...CancelOrderOptions) (Order
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -2527,7 +2536,7 @@ func (this *Mudrex) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -2554,7 +2563,7 @@ func (this *Mudrex) FetchOrdersByState(state string, options ...FetchOrdersBySta
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -2580,7 +2589,7 @@ func (this *Mudrex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -2606,7 +2615,7 @@ func (this *Mudrex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -2632,7 +2641,7 @@ func (this *Mudrex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Or
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -2657,7 +2666,7 @@ func (this *Mudrex) FetchPositions(options ...FetchPositionsOptions) ([]Position
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
 	return res, nil
 }
 
@@ -2684,7 +2693,34 @@ func (this *Mudrex) FetchPositionsHistory(options ...FetchPositionsHistoryOption
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name mudrex#closePosition
+ * @description closes an open position for a market
+ * @see https://docs.trade.mudrex.com/docs
+ * @param {string} symbol unified CCXT market symbol
+ * @param {string} [side] 'buy' or 'sell', not required by mudrex
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.position_id] the id of the position to close, resolved from the symbol if not provided
+ * @param {float} [params.amount] the amount to close for a partial close, closes the whole position if not provided
+ * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+ */
+func (this *Mudrex) ClosePosition(symbol string, options ...ClosePositionOptions) (Order, error) {
+
+	opts := ClosePositionOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.ClosePositionAsync(symbol, opts.Side, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
+	}
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -2712,7 +2748,7 @@ func (this *Mudrex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -2739,7 +2775,7 @@ func (this *Mudrex) Transfer(code string, amount float64, fromAccount string, to
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Value)
+	var res TransferEntry = r.Value
 	return res, nil
 }
 

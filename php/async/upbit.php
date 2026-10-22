@@ -364,13 +364,13 @@ class upbit extends Exchange {
         $walletLocked = $this->safe_bool($memberInfo, 'wallet_locked');
         $locked = $this->safe_bool($memberInfo, 'locked');
         $active = true;
-        if (($canWithdraw !== null) && ($canWithdraw !== true)) {
+        if (($canWithdraw !== null) && (!$canWithdraw)) {
             $active = false;
         } elseif ($walletState !== 'working') {
             $active = false;
-        } elseif (($walletLocked !== null) && ($walletLocked === true)) {
+        } elseif (($walletLocked !== null) && ($walletLocked)) {
             $active = false;
-        } elseif (($locked !== null) && ($locked === true)) {
+        } elseif (($locked !== null) && ($locked)) {
             $active = false;
         }
         $maxOnetimeWithdrawal = $this->safe_string($withdrawLimits, 'onetime');
@@ -923,7 +923,7 @@ class upbit extends Exchange {
         return $this->parse_tickers($tickers, $symbolsNormalized);
     }
 
-    public function ids_query_strings(?array $ids, float $maxQueryLength): array {
+    public function ids_query_strings(?array $ids, int $maxQueryLength): array {
         if ($ids === null) {
             return array();
         }
@@ -1426,7 +1426,7 @@ class upbit extends Exchange {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a timeInForce parameter for best type orders');
         }
         $paramsRequest = $this->omit($paramsOrdType, array( 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test' ));
-        if ($test === true) {
+        if ($test) {
             $response = Async\await($this->privatePostOrdersTest($this->extend($request, $paramsRequest)));
         } else {
             $response = Async\await($this->privatePostOrders($this->extend($request, $paramsRequest)));
@@ -1830,7 +1830,7 @@ class upbit extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'submitting' => 'pending', // 처리 중
             'submitted' => 'pending', // 처리 완료
@@ -1912,7 +1912,7 @@ class upbit extends Exchange {
         );
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'wait' => 'open',
             'done' => 'closed',
@@ -2547,8 +2547,9 @@ class upbit extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -2562,13 +2563,13 @@ class upbit extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        $hasBody = ($api === 'private') && ($method !== 'GET') && ($method !== 'DELETE');
-        $requestBody = $body;
+        $hasBody = ($apiName === 'private') && ($method !== 'GET') && ($method !== 'DELETE');
+        $requestBody = null;
         if ($hasBody) {
             $requestBody = $this->json($params);
         }
         $privateHeaders = null;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $privateHeaders = array();
             $nonce = $this->uuid();
@@ -2592,7 +2593,7 @@ class upbit extends Exchange {
             $token = $this->jwt($request, $this->encode($this->secret), 'sha256');
             $privateHeaders['Authorization'] = 'Bearer ' . $token;
         }
-        $requestHeaders = ($api === 'private') ? $privateHeaders : $headers;
+        $requestHeaders = ($apiName === 'private') ? $privateHeaders : null;
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 

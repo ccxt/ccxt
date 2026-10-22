@@ -149,7 +149,7 @@ export default class gate extends Exchange {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method
      * @name gate#fetchFundingHistory
@@ -164,15 +164,7 @@ export default class gate extends Exchange {
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
     parseFundingHistories(response: any, symbol: Str, since: Int, limit: Int): FundingHistory[];
-    parseFundingHistory(info: NullableDict, market?: Market): {
-        info: NullableDict;
-        symbol: Str;
-        code: Str;
-        timestamp: Int;
-        datetime: string | undefined;
-        id: undefined;
-        amount: Num;
-    };
+    parseFundingHistory(info: NullableDict, market?: Market): FundingHistory;
     /**
      * @method
      * @name gate#fetchOrderBook
@@ -214,7 +206,7 @@ export default class gate extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    parseBalanceHelper(entry: Dict): import("./base/types.js").BalanceAccount;
+    parseBalanceHelper(entry: Dict): Dict;
     /**
      * @method
      * @name gate#fetchBalance
@@ -370,7 +362,7 @@ export default class gate extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     parseTransactionType(type: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
@@ -422,6 +414,8 @@ export default class gate extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
+    isGateFuturesContractWithDecimalSize(market: Market): boolean;
+    getGateFuturesSignedAmount(symbol: Str, side: Str, amount: Num): Str;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
     /**
      * @method
@@ -453,7 +447,7 @@ export default class gate extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     fetchOrderRequest(id: string, symbol?: Str, params?: Dict): [Dict, Dict];
     /**
@@ -639,11 +633,16 @@ export default class gate extends Exchange {
     /**
      * @method
      * @name gate#fetchLeverageTiers
-     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-     * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
-     * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, automatically paginating through all contracts
+     * @see https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers
+     * @see https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers-2
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'swap' or 'future'
+     * @param {string} [params.settle] settlement currency, default 'usdt' for swaps and 'btc' for futures
+     * @param {int} [params.limit] number of contracts per request, between 1 and 100, default 100
+     * @param {int} [params.offset] starting contract offset, default 0
+     * @param {string} [params.contract] exchange-specific contract id to fetch tiers for a single contract
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
     fetchLeverageTiers(symbols?: Strings, params?: Dict): Promise<LeverageTiers>;
@@ -732,7 +731,7 @@ export default class gate extends Exchange {
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<BorrowInterest[]>;
     parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     nonce(): number;
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     modifyMarginHelper(symbol: string, amount: Num, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
@@ -773,7 +772,7 @@ export default class gate extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OpenInterest[]>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name gate#fetchSettlementHistory

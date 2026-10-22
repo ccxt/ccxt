@@ -93,7 +93,7 @@ public partial class kucoin : ccxt.kucoin
         isFuturesMethod ??= false;
         parameters ??= new Dictionary<string, object>();
         string connectId = "public";
-        if ((privateChannel == true))
+        if (privateChannel)
         {
             connectId = "private";
         }
@@ -205,7 +205,7 @@ public partial class kucoin : ccxt.kucoin
         if ((subscription != null))
         {
             bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
-            action = ((unsubscribe == true)) ? "unsubscribe" : action;
+            action = unsubscribe == true ? "unsubscribe" : action;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", requestId },
@@ -233,7 +233,7 @@ public partial class kucoin : ccxt.kucoin
         if ((subscription != null))
         {
             bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
-            action = ((unsubscribe == true)) ? "unsubscribe" : action;
+            action = unsubscribe == true ? "unsubscribe" : action;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", requestId },
@@ -271,10 +271,9 @@ public partial class kucoin : ccxt.kucoin
         this.checkRequiredCredentials();
         string? utaToken = this.safeString(this.options, "utaToken");
         Int64? lastUpdate = this.safeInteger(this.options, "utaTokenLastUpdate", 0);
-        Int64? refreshInterval = (((1000L * 60L) * 60) * 24); // 24 hours
-        refreshInterval = this.safeInteger(this.options, "utaTokenRefreshInterval", refreshInterval);
+        Int64? refreshInterval = this.safeInteger(this.options, "utaTokenRefreshInterval", 86400000); // 24 hours
         Int64 now = this.milliseconds();
-        bool expired = isGreaterThanOrEqual(((now - lastUpdate)), refreshInterval);
+        bool expired = (((now - lastUpdate)) >= refreshInterval);
         string messageHash = "utaToken";
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
         var client = this.client(url);
@@ -565,7 +564,7 @@ public partial class kucoin : ccxt.kucoin
         if ((subscription != null))
         {
             bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
-            action = ((unsubscribe == true)) ? "unsubscribe" : action;
+            action = unsubscribe == true ? "unsubscribe" : action;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", requestId },
@@ -1723,7 +1722,7 @@ public partial class kucoin : ccxt.kucoin
             subscriptionHashes.Add(add(add(method, ":"), marketId));
         }
         Dictionary<string, object> subscription = new Dictionary<string, object>() {};
-        if ((isEqual(method, "/market/level2")) || (isEqual(method, "/contractMarket/level2")))
+        if (((method is "/market/level2")) || ((method is "/contractMarket/level2")))
         {
             subscription = new Dictionary<string, object>() {
                 { "method", this.handleOrderBookSubscription },
@@ -1754,7 +1753,7 @@ public partial class kucoin : ccxt.kucoin
     {
         parameters ??= new Dictionary<string, object>();
         Int64? limit = this.safeInteger(parameters, "limit");
-        object paramsOmitted = this.omit(parameters, "limit");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "limit"));
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1892,9 +1891,9 @@ public partial class kucoin : ccxt.kucoin
                 for (int i = 0; i < subscriptions.Count; i++)
                 {
                     string? key = ((string)subscriptions[i]);
-                    if ((getIndexOf(key, topicSymbol) >= 0) && (getIndexOf(key, topicChannel) >= 0))
+                    if (((key?.IndexOf(topicSymbol, StringComparison.Ordinal) ?? -1) >= 0) && ((key?.IndexOf(topicChannel, StringComparison.Ordinal) ?? -1) >= 0))
                     {
-                        subscription = getValue(client.subscriptions, key);
+                        subscription = (client.subscriptions != null && key != null && client.subscriptions.ContainsKey(key) ? client.subscriptions[key] : null);
                         break;
                     }
                 }
@@ -1906,7 +1905,7 @@ public partial class kucoin : ccxt.kucoin
                 }
                 (orderbook as ccxt.pro.OrderBook).cache.Add(data);
                 return;
-            } else if (isGreaterThanOrEqual(nonce, deltaEnd))
+            } else if (((deltaEnd != null)) && ((deltaEnd == null || nonce >= deltaEnd)))
             {
                 return;
             }
@@ -1972,7 +1971,7 @@ public partial class kucoin : ccxt.kucoin
                 }
                 (orderbook as ccxt.pro.OrderBook).cache.Add(data);
                 return;
-            } else if (isGreaterThanOrEqual(nonce, deltaEnd))
+            } else if (((deltaEnd != null)) && ((deltaEnd == null || nonce >= deltaEnd)))
             {
                 return;
             }
@@ -1990,7 +1989,7 @@ public partial class kucoin : ccxt.kucoin
         {
             return -1;
         }
-        if (isLessThan(nonce, subtract(firstDeltaStart, 1)))
+        if ((nonce < (firstDeltaStart - 1)))
         {
             return -1;
         }
@@ -2003,7 +2002,7 @@ public partial class kucoin : ccxt.kucoin
             {
                 continue;
             }
-            if ((isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))) && ((nonce < deltaEnd)))
+            if ((((deltaStart - 1) == null || nonce >= (deltaStart - 1))) && ((nonce < deltaEnd)))
             {
                 return i;
             }
@@ -2217,7 +2216,11 @@ public partial class kucoin : ccxt.kucoin
         {
             market = this.market(symbol);
         }
-        object symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : symbol;
+        object symbolResolved = symbol;
+        if ((market != null))
+        {
+            symbolResolved = this.safeString(market, "symbol");
+        }
         string messageHash = "orders";
         if ((symbolResolved != null))
         {
@@ -2548,14 +2551,14 @@ public partial class kucoin : ccxt.kucoin
             // derives cost from the order price otherwise, which is wrong for
             // orders filled at better prices, so the accumulated values win on
             // the non match messages, see https://github.com/ccxt/ccxt/issues/19083
-            if (!isEqual(GetValue(order, "average"), null))
+            if (!((order != null && order.ContainsKey("average") ? order["average"] : null) == null))
             {
-                parsed["average"] = GetValue(order, "average");
-                parsed["cost"] = GetValue(order, "cost");
+                parsed["average"] = (order != null && order.ContainsKey("average") ? order["average"] : null);
+                parsed["cost"] = (order != null && order.ContainsKey("cost") ? order["cost"] : null);
             }
-            if (isEqual((parsed != null && parsed.ContainsKey("filled") ? parsed["filled"] : null), null))
+            if (((parsed != null && parsed.ContainsKey("filled") ? parsed["filled"] : null) == null))
             {
-                parsed["filled"] = GetValue(order, "filled");
+                parsed["filled"] = (order != null && order.ContainsKey("filled") ? order["filled"] : null);
             }
         }
         // accumulate the average fill price and cost from the match messages,
@@ -2678,7 +2681,11 @@ public partial class kucoin : ccxt.kucoin
         {
             market = this.market(symbol);
         }
-        object symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : symbol;
+        string symbolResolved = symbol;
+        if ((market != null))
+        {
+            symbolResolved = this.safeString(market, "symbol");
+        }
         if ((market != null))
         {
             messageHash = ((messageHash + ":") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
@@ -2968,7 +2975,7 @@ public partial class kucoin : ccxt.kucoin
         IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
         bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
-        if (((fetchBalanceSnapshot == true)) && ((awaitBalanceSnapshot == true)))
+        if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
             await client.future(add(uniformType, ":fetchBalanceSnapshot"));
         }
@@ -3010,7 +3017,7 @@ public partial class kucoin : ccxt.kucoin
         if ((fetchBalanceSnapshot == true))
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type});
@@ -3031,11 +3038,11 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
         this.balance[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
-            client.resolve(getValue(this.balance, type), add(type, ":balance"));
+            client.resolve((this.balance != null && type != null && this.balance.ContainsKey((string)type) ? this.balance[(string)type] : null), add(type, ":balance"));
         }
     }
 
@@ -3225,7 +3232,7 @@ public partial class kucoin : ccxt.kucoin
         this.setPositionCache(client, symbol);
         bool fetchPositionSnapshot = ((bool)this.handleOption("watchPosition", "fetchPositionSnapshot", true));
         bool awaitPositionSnapshot = ((bool)this.handleOption("watchPosition", "awaitPositionSnapshot", true));
-        object currentPosition = this.getCurrentPosition(symbol);
+        IDictionary<string, object> currentPosition = this.getCurrentPosition(symbol);
         if (((fetchPositionSnapshot == true)) && ((awaitPositionSnapshot == true)) && ((currentPosition == null)))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future(("fetchPositionSnapshot:" + symbol)));
@@ -3299,11 +3306,11 @@ public partial class kucoin : ccxt.kucoin
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true));
     }
 
-    public virtual object getCurrentPosition(string? symbol)
+    public virtual IDictionary<string, object> getCurrentPosition(string? symbol)
     {
         if ((this.positions == null))
         {
-            return null;
+            return ((IDictionary<string, object>)((object)(null)));
         }
         object cache = (this.positions as ArrayCache).hashmap;
         IDictionary<string, object> symbolCache = this.safeDict(cache, symbol, new Dictionary<string, object>() {});
@@ -3341,13 +3348,13 @@ public partial class kucoin : ccxt.kucoin
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
             double? contracts = this.safeNumber(position, "contracts", 0);
-            if ((contracts > 0))
+            if (((contracts != null)) && ((contracts > 0)))
             {
                 cache.append(position);
             }
         }
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -3376,7 +3383,7 @@ public partial class kucoin : ccxt.kucoin
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         cache.append(position);
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -3483,7 +3490,7 @@ public partial class kucoin : ccxt.kucoin
         string? marketId = this.safeString(parts, 1);
         string? symbol = this.safeSymbol(marketId, null, "");
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
-        object currentPosition = this.getCurrentPosition(symbol);
+        IDictionary<string, object> currentPosition = this.getCurrentPosition(symbol);
         string messageHash = ("position:" + symbol);
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> newPosition = this.parsePosition(data);
@@ -3491,7 +3498,7 @@ public partial class kucoin : ccxt.kucoin
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if (isEqual((newPosition != null && key != null && newPosition.ContainsKey(key) ? newPosition[key] : null), null))
+            if (((newPosition != null && key != null && newPosition.ContainsKey(key) ? newPosition[key] : null) == null))
             {
                 newPosition.Remove(key);
             }
@@ -3536,13 +3543,13 @@ public partial class kucoin : ccxt.kucoin
         string? marketId = this.safeString(data, "s");
         string? symbol = this.safeSymbol(marketId);
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
-        object currentPosition = this.getCurrentPosition(symbol);
+        IDictionary<string, object> currentPosition = this.getCurrentPosition(symbol);
         Dictionary<string, object> newPosition = this.parseWsUtaPosition(data);
         List<object> keys = new List<object>(newPosition.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if (isEqual((newPosition != null && key != null && newPosition.ContainsKey(key) ? newPosition[key] : null), null))
+            if (((newPosition != null && key != null && newPosition.ContainsKey(key) ? newPosition[key] : null) == null))
             {
                 newPosition.Remove(key);
             }
@@ -3955,7 +3962,7 @@ public partial class kucoin : ccxt.kucoin
         } else if ((message != null && ((IDictionary<string, object>)message).ContainsKey("result")))
         {
             bool? result = this.safeBool(message, "result", true);
-            if ((result != true))
+            if (result != true)
             {
                 this.handleErrorMessage(client, (Dictionary<string, object>)message);
             }

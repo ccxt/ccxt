@@ -662,7 +662,7 @@ class deribit(ccxt.async_support.deribit):
         elif action == 'delete':
             bookside.storeArray([price, amount, 0])
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -896,7 +896,7 @@ class deribit(ccxt.async_support.deribit):
             'id': self.request_id(),
         }
         extendedRequest = self.deep_extend(request, params)
-        maxMessageByteLimit = 32768 - 1  # 'Message Too Big: limit 32768B'
+        maxMessageByteLimit = 32767  # 'Message Too Big: limit 32768B'
         jsonedText = self.json(extendedRequest)
         if len(jsonedText) >= maxMessageByteLimit:
             raise ExchangeError(self.id + ' requested subscription length over limit, try to reduce symbols amount')

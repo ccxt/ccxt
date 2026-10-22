@@ -691,17 +691,19 @@ class coinsph extends coinsph$1["default"] {
             const byNumberOfSymbols = this.safeList(config, 'byNumberOfSymbols', []);
             for (let i = 0; i < byNumberOfSymbols.length; i++) {
                 const entry = byNumberOfSymbols[i];
-                if (symbolsAmount >= entry[0]) {
+                const threshold = this.safeInteger(entry, 0);
+                if (threshold !== undefined && symbolsAmount >= threshold) {
                     return entry[1];
                 }
             }
         }
         else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = params['limit'];
+            const limit = this.safeInteger(params, 'limit');
             const byLimit = this.safeList(config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
-                if (limit >= entry[0]) {
+                const threshold = this.safeInteger(entry, 0);
+                if (limit !== undefined && threshold !== undefined && limit >= threshold) {
                     return entry[1];
                 }
             }
@@ -1104,8 +1106,7 @@ class coinsph extends coinsph$1["default"] {
                 request['endTime'] = until;
             }
             else {
-                const duration = this.parseTimeframe(timeframe) * 1000;
-                const endTimeByLimit = this.sum(since, duration * (limitResolved - 1));
+                const endTimeByLimit = this.sum(since, this.parseTimeframe(timeframe) * 1000 * (limitResolved - 1));
                 const now = this.milliseconds();
                 request['endTime'] = Math.min(endTimeByLimit, now);
             }
@@ -1113,8 +1114,7 @@ class coinsph extends coinsph$1["default"] {
         else if (until !== undefined) {
             request['endTime'] = until;
             // since work properly only when it is "younger" than last "limit" candle
-            const duration = this.parseTimeframe(timeframe) * 1000;
-            request['startTime'] = until - (duration * (limitResolved - 1));
+            request['startTime'] = until - (this.parseTimeframe(timeframe) * 1000 * (limitResolved - 1));
         }
         request['limit'] = limitResolved;
         const paramsOmitted = this.omit(params, 'until');
@@ -1306,7 +1306,7 @@ class coinsph extends coinsph$1["default"] {
         const isBuyer = this.safeBool2(trade, 'isBuyer', 'isBuyerMaker');
         let side = undefined;
         if (isBuyer !== undefined) {
-            side = (isBuyer === true) ? 'buy' : 'sell';
+            side = (isBuyer) ? 'buy' : 'sell';
         }
         const isMaker = this.safeString(trade, 'isMaker');
         let takerOrMaker = undefined;
@@ -1478,7 +1478,7 @@ class coinsph extends coinsph$1["default"] {
         const paramsBase = (paramsQuote !== undefined) ? paramsQuote : paramsType;
         const paramsRequest = this.omit(paramsBase, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         let response = {};
-        if (testOrder === true) {
+        if (testOrder) {
             response = await this.privatePostOpenapiV1OrderTest(this.extend(request, paramsRequest));
         }
         else {
@@ -1928,7 +1928,7 @@ class coinsph extends coinsph$1["default"] {
         const [tag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         const options = this.safeDict(this.options, 'withdraw');
         const warning = this.safeBool(options, 'warning', true);
-        if (warning === true) {
+        if (warning) {
             throw new errors.InvalidAddress(this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
         const networkCode = this.safeString(paramsWithdrawTag, 'network');
@@ -2144,15 +2144,15 @@ class coinsph extends coinsph$1["default"] {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const network = this.safeString(transaction, 'network');
-        const internal = network === 'Internal';
+        const networkId = this.safeString(transaction, 'network');
+        const internal = networkId === 'Internal';
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': network,
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -2265,15 +2265,16 @@ class coinsph extends coinsph$1["default"] {
         const urlEncodedParam = key + '=' + stringifiedArray;
         return urlEncodedParam;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const query = this.omit(params, this.extractParams(path));
         const endpoint = this.implodeParams(path, params);
         let url = apiUrl + '/' + endpoint;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             query['timestamp'] = this.milliseconds();
             const recvWindow = this.safeInteger(query, 'recvWindow');
@@ -2289,13 +2290,13 @@ class coinsph extends coinsph$1["default"] {
             const signedHeaders = {
                 'X-COINS-APIKEY': this.apiKey,
             };
-            return { 'url': url, 'method': method, 'body': body, 'headers': signedHeaders };
+            return { 'url': url, 'method': method, 'body': undefined, 'headers': signedHeaders };
         }
         const encodedQuery = this.urlEncodeQuery(query);
         if (encodedQuery.length !== 0) {
             url += '?' + encodedQuery;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

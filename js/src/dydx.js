@@ -1252,7 +1252,7 @@ export default class dydx extends Exchange {
         await this.loadDydxProtos();
         const dydxAccount = this.safeDict(this.options, 'dydxAccount');
         if (dydxAccount !== undefined) {
-            return dydxAccount;
+            return this.safeDict(this.options, 'dydxAccount', {});
         }
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz');
@@ -1283,7 +1283,7 @@ export default class dydx extends Exchange {
             'key': account['pub_key']['key'],
         };
         this.options['dydxAccount'] = account;
-        return account;
+        return this.safeDict(this.options, 'dydxAccount', {});
     }
     pow(n, m) {
         let r = Precise.stringMul(n, '1');
@@ -1311,8 +1311,8 @@ export default class dydx extends Exchange {
         const subaccountId = 0;
         const [subaccountIdOption, paramsSubAccountId] = this.handleOptionIntegerAndParams(params, 'createOrder', 'subAccountId', subaccountId);
         const triggerPrice = this.safeString2(paramsSubAccountId, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue(paramsSubAccountId, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeValue(paramsSubAccountId, 'takeProfitPrice');
+        const stopLossPrice = this.safeString(paramsSubAccountId, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeString(paramsSubAccountId, 'takeProfitPrice');
         const isConditional = triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined;
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringUpper(paramsSubAccountId, 'timeInForce', 'GTT');
@@ -1549,7 +1549,7 @@ export default class dydx extends Exchange {
     async cancelOrder(id, symbol = undefined, params = {}) {
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         const paramsOmitted = this.omit(params, ['trigger', 'stop']);
-        if ((isTrigger !== true) && (symbol === undefined)) {
+        if ((!isTrigger) && (symbol === undefined)) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -1564,11 +1564,12 @@ export default class dydx extends Exchange {
         if (idString.indexOf('-') > -1) {
             throw new NotSupported(this.id + ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.');
         }
-        let goodTillBlock = this.safeInteger(paramsOmitted, 'goodTillBlock');
+        const goodTillBlockOption = this.safeInteger(paramsOmitted, 'goodTillBlock');
+        let goodTillBlock = goodTillBlockOption;
         const goodTillBlockTimeInSeconds = 2592000;
         const [goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds] = this.handleOptionIntegerAndParams(paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         let goodTillBlockTime = undefined;
-        const defaultOrderFlags = (isTrigger === true) ? 32 : 64;
+        const defaultOrderFlags = (isTrigger) ? 32 : 64;
         const orderFlags = this.safeInteger(paramsGoodTillBlockTimeInSeconds, 'orderFlags', defaultOrderFlags);
         const subAccountId = 0;
         const subAccountIdOption = this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId)[0];
@@ -1579,7 +1580,7 @@ export default class dydx extends Exchange {
             if (goodTillBlockTimeInSecondsOption === undefined) {
                 throw new ArgumentsRequired(this.id + ' goodTillBlockTimeInSeconds is required in params for long term or conditional order.');
             }
-            if (goodTillBlock !== undefined && goodTillBlock > 0) {
+            if (goodTillBlockOption !== undefined && goodTillBlockOption > 0) {
                 throw new InvalidOrder(this.id + ' goodTillBlock should be 0 for long term or conditional order.');
             }
             goodTillBlockTime = this.seconds() + goodTillBlockTimeInSecondsOption;
@@ -2274,7 +2275,8 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        return this.safeList(response, 'transfers', []);
+        const transfers = this.safeList(response, 'transfers', []);
+        return transfers;
     }
     /**
      * @method
@@ -2462,11 +2464,11 @@ export default class dydx extends Exchange {
         }
         throw new ArgumentsRequired(this.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.');
     }
-    sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, section = ['public'], method = 'GET', params = {}) {
         let requestHeaders = undefined;
         let requestBody = undefined;
         const pathWithParams = this.implodeParams(path, params);
-        const apiUrl = this.safeString(this.urls['api'], section);
+        const apiUrl = this.safeString(this.urls['api'], section[0]);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2485,8 +2487,8 @@ export default class dydx extends Exchange {
                 'Content-type': 'application/json',
             };
         }
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -2506,7 +2508,7 @@ export default class dydx extends Exchange {
             errorCode = this.safeString(response, 'code');
         }
         if ((errorCode !== undefined) && (errorCode !== '')) {
-            const errorCodeNum = this.parseToNumeric(errorCode);
+            const errorCodeNum = this.parseToInt(errorCode);
             if (errorCodeNum > 0) {
                 const feedback = this.id + ' ' + this.json(response);
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);

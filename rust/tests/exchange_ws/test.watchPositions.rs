@@ -30,7 +30,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // continue;
             success = Value::Bool(false);
         }
-        if (success.as_bool() == Some(true)) {
+        if is_true(&success) {
             if (response == Value::Null) {
                 panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" watch returned undefined response".into())).into()));
             }
@@ -38,8 +38,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             now = exchange.milliseconds();
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1557: bool = true;
-                while { if !__for_first_1557 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1557 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1594: bool = true;
+                while { if !__for_first_1594 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1594 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
                 testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&response, &i), Value::Null, now.clone());
             }
             }
@@ -61,15 +61,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // continue;
             success2 = Value::Bool(false);
         }
-        if (success2.as_bool() == Some(true)) {
+        if is_true(&success2) {
             assert!(ccxt::runtime::is_true(&((matches!(&positionsForSymbols, Value::Arr(_))))));
             // max theoretical 4 positions: two for one-way-mode and two for two-way mode
             assert!(ccxt::runtime::is_true(&((Value::Int(positionsForSymbols.len() as i64).as_f64().unwrap_or(f64::NAN) <= Value::Int(4).as_f64().unwrap_or(f64::NAN)))));
             now = exchange.milliseconds();
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1558: bool = true;
-                while { if !__for_first_1558 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1558 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positionsForSymbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1595: bool = true;
+                while { if !__for_first_1595 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1595 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positionsForSymbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), positionsForSymbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
             }
             }

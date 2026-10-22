@@ -1,5 +1,5 @@
 import Exchange from './abstract/okx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, CurrencyInterface, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, NullableDict, List, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests, OpenInterest, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, AllGreeks, DepositAddresses } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, CurrencyInterface, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, List, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests, OpenInterest, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, AllGreeks, DepositAddresses } from './base/types.js';
 /**
  * @class okx
  * @augments Exchange
@@ -7,7 +7,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fun
 export default class okx extends Exchange {
     describe(): any;
     handleMarketTypeAndParams(methodName: string, market?: Market, params?: Dict, defaultValue?: Str): [string, Dict];
-    convertToInstrumentType(type: any): string;
+    convertToInstrumentType(type: Str): Str;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     /**
@@ -261,7 +261,7 @@ export default class okx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
-    editOrderRequest(id: string, symbol: Str, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Dict;
+    editOrderRequest(id: Str, symbol: Str, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Dict;
     /**
      * @method
      * @name okx#editOrder
@@ -294,6 +294,16 @@ export default class okx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
+    /**
+     * @method
+     * @name okx#editOrders
+     * @description edit a list of trade orders
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-amend-multiple-orders
+     * @param {Array} orders list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    editOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name okx#cancelOrder
@@ -346,7 +356,7 @@ export default class okx extends Exchange {
      * @returns {object} the api result
      */
     cancelAllOrdersAfter(timeout: Int, params?: Dict): Promise<Dict>;
-    parseOrderStatus(status: Str): string | undefined;
+    parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -549,7 +559,7 @@ export default class okx extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawal(id: string, code?: Str, params?: Dict): Promise<Transaction>;
-    parseTransactionStatus(status: Str): string | undefined;
+    parseTransactionStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -636,7 +646,7 @@ export default class okx extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<TransferEntry[]>;
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     parseFundingRate(contract: any, market?: Market): FundingRate;
     parseFundingInterval(interval: Str): Str;
     /**
@@ -934,6 +944,21 @@ export default class okx extends Exchange {
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
     fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
+    /**
+     * @method
+     * @name okx#fetchMySettlementHistory
+     * @description fetches historical settlement records of the user, derived from delivery and exercise account bills
+     * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+     * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days
+     * @param {string} [symbol] unified market symbol of the settlement history
+     * @param {int} [since] timestamp in ms
+     * @param {int} [limit] number of records, max 100
+     * @param {object} [params] exchange specific params
+     * @param {string} [params.method] 'privateGetAccountBillsArchive' (default, last 3 months) or 'privateGetAccountBills' (last 7 days)
+     * @param {int} [params.until] timestamp in ms of the latest record to fetch
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+     */
+    fetchMySettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
     parseSettlement(settlement: Dict, market: Market): Dict;
     parseSettlements(settlements: List, market: Market): List;
     /**

@@ -958,10 +958,7 @@ public class Blofin extends BlofinApi
                 put( "instId", market.get("id") );
             }};
             Object limitValue = (((java.util.Objects.equals(limit, null)))) ? 50 : limit;
-            if (!java.util.Objects.equals(limitValue, null))
-            {
-                request.put("size", limitValue); // max 100
-            }
+            request.put("size", limitValue); // max 100
             Map<String, Object> response = (this.publicGetMarketBooks(this.extend(request, parameters))).join();
             //
             //     {
@@ -1020,7 +1017,7 @@ public class Blofin extends BlofinApi
         String last = this.safeString(ticker, "last");
         String open = this.safeString(ticker, "open24h");
         Boolean spot = (Boolean) this.safeBool(marketResolved, "spot", false);
-        String quoteVolume = (((java.util.Objects.equals(spot, true)))) ? this.safeString(ticker, "volCurrency24h") : null;
+        String quoteVolume = ((Boolean.TRUE.equals(spot))) ? this.safeString(ticker, "volCurrency24h") : null;
         String baseVolume = this.safeString(ticker, "vol24h");
         String high = this.safeString(ticker, "high24h");
         String low = this.safeString(ticker, "low24h");
@@ -1101,7 +1098,7 @@ public class Blofin extends BlofinApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", market.get("id") );
+                put( "instId", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetMarketMarkPrice(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -1206,10 +1203,12 @@ public class Blofin extends BlofinApi
         }
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", feeCurrency
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", feeCurrency);
+                fee = hx4NewMap0;
+            }
         }
         if (Boolean.TRUE.equals(isSpot))
         {
@@ -1532,7 +1531,7 @@ public class Blofin extends BlofinApi
     public Object parseBalanceByType(Map<String, Object> response)
     {
         List<Object> data = (List<Object>) this.safeList(response, "data", (Object) null);
-        if ((!java.util.Objects.equals(data, null)) && (data instanceof List))
+        if (!java.util.Objects.equals(data, null))
         {
             return this.parseFundingBalance((Map<String, Object>) (response));
         } else
@@ -1718,7 +1717,7 @@ public class Blofin extends BlofinApi
         String triggerPriceSlTp = this.safeString2(query, "stopLossPrice", "takeProfitPrice");
         String timeInForce = this.safeString(query, "timeInForce", "GTC");
         Boolean isHedged = (Boolean) this.safeBool(query, "hedged", false);
-        if (java.util.Objects.equals(isHedged, true))
+        if (Boolean.TRUE.equals(isHedged))
         {
             request.put("positionSide", (((java.util.Objects.equals(side, "buy")))) ? "long" : "short");
         }
@@ -1739,7 +1738,7 @@ public class Blofin extends BlofinApi
             request.put(key, this.priceToPrecision(symbol, price));
         }
         Boolean postOnly = false;
-        List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), Helpers.toMapArg(query));
+        List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
         postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
         query = ((List<Object>) postOnlyqueryVariable).get(1);
         if (Boolean.TRUE.equals(postOnly))
@@ -1980,7 +1979,7 @@ public class Blofin extends BlofinApi
             }
             if (Boolean.TRUE.equals(isCombinedSlTp))
             {
-                Object tpslRequest = this.createTpslOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsTpsl);
+                Map<String, Object> tpslRequest = (Map<String, Object>) this.createTpslOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsTpsl);
                 response = (this.privatePostTradeOrderTpsl(tpslRequest)).join();
             } else if (Boolean.TRUE.equals(isTriggerOrder) || Boolean.TRUE.equals(isSlOrTp))
             {
@@ -2011,7 +2010,7 @@ public class Blofin extends BlofinApi
         Map<String, Object> market = this.market(symbol);
         Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
         String positionSide = "net";
-        if (java.util.Objects.equals(hedged, true))
+        if (Boolean.TRUE.equals(hedged))
         {
             positionSide = (((java.util.Objects.equals(side, "buy")))) ? "short" : "long";
         }
@@ -2116,24 +2115,24 @@ public class Blofin extends BlofinApi
                 request.put("clientOrderId", clientOrderId);
             } else
             {
-                if ((!java.util.Objects.equals(isTrigger, true)) && (!java.util.Objects.equals(isTpsl, true)))
+                if ((!Boolean.TRUE.equals(isTrigger)) && (!Boolean.TRUE.equals(isTpsl)))
                 {
                     request.put("orderId", String.valueOf(id));
-                } else if (java.util.Objects.equals(isTpsl, true))
+                } else if (Boolean.TRUE.equals(isTpsl))
                 {
                     request.put("tpslId", String.valueOf(id));
-                } else if (java.util.Objects.equals(isTrigger, true))
+                } else if (Boolean.TRUE.equals(isTrigger))
                 {
                     request.put("algoId", String.valueOf(id));
                 }
             }
             Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderId", "clientOrderId", "stop", "trigger", "tpsl")));
-            if (java.util.Objects.equals(isTpsl, true))
+            if (Boolean.TRUE.equals(isTpsl))
             {
                 List<Order> tpslResponse = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(tpslResponse, 0, (Object) null);
                 return first;
-            } else if (java.util.Objects.equals(isTrigger, true))
+            } else if (Boolean.TRUE.equals(isTrigger))
             {
                 Map<String, Object> triggerResponse = (this.privatePostTradeCancelAlgo(this.extend(request, query))).join();
                 Map<String, Object> triggerData = (Map<String, Object>) this.safeDict(triggerResponse, "data", (Object) null);
@@ -2172,8 +2171,8 @@ public class Blofin extends BlofinApi
                 String marketId = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
-                Object amount = this.safeValue(rawOrder, "amount");
-                Object price = this.safeValue(rawOrder, "price");
+                Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+                Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
                 Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
@@ -2235,10 +2234,10 @@ public class Blofin extends BlofinApi
             Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             Map<String, Object> query = this.omit(paramsMethod, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
             Map<String, Object> response = null;
-            if ((java.util.Objects.equals(isTpSl, true)) || (java.util.Objects.equals(method, "privateGetTradeOrdersTpslPending")))
+            if (Boolean.TRUE.equals(isTpSl) || (java.util.Objects.equals(method, "privateGetTradeOrdersTpslPending")))
             {
                 response = (this.privateGetTradeOrdersTpslPending(this.extend(request, query))).join();
-            } else if ((java.util.Objects.equals(isTrigger, true)) || (java.util.Objects.equals(method, "privateGetTradeOrdersAlgoPending")))
+            } else if (Boolean.TRUE.equals(isTrigger) || (java.util.Objects.equals(method, "privateGetTradeOrdersAlgoPending")))
             {
                 request.put("orderType", "trigger");
                 response = (this.privateGetTradeOrdersAlgoPending(this.extend(request, query))).join();
@@ -2448,7 +2447,8 @@ public class Blofin extends BlofinApi
     public String networkCodeToChainId(Object networkCode, Map<String, Object> currency)
     {
         Map<String, Object> aliases = (Map<String, Object>) this.safeDict(this.options, "networkCodeAliases", new HashMap<String, Object>() {{}});
-        String unifiedCode = this.safeString(aliases, networkCode, networkCode);
+        String aliasedCode = this.safeString(aliases, networkCode, networkCode);
+        String unifiedCode = this.safeString(this.networkAliases, aliasedCode, aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if (!java.util.Objects.equals(currency, null))
@@ -2570,7 +2570,7 @@ public class Blofin extends BlofinApi
             // one row per currency + chain pair, group them per currency
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> dataByCurrencyId = this.groupBy(data, "currency");
-            Object currencies = Helpers.objectValues(dataByCurrencyId);
+            Object currencies = new ArrayList<Object>(dataByCurrencyId.values());
             return this.parseCurrencies(currencies);
         });
 
@@ -2593,15 +2593,15 @@ public class Blofin extends BlofinApi
             {
                 continue;
             }
-            networks.put((String)networkCode, Helpers.newMap(
-    "id", networkId,
-    "network", networkCode,
-    "active", null,
-    "deposit", java.util.Objects.equals(this.safeInteger(chain, "isDepositAvailable"), 1L),
-    "withdraw", java.util.Objects.equals(this.safeInteger(chain, "isWithdrawAvailable"), 1L),
-    "fee", this.safeNumber(chain, "withdrawFee", (Object) null),
-    "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawPrecision"))),
-    "limits", new HashMap<String, Object>() {{
+            networks.put((String)networkCode, (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", networkId);
+                j39v1.put("network", networkCode);
+                j39v1.put("active", null);
+                j39v1.put("deposit", java.util.Objects.equals(this.safeInteger(chain, "isDepositAvailable"), 1L));
+                j39v1.put("withdraw", java.util.Objects.equals(this.safeInteger(chain, "isWithdrawAvailable"), 1L));
+                j39v1.put("fee", this.safeNumber(chain, "withdrawFee", (Object) null));
+                j39v1.put("precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawPrecision"))));
+                j39v1.put("limits", new HashMap<String, Object>() {{
         put( "deposit", new HashMap<String, Object>() {{
             put( "min", Blofin.this.safeNumber(chain, "depositMinAmount", (Object) null) );
             put( "max", null );
@@ -2610,9 +2610,9 @@ public class Blofin extends BlofinApi
             put( "min", Blofin.this.safeNumber(chain, "withdrawMinAmount", (Object) null) );
             put( "max", null );
         }} );
-    }},
-    "info", chain
-));
+    }});
+                j39v1.put("info", chain);
+                yield j39v1; } }));
         }
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "info", chains );
@@ -2656,11 +2656,9 @@ public class Blofin extends BlofinApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", currency.get("id") );
             }};
-            String networkCode = null;
-            Map<String, Object> query = null;
-            List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
-            networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
-            query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
+            // same reads as handleNetworkCodeAndParams, kept as typed locals
+            String networkCode = this.safeString2(parameters, "networkCode", "network");
+            Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("networkCode", "network")));
             String chain = this.safeString(query, "chain");
             if (java.util.Objects.equals(chain, null))
             {
@@ -2761,7 +2759,7 @@ public class Blofin extends BlofinApi
         //
         // a list of GET /asset/currencies rows for one currency, see fetchCurrencies
         //
-        Object result = this.depositWithdrawFee(fee);
+        Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(fee);
         Integer chainsLength = ((List<?>)fee).size();
         for (var i = 0; (chainsLength != null && i < chainsLength); i++)
         {
@@ -2771,7 +2769,7 @@ public class Blofin extends BlofinApi
             {
                 continue;
             }
-            Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new HashMap<String, Object>() {{
+            Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
     put( "withdraw", new HashMap<String, Object>() {{
         put( "fee", Blofin.this.safeNumber(chain, "withdrawFee", (Object) null) );
         put( "percentage", false );
@@ -2785,11 +2783,11 @@ public class Blofin extends BlofinApi
         if (java.util.Objects.equals(chainsLength, 1))
         {
             // a single network means the currency-level fee is unambiguous
-            List<Object> networkKeys = Helpers.objectKeys(Helpers.GetValue(result, "networks"));
+            List<Object> networkKeys = ((List<Object>) switch ((Object)(result.get("networks"))) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
             String onlyNetwork = this.safeString(networkKeys, 0);
             if (!java.util.Objects.equals(onlyNetwork, null))
             {
-                ((Map<String, Object>)result).put("withdraw", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(result, "networks"), onlyNetwork), "withdraw"));
+                result.put("withdraw", Helpers.GetValue(Helpers.GetValue(result.get("networks"), onlyNetwork), "withdraw"));
             }
         }
         return result;
@@ -3276,38 +3274,38 @@ public class Blofin extends BlofinApi
                 Object orderIds = this.parseIds(ids);
                 if (!java.util.Objects.equals(tpslIds, null))
                 {
-                    for (var i = 0; i < Helpers.getArrayLength(tpslIds); i++)
+                    for (var i = 0; i < (switch ((Object)(tpslIds)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; }); i++)
                     {
-                        ((List<Object>)request).add(Helpers.newMap(
-                            "tpslId", Helpers.GetValue(tpslIds, i),
-                            "instId", market.get("id")
-                        ));
+                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v12 = new HashMap<String, Object>();
+                            j39v12.put("tpslId", Helpers.GetValue(tpslIds, i));
+                            j39v12.put("instId", market.get("id"));
+                            yield j39v12; } }));
                     }
                 }
-                for (var i = 0; i < Helpers.getArrayLength(orderIds); i++)
+                for (var i = 0; i < (switch ((Object)(orderIds)) { case null -> 0; case List<?> j39v9 -> j39v9.size(); case String j39v10 -> j39v10.length(); case Object j39v11 -> j39v11.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v11) : 0; }); i++)
                 {
                     if (java.util.Objects.equals(trigger, true))
                     {
-                        ((List<Object>)request).add(Helpers.newMap(
-                            "tpslId", Helpers.GetValue(orderIds, i),
-                            "instId", market.get("id")
-                        ));
+                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v8 = new HashMap<String, Object>();
+                            j39v8.put("tpslId", Helpers.GetValue(orderIds, i));
+                            j39v8.put("instId", market.get("id"));
+                            yield j39v8; } }));
                     } else
                     {
-                        ((List<Object>)request).add(Helpers.newMap(
-                            "orderId", Helpers.GetValue(orderIds, i),
-                            "instId", market.get("id")
-                        ));
+                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v7 = new HashMap<String, Object>();
+                            j39v7.put("orderId", Helpers.GetValue(orderIds, i));
+                            j39v7.put("instId", market.get("id"));
+                            yield j39v7; } }));
                     }
                 }
             } else
             {
-                for (var i = 0; i < Helpers.getArrayLength(clientOrderIds); i++)
+                for (var i = 0; i < (switch ((Object)(clientOrderIds)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
                 {
-                    ((List<Object>)request).add(Helpers.newMap(
-                        "instId", market.get("id"),
-                        "clientOrderId", Helpers.GetValue(clientOrderIds, i)
-                    ));
+                    ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                        j39v3.put("instId", market.get("id"));
+                        j39v3.put("clientOrderId", Helpers.GetValue(clientOrderIds, i));
+                        yield j39v3; } }));
                 }
             }
             Map<String, Object> response = null;
@@ -3603,6 +3601,9 @@ public class Blofin extends BlofinApi
         if (java.util.Objects.equals(marketResolved.get("inverse"), true))
         {
             notionalString = Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
+        } else if (java.util.Objects.equals(notionalString, null))
+        {
+            notionalString = Precise.stringMul(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
         }
         Double notional = this.parseNumber(notionalString);
         String marginMode = this.safeString(position, "marginMode");
@@ -3612,14 +3613,21 @@ public class Blofin extends BlofinApi
         String leverageString = this.safeString(position, "leverage");
         Object initialMarginPercentage = null;
         String collateralString = null;
+        String marginString = null;
         if (java.util.Objects.equals(marginMode, "cross"))
         {
             initialMarginString = this.safeString(position, "initialMargin");
-            collateralString = Precise.stringAdd(initialMarginString, unrealizedPnlString);
+            collateralString = (((!java.util.Objects.equals(unrealizedPnlString, null)))) ? Precise.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         } else if (java.util.Objects.equals(marginMode, "isolated"))
         {
             initialMarginPercentage = Precise.stringDiv("1", leverageString);
-            collateralString = this.safeString(position, "margin");
+            String isolatedMarginString = this.omitZero(this.safeString2(position, "margin", "initialMargin"));
+            if (!java.util.Objects.equals(isolatedMarginString, null))
+            {
+                initialMarginString = isolatedMarginString;
+                marginString = isolatedMarginString;
+                collateralString = (((!java.util.Objects.equals(unrealizedPnlString, null)))) ? Precise.stringAdd(isolatedMarginString, unrealizedPnlString) : isolatedMarginString;
+            }
         }
         String maintenanceMarginString = this.safeString(position, "maintenanceMargin");
         Double maintenanceMargin = this.parseNumber(maintenanceMarginString);
@@ -3633,8 +3641,22 @@ public class Blofin extends BlofinApi
             initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
         }
         String rounder = "0.00005"; // round to closest 0.01%
-        Double maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
-        Double liquidationPrice = this.safeNumber(position, "liquidationPrice", (Object) null);
+        Double maintenanceMarginPercentage = (((!java.util.Objects.equals(maintenanceMarginPercentageString, null)))) ? this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4)) : null;
+        Object liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
+        if ((java.util.Objects.equals(liquidationPriceString, null)) && (java.util.Objects.equals(marginMode, "isolated")) && (!java.util.Objects.equals(initialMarginString, null)) && (!java.util.Objects.equals(entryPriceString, null)) && (!java.util.Objects.equals(contractsAbs, null)) && Precise.stringGt(contractsAbs, "0") && (!java.util.Objects.equals(contractSizeString, null)) && (!java.util.Objects.equals(maintenanceMarginPercentage, null)))
+        {
+            String takerFeeRate = this.safeString(marketResolved, "taker", "0.0006");
+            String mmpWithFee = Precise.stringAdd(this.numberToString(maintenanceMarginPercentage), takerFeeRate);
+            String totalSize = Precise.stringMul(contractsAbs, contractSizeString);
+            String marginPerUnit = Precise.stringDiv(initialMarginString, totalSize);
+            String num = (((java.util.Objects.equals(side, "long")))) ? Precise.stringSub(entryPriceString, marginPerUnit) : Precise.stringAdd(entryPriceString, marginPerUnit);
+            String denom = (((java.util.Objects.equals(side, "long")))) ? Precise.stringSub("1", mmpWithFee) : Precise.stringAdd("1", mmpWithFee);
+            if ((!java.util.Objects.equals(denom, null)) && Precise.stringGt(denom, "0"))
+            {
+                liquidationPriceString = Precise.stringDiv(num, denom);
+            }
+        }
+        Double liquidationPrice = ((((!java.util.Objects.equals(liquidationPriceString, null)) && Precise.stringGt(liquidationPriceString, "0")))) ? this.parseNumber(liquidationPriceString) : null;
         String percentageString = this.safeString(position, "unrealizedPnlRatio");
         Double percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         Long timestamp = this.safeInteger(position, "updateTime");
@@ -3662,6 +3684,7 @@ public class Blofin extends BlofinApi
         mapLiteral7.put("lastUpdateTimestamp", null);
         mapLiteral7.put("maintenanceMargin", maintenanceMargin);
         mapLiteral7.put("maintenanceMarginPercentage", maintenanceMarginPercentage);
+        mapLiteral7.put("positionMargin", this.parseNumber(marginString));
         mapLiteral7.put("collateral", this.parseNumber(collateralString));
         mapLiteral7.put("initialMargin", this.parseNumber(initialMarginString));
         mapLiteral7.put("initialMarginPercentage", this.parseNumber(initialMarginPercentage));
@@ -3836,7 +3859,7 @@ public class Blofin extends BlofinApi
             }
             // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-            if ((Helpers.isLessThan(leverage, 1)) || (Helpers.isGreaterThan(leverage, 125)))
+            if (((leverage == null || !(((Number) leverage).doubleValue() >= 1))) || ((leverage != null && ((Number) leverage).doubleValue() > 125)))
             {
                 throw new BadRequest((this.id + " setLeverage() leverage should be between 1 and 125")) ;
             }
@@ -3902,7 +3925,8 @@ public class Blofin extends BlofinApi
                 request.put("clientOrderId", clientOrderId);
             }
             Map<String, Object> response = (this.privatePostTradeClosePosition(this.extend(request, paramsMarginMode))).join();
-            return this.safeDict(response, "data", (Object) null);
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -3958,7 +3982,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             Map<String, Object> query = this.omit(paramsMethod, new ArrayList<Object>(Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
             Map<String, Object> response = null;
-            if ((java.util.Objects.equals(isTrigger, true)) || (java.util.Objects.equals(method, "privateGetTradeOrdersTpslHistory")))
+            if (Boolean.TRUE.equals(isTrigger) || (java.util.Objects.equals(method, "privateGetTradeOrdersTpslHistory")))
             {
                 response = (this.privateGetTradeOrdersTpslHistory(this.extend(request, query))).join();
             } else
@@ -4210,7 +4234,7 @@ public class Blofin extends BlofinApi
         //     }
         //
         String marketId = this.safeString(info, "instId");
-        Object timestamp = this.safeIntegerOmitZero(info, "createTime", (Long) null);
+        Long timestamp = (Long) this.safeIntegerOmitZero(info, "createTime", (Long) null);
         return new HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", Blofin.this.safeSymbol(marketId, market, (String) null, "contract") );
@@ -4262,9 +4286,10 @@ public class Blofin extends BlofinApi
         return null;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
         if (java.util.Objects.equals(apiUrl, null))
@@ -4273,13 +4298,13 @@ public class Blofin extends BlofinApi
         }
         String url = (apiUrl + request);
         // const type = this.getPathAuthenticationType (path);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             if (!this.isEmpty(query))
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        } else if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String timestamp = String.valueOf(this.milliseconds());
@@ -4308,10 +4333,10 @@ public class Blofin extends BlofinApi
                 }
                 signedHeaders.put("Content-Type", "application/json");
             }
-            String auth = (((Helpers.add(request, java.util.Objects.requireNonNullElse(method, "GET")) + timestamp) + timestamp) + sign_body);
+            String auth = ((((request + java.util.Objects.requireNonNullElse(method, "GET")) + timestamp) + timestamp) + sign_body);
             String signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
             signedHeaders.put("ACCESS-SIGN", signature);
-            String bodyResolved = (((java.util.Objects.equals(signedBody, null)))) ? body : signedBody;
+            String bodyResolved = signedBody;
             {
                 HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
                 h2kMap3.put("url", url);
@@ -4325,8 +4350,8 @@ public class Blofin extends BlofinApi
             HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
             h2kMap4.put("url", url);
             h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap4.put("body", body);
-            h2kMap4.put("headers", headers);
+            h2kMap4.put("body", null);
+            h2kMap4.put("headers", null);
             return h2kMap4;
         }
     }

@@ -278,7 +278,7 @@ public class Foxbit extends FoxbitApi
                     put( "cardano", "ADA" );
                     put( "cosmos", "ATOM" );
                     put( "dogecoin", "DOGE" );
-                    put( "erc20", "ETH" );
+                    put( "erc20", "ERC20" );
                     put( "hedera", "HBAR" );
                     put( "litecoin", "LTC" );
                     put( "near", "NEAR" );
@@ -302,7 +302,7 @@ public class Foxbit extends FoxbitApi
                     put( "ADA", "cardano" );
                     put( "ATOM", "cosmos" );
                     put( "DOGE", "dogecoin" );
-                    put( "ETH", "erc20" );
+                    put( "ERC20", "erc20" );
                     put( "HBAR", "hedera" );
                     put( "LTC", "litecoin" );
                     put( "NEAR", "near" );
@@ -1157,7 +1157,7 @@ public class Foxbit extends FoxbitApi
                     request.put("time_in_force", timeInForce);
                 }
             }
-            if (java.util.Objects.equals(postOnly, true))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("post_only", true);
             }
@@ -1248,7 +1248,7 @@ public class Foxbit extends FoxbitApi
                     }
                     ((Map<String,Object>)orderParams).remove("timeInForce");
                 }
-                if (java.util.Objects.equals(postOnly, true))
+                if (Boolean.TRUE.equals(postOnly))
                 {
                     request.put("post_only", true);
                     ((Map<String,Object>)orderParams).remove("postOnly");
@@ -2080,28 +2080,37 @@ public class Foxbit extends FoxbitApi
         Map<String, Object> bestBid = (Map<String, Object>) this.safeDict(best, "bid", (Object) null);
         Map<String, Object> lastTrade = (Map<String, Object>) this.safeDict(ticker, "last_trade", (Object) null);
         String lastPrice = this.safeString(lastTrade, "price");
-        return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", symbol );
-            put( "timestamp", Foxbit.this.parseDate(Foxbit.this.safeString(lastTrade, "date")) );
-            put( "datetime", Foxbit.this.iso8601(Foxbit.this.parseDate(Foxbit.this.safeString(lastTrade, "date"))) );
-            put( "high", Foxbit.this.safeNumber(rolling_24h, "high", (Object) null) );
-            put( "low", Foxbit.this.safeNumber(rolling_24h, "low", (Object) null) );
-            put( "bid", Foxbit.this.safeNumber(bestBid, "price", (Object) null) );
-            put( "bidVolume", Foxbit.this.safeNumber(bestBid, "volume", (Object) null) );
-            put( "ask", Foxbit.this.safeNumber(bestAsk, "price", (Object) null) );
-            put( "askVolume", Foxbit.this.safeNumber(bestAsk, "volume", (Object) null) );
-            put( "vwap", null );
-            put( "open", Foxbit.this.safeNumber(rolling_24h, "open", (Object) null) );
-            put( "close", lastPrice );
-            put( "last", lastPrice );
-            put( "previousClose", null );
-            put( "change", Foxbit.this.safeString(rolling_24h, "price_change") );
-            put( "percentage", Foxbit.this.safeString(rolling_24h, "price_change_percent") );
-            put( "average", null );
-            put( "baseVolume", Foxbit.this.safeString(rolling_24h, "volume") );
-            put( "quoteVolume", Foxbit.this.safeString(rolling_24h, "quote_volume") );
-            put( "info", ticker );
-        }}, market);
+        String change = this.safeString(rolling_24h, "price_change");
+        String percentage = this.safeString(rolling_24h, "price_change_percent");
+        // never-traded markets report all-zero placeholders instead of omitting the values
+        if (Precise.stringEq(lastPrice, "0"))
+        {
+            lastPrice = null;
+            change = null;
+            percentage = null;
+        }
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("timestamp", this.parseDate(this.safeString(lastTrade, "date")));
+        mapLiteral4.put("datetime", this.iso8601(this.parseDate(this.safeString(lastTrade, "date"))));
+        mapLiteral4.put("high", this.safeNumber(rolling_24h, "high", (Object) null));
+        mapLiteral4.put("low", this.safeNumber(rolling_24h, "low", (Object) null));
+        mapLiteral4.put("bid", this.safeNumber(bestBid, "price", (Object) null));
+        mapLiteral4.put("bidVolume", this.safeNumber(bestBid, "volume", (Object) null));
+        mapLiteral4.put("ask", this.safeNumber(bestAsk, "price", (Object) null));
+        mapLiteral4.put("askVolume", this.safeNumber(bestAsk, "volume", (Object) null));
+        mapLiteral4.put("vwap", null);
+        mapLiteral4.put("open", this.safeNumber(rolling_24h, "open", (Object) null));
+        mapLiteral4.put("close", lastPrice);
+        mapLiteral4.put("last", lastPrice);
+        mapLiteral4.put("previousClose", null);
+        mapLiteral4.put("change", change);
+        mapLiteral4.put("percentage", percentage);
+        mapLiteral4.put("average", null);
+        mapLiteral4.put("baseVolume", this.safeString(rolling_24h, "volume"));
+        mapLiteral4.put("quoteVolume", this.safeString(rolling_24h, "quote_volume"));
+        mapLiteral4.put("info", ticker);
+        return this.safeTicker(mapLiteral4, market);
     }
 
     public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
@@ -2187,35 +2196,35 @@ public class Foxbit extends FoxbitApi
         {
             feeCurrency = this.safeStringUpper(marketResolved, "baseId");
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("id", this.safeString(order, "id"));
-        mapLiteral4.put("info", order);
-        mapLiteral4.put("clientOrderId", this.safeString(order, "client_order_id"));
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("lastTradeTimestamp", null);
-        mapLiteral4.put("status", this.parseOrderStatus(this.safeString(order, "state")));
-        mapLiteral4.put("symbol", this.safeString(marketResolved, "symbol"));
-        mapLiteral4.put("type", this.safeString(order, "type"));
-        mapLiteral4.put("timeInForce", this.safeString(order, "time_in_force"));
-        mapLiteral4.put("postOnly", this.safeBool(order, "post_only", (Object) null));
-        mapLiteral4.put("reduceOnly", null);
-        mapLiteral4.put("side", side);
-        mapLiteral4.put("price", this.parseNumber(price));
-        mapLiteral4.put("triggerPrice", this.safeNumber(order, "stop_price", (Object) null));
-        mapLiteral4.put("takeProfitPrice", null);
-        mapLiteral4.put("stopLossPrice", null);
-        mapLiteral4.put("cost", this.parseNumber(cost));
-        mapLiteral4.put("average", this.safeNumber(order, "price_avg", (Object) null));
-        mapLiteral4.put("amount", this.parseNumber(amount));
-        mapLiteral4.put("filled", this.parseNumber(filled));
-        mapLiteral4.put("remaining", this.parseNumber(remaining));
-        mapLiteral4.put("trades", null);
         HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("currency", feeCurrency);
-        mapLiteral5.put("cost", this.safeNumber(order, "fee_paid", (Object) null));
-        mapLiteral4.put("fee", mapLiteral5);
-        return this.safeOrder(mapLiteral4, (Map<String, Object>) null);
+        mapLiteral5.put("id", this.safeString(order, "id"));
+        mapLiteral5.put("info", order);
+        mapLiteral5.put("clientOrderId", this.safeString(order, "client_order_id"));
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("lastTradeTimestamp", null);
+        mapLiteral5.put("status", this.parseOrderStatus(this.safeString(order, "state")));
+        mapLiteral5.put("symbol", this.safeString(marketResolved, "symbol"));
+        mapLiteral5.put("type", this.safeString(order, "type"));
+        mapLiteral5.put("timeInForce", this.safeString(order, "time_in_force"));
+        mapLiteral5.put("postOnly", this.safeBool(order, "post_only", (Object) null));
+        mapLiteral5.put("reduceOnly", null);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("price", this.parseNumber(price));
+        mapLiteral5.put("triggerPrice", this.safeNumber(order, "stop_price", (Object) null));
+        mapLiteral5.put("takeProfitPrice", null);
+        mapLiteral5.put("stopLossPrice", null);
+        mapLiteral5.put("cost", this.parseNumber(cost));
+        mapLiteral5.put("average", this.safeNumber(order, "price_avg", (Object) null));
+        mapLiteral5.put("amount", this.parseNumber(amount));
+        mapLiteral5.put("filled", this.parseNumber(filled));
+        mapLiteral5.put("remaining", this.parseNumber(remaining));
+        mapLiteral5.put("trades", null);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("currency", feeCurrency);
+        mapLiteral6.put("cost", this.safeNumber(order, "fee_paid", (Object) null));
+        mapLiteral5.put("fee", mapLiteral6);
+        return this.safeOrder(mapLiteral5, (Map<String, Object>) null);
     }
 
     public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
@@ -2288,7 +2297,7 @@ public class Foxbit extends FoxbitApi
             h2kMap0.put("txid", this.safeString(cryptoDetails, "transaction_id"));
             h2kMap0.put("timestamp", timestamp);
             h2kMap0.put("datetime", datetime);
-            h2kMap0.put("network", this.safeString(transaction, "network_code"));
+            h2kMap0.put("network", this.networkIdToCode(this.safeString(transaction, "network_code"), currencyCode));
             h2kMap0.put("address", address);
             h2kMap0.put("addressTo", address);
             h2kMap0.put("addressFrom", null);
@@ -2355,22 +2364,19 @@ public class Foxbit extends FoxbitApi
         {
             throw new ArgumentsRequired((this.id + " parseLedgerEntry() requires a amount argument")) ;
         }
-        if ((amount == null || !(amount >= 0)))
-        {
-            direction = "out";
-            if (java.util.Objects.equals(amount, null))
-            {
-                throw new ArgumentsRequired((this.id + " parseLedgerEntry() requires a amount argument")) ;
-            }
-            realAmount = Helpers.multiply(amount, -1);
-        }
         if (java.util.Objects.equals(balance, null))
         {
             throw new ExchangeError((this.id + " parseLedgerEntry() missing balance")) ;
         }
-        if (java.util.Objects.equals(amount, null))
+        Object before = null;
+        if (!java.util.Objects.equals(amount, null) && !java.util.Objects.equals(balance, null))
         {
-            throw new ArgumentsRequired((this.id + " parseLedgerEntry() requires a amount argument")) ;
+            before = (balance - amount);
+            if (((amount == null || 0 > amount)))
+            {
+                direction = "out";
+                realAmount = (-amount);
+            }
         }
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
@@ -2385,7 +2391,7 @@ public class Foxbit extends FoxbitApi
             h2kMap1.put("type", type);
             h2kMap1.put("currency", currencySymbol);
             h2kMap1.put("amount", realAmount);
-            h2kMap1.put("before", (balance - amount));
+            h2kMap1.put("before", before);
             h2kMap1.put("after", balance);
             h2kMap1.put("status", "ok");
             h2kMap1.put("fee", fee);
@@ -2393,10 +2399,10 @@ public class Foxbit extends FoxbitApi
         }
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object version = Helpers.GetValue(api, 0);
-        Object urlPath = Helpers.GetValue(api, 1);
+        Object version = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Object urlPath = (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         String fullPath = ((("/rest/" + version) + "/") + this.implodeParams(path, parameters));
         if (java.util.Objects.equals(version, "status"))
         {
@@ -2417,6 +2423,7 @@ public class Foxbit extends FoxbitApi
         {
             List<String> paramKeys = new ArrayList<String>(((Map<String, Object>)paramsOmitted).keySet());
             Integer paramKeysLength = ((List<?>)paramKeys).size();
+            Long lastKeyIndex = (((long) paramKeysLength) - 1L);
             if ((paramKeysLength != null && paramKeysLength > 0))
             {
                 query = this.urlencode(paramsOmitted);
@@ -2430,13 +2437,13 @@ public class Foxbit extends FoxbitApi
                 {
                     signatureQuery = (signatureQuery + ((key + "=") + value));
                 }
-                if (i < (((long) paramKeysLength) - 1L))
+                if ((lastKeyIndex != null && i < lastKeyIndex))
                 {
                     signatureQuery = (signatureQuery + "&");
                 }
             }
         }
-        String requestBody = body;
+        String requestBody = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))
         {
             requestBody = this.json(paramsOmitted);
@@ -2485,7 +2492,7 @@ public class Foxbit extends FoxbitApi
         {
             for (var i = 0; i < ((List<?>)details).size(); i++)
             {
-                detailsString = (Helpers.add(detailsString, (details == null || i < 0 || i >= details.size() ? null : details.get(i))) + " ");
+                detailsString = (((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(detailsString, (details == null || i < 0 || i >= details.size() ? null : details.get(i))) + " ");
             }
         }
         if (!java.util.Objects.equals(error, null))

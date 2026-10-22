@@ -9,125 +9,125 @@ package ccxt
 
 // PublicGetTickers returns a channel that yields a JSON array.
 func (this *Blockchaincom) PublicGetTickers(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "tickers", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[[]any](this, "tickers", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTickersSymbol returns a channel that yields a JSON object.
 func (this *Blockchaincom) PublicGetTickersSymbol(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "tickers/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "tickers/{symbol}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetSymbols returns a channel that yields a JSON object.
 func (this *Blockchaincom) PublicGetSymbols(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "symbols", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "symbols", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetSymbolsSymbol returns a channel that yields a JSON object.
 func (this *Blockchaincom) PublicGetSymbolsSymbol(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "symbols/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "symbols/{symbol}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetL2Symbol returns a channel that yields a JSON object.
 func (this *Blockchaincom) PublicGetL2Symbol(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "l2/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "l2/{symbol}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetL3Symbol returns a channel that yields a JSON object.
 func (this *Blockchaincom) PublicGetL3Symbol(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "l3/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "l3/{symbol}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetFees returns a channel that yields a JSON object.
 func (this *Blockchaincom) PrivateGetFees(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "fees", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "fees", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetInternalOrders returns a channel that yields a JSON object.
 func (this *Blockchaincom) PrivateGetInternalOrders(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "internal/orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "internal/orders", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetOrders returns a channel that yields a JSON array.
 func (this *Blockchaincom) PrivateGetOrders(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[[]any](this, "orders", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetOrdersOrderId returns a channel that yields a JSON object.
 func (this *Blockchaincom) PrivateGetOrdersOrderId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "orders/{orderId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "orders/{orderId}", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetTrades returns a channel that yields a JSON array.
 func (this *Blockchaincom) PrivateGetTrades(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[[]any](this, "trades", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetFills returns a channel that yields a JSON array.
 func (this *Blockchaincom) PrivateGetFills(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "fills", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[[]any](this, "fills", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetDeposits returns a channel that yields a JSON array.
 func (this *Blockchaincom) PrivateGetDeposits(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "deposits", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[[]any](this, "deposits", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetDepositsDepositId returns a channel that yields a JSON object.
 func (this *Blockchaincom) PrivateGetDepositsDepositId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "deposits/{depositId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "deposits/{depositId}", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetAccounts returns a channel that yields a JSON object.
 func (this *Blockchaincom) PrivateGetAccounts(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "accounts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "accounts", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetAccountsAccountCurrency returns a channel that yields a JSON object.
 func (this *Blockchaincom) PrivateGetAccountsAccountCurrency(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "accounts/{account}/{currency}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "accounts/{account}/{currency}", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWhitelist returns a channel that yields a JSON array.
 func (this *Blockchaincom) PrivateGetWhitelist(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "whitelist", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[[]any](this, "whitelist", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWhitelistCurrency returns a channel that yields a JSON array.
 func (this *Blockchaincom) PrivateGetWhitelistCurrency(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "whitelist/{currency}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[[]any](this, "whitelist/{currency}", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWithdrawals returns a channel that yields a JSON array.
 func (this *Blockchaincom) PrivateGetWithdrawals(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "withdrawals", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[[]any](this, "withdrawals", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWithdrawalsWithdrawalId returns a channel that yields a JSON object.
 func (this *Blockchaincom) PrivateGetWithdrawalsWithdrawalId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "withdrawals/{withdrawalId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "withdrawals/{withdrawalId}", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostOrders returns a channel that yields a JSON object.
 func (this *Blockchaincom) PrivatePostOrders(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "orders", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostDepositsCurrency returns a channel that yields a JSON object.
 func (this *Blockchaincom) PrivatePostDepositsCurrency(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "deposits/{currency}", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "deposits/{currency}", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostWithdrawals returns a channel that yields a JSON object.
 func (this *Blockchaincom) PrivatePostWithdrawals(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "withdrawals", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "withdrawals", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteOrders returns a channel that yields a JSON object.
 func (this *Blockchaincom) PrivateDeleteOrders(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "orders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "orders", []string{"private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteOrdersOrderId returns a channel that yields a JSON object.
 func (this *Blockchaincom) PrivateDeleteOrdersOrderId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "orders/{orderId}", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "orders/{orderId}", []string{"private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

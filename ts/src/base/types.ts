@@ -1,6 +1,9 @@
 export type Int = number | undefined;
 export type int = number;
 export type Str = string | undefined;
+
+/** unified network code; editors suggest the canonical codes, any other chain code is still accepted */
+export type NetworkCode = 'ERC20' | 'TRC20' | 'BEP20' | 'SOL' | 'BTC' | 'BRC20' | 'ARBITRUM' | 'ARBITRUM_NOVA' | 'OPTIMISM' | 'BASE' | 'POL' | 'AVAXC' | 'AVAXX' | 'CRC20' | 'TON' | 'SUI' | 'APT' | 'NEAR' | 'XRP' | 'XLM' | 'LTC' | 'DOGE' | 'BCH' | 'ADA' | 'DOT' | 'ATOM' | 'ALGO' | 'HBAR' | 'KAVA' | 'ZKSYNCERA' | 'LINEA' | 'SCROLL' | 'MANTLE' | 'CELO' | 'FTM' | 'SONIC' | 'EOS' | 'XTZ' | (string & {});
 export type Strings = string[] | undefined;
 export type Num = number | undefined;
 export type Bool = boolean | undefined;
@@ -536,6 +539,16 @@ export interface OrderBook {
     copy (): OrderBook;
 }
 
+export interface OrderBookL3 {
+    asks: [Num, Num, Str][];
+    bids: [Num, Num, Str][];
+    datetime: Str;
+    timestamp: Int;
+    nonce: Int;
+    symbol: Str;
+    copy (): OrderBookL3;
+}
+
 export interface OrderBooks extends Dictionary<OrderBook> {
 }
 
@@ -582,7 +595,7 @@ export interface Transaction {
     status: 'pending' | 'ok' | 'failed' | 'canceled' | Str;
     updated: Int;
     fee: Fee;
-    network: Str;
+    network: NetworkCode | undefined;
     comment: Str;
     internal: Bool;
 }
@@ -654,7 +667,7 @@ export interface Balances extends Dictionary<Balance> {
 export interface DepositAddress {
     info: any;
     currency: Str;
-    network?: Str;
+    network?: NetworkCode;
     address: Str;
     tag?: Str;
     note?: Str;
@@ -706,6 +719,7 @@ export interface Position {
     leverage?: Num;
     unrealizedPnl?: Num;
     realizedPnl?: Num;
+    positionMargin?: Num;
     collateral?: Num;
     entryPrice?: Num;
     markPrice?: Num;
@@ -772,11 +786,16 @@ export interface DepositWithdrawFeeNetwork {
     percentage?: boolean;
 }
 
+export interface DepositWithdrawFeeNetworkEntry {
+    deposit?: DepositWithdrawFeeNetwork;
+    withdraw?: DepositWithdrawFeeNetwork;
+}
+
 export interface DepositWithdrawFee {
     info: any;
     withdraw?: DepositWithdrawFeeNetwork,
     deposit?: DepositWithdrawFeeNetwork,
-    networks?: Dictionary<DepositWithdrawFeeNetwork>;
+    networks?: Dictionary<DepositWithdrawFeeNetworkEntry>;
 }
 
 export interface DepositWithdrawFees extends Dictionary<DepositWithdrawFee> {

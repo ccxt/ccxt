@@ -242,13 +242,12 @@ class apex(ccxt.async_support.apex):
         # are already subscribed, skip the subscribe entirely.
         client = self.client(url)
         newTopics = []
-        newTopicsCount = 0
         for i in range(0, len(topics)):
             if not (messageHashes[i] in client.subscriptions):
                 newTopics.append(topics[i])
-                newTopicsCount = newTopicsCount + 1
+        newTopicsLength = len(newTopics)
         message = None
-        if newTopicsCount > 0:
+        if newTopicsLength > 0:
             request = {
                 'op': 'subscribe',
                 'args': newTopics,
@@ -338,7 +337,7 @@ class apex(ccxt.async_support.apex):
         bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         bookside.storeArray(bidAsk)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -908,7 +907,7 @@ class apex(ccxt.async_support.apex):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], msg, feedback)
                 raise ExchangeError(feedback)
             success = self.safe_bool(message, 'success')
-            if (success is not None) and (success is not True):
+            if (success is not None) and (not success):
                 ret_msg = self.safe_string(message, 'ret_msg')
                 request = self.safe_dict(message, 'request', {})
                 op = self.safe_string(request, 'op')

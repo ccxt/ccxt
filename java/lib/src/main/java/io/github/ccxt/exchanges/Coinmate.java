@@ -540,35 +540,35 @@ public class Coinmate extends CoinmateApi
                     continue;
                 }
                 String symbol = ((base + "/") + quote);
-                ((List<Object>)result).add(Helpers.newMap(
-                    "id", id,
-                    "symbol", symbol,
-                    "base", base,
-                    "quote", quote,
-                    "settle", null,
-                    "baseId", baseId,
-                    "quoteId", quoteId,
-                    "settleId", null,
-                    "type", "spot",
-                    "spot", true,
-                    "margin", false,
-                    "swap", false,
-                    "future", false,
-                    "option", false,
-                    "active", null,
-                    "contract", false,
-                    "linear", null,
-                    "inverse", null,
-                    "contractSize", null,
-                    "expiry", null,
-                    "expiryDatetime", null,
-                    "strike", null,
-                    "optionType", null,
-                    "precision", new HashMap<String, Object>() {{
+                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("id", id);
+                    j39v1.put("symbol", symbol);
+                    j39v1.put("base", base);
+                    j39v1.put("quote", quote);
+                    j39v1.put("settle", null);
+                    j39v1.put("baseId", baseId);
+                    j39v1.put("quoteId", quoteId);
+                    j39v1.put("settleId", null);
+                    j39v1.put("type", "spot");
+                    j39v1.put("spot", true);
+                    j39v1.put("margin", false);
+                    j39v1.put("swap", false);
+                    j39v1.put("future", false);
+                    j39v1.put("option", false);
+                    j39v1.put("active", null);
+                    j39v1.put("contract", false);
+                    j39v1.put("linear", null);
+                    j39v1.put("inverse", null);
+                    j39v1.put("contractSize", null);
+                    j39v1.put("expiry", null);
+                    j39v1.put("expiryDatetime", null);
+                    j39v1.put("strike", null);
+                    j39v1.put("optionType", null);
+                    j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Coinmate.this.parseNumber(Coinmate.this.parsePrecision(Coinmate.this.safeString(market, "lotDecimals"))) );
                         put( "price", Coinmate.this.parseNumber(Coinmate.this.parsePrecision(Coinmate.this.safeString(market, "priceDecimals"))) );
-                    }},
-                    "limits", new HashMap<String, Object>() {{
+                    }});
+                    j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -585,10 +585,10 @@ public class Coinmate extends CoinmateApi
                             put( "min", null );
                             put( "max", null );
                         }} );
-                    }},
-                    "created", null,
-                    "info", market
-                ));
+                    }});
+                    j39v1.put("created", null);
+                    j39v1.put("info", market);
+                    yield j39v1; } }));
             }
             return result;
         });
@@ -919,7 +919,7 @@ public class Coinmate extends CoinmateApi
             put( "txid", Coinmate.this.safeString(transaction, "txid") );
             put( "type", Coinmate.this.safeStringLower(transaction, "transferType") );
             put( "currency", code );
-            put( "network", Coinmate.this.safeString(transaction, "walletType") );
+            put( "network", Coinmate.this.networkIdToCode(Coinmate.this.safeString(transaction, "walletType"), code) );
             put( "amount", Coinmate.this.safeNumber(transaction, "amount", (Object) null) );
             put( "status", Coinmate.this.parseTransactionStatus(Coinmate.this.safeString(transaction, "transferStatus")) );
             put( "timestamp", timestamp );
@@ -1033,7 +1033,7 @@ public class Coinmate extends CoinmateApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (data), currency);
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
-            if (java.util.Objects.equals(fillResponseFromRequest, true))
+            if (Boolean.TRUE.equals(fillResponseFromRequest))
             {
                 transaction.put("amount", amount);
                 transaction.put("currency", code);
@@ -1129,10 +1129,12 @@ public class Coinmate extends CoinmateApi
         String feeCostString = this.safeString(trade, "fee");
         if (!java.util.Objects.equals(feeCostString, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCostString,
-                "currency", marketResolved.get("quote")
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCostString);
+                hx4NewMap0.put("currency", marketResolved.get("quote"));
+                fee = hx4NewMap0;
+            }
         }
         String takerOrMaker = this.safeString(trade, "feeType");
         takerOrMaker = (((java.util.Objects.equals(takerOrMaker, "MAKER")))) ? "maker" : "taker";
@@ -1571,8 +1573,9 @@ public class Coinmate extends CoinmateApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String bodySigned = null;
         Map<String, Object> headersSigned = null;
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
@@ -1581,7 +1584,7 @@ public class Coinmate extends CoinmateApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((apiUrl + "/") + path);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             if (((Map<String, Object>)parameters).size() > 0)
             {
@@ -1594,18 +1597,18 @@ public class Coinmate extends CoinmateApi
             String nonce = String.valueOf(this.incrementingNonce());
             String auth = ((nonce + this.uid) + this.apiKey);
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-            bodySigned = this.urlencode(this.extend(Helpers.newMap(
-                "clientId", this.uid,
-                "nonce", nonce,
-                "publicKey", this.apiKey,
-                "signature", signature.toUpperCase()
-            ), parameters));
+            bodySigned = this.urlencode(this.extend((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("clientId", this.uid);
+                j39v2.put("nonce", nonce);
+                j39v2.put("publicKey", this.apiKey);
+                j39v2.put("signature", signature.toUpperCase());
+                yield j39v2; } }), parameters));
             headersSigned = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
             }};
         }
-        Object headersResolved = (((java.util.Objects.equals(headersSigned, null)))) ? headers : headersSigned;
-        String bodyResolved = (((java.util.Objects.equals(bodySigned, null)))) ? body : bodySigned;
+        Map<String, Object> headersResolved = headersSigned;
+        String bodyResolved = bodySigned;
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("url", url);

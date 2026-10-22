@@ -805,26 +805,27 @@ class zaif(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def custom_nonce(self):
+    def custom_nonce(self) -> str:
         num = self.number_to_string(self.milliseconds() / 1000)
         nonce = float(num)
         return format(nonce, '.8f')
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         baseApiUrl = self.safe_string(self.urls['api'], 'rest')
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = baseApiUrl
         url = baseUrl + '/'
-        if api == 'public':
+        if apiName == 'public':
             url += 'api/' + self.version + '/' + self.implode_params(path, params)
-        elif api == 'fapi':
+        elif apiName == 'fapi':
             url += 'fapi/' + self.version + '/' + self.implode_params(path, params)
         else:
             self.check_required_credentials()
-            if api == 'ecapi':
+            if apiName == 'ecapi':
                 url += 'ecapi'
-            elif api == 'tlapi':
+            elif apiName == 'tlapi':
                 url += 'tlapi'
             else:
                 url += 'tapi'
@@ -839,7 +840,7 @@ class zaif(Exchange, ImplicitAPI):
                 'Sign': self.hmac(self.encode(bodyEncoded), self.encode(self.secret), hashlib.sha512),
             }
             return {'url': url, 'method': method, 'body': bodyEncoded, 'headers': headersSigned}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
@@ -854,6 +855,6 @@ class zaif(Exchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown message
         success = self.safe_bool(response, 'success', True)
-        if success is not True:
+        if not success:
             raise ExchangeError(feedback)
         return None

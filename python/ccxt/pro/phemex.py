@@ -274,10 +274,10 @@ class phemex(ccxt.async_support.phemex):
         #
         tickers = []
         if 'market24h' in message:
-            ticker = self.safe_value(message, 'market24h')
+            ticker = self.safe_dict(message, 'market24h', {})
             tickers.append(self.parse_swap_ticker(ticker))
         elif 'spot_market24h' in message:
-            ticker = self.safe_value(message, 'spot_market24h')
+            ticker = self.safe_dict(message, 'spot_market24h', {})
             tickers.append(self.parse_ticker(ticker))
         elif 'data' in message:
             data = self.safe_list(message, 'data', [])
@@ -907,7 +907,8 @@ class phemex(ccxt.async_support.phemex):
             cachedTrades.append(parsed)
             symbol = parsed['symbol']
             if type is None:
-                type = 'perpetual' if (market['settle'] == 'USDT') else market['type']
+                marketSettle = self.safe_string(market, 'settle')
+                type = 'perpetual' if (marketSettle == 'USDT') else market['type']
             if symbol is not None:
                 marketIds[symbol] = True
         keys = list(marketIds.keys())

@@ -400,10 +400,10 @@ export default class coinbaseexchange extends Exchange {
                 'networks': {
                     'BTC': 'bitcoin',
                     // LIGHTNING unsupported
-                    'ETH': 'ethereum',
-                    // TRON unsupported
+                    'ERC20': 'ethereum',
+                    // TRC20 unsupported
                     'SOL': 'solana',
-                    // BSC unsupported
+                    // BEP20 unsupported
                     'ARBITRUM': 'arbitrum',
                     'AVAXC': 'avacchain',
                     'MATIC': 'polygon',
@@ -411,7 +411,7 @@ export default class coinbaseexchange extends Exchange {
                     'SUI': 'sui',
                     'OP': 'optimism',
                     'NEAR': 'near',
-                    // CRONOS unsupported
+                    // CRC20 unsupported
                     // GNO unsupported
                     'APT': 'aptos',
                     // SCROLL unsupported
@@ -1293,16 +1293,18 @@ export default class coinbaseexchange extends Exchange {
         const until = this.safeValue2 (paramsPaginate, 'until', 'end');
         const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'until' ]);
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
-        const cappedLimit: number = (limit === undefined) ? 300 : Math.min (300, limit);
+        const cappedLimit = this.parseToInt ((limit === undefined) ? 300 : Math.min (limit, 300));
         const limitResolved = (since !== undefined) ? cappedLimit : limit;
         if (since !== undefined) {
             request['start'] = this.iso8601 (since);
             if (until === undefined) {
-                const parsedTimeframeMilliseconds = (parsedTimeframe as number) * 1000;
-                if (this.isRoundNumber (since % parsedTimeframeMilliseconds)) {
-                    request['end'] = this.iso8601 (this.sum ((cappedLimit - 1) * parsedTimeframeMilliseconds, since));
-                } else {
-                    request['end'] = this.iso8601 (this.sum (cappedLimit * parsedTimeframeMilliseconds, since));
+                if (parsedTimeframe !== undefined) {
+                    const parsedTimeframeMilliseconds = parsedTimeframe * 1000;
+                    if (this.isRoundNumber (since % parsedTimeframeMilliseconds)) {
+                        request['end'] = this.iso8601 (this.sum ((cappedLimit * parsedTimeframeMilliseconds) - parsedTimeframeMilliseconds, since));
+                    } else {
+                        request['end'] = this.iso8601 (this.sum (cappedLimit * parsedTimeframeMilliseconds, since));
+                    }
                 }
             } else {
                 request['end'] = this.iso8601 (until);
@@ -1337,7 +1339,7 @@ export default class coinbaseexchange extends Exchange {
         return this.safeTimestamp (response, 'epoch');
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'pending': 'open',
             'active': 'open',
@@ -1609,7 +1611,7 @@ export default class coinbaseexchange extends Exchange {
             request['time_in_force'] = timeInForce;
         }
         const postOnly = this.safeBool2 (params, 'postOnly', 'post_only', false);
-        if (postOnly === true) {
+        if (postOnly) {
             request['post_only'] = true;
         }
         const paramsOmitted: Dict = this.omit (params, [ 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice' ]);
@@ -1623,7 +1625,7 @@ export default class coinbaseexchange extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
             request['size'] = this.amountToPrecision (symbol, amount);
         } else if (type === 'market') {
-            let cost = costParam;
+            let cost: Num = costParam;
             if (cost === undefined) {
                 if (price !== undefined) {
                     cost = amount * price;
@@ -2099,7 +2101,8 @@ export default class coinbaseexchange extends Exchange {
         const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let amount = this.safeNumber (transaction, 'amount');
+        const amountRaw = this.safeNumber (transaction, 'amount');
+        let amount = amountRaw;
         let type = this.safeString (transaction, 'type');
         let address = this.safeString (details, 'crypto_address');
         address = this.safeString (transaction, 'crypto_address', address);
@@ -2113,8 +2116,8 @@ export default class coinbaseexchange extends Exchange {
             address = this.safeString (details, 'sent_to_address', address);
             const feeCost = this.safeNumber (details, 'fee');
             if (feeCost !== undefined) {
-                if (amount !== undefined) {
-                    amount -= feeCost;
+                if (amountRaw !== undefined) {
+                    amount = amountRaw - feeCost;
                 }
                 fee['cost'] = feeCost;
                 fee['currency'] = code;
@@ -2186,9 +2189,10 @@ export default class coinbaseexchange extends Exchange {
         } as DepositAddress;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let requestHeaders: NullableDict = headers;
-        let requestBody: Str = body;
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         let request = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
@@ -2196,12 +2200,12 @@ export default class coinbaseexchange extends Exchange {
                 request += '?' + this.urlencode (query);
             }
         }
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         const url = this.implodeHostname (apiUrl) + request;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             let payload = '';
@@ -2244,8 +2248,8 @@ export default class coinbaseexchange extends Exchange {
         return undefined;
     }
 
-    override async request (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: Dict = {}) {
-        const response = await this.fetch2 (path, api, method, params, headers, body, config);
+    override async request (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, config: Dict = {}) {
+        const response = await this.fetch2 (path, api, method, params, config);
         if (typeof response !== 'string') {
             if ('message' in response) {
                 throw new ExchangeError (this.id + ' ' + this.json (response));

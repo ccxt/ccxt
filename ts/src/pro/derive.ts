@@ -4,7 +4,7 @@ import deriveRest from '../derive.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, UnsubscribeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Position, Dict, Bool, List } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Position, Dict, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -544,10 +544,9 @@ export default class derive extends deriveRest {
             const requestId = this.requestId (url);
             const now = this.numberToString (this.nonce ());
             const signature = this.signMessage (now, this.privateKey);
-            let deriveWalletAddress = this.safeString (this.options, 'deriveWalletAddress');
-            if ((deriveWalletAddress === undefined) || (deriveWalletAddress === '')) {
-                deriveWalletAddress = this.walletAddress; // v3: the owner wallet is the user's own EOA
-            }
+            const configuredWalletAddress = this.safeString (this.options, 'deriveWalletAddress');
+            // v3: the owner wallet is the user's own EOA
+            const deriveWalletAddress = ((configuredWalletAddress === undefined) || (configuredWalletAddress === '')) ? this.walletAddress : configuredWalletAddress;
             const request: Dict = {
                 'id': requestId,
                 'method': 'public/login',
@@ -1020,11 +1019,7 @@ export default class derive extends deriveRest {
         if (this.balance === undefined) {
             this.balance = {};
         }
-        let subBalance = this.safeDict (this.balance, subaccountIdKey);
-        if (subBalance === undefined) {
-            const emptySubBalance: Dict = {};
-            subBalance = emptySubBalance;
-        }
+        const subBalance = this.safeDict (this.balance, subaccountIdKey, {});
         let updated = false;
         const positionUpdates = [];
         for (let i = 0; i < data.length; i++) {
@@ -1064,7 +1059,7 @@ export default class derive extends deriveRest {
         }
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         // {
         //     id: '690c6276-0fc6-4121-aafa-f28bf5adedcb',

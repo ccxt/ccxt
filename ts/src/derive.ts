@@ -5,7 +5,7 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/derive.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict, Endpoint, OHLCV, OpenInterest, Account, TransferEntry, Greeks, Option, BorrowInterest } from './base/types.js';
+import type { NullableDict, Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, Endpoint, OHLCV, OpenInterest, Account, TransferEntry, Greeks, Option, BorrowInterest } from './base/types.js';
 import { BadRequest, InvalidOrder, ExchangeError, OrderNotFound, ArgumentsRequired, InsufficientFunds, RateLimitExceeded, AuthenticationError } from './base/errors.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { TICK_SIZE, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
@@ -789,11 +789,8 @@ export default class derive extends Exchange {
      */
     async getMarketsPaginated (request: Dict, params: Dict = {}): Promise<Dict[]> {
         let allInstruments: Dict[] = [];
-        let maxPages = 25;
-        let paramsOmitted: Dict = {};
-        [ maxPages, paramsOmitted ] = this.handleOptionAndParams (params, 'getMarketsPaginated', 'maxMarketPages', maxPages);
-        let pageSize = 1000;
-        [ pageSize, paramsOmitted ] = this.handleOptionAndParams (paramsOmitted, 'getMarketsPaginated', 'maxMarketsPerPage', pageSize);
+        const [ maxPages, paramsMaxPages ] = this.handleOptionIntegerAndParams (params, 'getMarketsPaginated', 'maxMarketPages', 25);
+        const [ pageSize, paramsOmitted ] = this.handleOptionAndParams (paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000);
         let page = 1;
         for (let i = 0; i < maxPages; i++) {
             const requestExtension: Dict = {
@@ -1029,7 +1026,7 @@ export default class derive extends Exchange {
         return this.parseOpenInterest (result, market);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         const timestamp = this.safeInteger (interest, 't');
         const stats = this.safeDict (interest, 'stats', {});
         const amount = this.safeString (stats, 'oi');
@@ -1430,12 +1427,9 @@ export default class derive extends Exchange {
         if (limit !== undefined && limit > 1000) {
             limitResolved = 1000;
         }
-        if (limitResolved !== undefined) {
+        if (limit !== undefined) {
             // the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
-            let pageSize = limitResolved * 2;
-            if (pageSize > 1000) {
-                pageSize = 1000; // default 100, max 1000
-            }
+            const pageSize = (limit > 500) ? 1000 : limit * 2; // default 100, max 1000
             request['page_size'] = pageSize;
         }
         if (since !== undefined) {
@@ -1604,30 +1598,30 @@ export default class derive extends Exchange {
         const until = this.safeInteger (paramsPrice, 'until');
         const paramsOmitted: Dict = this.omit (paramsPrice, [ 'until' ]);
         const duration = this.parseTimeframe (timeframe);
-        let end: Int = undefined;
+        let untilSeconds: Int = this.seconds ();
         if (until !== undefined) {
-            end = this.parseToInt (until / 1000);
-        } else {
-            end = this.seconds ();
+            untilSeconds = this.parseToInt (until / 1000);
         }
-        let limitResolved = limit;
-        if (limitResolved === undefined) {
-            limitResolved = (since !== undefined) ? 5000 : 1000;
+        // the venue keeps only the latest 5000 buckets of the requested window
+        const defaultLimit: Int = (since === undefined) ? 1000 : 5000;
+        let limitResolved: Int = this.parseToInt (defaultLimit);
+        if (limit !== undefined) {
+            limitResolved = this.parseToInt (limit);
         }
         if (limitResolved > 5000) {
-            limitResolved = 5000; // the venue keeps only the latest 5000 buckets of the requested window
+            limitResolved = this.parseToInt (5000);
         }
-        let start: Int = undefined;
+        const span: Int = this.parseToInt (limitResolved * duration);
+        const windowStart: Int = this.parseToInt (untilSeconds - span);
+        let start: Int = windowStart;
+        let end: Int = untilSeconds;
         if (since !== undefined) {
-            start = this.parseToInt (since / 1000);
+            const sinceSeconds: Int = this.parseToInt (since / 1000);
+            start = sinceSeconds;
             // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
-            const calculatedEnd = limitResolved * duration;
-            const maxEnd = this.sum (start, calculatedEnd);
-            if (maxEnd < end) {
-                end = maxEnd;
+            if (sinceSeconds < windowStart) {
+                end = this.sum (sinceSeconds, span);
             }
-        } else {
-            start = end - limitResolved * duration;
         }
         const request: Dict = {
             'period': period,
@@ -1918,14 +1912,14 @@ export default class derive extends Exchange {
         } as FundingRate;
     }
 
-    hashOrderMessage (order: any) {
+    hashOrderMessage (order: any): string {
         const accountHash = this.hash (this.ethAbiEncode ([
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), keccak, 'binary');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         // EIP712Domain (name "Matching", version "1.0", verifyingContract 0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD) precomputed for chainId 1 (mainnet) and 11155111 (sepolia testnet)
         let DOMAIN_SEPARATOR: Str = 'da616dfabb88681b08e1592820a41d55ddc62d68de110e327ae99d734506fe19';
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             DOMAIN_SEPARATOR = '24d674cd5f2b9d564691c51e9d88f649b99246a2244dd74ce27b96578d773e85';
         }
         const binaryDomainSeparator = this.base16ToBinary (DOMAIN_SEPARATOR);
@@ -1956,7 +1950,7 @@ export default class derive extends Exchange {
         return milliseconds + padded;
     }
 
-    hashMessage (message: any) {
+    hashMessage (message: string): string {
         const binaryMessage = this.encode (message);
         const binaryMessageLength = this.binaryLength (binaryMessage);
         const x19 = this.base16ToBinary ('19');
@@ -1974,7 +1968,7 @@ export default class derive extends Exchange {
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
-    signMessage (message: any, privateKey: string): string {
+    signMessage (message: string, privateKey: string): string {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
@@ -2104,7 +2098,7 @@ export default class derive extends Exchange {
         request['signature'] = signature;
         const paramsOmitted = this.omit (paramsDeriveWalletAddress, [ 'reduceOnly', 'reduce_only', 'timeInForce', 'time_in_force', 'postOnly', 'test', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trigger_price', 'stopLossPrice', 'takeProfitPrice', 'trigger_price_type' ]);
         let response: Dict;
-        if (test === true) {
+        if (test) {
             response = await this.privatePostOrderDebug (this.extend (request, paramsOmitted));
         } else {
             response = await this.privatePostOrder (this.extend (request, paramsOmitted));
@@ -2377,7 +2371,7 @@ export default class derive extends Exchange {
             response = await this.privatePostCancelByLabel (this.extend (request, paramsLabel));
         } else {
             request['order_id'] = id;
-            if (isTrigger === true) {
+            if (isTrigger) {
                 response = await this.privatePostCancelTriggerOrder (this.extend (request, paramsOmitted));
             } else {
                 response = await this.privatePostCancel (this.extend (request, paramsOmitted));
@@ -2641,7 +2635,7 @@ export default class derive extends Exchange {
             market = this.market (symbol);
         }
         let response: Dict;
-        if (isTrigger === true) {
+        if (isTrigger) {
             response = await this.privatePostGetTriggerOrders (this.extend (request, paramsDeriveSubaccountId));
         } else {
             response = await this.privatePostGetOpenOrders (this.extend (request, paramsDeriveSubaccountId));
@@ -2739,7 +2733,7 @@ export default class derive extends Exchange {
         return this.filterBy (orders, 'status', 'canceled') as Order[];
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -2749,7 +2743,7 @@ export default class derive extends Exchange {
         return this.safeString (timeInForces, (timeInForce as string));
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         if (status !== undefined) {
             const statuses: Dict = {
                 'open': 'open',
@@ -3174,6 +3168,8 @@ export default class derive extends Exchange {
         const markPrice = this.safeString (position, 'mark_price');
         const timestamp = this.safeInteger (position, 'creation_timestamp');
         const unrealisedPnl = this.safeString (position, 'unrealized_pnl');
+        const initialMarginString = Precise.stringAbs (this.safeString (position, 'initial_margin'));
+        const maintenanceMarginString = Precise.stringAbs (this.safeString (position, 'maintenance_margin'));
         size = Precise.stringAbs (size);
         const notional = Precise.stringMul (size, markPrice);
         return this.safePosition ({
@@ -3183,11 +3179,11 @@ export default class derive extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastUpdateTimestamp': undefined,
-            'initialMargin': this.safeNumber (position, 'initial_margin'),
-            'initialMarginPercentage': undefined,
-            'maintenanceMargin': this.safeNumber (position, 'maintenance_margin'),
-            'maintenanceMarginPercentage': undefined,
-            'entryPrice': undefined,
+            'initialMargin': this.parseNumber (initialMarginString),
+            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional, 8)),
+            'maintenanceMargin': this.parseNumber (maintenanceMarginString),
+            'maintenanceMarginPercentage': this.parseNumber (Precise.stringDiv (maintenanceMarginString, notional, 8)),
+            'entryPrice': this.safeNumber2 (position, 'average_price', 'average_price_excl_fees'),
             'notional': this.parseNumber (notional),
             'leverage': this.safeNumber (position, 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
@@ -3671,7 +3667,7 @@ export default class derive extends Exchange {
         }
         const fromId = this.parseToInt (fromAccount);
         // the destination is optional on the subaccount-creation path, an undefined must not reach the int conversion
-        const toId = (toAccount === undefined) ? 0 : this.parseToInt (toAccount);
+        const toId = this.parseToInt ((toAccount === undefined) ? 0 : toAccount);
         const amountString = this.numberToString (amount);
         const maxFeeUsd = this.safeString (params, 'max_fee_usd', '0');
         const newSubaccountManager = this.safeInteger (params, 'new_subaccount_manager', 0);
@@ -4245,7 +4241,7 @@ export default class derive extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'Batching': 'pending',
             'Executing': 'pending',
@@ -4320,8 +4316,9 @@ export default class derive extends Exchange {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const apiUrl = this.safeString (this.urls['api'], api);
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -4330,13 +4327,12 @@ export default class derive extends Exchange {
             const postHeaders: Dict = {
                 'Content-Type': 'application/json',
             };
-            if (api === 'private') {
+            if (apiName === 'private') {
                 const now = this.numberToString (this.nonce ());
                 const signature = this.signMessage (now, this.privateKey);
-                let deriveWalletAddress = this.safeString (this.options, 'deriveWalletAddress');
-                if ((deriveWalletAddress === undefined) || (deriveWalletAddress === '')) {
-                    deriveWalletAddress = this.walletAddress; // v3: the owner wallet is the user's own EOA
-                }
+                const configuredWalletAddress = this.safeString (this.options, 'deriveWalletAddress');
+                // v3: the owner wallet is the user's own EOA
+                const deriveWalletAddress = ((configuredWalletAddress === undefined) || (configuredWalletAddress === '')) ? this.walletAddress : configuredWalletAddress;
                 postHeaders['X-DeriveWallet'] = deriveWalletAddress;
                 postHeaders['X-DeriveTimestamp'] = now;
                 postHeaders['X-DeriveSignature'] = signature;
@@ -4344,6 +4340,6 @@ export default class derive extends Exchange {
             const postBody: Str = this.json (params);
             return { 'url': url, 'method': method, 'body': postBody, 'headers': postHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 }

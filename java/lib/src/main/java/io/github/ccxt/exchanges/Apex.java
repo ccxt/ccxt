@@ -632,7 +632,7 @@ public class Apex extends ApexApi
         String name = this.safeString(currency, "displayName");
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Object chains = this.options.get("_temp_currencies_chains");
-        for (var j = 0; j < Helpers.getArrayLength(chains); j++)
+        for (var j = 0; j < (switch ((Object)(chains)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); j++)
         {
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j, (Object) null);
             List<Object> tokens = (List<Object>) this.safeList(chain, "tokens", new ArrayList<Object>(Arrays.asList()));
@@ -989,7 +989,7 @@ public class Apex extends ApexApi
                 put( "symbol", Apex.this.safeString(market, "id2") );
             }};
             // default is 200 when requested with `since`, max 200
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200L : Math.min(limit, 200);
+            Long limitResolved = (((java.util.Objects.equals(limit, null) || (limit > 200)))) ? 200L : limit;
             request.put("limit", limitResolved);
             Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 0.001);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
@@ -1471,14 +1471,13 @@ public class Apex extends ApexApi
 
     public Map<String, Object> safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
     {
-        Object marketResolved = null;
+        Object marketResolved = market;
         if (java.util.Objects.equals(market, null) && !java.util.Objects.equals(marketId, null))
         {
-            Object marketsMap = this.markets;
             Map<String, Object> marketsById = this.markets_by_id;
-            if ((!java.util.Objects.equals(marketsMap, null)) && (((Map<?, ?>)marketsMap).containsKey(marketId)))
+            if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(marketId)))
             {
-                marketResolved = Helpers.GetValue(marketsMap, marketId);
+                marketResolved = (this.markets == null ? null : ((Map<?, ?>)this.markets).get(marketId));
             } else if ((!java.util.Objects.equals(marketsById, null)) && (marketsById.containsKey(marketId)))
             {
                 marketResolved = (marketsById == null || marketId == null ? null : marketsById.get(marketId));
@@ -1488,22 +1487,21 @@ public class Apex extends ApexApi
                 if ((!java.util.Objects.equals(marketsById, null)) && (marketsById.containsKey(newMarketId)))
                 {
                     Object markets = (marketsById == null || newMarketId == null ? null : marketsById.get(newMarketId));
-                    Integer numMarkets = Helpers.getArrayLength(markets);
+                    Integer numMarkets = (switch ((Object)(markets)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; });
                     if ((numMarkets != null && numMarkets > 0))
                     {
-                        if (java.util.Objects.equals(Helpers.GetValue(Helpers.GetValue((marketsById == null || newMarketId == null ? null : marketsById.get(newMarketId)), 0), "id2"), marketId))
+                        if (java.util.Objects.equals(Helpers.GetValue(Helpers.GetValue(markets, 0), "id2"), marketId))
                         {
-                            marketResolved = Helpers.GetValue((marketsById == null || newMarketId == null ? null : marketsById.get(newMarketId)), 0);
+                            marketResolved = Helpers.GetValue(markets, 0);
                         }
                     }
                 }
             }
         }
-        Object marketValue = (((java.util.Objects.equals(marketResolved, null)))) ? market : marketResolved;
-        return super.safeMarket(marketId, Helpers.toMapArg(marketValue), delimiter, marketType);
+        return super.safeMarket(marketId, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })), delimiter, marketType);
     }
 
-    public Object generateRandomClientIdOmni(String _accountId)
+    public String generateRandomClientIdOmni(String _accountId)
     {
         Boolean hasAccountId = (!java.util.Objects.equals(_accountId, null)) && (!java.util.Objects.equals(_accountId, ""));
         String accountId = null;
@@ -1521,8 +1519,8 @@ public class Apex extends ApexApi
     {
         String uppercaseSymbol = ((String)symbol).toUpperCase();
         Object index = ((String)uppercaseSymbol).indexOf("USDT");
-        String symbolChar = this.safeString(symbol, Helpers.subtract(index, 1));
-        if (Helpers.isGreaterThan(index, 0) && !java.util.Objects.equals(symbolChar, "-"))
+        String symbolChar = this.safeString(symbol, ((((Number) index).longValue()) - 1L));
+        if ((((Integer) index) > 0) && !java.util.Objects.equals(symbolChar, "-"))
         {
             return ((Helpers.slice(symbol, 0, index) + "-") + Helpers.slice(symbol, index, null));
         }
@@ -1539,7 +1537,7 @@ public class Apex extends ApexApi
         return seeds;
     }
 
-    public CompletableFuture<Object> getAccountId()
+    public CompletableFuture<String> getAccountId()
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1550,8 +1548,8 @@ public class Apex extends ApexApi
                 Object accountData = (this.fetchAccount(new HashMap<String, Object>() {{}})).join();
                 Helpers.addElementToObject(this.options, "accountId", this.safeString(accountData, "id", "0"));
             }
-            return this.options.get("accountId");
-        });
+            return this.safeString(this.options, "accountId");
+        }).thenApply(res -> (String) res);
 
     }
 
@@ -1634,13 +1632,9 @@ public class Apex extends ApexApi
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, "timeInForce");
             Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, "postOnly");
-            Object clientOrderId = this.safeStringN(paramsOmitted2, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
-            Object accountId = (this.getAccountId()).join();
-            if (java.util.Objects.equals(clientOrderId, null))
-            {
-                clientOrderId = this.generateRandomClientIdOmni((String) (accountId));
-            }
-            Object finalClientOrderId = clientOrderId; // java req
+            String clientOrderId = this.safeStringN(paramsOmitted2, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
+            String accountId = (this.getAccountId()).join();
+            Object finalClientOrderId = (((!java.util.Objects.equals(clientOrderId, null)))) ? clientOrderId : this.generateRandomClientIdOmni(accountId);
             Map<String, Object> paramsOmitted3 = this.omit(paramsOmitted2, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice")));
             String finalOrderPrice = orderPrice; // java req
             Map<String, Object> orderToSign = new HashMap<String, Object>() {{
@@ -1666,7 +1660,7 @@ public class Apex extends ApexApi
             request.put("size", orderSize);
             request.put("price", finalOrderPrice);
             request.put("limitFee", limitFee);
-            request.put("expiration", (Math.floor(Double.parseDouble(Helpers.toString(((((double) timeNow) / ((double) 1000)) + (((30L * 24L) * 60L) * 60L)))))));
+            request.put("expiration", ((this.parseToInt((((double) timeNow) / ((double) 1000)))) + (((30L * 24L) * 60L) * 60L)));
             request.put("timeInForce", timeInForce);
             request.put("clientId", finalClientOrderId);
             request.put("brokerId", this.safeString(this.options, "brokerId", "6956"));
@@ -1730,7 +1724,8 @@ public class Apex extends ApexApi
             String accountId = this.safeString(accountData, "id", "");
             Object currency = new HashMap<String, Object>() {{}};
             List<Object> assets = new ArrayList<Object>(Arrays.asList());
-            if (java.util.Objects.equals(((String)fromAccount).toLowerCase(), "contract"))
+            Boolean isContract = java.util.Objects.equals(((String)fromAccount).toLowerCase(), "contract");
+            if (Boolean.TRUE.equals(isContract))
             {
                 assets = contractAssets;
             } else
@@ -1747,17 +1742,15 @@ public class Apex extends ApexApi
             String tokenId = this.safeString(currency, "tokenId", "");
             Double decimalsNum = this.safeNumber(currency, "decimals", 0);
             Object decimalsNumber = (((java.util.Objects.equals(decimalsNum, null)))) ? 0 : decimalsNum;
-            Object mathPowResult = (Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(Helpers.toString(decimalsNumber))));
-            Long amountNumber = this.parseToInt(Helpers.multiply(amount, mathPowResult));
+            Double mathPowResult = (Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(decimalsNumber, null))));
+            Double amountNum = this.parseNumber(amount);
+            Double amountValue = (((java.util.Objects.equals(amountNum, null)))) ? 0 : amountNum;
+            Long amountNumber = this.parseToInt((amountValue * mathPowResult));
             Long timestampSeconds = this.parseToInt((((double) this.milliseconds()) / ((double) 1000)));
-            Object clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
-            if (java.util.Objects.equals(clientOrderId, null))
-            {
-                clientOrderId = this.generateRandomClientIdOmni(this.safeString(this.options, "accountId"));
-            }
-            Object finalClientOrderId = clientOrderId; // java req
+            String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
+            Object finalClientOrderId = (((!java.util.Objects.equals(clientOrderId, null)))) ? clientOrderId : this.generateRandomClientIdOmni(this.safeString(this.options, "accountId"));
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
-            if (java.util.Objects.equals(((String)fromAccount).toLowerCase(), "contract"))
+            if (Boolean.TRUE.equals(isContract))
             {
                 String formattedUint32 = "4294967295";
                 String zkSignAccountId = Precise.stringMod(accountId, formattedUint32);
@@ -1775,18 +1768,19 @@ public class Apex extends ApexApi
                     put( "isContract", true );
                 }};
                 Void signature = (this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign)).join();
-                Map<String, Object> request = new HashMap<String, Object>();
-                request.put("amount", amount);
-                request.put("expireTime", expireTime);
-                request.put("clientWithdrawId", finalClientOrderId);
-                request.put("signature", signature);
-                request.put("token", code);
-                request.put("ethAddress", ethAddress);
+                Map<String, Object> request = new HashMap<String, Object>() {{
+                    put( "amount", amount );
+                    put( "expireTime", expireTime );
+                    put( "clientWithdrawId", finalClientOrderId );
+                    put( "signature", signature );
+                    put( "token", code );
+                    put( "ethAddress", ethAddress );
+                }};
                 Map<String, Object> response = (this.privatePostV3ContractTransferOut(this.extend(request, paramsOmitted))).join();
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 Long currentTime = this.milliseconds();
                 Double parsedAmount = this.parseNumber(amount);
-                return this.extend(this.parseTransfer(data, Helpers.toMapArg(this.currency((String) (code)))), new HashMap<String, Object>() {{
+                return this.extend(this.parseTransfer(data, this.currency((String) (code))), new HashMap<String, Object>() {{
                     put( "timestamp", currentTime );
                     put( "datetime", Apex.this.iso8601(currentTime) );
                     put( "amount", parsedAmount );
@@ -1827,13 +1821,13 @@ public class Apex extends ApexApi
                 Map<String, Object> response = (this.privatePostV3TransferOut(this.extend(request, paramsOmitted))).join();
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 Long currentTime = this.milliseconds();
-                return this.extend(this.parseTransfer(data, Helpers.toMapArg(this.currency((String) (code)))), Helpers.newMap(
-                    "timestamp", currentTime,
-                    "datetime", this.iso8601(currentTime),
-                    "amount", this.parseNumber(amount),
-                    "fromAccount", "spot",
-                    "toAccount", "contract"
-                ));
+                return this.extend(this.parseTransfer(data, this.currency((String) (code))), new HashMap<String, Object>() {{
+                    put( "timestamp", currentTime );
+                    put( "datetime", Apex.this.iso8601(currentTime) );
+                    put( "amount", Apex.this.parseNumber(amount) );
+                    put( "fromAccount", "spot" );
+                    put( "toAccount", "contract" );
+                }});
             }
         }).thenApply(TransferEntry::new);
 
@@ -2339,9 +2333,10 @@ public class Apex extends ApexApi
         return this.safePosition(mapLiteral3);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2353,7 +2348,7 @@ public class Apex extends ApexApi
             put( "Content-Type", "application/x-www-form-urlencoded" );
         }};
         String signPath = ("/api/" + path);
-        String signBody = body;
+        String signBody = null;
         if (!java.util.Objects.equals(((String)java.util.Objects.requireNonNullElse(method, "GET")).toUpperCase(), "POST"))
         {
             if (((Map<String, Object>)parameters).size() > 0)
@@ -2366,7 +2361,7 @@ public class Apex extends ApexApi
             Map<String,Object> sortedQuery = this.keysort(parameters);
             signBody = this.rawencode(sortedQuery);
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String timestamp = String.valueOf(this.milliseconds());

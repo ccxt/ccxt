@@ -172,14 +172,14 @@ export default class bitvavo extends bitvavoRest {
      */
     unWatchOrderBookForSymbols(symbols: string[], params?: Dict): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     handleOrderBookMessage(client: Client, message: Dict, orderbook: any): any;
     handleOrderBook(client: Client, message: Dict): void;
     watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<WsOrderBook | undefined>;
     handleOrderBookSnapshot(client: Client, message: Dict): void;
     handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;
     handleOrderBookSubscriptions(client: Client, message: Dict, marketIds: any[]): void;
-    unWatchChannels(topic: string, channels: any[], subMessageHashes: string[], subscriptionArgs: Dict, params?: {}): Promise<any>;
+    unWatchChannels(topic: string, channels: any[], subMessageHashes: string[], subscriptionArgs: Dict, params?: Dict): Promise<any>;
     handleUnsubscriptionStatus(client: Client, message: Dict): Dict;
     /**
      * @method
