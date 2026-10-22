@@ -3124,9 +3124,9 @@ export default class bybit extends Exchange {
         } else {
             if (since !== undefined) {
                 // end time is required when since is not empty
-                let fundingInterval = 60 * 60 * 8 * 1000;
+                let fundingInterval = 28800000; // 8 hours in milliseconds
                 if (fundingTimeFrameMins !== undefined) {
-                    fundingInterval = fundingTimeFrameMins * 60 * 1000;
+                    fundingInterval = fundingTimeFrameMins * 60000;
                 }
                 if (limit === undefined) {
                     request['endTime'] = this.sum (since, 200 * fundingInterval);
@@ -7728,12 +7728,12 @@ export default class bybit extends Exchange {
         const request: Dict = {
             'currency': currency['id'],
         };
-        const sinceResolved = (since === undefined) ? this.milliseconds () - 86400000 * 30 : since; // last 30 days
+        const sinceResolved = (since === undefined) ? this.milliseconds () - 2592000000 : since; // last 30 days
         request['startTime'] = sinceResolved;
         let endTime = this.safeInteger2 (params, 'until', 'endTime');
         const paramsOmitted: Dict = this.omit (params, [ 'until' ]);
         if (endTime === undefined) {
-            endTime = sinceResolved + 86400000 * 30; // since + 30 days
+            endTime = sinceResolved + 2592000000; // since + 30 days
         }
         request['endTime'] = endTime;
         const response = await this.privateGetV5SpotMarginTradeInterestRateHistory (this.extend (request, paramsOmitted));
