@@ -2694,7 +2694,7 @@ export default class cryptocom extends Exchange {
         return [ marginMode, paramsMarginMode ];
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         //
         //    {
         //        "full_name": "Alchemix",

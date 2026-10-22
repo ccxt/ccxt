@@ -2602,7 +2602,7 @@ export default class bitvavo extends Exchange {
         } as Transaction;
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         //
         //   {
         //       "symbol": "1INCH",

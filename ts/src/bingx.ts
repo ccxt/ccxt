@@ -6328,7 +6328,7 @@ export default class bingx extends Exchange {
         return this.parseTrades (fills, market, since, limit, paramsTrades);
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         //
         // currencie structure
         //

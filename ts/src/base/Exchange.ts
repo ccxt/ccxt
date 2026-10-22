@@ -8498,7 +8498,7 @@ export class BaseExchange {
         return depositWithdrawFees;
     }
 
-    parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         throw new NotSupported (this.id + ' parseDepositWithdrawFee() is not supported yet');
     }
 

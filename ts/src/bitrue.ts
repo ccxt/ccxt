@@ -2964,7 +2964,7 @@ export default class bitrue extends Exchange {
         return this.parseTransaction (data as Dict, currency);
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         //
         //   {
         //       "coin": "adx",

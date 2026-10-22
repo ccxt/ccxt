@@ -3018,7 +3018,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         //
         // * only used for fetchPrivateDepositWithdrawFees
         //

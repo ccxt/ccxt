@@ -3439,7 +3439,7 @@ export default class poloniex extends Exchange {
         return depositWithdrawFees;
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         const depositWithdrawFee = this.depositWithdrawFee ({});
         const currencyCode = this.safeString (currency, 'code');
         depositWithdrawFee['info'][currencyCode as string] = fee;
