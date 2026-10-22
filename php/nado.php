@@ -2494,7 +2494,7 @@ class nado extends Exchange {
         );
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //     {
         //         "product_id": 1,
@@ -3194,7 +3194,7 @@ class nado extends Exchange {
         return $marketId;
     }
 
-    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array(), string $method = 'GET', $params = array()): array {
         $requestBody = null;
         $endpoint = $api[0];
         $baseApiUrl = $this->safe_string($this->urls['api'], $endpoint);

@@ -2147,7 +2147,7 @@ class bingx extends Exchange {
         return $this->parse_open_interest($result, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         // linear swap
         //
@@ -6503,7 +6503,7 @@ class bingx extends Exchange {
         return $this->parse_trades($fills, $market, $since, $limit, $paramsTrades);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //
         // currencie structure
         //
@@ -7460,7 +7460,7 @@ class bingx extends Exchange {
         return $tiers;
     }
 
-    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $section = array('public'), string $method = 'GET', $params = array()): array {
         $type = $section[0];
         $version = $section[1];
         $access = $section[2];

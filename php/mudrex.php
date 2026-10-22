@@ -175,7 +175,7 @@ class mudrex extends Exchange {
         ));
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $apiUrls = $this->safe_dict($this->urls, 'api', array());
         $base = $this->safe_string($apiUrls, $apiName);

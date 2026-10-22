@@ -3695,7 +3695,7 @@ class blofin extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));

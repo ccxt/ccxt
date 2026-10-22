@@ -12081,7 +12081,7 @@ class kucoin extends Exchange {
         return $this->parse_open_interests($data, $symbolsNormalized);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //     {
         //         "symbol": "ETHUSDTM",
@@ -12188,8 +12188,8 @@ class kucoin extends Exchange {
         return $uta;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
-        $apiName = $api[0];
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $this->safe_string($api, 0);
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑

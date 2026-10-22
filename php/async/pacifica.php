@@ -3207,7 +3207,7 @@ class pacifica extends Exchange {
         return $oi;
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //     {
         //       "funding": "0.00010529",
@@ -3888,7 +3888,7 @@ class pacifica extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $requestBody = null;
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = 'api';

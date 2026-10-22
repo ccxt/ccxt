@@ -3332,7 +3332,7 @@ class deribit extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //
         //    {
         //      "withdrawal_priorities": [],
@@ -4116,7 +4116,7 @@ class deribit extends Exchange {
         return $this->parse_open_interest($data, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //     {
         //         "high": 93099.5,
@@ -4165,7 +4165,7 @@ class deribit extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $request = '/' . 'api/' . $this->version . '/' . $apiName . '/' . $path;
         if ($apiName === 'public') {

@@ -3939,7 +3939,7 @@ class predictfun extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('predictfun'), $method = 'GET', $params = array()) {
+    public function sign(string $path, array $api = array('predictfun'), string $method = 'GET', $params = array()) {
         /**
          * @ignore
          * builds the request URL and attaches the API key header required by every endpoint

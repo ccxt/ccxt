@@ -2103,9 +2103,10 @@ class polymarket extends Exchange {
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             for ($i = 0; $i < count($response); $i++) {
                 // request echo first so the response's real orderID/status win on overlap
-                $enriched = $this->extend($requests[$i], $response[$i]);
+                $rawItem = $response[$i];
+                $enriched = $this->extend($requests[$i], $rawItem);
                 $parsedItem = $this->parse_prediction_order($enriched, $outcomes[$i]);
-                $parsedItem['info'] = $response[$i];   // keep info the raw exchange response
+                $parsedItem['info'] = $rawItem;   // keep info the raw exchange response
                 $result[] = $parsedItem;
             }
         } else {
@@ -2801,7 +2802,7 @@ class polymarket extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('gamma'), $method = 'GET', $params = array()) {
+    public function sign(string $path, array $api = array('gamma'), string $method = 'GET', $params = array()) {
         /**
          * @ignore
          * builds the request $url and attaches HMAC-SHA256 authentication headers for private endpoints

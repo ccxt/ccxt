@@ -1133,7 +1133,7 @@ class kraken extends \ccxt\async\kraken {
         $integer = $this->safe_string($parts, 0, '');
         $decimals = $this->safe_string($parts, 1, '');
         $joinedResult = $integer . $decimals;
-        while ((strlen($joinedResult) > 0) && ($joinedResult[0] === '0')) {
+        while (str_starts_with($joinedResult, '0')) {
             $joinedResult = mb_substr($joinedResult, 1);
         }
         return $joinedResult;

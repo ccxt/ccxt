@@ -7759,7 +7759,7 @@ class bybit extends Exchange {
         return Async\await($this->fetch_derivatives_open_interest_history($symbol, $timeframe, $since, $limit, $params));
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //    {
         //        "openInterest": 64757.62400000,
@@ -7956,12 +7956,12 @@ class bybit extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $sinceResolved = ($since === null) ? $this->milliseconds() - 86400000 * 30 : $since; // last 30 days
+        $sinceResolved = ($since === null) ? $this->milliseconds() - 2592000000 : $since; // last 30 days
         $request['startTime'] = $sinceResolved;
         $endTime = $this->safe_integer_2($params, 'until', 'endTime');
         $paramsOmitted = $this->omit($params, array( 'until' ));
         if ($endTime === null) {
-            $endTime = $sinceResolved + 86400000 * 30; // since + 30 days
+            $endTime = $sinceResolved + 2592000000; // since + 30 days
         }
         $request['endTime'] = $endTime;
         $response = Async\await($this->privateGetV5SpotMarginTradeInterestRateHistory($this->extend($request, $paramsOmitted)));
@@ -8491,7 +8491,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //
         //    {
         //        "name": "BTC",
@@ -10403,7 +10403,7 @@ class bybit extends Exchange {
         return $this->safe_string($marginModes, $marginMode, $marginMode);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $requestBody = null;
         $requestHeaders = null;

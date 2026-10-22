@@ -4940,8 +4940,8 @@ class htx extends Exchange {
             if ($rawType !== null) {
                 if (mb_strpos($rawType, '-') !== false) {
                     $orderType = explode('-', $rawType);
-                    $side = $orderType[0];
-                    $type = $orderType[1];
+                    $side = $this->safe_string($orderType, 0);
+                    $type = $this->safe_string($orderType, 1);
                 } elseif ($type === null) {
                     $type = $rawType;
                 }
@@ -7563,7 +7563,7 @@ class htx extends Exchange {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $signedHeaders = null;
         $signedBody = null;
         $pathString = $path;
@@ -8422,9 +8422,10 @@ class htx extends Exchange {
         $positions = $this->safe_list($account, 'positions', array());
         $position = null;
         if (($market['future'] === true) && ($market['inverse'] === true)) {
+            $marketId = $this->safe_string($market, 'id');
             for ($i = 0; $i < count($positions); $i++) {
                 $entry = $positions[$i];
-                if ($this->safe_string($entry, 'contract_code') === $market['id']) {
+                if ($this->safe_string($entry, 'contract_code') === $marketId) {
                     $position = $entry;
                     break;
                 }
@@ -8952,7 +8953,7 @@ class htx extends Exchange {
         return $openInterest;
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         // fetchOpenInterestHistory
         //
@@ -9389,7 +9390,7 @@ class htx extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //
         //            {
         //              "currency": "sxp",

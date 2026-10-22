@@ -3433,7 +3433,7 @@ class poloniex extends Exchange {
         return $depositWithdrawFees;
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         $depositWithdrawFee = $this->deposit_withdraw_fee(array());
         $currencyCode = $this->safe_string($currency, 'code');
         $depositWithdrawFee['info'][$currencyCode] = $fee;
@@ -3979,7 +3979,7 @@ class poloniex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         $url = $this->urls['api']['spot'];

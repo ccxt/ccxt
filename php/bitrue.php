@@ -2956,7 +2956,7 @@ class bitrue extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //
         //   {
         //       "coin": "adx",
@@ -3253,7 +3253,7 @@ class bitrue extends Exchange {
         return $this->parse_margin_modification($response, $market);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $requestBody = null;
         $requestHeaders = null;
         $type = $this->safe_string($api, 0);

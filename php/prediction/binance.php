@@ -1985,7 +1985,7 @@ class binance extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('sapi'), $method = 'GET', $params = array()) {
+    public function sign(string $path, array $api = array('sapi'), string $method = 'GET', $params = array()) {
         /**
          * @ignore
          * builds the request URL and attaches the standard binance SAPI HMAC-SHA256 $signature — every prediction endpoint is signed
