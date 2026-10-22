@@ -12560,7 +12560,7 @@ impl std::ops::DerefMut for ${coreName} {
     // dispatch inline (public `Value::len`, `value::side_entries_as_value`, `ws_client::value_subs_remove`).
     // Not for rust/tests (no `crate::value`); innermost-first so nested calls rewrite too.
     hx4R29InlineCollectionHelpers(content: string): string {
-        const names = [ 'in_op', 'object_keys', 'get_array_length', 'remove' ];
+        const names = [ 'in_op', 'object_keys', 'remove' ]; // hx5 X35
         if (!names.some(n => content.includes(n + '('))) return content;
         const build = (name: string, args: string[]): string | undefined => {
             const a = args.map(s => s.trim());
@@ -12568,20 +12568,20 @@ impl std::ops::DerefMut for ${coreName} {
             // concrete map (`Arc<IndexMap<String, Value>>` / `IndexMap<String, Value>`) with a literal
             // string key; every other site keeps the `in_op(..)` helper call (Null / non-map / array).
             if (name === 'in_op') return hx5X33InOp(a, content);
-
-            if (name === 'object_keys' && a.length === 1) {
-                return `({ let __r29o: &Value = ${a[0]}; match __r29o { Value::Dict(__m) => Value::List(__m.keys().filter(|__k| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|__k| Value::Str(__k.clone().into())).collect()), _ => Value::List(vec![]) } })`;
-            }
-            if (name === 'get_array_length' && a.length === 1) {
-                return `({ let __r29o: &Value = ${a[0]}; match __r29o { Value::Dict(__d) if __d.contains_key("__sideKind") && !__d.contains_key("__cacheKind") && !matches!(__d.get("__book_cache_id"), Some(Value::Int(_))) => Value::Int(crate::value::side_entries_as_value(__r29o).map(|__s| __s.len()).unwrap_or(0) as i64), _ => Value::Int(__r29o.len() as i64) } })`;
-            }
+            // hx5 X34 — no inline `match` for `object_keys`: every generated receiver is a `Value` (no
+            // typed map binding exists), and the runtime fn also drops the `__ws_subs_url`/`__ws_sub_ref`
+            // tags, so no site is proven; `runtime::object_keys(..)` stays exactly as master emitted it.
+            if (name === 'object_keys') return undefined;
+            // hx5 X35 — no inline `get_array_length` match: the call text is left untouched, so an
+            // unproven operand keeps master's helper call (`Value::len` counts chars, and the helper also
+            // unwraps book/cache/side markers, so no plain `.len()` on a `&Value` matches it).
             // hx5 X36 — `remove` is never inlined. Every generated receiver is a `Value` (no typed
             // `IndexMap` local exists in emitted Rust), so no site proves a plain map and the native
             // `shift_remove` would also skip `try_ws_subs_remove`; `remove(...)` stays the helper call.
             if (name === 'remove') return undefined;
             return undefined;
         };
-        const re = /(?<![A-Za-z0-9_:.])(in_op|object_keys|get_array_length|remove)\(/g;
+        const re = /(?<![A-Za-z0-9_:.])(in_op|object_keys|remove)\(/g; // hx5 X35: get_array_length dropped
         // Repeat until no rewrite applies: each round replaces calls whose args hold no further helper call.
         for (let round = 0; round < 8; round++) {
             const masked = this.maskStringsAndComments(content);
@@ -12596,7 +12596,8 @@ impl std::ops::DerefMut for ${coreName} {
                 if (close < 0) continue;
                 const inner = content.slice(open + 1, close);
                 // hx5 X33: a retained `in_op(` helper call inside the args no longer blocks the outer rewrite.
-                if (/(?<![A-Za-z0-9_:.])(object_keys|get_array_length|remove)\(/.test(this.maskStringsAndComments(inner))) continue;
+                // hx5 X35: get_array_length is no longer rewritten by this pass, so it never blocks either.
+                if (/(?<![A-Za-z0-9_:.])(object_keys|remove)\(/.test(this.maskStringsAndComments(inner))) continue;
                 const text = build(name, this.splitTopLevelCommas(inner));
                 if (text === undefined) continue;
                 if (name === 'remove' && !/^\s*;/.test(content.slice(close + 1, close + 8))) continue;
@@ -12618,27 +12619,24 @@ impl std::ops::DerefMut for ${coreName} {
     // `stringify_simple` is private: scalars inline, the `__precise` dict goes through the public
     // `runtime::stringify_param` alias, other containers through `Display` exactly like the helper.
     r31Str(content: string): string {
+        content = this.x39Affix(content); // hx5 X39
         // hx5 X41: pad_start/pad_end/to_fixed (and slice) are not r31 targets: no site has a proven `&str`/number
         // operand with in-range bounds, so the master `runtime::` helper call stays. Never print their bodies inline.
-        const names = [ 'to_string_val', 'join', 'split', 'replace_str', 'ends_with', 'starts_with' ];
+        const names = [ 'to_string_val', 'join', 'split', 'replace_str' ]; // hx5 X39: starts_with/ends_with via x39Affix
         if (!names.some(n => content.includes(n + '('))) return content;
         const str = (v: string) => `(match ${v} { Value::Str(__s) => __s.to_string(), Value::Int(__n) => __n.to_string(), Value::Float(__f) => __f.to_string(), Value::Bool(__b) => __b.to_string(), Value::Null => "null".to_string(), Value::Dict(__m) if __m.contains_key("__precise") => crate::runtime::stringify_param(${v}), __o => format!("{}", __o) })`;
         const build = (name: string, args: string[]): string | undefined => {
             const a = args.map(s => s.trim());
-            if (name === 'to_string_val' && a.length === 1) {
-                return `({ let __r31v: &Value = ${a[0]}; Value::Str(${str('__r31v')}.into()) })`;
-            }
+            if (name === 'to_string_val') return this.x42ToStr(a); // hx5 X42: proven native or helper
             // hx5 X40: split/join/replace_str are never inlined. Every r31 site reaches this pass as a
             // `&Value` operand that no emitted declaration proves to be a `Value::Str` / `Value::Arr` of
             // strings (and the runtime differs from a bare `.split`/`.join`/`.replace` on non-Str, null and
             // element type), so the plain `runtime::*` helper call master emitted stays.
             if (name === 'join' || name === 'split' || name === 'replace_str') return undefined;
-            if ((name === 'starts_with' || name === 'ends_with') && a.length === 2) {
-                return `({ let __r31a: &Value = ${a[0]}; let __r31b: &Value = ${a[1]}; match (__r31a, __r31b) { (Value::Str(__h), Value::Str(__x)) => __h.${name}(__x.as_ref()), _ => false } })`;
-            }
+            // hx5 X39: starts_with/ends_with tier-2 arm deleted (x39Affix handles proven Str boxes).
             return undefined;
         };
-        const re = /(?<![A-Za-z0-9_:.])(to_string_val|join|split|replace_str|ends_with|starts_with)\(/g;
+        const re = /(?<![A-Za-z0-9_:.])(to_string_val|join|split|replace_str)\(/g; // hx5 X39/X41
         for (let round = 0; round < 8; round++) {
             const masked = this.maskStringsAndComments(content);
             const rewrites: Array<{ start: number, end: number, text: string }> = [];
@@ -12650,7 +12648,7 @@ impl std::ops::DerefMut for ${coreName} {
                 const close = this.closeParenAt(content, open);
                 if (close < 0) continue;
                 const inner = content.slice(open + 1, close);
-                if (/(?<![A-Za-z0-9_:.])(to_string_val|ends_with|starts_with|pad_end|pad_start|to_fixed)\(/.test(this.maskStringsAndComments(inner))) continue; // hx5 X40: helper-call args do not block the outer site
+                if (/(?<![A-Za-z0-9_:.])(to_string_val)\(/.test(this.maskStringsAndComments(inner))) continue; // hx5 X40: helper-call args do not block the outer site (X39/X41: affix/pad/to_fixed no longer rewritten here)
                 const text = build(name, this.splitTopLevelCommas(inner));
                 if (text === undefined) continue;
                 rewrites.push({ start, end: close + 1, text });
@@ -12970,6 +12968,58 @@ impl std::ops::DerefMut for ${coreName} {
         let out = '', at = 0;
         for (const r of rewrites) { out += content.slice(at, r.start) + r.text; at = r.end; }
         return out + content.slice(at);
+    }
+
+    // hx5 X39 — case/affix helpers: `starts_with`/`ends_with` go native ONLY when both
+    // args are a proven `&Value::Str(E.into())` box (E is then a &str/String, evaluated once,
+    // and the helper's `(Str, Str)` arm is exactly `h.starts_with(p)`); every other site keeps
+    // the plain `runtime` helper call. `to_upper`/`to_lower` are never inlined here: a native
+    // `to_uppercase()` needs a proven `&str` receiver, and no such site reaches this pass.
+    x39Affix(content: string): string {
+        if (!content.includes('starts_with(') && !content.includes('ends_with(')) return content;
+        const strBox = (arg: string): string | undefined => {
+            const t = arg.trim();
+            if (!t.startsWith('&Value::Str(')) return undefined;
+            const open = t.indexOf('(');
+            const close = this.closeParenAt(t, open);
+            if (close !== t.length - 1) return undefined;
+            const m = /^([\s\S]+)\.(?:into|to_string)\(\)$/.exec(t.slice(open + 1, close).trim());
+            if (m === null) return undefined;
+            const e = m[1].trim();
+            if (/^"(?:[^"\\]|\\.)*"$/.test(e)) return e;
+            if (/^format!\(/.test(e) && this.closeParenAt(e, e.indexOf('(')) === e.length - 1) return e;
+            return undefined;
+        };
+        const re = /(?<![A-Za-z0-9_:.])(starts_with|ends_with)\(/g;
+        const masked = this.maskStringsAndComments(content);
+        let out = ''; let at = 0;
+        for (const m of masked.matchAll(re)) {
+            const start = m.index as number;
+            if (start < at) continue;
+            if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
+            const open = start + m[1].length;
+            const close = this.closeParenAt(content, open);
+            if (close < 0) continue;
+            const args = this.splitTopLevelCommas(content.slice(open + 1, close));
+            if (args.length !== 2) continue;
+            const h = strBox(args[0]); const n = strBox(args[1]);
+            if (h === undefined || n === undefined) continue;
+            out += content.slice(at, start) + `(${h}).${m[1]}(&*${n})`;
+            at = close + 1;
+        }
+        return out + content.slice(at);
+    }
+
+    // hx5 X42 — `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box
+    // (helper = `Value::Str(stringify_simple(..))`, identity on Str, so the box itself is
+    // the result and E is evaluated once). Every other operand keeps the helper call verbatim:
+    // `Display` differs from `stringify_simple` on Arr/Dict and the `__precise` dict.
+    // parse_int/parse_float are emitted as `crate::runtime::parse_*`, never inlined by r31: left alone.
+    x42ToStr(a: string[]): string | undefined {
+        if (a.length !== 1) return undefined;
+        const m = /^&\s*(Value::Str\(([\s\S]*)\))$/.exec(a[0]);
+        if (m === null || this.closeParenAt(m[1], 'Value::Str'.length) !== m[1].length - 1) return undefined;
+        return m[1];
     }
 }
 
