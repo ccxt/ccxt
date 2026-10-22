@@ -1919,7 +1919,7 @@ export default class bingx extends Exchange {
         return this.parseFundingRateHistories (data, market, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (contract: any, market: Market = undefined): FundingRateHistory {
+    override parseFundingRateHistory (contract: Dict, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //         "symbol": "BTC-USDT",
@@ -6572,7 +6572,7 @@ export default class bingx extends Exchange {
         return this.parseLiquidations (liquidations, market, since, limit);
     }
 
-    override parseLiquidation (liquidation: any, market: Market = undefined): Liquidation {
+    override parseLiquidation (liquidation: Dict, market: Market = undefined): Liquidation {
         //
         //     {
         //         "time": "int64",

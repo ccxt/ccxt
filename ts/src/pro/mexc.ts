@@ -975,7 +975,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    override handleBookDelta (orderbook: WsOrderBook, delta: any) {
+    override handleBookDelta (orderbook: WsOrderBook, delta: NullableDict) {
         const existingNonce = this.safeInteger (orderbook, 'nonce');
         const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ]);
         if ((deltaNonce !== undefined) && (existingNonce !== undefined) && (deltaNonce < existingNonce)) {

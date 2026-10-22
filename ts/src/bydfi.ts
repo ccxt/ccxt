@@ -1168,7 +1168,7 @@ export default class bydfi extends Exchange {
         return this.parseFundingRateHistories (data, market, since, limit);
     }
 
-    override parseFundingRateHistory (contract: any, market: Market = undefined): FundingRateHistory {
+    override parseFundingRateHistory (contract: Dict, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //         "symbol": "ETH-USDT",

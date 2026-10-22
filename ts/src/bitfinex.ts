@@ -3397,7 +3397,7 @@ export default class bitfinex extends Exchange {
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < rawRatesData.length; i++) {
             const fr = rawRatesData[i];
-            const rate = this.parseFundingRateHistory (fr, market);
+            const rate = this.parseFundingRateHistoryRow (fr, market);
             rates.push (rate);
         }
         const reversedArray: FundingRateHistory[] = [];
@@ -3465,7 +3465,7 @@ export default class bitfinex extends Exchange {
         } as FundingRate;
     }
 
-    override parseFundingRateHistory (contract: any, market: Market = undefined): FundingRateHistory {
+    parseFundingRateHistoryRow (contract: List, market: Market = undefined): FundingRateHistory {
         //
         // [
         //     1691165494000,
@@ -3800,10 +3800,16 @@ export default class bitfinex extends Exchange {
         //         ],
         //     ]
         //
-        return this.parseLiquidations (this.toArray (response), market, since, limit);
+        const rows = this.toArray (response);
+        const result: Liquidation[] = [];
+        for (let i = 0; i < rows.length; i++) {
+            result.push (this.parseLiquidationRow (rows[i], market));
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit);
     }
 
-    override parseLiquidation (liquidation: any, market: Market = undefined): Liquidation {
+    parseLiquidationRow (liquidation: List, market: Market = undefined): Liquidation {
         //
         //     [
         //         [

@@ -2636,7 +2636,7 @@ export default class paradex extends Exchange {
         return this.parseLiquidations (data, market, since, limit);
     }
 
-    override parseLiquidation (liquidation: any, market: Market = undefined): Liquidation {
+    override parseLiquidation (liquidation: Dict, market: Market = undefined): Liquidation {
         //
         //     {
         //         "created_at": 1697213130097,

@@ -1984,7 +1984,7 @@ export default class weex extends Exchange {
         return this.parseFundingRateHistories (response, market, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (contract: any, market: Market = undefined): FundingRateHistory {
+    override parseFundingRateHistory (contract: Dict, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //         "symbol": "ETHUSDT",

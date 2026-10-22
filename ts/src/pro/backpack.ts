@@ -3,7 +3,7 @@
 import { ed25519 } from '@noble/curves/ed25519.js';
 import backpackRest from '../backpack.js';
 import { ArgumentsRequired, BadRequest, BadSymbol, ExchangeError, NotSupported } from '../base/errors.js';
-import type { Balances, Bool, Dict, Fee, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, Fee, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, NullableDict } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -1189,7 +1189,7 @@ export default class backpack extends backpackRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    override handleBookDelta (orderbook: WsOrderBook, delta: any) {
+    override handleBookDelta (orderbook: WsOrderBook, delta: NullableDict) {
         const microseconds = this.safeInteger (delta, 'T', 0);
         const timestamp = this.parseToInt (microseconds / 1000);
         orderbook['timestamp'] = timestamp;

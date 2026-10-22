@@ -9687,7 +9687,7 @@ export default class htx extends Exchange {
         return this.parseLiquidations (data, market, since, limit);
     }
 
-    override parseLiquidation (liquidation: any, market: Market = undefined): Liquidation {
+    override parseLiquidation (liquidation: Dict, market: Market = undefined): Liquidation {
         //
         //     {
         //         "query_id": 452057,

@@ -4,7 +4,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import bithumbRest from '../bithumb.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type{ Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, Bool, Order, Str, Market, Balances, FeeString } from '../base/types.js';
+import type{ Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, Bool, Order, Str, Market, Balances, FeeString, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, BadRequest, ExchangeError } from '../base/errors.js';
 import { jwt } from '../base/functions/rsa.js';
@@ -519,7 +519,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleBookDelta (orderbook: WsOrderBook, delta: any) {
+    override handleBookDelta (orderbook: WsOrderBook, delta: NullableDict) {
         //
         //    {
         //        symbol: "ETH_BTC",

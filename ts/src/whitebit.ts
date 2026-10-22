@@ -4243,7 +4243,7 @@ export default class whitebit extends Exchange {
         return this.parseFundingRateHistories (response, market, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (info: any, market: Market = undefined): FundingRateHistory {
+    override parseFundingRateHistory (info: Dict, market: Market = undefined): FundingRateHistory {
         const marketId = this.safeString (info, 'market');
         const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeTimestamp (info, 'fundingTime');

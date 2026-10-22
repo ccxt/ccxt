@@ -3852,7 +3852,7 @@ export default class hyperliquid extends Exchange {
         return this.parseLiquidations (fills, market, since, limit);
     }
 
-    override parseLiquidation (liquidation: any, market: Market = undefined): Liquidation {
+    override parseLiquidation (liquidation: Dict, market: Market = undefined): Liquidation {
         //
         // see fetchMyLiquidations
         //
