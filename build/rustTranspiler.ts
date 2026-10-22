@@ -12560,7 +12560,7 @@ impl std::ops::DerefMut for ${coreName} {
     // dispatch inline (public `Value::len`, `value::side_entries_as_value`, `ws_client::value_subs_remove`).
     // Not for rust/tests (no `crate::value`); innermost-first so nested calls rewrite too.
     hx4R29InlineCollectionHelpers(content: string): string {
-        const names = [ 'in_op', 'object_keys', 'get_array_length', 'remove' ];
+        const names = [ 'in_op', 'object_keys', 'remove' ]; // hx5 X35
         if (!names.some(n => content.includes(n + '('))) return content;
         const build = (name: string, args: string[]): string | undefined => {
             const a = args.map(s => s.trim());
@@ -12572,16 +12572,16 @@ impl std::ops::DerefMut for ${coreName} {
             // typed map binding exists), and the runtime fn also drops the `__ws_subs_url`/`__ws_sub_ref`
             // tags, so no site is proven; `runtime::object_keys(..)` stays exactly as master emitted it.
             if (name === 'object_keys') return undefined;
-            if (name === 'get_array_length' && a.length === 1) {
-                return `({ let __r29o: &Value = ${a[0]}; match __r29o { Value::Dict(__d) if __d.contains_key("__sideKind") && !__d.contains_key("__cacheKind") && !matches!(__d.get("__book_cache_id"), Some(Value::Int(_))) => Value::Int(crate::value::side_entries_as_value(__r29o).map(|__s| __s.len()).unwrap_or(0) as i64), _ => Value::Int(__r29o.len() as i64) } })`;
-            }
+            // hx5 X35 — no inline `get_array_length` match: the call text is left untouched, so an
+            // unproven operand keeps master's helper call (`Value::len` counts chars, and the helper also
+            // unwraps book/cache/side markers, so no plain `.len()` on a `&Value` matches it).
             // hx5 X36 — `remove` is never inlined. Every generated receiver is a `Value` (no typed
             // `IndexMap` local exists in emitted Rust), so no site proves a plain map and the native
             // `shift_remove` would also skip `try_ws_subs_remove`; `remove(...)` stays the helper call.
             if (name === 'remove') return undefined;
             return undefined;
         };
-        const re = /(?<![A-Za-z0-9_:.])(in_op|object_keys|get_array_length|remove)\(/g;
+        const re = /(?<![A-Za-z0-9_:.])(in_op|object_keys|remove)\(/g; // hx5 X35: get_array_length dropped
         // Repeat until no rewrite applies: each round replaces calls whose args hold no further helper call.
         for (let round = 0; round < 8; round++) {
             const masked = this.maskStringsAndComments(content);
@@ -12596,7 +12596,8 @@ impl std::ops::DerefMut for ${coreName} {
                 if (close < 0) continue;
                 const inner = content.slice(open + 1, close);
                 // hx5 X33: a retained `in_op(` helper call inside the args no longer blocks the outer rewrite.
-                if (/(?<![A-Za-z0-9_:.])(object_keys|get_array_length|remove)\(/.test(this.maskStringsAndComments(inner))) continue;
+                // hx5 X35: get_array_length is no longer rewritten by this pass, so it never blocks either.
+                if (/(?<![A-Za-z0-9_:.])(object_keys|remove)\(/.test(this.maskStringsAndComments(inner))) continue;
                 const text = build(name, this.splitTopLevelCommas(inner));
                 if (text === undefined) continue;
                 if (name === 'remove' && !/^\s*;/.test(content.slice(close + 1, close + 8))) continue;
