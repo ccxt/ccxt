@@ -729,7 +729,7 @@ export default class htx extends htxRest {
         //         "ts":1645023376098
         //     }
         //
-        const ch = this.safeValue (message, 'ch');
+        const ch = this.safeString (message, 'ch', '');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
