@@ -7997,7 +7997,8 @@ class BaseExchange {
                 break;
             }
             tasks.push(this.safeDeterministicCall(method, symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted));
-            currentSince = currentSince + step - 1;
+            // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
+            currentSince = this.sum(currentSince, step) - 1;
         }
         const results = await Promise.all(tasks);
         let result = [];
@@ -8027,7 +8028,7 @@ class BaseExchange {
             try {
                 if (cursorValue !== undefined) {
                     if (cursorIncrement !== undefined) {
-                        cursorValue = this.parseToInt(cursorValue) + cursorIncrement;
+                        cursorValue = this.sum(this.parseToInt(cursorValue), cursorIncrement);
                     }
                     paramsOmitted[cursorSent] = cursorValue;
                 }
@@ -8126,8 +8127,8 @@ class BaseExchange {
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {
-                    const iteration = (i + 1).toString();
-                    const incrementalMessage = 'Incremental pagination call ' + iteration + ' method ' + method + ' response length ' + responseLength.toString();
+                    const iteration = (i + 1);
+                    const incrementalMessage = 'Incremental pagination call ' + iteration.toString() + ' method ' + method + ' response length ' + responseLength.toString();
                     this.log(incrementalMessage);
                 }
                 if (responseLength === 0) {
