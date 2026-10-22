@@ -71,6 +71,14 @@ jobs:
           fi
           printf 'CARGO_TARGET_DIR=%s\n' "$rust_target" >> "$GITHUB_ENV"
           printf 'Cargo target: %s\n' "$rust_target"
+      - name: Enable sccache
+        run: |
+          # Self-hosted rust runners ship sccache plus a shared store (SCCACHE_WEBDAV_ENDPOINT),
+          # so crates compiled by any runner are hits on the others. Skipped anywhere else.
+          if command -v sccache >/dev/null 2>&1 && [ -n "${SCCACHE_WEBDAV_ENDPOINT:-}" ]; then
+            sccache --start-server
+            echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+          fi
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -189,6 +197,9 @@ jobs:
       - name: Prediction response tests
         if: env.prediction_modified == 'true'
         run: npm run response-rust-prediction
+      - name: sccache stats
+        if: always() && env.RUSTC_WRAPPER == 'sccache'
+        run: sccache --show-stats
       - name: Upload Rust Files
         uses: actions/upload-artifact@v4
         with:
