@@ -2045,52 +2045,48 @@ export default class interactivebrokers extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order, sent as cOID
      * @param {boolean} [params.outsideRTH] allow the order to execute outside regular trading hours
      * @param {string} [params.accountId] the account id, defaults to options["accountId"]
-     * @param {boolean} [params.whatif] if true, the order is only previewed via iserver/account/{accountId}/orders/whatif and not placed, the margin and commission impact is returned in the info field of the order structure
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ accountId, accountQuery ] = await this.loadAccountId (params);
-        const whatif = this.safeBool (accountQuery, 'whatif', false);
-        const query = this.omit (accountQuery, 'whatif');
-        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, query);
+        const [ accountId, paramsWithoutAccoundId ] = await this.loadAccountId (params);
+        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, paramsWithoutAccoundId);
         orderRequest['acctId'] = accountId;
         const request: Dict = {
             'accountId': accountId,
             'orders': [ orderRequest ],
         };
-        if (whatif) {
-            const previewResponse = await this.webapiPostV1ApiIserverAccountAccountIdOrdersWhatif (request);
-            //
-            //     {
-            //         "amount": { "amount": "23,000 USD (100 Shares)", "commission": "1 USD", "total": "23,001 USD" },
-            //         "equity": { "current": "50,000", "change": "-1", "after": "49,999" },
-            //         "initial": { "current": "0", "change": "11,500", "after": "11,500" },
-            //         "maintenance": { "current": "0", "change": "10,350", "after": "10,350" },
-            //         "position": { "current": "0", "change": "100", "after": "100" },
-            //         "warn": "21/You are trying to submit an order without having market data for this instrument.",
-            //         "error": null
-            //     }
-            //
-            return this.safeOrder ({
-                'info': previewResponse,
-                'id': undefined,
-                'clientOrderId': this.safeString (orderRequest, 'cOID'),
-                'symbol': market['symbol'],
-                'type': type,
-                'side': side,
-                'amount': amount,
-                'price': price,
-                'status': undefined,
-            }, market);
-        }
         const response = await this.webapiPostV1ApiIserverAccountAccountIdOrders (request);
         const result = await this.ibkrHandleOrderReplies (response, 'createOrder');
         //
         //     [ { "order_id": "1370093239", "order_status": "PreSubmitted", "encrypt_message": "1" } ]
         //
         return this.parseOrder (result, market);
+    }
+
+    async createTestOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Dict> {
+        await this.loadMarkets ();
+        const [ accountId, paramsWithoutAccoundId ] = await this.loadAccountId (params);
+        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, paramsWithoutAccoundId);
+        orderRequest['acctId'] = accountId;
+        const request: Dict = {
+            'accountId': accountId,
+            'orders': [ orderRequest ],
+        };
+        const previewResponse = await this.webapiPostV1ApiIserverAccountAccountIdOrdersWhatif (request);
+        //
+        //     {
+        //         "amount": { "amount": "23,000 USD (100 Shares)", "commission": "1 USD", "total": "23,001 USD" },
+        //         "equity": { "current": "50,000", "change": "-1", "after": "49,999" },
+        //         "initial": { "current": "0", "change": "11,500", "after": "11,500" },
+        //         "maintenance": { "current": "0", "change": "10,350", "after": "10,350" },
+        //         "position": { "current": "0", "change": "100", "after": "100" },
+        //         "warn": "21/You are trying to submit an order without having market data for this instrument.",
+        //         "error": null
+        //     }
+        //
+        return previewResponse;
     }
 
     /**
@@ -2970,10 +2966,30 @@ export default class interactivebrokers extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name interactivebrokers#ibkrPathToTemplate
+     * @description converts the ':name' path parameters of the webapi endpoints into the '{name}' format understood by implodeParams and extractParams
+     * @ignore
+     * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
+     * @returns {string} the path with '{name}' placeholders, e.g. 'v1/api/iserver/account/{accountId}/orders'
+     */
+    ibkrPathToTemplate (path: string): string {
+        const segments = path.split ('/');
+        for (let i = 0; i < segments.length; i++) {
+            const segment = segments[i];
+            if (segment.startsWith (':')) {
+                segments[i] = '{' + segment.slice (1) + '}';
+            }
+        }
+        return segments.join ('/');
+    }
+
     override sign (path: string, api = 'private', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const baseUrl = this.urls['api'][api] + this.implodeParams (path, params);
+        const template = this.ibkrPathToTemplate (path);
+        const baseUrl = this.urls['api'][api] + this.implodeParams (template, params);
         let url = baseUrl;
-        const query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (template));
         const hasQuery = Object.keys (query).length > 0;
         const isGetOrDelete = (method === 'GET') || (method === 'DELETE');
         let requestBody: Str = body;
