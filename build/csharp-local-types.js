@@ -10768,7 +10768,8 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
 // (its response IS the implicit API's List<object>). Every other `as any` in the tree
 // (pro-luno's safeString read, the prediction market/orderbook template values) is not a
 // safeList* call and keeps its `object`.
-const SAFE_LIST_PRODUCER_CALLS = [ 'safeList', 'safeList2', 'safeListN' ];
+// hx5 X12: toArray (hand-written `IList<object> toArray (object)`, list or null) joins the family
+const SAFE_LIST_PRODUCER_CALLS = [ 'safeList', 'safeList2', 'safeListN', 'toArray' ];
 
 function asAnySafeListReceiverCopy (initializer) {
     if (initializer?.kind !== ts.SyntaxKind.AsExpression || initializer.type?.kind !== ts.SyntaxKind.AnyKeyword) {
@@ -18582,3 +18583,27 @@ function hx4L44GuardedNullableDoubleNegation (csharp, node, csharpType) {
         && (typeof csharp?.csharpNullGuardAdmitsRead === 'function')
         && csharp.csharpNullGuardAdmitsRead (node, node.operand);
 }
+
+// hx5 X12 — widen typed-local inference: return-path-proven list producers.
+// Each name has exactly ONE definition in ts/src (no base declaration, no override) and every
+// return path boxes a List<object> or null, so the declaration and its callers' locals name it:
+//   getSettlementCurrencies (gate)   — `return this.safeList (opts, 'settlementCurrencies', <list literal>)`
+//   outcomesByMarketId (predictfun)  — both returns hand back the fresh `result: any[] = []`
+//   sbeReadVarStrings (pro/paradex)  — `return result` (fresh string[] literal) or `return undefined`
+// `unique` is hand-written `public List<string> unique (object)` (cs/ccxt/base/Exchange.cs).
+// Every retyped local still goes through csharpLocalIsSafeToRetype (all writes re-validated).
+function hx5X12RegisterReturnTypes () {
+    const methods = { 'getSettlementCurrencies': 'List<object>', 'outcomesByMarketId': 'List<object>', 'sbeReadVarStrings': 'List<object>' };
+    for (const [ name, type ] of Object.entries (methods)) {
+        if (!Object.prototype.hasOwnProperty.call (CSHARP_METHOD_RETURN_TYPES, name)) {
+            CSHARP_METHOD_RETURN_TYPES[name] = type;
+        }
+        if (!Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_THIS_RETURN_TYPES, name)) {
+            CSHARP_LOCAL_THIS_RETURN_TYPES[name] = type;
+        }
+    }
+    if (!Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_THIS_RETURN_TYPES, 'unique')) {
+        CSHARP_LOCAL_THIS_RETURN_TYPES['unique'] = 'List<string>';
+    }
+}
+hx5X12RegisterReturnTypes ();
