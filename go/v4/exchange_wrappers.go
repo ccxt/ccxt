@@ -1,13 +1,5 @@
 package ccxt
 
-import "fmt"
-
-import "math"
-
-import "reflect"
-
-import "strconv"
-
 type ExchangeTyped struct {
 	*Exchange
 }
@@ -323,62 +315,7 @@ func (this *ExchangeTyped) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = func(v any) int64 {
-		d := func(v any) any {
-			for {
-				switch p := v.(type) {
-				case *any:
-					if p == nil {
-						return nil
-					}
-					v = *p
-					continue
-				case *string, *int64, *float64, *bool, *int, *[]string, *[]any, *map[string]any:
-					if r := reflect.ValueOf(p); !r.IsZero() {
-						return r.Elem().Interface()
-					}
-					return nil
-				case map[string]any, []any, []string:
-					if reflect.ValueOf(p).IsZero() {
-						return nil
-					}
-				}
-				return v
-			}
-		}
-		p := func(v any) int64 {
-			switch x := d(v).(type) {
-			case int:
-				return int64(x)
-			case int8:
-				return int64(x)
-			case int16:
-				return int64(x)
-			case int32:
-				return int64(x)
-			case uint:
-				return int64(x)
-			case uint8:
-				return int64(x)
-			case uint16:
-				return int64(x)
-			case uint32:
-				return int64(x)
-			case float32:
-				return int64(x)
-			case float64:
-				return int64(x)
-			case int64:
-				return x
-			case string:
-				if i, err := (strconv.ParseInt)(x, 10, 64); err == nil {
-					return i
-				}
-			}
-			return math.MinInt64
-		}
-		return p(v)
-	}(r.Value)
+	var res int64 = ParseInt(r.Value)
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
@@ -2940,88 +2877,7 @@ func (this *ExchangeTyped) FetchOrderStatus(id string, options ...FetchOrderStat
 	if r.Err != nil {
 		return "", r.Err
 	}
-	var res string = func(v any) string {
-		d := func(v any) any {
-			for {
-				switch p := v.(type) {
-				case *any:
-					if p == nil {
-						return nil
-					}
-					v = *p
-					continue
-				case *string, *int64, *float64, *bool, *int, *[]string, *[]any, *map[string]any:
-					if r := reflect.ValueOf(p); !r.IsZero() {
-						return r.Elem().Interface()
-					}
-					return nil
-				case map[string]any, []any, []string:
-					if reflect.ValueOf(p).IsZero() {
-						return nil
-					}
-				}
-				return v
-			}
-		}
-		f := func(v any) float64 {
-			r := reflect.ValueOf(v)
-			switch r.Kind() {
-			case reflect.Int, reflect.Int64:
-				return float64(r.Int())
-			case reflect.Float64:
-				return r.Float()
-			case reflect.String:
-				if x, err := (strconv.ParseFloat)(r.String(), 64); err == nil {
-					return x
-				}
-			}
-			return math.NaN()
-		}
-		var ts func(v any) string
-		ts = func(v any) string {
-			switch x := d(v).(type) {
-			case string:
-				return x
-			case int, int8, int16, int32, int64:
-				return fmt.Sprintf("%d", x)
-			case uint, uint8, uint16, uint32, uint64:
-				return fmt.Sprintf("%d", x)
-			case float32, float64:
-				if c := f(x); c == math.Trunc(c) {
-					return fmt.Sprintf("%d", int(c))
-				}
-				return fmt.Sprintf("%f", x)
-			case bool:
-				return fmt.Sprintf("%t", x)
-			default:
-				val := reflect.ValueOf(x)
-				switch val.Kind() {
-				case reflect.Map:
-					result := "{"
-					for _, key := range val.MapKeys() {
-						result += fmt.Sprintf("%v: %v, ", ts(key.Interface()), ts(val.MapIndex(key).Interface()))
-					}
-					if len(result) > 1 {
-						result = result[:len(result)-2]
-					}
-					return result + "}"
-				case reflect.Slice, reflect.Array:
-					result := "["
-					for i := 0; i < val.Len(); i++ {
-						result += fmt.Sprintf("%v, ", ts(val.Index(i).Interface()))
-					}
-					if len(result) > 1 {
-						result = result[:len(result)-2]
-					}
-					return result + "]"
-				case reflect.Func:
-					return fmt.Sprintf("Function: %v", val.Type().String())
-				}
-				return fmt.Sprintf("%v", x)
-			}
-		}
-		return ts(v)
-	}(r.Value)
+	var res string = ToString(r.Value)
 	return res, nil
 }
 func (this *ExchangeTyped) FetchUnifiedOrder(order any, options ...FetchUnifiedOrderOptions) (Order, error) {
@@ -3827,62 +3683,7 @@ func (this *BaseExchangeTyped) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = func(v any) int64 {
-		d := func(v any) any {
-			for {
-				switch p := v.(type) {
-				case *any:
-					if p == nil {
-						return nil
-					}
-					v = *p
-					continue
-				case *string, *int64, *float64, *bool, *int, *[]string, *[]any, *map[string]any:
-					if r := reflect.ValueOf(p); !r.IsZero() {
-						return r.Elem().Interface()
-					}
-					return nil
-				case map[string]any, []any, []string:
-					if reflect.ValueOf(p).IsZero() {
-						return nil
-					}
-				}
-				return v
-			}
-		}
-		p := func(v any) int64 {
-			switch x := d(v).(type) {
-			case int:
-				return int64(x)
-			case int8:
-				return int64(x)
-			case int16:
-				return int64(x)
-			case int32:
-				return int64(x)
-			case uint:
-				return int64(x)
-			case uint8:
-				return int64(x)
-			case uint16:
-				return int64(x)
-			case uint32:
-				return int64(x)
-			case float32:
-				return int64(x)
-			case float64:
-				return int64(x)
-			case int64:
-				return x
-			case string:
-				if i, err := (strconv.ParseInt)(x, 10, 64); err == nil {
-					return i
-				}
-			}
-			return math.MinInt64
-		}
-		return p(v)
-	}(r.Value)
+	var res int64 = ParseInt(r.Value)
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
