@@ -126,13 +126,13 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
 
     public Long requestId()
     {
-        Object newValue;
+        Long newValue;
         synchronized (this) {
         Long previousValue = this.safeInteger(this.options, "lastRequestId", 0);
-        newValue = this.sum(previousValue, 1);
-        Helpers.addElementToObject(this.options, "lastRequestId", newValue);
+        newValue = (Long) this.sum(previousValue, 1);
+        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "lastRequestId"; Object j39v3 = newValue; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
         }
-        return Helpers.toLongOrNull(newValue);
+        return newValue;
     }
 
     public Object createPublicRequest(Object market, Object requestId, Object topicID, Object suffix, Boolean unWatch)
@@ -239,8 +239,8 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             String listenKey = null;
             try
             {
-                Object listenKeyExpiryTimestamp = this.safeInteger(this.options, "listenKeyExpiryTimestamp", time);
-                Boolean expired = Helpers.isGreaterThan((Helpers.subtract(time, listenKeyExpiryTimestamp)), 60000); // 1 minute before expiry
+                Long listenKeyExpiryTimestamp = this.safeInteger(this.options, "listenKeyExpiryTimestamp", time);
+                Boolean expired = ((time - listenKeyExpiryTimestamp)) > 60000; // 1 minute before expiry
                 listenKey = this.safeString(this.options, "listenKey");
                 Map<String, Object> response = null;
                 if (java.util.Objects.equals(listenKey, null))
@@ -268,9 +268,9 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                     {
                         throw new AuthenticationError((this.id + " authenticate() received an empty listenKey")) ;
                     }
-                    listenKeyExpiryTimestamp = this.safeTimestamp(data, "expire_time");
-                    Helpers.addElementToObject(this.options, "listenKey", listenKey);
-                    Helpers.addElementToObject(this.options, "listenKeyExpiryTimestamp", listenKeyExpiryTimestamp);
+                    Object newExpiryTimestamp = this.safeTimestamp(data, "expire_time");
+                    { Map<Object, Object> j39v12 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v13 = "listenKey"; Object j39v14 = listenKey; if (j39v12 == null) { if (j39v13 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v12) { if (j39v14 == null && j39v12 instanceof java.util.concurrent.ConcurrentHashMap) { j39v12.remove(j39v13); } else { j39v12.put(j39v13, j39v14); } } }
+                    { Map<Object, Object> j39v9 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v10 = "listenKeyExpiryTimestamp"; Object j39v11 = newExpiryTimestamp; if (j39v9 == null) { if (j39v10 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v9) { if (j39v11 == null && j39v9 instanceof java.util.concurrent.ConcurrentHashMap) { j39v9.remove(j39v10); } else { j39v9.put(j39v10, j39v11); } } }
                 }
                 // settle the flight: client.resolve wakes every waiter and drops
                 // the future from the registry under the client's own lock, so the
@@ -544,7 +544,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache strored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache strored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         if (!java.util.Objects.equals(data, null))
         {
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), market);
@@ -596,10 +596,12 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         String feeCost = this.safeString(trade, "F");
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", this.safeCurrencyCode(this.safeString(trade, "f"), (Map<String, Object>) null)
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", this.safeCurrencyCode(this.safeString(trade, "f"), (Map<String, Object>) null));
+                fee = hx4NewMap0;
+            }
         }
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("info", trade);
@@ -753,7 +755,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe));
         if (!java.util.Objects.equals(data, null))
         {
-            Object ohlcv = this.parseWsOHLCV(data, market);
+            List<Object> ohlcv = (List<Object>) this.parseWsOHLCV(data, market);
             stored.append(ohlcv);
         }
         String messageHash = (((("ohlcv" + "::") + symbol) + "::") + timeframe);
@@ -961,7 +963,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             Object cachedMessage = (cachedMessages == null || j < 0 || j >= cachedMessages.size() ? null : cachedMessages.get(j));
             this.handleOrderBookMessage(client, (Map<String, Object>) (cachedMessage), orderbook);
         }
-        Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
+        orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));
         String messageHash = (("orderbook" + "::") + symbol);
         client.resolve(orderbook, messageHash);
     }

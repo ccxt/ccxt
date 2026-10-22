@@ -72,11 +72,11 @@ class hashkey extends \ccxt\async\hashkey {
         return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
     }
 
-    public function watch_private(mixed $messageHash) {
+    public function watch_private(string $messageHash) {
         return Async\async(self::do_watch_private(...))($messageHash);
     }
 
-    private function do_watch_private(mixed $messageHash) {
+    private function do_watch_private(string $messageHash) {
         $listenKey = Async\await($this->authenticate());
         $url = $this->get_private_url($listenKey);
         return Async\await($this->watch($url, $messageHash, null, $messageHash));

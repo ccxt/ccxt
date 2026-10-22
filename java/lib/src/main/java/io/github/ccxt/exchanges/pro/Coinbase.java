@@ -124,7 +124,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             subscribe.put("type", "subscribe");
             subscribe.put("product_ids", productIds);
             subscribe.put("channel", name);
-            if (Helpers.isTrue(isPrivate))
+            if ((switch ((Object) (isPrivate)) { case null -> false; case Boolean hx4J40v6 -> hx4J40v6.booleanValue(); case Long hx4J40v6 -> hx4J40v6 != 0L; case Integer hx4J40v6 -> hx4J40v6 != 0; case Double hx4J40v6 -> hx4J40v6 != 0.0; case String hx4J40v6 -> !hx4J40v6.isEmpty(); case List<?> hx4J40v6 -> !hx4J40v6.isEmpty(); case Map<?, ?> hx4J40v6 -> true; default -> false; }))
             {
                 subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
             }
@@ -157,7 +157,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 throw new ExchangeError((this.id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
             }
-            Helpers.addElementToObject(this.options, "unSubscriptionPending", true);
+            { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v11 = "unSubscriptionPending"; Object j39v12 = true; if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
             Map<String, Object> market = null;
             Object watchMessageHash = name;
             String unWatchMessageHash = ("unsubscribe:" + name);
@@ -194,14 +194,14 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             subscription.put("topic", topic);
             subscription.put("unsubscribe", true);
             subscription.put("symbols", new ArrayList<Object>(Arrays.asList(symbol)));
-            if (Helpers.isTrue(isPrivate))
+            if ((switch ((Object) (isPrivate)) { case null -> false; case Boolean hx4J40v5 -> hx4J40v5.booleanValue(); case Long hx4J40v5 -> hx4J40v5 != 0L; case Integer hx4J40v5 -> hx4J40v5 != 0; case Double hx4J40v5 -> hx4J40v5 != 0.0; case String hx4J40v5 -> !hx4J40v5.isEmpty(); case List<?> hx4J40v5 -> !hx4J40v5.isEmpty(); case Map<?, ?> hx4J40v5 -> true; default -> false; }))
             {
                 message = this.extend(message, this.createWSAuth(name, productIds));
             }
-            Helpers.addElementToObject(this.options, "unSubscription", subscription);
+            { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v8 = "unSubscription"; Object j39v9 = subscription; if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
             Object res = (this.watch(url, unWatchMessageHash, message, unWatchMessageHash, subscription)).join();
-            Helpers.addElementToObject(this.options, "unSubscriptionPending", false);
-            Helpers.addElementToObject(this.options, "unSubscription", null);
+            { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "unSubscriptionPending"; Object j39v6 = false; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
+            { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "unSubscription"; Object j39v3 = null; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
             return res;
         });
 
@@ -243,7 +243,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             subscribe.put("type", "subscribe");
             subscribe.put("product_ids", productIds);
             subscribe.put("channel", name);
-            if (Helpers.isTrue(isPrivate))
+            if ((switch ((Object) (isPrivate)) { case null -> false; case Boolean hx4J40v4 -> hx4J40v4.booleanValue(); case Long hx4J40v4 -> hx4J40v4 != 0L; case Integer hx4J40v4 -> hx4J40v4 != 0; case Double hx4J40v4 -> hx4J40v4 != 0.0; case String hx4J40v4 -> !hx4J40v4.isEmpty(); case List<?> hx4J40v4 -> !hx4J40v4.isEmpty(); case Map<?, ?> hx4J40v4 -> true; default -> false; }))
             {
                 subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
             }
@@ -273,7 +273,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 throw new ExchangeError((this.id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
             }
-            Helpers.addElementToObject(this.options, "unSubscriptionPending", true);
+            { Map<Object, Object> j39v22 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v23 = "unSubscriptionPending"; Object j39v24 = true; if (j39v22 == null) { if (j39v23 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v22) { if (j39v24 == null && j39v22 instanceof java.util.concurrent.ConcurrentHashMap) { j39v22.remove(j39v23); } else { j39v22.put(j39v23, j39v24); } } }
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -296,7 +296,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             message.put("type", "unsubscribe");
             message.put("product_ids", productIds);
             message.put("channel", name);
-            if (Helpers.isTrue(isPrivate))
+            if ((switch ((Object) (isPrivate)) { case null -> false; case Boolean hx4J40v3 -> hx4J40v3.booleanValue(); case Long hx4J40v3 -> hx4J40v3 != 0L; case Integer hx4J40v3 -> hx4J40v3 != 0; case Double hx4J40v3 -> hx4J40v3 != 0.0; case String hx4J40v3 -> !hx4J40v3.isEmpty(); case List<?> hx4J40v3 -> !hx4J40v3.isEmpty(); case Map<?, ?> hx4J40v3 -> true; default -> false; }))
             {
                 message = this.extend(message, this.createWSAuth(name, productIds));
             }
@@ -307,10 +307,10 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 put( "unsubscribe", true );
                 put( "symbols", symbolsNormalized );
             }};
-            Helpers.addElementToObject(this.options, "unSubscription", subscription);
+            { Map<Object, Object> j39v19 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v20 = "unSubscription"; Object j39v21 = subscription; if (j39v19 == null) { if (j39v20 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v19) { if (j39v21 == null && j39v19 instanceof java.util.concurrent.ConcurrentHashMap) { j39v19.remove(j39v20); } else { j39v19.put(j39v20, j39v21); } } }
             Object res = (this.watchMultiple(url, unWatchMessageHashes, message, unWatchMessageHashes, subscription)).join();
-            Helpers.addElementToObject(this.options, "unSubscriptionPending", false);
-            Helpers.addElementToObject(this.options, "unSubscription", null);
+            { Map<Object, Object> j39v16 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v17 = "unSubscriptionPending"; Object j39v18 = false; if (j39v16 == null) { if (j39v17 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v16) { if (j39v18 == null && j39v16 instanceof java.util.concurrent.ConcurrentHashMap) { j39v16.remove(j39v17); } else { j39v16.put(j39v17, j39v18); } } }
+            { Map<Object, Object> j39v13 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v14 = "unSubscription"; Object j39v15 = null; if (j39v13 == null) { if (j39v14 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v13) { if (j39v15 == null && j39v13 instanceof java.util.concurrent.ConcurrentHashMap) { j39v13.remove(j39v14); } else { j39v13.put(j39v14, j39v15); } } }
             return res;
         });
 
@@ -337,12 +337,13 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             String currentToken = this.safeString(this.options, "wsToken");
             Long tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
             Long seconds = this.seconds();
-            if (java.util.Objects.equals(currentToken, null) || (seconds != null && (tokenTimestamp + 120L) < seconds))
+            Long tokenExpiry = (Long) (tokenTimestamp + 120L);
+            if (java.util.Objects.equals(currentToken, null) || (seconds != null && (tokenExpiry == null || tokenExpiry < seconds)))
             {
                 // we should generate new token
                 String token = this.createAuthToken(seconds, (String) null, (String) null, false);
-                Helpers.addElementToObject(this.options, "wsToken", token);
-                Helpers.addElementToObject(this.options, "wsTokenTimestamp", seconds);
+                { Map<Object, Object> j39v28 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v29 = "wsToken"; Object j39v30 = token; if (j39v28 == null) { if (j39v29 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v28) { if (j39v30 == null && j39v28 instanceof java.util.concurrent.ConcurrentHashMap) { j39v28.remove(j39v29); } else { j39v28.put(j39v29, j39v30); } } }
+                { Map<Object, Object> j39v25 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v26 = "wsTokenTimestamp"; Object j39v27 = seconds; if (j39v25 == null) { if (j39v26 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v25) { if (j39v27 == null && j39v25 instanceof java.util.concurrent.ConcurrentHashMap) { j39v25.remove(j39v26); } else { j39v25.put(j39v26, j39v27); } } }
             }
             subscribe.put("jwt", this.safeString(this.options, "wsToken"));
         }
@@ -426,7 +427,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
                 Object symbol = Helpers.GetValue(ticker, "symbol");
-                Helpers.addElementToObject(tickers, symbol, ticker);
+                ((Map<Object, Object>) (Map<?, ?>) tickers).put(symbol, ticker);
                 return tickers;
             }
             return this.tickers;
@@ -713,7 +714,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String name = "market_trades";
-            List<Object> trades = (List<Object>) (this.subscribeMultiple(name, false, Helpers.toStringListArg(symbols), parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribeMultiple(name, false, ((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v2 -> (List<String>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v2.getClass().getName()); })), parameters)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -745,7 +746,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String name = "market_trades";
-            return (this.unSubscribeMultiple("trades", name, false, Helpers.toStringListArg(symbols), parameters)).join();
+            return (this.unSubscribeMultiple("trades", name, false, ((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
         });
 
     }
@@ -879,7 +880,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String name = "level2";
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribeMultiple(name, false, Helpers.toStringListArg(symbols), parameters)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribeMultiple(name, false, ((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), parameters)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -1078,7 +1079,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
 
     public void handleOrderBookHelper(Object orderbook, Object updates)
     {
-        for (var i = 0; i < Helpers.getArrayLength(updates); i++)
+        for (var i = 0; i < ((List<?>)updates).size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.safeDict(updates, i, (Object) null);
             String sideId = this.safeString(trade, "side");
@@ -1196,7 +1197,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         List<Object> events = (List<Object>) this.safeList(message, "events", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> firstEvent = (Map<String, Object>) this.safeDict(events, 0, new HashMap<String, Object>() {{}});
         Boolean isUnsub = (firstEvent.containsKey("subscriptions"));
-        List<Object> subKeys = Helpers.objectKeys(firstEvent.get("subscriptions"));
+        List<Object> subKeys = ((List<Object>) switch ((Object)(firstEvent.get("subscriptions"))) { case Map<?, ?> j39v32 -> { synchronized (j39v32) { yield new ArrayList<Object>(j39v32.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Integer subKeysLength = ((List<?>)subKeys).size();
         if (Boolean.TRUE.equals(isUnsub) && java.util.Objects.equals(subKeysLength, 0))
         {

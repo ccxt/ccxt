@@ -289,7 +289,7 @@ class bydfi extends \ccxt\async\bydfi {
         return Async\await($this->watch_public($messageHashes, $channels, $paramsExtended, $subscription));
     }
 
-    public function get_message_hashes_for_tickers_unsubscription() {
+    public function get_message_hashes_for_tickers_unsubscription(): array {
         $url = $this->urls['api']['ws']['public'];
         $client = $this->client($url);
         $subscriptions = $client->subscriptions;

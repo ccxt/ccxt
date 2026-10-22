@@ -690,7 +690,7 @@ class mercado extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             '2' => 'open',
             '3' => 'canceled',

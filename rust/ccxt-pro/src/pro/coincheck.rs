@@ -338,7 +338,7 @@ impl CoincheckCore {
             orderbook = self.order_book(&[snapshot.clone()]);
             if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         }  else {
-            orderbook = get_value(&self.orderbooks, &symbol);
+            orderbook = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             orderbook.reset(snapshot);
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
@@ -379,7 +379,7 @@ impl CoincheckCore {
         let mut message: Value = self.extend(request, &[params]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -464,7 +464,7 @@ impl CoincheckCore {
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        let mut data: Value = self.safe_value(message.clone(), Value::Int(0), &[]);
+        let mut data: Value = self.safe_list(message.clone(), Value::Int(0), &[]);
         if !(matches!(&data, Value::Arr(_))) {
             self.handle_order_book(client.clone(), message.clone());
         }  else {

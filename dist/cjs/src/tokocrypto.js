@@ -1838,7 +1838,10 @@ class tokocrypto extends tokocrypto$1["default"] {
         // only supported for spot/margin api
         const typeResolved = (postOnly) ? 'LIMIT_MAKER' : type;
         // post only is expressed by the order type here, not by a time force
-        const timeInForceResolved = (postOnly) ? undefined : requestedTimeInForce;
+        let timeInForceResolved = requestedTimeInForce;
+        if (postOnly) {
+            timeInForceResolved = undefined;
+        }
         const initialUppercaseType = typeResolved.toUpperCase();
         let uppercaseType = initialUppercaseType;
         const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
@@ -2823,11 +2826,12 @@ class tokocrypto extends tokocrypto$1["default"] {
             return config['noPoolId'];
         }
         else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = params['limit'];
+            const limit = this.safeInteger(params, 'limit');
             const byLimit = this.safeList(config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
-                if (limit <= entry[0]) {
+                const entryLimit = this.safeInteger(entry, 0);
+                if ((limit !== undefined) && (entryLimit !== undefined) && (limit <= entryLimit)) {
                     return entry[1];
                 }
             }

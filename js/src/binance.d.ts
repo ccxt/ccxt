@@ -118,7 +118,7 @@ export default class binance extends Exchange {
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
     parseMarket(market: Dict): Market;
-    parseBalanceHelper(entry: Dict): import("./base/types.js").BalanceAccount;
+    parseBalanceHelper(entry: Dict): Dict;
     parseBalanceCustom(response: any, type?: Str, marginMode?: Str, isPortfolioMargin?: boolean): Balances;
     /**
      * @method
@@ -805,24 +805,7 @@ export default class binance extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchMyDustTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    parseDustTrade(trade: Dict, market?: Market): {
-        id: undefined;
-        timestamp: Int;
-        datetime: string | undefined;
-        symbol: string;
-        order: Str;
-        type: undefined;
-        takerOrMaker: undefined;
-        side: string;
-        amount: number;
-        price: number;
-        cost: number;
-        fee: {
-            currency: string;
-            cost: number;
-        };
-        info: Dict;
-    };
+    parseDustTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
      * @name binance#fetchDeposits
@@ -1026,32 +1009,7 @@ export default class binance extends Exchange {
     fetchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
     parseAccountPositions(account: Dict, filterClosed?: boolean): Position[];
-    parseAccountPosition(position: Dict, market?: Market): {
-        info: Dict;
-        id: undefined;
-        symbol: Str;
-        timestamp: Int;
-        datetime: string | undefined;
-        initialMargin: number;
-        initialMarginPercentage: number;
-        maintenanceMargin: number;
-        maintenanceMarginPercentage: number;
-        entryPrice: Num;
-        notional: number;
-        leverage: number;
-        unrealizedPnl: number;
-        contracts: number;
-        contractSize: Num;
-        marginRatio: Num;
-        liquidationPrice: Num;
-        markPrice: undefined;
-        positionMargin: number;
-        collateral: number;
-        marginMode: string;
-        side: Str;
-        hedged: boolean;
-        percentage: Num;
-    };
+    parseAccountPosition(position: Dict, market?: Market): Position;
     parsePositionRisk(position: Dict, market?: Market): Position;
     loadLeverageBrackets(reload?: boolean, params?: Dict): Promise<Dict>;
     /**
@@ -1246,13 +1204,7 @@ export default class binance extends Exchange {
      * @returns {object[]} a list of [settlement history objects]
      */
     fetchMySettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
-    parseSettlement(settlement: Dict, market: Market): {
-        info: Dict;
-        symbol: string;
-        price: number;
-        timestamp: Int;
-        datetime: string | undefined;
-    };
+    parseSettlement(settlement: Dict, market: Market): Dict;
     parseSettlements(settlements: any[], market: Market): List;
     /**
      * @method
@@ -1290,7 +1242,7 @@ export default class binance extends Exchange {
     getNetworkCodeByNetworkUrl(currencyCode: Str, depositUrl?: Str): Str;
     getBaseDomainFromUrl(url: Str): Str;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    getExceptionsByUrl(url: Str, exactOrBroad: string): import("./base/types.js").Dictionary<any>;
+    getExceptionsByUrl(url: Str, exactOrBroad: string): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
     request(path: string, api?: string[], method?: any, params?: Dict, config?: Dict): Promise<any>;

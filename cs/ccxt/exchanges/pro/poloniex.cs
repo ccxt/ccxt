@@ -152,7 +152,7 @@ public partial class poloniex : ccxt.poloniex
     {
         parameters ??= new Dictionary<string, object>();
         string publicOrPrivate = "public";
-        if (isTrue(isPrivate))
+        if ((((object)(isPrivate)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
         {
             publicOrPrivate = "private";
         }
@@ -175,8 +175,7 @@ public partial class poloniex : ccxt.poloniex
             {
                 throw new ArgumentsRequired ((this.id + " subscribe() symbols is required")) ;
             }
-            IList<object> ids = this.marketIds(symbols);
-            marketIds = ((ids == null)) ? new List<object>() {} : ids;
+            marketIds = this.marketIds(symbols);
         }
         string symbolsSuffix = ((symbols == null)) ? "" : String.Join(",", ((IList<object>)symbols).ToArray());
         object symbolsHash = null;
@@ -682,7 +681,7 @@ public partial class poloniex : ccxt.poloniex
         if ((fetchBalanceSnapshot == true))
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type});
@@ -719,7 +718,7 @@ public partial class poloniex : ccxt.poloniex
         }
         this.balance = this.safeBalance(this.balance);
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
@@ -769,8 +768,8 @@ public partial class poloniex : ccxt.poloniex
         //        ]
         //    }
         //
-        object data = this.safeValue(message, "data");
-        data = this.safeValue(data, 0);
+        List<object> dataList = this.safeList(message, "data");
+        IDictionary<string, object> data = this.safeDict(dataList, 0);
         string? channel = this.safeString(message, "channel");
         string? marketId = this.safeString(data, "symbol");
         string? symbol = this.safeSymbol(marketId);
@@ -1057,16 +1056,16 @@ public partial class poloniex : ccxt.poloniex
                         marketIds.Add(marketId);
                         continue;
                     }
-                    if (isEqual(GetValue(previousOrder, "trades"), null))
+                    if (((previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null) == null))
                     {
                         previousOrder["trades"] = new List<object>() {};
                     }
-                    ((IList<object>)GetValue(previousOrder, "trades")).Add(ccxt.BaseExchange.FromTrade(trade));
+                    ((IList<object>)(previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null)).Add(ccxt.BaseExchange.FromTrade(trade));
                     previousOrder["lastTradeTimestamp"] = (((object)trade.timestamp));
                     string? totalCost = "0";
                     string? totalAmount = "0";
-                    object previousOrderTrades = GetValue(previousOrder, "trades");
-                    for (int j = 0; j < getArrayLength(previousOrderTrades); j++)
+                    object previousOrderTrades = (previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null);
+                    for (int j = 0; j < (((object)(previousOrderTrades)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
                     {
                         object previousOrderTrade = getValue(previousOrderTrades, j);
                         string? cost = this.numberToString(getValue(previousOrderTrade, "cost"));
@@ -1079,19 +1078,19 @@ public partial class poloniex : ccxt.poloniex
                         previousOrder["average"] = this.parseNumber(Precise.stringDiv(totalCost, totalAmount));
                     }
                     previousOrder["cost"] = this.parseNumber(totalCost);
-                    if (!isEqual(GetValue(previousOrder, "filled"), null))
+                    if (!((previousOrder != null && previousOrder.ContainsKey("filled") ? previousOrder["filled"] : null) == null))
                     {
                         string? tradeAmount = this.numberToString((((object)trade.amount)));
-                        string? previousOrderFilled = this.numberToString(GetValue(previousOrder, "filled"));
+                        string? previousOrderFilled = this.numberToString((previousOrder != null && previousOrder.ContainsKey("filled") ? previousOrder["filled"] : null));
                         previousOrderFilled = Precise.stringAdd(previousOrderFilled, tradeAmount);
                         previousOrder["filled"] = previousOrderFilled;
-                        if (!isEqual(GetValue(previousOrder, "amount"), null))
+                        if (!((previousOrder != null && previousOrder.ContainsKey("amount") ? previousOrder["amount"] : null) == null))
                         {
-                            string? previousOrderAmount = this.numberToString(GetValue(previousOrder, "amount"));
+                            string? previousOrderAmount = this.numberToString((previousOrder != null && previousOrder.ContainsKey("amount") ? previousOrder["amount"] : null));
                             previousOrder["remaining"] = this.parseNumber(Precise.stringSub(previousOrderAmount, previousOrderFilled));
                         }
                     }
-                    if (isEqual(GetValue(previousOrder, "fee"), null))
+                    if (((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null) == null))
                     {
                         previousOrder["fee"] = new Dictionary<string, object>() {
                             { "rate", null },
@@ -1099,11 +1098,11 @@ public partial class poloniex : ccxt.poloniex
                             { "currency", this.safeString((ccxt.BaseExchange.FromFee((object)trade.fee)), "currency") },
                         };
                     }
-                    if ((!isEqual(getValue(GetValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"), null)))
+                    if ((!(getValue((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost") == null)) && (!(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost") == null)))
                     {
-                        string? stringOrderCost = this.numberToString(getValue(GetValue(previousOrder, "fee"), "cost"));
+                        string? stringOrderCost = this.numberToString(getValue((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost"));
                         string? stringTradeCost = this.numberToString(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"));
-                        ((IDictionary<string,object>)GetValue(previousOrder, "fee"))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
+                        ((IDictionary<string,object>)(previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                     }
                     string? rawState = this.safeString(order, "state");
                     string? state = this.parseStatus(rawState);
@@ -1456,7 +1455,7 @@ public partial class poloniex : ccxt.poloniex
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }

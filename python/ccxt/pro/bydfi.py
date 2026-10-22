@@ -161,7 +161,7 @@ class bydfi(ccxt.async_support.bydfi):
         channel = marketId + '@ticker'
         return await self.watch_public([messageHash], [channel], params)
 
-    def un_watch_ticker(self, symbol: str, params={}) -> object:
+    def un_watch_ticker(self, symbol: str, params: dict = {}) -> object:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -248,7 +248,7 @@ class bydfi(ccxt.async_support.bydfi):
         paramsExtended = self.extend(params, {'unsubscribe': True})
         return await self.watch_public(messageHashes, channels, paramsExtended, subscription)
 
-    def get_message_hashes_for_tickers_unsubscription(self):
+    def get_message_hashes_for_tickers_unsubscription(self) -> list[str]:
         url = self.urls['api']['ws']['public']
         client = self.client(url)
         subscriptions = client.subscriptions
@@ -296,7 +296,7 @@ class bydfi(ccxt.async_support.bydfi):
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return result[symbol][timeframe]
 
-    def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> object:
+    def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -420,7 +420,7 @@ class bydfi(ccxt.async_support.bydfi):
         """
         return self.watch_order_book_for_symbols([symbol], limit, params)
 
-    def un_watch_order_book(self, symbol: str, params={}) -> object:
+    def un_watch_order_book(self, symbol: str, params: dict = {}) -> object:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 

@@ -161,9 +161,9 @@ export default class paradex extends Exchange {
     authenticateRest(params?: Dict): Promise<Str>;
     parseOrder(order: Dict, market?: Market): Order;
     parseTimeInForce(timeInForce: Str): Str;
-    parseOrderStatus(status: Str): string | undefined;
+    parseOrderStatus(status: Str): Str;
     parseOrderType(type: Str): Str;
-    scaleNumber(num: string): string | undefined;
+    scaleNumber(num: string): Str;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
     signOrderRequest(request: Dict, modify?: boolean): Promise<Dict>;
     /**

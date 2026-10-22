@@ -167,7 +167,8 @@ class hyperliquid extends Exchange {
          * @param {int} $side outcome $side, 0 = YES, 1 = NO
          * @return {int} the outcome $side encoding
          */
-        return $this->sum(10 * $outcomeId, $side);
+        $outcomeIdInt = $this->parse_to_int($outcomeId);
+        return $this->sum(10 * $outcomeIdInt, $side);
     }
 
     public function outcome_asset_id(float $encoding): float {
@@ -613,12 +614,18 @@ class hyperliquid extends Exchange {
         $midStr = $this->number_to_string($midPx);
         $parts = explode('.', $midStr);
         $intPart = $parts[0];
-        $significantDigits = max(5, strlen($intPart));
-        $maxDecimals = 8 - $szDecimals;
-        $pricePrecisionDecimals = max(1, min($maxDecimals, $significantDigits - strlen($intPart)));
+        $intPartLength = count($intPart);
+        $szDecimalsInt = $this->parse_to_int($szDecimals);
+        $maxDecimals = 8 - $szDecimalsInt;
+        // significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
+        $digitsLeft = 0;
+        if ($intPartLength <= 5) {
+            $digitsLeft = 5 - $intPartLength;
+        }
+        $cappedDecimals = ($maxDecimals < $digitsLeft) ? $maxDecimals : $digitsLeft;
+        // appends max (1, cappedDecimals) - 1 zeros
         $zeros = '';
-        $zeroCount = $pricePrecisionDecimals - 1;
-        for ($zi = 0; $zi < $zeroCount; $zi++) {
+        for ($zi = 1; $zi < $cappedDecimals; $zi++) {
             $zeros = $zeros . '0';
         }
         return $this->parse_to_numeric('0.' . $zeros . '1');
@@ -873,11 +880,12 @@ class hyperliquid extends Exchange {
             $tf = $this->parse_timeframe($timeframe);
             $candleCount = ($limit !== null) ? $limit : 100;
             $startOffset = $tf * $candleCount * -1000;
-            $startTime = $this->sum($until, $startOffset);
+            $shiftedStart = $this->sum($until, $startOffset);
+            $startTime = $shiftedStart;
             if ($startTime === null) {
                 throw new ExchangeError($this->id . ' fetchOHLCV() missing startTime');
             }
-            if ($startTime < 0) {
+            if ($shiftedStart < 0) {
                 $startTime = 0;
             }
         }
@@ -2007,7 +2015,7 @@ class hyperliquid extends Exchange {
             // push through a local and write the slice back — the go transpiler's
             // AppendToArray reassigns only a local copy of a map-stored array, so a
             // direct push on groupMap[parentSymbol] loses the element in go
-            $parentMarkets = $this->safe_value($groupMap, $parentSymbol);
+            $parentMarkets = $this->safe_list($groupMap, $parentSymbol, array());
             $parentMarkets[] = $mkt;
             if ($parentSymbol !== null) {
                 $groupMap[$parentSymbol] = $parentMarkets;

@@ -710,7 +710,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         Dictionary<string, object> market = this.market(symbol);
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string? type = this.safeString(parameters, "type", "l2");
-        object paramsOmitted = this.omit(parameters, "type");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "type"));
         string messageHash = ((("orderbook:" + symbol) + ":") + type);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
@@ -769,7 +769,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         string messageHash = ((("orderbook:" + symbol) + ":") + type);
         string? datetime = this.safeString(message, "timestamp");
         Int64? timestamp = this.parse8601(datetime);
-        if (isEqual(this.safeOrderBook(this.orderbooks, symbol), null))
+        if ((this.safeOrderBook(this.orderbooks, symbol) == null))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook();
         }
@@ -867,7 +867,7 @@ public partial class blockchaincom : ccxt.blockchaincom
                 { "channel", "auth" },
                 { "token", this.secret },
             };
-            return this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+            return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         }
         return await (future as Exchange.Future);
     }

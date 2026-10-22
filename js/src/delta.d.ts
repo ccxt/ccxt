@@ -35,7 +35,7 @@ export default class delta extends Exchange {
     fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): CurrencyInterface;
     loadMarkets(reload?: boolean, params?: Dict): Promise<import("./base/types.js").Dictionary<Market>>;
-    indexByStringifiedNumericId(input: NullableDict): Dict | undefined;
+    indexByStringifiedNumericId(input: NullableDict): NullableDict;
     /**
      * @method
      * @name delta#fetchMarkets

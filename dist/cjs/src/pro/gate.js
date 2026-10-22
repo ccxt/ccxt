@@ -456,7 +456,7 @@ class gate extends gate$1["default"] {
         let limitResolved = (limit === undefined) ? defaultLimit : limit;
         if (market['spot'] === true) {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
-            const maxSpotLimit = this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000);
+            const maxSpotLimit = this.parseToInt(this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000));
             limitResolved = Math.min(limitResolved, maxSpotLimit);
         }
         let payload = [];
@@ -684,12 +684,13 @@ class gate extends gate$1["default"] {
         const storedOrderBook = this.safeValue(this.orderbooks, symbol, this.orderBook({}));
         const nonce = this.safeInteger(storedOrderBook, 'nonce');
         if (nonce === undefined) {
-            let cacheLength = 0;
+            let cacheLength = this.parseToInt(0);
             if (storedOrderBook !== undefined) {
-                cacheLength = storedOrderBook.cache.length;
+                const storedCacheLength = storedOrderBook.cache.length;
+                cacheLength = this.parseToInt(storedCacheLength);
             }
-            const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 10);
-            let waitAmount = 0;
+            const snapshotDelay = this.parseToInt(this.handleOption('watchOrderBook', 'snapshotDelay', 10));
+            let waitAmount = this.parseToInt(0);
             if (isSpot) {
                 waitAmount = snapshotDelay;
             }
@@ -705,7 +706,7 @@ class gate extends gate$1["default"] {
         else if ((deltaEnd !== undefined) && (nonce >= deltaEnd)) {
             return;
         }
-        else if ((deltaStart !== undefined) && (nonce >= deltaStart - 1)) {
+        else if ((deltaStart !== undefined) && (nonce !== undefined) && (nonce >= deltaStart - 1)) {
             this.handleBookDelta(storedOrderBook, delta);
         }
         else {
@@ -781,7 +782,7 @@ class gate extends gate$1["default"] {
         const symbolValue = market['symbol'];
         params['callerMethodName'] = 'watchTicker';
         const result = await this.watchTickers([symbolValue], params);
-        return this.safeValue(result, symbolValue);
+        return this.safeDict(result, symbolValue);
     }
     /**
      * @method
@@ -1037,9 +1038,13 @@ class gate extends gate$1["default"] {
         //     }]
         // }
         //
-        let result = this.safeValue(message, 'result');
-        if (!Array.isArray(result)) {
-            result = [result];
+        const rawResult = this.safeValue(message, 'result');
+        let result = [];
+        if (Array.isArray(rawResult)) {
+            result = this.safeList(message, 'result', []);
+        }
+        else {
+            result = [rawResult];
         }
         const parsedTrades = this.parseTrades(result);
         for (let i = 0; i < parsedTrades.length; i++) {
@@ -1117,9 +1122,13 @@ class gate extends gate$1["default"] {
         if (rawMarketType === 'spot') {
             marketType = 'spot';
         }
-        let result = this.safeValue(message, 'result');
-        if (!Array.isArray(result)) {
-            result = [result];
+        const rawResult = this.safeValue(message, 'result');
+        let result = [];
+        if (Array.isArray(rawResult)) {
+            result = this.safeList(message, 'result', []);
+        }
+        else {
+            result = [rawResult];
         }
         const marketIds = {};
         for (let i = 0; i < result.length; i++) {

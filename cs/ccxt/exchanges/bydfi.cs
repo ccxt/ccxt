@@ -744,21 +744,30 @@ public partial class bydfi : Exchange
 
     public virtual object getClosestLimit(Int64? limit)
     {
-        List<object> limits = new List<object>() {5, 10, 20, 50, 100, 500, 1000};
-        object result = 1000;
-        for (int i = 0; i < (limits?.Count ?? 0); i++)
+        if ((limit == null))
         {
-            if ((limit == null))
-            {
-                throw new ArgumentsRequired ((this.id + " getClosestLimit() requires a limit argument")) ;
-            }
-            if (isLessThanOrEqual(limit, limits[i]))
-            {
-                result = limits[i];
-                break;
-            }
+            throw new ArgumentsRequired ((this.id + " getClosestLimit() requires a limit argument")) ;
         }
-        return result;
+        if ((limit == null || limit <= 5))
+        {
+            return 5;
+        } else if ((limit == null || limit <= 10))
+        {
+            return 10;
+        } else if ((limit == null || limit <= 20))
+        {
+            return 20;
+        } else if ((limit == null || limit <= 50))
+        {
+            return 50;
+        } else if ((limit == null || limit <= 100))
+        {
+            return 100;
+        } else if ((limit == null || limit <= 500))
+        {
+            return 500;
+        }
+        return 1000;
     }
 
     /**
@@ -997,7 +1006,7 @@ public partial class bydfi : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToOHLCVList(this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
+            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
         }
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
@@ -1005,38 +1014,39 @@ public partial class bydfi : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", interval },
         };
-        object startTime = since;
         object numberOfCandles = maxLimit;
         if ((limit != null) && (limit != null) && (limit != 0))
         {
-            numberOfCandles = limit;
+            numberOfCandles = this.parseToInt(limit);
         }
-        object until = null;
-        object paramsUntil = null;
-        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(paramsPaginate, "fetchOHLCV", "until");
-        until = untilparamsUntilVariable.Item1;
-        paramsUntil = untilparamsUntilVariable.Item2;
+        (Int64?, object) untilParamparamsUntilVariable = this.handleOptionIntegerAndParams(paramsPaginate, "fetchOHLCV", "until");
+        Int64? untilParam = untilParamparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilParamparamsUntilVariable.Item2);
         Int64 now = this.milliseconds();
         Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-        object timeDelta = multiply(duration, numberOfCandles);
-        if ((startTime == null) && (until == null))
+        object timeDelta = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(duration, numberOfCandles);
+        object startTime = since;
+        object until = untilParam;
+        if ((since == null) && (untilParam == null))
         {
-            startTime = subtract(now, timeDelta);
+            startTime = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(now, timeDelta);
             until = now;
-        } else if ((until == null))
+        } else if (!(untilParam == null))
         {
-            if ((startTime == null))
+            if ((since == null))
+            {
+                Int64? untilInt = this.parseToInt(untilParam);
+                startTime = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(untilInt, timeDelta);
+            }
+        } else
+        {
+            if ((since == null))
             {
                 throw new ArgumentsRequired ((this.id + " fetchOHLCV() requires a since or until argument")) ;
             }
-            until = add(startTime, timeDelta);
-            if (isGreaterThan(until, now))
-            {
-                until = now;
-            }
-        } else if ((startTime == null))
-        {
-            startTime = subtract(until, timeDelta);
+            Int64? sinceInt = this.parseToInt(since);
+            object sinceEnd = add(sinceInt, timeDelta);
+            until = (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } return c32Gt(c32a, c32b); }))(sinceEnd, now)) ? now : sinceEnd;
         }
         request["startTime"] = startTime;
         request["endTime"] = until;
@@ -1064,8 +1074,7 @@ public partial class bydfi : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IList<object> result = this.parseOHLCVs(data, market,timeframeVar, since, limit);
-        return ccxt.BaseExchange.ToOHLCVList(result);
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limit));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -2037,33 +2046,33 @@ public partial class bydfi : Exchange
     public virtual object handleSinceAndUntil(object methodName, object since = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object until = null;
-        object paramsUntil = null;
-        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams2(parameters, methodName, "until", "endTime");
-        until = untilparamsUntilVariable.Item1;
-        paramsUntil = untilparamsUntilVariable.Item2;
+        (Int64?, object) untilParamparamsUntilVariable = this.handleOptionIntegerAndParams2(parameters, methodName, "until", "endTime");
+        Int64? untilParam = untilParamparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilParamparamsUntilVariable.Item2);
         Int64 now = this.milliseconds();
         Int64 sevenDays = ((((7L * 24L) * 60) * 60) * 1000); // the maximum range is 7 days
         object startTime = since;
-        if ((startTime == null))
+        Int64? until = untilParam;
+        if ((since == null))
         {
-            if ((until == null))
+            if (!(untilParam == null))
+            {
+                // since is undefined but until is defined
+                startTime = (untilParam - sevenDays);
+            } else
             {
                 // both since and until are undefined
                 startTime = (now - sevenDays);
                 until = now;
-            } else
-            {
-                // since is undefined but until is defined
-                startTime = subtract(until, sevenDays);
             }
-        } else if ((until == null))
+        } else if ((untilParam == null))
         {
             // until is undefined but since is defined
-            object delta = subtract(now, startTime);
-            if (isGreaterThan(delta, sevenDays))
+            Int64? sinceInt = this.parseToInt(since);
+            object delta = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(now, sinceInt);
+            if (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } return c32Gt(c32a, c32b); }))(delta, sevenDays))
             {
-                until = add(startTime, sevenDays);
+                until = (sinceInt + sevenDays);
             } else
             {
                 until = now;
@@ -2984,7 +2993,7 @@ public partial class bydfi : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? symbol = this.safeString(balance, "asset");
@@ -3189,7 +3198,8 @@ public partial class bydfi : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchTransactionsHelper("deposit", code, since, limit, parameters);
+        List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("deposit", code, since, limit, parameters));
+        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
     }
 
     /**
@@ -3206,11 +3216,13 @@ public partial class bydfi : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchTransactionsHelper("withdrawal", code, since, limit, parameters);
+        List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("withdrawal", code, since, limit, parameters));
+        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
     }
 
-    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(string? type, string? code, object since, object limit, object parameters)
+    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(string? type, string? code = null, object since = null, object limit = null, object parameters = null)
     {
+        parameters ??= new Dictionary<string, object>();
         string methodName = "fetchWithdrawals";
         if ((type == "deposit"))
         {
@@ -3238,33 +3250,33 @@ public partial class bydfi : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
-        object until = null;
-        object paramsUntil = null;
-        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams2(parameters, "fetchTransfers", "until", "endTime");
-        until = untilparamsUntilVariable.Item1;
-        paramsUntil = untilparamsUntilVariable.Item2;
+        (Int64?, object) untilParamparamsUntilVariable = this.handleOptionIntegerAndParams2(parameters, "fetchTransfers", "until", "endTime");
+        Int64? untilParam = untilParamparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilParamparamsUntilVariable.Item2);
         Int64 now = this.milliseconds();
         Int64 sevenDays = ((((7L * 24L) * 60) * 60) * 1000); // the maximum range is 7 days
         object startTime = since;
-        if ((startTime == null))
+        Int64? until = untilParam;
+        if ((since == null))
         {
-            if ((until == null))
+            if (!(untilParam == null))
+            {
+                // since is undefined but until is defined
+                startTime = (untilParam - sevenDays);
+            } else
             {
                 // both since and until are undefined
                 startTime = (now - sevenDays);
                 until = now;
-            } else
-            {
-                // since is undefined but until is defined
-                startTime = subtract(until, sevenDays);
             }
-        } else if ((until == null))
+        } else if ((untilParam == null))
         {
             // until is undefined but since is defined
-            object delta = subtract(now, startTime);
-            if (isGreaterThan(delta, sevenDays))
+            Int64? sinceInt = this.parseToInt(since);
+            object delta = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(now, sinceInt);
+            if (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } return c32Gt(c32a, c32b); }))(delta, sevenDays))
             {
-                until = add(startTime, sevenDays);
+                until = (sinceInt + sevenDays);
             } else
             {
                 until = now;
@@ -3272,7 +3284,7 @@ public partial class bydfi : Exchange
         }
         request["startTime"] = startTime;
         request["endTime"] = until;
-        if (!(limit == null))
+        if ((limit != null))
         {
             request["limit"] = limit;
         }

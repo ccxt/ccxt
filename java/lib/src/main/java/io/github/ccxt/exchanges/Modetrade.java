@@ -770,7 +770,7 @@ public class Modetrade extends ModetradeApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        Helpers.addElementToObject(this.options, "sandboxMode", enable);
+        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "sandboxMode"; Object j39v3 = enable; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
     }
 
     /**
@@ -1122,10 +1122,12 @@ public class Modetrade extends ModetradeApi
         {
             String feeCurrencyId = this.safeString(item, feeTokenKey);
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", feeCurrencyCode
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", feeCurrencyCode);
+                fee = hx4NewMap0;
+            }
         }
         return fee;
     }
@@ -1168,11 +1170,6 @@ public class Modetrade extends ModetradeApi
         String amount = this.safeString(trade, "executed_quantity");
         String order_id = this.safeString(trade, "order_id");
         Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (trade), "fee_asset", "fee");
-        String feeCost = this.safeString(fee, "cost");
-        if ((!java.util.Objects.equals(feeCost, null)) && (!java.util.Objects.equals(fee, null)))
-        {
-            Helpers.addElementToObject(fee, "cost", feeCost);
-        }
         String cost = Precise.stringMul(price, amount);
         String side = this.safeStringLower(trade, "side");
         String id = this.safeString(trade, "id");
@@ -1271,7 +1268,7 @@ public class Modetrade extends ModetradeApi
         String fundingTimeString = this.safeString(fundingRate, "last_funding_rate_timestamp");
         String nextFundingTimeString = this.safeString(fundingRate, "next_funding_time");
         String millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
-        Object fundingSymbol = (((!java.util.Objects.equals(marketValue, null)))) ? ((Map<String, Object>)marketValue).get("symbol") : null;
+        String fundingSymbol = this.safeString(marketValue, "symbol");
         return new HashMap<String, Object>() {{
             put( "info", fundingRate );
             put( "symbol", fundingSymbol );
@@ -2164,7 +2161,8 @@ public class Modetrade extends ModetradeApi
         Boolean hasStopLoss = !java.util.Objects.equals(stopLoss, null);
         Boolean hasTakeProfit = !java.util.Objects.equals(takeProfit, null);
         String algoType = this.safeString(parameters, "algoType");
-        Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
+        Object paramsChildOrders = this.safeValue(parameters, "childOrders");
+        Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(paramsChildOrders, null));
         Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
         String timeInForce = this.safeStringLower(parameters, "timeInForce");
         Boolean postOnly = this.isPostOnly(isMarket, null, parameters);
@@ -2303,7 +2301,8 @@ public class Modetrade extends ModetradeApi
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             Object stopLoss = this.safeValue(parameters, "stopLoss");
             Object takeProfit = this.safeValue(parameters, "takeProfit");
-            Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
+            Object childOrders = this.safeValue(parameters, "childOrders");
+            Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(childOrders, null));
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isConditional))
             {
@@ -2313,7 +2312,7 @@ public class Modetrade extends ModetradeApi
                 response = (this.v1PrivatePostOrder(request)).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
+            data.put("timestamp", this.safeInteger(response, "timestamp"));
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(data, market);
             order.put("type", type);
             return order;
@@ -2356,7 +2355,8 @@ public class Modetrade extends ModetradeApi
                 String triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
                 Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(orderParams, "stopLoss", (Object) null);
                 Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(orderParams, "takeProfit", (Object) null);
-                Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(this.safeValue(orderParams, "childOrders"), null));
+                Object childOrders = this.safeValue(orderParams, "childOrders");
+                Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(childOrders, null));
                 if (Boolean.TRUE.equals(isConditional))
                 {
                     throw new NotSupported((this.id + " createOrders() only support non-stop order")) ;
@@ -2428,7 +2428,8 @@ public class Modetrade extends ModetradeApi
             {
                 request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
-            Boolean isConditional = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
+            Object childOrders = this.safeValue(parameters, "childOrders");
+            Boolean isConditional = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(childOrders, null));
             String orderQtyKey = "order_quantity";
             if (Boolean.TRUE.equals(isConditional))
             {
@@ -2496,7 +2497,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
+            data.put("timestamp", this.safeInteger(response, "timestamp"));
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -3179,7 +3180,7 @@ public class Modetrade extends ModetradeApi
 
     }
 
-    public CompletableFuture<Object> getAssetHistoryRows(String code, Long since, Long limit, Object parameters)
+    public CompletableFuture<Object> getAssetHistoryRows(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3204,7 +3205,7 @@ public class Modetrade extends ModetradeApi
                 request.put("size", limit);
             }
             String transactionType = this.safeString(parameters, "type");
-            Object paramsOmitted = this.omit(parameters, "type");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "type");
             if (!java.util.Objects.equals(transactionType, null))
             {
                 request.put("type", transactionType);
@@ -3272,10 +3273,12 @@ public class Modetrade extends ModetradeApi
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "currency", code,
-                "cost", feeCost
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("currency", code);
+                hx4NewMap1.put("cost", feeCost);
+                fee = hx4NewMap1;
+            }
         }
         HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
         mapLiteral8.put("id", this.safeString(item, "id"));
@@ -3326,7 +3329,7 @@ public class Modetrade extends ModetradeApi
             Object currencyRows = (this.getAssetHistoryRows(code, since, limit, parameters)).join();
             Object currency = this.safeValue(currencyRows, 0);
             List<Object> rows = (List<Object>) this.safeList(currencyRows, 1, (Object) null);
-            return this.parseLedger(rows, Helpers.toMapArg(currency), since, limit, parameters);
+            return this.parseLedger(rows, ((Map<String, Object>) (switch ((Object) (currency)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })), since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -3358,10 +3361,12 @@ public class Modetrade extends ModetradeApi
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "currency", code,
-                "cost", feeCost
-            );
+            {
+                HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
+                hx4NewMap2.put("currency", code);
+                hx4NewMap2.put("cost", feeCost);
+                fee = hx4NewMap2;
+            }
         }
         Long timestamp = this.safeInteger(transaction, "created_time");
         {
@@ -3489,7 +3494,7 @@ public class Modetrade extends ModetradeApi
             //     }
             //
             Map<String, Object> paramsOmitted = this.omit(parameters, "side"); // request-side filter, not a unified transaction field
-            return this.parseTransactions(rows, Helpers.toMapArg(currency), since, limit, paramsOmitted);
+            return this.parseTransactions(rows, ((Map<String, Object>) (switch ((Object) (currency)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })), since, limit, paramsOmitted);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3719,8 +3724,8 @@ public class Modetrade extends ModetradeApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean isMinLeverage = Helpers.isLessThan(leverage, 1);
-            Boolean isMaxLeverage = Helpers.isGreaterThan(leverage, 50);
+            Boolean isMinLeverage = (leverage == null || !(((Number) leverage).doubleValue() >= 1));
+            Boolean isMaxLeverage = (leverage != null && ((Number) leverage).doubleValue() > 50);
             if (Boolean.TRUE.equals(isMinLeverage) || Boolean.TRUE.equals(isMaxLeverage))
             {
                 throw new BadRequest((this.id + " leverage should be between 1 and 50")) ;

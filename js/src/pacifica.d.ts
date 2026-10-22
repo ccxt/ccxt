@@ -168,9 +168,7 @@ export default class pacifica extends Exchange {
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): [Dict, Str];
-    batchOrdersRequest(actions: any[]): {
-        actions: any[];
-    };
+    batchOrdersRequest(actions: any[]): Dict;
     createOrdersRequest(orders: OrderRequest[], params?: Dict): Dict;
     /**
      * @method

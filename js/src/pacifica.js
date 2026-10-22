@@ -1191,7 +1191,8 @@ export default class pacifica extends Exchange {
         const oraclePx = this.safeNumber(info, 'oracle');
         const nextFundingRate = this.safeNumber(info, 'next_funding');
         const timestamp = this.safeInteger(info, 'timestamp');
-        const fundingTimestamp = (Math.floor(this.milliseconds() / 60 / 60 / 1000) + 1) * 60 * 60 * 1000;
+        const currentHour = this.parseToInt(this.milliseconds() / 60 / 60 / 1000);
+        const fundingTimestamp = (currentHour + 1) * 60 * 60 * 1000;
         return {
             'info': info,
             'symbol': symbol,
@@ -1251,18 +1252,15 @@ export default class pacifica extends Exchange {
         };
         const [requestUntil, paramsUntil] = this.handleUntilOption('end_time', request, paramsPaginate);
         const nowMillis = this.milliseconds();
-        let until = this.safeInteger(requestUntil, 'end_time');
-        if (until === undefined) {
-            if (limit !== undefined) {
-                until = since + (limit * (this.parseTimeframe(tf) * 1000)) - 1;
+        const requestedUntil = this.safeInteger(requestUntil, 'end_time');
+        if (requestedUntil === undefined) {
+            const durationMillis = this.parseTimeframe(tf) * 1000;
+            const candleCount = (limit === undefined) ? defaultMaxLimit : limit;
+            if (since !== undefined) {
+                const windowEnd = this.parseToInt(this.sum(since - 1, candleCount * durationMillis));
+                const until = (windowEnd > nowMillis) ? nowMillis : windowEnd;
+                requestUntil['end_time'] = until;
             }
-            if (until === undefined) {
-                until = since + (defaultMaxLimit * (this.parseTimeframe(tf) * 1000)) - 1;
-            }
-            if (until > nowMillis) {
-                until = nowMillis;
-            }
-            requestUntil['end_time'] = until;
         }
         const response = await this.publicGetKline(this.extend(requestUntil, paramsUntil));
         //
@@ -1719,8 +1717,9 @@ export default class pacifica extends Exchange {
         //  Cancel (Only common (limit) orders)
         //
         const lenActions = actions.length;
-        const maxLen = this.handleOption('batchOrdersRequest', 'batchOrdersMax');
-        if (maxLen !== undefined) {
+        const maxLenOption = this.handleOption('batchOrdersRequest', 'batchOrdersMax');
+        if (maxLenOption !== undefined) {
+            const maxLen = this.parseToInt(maxLenOption);
             if (lenActions > maxLen) {
                 throw new ExchangeError(this.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + this.numberToString(maxLen));
             }
@@ -3629,8 +3628,9 @@ export default class pacifica extends Exchange {
             this.throwExactlyMatchedException(this.exceptions['exact'], errorId, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback); // documented message prefixes are more specific than the http-status echo
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+            const statusCode = this.parseToInt(code);
             const codeAsString = code.toString();
-            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+            if ((statusCode < 400) || !(codeAsString in this.httpExceptions)) {
                 throw new ExchangeError(feedback); // unknown message
             }
         }

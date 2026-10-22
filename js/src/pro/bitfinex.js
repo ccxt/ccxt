@@ -66,7 +66,8 @@ export default class bitfinex extends bitfinexRest {
         const checksum = this.safeBool(this.options, 'checksum', true);
         if ((checksum) && (channel === 'book')) {
             const sub = client.subscriptions[messageHash];
-            if ((sub !== undefined) && (sub['checksum'] !== true)) {
+            const subChecksum = this.safeBool(sub, 'checksum');
+            if ((sub !== undefined) && (subChecksum !== true)) {
                 client.subscriptions[messageHash]['checksum'] = true;
                 await client.send({
                     'event': 'conf',
@@ -581,7 +582,7 @@ export default class bitfinex extends bitfinexRest {
         //     ]
         //  ]
         //
-        const ticker = this.safeValue(message, 1);
+        const ticker = this.safeList(message, 1);
         const marketId = this.safeString(subscription, 'symbol');
         const market = this.safeMarket(marketId);
         const symbol = this.safeSymbol(marketId);
@@ -710,9 +711,9 @@ export default class bitfinex extends bitfinexRest {
                 const deltas = message[1];
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = deltas[i];
-                    const delta2 = delta[2];
-                    const size = (delta2 < 0) ? -delta2 : delta2;
-                    const side = (delta2 < 0) ? 'asks' : 'bids';
+                    const delta2 = this.safeNumber(delta, 2);
+                    const size = (delta2 !== undefined && delta2 < 0) ? -delta2 : delta2;
+                    const side = (delta2 !== undefined && delta2 < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
                     const idString = this.safeString(delta, 0);
                     const price = this.safeFloat(delta, 1);
@@ -723,14 +724,14 @@ export default class bitfinex extends bitfinexRest {
                 const deltas = message[1];
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = this.safeList(deltas, i);
-                    const amount = this.safeNumber(delta, 2);
-                    if (amount === undefined) {
+                    const deltaAmount = this.safeNumber(delta, 2);
+                    if (deltaAmount === undefined) {
                         continue;
                     }
                     const counter = this.safeNumber(delta, 1);
                     const price = this.safeNumber(delta, 0);
-                    const size = (amount < 0) ? -amount : amount;
-                    const side = (amount < 0) ? 'asks' : 'bids';
+                    const size = (deltaAmount < 0) ? -deltaAmount : deltaAmount;
+                    const side = (deltaAmount < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
                     bookside.storeArray([price, size, counter]);
                 }
@@ -744,9 +745,9 @@ export default class bitfinex extends bitfinexRest {
             const orderbookItem = this.orderbooks[symbol];
             if (isRaw) {
                 const price = this.safeString(deltas, 1);
-                const deltas2 = deltas[2];
-                const size = (deltas2 < 0) ? -deltas2 : deltas2;
-                const side = (deltas2 < 0) ? 'asks' : 'bids';
+                const deltas2 = this.safeNumber(deltas, 2);
+                const size = (deltas2 !== undefined && deltas2 < 0) ? -deltas2 : deltas2;
+                const side = (deltas2 !== undefined && deltas2 < 0) ? 'asks' : 'bids';
                 const bookside = orderbookItem[side];
                 // price = 0 means that you have to remove the order from your book
                 const amount = Precise.stringGt(price, '0') ? size : '0';
@@ -794,8 +795,10 @@ export default class bitfinex extends bitfinexRest {
             }
             if (ask !== undefined) {
                 stringArray.push(this.numberToString(asks[i][idToCheck]));
-                const aski1 = asks[i][1];
-                stringArray.push(this.numberToString(-aski1));
+                const aski1 = this.safeNumber(ask, 1);
+                if (aski1 !== undefined) {
+                    stringArray.push(this.numberToString(-aski1));
+                }
             }
         }
         const payload = stringArray.join(':');
@@ -896,7 +899,7 @@ export default class bitfinex extends bitfinexRest {
             data = this.safeList(message, 2);
         }
         else {
-            data = [this.safeValue(message, 2)];
+            data = [this.safeList(message, 2)];
         }
         const updatedTypes = {};
         for (let i = 0; i < data.length; i++) {
@@ -1290,7 +1293,8 @@ export default class bitfinex extends bitfinexRest {
         //    }
         //
         if (Array.isArray(message)) {
-            if (message[1] === 'hb') {
+            const heartbeat = this.safeString(message, 1);
+            if (heartbeat === 'hb') {
                 return; // skip heartbeats within subscription channels for now
             }
             const subscription = this.safeDict(client.subscriptions, channelId, {});

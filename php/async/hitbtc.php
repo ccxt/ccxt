@@ -864,8 +864,9 @@ class hitbtc extends Exchange {
             if ($contract) {
                 $contractSize = $this->parse_number('1');
                 $settleId = $feeCurrencyId;
-                $settle = $this->safe_currency_code($settleId);
-                $linear = (($quote !== null) && ($quote === $settle));
+                $settleCode = $this->safe_currency_code($settleId);
+                $settle = $settleCode;
+                $linear = ($quote === $settleCode);
                 $inverse = !$linear;
                 $symbol = $symbol . ':' . $settle;
                 if ($future) {
@@ -1004,8 +1005,8 @@ class hitbtc extends Exchange {
         for ($j = 0; $j < count($rawNetworks); $j++) {
             $rawNetwork = $rawNetworks[$j];
             $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
-            $networkCode = $this->network_id_to_code($networkId, $code);
-            $networkCodeUpper = ($networkCode !== null) ? strtoupper($networkCode) : null;
+            $rawNetworkCode = $this->network_id_to_code($networkId, $code);
+            $networkCodeUpper = ($rawNetworkCode !== null) ? strtoupper($rawNetworkCode) : null;
             $networkCode = ($networkCodeUpper !== null) ? $this->safe_string($this->networkAliases, $networkCodeUpper, $networkCodeUpper) : $code; // as hitbtc is white label, ensure we safeguard from possible bugs
             if ($networkCode !== null) {
                 $networks[$networkCode] = array(
@@ -1595,7 +1596,7 @@ class hitbtc extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, $params);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'CREATED' => 'pending',
             'PENDING' => 'pending',
@@ -2633,7 +2634,7 @@ class hitbtc extends Exchange {
         return array( $request, $paramsOmitted );
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'new' => 'open',
             'suspended' => 'open',
@@ -2912,11 +2913,11 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function convert_currency_network(string $code, ?float $amount, mixed $fromNetwork, mixed $toNetwork, $params = array()): PromiseInterface {
+    public function convert_currency_network(string $code, ?float $amount, string $fromNetwork, string $toNetwork, $params = array()): PromiseInterface {
         return Async\async(self::do_convert_currency_network(...))($code, $amount, $fromNetwork, $toNetwork, $params);
     }
 
-    private function do_convert_currency_network(string $code, ?float $amount, mixed $fromNetwork, mixed $toNetwork, $params = array()) {
+    private function do_convert_currency_network(string $code, ?float $amount, string $fromNetwork, string $toNetwork, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -3601,11 +3602,11 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, ?string $type, $params = array()): PromiseInterface {
+    public function modify_margin_helper(string $symbol, float $amount, ?string $type, $params = array()): PromiseInterface {
         return Async\async(self::do_modify_margin_helper(...))($symbol, $amount, $type, $params);
     }
 
-    private function do_modify_margin_helper(string $symbol, mixed $amount, ?string $type, $params = array()) {
+    private function do_modify_margin_helper(string $symbol, float $amount, ?string $type, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -3946,8 +3947,8 @@ class hitbtc extends Exchange {
             $networkEntry = $this->safe_dict($networks, $j);
             $networkId = $this->safe_string($networkEntry, 'network');
             $code = $this->safe_string($currency, 'code');
-            $networkCode = $this->network_id_to_code($networkId, $code);
-            $networkCodeUpper = ($networkCode !== null) ? strtoupper($networkCode) : null;
+            $rawNetworkCode = $this->network_id_to_code($networkId, $code);
+            $networkCodeUpper = ($rawNetworkCode !== null) ? strtoupper($rawNetworkCode) : null;
             $networkCode = ($networkCodeUpper !== null) ? $this->safe_string($this->networkAliases, $networkCodeUpper, $networkCodeUpper) : null;
             $withdrawFee = $this->safe_number($networkEntry, 'payout_fee');
             $isDefault = $this->safe_bool($networkEntry, 'default');

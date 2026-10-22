@@ -708,7 +708,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'ACTIVE': 'open',
             'COMPLETED': 'closed',
@@ -1198,8 +1198,9 @@ class bitflyer(Exchange, ImplicitAPI):
             auth = ''.join(content)
             if len(params) > 0:
                 if method != 'GET':
-                    bodySigned = self.json(params)
-                    auth += bodySigned
+                    body = self.json(params)
+                    bodySigned = body
+                    auth += body
             headersSigned = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-TIMESTAMP': nonce,

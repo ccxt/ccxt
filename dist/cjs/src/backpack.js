@@ -544,7 +544,9 @@ class backpack extends backpack$1["default"] {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
-        const [stock, query] = this.handleStockParams('fetchCurrencies', params);
+        const selection = this.handleStockParams('fetchCurrencies', params);
+        const stock = this.safeBool(selection, 0, false);
+        const query = this.safeDict(selection, 1, {});
         const response = await this.publicGetApiV1Assets(query);
         //
         //     [
@@ -572,7 +574,7 @@ class backpack extends backpack$1["default"] {
         const currencies = {};
         for (let i = 0; i < response.length; i++) {
             const currency = this.parseCurrency(response[i]);
-            if ((stock !== true) || (currency['type'] === 'stock')) {
+            if ((stock !== true) || (this.safeString(currency, 'type') === 'stock')) {
                 currencies[currency['code']] = currency;
             }
         }
@@ -660,7 +662,9 @@ class backpack extends backpack$1["default"] {
         if (this.safeBool(this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference();
         }
-        const [stock, query] = this.handleStockParams('fetchMarkets', params);
+        const selection = this.handleStockParams('fetchMarkets', params);
+        const stock = this.safeBool(selection, 0, false);
+        const query = this.safeDict(selection, 1, {});
         const marketType = this.safeString(query, 'marketType');
         const defaultTypes = (marketType === undefined) ? ['SPOT', 'PERP', 'RFQ'] : [marketType];
         const requestedTypes = this.safeList(query, 'marketType', defaultTypes);
@@ -1065,7 +1069,7 @@ class backpack extends backpack$1["default"] {
         const quoteCode = (fromIsStock) ? toCode : fromCode;
         const symbol = stockCode + '.RFQ/' + quoteCode;
         const market = this.safeDict(this.markets, symbol);
-        if ((market === undefined) || (market['executionModel'] !== 'rfq') || (market['stock'] !== true)) {
+        if ((market === undefined) || (this.safeString(market, 'executionModel') !== 'rfq') || !this.safeBool(market, 'stock', false)) {
             throw new errors.BadSymbol(this.id + ' conversion requires a listed stock RFQ market: ' + symbol);
         }
         return market;
@@ -1087,7 +1091,7 @@ class backpack extends backpack$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' parseConversion() requires source and destination currencies');
         }
         const market = this.rfqConversionMarket(fromCode, toCode);
-        const fromIsBase = fromCode === market['base'];
+        const fromIsBase = fromCode === this.safeString(market, 'base');
         const filled = this.safeNumber(order, 'filled');
         const cost = this.safeNumber(order, 'cost');
         const fee = this.safeDict(order, 'fee');
@@ -1566,8 +1570,9 @@ class backpack extends backpack$1["default"] {
             const supportedLimits = [5, 10, 20, 50, 100, 500];
             requestLimit = 500;
             for (let i = 0; i < supportedLimits.length; i++) {
-                if (limit <= supportedLimits[i]) {
-                    requestLimit = supportedLimits[i];
+                const supportedLimit = this.safeInteger(supportedLimits, i, 0);
+                if (limit <= supportedLimit) {
+                    requestLimit = supportedLimit;
                     break;
                 }
             }
@@ -1622,19 +1627,22 @@ class backpack extends backpack$1["default"] {
         if ((since === undefined) && (limit === undefined)) {
             limitResolved = defaultLimit;
         }
+        const windowLimit = (limit === undefined) ? defaultLimit : limit;
+        let startTime = undefined;
         if (since === undefined) {
-            const endTime = (until !== undefined && until !== null && until !== 0) ? this.parseToInt(until / 1000) : this.seconds();
-            const windowLimit = (limit === undefined) ? defaultLimit : limit;
-            const startTime = endTime - (windowLimit * duration);
-            request['startTime'] = startTime;
+            let endTime = this.seconds();
+            if (until !== undefined && until !== null && until !== 0) {
+                endTime = this.parseToInt(until / 1000);
+            }
+            startTime = endTime - (windowLimit * duration);
         }
         else {
-            request['startTime'] = this.parseToInt(since / 1000); // convert milliseconds to seconds
+            startTime = this.parseToInt(since / 1000); // convert milliseconds to seconds
         }
+        request['startTime'] = startTime;
         if (until === undefined) {
             const currentMs = this.seconds(); // default to current time in seconds
-            const windowLimit = (limit === undefined) ? defaultLimit : limit;
-            const windowEnd = this.sum(request['startTime'], windowLimit * duration); // sum (): `+` on a dict value is string concatenation in php
+            const windowEnd = this.sum(startTime, windowLimit * duration);
             const minTimestamp = Math.min(currentMs, windowEnd);
             request['endTime'] = this.parseToInt(minTimestamp); // default to current time in seconds if until is not specified
         }
@@ -3351,7 +3359,6 @@ class backpack extends backpack$1["default"] {
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = apiUrl;
         const requestParams = Array.isArray(params) ? params : this.omit(params, ['stock', 'defaultStock', 'rfq', 'callerMethodName']);
         const sortedParams = Array.isArray(requestParams) ? requestParams : this.keysort(requestParams);
         let headersSigned = undefined;
@@ -3395,7 +3402,7 @@ class backpack extends backpack$1["default"] {
                 endpoint += '?' + query;
             }
         }
-        url += endpoint;
+        const url = apiUrl + endpoint;
         const headersResolved = (apiName === 'private') ? headersSigned : undefined;
         let bodyResolved = undefined;
         if ((apiName === 'private') && (method !== 'GET')) {

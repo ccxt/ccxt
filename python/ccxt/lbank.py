@@ -1174,10 +1174,15 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        limitResolved = 100 if (limit is None) else min(limit, 2000)
+        limitResolved = self.parse_to_int(100 if (limit is None) else min(limit, 2000))
         duration = self.parse_timeframe(timeframe)
-        sinceResolved = (self.milliseconds() - (duration * 1000 * limitResolved)) if (since is None) else since
-        parsedSince = self.parse_to_int(sinceResolved / 1000)
+        now = self.milliseconds()
+        defaultSince = now - (duration * 1000 * limitResolved)
+        sinceResolved = defaultSince
+        parsedSince = self.parse_to_int(defaultSince / 1000)
+        if since is not None:
+            sinceResolved = since
+            parsedSince = self.parse_to_int(since / 1000)
         parsedLimit = min(limitResolved + 1, 2000)  # max 2000;
         request = {
             'symbol': market['id'],
@@ -1296,7 +1301,7 @@ class lbank(Exchange, ImplicitAPI):
         }
         data = self.safe_dict(response, 'data')
         # from spotPrivatePostUserInfo
-        toBtc = self.safe_value(data, 'toBtc')
+        toBtc = self.safe_dict(data, 'toBtc')
         if toBtc is not None:
             used = self.safe_dict(data, 'freeze', {})
             free = self.safe_dict(data, 'free', {})
@@ -1671,7 +1676,7 @@ class lbank(Exchange, ImplicitAPI):
             'info': result,
         }, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             '-1': 'canceled',  # canceled
             '0': 'open',  # not traded
@@ -2929,10 +2934,12 @@ class lbank(Exchange, ImplicitAPI):
                 cacheSecretAsPem = self.safe_bool(self.options, 'cacheSecretAsPem', True)
                 pem = None
                 if cacheSecretAsPem:
-                    pem = self.safe_string(self.options, 'pem')
-                    if pem is None:
+                    cachedPem = self.safe_string(self.options, 'pem')
+                    if cachedPem is None:
                         pem = self.convert_secret_to_pem(self.encode(self.secret))
                         self.options['pem'] = pem
+                    else:
+                        pem = cachedPem
                 else:
                     pem = self.convert_secret_to_pem(self.encode(self.secret))
                 sign = self.rsa(uppercaseHash, pem, 'sha256')
@@ -2949,15 +2956,13 @@ class lbank(Exchange, ImplicitAPI):
             return {'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned}
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def convert_secret_to_pem(self, secret: object):
-        lineLength = 64
+    def convert_secret_to_pem(self, secret: object) -> str:
         secretLength = len(secret) - 0
-        numLines = self.parse_to_int(secretLength / lineLength)
-        numLines = self.sum(numLines, 1)
+        fullLines = self.parse_to_int(secretLength / 64)
         pem = "-----BEGIN PRIVATE KEY-----\n"  # eslint-disable-line
-        for i in range(0, numLines):
-            start = i * lineLength
-            end = self.sum(start, lineLength)
+        for i in range(0, fullLines):
+            start = i * 64
+            end = self.sum(start, 64)
             pem += self.secret[start:end] + "\n"  # eslint-disable-line
         return pem + '-----END PRIVATE KEY-----'
 

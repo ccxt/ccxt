@@ -831,7 +831,8 @@ class bitvavo extends \ccxt\async\bitvavo {
         //     }
         //
         $nonce = $this->safe_integer($message, 'nonce');
-        if ($nonce > $orderbook['nonce']) {
+        $currentNonce = $this->safe_integer($orderbook, 'nonce');
+        if (($nonce !== null) && ($currentNonce !== null) && ($nonce > $currentNonce)) {
             $this->handle_deltas($orderbook['asks'], $this->safe_list($message, 'asks', array()));
             $this->handle_deltas($orderbook['bids'], $this->safe_list($message, 'bids', array()));
             $orderbook['nonce'] = $nonce;

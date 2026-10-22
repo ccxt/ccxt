@@ -1341,15 +1341,15 @@ class bigone(Exchange, ImplicitAPI):
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': limitResolved,
         }
-        if sinceIsDefined:
+        if since is not None:
             # const start = this.parseToInt (since / 1000);
             duration = self.parse_timeframe(timeframe)
-            endByLimit = self.sum(since, limitResolved * duration * 1000)
-            if untilIsDefined:
+            endByLimit = self.parse_to_int(self.sum(since, limitResolved * duration * 1000))
+            if until is not None:
                 request['time'] = self.iso8601(min(endByLimit, until + 1))
             else:
                 request['time'] = self.iso8601(endByLimit)
-        elif untilIsDefined:
+        elif until is not None:
             request['time'] = self.iso8601(until + 1)
         paramsOmitted = self.omit(params, 'until')
         response = self.publicGetAssetPairsAssetPairNameCandles(self.extend(request, paramsOmitted))
@@ -1428,7 +1428,7 @@ class bigone(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_type(self, type: Str):
+    def parse_type(self, type: Str) -> Str:
         types = {
             'STOP_LIMIT': 'limit',
             'STOP_MARKET': 'market',
@@ -1837,7 +1837,7 @@ class bigone(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'PENDING': 'open',
             'FILLED': 'closed',
@@ -1880,7 +1880,8 @@ class bigone(Exchange, ImplicitAPI):
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def nonce(self) -> float:
-        exchangeTimeCorrection = self.safe_integer(self.options, 'exchangeMillisecondsCorrection', 0) * 1000000
+        exchangeMillisecondsCorrection = self.safe_integer(self.options, 'exchangeMillisecondsCorrection', 0)
+        exchangeTimeCorrection = exchangeMillisecondsCorrection * 1000000
         return self.sum(self.microseconds() * 1000, exchangeTimeCorrection)
 
     def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
@@ -1970,7 +1971,7 @@ class bigone(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             # what are other statuses here?
             'WITHHOLD': 'ok',  # deposits

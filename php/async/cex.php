@@ -1253,7 +1253,7 @@ class cex extends Exchange {
         return $order;
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'PENDING_NEW' => 'open',
             'NEW' => 'open',
@@ -1712,7 +1712,7 @@ class cex extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'rejected' => 'rejected',
             'pending' => 'pending',

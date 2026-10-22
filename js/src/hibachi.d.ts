@@ -128,10 +128,7 @@ export default class hibachi extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
-    cancelOrderRequest(id: string): {
-        orderId: string;
-        signature: string;
-    };
+    cancelOrderRequest(id: string): Dict;
     /**
      * @method
      * @name hibachi#cancelOrder

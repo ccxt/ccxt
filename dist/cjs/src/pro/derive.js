@@ -527,10 +527,9 @@ class derive extends derive$1["default"] {
             const requestId = this.requestId(url);
             const now = this.numberToString(this.nonce());
             const signature = this.signMessage(now, this.privateKey);
-            let deriveWalletAddress = this.safeString(this.options, 'deriveWalletAddress');
-            if ((deriveWalletAddress === undefined) || (deriveWalletAddress === '')) {
-                deriveWalletAddress = this.walletAddress; // v3: the owner wallet is the user's own EOA
-            }
+            const configuredWalletAddress = this.safeString(this.options, 'deriveWalletAddress');
+            // v3: the owner wallet is the user's own EOA
+            const deriveWalletAddress = ((configuredWalletAddress === undefined) || (configuredWalletAddress === '')) ? this.walletAddress : configuredWalletAddress;
             const request = {
                 'id': requestId,
                 'method': 'public/login',
@@ -992,11 +991,7 @@ class derive extends derive$1["default"] {
         if (this.balance === undefined) {
             this.balance = {};
         }
-        let subBalance = this.safeDict(this.balance, subaccountIdKey);
-        if (subBalance === undefined) {
-            const emptySubBalance = {};
-            subBalance = emptySubBalance;
-        }
+        const subBalance = this.safeDict(this.balance, subaccountIdKey, {});
         let updated = false;
         const positionUpdates = [];
         for (let i = 0; i < data.length; i++) {

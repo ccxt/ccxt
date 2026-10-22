@@ -1618,11 +1618,15 @@ export default class weex extends Exchange {
             if ((since === undefined) || (until === undefined)) {
                 const now = this.milliseconds();
                 const duration = this.parseTimeframe(timeframe) * 1000;
-                let numberOfCandles = maxHistoricalLimit;
-                if (limitResolved !== undefined && limitResolved !== null && limitResolved !== 0) {
-                    numberOfCandles = limitResolved;
+                let timeDelta = maxHistoricalLimit * duration;
+                if (limit !== undefined && limit !== null && limit !== 0) {
+                    if (limit > 1000) {
+                        timeDelta = 1000 * duration;
+                    }
+                    else {
+                        timeDelta = limit * duration;
+                    }
                 }
-                const timeDelta = numberOfCandles * duration;
                 if ((since === undefined) && (until === undefined)) {
                     endTime = now;
                     startTime = now - timeDelta;
@@ -2347,11 +2351,8 @@ export default class weex extends Exchange {
         if (isTrigger && (isStopLoss || isTakeProfit)) {
             throw new BadRequest(this.id + ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters');
         }
-        let reduceOnly = this.safeBool(query, 'reduceOnly');
-        if (isStopLoss || isTakeProfit) {
-            reduceOnly = true;
-        }
-        const isReduceOnly = (reduceOnly === true);
+        const reduceOnly = this.safeBool(query, 'reduceOnly');
+        const isReduceOnly = isStopLoss || isTakeProfit || (reduceOnly === true);
         let positionSide = 'LONG';
         if (isReduceOnly) {
             if (side === 'buy') {
@@ -3269,7 +3270,7 @@ export default class weex extends Exchange {
     handleOrderOrPositionError(errorCode, errorMessage, order) {
         const errorCodeValue = (errorCode === undefined) ? '' : errorCode;
         const errorMessageValue = (errorMessage === undefined) ? '' : errorMessage;
-        if ((errorCodeValue === '') && (errorMessageValue === '')) {
+        if (((errorCode === undefined) || (errorCode === '')) && ((errorMessage === undefined) || (errorMessage === ''))) {
             // some endpoints could return an empty string if there is no error
             return;
         }
@@ -3607,8 +3608,9 @@ export default class weex extends Exchange {
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsPaginate);
         // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
-        const hasSince = ('startTime' in requestUntil);
-        const hasUntil = ('endTime' in requestUntil);
+        const hasSince = (since !== undefined);
+        const until = this.safeInteger2(paramsPaginate, 'until', 'till');
+        const hasUntil = (until !== undefined);
         if (hasSince && !hasUntil) {
             requestUntil['endTime'] = this.milliseconds();
         }

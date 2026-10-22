@@ -361,10 +361,11 @@ public partial class bithumb : ccxt.bithumb
         string time = this.safeString(ticker, "time", "");
         string kstDatetime = ((((((((((((date == null) ? null : date.Substring(0, Math.Min(4, date.Length))) + "-") + ((date == null) ? null : date.Substring(Math.Min(4, date.Length), Math.Min(6, date.Length) - Math.Min(4, date.Length)))) + "-") + ((date == null) ? null : date.Substring(Math.Min(6, date.Length), Math.Min(8, date.Length) - Math.Min(6, date.Length)))) + "T") + ((time == null) ? null : time.Substring(0, Math.Min(2, time.Length)))) + ":") + ((time == null) ? null : time.Substring(Math.Min(2, time.Length), Math.Min(4, time.Length) - Math.Min(2, time.Length)))) + ":") + ((time == null) ? null : time.Substring(Math.Min(4, time.Length), Math.Min(6, time.Length) - Math.Min(4, time.Length))));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
-        object timestamp = this.parse8601(kstDatetime);
-        if (!(timestamp == null))
+        object timestamp = null;
+        Int64? kstTimestamp = this.parse8601(kstDatetime);
+        if ((kstTimestamp != null))
         {
-            timestamp = (subtract(timestamp, 32400000));
+            timestamp = (kstTimestamp - 32400000);
         }
         string? marketId = this.safeString(ticker, "symbol");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -586,13 +587,13 @@ public partial class bithumb : ccxt.bithumb
             side = "bids";
         }
         List<object> bidAsk = this.parseOrderBookBidAsk(delta, "price", "quantity");
-        object orderbookSide = getValue(orderbook, side);
+        object orderbookSide = (orderbook != null && side != null && orderbook.ContainsKey(side) ? orderbook[side] : null);
         (orderbookSide as IOrderBookSide).storeArray(bidAsk);
     }
 
     public override void handleBookDeltas(ccxt.pro.IOrderBook orderbook, object deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (((object)(deltas)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             this.handleBookDelta(orderbook, getValue(deltas, i));
         }
@@ -779,7 +780,12 @@ public partial class bithumb : ccxt.bithumb
         string? marketId = this.safeString(trade, "symbol");
         string? datetime = this.safeString(trade, "contDtm");
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        object timestamp = subtract(this.parseToInt(this.parse8601(datetime)), 32400000);
+        object timestamp = null;
+        Int64? kstTimestamp = this.parse8601(datetime);
+        if ((kstTimestamp != null))
+        {
+            timestamp = (kstTimestamp - 32400000);
+        }
         string? sideId = this.safeString(trade, "buySellGb");
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", null },
@@ -946,7 +952,7 @@ public partial class bithumb : ccxt.bithumb
         List<object> keys = new List<object>(subscriptions.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            request.Add(getValue(subscriptions, keys[i]));
+            request.Add((subscriptions != null && keys[i] != null && subscriptions.ContainsKey((string)keys[i]) ? subscriptions[(string)keys[i]] : null));
         }
         return request;
     }
@@ -1196,17 +1202,17 @@ public partial class bithumb : ccxt.bithumb
             this.handlePong(client, message);
             return;
         }
-        if ((inOp(message, "pong")) || (inOp(message, "PINGPONG")))
+        if (((((object)(message)) switch { null => false, IList<object> c33a => c33a.Contains("pong"), IList<string> c33t => c33t.Contains("pong"), List<Int64> c33g => c33g.Contains((Int64)(object)"pong"), IDictionary<string, object> c33d => c33d.ContainsKey("pong"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("pong"), _ => false })) || ((((object)(message)) switch { null => false, IList<object> c33a => c33a.Contains("PINGPONG"), IList<string> c33t => c33t.Contains("PINGPONG"), List<Int64> c33g => c33g.Contains((Int64)(object)"PINGPONG"), IDictionary<string, object> c33d => c33d.ContainsKey("PINGPONG"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("PINGPONG"), _ => false })))
         {
             this.handlePong(client, message);
             return;
         }
-        if (inOp(message, "ping"))
+        if ((((object)(message)) switch { null => false, IList<object> c33a => c33a.Contains("ping"), IList<string> c33t => c33t.Contains("ping"), List<Int64> c33g => c33g.Contains((Int64)(object)"ping"), IDictionary<string, object> c33d => c33d.ContainsKey("ping"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("ping"), _ => false }))
         {
             this.handlePing(client, message);
             return;
         }
-        if (!isEqual(this.handleErrorMessage(client, message), true))
+        if (!(this.handleErrorMessage(client, message) == true))
         {
             return;
         }

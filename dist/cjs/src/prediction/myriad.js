@@ -265,8 +265,7 @@ class myriad extends myriad$1["default"] {
                 'limit': limit,
             }, rest));
             const responseIsArray = Array.isArray(response);
-            const foundList = (responseIsArray) ? response : this.safeList(response, 'data', []);
-            const found = (foundList !== undefined) ? foundList : [];
+            const found = (responseIsArray) ? response : this.safeList(response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
                 const networkId = this.safeString(raw, 'networkId');
@@ -312,8 +311,7 @@ class myriad extends myriad$1["default"] {
                 'trading_model': tradingModel,
             }, rest));
             const responseIsArray = Array.isArray(response);
-            const rawMarketsList = (responseIsArray) ? response : this.safeList(response, 'data', []);
-            const rawMarkets = (rawMarketsList !== undefined) ? rawMarketsList : [];
+            const rawMarkets = (responseIsArray) ? response : this.safeList(response, 'data', []);
             const rawMarketsLength = rawMarkets.length;
             if (rawMarketsLength === 0) {
                 break;
@@ -321,7 +319,7 @@ class myriad extends myriad$1["default"] {
             for (let i = 0; i < rawMarketsLength; i++) {
                 if (collected < maxMarkets) {
                     allRawMarkets.push(rawMarkets[i]);
-                    collected = this.sum(collected, 1);
+                    collected = allRawMarkets.length;
                 }
             }
             page = this.sum(page, 1);
@@ -440,8 +438,7 @@ class myriad extends myriad$1["default"] {
                 'limit': limit,
             }, rest));
             const responseIsArray = Array.isArray(response);
-            const foundList = (responseIsArray) ? response : this.safeList(response, 'data', []);
-            const found = (foundList !== undefined) ? foundList : [];
+            const found = (responseIsArray) ? response : this.safeList(response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
                 const questionId = this.safeString(raw, 'id');
@@ -481,8 +478,7 @@ class myriad extends myriad$1["default"] {
             }
             const response = await this.myriadPublicGetQuestions(this.extend(request, rest));
             const responseIsArray = Array.isArray(response);
-            const rawQuestionsList = (responseIsArray) ? response : this.safeList(response, 'data', []);
-            const rawQuestions = (rawQuestionsList !== undefined) ? rawQuestionsList : [];
+            const rawQuestions = (responseIsArray) ? response : this.safeList(response, 'data', []);
             const rawQuestionsLength = rawQuestions.length;
             if (rawQuestionsLength === 0) {
                 break;
@@ -498,7 +494,7 @@ class myriad extends myriad$1["default"] {
                 }
                 if (collected < maxQuestions) {
                     allRawQuestions.push(rawQuestion);
-                    collected = this.sum(collected, 1);
+                    collected = allRawQuestions.length;
                 }
             }
             page = this.sum(page, 1);
@@ -915,15 +911,11 @@ class myriad extends myriad$1["default"] {
             defaultTif = 'FOK';
         }
         const timeInForce = this.safeStringUpper(params, 'timeInForce', defaultTif);
-        let priceValue = price;
-        if (priceValue === undefined) {
-            if (isMarket) {
-                priceValue = (sideInt === 0) ? 1 : 0;
-            }
-            else {
-                throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a price for limit orders');
-            }
+        if ((price === undefined) && !isMarket) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a price for limit orders');
         }
+        const marketPrice = (sideInt === 0) ? 1 : 0;
+        const priceValue = (price !== undefined) ? price : marketPrice;
         let priceWei = this.toOrderbookWei(priceValue);
         if (Precise["default"].stringLt(priceWei, '1')) {
             priceWei = '1';
@@ -1361,14 +1353,10 @@ class myriad extends myriad$1["default"] {
         const outcomeObj = this.safeOutcome(composite, market);
         const marketSlug = this.safeString(trade, 'marketSlug', marketId);
         const outcomeTitle = this.safeString(trade, 'outcomeTitle', rawOutcomeId);
-        let outcome = this.safeString(outcomeObj, 'outcome');
-        if (outcome === undefined) {
-            outcome = this.slugToOutcomeSymbol(marketSlug, marketSlug, outcomeTitle);
-        }
-        let marketSymbol = this.safeString(outcomeObj, 'market');
-        if (marketSymbol === undefined) {
-            marketSymbol = this.slugToMarketSymbol(marketSlug, marketSlug);
-        }
+        const outcomeValue = this.safeString(outcomeObj, 'outcome');
+        const outcome = (outcomeValue !== undefined) ? outcomeValue : this.slugToOutcomeSymbol(marketSlug, marketSlug, outcomeTitle);
+        const marketSymbolValue = this.safeString(outcomeObj, 'market');
+        const marketSymbol = (marketSymbolValue !== undefined) ? marketSymbolValue : this.slugToMarketSymbol(marketSlug, marketSlug);
         let label = this.safeString(outcomeObj, 'label');
         if (label === undefined) {
             label = outcomeTitle;
@@ -1426,10 +1414,8 @@ class myriad extends myriad$1["default"] {
         if ((requestedStatus === 'open') || (requestedStatus === 'cancelled') || (requestedStatus === 'canceled') || (requestedStatus === 'expired')) {
             return [];
         }
-        let trader = this.safeString2(params, 'trader', 'address');
-        if (trader === undefined) {
-            trader = this.walletAddressOrUndefined();
-        }
+        const traderParam = this.safeString2(params, 'trader', 'address');
+        const trader = (traderParam !== undefined) ? traderParam : this.walletAddressOrUndefined();
         if (trader === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrders() for AMM history requires a trader address or wallet/privateKey');
         }
@@ -1980,7 +1966,8 @@ class myriad extends myriad$1["default"] {
         if (decimals === undefined) {
             throw new errors.ExchangeError(this.id + ' fromWeiWithDecimals() missing decimals');
         }
-        for (let i = 0; i < decimals; i++) {
+        const decimalsCount = this.parseToInt(decimals);
+        for (let i = 0; i < decimalsCount; i++) {
             scale = scale + '0';
         }
         return Precise["default"].stringDiv(decimalString, scale);
@@ -2412,25 +2399,24 @@ class myriad extends myriad$1["default"] {
         const outcomes = this.safeList(raw, 'outcomes', []);
         let price = undefined;
         let change = undefined;
+        // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE percentage from it
+        let previousClose = undefined;
+        let percentage = undefined;
         for (let i = 0; i < outcomes.length; i++) {
             const o = this.safeDict(outcomes, i);
             if (this.safeString(o, 'outcomeId', this.safeString(o, 'id')) === outcomeId) {
-                price = this.safeNumber(o, 'price');
-                change = this.safeNumber(o, 'priceChange24h');
+                const priceValue = this.safeNumber(o, 'price');
+                const changeValue = this.safeNumber(o, 'priceChange24h');
+                price = priceValue;
+                change = changeValue;
+                if ((priceValue !== undefined) && (changeValue !== undefined)) {
+                    const previousCloseValue = priceValue - changeValue;
+                    previousClose = previousCloseValue;
+                    if (previousCloseValue !== 0) {
+                        percentage = changeValue / previousCloseValue * 100;
+                    }
+                }
                 break;
-            }
-        }
-        // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
-        // percentage from it — setting percentage = the absolute change (as before) was wrong
-        let previousClose = undefined;
-        let percentage = undefined;
-        if ((price !== undefined) && (change !== undefined)) {
-            previousClose = price - change;
-            if (previousClose === undefined) {
-                throw new errors.ExchangeError(this.id + ' method() missing previousClose');
-            }
-            if (previousClose !== 0) {
-                percentage = change / previousClose * 100;
             }
         }
         return this.safePredictionTicker({
@@ -2572,23 +2558,22 @@ class myriad extends myriad$1["default"] {
         //     }
         //
         const outcomes = this.safeList(response, 'outcomes', []);
-        let price = undefined;
-        for (let i = 0; i < outcomes.length; i++) {
-            const o = this.safeDict(outcomes, i);
-            if (this.safeString(o, 'outcomeId', this.safeString(o, 'id')) === outcomeId) {
-                price = this.safeNumber(o, 'price');
-                break;
-            }
-        }
         // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
         let bid = undefined;
         let ask = undefined;
-        if (price !== undefined) {
-            if (price > 0.001) {
-                bid = this.parseNumber(Precise["default"].stringSub(this.numberToString(price), '0.001'));
-            }
-            if (price < 0.999) {
-                ask = this.parseNumber(Precise["default"].stringAdd(this.numberToString(price), '0.001'));
+        for (let i = 0; i < outcomes.length; i++) {
+            const o = this.safeDict(outcomes, i);
+            if (this.safeString(o, 'outcomeId', this.safeString(o, 'id')) === outcomeId) {
+                const price = this.safeNumber(o, 'price');
+                if (price !== undefined) {
+                    if (price > 0.001) {
+                        bid = this.parseNumber(Precise["default"].stringSub(this.numberToString(price), '0.001'));
+                    }
+                    if (0.999 > price) {
+                        ask = this.parseNumber(Precise["default"].stringAdd(this.numberToString(price), '0.001'));
+                    }
+                }
+                break;
             }
         }
         // the synthetic size must be a parsed float, an int literal breaks the typed go wrapper conversion
@@ -2742,7 +2727,7 @@ class myriad extends myriad$1["default"] {
         const pointsLength = points.length;
         if (pointsLength === 0) {
             const priceCharts = this.safeDict(response, 'price_charts', {});
-            const bucket = this.safeValue(priceCharts, bucketKey, {});
+            const bucket = this.safeDict(priceCharts, bucketKey, {});
             points = this.safeList(bucket, outcomeId, this.safeList(bucket, 'data', []));
         }
         const usablePoints = [];
@@ -2900,8 +2885,7 @@ class myriad extends myriad$1["default"] {
         //     }
         //
         const responseIsArray = Array.isArray(response);
-        const rowsList = (responseIsArray) ? response : this.safeList(response, 'data', []);
-        const rows = (rowsList !== undefined) ? rowsList : [];
+        const rows = (responseIsArray) ? response : this.safeList(response, 'data', []);
         const trades = [];
         for (let i = 0; i < rows.length; i++) {
             const row = this.safeDict(rows, i);
@@ -3535,7 +3519,7 @@ class myriad extends myriad$1["default"] {
             const marketId = this.safeString(info, 'marketId');
             const channel = 'prices:' + networkId + ':' + marketId;
             resolvedSymbols.push(this.safeOutcomeSymbol(outcomes[i], outcomeObj));
-            if (this.safeValue(seenChannels, channel) === undefined) {
+            if (!(channel in seenChannels)) {
                 seenChannels[channel] = true;
                 const requestId = this.requestId(url);
                 const subscribeMsg = { 'subscribe': { 'channel': channel }, 'id': requestId };

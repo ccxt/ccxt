@@ -441,7 +441,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                     put( "instId", market.get("id") );
                 }});
             }
-            Object request = this.getSubscriptionRequest(args);
+            Map<String, Object> request = this.getSubscriptionRequest(args);
             Object ticker = (this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsMarketType), messageHashes, null)).join();
             if (this.newUpdates)
             {
@@ -463,8 +463,8 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         List<Object> data = (List<Object>) this.safeList(message, "data", (Object) null);
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object ticker = this.parseWsBidAsk((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null);
-            Object symbol = ((Map<String, Object>)ticker).get("symbol");
+            Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null);
+            Object symbol = ticker.get("symbol");
             String messageHash = ("bidask:" + symbol);
             Helpers.addElementToObject(this.bidsasks, ((String)symbol), ticker);
             client.resolve(ticker, messageHash);
@@ -573,7 +573,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         String marketId = this.safeString(arg, "instId");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
-        String interval = Helpers.replace(channelName, (String)"candle", (String)"");
+        String interval = (channelName == null ? null : ((String)channelName).replaceFirst("candle", ""));
         Object unifiedTimeframe = this.findTimeframe(interval, (Object) null);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe);
@@ -623,7 +623,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Map<String, Object> sub = new HashMap<String, Object>() {{
                 put( "channel", "account" );
             }};
-            Object request = this.getSubscriptionRequest(new ArrayList<Object>(Arrays.asList(sub)));
+            Map<String, Object> request = this.getSubscriptionRequest(new ArrayList<Object>(Arrays.asList(sub)));
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)(this.urls.get("api"))).get("ws"), marketType), "private");
             return (this.watch(url, messageHash, this.deepExtend(request, paramsMarketType), messageHash, null)).join();
         }).thenApply(Balances::new);
@@ -641,10 +641,6 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         //     }
         //
         String marketType = "swap"; // for now
-        if (!(((Map<?, ?>)this.balance).containsKey(marketType)))
-        {
-            Helpers.addElementToObject(this.balance, marketType, new HashMap<String, Object>() {{}});
-        }
         Helpers.addElementToObject(this.balance, marketType, this.parseWsBalance((Map<String, Object>) (message)));
         String messageHash = (marketType + ":balance");
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(marketType)), messageHash);
@@ -857,7 +853,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 put( "channel", "funding-rate" );
                 put( "instId", market.get("id") );
             }};
-            Object request = this.getSubscriptionRequest(new ArrayList<Object>(Arrays.asList(requestParams)));
+            Map<String, Object> request = this.getSubscriptionRequest(new ArrayList<Object>(Arrays.asList(requestParams)));
             String url = (String) Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)(this.urls.get("api"))).get("ws"), marketType), "public");
             return (this.watch(url, messageHash, this.deepExtend(request, paramsMarketType), messageHash, null)).join();
         }).thenApply(FundingRate::new);
@@ -900,7 +896,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> callerMethodNameOptionparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", Helpers.toStringArg(callerMethodName));
+            List<Object> callerMethodNameOptionparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", java.util.Objects.toString(callerMethodName, null));
             String callerMethodNameOption = (String) ((List<Object>) callerMethodNameOptionparamsCallerMethodNameVariable).get(0);
             Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) callerMethodNameOptionparamsCallerMethodNameVariable).get(1);
             // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
@@ -926,10 +922,10 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 symbols = new ArrayList<Object>(Arrays.asList());
             }
-            Integer symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = (switch ((Object)(symbols)) { case null -> 0; case List<?> j39v17 -> j39v17.size(); case String j39v18 -> j39v18.length(); case Object j39v19 -> j39v19.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v19) : 0; });
             if ((symbolsLength != null && symbolsLength > 0))
             {
-                for (var i = 0; i < Helpers.getArrayLength(symbols); i++)
+                for (var i = 0; i < (switch ((Object)(symbols)) { case null -> 0; case List<?> j39v14 -> j39v14.size(); case String j39v15 -> j39v15.length(); case Object j39v16 -> j39v16.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v16) : 0; }); i++)
                 {
                     Object current = Helpers.GetValue(symbols, i);
                     Map<String, Object> market = null;
@@ -940,7 +936,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                         Object tfArray = Helpers.GetValue(symbolsArray, i);
                         Object tf = Helpers.GetValue(tfArray, 1);
                         String interval = this.safeString(this.timeframes, tf, tf);
-                        channel = Helpers.add(channel, interval);
+                        channel = ((java.util.function.BinaryOperator<Object>) (hx4J40v1A, hx4J40v1B) -> { Object hx4J40v1P = hx4J40v1A instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1A; Object hx4J40v1Q = hx4J40v1B instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1B; if (hx4J40v1P instanceof Long hx4J40v1l && hx4J40v1Q instanceof Long hx4J40v1r) { return hx4J40v1l + hx4J40v1r; } if (hx4J40v1P instanceof Double || hx4J40v1Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; return hx4J40v1D.applyAsDouble(hx4J40v1P) + hx4J40v1D.applyAsDouble(hx4J40v1Q); } if (hx4J40v1P instanceof String || hx4J40v1Q instanceof String) { return String.valueOf(hx4J40v1P) + String.valueOf(hx4J40v1Q); } return null; }).apply(channel, interval);
                     } else
                     {
                         market = this.market(current);
@@ -965,9 +961,9 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 mapLiteral2.put("channel", channelName);
                 rawSubscriptions = new ArrayList<Object>(Arrays.asList(mapLiteral2));
             }
-            Object request = this.getSubscriptionRequest(rawSubscriptions);
+            Map<String, Object> request = this.getSubscriptionRequest(rawSubscriptions);
             String privateOrPublic = "private";
-            if (Helpers.isTrue(isPublic))
+            if ((switch ((Object) (isPublic)) { case null -> false; case Boolean hx4J40v0 -> hx4J40v0.booleanValue(); case Long hx4J40v0 -> hx4J40v0 != 0L; case Integer hx4J40v0 -> hx4J40v0 != 0; case Double hx4J40v0 -> hx4J40v0 != 0.0; case String hx4J40v0 -> !hx4J40v0.isEmpty(); case List<?> hx4J40v0 -> !hx4J40v0.isEmpty(); case Map<?, ?> hx4J40v0 -> true; default -> false; }))
             {
                 privateOrPublic = "public";
             }
@@ -977,7 +973,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
     }
 
-    public Object getSubscriptionRequest(Object args)
+    public Map<String, Object> getSubscriptionRequest(Object args)
     {
         return new HashMap<String, Object>() {{
             put( "op", "subscribe" );

@@ -317,8 +317,8 @@ class bittrade extends \ccxt\async\bittrade {
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
         // only supports a limit of 150 at this time
-        $limitValue = ($limit === null) ? 150 : $limit;
-        $messageHash = 'market.' . $market['id'] . '.mbp.' . (string) $limitValue;
+        $limitValue = 150;
+        $messageHash = 'market.' . $market['id'] . '.mbp.150';
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
         $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
@@ -460,7 +460,8 @@ class bittrade extends \ccxt\async\bittrade {
         if (($prevSeqNum === null) || ($seqNum === null)) {
             return $orderbook;
         }
-        if (($prevSeqNum <= $orderbook['nonce']) && ($seqNum > $orderbook['nonce'])) {
+        $nonce = $this->safe_integer($orderbook, 'nonce');
+        if (($nonce !== null) && ($prevSeqNum <= $nonce) && ($seqNum > $nonce)) {
             $asks = $this->safe_list($tick, 'asks', array());
             $bids = $this->safe_list($tick, 'bids', array());
             $this->handle_deltas($orderbook['asks'], $asks);
@@ -497,7 +498,10 @@ class bittrade extends \ccxt\async\bittrade {
         //     }
         //
         $messageHash = $this->safe_string($message, 'ch');
-        $ch = $this->safe_value($message, 'ch');
+        $ch = $this->safe_string($message, 'ch');
+        if ($ch === null) {
+            return;
+        }
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $symbol = $this->safe_symbol($marketId);
@@ -506,7 +510,7 @@ class bittrade extends \ccxt\async\bittrade {
             // no active subscription holds a book for this symbol, drop the delta
             return;
         }
-        if ($orderbook['nonce'] === null) {
+        if ($this->safe_integer($orderbook, 'nonce') === null) {
             $orderbook->cache[] = $message;
         } else {
             $this->handle_order_book_message($client, $message, $orderbook);
@@ -593,7 +597,10 @@ class bittrade extends \ccxt\async\bittrade {
         //         }
         //     }
         //
-        $ch = $this->safe_value($message, 'ch');
+        $ch = $this->safe_string($message, 'ch');
+        if ($ch === null) {
+            return;
+        }
         $parts = explode('.', $ch);
         $type = $this->safe_string($parts, 0);
         if ($type === 'market') {

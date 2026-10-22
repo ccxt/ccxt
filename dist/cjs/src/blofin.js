@@ -729,9 +729,7 @@ class blofin extends blofin$1["default"] {
             'instId': market['id'],
         };
         const limitValue = (limit === undefined) ? 50 : limit;
-        if (limitValue !== undefined) {
-            request['size'] = limitValue; // max 100
-        }
+        request['size'] = limitValue; // max 100
         const response = await this.publicGetMarketBooks(this.extend(request, params));
         //
         //     {
@@ -1219,7 +1217,7 @@ class blofin extends blofin$1["default"] {
     }
     parseBalanceByType(response) {
         const data = this.safeList(response, 'data');
-        if ((data !== undefined) && Array.isArray(data)) {
+        if (data !== undefined) {
             return this.parseFundingBalance(response);
         }
         else {
@@ -1767,8 +1765,8 @@ class blofin extends blofin$1["default"] {
             const marketId = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const extendedParams = this.extend(orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
@@ -2155,9 +2153,9 @@ class blofin extends blofin$1["default"] {
         const request = {
             'currency': currency['id'],
         };
-        let networkCode = undefined;
-        let query = undefined;
-        [networkCode, query] = this.handleNetworkCodeAndParams(params);
+        // same reads as handleNetworkCodeAndParams, kept as typed locals
+        let networkCode = this.safeString2(params, 'networkCode', 'network');
+        const query = this.omit(params, ['networkCode', 'network']);
         const chain = this.safeString(query, 'chain');
         if (chain === undefined) {
             if (networkCode === undefined) {

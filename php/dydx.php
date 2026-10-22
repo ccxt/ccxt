@@ -931,7 +931,7 @@ class dydx extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'UNTRIGGERED' => 'open',
             'OPEN' => 'open',
@@ -942,7 +942,7 @@ class dydx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             'LIMIT' => 'LIMIT',
             'STOP_LIMIT' => 'LIMIT',
@@ -1247,7 +1247,7 @@ class dydx extends Exchange {
         return $this->encode_dydx_tx_raw($signDoc, $signature['r'] . $signature['s']);
     }
 
-    public function retrieve_credentials(): mixed {
+    public function retrieve_credentials(): array {
         $credentials = $this->safe_dict($this->options, 'dydxCredentials');
         if ($credentials !== null) {
             return $credentials;
@@ -1303,7 +1303,7 @@ class dydx extends Exchange {
         return $this->safe_dict($this->options, 'dydxAccount', array());
     }
 
-    public function pow(string $n, ?string $m) {
+    public function pow(string $n, ?string $m): ?string {
         $r = Precise::string_mul($n, '1');
         $c = $this->parse_to_int($m);
         // TODO: cap
@@ -1330,8 +1330,8 @@ class dydx extends Exchange {
         $subaccountId = 0;
         list($subaccountIdOption, $paramsSubAccountId) = $this->handle_option_integer_and_params($params, 'createOrder', 'subAccountId', $subaccountId);
         $triggerPrice = $this->safe_string_2($paramsSubAccountId, 'triggerPrice', 'stopPrice');
-        $stopLossPrice = $this->safe_value($paramsSubAccountId, 'stopLossPrice', $triggerPrice);
-        $takeProfitPrice = $this->safe_value($paramsSubAccountId, 'takeProfitPrice');
+        $stopLossPrice = $this->safe_string($paramsSubAccountId, 'stopLossPrice', $triggerPrice);
+        $takeProfitPrice = $this->safe_string($paramsSubAccountId, 'takeProfitPrice');
         $isConditional = $triggerPrice !== null || $stopLossPrice !== null || $takeProfitPrice !== null;
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_upper($paramsSubAccountId, 'timeInForce', 'GTT');
@@ -1581,7 +1581,8 @@ class dydx extends Exchange {
         if (mb_strpos($idString, '-') > -1) {
             throw new NotSupported($this->id . ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.');
         }
-        $goodTillBlock = $this->safe_integer($paramsOmitted, 'goodTillBlock');
+        $goodTillBlockOption = $this->safe_integer($paramsOmitted, 'goodTillBlock');
+        $goodTillBlock = $goodTillBlockOption;
         $goodTillBlockTimeInSeconds = 2592000;
         list($goodTillBlockTimeInSecondsOption, $paramsGoodTillBlockTimeInSeconds) = $this->handle_option_integer_and_params($paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
         $goodTillBlockTime = null;
@@ -1596,7 +1597,7 @@ class dydx extends Exchange {
             if ($goodTillBlockTimeInSecondsOption === null) {
                 throw new ArgumentsRequired($this->id . ' goodTillBlockTimeInSeconds is required in params for long term or conditional order.');
             }
-            if ($goodTillBlock !== null && $goodTillBlock > 0) {
+            if ($goodTillBlockOption !== null && $goodTillBlockOption > 0) {
                 throw new InvalidOrder($this->id . ' goodTillBlock should be 0 for long term or conditional order.');
             }
             $goodTillBlockTime = $this->seconds() . $goodTillBlockTimeInSecondsOption;
@@ -2476,7 +2477,7 @@ class dydx extends Exchange {
         return $this->milliseconds() - $timeDifference;
     }
 
-    public function get_wallet_address() {
+    public function get_wallet_address(): string {
         if ($this->walletAddress !== null && $this->walletAddress !== '') {
             return $this->walletAddress;
         }
@@ -2535,7 +2536,7 @@ class dydx extends Exchange {
             $errorCode = $this->safe_string($response, 'code');
         }
         if (($errorCode !== null) && ($errorCode !== '')) {
-            $errorCodeNum = $this->parse_to_numeric($errorCode);
+            $errorCodeNum = $this->parse_to_int($errorCode);
             if ($errorCodeNum > 0) {
                 $feedback = $this->id . ' ' . $this->json($response);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);

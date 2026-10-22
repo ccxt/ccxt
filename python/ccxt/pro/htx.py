@@ -537,17 +537,17 @@ class htx(ccxt.async_support.htx):
             snapshotOrderBook = self.order_book(snapshot, snapshotLimit)
             client.resolve(snapshotOrderBook, id)
             if (sequence is None) or (nonce < sequence):
-                maxAttempts = self.handle_option('watchOrderBook', 'maxRetries', 3)
+                maxAttempts = self.parse_to_int(self.handle_option('watchOrderBook', 'maxRetries', 3))
                 numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
                 # retry to synchronize if we have not reached maxAttempts yet
                 if numAttempts < maxAttempts:
                     # safety guard
                     if messageHash in client.subscriptions:
-                        numAttempts = self.sum(numAttempts, 1)
+                        nextAttempts = self.sum(numAttempts, 1)
                         delayTime = 1000
                         if (lastTimestamp is not None) and (snapshotTimestamp is not None):
                             delayTime = self.sum(1000, lastTimestamp - snapshotTimestamp)
-                        subscription['numAttempts'] = numAttempts
+                        subscription['numAttempts'] = nextAttempts
                         client.subscriptions[messageHash] = subscription
                         self.delay(delayTime, self.watch_order_book_snapshot, client, message, subscription)
                 else:
@@ -696,7 +696,8 @@ class htx(ccxt.async_support.htx):
             snapshot = self.parse_order_book(tick, symbol, timestamp)
             orderbook.reset(snapshot)
             orderbook['nonce'] = version
-        if (prevSeqNum is not None) and prevSeqNum > self.safe_integer(orderbook, 'nonce', 0):
+        orderbookNonce = self.safe_integer(orderbook, 'nonce', 0)
+        if (prevSeqNum is not None) and prevSeqNum > orderbookNonce:
             checksum = self.handle_option('watchOrderBook', 'checksum', True)
             if checksum is True:
                 raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))

@@ -1082,7 +1082,8 @@ class onetrading extends onetrading$1["default"] {
         if (timestamp === undefined) {
             throw new errors.ExchangeError(this.id + ' parseOHLCV() missing timestamp');
         }
-        const alignedTimestamp = duration * this.parseToInt(timestamp / duration);
+        const periods = this.parseToInt(timestamp / duration);
+        const alignedTimestamp = duration * periods;
         const options = this.safeDict(this.options, 'fetchOHLCV', {});
         const volumeField = this.safeString(options, 'volume', 'total_amount');
         return [

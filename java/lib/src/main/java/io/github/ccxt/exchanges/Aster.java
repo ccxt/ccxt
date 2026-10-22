@@ -1399,10 +1399,11 @@ public class Aster extends AsterApi
             spot = false;
             swap = true;
             settleId = this.safeString(market, "marginAsset");
-            settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
-            symbol = ((((base + "/") + quote) + ":") + settle);
-            linear = java.util.Objects.equals(settle, quote);
-            inverse = java.util.Objects.equals(settle, base);
+            String settleCode = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+            settle = settleCode;
+            symbol = ((((base + "/") + quote) + ":") + settleCode);
+            linear = java.util.Objects.equals(settleCode, quote);
+            inverse = java.util.Objects.equals(settleCode, base);
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
         } else
         {
@@ -1442,8 +1443,8 @@ public class Aster extends AsterApi
         mapLiteral1.put("contract", isContract);
         mapLiteral1.put("linear", linear);
         mapLiteral1.put("inverse", inverse);
-        mapLiteral1.put("taker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker"));
-        mapLiteral1.put("maker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker"));
+        mapLiteral1.put("taker", Helpers.GetValue((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker"));
+        mapLiteral1.put("maker", Helpers.GetValue((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker"));
         mapLiteral1.put("contractSize", contractSize);
         mapLiteral1.put("expiry", null);
         mapLiteral1.put("expiryDatetime", null);
@@ -1759,7 +1760,7 @@ public class Aster extends AsterApi
                 request = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
             }
             // use historical endpoint for targeted requests
-            if (((Map<?, ?>)request).containsKey("startTime"))
+            if (Boolean.TRUE.equals(sinceDefined))
             {
                 if (java.util.Objects.equals(market.get("swap"), true))
                 {
@@ -2201,7 +2202,7 @@ public class Aster extends AsterApi
                 ((List<Object>)results).add(priceData);
             }
             List<String> symbolsNormalized2 = this.marketSymbols(symbolsNormalized, (Object) null, true, false, false);
-            return this.filterByArray(results, "symbol", symbolsNormalized2, true);
+            return this.indexBy(this.filterByArray(results, "symbol", symbolsNormalized2, false), "symbol");
         }).thenApply(LastPrices::new);
 
     }
@@ -2573,7 +2574,7 @@ public class Aster extends AsterApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; }); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "asset");
@@ -2610,7 +2611,7 @@ public class Aster extends AsterApi
                 throw new ArgumentsRequired((this.id + " setMarginMode() requires a symbol argument")) ;
             }
             String marginModeUpper = ((String)marginMode).toUpperCase();
-            Object marginModeValue = (((java.util.Objects.equals(marginModeUpper, "CROSS")))) ? "CROSSED" : marginModeUpper;
+            String marginModeValue = (((java.util.Objects.equals(marginModeUpper, "CROSS")))) ? "CROSSED" : marginModeUpper;
             if ((!java.util.Objects.equals(marginModeValue, "ISOLATED")) && (!java.util.Objects.equals(marginModeValue, "CROSSED")))
             {
                 throw new BadRequest((this.id + " marginMode must be either isolated or cross")) ;
@@ -3528,10 +3529,7 @@ public class Aster extends AsterApi
             {
                 throw new InvalidOrder((((this.id + " createOrder() requires a stopPrice extra param for a ") + type) + " order")) ;
             }
-            if (!java.util.Objects.equals(stopPrice, null))
-            {
-                request.put("stopPrice", this.priceToPrecision(symbol, stopPrice));
-            }
+            request.put("stopPrice", this.priceToPrecision(symbol, stopPrice));
         }
         Pair<String, Map<String, Object>> tifOptionparamsTifOptionVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "timeInForce", (String) null);
         String tifOption = tifOptionparamsTifOptionVariable.first();
@@ -3718,7 +3716,7 @@ public class Aster extends AsterApi
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
             }
-            if ((Helpers.isLessThan(leverage, 1)) || (Helpers.isGreaterThan(leverage, 125)))
+            if (((leverage == null || !(((Number) leverage).doubleValue() >= 1))) || ((leverage != null && ((Number) leverage).doubleValue() > 125)))
             {
                 throw new BadRequest((this.id + " leverage should be between 1 and 125")) ;
             }
@@ -3940,7 +3938,7 @@ public class Aster extends AsterApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Helpers.mathMin(limit, 1000));
+                request.put("limit", ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(limit, 1000));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -3964,7 +3962,7 @@ public class Aster extends AsterApi
             //     ]
             //
             List<Object> modifications = this.parseMarginModifications(this.toArray(response), (List<String>) null, (String) null, (Object) null);
-            return this.filterBySymbolSinceLimit(modifications, symbol, Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), false);
+            return this.filterBySymbolSinceLimit(modifications, symbol, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v4 -> hx4J40v4; case Number hx4J40v4 -> Long.valueOf(hx4J40v4.longValue()); case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v4.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v3 -> hx4J40v3; case Number hx4J40v3 -> Long.valueOf(hx4J40v3.longValue()); case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v3.getClass().getName()); })), false);
         }).thenApply(res -> ((List<?>) res).stream().map(MarginModification::new).collect(Collectors.toList()));
 
     }
@@ -4306,7 +4304,7 @@ public class Aster extends AsterApi
         for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
         {
             Object bracket = (leverageBracket == null || i < 0 || i >= leverageBracket.size() ? null : leverageBracket.get(i));
-            if (Precise.stringLt(notionalStringAbs, Helpers.GetValue(bracket, 0)))
+            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0)))
             {
                 break;
             }
@@ -4319,7 +4317,7 @@ public class Aster extends AsterApi
         Double unrealizedPnl = this.parseNumber(unrealizedPnlString);
         String liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
         Double liquidationPrice = this.parseNumber(liquidationPriceString);
-        Object collateralString = null;
+        String collateralString = null;
         String marginMode = this.safeString(position, "marginType");
         if (java.util.Objects.equals(marginMode, null) && !java.util.Objects.equals(isolatedMarginString, null))
         {
@@ -4388,7 +4386,10 @@ public class Aster extends AsterApi
         {
             collateralString = this.safeString(position, "isolatedMargin");
         }
-        collateralString = (((java.util.Objects.equals(collateralString, null)))) ? "0" : collateralString;
+        if (java.util.Objects.equals(collateralString, null))
+        {
+            collateralString = "0";
+        }
         Double collateral = this.parseNumber(collateralString);
         Double markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
         Long timestamp = this.safeInteger(position, "updateTime");
@@ -4409,8 +4410,8 @@ public class Aster extends AsterApi
         String leverageString = this.safeString(position, "leverage");
         if (!java.util.Objects.equals(leverageString, null))
         {
-            Object leverage = Helpers.parseInt(leverageString);
-            Boolean rational = this.isRoundNumber(Helpers.mod(1000, leverage));
+            Long leverage = this.parseToInt(leverageString);
+            Boolean rational = this.isRoundNumber((((double) 1000) % ((double) leverage)));
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
             if (!Boolean.TRUE.equals(rational))
             {
@@ -4603,15 +4604,16 @@ public class Aster extends AsterApi
             String maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
             Boolean isPositionOpen = (!java.util.Objects.equals(maintenanceMargin, "0")) && (!java.util.Objects.equals(maintenanceMargin, "0.00000000"));
-            if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(filterClosed, false)) || Boolean.TRUE.equals(isPositionOpen))
+            if (!(switch ((Object) (java.util.Objects.requireNonNullElse(filterClosed, false))) { case null -> false; case Boolean hx4J40v2 -> hx4J40v2.booleanValue(); case Long hx4J40v2 -> hx4J40v2 != 0L; case Integer hx4J40v2 -> hx4J40v2 != 0; case Double hx4J40v2 -> hx4J40v2 != 0.0; case String hx4J40v2 -> !hx4J40v2.isEmpty(); case List<?> hx4J40v2 -> !hx4J40v2.isEmpty(); case Map<?, ?> hx4J40v2 -> true; default -> false; }) || Boolean.TRUE.equals(isPositionOpen))
             {
                 // sometimes not all the codes are correctly returned...
                 if (balances.containsKey(code))
                 {
-                    Map<String, Object> parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, Helpers.newMap(
-                        "crossMargin", Helpers.GetValue((balances == null || code == null ? null : balances.get(code)), "crossMargin"),
-                        "crossWalletBalance", Helpers.GetValue((balances == null || code == null ? null : balances.get(code)), "crossWalletBalance")
-                    ))), market);
+                    Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, code, (Object) null);
+                    Map<String, Object> parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, new HashMap<String, Object>() {{
+                        put( "crossMargin", Aster.this.safeString(balance, "crossMargin") );
+                        put( "crossWalletBalance", Aster.this.safeString(balance, "crossWalletBalance") );
+                    }})), market);
                     ((List<Object>)result).add(parsed);
                 }
             }
@@ -4625,18 +4627,14 @@ public class Aster extends AsterApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "contract");
         String symbol = this.safeString(marketResolved, "symbol");
         String leverageString = this.safeString(position, "leverage");
-        Object leverage = (((!java.util.Objects.equals(leverageString, null)))) ? Helpers.parseInt(leverageString) : null;
         String initialMarginString = this.safeString(position, "initialMargin");
         Double initialMargin = this.parseNumber(initialMarginString);
         String initialMarginPercentageString = null;
         if (!java.util.Objects.equals(leverageString, null))
         {
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
-            if (java.util.Objects.equals(leverage, null))
-            {
-                throw new ExchangeError((this.id + " parseAccountPosition() missing leverage")) ;
-            }
-            Boolean rational = this.isRoundNumber(Helpers.mod(1000, leverage));
+            Long leverage = this.parseToInt(leverageString);
+            Boolean rational = this.isRoundNumber((((double) 1000) % ((double) leverage)));
             if (!Boolean.TRUE.equals(rational))
             {
                 initialMarginPercentageString = Precise.stringDiv(Precise.stringAdd(initialMarginPercentageString, "1e-8"), "1", 8);
@@ -4667,7 +4665,7 @@ public class Aster extends AsterApi
         for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
         {
             Object bracket = (leverageBracket == null || i < 0 || i >= leverageBracket.size() ? null : leverageBracket.get(i));
-            if (Precise.stringLt(notionalStringAbs, Helpers.GetValue(bracket, 0)))
+            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0)))
             {
                 break;
             }
@@ -4681,11 +4679,15 @@ public class Aster extends AsterApi
         {
             timestamp = null;
         }
-        Boolean isolated = (Boolean) this.safeBool(position, "isolated", (Object) null);
-        if (java.util.Objects.equals(isolated, null))
+        Boolean isolatedRaw = (Boolean) this.safeBool(position, "isolated", (Object) null);
+        Boolean isolated = false;
+        if (java.util.Objects.equals(isolatedRaw, null))
         {
             String isolatedMarginRaw = this.safeString(position, "isolatedMargin");
             isolated = !Precise.stringEq(isolatedMarginRaw, "0");
+        } else
+        {
+            isolated = (java.util.Objects.equals(isolatedRaw, true));
         }
         String marginMode = null;
         String collateralString = null;
@@ -4761,11 +4763,10 @@ public class Aster extends AsterApi
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
             Object pricePrecision = this.precisionFromString(this.safeString(marketResolved.get("precision"), "price"));
-            Object pricePrecisionPlusOne = Helpers.add(pricePrecision, 1);
+            Object pricePrecisionPlusOne = ((Object) (switch ((Object) (pricePrecision)) { case null -> (Object) null; case Long hx4J40v1 -> (Object) (hx4J40v1 + 1L); case Integer hx4J40v1 -> (Object) (hx4J40v1.longValue() + 1L); case Double hx4J40v1 -> (Object) (hx4J40v1 + ((double) 1L)); case String hx4J40v1 -> (Object) (hx4J40v1 + "1"); default -> (Object) null; }));
             String pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
             // round half up
-            var rounder = new Precise(("5e-" + pricePrecisionPlusOneString));
-            String rounderString = String.valueOf(rounder);
+            String rounderString = ("5e-" + pricePrecisionPlusOneString);
             String liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             String truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
             if (java.util.Objects.equals(truncatedLiquidationPrice, null))
@@ -4843,7 +4844,7 @@ public class Aster extends AsterApi
             (this.loadLeverageBrackets(false, parameters)).join();
             Map<String, Object> response = (this.fapiPrivateGetV4Account(parameters)).join();
             Boolean filterClosed = (Boolean) ((List<Object>)this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchAccountPositions", "filterClosed", false)).get(0);
-            Object result = this.parseAccountPositions((Map<String, Object>) (response), filterClosed);
+            List<Object> result = (List<Object>) this.parseAccountPositions((Map<String, Object>) (response), filterClosed);
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         });
@@ -4885,7 +4886,7 @@ public class Aster extends AsterApi
                 //                },
                 //                ...
                 //
-                Helpers.addElementToObject(this.options, "leverageBrackets", this.createSafeDictionary());
+                { Map<Object, Object> j39v6 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v7 = "leverageBrackets"; Object j39v8 = this.createSafeDictionary(); if (j39v6 == null) { if (j39v7 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v6) { if (j39v8 == null && j39v6 instanceof java.util.concurrent.ConcurrentHashMap) { j39v6.remove(j39v7); } else { j39v6.put(j39v7, j39v8); } } }
                 List<Object> entries = this.toArray(response);
                 for (var i = 0; i < ((List<?>)entries).size(); i++)
                 {
@@ -4909,7 +4910,7 @@ public class Aster extends AsterApi
 
     }
 
-    public Object keccakMessage(Object message)
+    public String keccakMessage(Object message)
     {
         return ("0x" + this.hash(message, keccak(), "hex"));
     }
@@ -5139,7 +5140,7 @@ public class Aster extends AsterApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object hashMessage(Object binaryMessage)
+    public String hashMessage(Object binaryMessage)
     {
         // const binaryMessage = this.encode (message);
         Object binaryMessageLength = this.binaryLength(binaryMessage);
@@ -5181,14 +5182,14 @@ public class Aster extends AsterApi
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             String zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
             Long v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
-            Object walletAddress = this.safeString(this.options, "cachedWalletAddress");
+            String walletAddress = this.safeString(this.options, "cachedWalletAddress");
             Object privateKeyHash = this.hash(this.encode(this.privateKey), keccak(), "hex");
             String cachedPrivateKeyHash = this.safeString(this.options, "privateKeyHashForCachedWalletAddress");
             if ((java.util.Objects.equals(walletAddress, null)) || (!java.util.Objects.equals(cachedPrivateKeyHash, privateKeyHash)))
             {
                 walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
-                Helpers.addElementToObject(this.options, "cachedWalletAddress", walletAddress);
-                Helpers.addElementToObject(this.options, "privateKeyHashForCachedWalletAddress", privateKeyHash);
+                { Map<Object, Object> j39v12 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v13 = "cachedWalletAddress"; Object j39v14 = walletAddress; if (j39v12 == null) { if (j39v13 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v12) { if (j39v14 == null && j39v12 instanceof java.util.concurrent.ConcurrentHashMap) { j39v12.remove(j39v13); } else { j39v12.put(j39v13, j39v14); } } }
+                { Map<Object, Object> j39v9 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v10 = "privateKeyHashForCachedWalletAddress"; Object j39v11 = privateKeyHash; if (j39v9 == null) { if (j39v10 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v9) { if (j39v11 == null && j39v9 instanceof java.util.concurrent.ConcurrentHashMap) { j39v9.remove(j39v10); } else { j39v9.put(j39v10, j39v11); } } }
             }
             String signerAddress = this.safeString(this.options, "signerAddress", walletAddress); // default to user's wallet
             if (java.util.Objects.equals(signerAddress, null))
@@ -5247,9 +5248,11 @@ public class Aster extends AsterApi
             } else
             {
                 paramString = this.encodeValuesWithJson((Map<String, Object>) (finalParams));
-                paramsToEncode = Helpers.newMap(
-                    "msg", paramString
-                );
+                {
+                    HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                    hx4NewMap0.put("msg", paramString);
+                    paramsToEncode = hx4NewMap0;
+                }
             }
             Object encodedMessage = this.ethEncodeStructuredData(domain, messageTypes, paramsToEncode);
             String signature = this.signMessage(encodedMessage, this.privateKey);
@@ -5348,7 +5351,7 @@ public class Aster extends AsterApi
             {
                 throw new NotSupported((this.id + " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
             }
-            (this.initializeClient(Helpers.toMapArg(parameters))).join();
+            (this.initializeClient(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })))).join();
             return true;
         });
 
@@ -5359,8 +5362,8 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
-            if (!Helpers.isTrue(builderFee))
+            Boolean builderFee = (Boolean) this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
+            if (!Boolean.TRUE.equals(builderFee))
             {
                 return false;  // skip if builder fee is not enabled
             }
@@ -5383,11 +5386,12 @@ public class Aster extends AsterApi
             List<Object> approvedBuilders = result;
             Integer length = ((List<?>)approvedBuilders).size();
             Boolean found = false;
+            String builderAddress = this.safeString(this.options, "builder");
             for (var i = 0; (length != null && i < length); i++)
             {
                 Map<String, Object> builderInfo = (Map<String, Object>) this.safeDict(approvedBuilders, i, new HashMap<String, Object>() {{}});
                 String builderAccountId = this.safeString(builderInfo, "builderAddress");
-                if (java.util.Objects.equals(builderAccountId, this.safeString(this.options, "builder")))
+                if (java.util.Objects.equals(builderAccountId, builderAddress))
                 {
                     found = true;
                     break;
@@ -5395,7 +5399,7 @@ public class Aster extends AsterApi
             }
             if (!Boolean.TRUE.equals(found))
             {
-                Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
+                { Map<Object, Object> j39v21 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v22 = "approvedBuilderFee"; Object j39v23 = true; if (j39v21 == null) { if (j39v22 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v21) { if (j39v23 == null && j39v21 instanceof java.util.concurrent.ConcurrentHashMap) { j39v21.remove(j39v22); } else { j39v21.put(j39v22, j39v23); } } }
                 try
                 {
                     Map<String, Object> request = new HashMap<String, Object>() {{
@@ -5416,8 +5420,8 @@ public class Aster extends AsterApi
                     }
                 } catch(Exception e)
                 {
-                    Helpers.addElementToObject(this.options, "approvedBuilderFee", false);
-                    Helpers.addElementToObject(this.options, "builderFee", false); // disable if err
+                    { Map<Object, Object> j39v18 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v19 = "approvedBuilderFee"; Object j39v20 = false; if (j39v18 == null) { if (j39v19 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v18) { if (j39v20 == null && j39v18 instanceof java.util.concurrent.ConcurrentHashMap) { j39v18.remove(j39v19); } else { j39v18.put(j39v19, j39v20); } } }
+                    { Map<Object, Object> j39v15 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v16 = "builderFee"; Object j39v17 = false; if (j39v15 == null) { if (j39v16 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v15) { if (j39v17 == null && j39v15 instanceof java.util.concurrent.ConcurrentHashMap) { j39v15.remove(j39v16); } else { j39v15.put(j39v16, j39v17); } } } // disable if err
                 }
             }
             return null;  // just c#

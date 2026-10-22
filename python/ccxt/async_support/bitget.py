@@ -2167,7 +2167,7 @@ class bitget(Exchange, ImplicitAPI):
         promises = []
         fetchMargins = False
         for i in range(0, len(types)):
-            type = types[i]
+            type = self.safe_string(types, i)
             if (type == 'swap') or (type == 'future'):
                 subTypes = ['USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES', 'SUSDT-FUTURES', 'SCOIN-FUTURES', 'SUSDC-FUTURES']
                 for j in range(0, len(subTypes)):
@@ -2320,8 +2320,9 @@ class bitget(Exchange, ImplicitAPI):
                     symbol = symbol + ':' + settle
                 elif symbolType == 'delivery':
                     expiry = self.safe_integer(market, 'deliveryTime')
-                    expiryDatetime = self.iso8601(expiry)
-                    expiryParts = expiryDatetime.split('-')
+                    expiryIso = self.iso8601(expiry)
+                    expiryDatetime = expiryIso
+                    expiryParts = expiryIso.split('-')
                     yearPart = self.safe_string(expiryParts, 0, '')
                     dayPart = self.safe_string(expiryParts, 2, '')
                     year = yearPart[2:4]
@@ -2535,15 +2536,13 @@ class bitget(Exchange, ImplicitAPI):
             isRealityValue = self.safe_string_lower(market, 'isReality', '')
             isReality = (isRealityValue == 'yes')
             settleId = None
-            settle = None
             if category == 'USDT-FUTURES':
                 settleId = 'USDT'
             elif category == 'USDC-FUTURES':
                 settleId = 'USDC'
             elif category == 'COIN-FUTURES':
                 settleId = base
-            if settleId is not None:
-                settle = self.safe_currency_code(settleId)
+            settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote
             type = None
             swap = False
@@ -2583,8 +2582,9 @@ class bitget(Exchange, ImplicitAPI):
                     symbol = symbol + ':' + settle
                 elif symbolType == 'delivery':
                     expiry = self.safe_integer(market, 'deliveryTime')
-                    expiryDatetime = self.iso8601(expiry)
-                    expiryParts = expiryDatetime.split('-')
+                    expiryIso = self.iso8601(expiry)
+                    expiryDatetime = expiryIso
+                    expiryParts = expiryIso.split('-')
                     yearPart = self.safe_string(expiryParts, 0, '')
                     dayPart = self.safe_string(expiryParts, 2, '')
                     year = yearPart[2:4]
@@ -3010,7 +3010,9 @@ class bitget(Exchange, ImplicitAPI):
             if uta is True:
                 return await self.fetch_paginated_call_cursor('fetchDeposits', None, since, limit, paramsPaginate, 'orderId', 'cursor', None, 100)
             return await self.fetch_paginated_call_cursor('fetchDeposits', None, since, limit, paramsPaginate, 'idLessThan', 'idLessThan', None, 100)
-        defaultWindow = 2592000000 if (uta is True) else 7776000000  # uta allows a window of 30 days at most, else 90 days
+        defaultWindow = 7776000000  # uta allows a window of 30 days at most, else 90 days
+        if uta is True:
+            defaultWindow = 2592000000
         sinceResolved = self.milliseconds() - defaultWindow if (since is None) else since
         request = {
             'startTime': sinceResolved,
@@ -3191,7 +3193,9 @@ class bitget(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        defaultWindow = 2592000000 if (uta is True) else 7776000000  # uta allows a window of 30 days at most, else 90 days
+        defaultWindow = 7776000000  # uta allows a window of 30 days at most, else 90 days
+        if uta is True:
+            defaultWindow = 2592000000
         sinceResolved = self.milliseconds() - defaultWindow if (since is None) else since
         request = {
             'startTime': sinceResolved,
@@ -3372,14 +3376,14 @@ class bitget(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transaction_type(self, type: Str):
+    def parse_transaction_type(self, type: Str) -> Str:
         # the wire says withdraw, and a unified transaction says withdrawal
         types = {
             'withdraw': 'withdrawal',
         }
         return self.safe_string(types, type, type)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'success': 'ok',
             'Pending': 'pending',
@@ -4678,8 +4682,6 @@ class bitget(Exchange, ImplicitAPI):
         duration = self.parse_timeframe(timeframe) * 1000
         until = self.safe_integer(paramsStock, 'until')
         limitDefined = limit is not None
-        sinceDefined = since is not None
-        untilDefined = until is not None
         paramsOmitted = self.omit(paramsStock, ['until'])
         # retrievable periods listed here:
         # - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
@@ -4689,50 +4691,55 @@ class bitget(Exchange, ImplicitAPI):
             key = 'spot'
         ohlcOptions = self.safe_dict(self.options['fetchOHLCV'], key, {})
         maxLimitPerTimeframe = self.safe_dict(ohlcOptions, 'maxLimitPerTimeframe', {})
-        maxLimitForThisTimeframe = self.safe_integer(maxLimitPerTimeframe, timeframe, limit)
+        timeframeLimitValue = self.safe_integer(maxLimitPerTimeframe, timeframe)
+        # the per-timeframe cap only applies to a user-supplied limit
+        timeframeLimit = maxLimitForRecentEndpoint if (timeframeLimitValue is None) else timeframeLimitValue
+        requestedLimit = defaultLimit if (limit is None) else limit
+        limitCapped = maxLimitForRecentEndpoint if (requestedLimit > maxLimitForRecentEndpoint) else requestedLimit
+        # the per-timeframe cap only applies to a user-supplied limit
+        recentLimit = timeframeLimit if ((limit is not None) and (limitCapped > timeframeLimit)) else limitCapped
+        limitResolved = recentLimit
+        recentDuration = recentLimit * duration
         recentEndpointDaysMap = self.safe_dict(self.options['fetchOHLCV'], 'maxRecentDaysPerTimeframe', {})
         recentEndpointAvailableDays = self.safe_integer(recentEndpointDaysMap, timeframe)
-        recentEndpointBoundaryTs = now - (recentEndpointAvailableDays - 1) * msInDay
-        limitResolved = defaultLimit
-        if limitDefined:
-            limitCapped = min(limit, maxLimitForRecentEndpoint)
-            limitResolved = min(limitCapped, maxLimitForThisTimeframe)
-        limitMultipliedDuration = limitResolved * duration
+        historicalEndpointNeeded = (useHistoryEndpoint is True)
         # exchange aligns from endTime, so it's important, not startTime
         # startTime is supported only on "recent" endpoint, not on "historical" endpoint
         calculatedStartTime = None
         calculatedEndTime = None
-        if sinceDefined:
+        if since is not None:
             calculatedStartTime = since
             request['startTime'] = since
-            if not untilDefined:
-                calculatedEndTime = self.sum(calculatedStartTime, limitMultipliedDuration)
-                if calculatedEndTime > now:
+            if until is None:
+                calculatedEndTime = self.sum(since, recentDuration)
+                if since > now - recentDuration:
                     calculatedEndTime = now
                 request['endTime'] = calculatedEndTime
-        if untilDefined:
-            calculatedEndTime = until
-            if calculatedEndTime > now:
-                calculatedEndTime = now
-            request['endTime'] = calculatedEndTime
-            if not sinceDefined:
-                calculatedStartTime = calculatedEndTime - limitMultipliedDuration
+            if (recentEndpointAvailableDays is not None) and (since <= now - (recentEndpointAvailableDays - 1) * msInDay):
+                historicalEndpointNeeded = True
+        if until is not None:
+            untilEndTime = now if (until > now) else until
+            calculatedEndTime = untilEndTime
+            request['endTime'] = untilEndTime
+            if since is None:
+                untilStartTime = untilEndTime - recentDuration
+                calculatedStartTime = untilStartTime
                 # we do not need to set "startTime" here
-        # if historical endpoint is needed, we should re-set the variables
-        historicalEndpointNeeded = False
-        if (calculatedStartTime is not None and calculatedStartTime <= recentEndpointBoundaryTs) or (useHistoryEndpoint):
-            historicalEndpointNeeded = True
+                if (recentEndpointAvailableDays is not None) and (untilStartTime <= now - (recentEndpointAvailableDays - 1) * msInDay):
+                    historicalEndpointNeeded = True
+        if historicalEndpointNeeded:
             # only for "historical-candles" - ensure we use correct max limit
-            limitResolved = min(limitResolved, maxLimitForHistoryEndpoint)
-            limitMultipliedDuration = limitResolved * duration
-            calculatedStartTime = calculatedEndTime - limitMultipliedDuration
+            historicalLimit = maxLimitForHistoryEndpoint if (recentLimit > maxLimitForHistoryEndpoint) else recentLimit
+            limitResolved = historicalLimit
+            historicalDuration = historicalLimit * duration
+            calculatedStartTime = calculatedEndTime - historicalDuration
             request['startTime'] = calculatedStartTime
             # for contract, maximum 90 days allowed between start-end times
             if market['spot'] is not True:
-                maxDistanceDaysForContracts = 90
-                # only correct if request is larger
-                if calculatedEndTime - calculatedStartTime > maxDistanceDaysForContracts * msInDay:
-                    calculatedEndTime = self.sum(calculatedStartTime, maxDistanceDaysForContracts * msInDay)
+                maxDistanceForContracts = 90 * msInDay
+                # endTime - startTime is historicalDuration here; an undefined endTime never passed this check
+                if (calculatedEndTime is not None) and (historicalDuration > maxDistanceForContracts):
+                    calculatedEndTime = self.sum(calculatedStartTime, maxDistanceForContracts)
                     request['endTime'] = calculatedEndTime
         # we need to set limit to safely cover the period
         request['limit'] = limitResolved
@@ -5102,7 +5109,7 @@ class bitget(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'new': 'open',
             'init': 'open',
@@ -5749,7 +5756,7 @@ class bitget(Exchange, ImplicitAPI):
         #     throw new ExchangeError (this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         # }
         #
-        if self.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isTrailingPercentOrder) > 1:
+        if (isTriggerOrder and (isStopLossTriggerOrder or isTakeProfitTriggerOrder or isTrailingPercentOrder)) or (isStopLossTriggerOrder and (isTakeProfitTriggerOrder or isTrailingPercentOrder)) or (isTakeProfitTriggerOrder and isTrailingPercentOrder):
             raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
@@ -5914,7 +5921,7 @@ class bitget(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         ordersRequests = []
-        symbol = None
+        symbol = self.safe_string(self.safe_dict(orders, 0), 'symbol')
         marginMode = None
         for i in range(0, len(orders)):
             rawOrder = self.safe_dict(orders, i)
@@ -5980,7 +5987,7 @@ class bitget(Exchange, ImplicitAPI):
         if uta is True:
             return await self.create_uta_orders(orders, paramsUTA)
         ordersRequests = []
-        symbol = None
+        symbol = self.safe_string(self.safe_dict(orders, 0), 'symbol')
         marginMode = None
         for i in range(0, len(orders)):
             rawOrder = self.safe_dict(orders, i)
@@ -6125,7 +6132,7 @@ class bitget(Exchange, ImplicitAPI):
         # if (multipleTriggers) {
         #     throw new ExchangeError (this.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         # }
-        if self.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder) > 1:
+        if (isTriggerOrder and (isStopLossOrder or isTakeProfitOrder or isTrailingPercentOrder)) or (isStopLossOrder and (isTakeProfitOrder or isTrailingPercentOrder)) or (isTakeProfitOrder and isTrailingPercentOrder):
             raise ExchangeError(self.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
         paramsOmitted = self.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent'])
         response = None
@@ -8528,7 +8535,7 @@ class bitget(Exchange, ImplicitAPI):
         elif method == 'privateMixGetV2MixPositionAllPosition':
             marginCoin = self.safe_string(paramsPaginate, 'marginCoin', 'USDT')
             if market is not None:
-                marginCoin = market['settleId']
+                marginCoin = self.safe_string(market, 'settleId')
             elif productType == 'USDT-FUTURES':
                 marginCoin = 'USDT'
             elif productType == 'USDC-FUTURES':
@@ -9361,7 +9368,7 @@ class bitget(Exchange, ImplicitAPI):
             bills = self.filter_by_array(bills, 'type', ['CONTRACT_MAIN_SETTLE_FEE_USER_IN', 'CONTRACT_MAIN_SETTLE_FEE_USER_OUT'], False)
         return self.parse_funding_histories(bills, market, since, limit)
 
-    def parse_funding_history(self, contract: dict, market: Market = None):
+    def parse_funding_history(self, contract: dict, market: Market = None) -> dict:
         #
         #     {
         #         "billId": "1111499428100472833",

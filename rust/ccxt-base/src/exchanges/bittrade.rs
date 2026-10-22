@@ -127,12 +127,10 @@ impl crate::exchange_generated::ExchangeBase for BittradeCore {
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trading_limits" => self.parse_trading_limits(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "withdraw" => self.withdraw(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -1209,7 +1207,7 @@ impl BittradeCore {
         if (method.as_str() == Some("publicGetCommonSymbols")) {
             response = self.public_get_common_symbols(&[params]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() does not support the ".into())).into()), &method), Value::Str(" method".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() does not support the ".into())).into()), method).into()), Value::Str(" method".into()))));
         }
         //
         //    {
@@ -1248,7 +1246,7 @@ impl BittradeCore {
         if numMarkets < ((1i64) as f64) {
             panic!("{}", crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() returned empty response: ".into())).into()), json_stringify(&markets))));
         }
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_439: bool = true;
@@ -1264,7 +1262,7 @@ impl BittradeCore {
             let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
             let mut leverageRatio: Value = self.safe_string_k(market.clone(), "leverage-ratio", &[Value::Str("1".into())]);
             let mut superLeverageRatio: Value = self.safe_string_k(market.clone(), "super-margin-leverage-ratio", &[Value::Str("1".into())]);
-            let mut margin: Value = Value::Bool(is_true(&crate::precise::Precise::stringGt(&leverageRatio, &Value::Str("1".into()))) || is_true(&crate::precise::Precise::stringGt(&superLeverageRatio, &Value::Str("1".into()))));
+            let mut margin: Value = Value::Bool(crate::precise::Precise::stringGt(&leverageRatio, &Value::Str("1".into())).as_bool() == Some(true) || crate::precise::Precise::stringGt(&superLeverageRatio, &Value::Str("1".into())).as_bool() == Some(true));
             let mut fee: Value = (if (base.as_str() == Some("OMG")) { self.parse_number(Value::Str("0".into()), &[]) } else { self.parse_number(Value::Str("0.002".into()), &[]) });
             if (baseId == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() missing baseId".into()))));
@@ -1272,7 +1270,7 @@ impl BittradeCore {
             if (quoteId == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() missing quoteId".into()))));
             }
-            append_to_array(&mut result, Value::Map({
+            result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::Str(format!("{}{}", baseId, quoteId).into()));
                     m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
@@ -1341,7 +1339,7 @@ impl BittradeCore {
             }));
         }
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
@@ -1387,21 +1385,23 @@ impl BittradeCore {
         let mut bidVolume: Value = Value::Null;
         let mut ask: Value = Value::Null;
         let mut askVolume: Value = Value::Null;
-        if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("bid"))) {
-            if (matches!(&ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
-                bid = self.safe_string(ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
-                bidVolume = self.safe_string(ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null), Value::Int(1), &[]);
-            }  else {
-                bid = self.safe_string_k(ticker.clone(), "bid", &[]);
+        let mut bidList: Value = self.safe_list_k(ticker.clone(), "bid", &[]);
+        if (bidList != Value::Null) {
+            bid = self.safe_string(bidList.clone(), Value::Int(0), &[]);
+            bidVolume = self.safe_string(bidList, Value::Int(1), &[]);
+        }  else {
+            bid = self.safe_string_k(ticker.clone(), "bid", &[]);
+            if (bid != Value::Null) {
                 bidVolume = self.safe_string_k(ticker.clone(), "bidSize", &[]);
             }
         }
-        if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("ask"))) {
-            if (matches!(&ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
-                ask = self.safe_string(ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
-                askVolume = self.safe_string(ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null), Value::Int(1), &[]);
-            }  else {
-                ask = self.safe_string_k(ticker.clone(), "ask", &[]);
+        let mut askList: Value = self.safe_list_k(ticker.clone(), "ask", &[]);
+        if (askList != Value::Null) {
+            ask = self.safe_string(askList.clone(), Value::Int(0), &[]);
+            askVolume = self.safe_string(askList, Value::Int(1), &[]);
+        }  else {
+            ask = self.safe_string_k(ticker.clone(), "ask", &[]);
+            if (ask != Value::Null) {
                 askVolume = self.safe_string_k(ticker.clone(), "askSize", &[]);
             }
         }
@@ -1486,10 +1486,10 @@ impl BittradeCore {
         //     }
         //
         if (matches!(&response, Value::Dict(__d) if __d.contains_key("tick"))) {
-            if (response.as_map().and_then(|__m| __m.get("tick")).cloned().unwrap_or(Value::Null) == Value::Null) || (response.as_map().and_then(|__m| __m.get("tick")).cloned().unwrap_or(Value::Null) == Value::Null) {
+            let mut tick: Value = self.safe_dict_k(response.clone(), "tick", &[]);
+            if (tick == Value::Null) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() returned empty response: ".into())).into()), json_stringify(&response))));
             }
-            let mut tick: Value = self.safe_dict_k(response.clone(), "tick", &[]);
             let mut timestamp: Value = self.safe_integer_k(tick.clone(), "ts", &[self.safe_integer(response.clone(), Value::Str("ts".into()), &[])]);
             let mut result: Value = self.parse_order_book(tick.clone(), symbol, &[timestamp]);
             add_element_to_object(&mut result, &Value::Str("nonce".into()), self.safe_integer_k(tick, "version", &[]));
@@ -1641,7 +1641,7 @@ impl BittradeCore {
         let mut side: Value = self.safe_string_k(trade.clone(), "direction", &[]);
         let mut type_var: Value = self.safe_string_k(trade.clone(), "type", &[]);
         if (type_var != Value::Null) {
-            let mut typeParts: Value = split(&type_var, &Value::Str("-".into()));
+            let mut typeParts: Value = Value::Array(type_var.as_str().map(|__s| __s.split("-").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             side = typeParts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             type_var = typeParts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         }
@@ -1654,7 +1654,7 @@ impl BittradeCore {
         let mut feeCurrency: Value = self.safe_currency_code(self.safe_string_k(trade.clone(), "fee-currency", &[]), &[]);
         let mut filledPoints: Value = self.safe_string_k(trade.clone(), "filled-points", &[]);
         if (filledPoints != Value::Null) {
-            if (feeCost == Value::Null) || is_true(&(crate::precise::Precise::stringEq(&feeCost, &Value::Str("0.0".into())))) {
+            if (feeCost == Value::Null) || crate::precise::Precise::stringEq(&feeCost, &Value::Str("0.0".into())).as_bool() == Some(true) {
                 feeCost = filledPoints;
                 feeCurrency = self.safe_currency_code(self.safe_string_k(trade.clone(), "fee-deduct-currency", &[]), &[]);
             }
@@ -1836,7 +1836,7 @@ impl BittradeCore {
                 let mut __for_first_441: bool = true;
                 while { if !__for_first_441 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_441 = false; j.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
                 let mut trade: Value = self.parse_trade(trades.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
-                append_to_array(&mut result, trade);
+                if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(trade); }
             }
             }
         }
@@ -1922,7 +1922,7 @@ impl BittradeCore {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.private_get_account_accounts(&[params]).await;
-        return self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        return self.to_array(self.safe_list_k(response, "data", &[Value::from(vec![])]));
 
     Value::Null
 }
@@ -2058,20 +2058,9 @@ impl BittradeCore {
             let mut balance: Value = balances.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
-            let mut account: Value = Value::Null;
-            if (code != Value::Null) && (in_op(&result, &code)) {
-                account = result.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-            }  else {
-                account = self.account();
-            }
-            if (account == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseBalance() could not resolve account".into()))));
-            }
+            let mut account: Value = (if ((code != Value::Null) && (matches!((&result, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) { result.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) } else { self.account() });
             if (self.safe_string_k(balance.clone(), "type", &[]).as_str() == Some("trade")) {
                 add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string_k(balance.clone(), "balance", &[]));
-            }
-            if (account == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseBalance() could not resolve account".into()))));
             }
             if (self.safe_string_k(balance.clone(), "type", &[]).as_str() == Some("frozen")) {
                 add_element_to_object(&mut account, &Value::Str("used".into()), self.safe_string_k(balance, "balance", &[]));
@@ -2113,7 +2102,7 @@ impl BittradeCore {
             let __ws_arg_8 = self.extend(request, &[params]);
             response = self.private_get_account_accounts_id_balance(&[__ws_arg_8]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() does not support the ".into())).into()), &method), Value::Str(" method".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() does not support the ".into())).into()), method).into()), Value::Str(" method".into()))));
         }
         return self.parse_balance(response);
 
@@ -2307,7 +2296,7 @@ impl BittradeCore {
                 let mut __for_first_444: bool = true;
                 while { if !__for_first_444 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_444 = false; i.as_f64().unwrap_or(f64::NAN) < ((self.accounts.len() as i64) as f64) } {
                 let mut account: Value = self.accounts.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                if (account.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() == Some("spot")) {
+                if (self.safe_string_k(account.clone(), "type", &[]).as_str() == Some("spot")) {
                     accountId = self.safe_string_k(account, "id", &[]);
                     if (accountId != Value::Null) {
                         break;
@@ -2350,7 +2339,7 @@ impl BittradeCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("partial-filled".to_string(), Value::Str("open".into()));
@@ -2360,9 +2349,7 @@ impl BittradeCore {
                 m.insert("submitted".to_string(), Value::Str("open".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -2402,11 +2389,12 @@ impl BittradeCore {
         let mut side: Value = Value::Null;
         let mut type_var: Value = Value::Null;
         let mut status: Value = Value::Null;
-        if (matches!(&order, Value::Dict(__d) if __d.contains_key("type"))) {
-            let mut orderType: Value = split(&get_value(&order, &Value::Str("type".into())), &Value::Str("-".into()));
-            side = get_value(&orderType, &Value::Int(0));
-            type_var = get_value(&orderType, &Value::Int(1));
-            status = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[]));
+        let mut orderTypeRaw: Value = self.safe_string_k(order.clone(), "type", &[]);
+        if (orderTypeRaw != Value::Null) {
+            let mut orderType: Value = Value::Array(orderTypeRaw.as_str().map(|__s| __s.split("-").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
+            side = orderType.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+            type_var = orderType.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+            status = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         }
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId, market]);
@@ -2540,7 +2528,7 @@ impl BittradeCore {
             paramsOrder = self.omit(paramsRequiresPrice, Value::Str("cost".into()), &[]);
             if (cost != Value::Null) {
                 quoteAmount = self.amount_to_precision(symbol.clone(), cost);
-            }  else if is_true(&createMarketBuyOrderRequiresPrice) {
+            }  else if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
                 if (price == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".into()))));
                 }  else {
@@ -2570,7 +2558,7 @@ impl BittradeCore {
             let __ws_arg_13 = self.extend(request, &[paramsOrder]);
             response = self.private_post_order_orders_place(&[__ws_arg_13]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support the ".into())).into()), &method), Value::Str(" method".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support the ".into())).into()), method).into()), Value::Str(" method".into()))));
         }
         let mut id: Value = self.safe_string_k(response.clone(), "data", &[]);
         return self.safe_order(Value::Map({
@@ -2698,18 +2686,18 @@ impl BittradeCore {
         let mut successes: Value = self.safe_string_k(orders.clone(), "successes", &[]);
         let mut success: Value = Value::Null;
         if (successes != Value::Null) {
-            success = split(&successes, &Value::Str(",".into()));
+            success = Value::Array(successes.as_str().map(|__s| __s.split(",").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         }  else {
             success = self.safe_list_k(orders.clone(), "success", &[Value::from(vec![])]);
         }
         let mut failed: Value = self.safe_list2(orders, Value::Str("errors".into()), Value::Str("failed".into()), &[Value::from(vec![])]);
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_445: bool = true;
             while { if !__for_first_445 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_445 = false; i.as_f64().unwrap_or(f64::NAN) < ((success.len() as i64) as f64) } {
             let mut order: Value = success.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            append_to_array(&mut result, self.safe_order(Value::Map({
+            result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), order.clone());
@@ -2723,7 +2711,7 @@ impl BittradeCore {
             let mut __for_first_446: bool = true;
             while { if !__for_first_446 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_446 = false; i.as_f64().unwrap_or(f64::NAN) < ((failed.len() as i64) as f64) } {
             let mut order: Value = failed.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            append_to_array(&mut result, self.safe_order(Value::Map({
+            result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("order-id".into()), Value::Str("order_id".into()), &[]));
@@ -2733,7 +2721,7 @@ impl BittradeCore {
 }), &[]));
         }
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
@@ -2810,8 +2798,8 @@ impl BittradeCore {
     m
 })]);
         let mut networksById: Value = self.index_by(networks, Value::Str("id".into()));
-        let mut networkValue: Value = self.safe_value(networksById, networkId.clone(), &[networkId.clone()]);
-        let mut network: Value = self.safe_string_k(networkValue, "network", &[]);
+        let mut networkEntry: Value = self.safe_dict(networksById, networkId, &[]);
+        let mut network: Value = self.safe_string_k(networkEntry, "network", &[]);
         self.check_address(&[address.clone()]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2844,10 +2832,7 @@ impl BittradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut limitResolved: Value = limit.clone();
-        if (limit == Value::Null) || limit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
-            limitResolved = Value::Int(100);
-        }
+        let mut limitResolved: Value = (if ((limit == Value::Null) || (limit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64))) { Value::Int(100) } else { limit });
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -2864,9 +2849,7 @@ impl BittradeCore {
         if (currency != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
-        if (limitResolved != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), limitResolved.clone()); }; // max 100
-        }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), limitResolved.clone()); }; // max 100
         let __ws_arg_17 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_query_deposit_withdraw(&[__ws_arg_17]).await;
         // return response
@@ -2894,10 +2877,7 @@ impl BittradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut limitResolved: Value = limit.clone();
-        if (limit == Value::Null) || limit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
-            limitResolved = Value::Int(100);
-        }
+        let mut limitResolved: Value = (if ((limit == Value::Null) || (limit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64))) { Value::Int(100) } else { limit });
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -2914,9 +2894,7 @@ impl BittradeCore {
         if (currency != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
-        if (limitResolved != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), limitResolved.clone()); }; // max 100
-        }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), limitResolved.clone()); }; // max 100
         let __ws_arg_18 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_query_deposit_withdraw(&[__ws_arg_18]).await;
         // return response
@@ -2997,7 +2975,7 @@ impl BittradeCore {
         m.insert("type".to_string(), type_var);
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("currency".to_string(), code.clone());
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "state", &[])));
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "state", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("updated".to_string(), self.safe_integer_k(transaction, "updated-at", &[]));
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
@@ -3014,7 +2992,7 @@ impl BittradeCore {
     Value::Null
 }
 
-    pub fn parse_transaction_status(&self, mut status: Value) -> Value {
+    pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unknown".to_string(), Value::Str("failed".into()));
@@ -3034,9 +3012,7 @@ impl BittradeCore {
                 m.insert("pre-transfer".to_string(), Value::Str("pending".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -3067,7 +3043,7 @@ impl BittradeCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), address);
                 m.insert("amount".to_string(), amount);
-                m.insert("currency".to_string(), to_lower(&get_value(&currency, &Value::Str("id".into()))));
+                m.insert("currency".to_string(), self.safe_string_lower_k(currency.clone(), "id", &[]));
             m
         });
         if (tagWithdrawTag != Value::Null) {
@@ -3137,9 +3113,8 @@ impl BittradeCore {
             let mut requestSorted: Value = self.keysort(request, &[]);
             let mut auth: Value = self.urlencode(requestSorted, &[]);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
-            let mut content: Value = Value::from(vec![method.clone(), self.hostname.clone(), url.clone(), auth.clone()]);
             // eslint-disable-next-line quotes
-            let mut payload: Value = join(&content, &Value::Str("\n".into()));
+            let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str("\n".into())).into()), self.hostname.clone()).into()), Value::Str("\n".into())).into()), url).into()), Value::Str("\n".into())).into()), auth).into());
             let mut signature: Value = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("&".into()), self.urlencode(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3162,8 +3137,8 @@ impl BittradeCore {
                 });
             }
         }  else {
-            if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(params.clone(), &[])).into())).into());
+            if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(params, &[])).into())).into());
             }
         }
         let mut baseApiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName, &[]);
@@ -3193,7 +3168,7 @@ impl BittradeCore {
         if (response == Value::Null) {
             return Value::Null;
         }
-        if (in_op(&response, &Value::Str("status".into()))) {
+        if (self.safe_string_k(response.clone(), "status", &[]) != Value::Null) {
             //
             //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             //
@@ -3203,7 +3178,7 @@ impl BittradeCore {
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, feedback.clone());
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code, feedback.clone());
-                let mut message: Value = self.safe_string_k(response.clone(), "err-msg", &[]);
+                let mut message: Value = self.safe_string_k(response, "err-msg", &[]);
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message, feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }

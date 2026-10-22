@@ -702,7 +702,7 @@ public partial class btcmarkets : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "assetName");
@@ -1186,7 +1186,7 @@ public partial class btcmarkets : Exchange
         for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
             // numericIds[i] = parseInt (ids[i]);
-            numericIds.Add(parseInt((ids != null && i < ids.Count ? ids[i] : null)));
+            numericIds.Add((((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))((ids != null && i < ids.Count ? ids[i] : null))));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ids", numericIds },
@@ -1288,7 +1288,7 @@ public partial class btcmarkets : Exchange
             { "type", takerOrMaker },
             { "currency", currency },
             { "rate", rate },
-            { "cost", parseFloat(feeCost) },
+            { "cost", (((Func<object, object>)(static (object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))(feeCost)) },
         };
     }
 

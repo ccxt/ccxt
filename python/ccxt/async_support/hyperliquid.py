@@ -576,10 +576,11 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     ]
         #
         perpDexesOffset = {}
-        for i in range(1, len(fetchDexes)):
+        dexesCount = len(fetchDexes)
+        for i in range(1, dexesCount):
             # builder-deployed perp dexs start at 110000
             dex = self.safe_dict(fetchDexes, i, {})
-            secondPart = (i - 1) * 10000
+            secondPart = i * 10000 - 10000
             offset = self.sum(110000, secondPart)
             perpDexesOffset[dex['name']] = offset
         fetchDexesList = []
@@ -742,7 +743,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             result.append(data)
         return self.parse_markets(result)
 
-    def calculate_price_precision(self, price: float, amountPrecision: float, maxDecimals: float):
+    def calculate_price_precision(self, price: float, amountPrecision: int, maxDecimals: int) -> float:
         """
         Helper function to calculate the Hyperliquid DECIMAL_PLACES price precision
         :param float price: the price to use in the calculation
@@ -755,13 +756,13 @@ class hyperliquid(Exchange, ImplicitAPI):
         if priceStr is None:
             return 0
         priceSplitted = priceStr.split('.')
+        maxDecimalsInt = self.parse_to_int(maxDecimals)
+        amountPrecisionInt = self.parse_to_int(amountPrecision)
+        decimalsLeft = maxDecimalsInt - amountPrecisionInt
         if Precise.string_eq(priceStr, '0'):
             # Significant digits is always 5 in this case
-            significantDigits = 5
-            # Integer digits is always 0 in this case (0 doesn't count)
-            integerDigits = 0
-            # Calculate the price precision
-            pricePrecision = min(maxDecimals - amountPrecision, significantDigits - integerDigits)
+            # and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
+            pricePrecision = min(decimalsLeft, 5)
         elif Precise.string_gt(priceStr, '0') and Precise.string_lt(priceStr, '1'):
             # Significant digits, always 5 in this case
             significantDigits = 5
@@ -774,14 +775,16 @@ class hyperliquid(Exchange, ImplicitAPI):
             # Calculate price precision based on leading zeros and significant digits
             pricePrecision = leadingZeros + significantDigits
             # Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
-            pricePrecision = min(maxDecimals - amountPrecision, pricePrecision)
+            pricePrecision = min(decimalsLeft, pricePrecision)
         else:
             # Count the numbers before the decimal separator
             integerPart = self.safe_string(priceSplitted, 0, '')
             # Get significant digits, take the max() of 5 and the integer digits count
-            significantDigits = max(5, len(integerPart))
-            # Calculate price precision based on maxDecimals - szDecimals and significantDigits - integerPart.length
-            pricePrecision = min(maxDecimals - amountPrecision, significantDigits - len(integerPart))
+            # significantDigits - integerPart.length, with significantDigits = max (5, integerPart.length)
+            digitsLeft = 0
+            if len(integerPart) <= 5:
+                digitsLeft = 5 - (len(integerPart))
+            pricePrecision = min(decimalsLeft, digitsLeft)
         return self.parse_to_int(pricePrecision)
 
     async def fetch_spot_markets(self, params: dict = {}) -> list[Market]:
@@ -881,7 +884,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             innerBaseTokenInfo = self.safe_dict(baseTokenInfo, 'spec', baseTokenInfo)
             # const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             amountPrecisionStr = self.safe_string(innerBaseTokenInfo, 'szDecimals')
-            amountPrecision = int(amountPrecisionStr)
+            amountPrecision = self.parse_to_int(amountPrecisionStr)
             price = self.safe_number(extraData, 'midPx')
             pricePrecision = 0
             if price is not None:
@@ -1006,7 +1009,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         taker = self.safe_number(fees, 'taker')
         maker = self.safe_number(fees, 'maker')
         amountPrecisionStr = self.safe_string(market, 'szDecimals')
-        amountPrecision = int(amountPrecisionStr)
+        amountPrecision = self.parse_to_int(amountPrecisionStr)
         price = self.safe_number(market, 'markPx', 0)
         pricePrecision = 0
         if price is not None:
@@ -1376,7 +1379,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         funding = self.safe_number(info, 'funding')
         markPx = self.safe_number(info, 'markPx')
         oraclePx = self.safe_number(info, 'oraclePx')
-        fundingTimestamp = (int(math.floor(self.milliseconds()) / 60 / 60 / 1000) + 1) * 60 * 60 * 1000
+        currentHour = self.parse_to_int(self.milliseconds() / 60 / 60 / 1000)
+        fundingTimestamp = (currentHour + 1) * 60 * 60 * 1000
         return {
             'info': info,
             'symbol': symbol,
@@ -1595,11 +1599,13 @@ class hyperliquid(Exchange, ImplicitAPI):
         integerPart = priceStr.split('.')[0]
         significantDigits = max(5, len(integerPart))
         result = self.decimal_to_precision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, self.paddingMode)
-        maxDecimals = 8 if (market['spot'] is True) else 6
+        maxDecimals = 6
+        if market['spot'] is True:
+            maxDecimals = 8
         subtractedValue = maxDecimals - self.precision_from_string(self.safe_string(market['precision'], 'amount'))
         return self.decimal_to_precision(result, ROUND, subtractedValue, DECIMAL_PLACES, self.paddingMode)
 
-    def hash_message(self, message: object):
+    def hash_message(self, message: object) -> str:
         return '0x' + self.hash(message, 'keccak', 'hex')
 
     def sign_hash(self, hash: str, privateKey: str) -> dict:
@@ -1613,14 +1619,14 @@ class hyperliquid(Exchange, ImplicitAPI):
     def sign_message(self, message: object, privateKey: str) -> dict:
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
-    def construct_phantom_agent(self, hash: object, isTestnet=True):
+    def construct_phantom_agent(self, hash: object, isTestnet=True) -> dict:
         source = 'b' if (isTestnet) else 'a'
         return {
             'source': source,
             'connectionId': hash,
         }
 
-    def action_hash(self, action: object, vaultAddress: object, nonce: object, expiresAfter: Int = None):
+    def action_hash(self, action: object, vaultAddress: Str, nonce: object, expiresAfter: Int = None):
         dataBinary = self.packb(action)
         dataHex = self.binary_to_base16(dataBinary)
         data = dataHex
@@ -2923,7 +2929,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def get_dex_from_hip3_symbol(self, market: Market):
+    def get_dex_from_hip3_symbol(self, market: Market) -> Str:
         baseName = self.safe_string(market, 'baseName', '')
         part = baseName.split(':')
         partsLength = len(part)
@@ -3089,9 +3095,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             historicalOrders = response
         for i in range(0, len(historicalOrders)):
             rawOrder = historicalOrders[i]
-            entry = self.safe_dict(rawOrder, 'order')
-            if entry is None:
-                entry = rawOrder
+            entry = self.safe_dict(rawOrder, 'order', rawOrder)
             oid = self.safe_string(entry, 'oid')
             if oid is not None:
                 if not (oid in deduplicatedByOid):
@@ -3272,9 +3276,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'info': finalOrder,
                 'status': 'rejected',
             })
-        entry = self.safe_dict_n(order, ['order', 'resting', 'filled'])
-        if entry is None:
-            entry = order
+        entry = self.safe_dict_n(order, ['order', 'resting', 'filled'], order)
         filled = self.safe_dict(order, 'filled', {})
         coin = self.safe_string(entry, 'coin')
         marketId = None
@@ -3338,7 +3340,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'trades': None,
         }, marketResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         if status is None:
             return None
         statuses = {
@@ -3593,7 +3595,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         positions = await self.fetch_positions([symbol], params)
         return self.safe_dict(positions, 0, {})
 
-    def get_dex_from_symbols(self, methodName: str, symbols: Strings = None):
+    def get_dex_from_symbols(self, methodName: str, symbols: Strings = None) -> Str:
         if symbols is None:
             return None
         symbolsLength = len(symbols)
@@ -3907,9 +3909,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         asset = self.parse_to_int(market['baseId'])
-        sz = self.parse_to_int(Precise.string_mul(self.amount_to_precision(symbol, amount), '1000000'))
-        if type == 'reduce':
-            sz = -sz
+        szAbs = self.parse_to_int(Precise.string_mul(self.amount_to_precision(symbol, amount), '1000000'))
+        sz = -szAbs if (type == 'reduce') else szAbs
         nonce = self.incrementing_nonce()
         updateAction = {
             'type': 'updateIsolatedMargin',
@@ -4512,16 +4513,16 @@ class hyperliquid(Exchange, ImplicitAPI):
         vaultAddress = None
         vaultAddress, params2 = self.handle_option_string_and_params(params2, 'fetchDepositsWithdrawals', 'vaultAddress')
         vaultAddress = self.format_vault_address(vaultAddress)
+        if vaultAddress is None:
+            filtered = self.filter_by_array(records, 'type', ['deposit'], False)
+            return self.parse_transactions(filtered, None, since, limit)
         deposits = []
-        if vaultAddress is not None:
-            for i in range(0, len(records)):
-                record = records[i]
-                if self.safe_string(record, 'type') == 'vaultDeposit':
-                    delta = self.safe_dict(record, 'delta', {})
-                    if delta['vault'] == '0x' + vaultAddress:
-                        deposits.append(record)
-        else:
-            deposits = self.filter_by_array(records, 'type', ['deposit'], False)
+        for i in range(0, len(records)):
+            record = records[i]
+            if self.safe_string(record, 'type') == 'vaultDeposit':
+                delta = self.safe_dict(record, 'delta', {})
+                if delta['vault'] == '0x' + vaultAddress:
+                    deposits.append(record)
         return self.parse_transactions(deposits, None, since, limit)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -4572,16 +4573,16 @@ class hyperliquid(Exchange, ImplicitAPI):
         vaultAddress = None
         vaultAddress, params2 = self.handle_option_string_and_params(params2, 'fetchDepositsWithdrawals', 'vaultAddress')
         vaultAddress = self.format_vault_address(vaultAddress)
+        if vaultAddress is None:
+            filtered = self.filter_by_array(records, 'type', ['withdraw'], False)
+            return self.parse_transactions(filtered, None, since, limit)
         withdrawals = []
-        if vaultAddress is not None:
-            for i in range(0, len(records)):
-                record = records[i]
-                if self.safe_string(record, 'type') == 'vaultWithdraw':
-                    delta = self.safe_dict(record, 'delta', {})
-                    if delta['vault'] == '0x' + vaultAddress:
-                        withdrawals.append(record)
-        else:
-            withdrawals = self.filter_by_array(records, 'type', ['withdraw'], False)
+        for i in range(0, len(records)):
+            record = records[i]
+            if self.safe_string(record, 'type') == 'vaultWithdraw':
+                delta = self.safe_dict(record, 'delta', {})
+                if delta['vault'] == '0x' + vaultAddress:
+                    withdrawals.append(record)
         return self.parse_transactions(withdrawals, None, since, limit)
 
     async def fetch_open_interests(self, symbols: Strings = None, params: dict = {}) -> OpenInterests:
@@ -4777,7 +4778,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         response = await self.privatePostExchange(self.extend(request, self.omit(params, 'expiresAfter')))
         return response
 
-    def extract_type_from_delta(self, data: list[dict] = []):
+    def extract_type_from_delta(self, data: list[dict] = []) -> list[dict]:
         records = []
         for i in range(0, len(data)):
             record = data[i]
@@ -4884,7 +4885,7 @@ class hyperliquid(Exchange, ImplicitAPI):
     def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config: dict = {}):
         if ('byType' in config) and ('type' in params):
             type = params['type']
-            byType = config['byType']
+            byType = self.safe_dict(config, 'byType', {})
             if type in byType:
                 return byType[type]
         return self.safe_value(config, 'cost', 1)

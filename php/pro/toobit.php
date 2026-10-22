@@ -1105,13 +1105,12 @@ class toobit extends \ccxt\async\toobit {
         $messageHash = '';
         $symbolsNormalized = $symbols;
         if (!$this->is_empty($symbols)) {
-            $symbolsNormalized = $this->market_symbols($symbols);
-        }
-        if (!$this->is_empty($symbols)) {
-            if ($symbolsNormalized === null) {
+            $marketSymbols = $this->market_symbols($symbols);
+            if ($marketSymbols === null) {
                 throw new ArgumentsRequired($this->id . ' watchPositions() symbols is required');
             }
-            $messageHash = '::' . implode(',', $symbolsNormalized);
+            $symbolsNormalized = $marketSymbols;
+            $messageHash = '::' . implode(',', $marketSymbols);
         }
         $messageHash = $type . ':positions' . $messageHash;
         $url = $this->get_user_stream_url();

@@ -540,7 +540,6 @@ class hyperliquid extends \ccxt\async\hyperliquid {
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $userAddress = null;
         $userAddressResult = $this->handlePublicAddress('watchMyTrades', $params);
         $userAddress = $this->safe_string($userAddressResult, 0);
         $paramsValue = $this->safe_dict($userAddressResult, 1, $params);
@@ -664,7 +663,6 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         if ($symbol !== null) {
             throw new NotSupported($this->id . ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only');
         }
-        $userAddress = null;
         $userAddressResult = $this->handlePublicAddress('unWatchMyTrades', $params);
         $userAddress = $this->safe_string($userAddressResult, 0);
         $paramsValue = $this->safe_dict($userAddressResult, 1, $params);
@@ -1197,12 +1195,10 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $userAddress = null;
         $userAddressResult = $this->handlePublicAddress('watchBalance', $params);
         $userAddress = $this->safe_string($userAddressResult, 0);
         $paramsValue = $this->safe_dict($userAddressResult, 1, $params);
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $paramsValue);
-        $isUnifiedEnabled = null;
         $unifiedResult = Async\await($this->isUnifiedEnabled('watchBalance', $userAddress, false, $paramsMarketType));
         $isUnifiedEnabled = $this->safe_bool($unifiedResult, 0);
         $paramsValue2 = $this->safe_dict($unifiedResult, 1, $paramsMarketType);
@@ -1256,12 +1252,10 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             Async\await($this->load_markets());
         }
         $url = $this->urls['api']['ws']['public'];
-        $userAddress = null;
         $userAddressResult = $this->handlePublicAddress('unWatchBalance', $params);
         $userAddress = $this->safe_string($userAddressResult, 0);
         $paramsValue = $this->safe_dict($userAddressResult, 1, $params);
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('unWatchBalance', null, $paramsValue);
-        $isUnifiedEnabled = null;
         $unifiedResult = Async\await($this->isUnifiedEnabled('unWatchBalance', $userAddress, false, $paramsMarketType));
         $isUnifiedEnabled = $this->safe_bool($unifiedResult, 0);
         $paramsValue2 = $this->safe_dict($unifiedResult, 1, $paramsMarketType);
@@ -1453,7 +1447,6 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $userAddress = null;
         $userAddressResult = $this->handlePublicAddress('watchPositions', $params);
         $userAddress = $this->safe_string($userAddressResult, 0);
         $paramsValue = $this->safe_dict($userAddressResult, 1, $params);
@@ -1557,7 +1550,6 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
         $messageHash = 'unsubscribe:clearinghouseState';
         $url = $this->urls['api']['ws']['public'];
-        $userAddress = null;
         $userAddressResult = $this->handlePublicAddress('unWatchPositions', $params);
         $userAddress = $this->safe_string($userAddressResult, 0);
         $paramsValue = $this->safe_dict($userAddressResult, 1, $params);
@@ -1592,7 +1584,6 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $userAddress = null;
         $userAddressResult = $this->handlePublicAddress('watchOrders', $params);
         $userAddress = $this->safe_string($userAddressResult, 0);
         $paramsValue = $this->safe_dict($userAddressResult, 1, $params);
@@ -1655,7 +1646,6 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
         $messageHash = 'unsubscribe:order';
         $url = $this->urls['api']['ws']['public'];
-        $userAddress = null;
         $userAddressResult = $this->handlePublicAddress('unWatchOrders', $params);
         $userAddress = $this->safe_string($userAddressResult, 0);
         $paramsValue = $this->safe_dict($userAddressResult, 1, $params);

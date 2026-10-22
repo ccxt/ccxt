@@ -847,7 +847,6 @@ class paradex extends paradex$1["default"] {
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
             'symbol': market['id'],
         };
-        const maxLimit = 1000; // exchange has undocumented limit slightly above, but this is reliable limit
         const duration = this.parseTimeframe(timeframe);
         const price = this.safeString(params, 'price');
         if (price !== undefined) {
@@ -856,18 +855,21 @@ class paradex extends paradex$1["default"] {
         const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, params);
         const hasEnd = ('end_at' in request);
         const paramsOmitted = this.omit(paramsUntil, ['price']);
-        const limitResolved = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
+        // exchange has undocumented limit slightly above, but 1000 is reliable limit
+        const limitResolved = ((limit === undefined) || (limit > 1000)) ? 1000 : limit;
+        const windowLength = this.parseToInt(duration * (this.parseToInt(limitResolved) + 1) * 1000);
         if (since !== undefined) {
             requestUntil['start_at'] = since;
             if (!hasEnd) {
-                requestUntil['end_at'] = since + duration * (limitResolved + 1) * 1000 - 1;
+                const sinceInt = this.parseToInt(since);
+                requestUntil['end_at'] = sinceInt + windowLength - 1;
             }
         }
         else {
-            if (!hasEnd) {
-                requestUntil['end_at'] = this.milliseconds();
-            }
-            requestUntil['start_at'] = requestUntil['end_at'] - duration * (limitResolved + 1) * 1000 + 1;
+            const endAtRaw = hasEnd ? this.safeInteger(requestUntil, 'end_at', 0) : this.milliseconds();
+            const endAt = this.parseToInt(endAtRaw);
+            requestUntil['end_at'] = endAt;
+            requestUntil['start_at'] = endAt - windowLength + 1;
         }
         const response = await this.publicGetMarketsKlines(this.extend(requestUntil, paramsOmitted));
         //
@@ -1474,7 +1476,7 @@ class paradex extends paradex$1["default"] {
     }
     async authenticateRest(params = {}) {
         const cachedToken = this.safeString(this.options, 'authToken');
-        const now = this.nonce();
+        const now = this.parseToInt(this.nonce());
         if (cachedToken !== undefined) {
             const cachedExpires = this.safeInteger(this.options, 'expires');
             if (cachedExpires === undefined) {
@@ -1743,7 +1745,7 @@ class paradex extends paradex$1["default"] {
     }
     async signOrderRequest(request, modify = false) {
         const account = await this.retrieveAccount();
-        const now = this.nonce();
+        const now = this.parseToInt(this.nonce());
         const orderType = this.safeString(request, 'type');
         if (orderType === undefined) {
             throw new errors.ExchangeError(this.id + ' signOrderRequest() missing orderType');

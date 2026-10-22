@@ -99,7 +99,7 @@ public class TestTicker extends BaseTest {
         }
         // only check "above zero" values if exchange is not supposed to have exotic index markets
         Boolean isStandardMarket = (!java.util.Objects.equals(market, null) && Helpers.isTrue(exchange.inArray(((Map<String, Object>)market).get("type"), new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option")))));
-        Object valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
+        Boolean valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
         if (Boolean.TRUE.equals(valuesShouldBePositive) && !(Helpers.inOp(skippedProperties, "positiveValues")))
         {
             TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "open", "0");

@@ -784,7 +784,7 @@ class bybit(ccxt.async_support.bybit):
         #         "type": "snapshot"
         #     }
         #
-        data = self.safe_value(message, 'data', {})
+        data = self.safe_list(message, 'data', [])
         topic = self.safe_string(message, 'topic', '')
         topicParts = topic.split('.')
         topicLength = len(topicParts)
@@ -913,11 +913,13 @@ class bybit(ccxt.async_support.bybit):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, False)
         channel = 'orderbook.'
-        limit = self.safe_integer(params, 'limit')
-        paramsOmitted = self.omit(params, 'limit') if (limit is not None) else params
-        if limit is None:
+        limitParam = self.safe_integer(params, 'limit')
+        paramsOmitted = self.omit(params, 'limit') if (limitParam is not None) else params
+        defaultLimit = 500
+        if limitParam is None:
             firstMarket = self.market(symbolsNormalized[0])
-            limit = 50 if (firstMarket['spot'] is True) else 500
+            defaultLimit = 50 if (firstMarket['spot'] is True) else 500
+        limit = defaultLimit if (limitParam is None) else limitParam
         channel += str(limit)
         subMessageHashes = []
         messageHashes = []
@@ -981,7 +983,7 @@ class bybit(ccxt.async_support.bybit):
         #     }
         #
         topic = self.safe_string(message, 'topic', '')
-        limit = topic.split('.')[1]
+        limit = self.safe_string(topic.split('.'), 1)
         isSpot = client.url.find('spot') >= 0
         type = self.safe_string(message, 'type')
         isSnapshot = (type == 'snapshot')
@@ -1135,7 +1137,7 @@ class bybit(ccxt.async_support.bybit):
         #         ]
         #     }
         #
-        data = self.safe_value(message, 'data', {})
+        data = self.safe_list(message, 'data', [])
         topic = self.safe_string(message, 'topic', '')
         trades = data
         parts = topic.split('.')

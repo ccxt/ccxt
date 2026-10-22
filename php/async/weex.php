@@ -1685,11 +1685,14 @@ class weex extends Exchange {
             if (($since === null) || ($until === null)) {
                 $now = $this->milliseconds();
                 $duration = $this->parse_timeframe($timeframe) * 1000;
-                $numberOfCandles = $maxHistoricalLimit;
-                if ($limitResolved !== null && $limitResolved !== null && $limitResolved !== 0) {
-                    $numberOfCandles = $limitResolved;
+                $timeDelta = $maxHistoricalLimit * $duration;
+                if ($limit !== null && $limit !== null && $limit !== 0) {
+                    if ($limit > 1000) {
+                        $timeDelta = 1000 * $duration;
+                    } else {
+                        $timeDelta = $limit * $duration;
+                    }
                 }
-                $timeDelta = $numberOfCandles * $duration;
                 if (($since === null) && ($until === null)) {
                     $endTime = $now;
                     $startTime = $now - $timeDelta;
@@ -2426,7 +2429,7 @@ class weex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_contract_order_request(?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_contract_order_request(?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
@@ -2455,10 +2458,7 @@ class weex extends Exchange {
             throw new BadRequest($this->id . ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters');
         }
         $reduceOnly = $this->safe_bool($query, 'reduceOnly');
-        if ($isStopLoss || $isTakeProfit) {
-            $reduceOnly = true;
-        }
-        $isReduceOnly = ($reduceOnly === true);
+        $isReduceOnly = $isStopLoss || $isTakeProfit || ($reduceOnly === true);
         $positionSide = 'LONG';
         if ($isReduceOnly) {
             if ($side === 'buy') {
@@ -2583,7 +2583,7 @@ class weex extends Exchange {
         return $this->extend($request, $paramsOmitted);
     }
 
-    public function encode_trigger_price_type(?string $triggerPriceType) {
+    public function encode_trigger_price_type(?string $triggerPriceType): ?string {
         $types = array(
             'mark' => 'MARK_PRICE',
             'last' => 'CONTRACT_PRICE',
@@ -3369,7 +3369,7 @@ class weex extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'new' => 'open',
             'partial_fill' => 'closed',
@@ -3383,7 +3383,7 @@ class weex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             'LIMIT' => 'limit',
             'MARKET' => 'market',
@@ -3399,7 +3399,7 @@ class weex extends Exchange {
     public function handle_order_or_position_error(?string $errorCode, ?string $errorMessage, array $order) {
         $errorCodeValue = ($errorCode === null) ? '' : $errorCode;
         $errorMessageValue = ($errorMessage === null) ? '' : $errorMessage;
-        if (($errorCodeValue === '') && ($errorMessageValue === '')) {
+        if ((($errorCode === null) || ($errorCode === '')) && (($errorMessage === null) || ($errorMessage === ''))) {
             // some endpoints could return an empty string if there is no error
             return;
         }
@@ -3696,7 +3696,7 @@ class weex extends Exchange {
         ), $currencyResolved);
     }
 
-    public function parse_ledger_type(?string $type) {
+    public function parse_ledger_type(?string $type): ?string {
         $types = array(
             'transfer_in' => 'transfer',
             'transfer_out' => 'transfer',
@@ -3756,8 +3756,9 @@ class weex extends Exchange {
         }
         list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $paramsPaginate);
         // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
-        $hasSince = (is_array($requestUntil) && array_key_exists('startTime' ?? '', $requestUntil));
-        $hasUntil = (is_array($requestUntil) && array_key_exists('endTime' ?? '', $requestUntil));
+        $hasSince = ($since !== null);
+        $until = $this->safe_integer_2($paramsPaginate, 'until', 'till');
+        $hasUntil = ($until !== null);
         if ($hasSince && !$hasUntil) {
             $requestUntil['endTime'] = $this->milliseconds();
         } elseif ($hasUntil && !$hasSince) {
@@ -4207,7 +4208,7 @@ class weex extends Exchange {
         );
     }
 
-    public function parse_margin_type(?string $marginType) {
+    public function parse_margin_type(?string $marginType): ?string {
         $marginTypes = array(
             'CROSSED' => 'cross',
             'ISOLATED' => 'isolated',
@@ -4244,7 +4245,7 @@ class weex extends Exchange {
         return Async\await($this->contractPrivatePostCapiV3AccountMarginType($this->extend($request, $params)));
     }
 
-    public function encode_margin_mode(?string $marginMode) {
+    public function encode_margin_mode(?string $marginMode): string {
         $marginTypes = array(
             'cross' => 'CROSSED',
             'isolated' => 'ISOLATED',

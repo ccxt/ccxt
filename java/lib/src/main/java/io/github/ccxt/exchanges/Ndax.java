@@ -698,7 +698,7 @@ public class Ndax extends NdaxApi
             String sessionToken = this.safeString(response, "SessionToken");
             if (!java.util.Objects.equals(sessionToken, null))
             {
-                Helpers.addElementToObject(this.options, "sessionToken", sessionToken);
+                { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v8 = "sessionToken"; Object j39v9 = sessionToken; if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
                 return response;
             }
             String pending2faToken = this.safeString(response, "Pending2FaToken");
@@ -708,7 +708,7 @@ public class Ndax extends NdaxApi
                 {
                     throw new AuthenticationError((this.id + " signIn() requires exchange.twofa credentials")) ;
                 }
-                Helpers.addElementToObject(this.options, "pending2faToken", pending2faToken);
+                { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "pending2faToken"; Object j39v6 = pending2faToken; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
                 request = new HashMap<String, Object>() {{
                     put( "Code", totp(Ndax.this.twofa) );
                 }};
@@ -721,7 +721,7 @@ public class Ndax extends NdaxApi
                 //     }
                 //
                 sessionToken = this.safeString(responseInner, "SessionToken");
-                Helpers.addElementToObject(this.options, "sessionToken", sessionToken);
+                { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "sessionToken"; Object j39v3 = sessionToken; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
                 return responseInner;
             }
             return response;
@@ -949,8 +949,8 @@ public class Ndax extends NdaxApi
 
     public OrderBook parseOrderBook(Object orderbook, Object symbol, Long timestamp, Object bidsKey, Object asksKey, Object priceKey, Object amountKey, Object countOrIdKey)
     {
-        Object nonce = null;
-        Object latestTimestamp = timestamp;
+        Long nonce = this.safeInteger(this.safeList(orderbook, 0, (Object) null), 0);
+        Long latestTimestamp = this.safeInteger(new ArrayList<Object>(Arrays.asList(timestamp)), 0);
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "bids", new ArrayList<Object>(Arrays.asList()) );
@@ -959,30 +959,18 @@ public class Ndax extends NdaxApi
             put( "datetime", null );
             put( "nonce", null );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(orderbook); i++)
+        for (var i = 0; i < (switch ((Object)(orderbook)) { case null -> 0; case List<?> j39v11 -> j39v11.size(); case String j39v12 -> j39v12.length(); case Object j39v13 -> j39v13.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v13) : 0; }); i++)
         {
             Object level = Helpers.GetValue(orderbook, i);
-            if (java.util.Objects.equals(latestTimestamp, null))
+            Long newTimestamp = this.safeInteger(level, 2);
+            if ((!java.util.Objects.equals(newTimestamp, null)) && ((java.util.Objects.equals(latestTimestamp, null)) || ((newTimestamp != null && (latestTimestamp == null || newTimestamp > latestTimestamp)))))
             {
-                latestTimestamp = this.safeInteger(level, 2);
-            } else
-            {
-                Long newTimestamp = this.safeInteger(level, 2);
-                if (!java.util.Objects.equals(newTimestamp, null))
-                {
-                    latestTimestamp = Helpers.mathMax(latestTimestamp, newTimestamp);
-                }
+                latestTimestamp = newTimestamp;
             }
-            if (java.util.Objects.equals(nonce, null))
+            Long newNonce = this.safeInteger(level, 0);
+            if ((!java.util.Objects.equals(newNonce, null)) && ((java.util.Objects.equals(nonce, null)) || ((newNonce != null && (nonce == null || newNonce > nonce)))))
             {
-                nonce = this.safeInteger(level, 0);
-            } else
-            {
-                Long newNonce = this.safeInteger(level, 0);
-                if (!java.util.Objects.equals(newNonce, null))
-                {
-                    nonce = Helpers.mathMax(nonce, newNonce);
-                }
+                nonce = newNonce;
             }
             List<Object> bidask = (List<Object>) this.parseOrderBookBidAsk(level, java.util.Objects.requireNonNullElse(priceKey, 6), java.util.Objects.requireNonNullElse(amountKey, 8), 2);
             Long levelSide = this.safeInteger(level, 9);
@@ -1477,10 +1465,12 @@ public class Ndax extends NdaxApi
             {
                 String feeCurrencyId = this.safeString(trade, "FeeProductId");
                 String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
-                fee = Helpers.newMap(
-                    "cost", feeCostString,
-                    "currency", feeCurrencyCode
-                );
+                {
+                    HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                    hx4NewMap0.put("cost", feeCostString);
+                    hx4NewMap0.put("currency", feeCurrencyCode);
+                    fee = hx4NewMap0;
+                }
             }
         }
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
@@ -1594,7 +1584,7 @@ public class Ndax extends NdaxApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v14 -> j39v14.size(); case String j39v15 -> j39v15.length(); case Object j39v16 -> j39v16.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v16) : 0; }); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "ProductId");
@@ -1987,7 +1977,7 @@ public class Ndax extends NdaxApi
             request.put("AccountId", accountId);
             request.put("TimeInForce", 1);
             request.put("Side", orderSide);
-            request.put("Quantity", (((java.util.Objects.equals(amountString, null)))) ? null : Helpers.parseFloat(amountString));
+            request.put("Quantity", (((java.util.Objects.equals(amountString, null)))) ? null : this.parseNumber(amountString));
             request.put("OrderType", orderType);
             // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
             if (!java.util.Objects.equals(price, null))
@@ -1997,7 +1987,7 @@ public class Ndax extends NdaxApi
                 {
                     limitPriceString = "0";
                 }
-                request.put("LimitPrice", Helpers.parseFloat(limitPriceString));
+                request.put("LimitPrice", this.parseNumber(limitPriceString));
             }
             if (!java.util.Objects.equals(clientOrderId, null))
             {
@@ -2053,13 +2043,13 @@ public class Ndax extends NdaxApi
             Integer orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
             String amountString = this.amountToPrecision(symbol, amount);
             Map<String, Object> request = new HashMap<String, Object>();
-            request.put("OrderIdToReplace", Helpers.parseInt(id));
+            request.put("OrderIdToReplace", this.parseToInt(id));
             request.put("InstrumentId", this.parseToInt(market.get("id")));
             request.put("omsId", omsId);
             request.put("AccountId", accountId);
             request.put("TimeInForce", 1);
             request.put("Side", orderSide);
-            request.put("Quantity", (((java.util.Objects.equals(amountString, null)))) ? null : Helpers.parseFloat(amountString));
+            request.put("Quantity", (((java.util.Objects.equals(amountString, null)))) ? null : this.parseNumber(amountString));
             request.put("OrderType", this.safeInteger(this.options.get("orderTypes"), this.capitalize(type)));
             // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
             if (!java.util.Objects.equals(price, null))
@@ -2069,7 +2059,7 @@ public class Ndax extends NdaxApi
                 {
                     limitPriceString = "0";
                 }
-                request.put("LimitPrice", Helpers.parseFloat(limitPriceString));
+                request.put("LimitPrice", this.parseNumber(limitPriceString));
             }
             if (!java.util.Objects.equals(clientOrderId, null))
             {
@@ -2268,7 +2258,7 @@ public class Ndax extends NdaxApi
                 request.put("ClOrderId", clientOrderId);
             } else
             {
-                request.put("OrderId", Helpers.parseInt(id));
+                request.put("OrderId", this.parseToInt(id));
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "ClOrderId")));
             Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, paramsOmitted))).join();
@@ -2502,7 +2492,7 @@ public class Ndax extends NdaxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "AccountId", accountId );
-                put( "OrderId", Helpers.parseInt(id) );
+                put( "OrderId", Ndax.this.parseToInt(id) );
             }};
             Map<String, Object> response = (this.privateGetGetOrderStatus(this.extend(request, paramsOmitted))).join();
             //
@@ -2591,7 +2581,7 @@ public class Ndax extends NdaxApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "OMSId", Ndax.this.parseToInt(omsId) );
-                put( "OrderId", Helpers.parseInt(id) );
+                put( "OrderId", Ndax.this.parseToInt(id) );
             }};
             List<Object> response = (this.privatePostGetOrderHistoryByOrderId(this.extend(request, parameters))).join();
             //
@@ -2716,8 +2706,8 @@ public class Ndax extends NdaxApi
         //
         String depositInfoString = this.safeString(depositAddress, "DepositInfo", "[]");
         Object depositInfo = Helpers.parseJson(depositInfoString);
-        Integer depositInfoLength = Helpers.getArrayLength(depositInfo);
-        String lastString = this.safeString(depositInfo, Helpers.subtract(depositInfoLength, 1), "");
+        Integer depositInfoLength = (switch ((Object)(depositInfo)) { case null -> 0; case List<?> j39v17 -> j39v17.size(); case String j39v18 -> j39v18.length(); case Object j39v19 -> j39v19.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v19) : 0; });
+        String lastString = this.safeString(depositInfo, (depositInfoLength - 1L), "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)lastString).split(java.util.regex.Pattern.quote("?memo="))));
         String address = this.safeString(parts, 0);
         String tag = this.safeString(parts, 1);
@@ -2895,7 +2885,7 @@ public class Ndax extends NdaxApi
 
     }
 
-    public Object parseTransactionStatusByType(String status, String type)
+    public String parseTransactionStatusByType(String status, String type)
     {
         Map<String, Object> statusesByType = new HashMap<String, Object>() {{
             put( "deposit", new HashMap<String, Object>() {{
@@ -3027,10 +3017,12 @@ public class Ndax extends NdaxApi
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "currency", code,
-                "cost", feeCost
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("currency", code);
+                hx4NewMap1.put("cost", feeCost);
+                fee = hx4NewMap1;
+            }
         }
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
@@ -3147,7 +3139,7 @@ public class Ndax extends NdaxApi
             Helpers.addElementToObject(withdrawTemplate, "ExternalAddress", address);
             if (!java.util.Objects.equals(tagWithdrawTag, null))
             {
-                if (Helpers.inOp(withdrawTemplate, "Memo"))
+                if ((switch ((Object)(withdrawTemplate)) { case List<?> j39v21 -> j39v21.contains("Memo"); case Map<?, ?> j39v20 -> j39v20.containsKey("Memo"); case null, default -> false; }))
                 {
                     Helpers.addElementToObject(withdrawTemplate, "Memo", tagWithdrawTag);
                 }
@@ -3201,13 +3193,15 @@ public class Ndax extends NdaxApi
                 String pending2faToken = this.safeString(this.options, "pending2faToken");
                 if (!java.util.Objects.equals(pending2faToken, null))
                 {
-                    headersSigned = Helpers.newMap(
-                        "Pending2FaToken", pending2faToken
-                    );
+                    {
+                        HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
+                        hx4NewMap2.put("Pending2FaToken", pending2faToken);
+                        headersSigned = hx4NewMap2;
+                    }
                     query = this.omit(query, "pending2faToken");
                 }
             }
-            if (Helpers.objectKeys(query).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v23 -> { synchronized (j39v23) { yield new ArrayList<Object>(j39v23.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -3220,17 +3214,21 @@ public class Ndax extends NdaxApi
                 String nonce = String.valueOf(this.nonce());
                 String auth = ((nonce + this.uid) + this.apiKey);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-                headersSigned = Helpers.newMap(
-                    "Nonce", nonce,
-                    "APIKey", this.apiKey,
-                    "Signature", signature,
-                    "UserId", this.uid
-                );
+                {
+                    HashMap<String, Object> hx4NewMap3 = new HashMap<String, Object>();
+                    hx4NewMap3.put("Nonce", nonce);
+                    hx4NewMap3.put("APIKey", this.apiKey);
+                    hx4NewMap3.put("Signature", signature);
+                    hx4NewMap3.put("UserId", this.uid);
+                    headersSigned = hx4NewMap3;
+                }
             } else
             {
-                headersSigned = Helpers.newMap(
-                    "APToken", sessionToken
-                );
+                {
+                    HashMap<String, Object> hx4NewMap4 = new HashMap<String, Object>();
+                    hx4NewMap4.put("APToken", sessionToken);
+                    headersSigned = hx4NewMap4;
+                }
             }
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
@@ -3238,7 +3236,7 @@ public class Ndax extends NdaxApi
                 bodySigned = this.json(query);
             } else
             {
-                if (Helpers.objectKeys(query).size() > 0)
+                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v22 -> { synchronized (j39v22) { yield new ArrayList<Object>(j39v22.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }
@@ -3258,7 +3256,7 @@ public class Ndax extends NdaxApi
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (Helpers.isEqual(code, 404))
+        if ((code != null && ((Number) code).doubleValue() == 404))
         {
             throw new AuthenticationError(((this.id + " ") + body)) ;
         }

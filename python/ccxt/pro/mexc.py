@@ -787,7 +787,7 @@ class mexc(ccxt.async_support.mexc):
         firstDeltaNonce = self.safe_integer_n(firstDelta, ['r', 'version', 'fromVersion'])
         if (nonce is None) or (firstDeltaNonce is None):
             return -1
-        if nonce < firstDeltaNonce - 1:
+        if (nonce is not None) and (firstDeltaNonce is not None) and (nonce < firstDeltaNonce - 1):
             return -1
         for i in range(0, len(cache)):
             delta = self.safe_dict(cache, i)

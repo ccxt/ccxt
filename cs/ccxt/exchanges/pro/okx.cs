@@ -998,7 +998,7 @@ public partial class okx : ccxt.okx
             await this.loadMarkets();
         }
         bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         string accessType = "private";
         if ((isTrigger == true))
         {
@@ -1454,7 +1454,7 @@ public partial class okx : ccxt.okx
                 depth = "books";
             }
         }
-        if ((isEqual(depth, "books-l2-tbt")) || (isEqual(depth, "books50-l2-tbt")))
+        if (((((object)(depth)) is "books-l2-tbt")) || ((((object)(depth)) is "books50-l2-tbt")))
         {
             if (!this.checkRequiredCredentials(false))
             {
@@ -1643,14 +1643,10 @@ public partial class okx : ccxt.okx
         string? symbol = this.safeSymbol(marketId, market);
         Int64? seqId = this.safeInteger(message, "seqId");
         Int64? prevSeqId = this.safeInteger(message, "prevSeqId");
-        object nonce = getValue(orderbook, "nonce");
-        InvalidNonce? error = null;
-        if ((prevSeqId != null) && !(prevSeqId == -1) && !isEqual(nonce, prevSeqId))
+        object nonce = (orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null);
+        if ((prevSeqId != null) && !(prevSeqId == -1) && !((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(nonce, prevSeqId))
         {
-            error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
-        }
-        if ((error != null))
-        {
+            var error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
             ((IDictionary<string,object>)client.subscriptions).Remove((string)messageHash);
             if ((symbol != null))
             {
@@ -1803,7 +1799,7 @@ public partial class okx : ccxt.okx
                     client.resolve(orderbook, messageHash);
                 }
             }
-        } else if ((isEqual(channel, "books5")) || ((channel is "bbo-tbt")))
+        } else if (((channel is "books5")) || ((channel is "bbo-tbt")))
         {
             // watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
             // shared order-book cache when watchOrderBook subscribed to this
@@ -1837,7 +1833,7 @@ public partial class okx : ccxt.okx
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         string? access = this.safeString(parameters, "access", "private");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"access"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"access"}));
         string? url = this.getUrl("users", access);
         string messageHash = "authenticated";
         var client = this.client(url);
@@ -1861,9 +1857,9 @@ public partial class okx : ccxt.okx
 }} },
             };
             // Only add params['access'] to prevent sending custom parameters, such as extraParams.
-            if (inOp(paramsOmitted, "access"))
+            if (paramsOmitted.ContainsKey("access"))
             {
-                request["access"] = ((IDictionary<string,object>)paramsOmitted)["access"];
+                request["access"] = paramsOmitted["access"];
             }
             this.watch(url, messageHash, request, messageHash);
         }
@@ -2234,7 +2230,7 @@ public partial class okx : ccxt.okx
         {
             IDictionary<string, object> rawPosition = ((IDictionary<string, object>)data[i]);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
-            if (isEqual((position != null && position.ContainsKey("contracts") ? position["contracts"] : null), 0) && (this.safeString(rawPosition, "posSide") == "net"))
+            if ((((object)((position != null && position.ContainsKey("contracts") ? position["contracts"] : null))) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false }) && (this.safeString(rawPosition, "posSide") == "net"))
             {
                 position["side"] = "long";
                 object shortPosition = this.clone(position);
@@ -2698,7 +2694,7 @@ public partial class okx : ccxt.okx
         string? url = this.getUrl("private", "private");
         string messageHash = ((string)this.requestId());
         string? clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "clOrdId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "clOrdId"}));
         Dictionary<string, object> market = this.market(symbol);
         Int64? instIdCode = this.safeInteger(market, "instIdCode");
         Dictionary<string, object> arg = new Dictionary<string, object>() {
@@ -2961,7 +2957,7 @@ public partial class okx : ccxt.okx
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (!isEqual(this.handleErrorMessage(client, message), true))
+        if (!(this.handleErrorMessage(client, message) == true))
         {
             return;
         }
@@ -3116,7 +3112,7 @@ public partial class okx : ccxt.okx
         {
             this.cleanUnsubscription(client, ((channel + ":") + this.marketId(symbol)), null);
         }
-        if (((symbol != null)) && ((timeframe != null)) && (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
+        if (((symbol != null)) && ((timeframe != null)) && (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
         {
             ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);
         }

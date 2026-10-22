@@ -567,7 +567,7 @@ public partial class lbank : Exchange
         string? code = this.safeCurrencyCode(id);
         object networksRaw = rawCurrency;
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (int j = 0; j < getArrayLength(networksRaw); j++)
+        for (int j = 0; j < (((object)(networksRaw)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
         {
             IDictionary<string, object> networkEntry = this.safeDict(networksRaw, j);
             string? networkId = this.safeString(networkEntry, "chain");
@@ -1290,7 +1290,7 @@ public partial class lbank : Exchange
         IDictionary<string, object> options = this.safeDict(this.options, "fetchTrades", new Dictionary<string, object>() {});
         string? defaultMethod = this.safeString(options, "method", "spotPublicGetTrades");
         string? method = this.safeString(parameters, "method", defaultMethod);
-        object paramsOmitted = this.omit(parameters, "method");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "method"));
         Dictionary<string, object> response = null;
         if (method == "spotPublicGetSupplementTrades")
         {
@@ -1357,11 +1357,18 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object limitResolved = ((limit == null)) ? 100 : mathMin(limit, 2000);
+        Int64? limitResolved = this.parseToInt(((limit == null)) ? 100 : (((((object)(limit)) is var c31v0) && (((object)(2000)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null));
         int duration = this.parseTimeframe(timeframeVar);
-        object sinceResolved = ((since == null)) ? (subtract(this.milliseconds(), (multiply((duration * 1000L), limitResolved)))) : since;
-        Int64? parsedSince = this.parseToInt(divide(sinceResolved, 1000));
-        object parsedLimit = mathMin(add(limitResolved, 1), 2000); // max 2000;
+        Int64 now = this.milliseconds();
+        object defaultSince = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(now, (((duration * 1000L) * limitResolved)));
+        object sinceResolved = defaultSince;
+        Int64? parsedSince = this.parseToInt((((((object)(defaultSince)) is var c31v2) && (((object)(1000)) is var c31v3)) ? (((c31v2 == null) || (c31v3 == null)) ? null : (object)(Convert.ToDouble(c31v2) / Convert.ToDouble(c31v3))) : null));
+        if ((since != null))
+        {
+            sinceResolved = since;
+            parsedSince = this.parseToInt(((double?)since / 1000));
+        }
+        object parsedLimit = (((((object)((limitResolved + 1))) is var c31v4) && (((object)(2000)) is var c31v5)) ? (((c31v4 == null) || (c31v5 == null)) ? null : ((Convert.ToDouble(c31v4) < Convert.ToDouble(c31v5)) ? c31v4 : c31v5)) : null); // max 2000;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
@@ -1481,7 +1488,7 @@ public partial class lbank : Exchange
         };
         IDictionary<string, object> data = this.safeDict(response, "data");
         // from spotPrivatePostUserInfo
-        object toBtc = this.safeValue(data, "toBtc");
+        IDictionary<string, object> toBtc = this.safeDict(data, "toBtc");
         if ((toBtc != null))
         {
             IDictionary<string, object> used = this.safeDict(data, "freeze", new Dictionary<string, object>() {});
@@ -2258,7 +2265,7 @@ public partial class lbank : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         object sinceValue = this.safeValue(parameters, "start_date", since);
-        object paramsOmitted = this.omit(parameters, "start_date");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "start_date"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
@@ -2444,7 +2451,7 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         string? clientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"}));
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -2518,7 +2525,7 @@ public partial class lbank : Exchange
         return this.parseOrders(data);
     }
 
-    public virtual string? getNetworkCodeForCurrency(string? currencyCode, object parameters)
+    public virtual string? getNetworkCodeForCurrency(string? currencyCode, IDictionary<string, object> parameters)
     {
         IDictionary<string, object> defaultNetworks = this.safeDict(this.options, "defaultNetworks");
         string? defaultNetwork = this.safeStringUpper(defaultNetworks, currencyCode);
@@ -2548,7 +2555,7 @@ public partial class lbank : Exchange
         IDictionary<string, object> options = this.safeDict(this.options, "fetchDepositAddress", new Dictionary<string, object>() {});
         string? defaultMethod = this.safeString(options, "method", "fetchDepositAddressDefault");
         string? method = this.safeString(parameters, "method", defaultMethod);
-        object paramsOmitted = this.omit(parameters, "method");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "method"));
         object response = null;
         if (method == "fetchDepositAddressSupplement")
         {
@@ -2560,7 +2567,7 @@ public partial class lbank : Exchange
         return ccxt.BaseExchange.ToDepositAddress(response);
     }
 
-    public async virtual Task<ccxt.DepositAddress> FetchDepositAddressDefault(string code, object parameters = null)
+    public async virtual Task<ccxt.DepositAddress> FetchDepositAddressDefault(string code, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2597,7 +2604,7 @@ public partial class lbank : Exchange
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", this.networkIdToCode(this.safeString(result, "netWork"), code) },             { "address", address },             { "tag", tag },         });
     }
 
-    public async virtual Task<ccxt.DepositAddress> FetchDepositAddressSupplement(string code, object parameters = null)
+    public async virtual Task<ccxt.DepositAddress> FetchDepositAddressSupplement(string code, IDictionary<string, object>? parameters = null)
     {
         // returns the address for whatever the default network is...
         parameters ??= new Dictionary<string, object>();
@@ -2706,7 +2713,7 @@ public partial class lbank : Exchange
         return ccxt.BaseExchange.ToTransaction(new Dictionary<string, object>() {             { "info", result },             { "id", this.safeString(result, "withdrawId") },         });
     }
 
-    public virtual string? parseTransactionStatus(string? status, object type)
+    public virtual string? parseTransactionStatus(string? status, string? type)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "deposit", new Dictionary<string, object>() {
@@ -2723,7 +2730,7 @@ public partial class lbank : Exchange
                 { "4", "ok" },
             } },
         };
-        return this.safeString(this.safeDict(statuses, ((string)type), new Dictionary<string, object>() {}), status, status);
+        return this.safeString(this.safeDict(statuses, type, new Dictionary<string, object>() {}), status, status);
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
@@ -2952,28 +2959,22 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         bool isAuthorized = this.checkRequiredCredentials(false);
-        object result = null;
         if (isAuthorized)
         {
             IDictionary<string, object> options = this.safeDict(this.options, "fetchTransactionFees", new Dictionary<string, object>() {});
             string? defaultMethod = this.safeString(options, "method", "fetchPrivateTransactionFees");
             string? method = this.safeString(parameters, "method", defaultMethod);
-            object paramsOmitted = this.omit(parameters, "method");
+            IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "method"));
             if (method == "fetchPublicTransactionFees")
             {
-                result = ccxt.BaseExchange.FromDict(await this.FetchPublicTransactionFees(paramsOmitted));
-            } else
-            {
-                result = ccxt.BaseExchange.FromDict(await this.FetchPrivateTransactionFees(paramsOmitted));
+                return await this.FetchPublicTransactionFees(paramsOmitted);
             }
-        } else
-        {
-            result = ccxt.BaseExchange.FromDict(await this.FetchPublicTransactionFees(parameters));
+            return await this.FetchPrivateTransactionFees(paramsOmitted);
         }
-        return ccxt.BaseExchange.ToDict(result);
+        return await this.FetchPublicTransactionFees(parameters);
     }
 
-    public async virtual Task<Dictionary<string, object>> FetchPrivateTransactionFees(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchPrivateTransactionFees(IDictionary<string, object>? parameters = null)
     {
         // complete response
         // incl. for coins which undefined in public method
@@ -3055,7 +3056,7 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         string? code = this.safeString2(parameters, "coin", "assetCode");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"coin", "assetCode"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"coin", "assetCode"}));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((code != null))
         {
@@ -3100,7 +3101,7 @@ public partial class lbank : Exchange
                     network = codeInner;
                 }
                 string? fee = this.safeString(item, "fee");
-                if (isEqual(this.safeValue(withdrawFees, codeInner), null))
+                if ((this.safeValue(withdrawFees, codeInner) == null))
                 {
                     if ((codeInner != null))
                     {
@@ -3134,28 +3135,22 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         bool isAuthorized = this.checkRequiredCredentials(false);
-        object response = null;
         if (isAuthorized)
         {
             IDictionary<string, object> options = this.safeDict(this.options, "fetchDepositWithdrawFees", new Dictionary<string, object>() {});
             string? defaultMethod = this.safeString(options, "method", "fetchPrivateDepositWithdrawFees");
             string? method = this.safeString(parameters, "method", defaultMethod);
-            object paramsOmitted = this.omit(parameters, "method");
+            IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "method"));
             if (method == "fetchPublicDepositWithdrawFees")
             {
-                response = ccxt.BaseExchange.FromDict(await this.FetchPublicDepositWithdrawFees(codes, paramsOmitted));
-            } else
-            {
-                response = ccxt.BaseExchange.FromDict(await this.FetchPrivateDepositWithdrawFees(codes, paramsOmitted));
+                return ccxt.BaseExchange.ToDepositWithdrawFees(await this.FetchPublicDepositWithdrawFees(codes, paramsOmitted));
             }
-        } else
-        {
-            response = ccxt.BaseExchange.FromDict(await this.FetchPublicDepositWithdrawFees(codes, parameters));
+            return ccxt.BaseExchange.ToDepositWithdrawFees(await this.FetchPrivateDepositWithdrawFees(codes, paramsOmitted));
         }
-        return ccxt.BaseExchange.ToDepositWithdrawFees(response);
+        return ccxt.BaseExchange.ToDepositWithdrawFees(await this.FetchPublicDepositWithdrawFees(codes, parameters));
     }
 
-    public async virtual Task<Dictionary<string, object>> FetchPrivateDepositWithdrawFees(object codes = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchPrivateDepositWithdrawFees(object codes = null, IDictionary<string, object>? parameters = null)
     {
         // complete response
         // incl. for coins which undefined in public method
@@ -3380,7 +3375,7 @@ public partial class lbank : Exchange
         }
         string url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         // Every spot endpoint ends with ".do"
-        if (isEqual(getValue(api, 0), "spot"))
+        if ((getValue(api, 0) is "spot"))
         {
             url = url + ".do";
         } else
@@ -3392,7 +3387,7 @@ public partial class lbank : Exchange
             }
             url = ((contractUrl + "/") + this.implodeParams(path, parameters));
         }
-        if (isEqual(getValue(api, 1), "public"))
+        if ((getValue(api, 1) is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -3430,11 +3425,14 @@ public partial class lbank : Exchange
                 string? pem = null;
                 if ((cacheSecretAsPem == true))
                 {
-                    pem = this.safeString(this.options, "pem");
-                    if ((pem == null))
+                    string? cachedPem = this.safeString(this.options, "pem");
+                    if ((cachedPem == null))
                     {
                         pem = this.convertSecretToPem(this.encode(this.secret));
                         this.options["pem"] = pem;
+                    } else
+                    {
+                        pem = cachedPem;
                     }
                 } else
                 {
@@ -3470,16 +3468,14 @@ public partial class lbank : Exchange
 
     public virtual string? convertSecretToPem(object secret)
     {
-        int lineLength = 64;
-        int secretLength = (getArrayLength(secret) - 0);
-        object numLines = this.parseToInt(((double)secretLength / lineLength));
-        numLines = this.sum(numLines, 1);
+        int secretLength = ((((object)(secret)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }) - 0);
+        Int64? fullLines = this.parseToInt(((double)secretLength / 64));
         string pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
-        for (int i = 0; isLessThan(i, numLines); i++)
+        for (int i = 0; (i <= fullLines); i++)
         {
-            Int64 start = multiply(i, lineLength);
-            Int64 end = this.sum(start, lineLength);
-            pem = pem + (slice(this.secret, start, end) + "\n"); // eslint-disable-line
+            Int64 start = (i * 64L);
+            Int64 end = this.sum(start, 64);
+            pem = pem + (((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(this.secret, start, end) + "\n"); // eslint-disable-line
         }
         return (pem + "-----END PRIVATE KEY-----");
     }

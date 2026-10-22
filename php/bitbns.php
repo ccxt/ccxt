@@ -563,7 +563,7 @@ class bitbns extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_status(?string $status) {
+    public function parse_status(?string $status): ?string {
         $statuses = array(
             '-1' => 'cancelled',
             '0' => 'open',
@@ -1134,7 +1134,7 @@ class bitbns extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function parse_transaction_status_by_type(?string $status, ?string $type = null) {
+    public function parse_transaction_status_by_type(?string $status, ?string $type = null): ?string {
         $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',

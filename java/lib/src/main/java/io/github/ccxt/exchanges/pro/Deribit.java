@@ -94,9 +94,9 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     public Long requestId()
     {
-        Object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        Helpers.addElementToObject(this.options, "requestId", requestId);
-        return Helpers.toLongOrNull(requestId);
+        Long requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "requestId"; Object j39v3 = requestId; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+        return requestId;
     }
 
     /**
@@ -415,8 +415,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Object ticker = this.parseWsBidAsk((Map<String, Object>) (data), (Map<String, Object>) null);
-        Object symbol = ((Map<String, Object>)ticker).get("symbol");
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (data), (Map<String, Object>) null);
+        Object symbol = ticker.get("symbol");
         Helpers.addElementToObject(this.bidsasks, ((String)symbol), ticker);
         String messageHash = this.safeString(parameters, "channel");
         client.resolve(ticker, messageHash);
@@ -535,7 +535,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
             Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
@@ -544,7 +544,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
         String messageHash = ((("trades|" + symbol) + "|") + interval);
-        client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
+        client.resolve((symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol)), messageHash);
     }
 
     /**
@@ -835,7 +835,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; }); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -933,7 +933,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel", "");
         Object data = this.safeValue(parameters, "data", new HashMap<String, Object>() {{}});
-        Object orders = new ArrayList<Object>(Arrays.asList());
+        List<Object> orders = new ArrayList<Object>(Arrays.asList());
         if ((data instanceof List))
         {
             orders = this.parseOrders(data, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
@@ -945,7 +945,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            cachedOrders.append((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)));
+            cachedOrders.append((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)));
         }
         client.resolve(this.orders, channel);
     }
@@ -1053,7 +1053,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)unifiedTimeframe));
         Map<String, Object> ohlcv = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         // data contains a single OHLCV candle
-        Object parsed = this.parseWsOHLCV(ohlcv, market);
+        List<Object> parsed = (List<Object>) this.parseWsOHLCV(ohlcv, market);
         stored.append(parsed);
         Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)unifiedTimeframe), stored);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, unifiedTimeframe, stored));
@@ -1096,7 +1096,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 throw new ArgumentsRequired((this.id + " watchMultipleWrapper() symbolsArray is required")) ;
             }
-            for (var i = 0; i < Helpers.getArrayLength(symbolsArray); i++)
+            for (var i = 0; i < (switch ((Object)(symbolsArray)) { case null -> 0; case List<?> j39v21 -> j39v21.size(); case String j39v22 -> j39v22.length(); case Object j39v23 -> j39v23.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v23) : 0; }); i++)
             {
                 if (java.util.Objects.equals(symbolsArray, null))
                 {
@@ -1128,7 +1128,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 put( "id", Deribit.this.requestId() );
             }};
             Map<String,Object> extendedRequest = this.deepExtend(request, parameters);
-            Long maxMessageByteLimit = (32768L - 1L); // 'Message Too Big: limit 32768B'
+            Integer maxMessageByteLimit = 32767; // 'Message Too Big: limit 32768B'
             String jsonedText = this.json(extendedRequest);
             if ((maxMessageByteLimit == null || jsonedText.length() >= maxMessageByteLimit))
             {

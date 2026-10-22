@@ -1350,7 +1350,7 @@ class bitteam(Exchange, ImplicitAPI):
             'postOnly': False,
         }, marketResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'accepted': 'open',
             'executed': 'closed',
@@ -1370,7 +1370,7 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_value_to_pricision(self, valueObject: dict, valueKey: str, preciseObject: dict, precisionKey: str):
+    def parse_value_to_pricision(self, valueObject: dict, valueKey: str, preciseObject: dict, precisionKey: str) -> Str:
         valueRawString = self.safe_string(valueObject, valueKey)
         precisionRawString = self.safe_string(preciseObject, precisionKey)
         if valueRawString is None or precisionRawString is None:
@@ -2355,7 +2355,7 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'approving': 'pending',
             'success': 'ok',

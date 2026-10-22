@@ -853,9 +853,6 @@ class woofipro(Exchange, ImplicitAPI):
         amount = self.safe_string(trade, 'executed_quantity')
         order_id = self.safe_string(trade, 'order_id')
         fee = self.parse_token_and_fee_temp(trade, 'fee_asset', 'fee')
-        feeCost = self.safe_string(fee, 'cost')
-        if (fee is not None) and (feeCost is not None):
-            fee['cost'] = feeCost
         cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
         id = self.safe_string(trade, 'id')
@@ -1721,7 +1718,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': order,
         }, marketResolved)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -1729,7 +1726,7 @@ class woofipro(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         if status is not None:
             statuses = {
                 'NEW': 'open',
@@ -1745,7 +1742,7 @@ class woofipro(Exchange, ImplicitAPI):
             return self.safe_string(statuses, status, status)
         return None
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -2558,7 +2555,7 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_balance(data)
 
-    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> object:
+    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> object:
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -2687,7 +2684,7 @@ class woofipro(Exchange, ImplicitAPI):
             'network': None,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
@@ -2777,7 +2774,7 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.safe_number(data, 'withdraw_nonce')
 
-    def hash_message(self, message: object):
+    def hash_message(self, message: object) -> str:
         hashed = self.hash(message, 'keccak', 'hex')
         return '0x' + hashed
 
@@ -3342,8 +3339,9 @@ class woofipro(Exchange, ImplicitAPI):
                 if method == 'DELETE':
                     requestBody = ''
             secret = self.secret
-            if secret.find('ed25519:') >= 0:
-                parts = secret.split('ed25519:')
+            rawSecret = self.secret
+            if rawSecret.find('ed25519:') >= 0:
+                parts = rawSecret.split('ed25519:')
                 secret = parts[1]
             signature = self.eddsa(self.encode(auth), self.base58_to_binary(secret), 'ed25519')
             requestHeaders['orderly-signature'] = self.urlencode_base64(self.base64_to_binary(signature))

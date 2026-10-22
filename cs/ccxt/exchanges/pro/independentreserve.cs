@@ -253,14 +253,14 @@ public partial class independentreserve : ccxt.independentreserve
             {
                 if (i < bidsLength)
                 {
-                    payload = add(add(payload, this.valueToChecksum(getValue(getValue(storedBids, i), 0))), this.valueToChecksum(getValue(getValue(storedBids, i), 1)));
+                    payload = add(add(payload, this.valueToChecksum(getValue((storedBids != null && i < storedBids.Count ? storedBids[i] : null), 0))), this.valueToChecksum(getValue((storedBids != null && i < storedBids.Count ? storedBids[i] : null), 1)));
                 }
             }
             for (int i = 0; i < 10; i++)
             {
                 if (i < asksLength)
                 {
-                    payload = add(add(payload, this.valueToChecksum(getValue(getValue(storedAsks, i), 0))), this.valueToChecksum(getValue(getValue(storedAsks, i), 1)));
+                    payload = add(add(payload, this.valueToChecksum(getValue((storedAsks != null && i < storedAsks.Count ? storedAsks[i] : null), 0))), this.valueToChecksum(getValue((storedAsks != null && i < storedAsks.Count ? storedAsks[i] : null), 1)));
                 }
             }
             Int64 calculatedChecksum = this.crc32(payload, false);

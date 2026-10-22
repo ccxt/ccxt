@@ -882,7 +882,7 @@ class bybit extends \ccxt\async\bybit {
         //         "type": "snapshot"
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $topic = $this->safe_string($message, 'topic', '');
         $topicParts = explode('.', $topic);
         $topicLength = count($topicParts);
@@ -1035,12 +1035,14 @@ class bybit extends \ccxt\async\bybit {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $channel = 'orderbook.';
-        $limit = $this->safe_integer($params, 'limit');
-        $paramsOmitted = ($limit !== null) ? $this->omit($params, 'limit') : $params;
-        if ($limit === null) {
+        $limitParam = $this->safe_integer($params, 'limit');
+        $paramsOmitted = ($limitParam !== null) ? $this->omit($params, 'limit') : $params;
+        $defaultLimit = 500;
+        if ($limitParam === null) {
             $firstMarket = $this->market($symbolsNormalized[0]);
-            $limit = ($firstMarket['spot'] === true) ? 50 : 500;
+            $defaultLimit = ($firstMarket['spot'] === true) ? 50 : 500;
         }
+        $limit = ($limitParam === null) ? $defaultLimit : $limitParam;
         $channel .= (string) $limit;
         $subMessageHashes = array();
         $messageHashes = array();
@@ -1107,7 +1109,7 @@ class bybit extends \ccxt\async\bybit {
         //     }
         //
         $topic = $this->safe_string($message, 'topic', '');
-        $limit = explode('.', $topic)[1];
+        $limit = $this->safe_string(explode('.', $topic), 1);
         $isSpot = mb_strpos($client->url, 'spot') !== false;
         $type = $this->safe_string($message, 'type');
         $isSnapshot = ($type === 'snapshot');
@@ -1287,7 +1289,7 @@ class bybit extends \ccxt\async\bybit {
         //         ]
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $topic = $this->safe_string($message, 'topic', '');
         $trades = $data;
         $parts = explode('.', $topic);

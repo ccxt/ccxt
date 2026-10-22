@@ -12,7 +12,7 @@ public partial class testMainClass : BaseTest
         string method = "fetchCurrencies";
         object currencies = await invokeExchangeDynamically(exchange, "fetchCurrencies");
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
-        object numInactiveCurrencies = 0;
+        Int64 numInactiveCurrencies = 0;
         Int64? maxInactiveCurrenciesPercentage = exchange.safeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50); // no more than X% currencies should be inactive
         List<object> requiredActiveCurrencies = new List<object>() {"BTC", "ETH", "USDT", "USDC"};
         object features = exchange.features;
@@ -39,7 +39,7 @@ public partial class testMainClass : BaseTest
                 bool? active = exchange.safeBool(currency, "active");
                 if ((active == false))
                 {
-                    numInactiveCurrencies = add(numInactiveCurrencies, 1);
+                    numInactiveCurrencies = (numInactiveCurrencies + 1);
                 }
                 // ensure that major currencies are active and enabled for deposit and withdrawal
                 string? code = exchange.safeString(currency, "code");
@@ -53,7 +53,7 @@ public partial class testMainClass : BaseTest
                 }
             }
             // check at least X% of currencies are active
-            object inactiveCurrenciesPercentage = multiply((divide(numInactiveCurrencies, currenciesLength)), 100);
+            object inactiveCurrenciesPercentage = multiply((((double)numInactiveCurrencies / currenciesLength)), 100);
             assert(skipActive || (isLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage)), (((("Percentage of inactive currencies is too high at " + ((object)inactiveCurrenciesPercentage).ToString()) + "% that is more than the allowed maximum of ") + ((object)maxInactiveCurrenciesPercentage).ToString()) + "%"));
             detectCurrencyConflicts(exchange, currencies);
         }

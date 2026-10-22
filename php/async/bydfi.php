@@ -641,18 +641,23 @@ class bydfi extends Exchange {
     }
 
     public function get_closest_limit(?int $limit): ?int {
-        $limits = array( 5, 10, 20, 50, 100, 500, 1000 );
-        $result = 1000;
-        for ($i = 0; $i < count($limits); $i++) {
-            if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' getClosestLimit() requires a limit argument');
-            }
-            if ($limit <= $limits[$i]) {
-                $result = $limits[$i];
-                break;
-            }
+        if ($limit === null) {
+            throw new ArgumentsRequired($this->id . ' getClosestLimit() requires a limit argument');
         }
-        return $result;
+        if ($limit <= 5) {
+            return 5;
+        } elseif ($limit <= 10) {
+            return 10;
+        } elseif ($limit <= 20) {
+            return 20;
+        } elseif ($limit <= 50) {
+            return 50;
+        } elseif ($limit <= 100) {
+            return 100;
+        } elseif ($limit <= 500) {
+            return 500;
+        }
+        return 1000;
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -885,30 +890,31 @@ class bydfi extends Exchange {
             'symbol' => $market['id'],
             'interval' => $interval,
         );
-        $startTime = $since;
         $numberOfCandles = $maxLimit;
         if ($limit !== null && $limit !== null && $limit !== 0) {
-            $numberOfCandles = $limit;
+            $numberOfCandles = $this->parse_to_int($limit);
         }
-        $until = null;
-        $paramsUntil = null;
-        list($until, $paramsUntil) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchOHLCV', 'until');
+        list($untilParam, $paramsUntil) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchOHLCV', 'until');
         $now = $this->milliseconds();
         $duration = $this->parse_timeframe($timeframe) * 1000;
         $timeDelta = $duration * $numberOfCandles;
-        if ($startTime === null && $until === null) {
+        $startTime = $since;
+        $until = $untilParam;
+        if ($since === null && $untilParam === null) {
             $startTime = $now - $timeDelta;
             $until = $now;
-        } elseif ($until === null) {
-            if ($startTime === null) {
+        } elseif ($untilParam !== null) {
+            if ($since === null) {
+                $untilInt = $this->parse_to_int($untilParam);
+                $startTime = $untilInt - $timeDelta;
+            }
+        } else {
+            if ($since === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a since or until argument');
             }
-            $until = $startTime . $timeDelta;
-            if ($until > $now) {
-                $until = $now;
-            }
-        } elseif ($startTime === null) {
-            $startTime = $until - $timeDelta;
+            $sinceInt = $this->parse_to_int($since);
+            $sinceEnd = $sinceInt . $timeDelta;
+            $until = ($sinceEnd > $now) ? $now : $sinceEnd;
         }
         $request['startTime'] = $startTime;
         $request['endTime'] = $until;
@@ -1846,26 +1852,26 @@ class bydfi extends Exchange {
     }
 
     public function handle_since_and_until(string $methodName, ?int $since = null, $params = array()): array {
-        $until = null;
-        $paramsUntil = null;
-        list($until, $paramsUntil) = $this->handle_option_integer_and_params_2($params, $methodName, 'until', 'endTime');
+        list($untilParam, $paramsUntil) = $this->handle_option_integer_and_params_2($params, $methodName, 'until', 'endTime');
         $now = $this->milliseconds();
         $sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         $startTime = $since;
-        if ($startTime === null) {
-            if ($until === null) {
+        $until = $untilParam;
+        if ($since === null) {
+            if ($untilParam !== null) {
+                // since is undefined but until is defined
+                $startTime = $untilParam - $sevenDays;
+            } else {
                 // both since and until are undefined
                 $startTime = $now - $sevenDays;
                 $until = $now;
-            } else {
-                // since is undefined but until is defined
-                $startTime = $until - $sevenDays;
             }
-        } elseif ($until === null) {
+        } elseif ($untilParam === null) {
             // until is undefined but since is defined
-            $delta = $now - $startTime;
+            $sinceInt = $this->parse_to_int($since);
+            $delta = $now - $sinceInt;
             if ($delta > $sevenDays) {
-                $until = $startTime . $sevenDays;
+                $until = $sinceInt . $sevenDays;
             } else {
                 $until = $now;
             }
@@ -2955,11 +2961,11 @@ class bydfi extends Exchange {
         return $this->to_array($transactions);
     }
 
-    public function fetch_transactions_helper(string $type, ?string $code, ?int $since, ?int $limit, mixed $params): PromiseInterface {
+    public function fetch_transactions_helper(string $type, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_transactions_helper(...))($type, $code, $since, $limit, $params);
     }
 
-    private function do_fetch_transactions_helper(string $type, ?string $code, ?int $since, ?int $limit, mixed $params) {
+    private function do_fetch_transactions_helper(string $type, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $methodName = 'fetchWithdrawals';
         if ($type === 'deposit') {
             $methodName = 'fetchDeposits';
@@ -2981,26 +2987,26 @@ class bydfi extends Exchange {
         $request = array(
             'asset' => $currency['id'],
         );
-        $until = null;
-        $paramsUntil = null;
-        list($until, $paramsUntil) = $this->handle_option_integer_and_params_2($params, 'fetchTransfers', 'until', 'endTime');
+        list($untilParam, $paramsUntil) = $this->handle_option_integer_and_params_2($params, 'fetchTransfers', 'until', 'endTime');
         $now = $this->milliseconds();
         $sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         $startTime = $since;
-        if ($startTime === null) {
-            if ($until === null) {
+        $until = $untilParam;
+        if ($since === null) {
+            if ($untilParam !== null) {
+                // since is undefined but until is defined
+                $startTime = $untilParam - $sevenDays;
+            } else {
                 // both since and until are undefined
                 $startTime = $now - $sevenDays;
                 $until = $now;
-            } else {
-                // since is undefined but until is defined
-                $startTime = $until - $sevenDays;
             }
-        } elseif ($until === null) {
+        } elseif ($untilParam === null) {
             // until is undefined but since is defined
-            $delta = $now - $startTime;
+            $sinceInt = $this->parse_to_int($since);
+            $delta = $now - $sinceInt;
             if ($delta > $sevenDays) {
-                $until = $startTime . $sevenDays;
+                $until = $sinceInt . $sevenDays;
             } else {
                 $until = $now;
             }

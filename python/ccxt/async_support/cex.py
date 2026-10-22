@@ -1131,7 +1131,7 @@ class cex(Exchange, ImplicitAPI):
         order = self.safe_dict(result, 0)
         return order
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'PENDING_NEW': 'open',
             'NEW': 'open',
@@ -1539,7 +1539,7 @@ class cex(Exchange, ImplicitAPI):
             'internal': None,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'rejected': 'rejected',
             'pending': 'pending',

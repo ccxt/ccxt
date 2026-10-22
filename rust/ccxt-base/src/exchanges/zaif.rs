@@ -85,7 +85,6 @@ impl crate::exchange_generated::ExchangeBase for ZaifCore {
             match method {
                 "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
-                "custom_nonce" => self.custom_nonce(),
                 "fetch_balance" => self.fetch_balance(&args[..]).await,
                 "fetch_closed_orders" => self.fetch_closed_orders(&args[..]).await,
                 "fetch_markets" => self.fetch_markets(&args[..]).await,
@@ -563,7 +562,7 @@ impl ZaifCore {
         if (name == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing name".into()))));
         }
-        let mut baseIdquoteIdVariable = split(&name, &Value::Str("/".into()));
+        let mut baseIdquoteIdVariable = Value::Array(name.as_str().map(|__s| __s.split("/").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut baseId: Value = baseIdquoteIdVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut quoteId: Value = baseIdquoteIdVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
@@ -656,11 +655,11 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut currencyIds: Value = object_keys(&funds);
+        let mut currencyIds: Value = Value::Array(funds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1191: bool = true;
-            while { if !__for_first_1191 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1191 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
+            let mut __for_first_1187: bool = true;
+            while { if !__for_first_1187 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1187 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
             let mut currencyId: Value = currencyIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut balance: Value = self.safe_string(funds.clone(), currencyId.clone(), &[]);
@@ -668,7 +667,7 @@ impl ZaifCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), balance.clone()); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), balance); }
             if (deposit != Value::Null) {
-                if (in_op(&deposit, &currencyId)) {
+                if (matches!((&deposit, &currencyId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(deposit.clone(), currencyId.clone(), &[])); }
                 }
             }
@@ -903,7 +902,7 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (Value::Int(object_keys(&firstTrade).len() as i64).as_f64() == Some(0.0)) {
+            if (Value::Int(Value::Array(firstTrade.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64).as_f64() == Some(0.0)) {
                 trades = Value::from(vec![]);
             }
         }
@@ -955,7 +954,7 @@ impl ZaifCore {
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
-        m.insert("id".to_string(), to_string_val(&get_value(&data, &Value::Str("order_id".into()))));
+        m.insert("id".to_string(), ({ let __r31v: &Value = &get_value(&data, &Value::Str("order_id".into())); Value::Str((match __r31v { Value::Str(__s) => __s.to_string(), Value::Int(__n) => __n.to_string(), Value::Float(__f) => __f.to_string(), Value::Bool(__b) => __b.to_string(), Value::Null => "null".to_string(), Value::Dict(__m) if __m.contains_key("__precise") => crate::runtime::stringify_param(__r31v), __o => format!("{}", __o) }).into()) }));
     m
 }), &[market]);
 
@@ -1278,12 +1277,10 @@ impl ZaifCore {
     Value::Null
 }
 
-    pub fn custom_nonce(&self) -> Value {
+    pub fn custom_nonce(&self) -> Option<String> {
         let mut num: Value = self.number_to_string((match ((self.milliseconds()).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut nonce: Value = (match &num { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null });
-        return to_fixed(&nonce, &Value::Int(8));
-
-    Value::Null
+        return ({ let __r31x: &Value = &nonce; let __r31g: &Value = &Value::Int(8); let __d: usize = match (match __r31g { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1i64 } else { 0i64 }), _ => None }) { Some(__v) => __v.max(0) as usize, None => 0 }; let __n: f64 = match __r31x { Value::Int(__i) => *__i as f64, Value::Float(__f) => *__f, Value::Str(__s) => __s.trim().parse::<f64>().unwrap_or(0.0), _ => 0.0 }; Value::Str(format!("{:.*}", __d, __n).into()) }).as_str().map(str::to_owned);
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
@@ -1315,7 +1312,7 @@ impl ZaifCore {
             }  else {
                 url = Value::Str(format!("{}{}", url, Value::Str("tapi".into())).into());
             }
-            let mut nonce: Value = self.custom_nonce();
+            let mut nonce: Value = self.custom_nonce().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
             let __ws_arg_8 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("method".to_string(), path);

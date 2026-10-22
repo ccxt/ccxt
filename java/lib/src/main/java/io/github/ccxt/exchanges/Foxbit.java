@@ -2364,22 +2364,19 @@ public class Foxbit extends FoxbitApi
         {
             throw new ArgumentsRequired((this.id + " parseLedgerEntry() requires a amount argument")) ;
         }
-        if ((amount == null || !(amount >= 0)))
-        {
-            direction = "out";
-            if (java.util.Objects.equals(amount, null))
-            {
-                throw new ArgumentsRequired((this.id + " parseLedgerEntry() requires a amount argument")) ;
-            }
-            realAmount = Helpers.multiply(amount, -1);
-        }
         if (java.util.Objects.equals(balance, null))
         {
             throw new ExchangeError((this.id + " parseLedgerEntry() missing balance")) ;
         }
-        if (java.util.Objects.equals(amount, null))
+        Object before = null;
+        if (!java.util.Objects.equals(amount, null) && !java.util.Objects.equals(balance, null))
         {
-            throw new ArgumentsRequired((this.id + " parseLedgerEntry() requires a amount argument")) ;
+            before = (balance - amount);
+            if (((amount == null || 0 > amount)))
+            {
+                direction = "out";
+                realAmount = (-amount);
+            }
         }
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
@@ -2394,7 +2391,7 @@ public class Foxbit extends FoxbitApi
             h2kMap1.put("type", type);
             h2kMap1.put("currency", currencySymbol);
             h2kMap1.put("amount", realAmount);
-            h2kMap1.put("before", (balance - amount));
+            h2kMap1.put("before", before);
             h2kMap1.put("after", balance);
             h2kMap1.put("status", "ok");
             h2kMap1.put("fee", fee);
@@ -2426,6 +2423,7 @@ public class Foxbit extends FoxbitApi
         {
             List<String> paramKeys = new ArrayList<String>(((Map<String, Object>)paramsOmitted).keySet());
             Integer paramKeysLength = ((List<?>)paramKeys).size();
+            Long lastKeyIndex = (((long) paramKeysLength) - 1L);
             if ((paramKeysLength != null && paramKeysLength > 0))
             {
                 query = this.urlencode(paramsOmitted);
@@ -2439,7 +2437,7 @@ public class Foxbit extends FoxbitApi
                 {
                     signatureQuery = (signatureQuery + ((key + "=") + value));
                 }
-                if (i < (((long) paramKeysLength) - 1L))
+                if ((lastKeyIndex != null && i < lastKeyIndex))
                 {
                     signatureQuery = (signatureQuery + "&");
                 }
@@ -2494,7 +2492,7 @@ public class Foxbit extends FoxbitApi
         {
             for (var i = 0; i < ((List<?>)details).size(); i++)
             {
-                detailsString = (Helpers.add(detailsString, (details == null || i < 0 || i >= details.size() ? null : details.get(i))) + " ");
+                detailsString = (((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(detailsString, (details == null || i < 0 || i >= details.size() ? null : details.get(i))) + " ");
             }
         }
         if (!java.util.Objects.equals(error, null))

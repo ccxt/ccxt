@@ -729,7 +729,10 @@ class indodax(Exchange, ImplicitAPI):
             request['from'] = int(math.floor(since / 1000))
         else:
             duration = self.parse_timeframe(timeframe)
-            request['from'] = now - limitResolved * duration - 1
+            if limit is None:
+                request['from'] = now - 1000 * duration - 1
+            else:
+                request['from'] = now - limit * duration - 1
         response = self.publicGetTradingviewHistoryV2(self.extend(request, paramsOmitted))
         #
         #     [
@@ -745,7 +748,7 @@ class indodax(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limitResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'open': 'open',
             'filled': 'closed',
@@ -1343,7 +1346,7 @@ class indodax(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'success': 'ok',
         }

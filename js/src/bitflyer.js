@@ -1251,8 +1251,9 @@ export default class bitflyer extends Exchange {
             let auth = content.join('');
             if (Object.keys(params).length > 0) {
                 if (method !== 'GET') {
-                    bodySigned = this.json(params);
-                    auth += bodySigned;
+                    const body = this.json(params);
+                    bodySigned = body;
+                    auth += body;
                 }
             }
             headersSigned = {

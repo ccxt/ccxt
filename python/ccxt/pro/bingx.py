@@ -1212,7 +1212,7 @@ class bingx(ccxt.async_support.bingx):
         for i in range(0, len(positions)):
             position = positions[i]
             contracts = self.safe_number(position, 'contracts', 0)
-            if contracts > 0:
+            if (contracts is not None) and (contracts > 0):
                 cache.append(position)
         # don't remove the future from the .futures cache
         if messageHash in client.futures:
@@ -1374,7 +1374,7 @@ class bingx(ccxt.async_support.bingx):
         time = self.milliseconds()
         lastAuthenticatedTime = self.safe_integer(self.options, 'lastAuthenticatedTime', 0)
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 3600000)  # 1 hour
-        if time - lastAuthenticatedTime > listenKeyRefreshRate:
+        if (listenKeyRefreshRate is not None) and (time - lastAuthenticatedTime > listenKeyRefreshRate):
             # single-flight leader election on a never-dialed client, see
             # https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
             # different keys and the key rides the private url, so losers

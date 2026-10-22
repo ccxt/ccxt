@@ -924,21 +924,24 @@ class krakenfutures extends Exchange {
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $paramsOmitted = $this->omit($paramsPaginate, 'price');
-        $windowLimit = ($limit === null) ? 2000 : min($limit, 2000);
+        $windowLimit = (($limit === null) || ($limit > 2000)) ? 2000 : $limit;
+        $windowSize = $this->parse_to_int($windowLimit);
         $limitResolved = null;
         if (($since !== null) || ($limit !== null)) {
-            $limitResolved = $windowLimit;
+            $limitResolved = $windowSize;
         }
         if ($since !== null) {
             $duration = $this->parse_timeframe($timeframe);
-            $request['from'] = $this->parse_to_int($since / 1000);
-            $toTimestamp = $this->sum($request['from'], $windowLimit * $duration - 1);
+            $fromTimestamp = $this->parse_to_int($since / 1000);
+            $request['from'] = $fromTimestamp;
+            $toTimestamp = $this->parse_to_int($this->sum($fromTimestamp, $windowSize * $duration - 1));
             $currentTimestamp = $this->seconds();
-            $request['to'] = min($toTimestamp, $currentTimestamp);
+            $request['to'] = ($toTimestamp < $currentTimestamp) ? $toTimestamp : $currentTimestamp;
         } elseif ($limitResolved !== null) {
             $duration = $this->parse_timeframe($timeframe);
-            $request['to'] = $this->seconds();
-            $request['from'] = $this->parse_to_int($request['to'] - ($duration * $limitResolved));
+            $toTimestamp = $this->seconds();
+            $request['to'] = $toTimestamp;
+            $request['from'] = $this->parse_to_int($toTimestamp - ($duration * $windowSize));
         }
         $response = $this->chartsGetPriceTypeSymbolInterval($this->extend($request, $paramsOmitted));
         //
@@ -1184,23 +1187,21 @@ class krakenfutures extends Exchange {
         $order = $this->safe_string($trade, 'order_id');
         $marketId = $this->safe_string($trade, 'symbol');
         $side = $this->safe_string($trade, 'side');
-        $type = null;
+        $rawType = null;
         $priorEdit = $this->safe_dict($trade, 'orderPriorEdit');
         $priorExecution = $this->safe_dict($trade, 'orderPriorExecution');
         if ($priorExecution !== null) {
             $order = $this->safe_string($priorExecution, 'orderId');
             $marketId = $this->safe_string($priorExecution, 'symbol');
             $side = $this->safe_string($priorExecution, 'side');
-            $type = $this->safe_string($priorExecution, 'type');
+            $rawType = $this->safe_string($priorExecution, 'type');
         } elseif ($priorEdit !== null) {
             $order = $this->safe_string($priorEdit, 'orderId');
             $marketId = $this->safe_string($priorEdit, 'symbol');
             $side = $this->safe_string($priorEdit, 'type');
-            $type = $this->safe_string($priorEdit, 'type');
+            $rawType = $this->safe_string($priorEdit, 'type');
         }
-        if ($type !== null) {
-            $type = $this->parse_order_type($type);
-        }
+        $type = $this->parse_order_type($rawType); // undefined stays undefined
         $marketResolved = $this->safe_market($marketId, $market);
         $cost = null;
         $linear = $this->safe_bool($marketResolved, 'linear');
@@ -1301,7 +1302,8 @@ class krakenfutures extends Exchange {
         $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
         $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
         $triggerSignal = $this->safe_string($paramsPostOnly, 'triggerSignal', 'last');
-        $reduceOnly = $this->safe_bool($paramsPostOnly, 'reduceOnly');
+        $reduceOnlyParam = $this->safe_bool($paramsPostOnly, 'reduceOnly');
+        $reduceOnly = ($reduceOnlyParam === true);
         if ($isStopLossOrTakeProfitTrigger || $isTriggerOrder) {
             $request['triggerSignal'] = $triggerSignal;
         }
@@ -1318,7 +1320,7 @@ class krakenfutures extends Exchange {
                 $request['stopPrice'] = $this->price_to_precision($symbolValue, $takeProfitTriggerPrice);
             }
         }
-        if ($reduceOnly === true) {
+        if ($reduceOnly) {
             $request['reduceOnly'] = true;
         }
         $request['orderType'] = $typeValue;
@@ -1911,7 +1913,7 @@ class krakenfutures extends Exchange {
         return $this->safe_string($typesMap, $orderType, $orderType);
     }
 
-    public function verify_order_action_success(mixed $status, mixed $method, array $omit = array()) {
+    public function verify_order_action_success(mixed $status, string $method, array $omit = array()) {
         $errors = array(
             'invalidOrderType' => '\\ccxt\\InvalidOrder',
             'invalidSide' => '\\ccxt\\InvalidOrder',
@@ -1939,7 +1941,7 @@ class krakenfutures extends Exchange {
         }
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'placed' => 'open', // the order was placed successfully
             'cancelled' => 'canceled', // the order was cancelled successfully
@@ -2432,8 +2434,9 @@ class krakenfutures extends Exchange {
             $id = $this->safe_string_2($details, 'orderId', 'uid');
         }
         $type = $this->safe_string_lower_2($details, 'type', 'orderType');
+        $parsedType = $this->parse_order_type($type);
         $timeInForce = 'gtc';
-        if ($type === 'ioc' || $this->parse_order_type($type) === 'market') {
+        if ($type === 'ioc' || $parsedType === 'market') {
             $timeInForce = 'ioc';
         }
         $ts = $this->safe_integer($details, 'timestamp', $timestamp);
@@ -2451,7 +2454,7 @@ class krakenfutures extends Exchange {
             'lastTradeTimestamp' => null,
             'lastUpdateTimestamp' => $this->safe_integer($details, 'lastUpdateTimestamp', $lastUpdateTimestamp),
             'symbol' => $symbol,
-            'type' => $this->parse_order_type($type),
+            'type' => $parsedType,
             'timeInForce' => $timeInForce,
             'postOnly' => $type === 'post',
             'reduceOnly' => $this->safe_bool_2($details, 'reduceOnly', 'reduce_only'),
@@ -3168,7 +3171,7 @@ class krakenfutures extends Exchange {
         //        ]
         //    }
         //
-        $rates = $this->safe_value($response, 'rates');
+        $rates = $this->safe_list($response, 'rates', array());
         $result = array();
         for ($i = 0; $i < count($rates); $i++) {
             $item = $this->safe_dict($rates, $i);

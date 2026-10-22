@@ -93,7 +93,7 @@ export default class whitebit extends whitebitRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     handleOrder(client: Client, message: Dict, subscription?: Dict | undefined): void;
     parseWsOrder(order: Dict, market?: Market): Order;
-    parseWsOrderType(status: any): string;
+    parseWsOrderType(status: Str): Str;
     /**
      * @method
      * @name whitebit#watchBalance
@@ -107,8 +107,8 @@ export default class whitebit extends whitebitRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: Dict): Promise<Balances>;
-    setBalanceCache(client: Client, type: Str, subscriptionHash: any): void;
-    loadBalanceSnapshot(client: any, messageHash: any, type: any, subscriptionHash: any): Promise<void>;
+    setBalanceCache(client: Client, type: Str, subscriptionHash: string): void;
+    loadBalanceSnapshot(client: Client, messageHash: string, type: Str, subscriptionHash: string): Promise<void>;
     handleBalance(client: Client, message: Dict): void;
     watchPublic(messageHash: string, method: string, reqParams?: any[], params?: Dict): Promise<any>;
     watchMultipleSubscription(messageHash: string, method: string, symbol: Str, isNested?: boolean, params?: Dict): Promise<any>;

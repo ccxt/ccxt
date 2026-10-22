@@ -924,7 +924,7 @@ class bit2c extends Exchange {
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
-    public function remove_comma_from_value(string $str) {
+    public function remove_comma_from_value(string $str): string {
         $newString = '';
         $strParts = explode(',', $str);
         for ($i = 0; $i < count($strParts); $i++) {

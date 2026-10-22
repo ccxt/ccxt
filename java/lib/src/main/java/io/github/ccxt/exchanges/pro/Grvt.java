@@ -140,7 +140,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         }
     }
 
-    public CompletableFuture<Object> subscribeMultiple(Object messageHashes, Map<String, Object> request, Object rawHashes, Object publicOrPrivate)
+    public CompletableFuture<Object> subscribeMultiple(Object messageHashes, Map<String, Object> request, Object rawHashes, Boolean publicOrPrivate)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -152,7 +152,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "id", Grvt.this.requestId() );
             }};
             String apiPart = "privateTrading";
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(publicOrPrivate, true)))
+            if (java.util.Objects.requireNonNullElse(publicOrPrivate, true))
             {
                 apiPart = "publicMarket";
             }
@@ -163,12 +163,12 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
 
     public Long requestId()
     {
-        Object newValue;
+        Long newValue;
         synchronized (this) {
-        newValue = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        Helpers.addElementToObject(this.options, "requestId", newValue);
+        newValue = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        { Map<Object, Object> j39v2 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v3 = "requestId"; Object j39v4 = newValue; if (j39v2 == null) { if (j39v3 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v2) { if (j39v4 == null && j39v2 instanceof java.util.concurrent.ConcurrentHashMap) { j39v2.remove(j39v3); } else { j39v2.put(j39v3, j39v4); } } }
         }
-        return Helpers.toLongOrNull(newValue);
+        return newValue;
     }
 
     /**
@@ -460,7 +460,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         stored.append(parsed);
         client.resolve(stored, ("trade::" + symbol));
     }

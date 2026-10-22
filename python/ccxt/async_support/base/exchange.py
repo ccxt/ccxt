@@ -1518,7 +1518,7 @@ class BaseExchange(SyncExchange):
         tasks = []
         time = self.parse_timeframe(timeframe) * 1000
         maxEntriesPerRequestValue = self.require_value(maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required')
-        step = time * maxEntriesPerRequestValue
+        step = time * self.parse_to_int(maxEntriesPerRequestValue)
         until = self.safe_integer_2(paramsOmitted, 'until', 'till')  # do not omit it here
         currentSince = current - (maxCallsPaginationCalls * step) - 1
         if since is not None:

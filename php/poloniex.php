@@ -1104,9 +1104,10 @@ class poloniex extends Exchange {
         $marketId = $this->safe_string_2($ticker, 'symbol', 's');
         $marketResolved = $this->safe_market($marketId);
         $baseVolume = $this->safe_string_2($ticker, 'quantity', 'qty');
-        if (($marketResolved['contract'] === true) && ($marketResolved['contractSize'] !== null)) {
+        $contractSize = $this->safe_number($marketResolved, 'contractSize');
+        if (($marketResolved['contract'] === true) && ($contractSize !== null)) {
             // 'quantity' counts contracts, and a ticker reports base volume
-            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($marketResolved['contractSize']));
+            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($contractSize));
         }
         $relativeChange = $this->safe_string_2($ticker, 'dailyChange', 'dc');
         $percentage = Precise::string_mul($relativeChange, '100');
@@ -1660,7 +1661,7 @@ class poloniex extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'open',
             'PARTIALLY_FILLED' => 'open',
@@ -1900,8 +1901,11 @@ class poloniex extends Exchange {
         }
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
         if ($limit !== null) {
-            $max = ($marketType === 'spot') ? 2000 : 100;
-            $request['limit'] = $max($limit, $max);
+            if ($marketType === 'spot') {
+                $request['limit'] = max($limit, 2000);
+            } else {
+                $request['limit'] = max($limit, 100);
+            }
         }
         $isTrigger = $this->safe_bool_2($paramsMarketType, 'trigger', 'stop');
         $paramsOmitted = $this->omit($paramsMarketType, array( 'trigger', 'stop' ));
@@ -2128,10 +2132,12 @@ class poloniex extends Exchange {
             $rawOrder = $orders[$i];
             $symbol = $rawOrder['symbol'];
             $marketInner = $this->market($symbol);
+            $marketInnerType = $this->safe_string($marketInner, 'type');
+            $marketType = $this->safe_string($market, 'type');
             if ($market === null) {
                 $market = $marketInner;
                 $isContract = ($marketInner['contract'] === true);
-            } elseif ($market['type'] !== $marketInner['type']) {
+            } elseif ($marketType !== $marketInnerType) {
                 throw new BadRequest($this->id . ' createOrders() requires all orders to be of the same market type, either spot or swap');
             }
             $type = $rawOrder['type'];
@@ -2374,7 +2380,7 @@ class poloniex extends Exchange {
             //
             return $this->parse_order($this->safe_dict($raw, 'data', array()));
         }
-        $clientOrderId = $this->safe_value($params, 'clientOrderId');
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
         $idValue = ($clientOrderId !== null) ? $clientOrderId : $id;
         $request['id'] = $idValue;
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
@@ -2674,7 +2680,7 @@ class poloniex extends Exchange {
         // for spot
         for ($i = 0; $i < count($response); $i++) {
             $account = $this->safe_dict($response, $i, array());
-            $balances = $this->safe_value($account, 'balances');
+            $balances = $this->safe_list($account, 'balances', array());
             for ($j = 0; $j < count($balances); $j++) {
                 $balance = $this->safe_dict($balances, $j);
                 $currencyId = $this->safe_string($balance, 'currency');
@@ -2854,19 +2860,19 @@ class poloniex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($response, 'time');
-        $asks = $this->safe_value($response, 'asks');
-        $bids = $this->safe_value($response, 'bids');
+        $asks = $this->safe_list($response, 'asks', array());
+        $bids = $this->safe_list($response, 'bids', array());
         $asksResult = array();
         $bidsResult = array();
         for ($i = 0; $i < count($asks); $i++) {
-            if ((fmod($i, 2)) < 1) {
+            if ((fmod($i, 2)) === 0) {
                 $price = $this->safe_number($asks, $i);
                 $amount = $this->safe_number($asks, $this->sum($i, 1));
                 $asksResult[] = array( $price, $amount );
             }
         }
         for ($i = 0; $i < count($bids); $i++) {
-            if ((fmod($i, 2)) < 1) {
+            if ((fmod($i, 2)) === 0) {
                 $price = $this->safe_number($bids, $i);
                 $amount = $this->safe_number($bids, $this->sum($i, 1));
                 $bidsResult[] = array( $price, $amount );
@@ -3184,7 +3190,11 @@ class poloniex extends Exchange {
         $this->load_markets();
         $year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         $now = $this->seconds();
-        $start = ($since !== null) ? $this->parse_to_int($since / 1000) : $now - 10 * $year;
+        $start = $now - 10 * $year;
+        if ($since !== null) {
+            $sinceMs = $this->safe_integer(array( 'since' => $since ), 'since', 0);
+            $start = $this->parse_to_int($sinceMs / 1000);
+        }
         $request = array(
             'start' => $start, // UNIX timestamp, required
             'end' => $now, // UNIX timestamp, required
@@ -3393,12 +3403,12 @@ class poloniex extends Exchange {
             if (($code !== null) && (($codesValue === null) || ($this->in_array($code, $codesValue)))) {
                 $currency = $this->currency($code);
                 $depositWithdrawFees[$code] = $this->parse_deposit_withdraw_fee($feeInfo, $currency);
-                $childChains = $this->safe_value($feeInfo, 'childChains');
+                $childChains = $this->safe_list($feeInfo, 'childChains', array());
                 $chainsLength = count($childChains);
                 if ($chainsLength > 0) {
                     for ($j = 0; $j < count($childChains); $j++) {
-                        $networkId = $childChains[$j];
-                        $networkId = str_replace($code, '', $networkId);
+                        $rawNetworkId = $this->safe_string($childChains, $j, '');
+                        $networkId = str_replace($code, '', $rawNetworkId);
                         $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
                         $networkInfo = $this->safe_dict($response, $networkId);
                         $networkObject = array();
@@ -3471,7 +3481,7 @@ class poloniex extends Exchange {
         return $this->filter_by_currency_since_limit($transactions, $code, $since, $limit);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'COMPLETE' => 'ok',
             'COMPLETED' => 'ok',
@@ -3889,7 +3899,7 @@ class poloniex extends Exchange {
         ));
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, string $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, ?float $amount, string $type, $params = array()): array {
         $this->load_markets();
         $market = $this->market($symbol);
         $amountResolved = $this->amount_to_precision($symbol, $amount);
@@ -3950,7 +3960,8 @@ class poloniex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
-        return $this->modify_margin_helper($symbol, -$amount, 'reduce', $params);
+        // modifyMarginHelper sends Precise.stringAbs (amountToPrecision (amount)), so the sign is irrelevant
+        return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
     public function add_margin(string $symbol, float $amount, $params = array()): array {

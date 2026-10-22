@@ -505,7 +505,7 @@ class gate extends \ccxt\async\gate {
         $limitResolved = ($limit === null) ? $defaultLimit : $limit;
         if ($market['spot'] === true) {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
-            $maxSpotLimit = $this->handle_option('fetchOrderBook', 'maxSpotLimit', 1000);
+            $maxSpotLimit = $this->parse_to_int($this->handle_option('fetchOrderBook', 'maxSpotLimit', 1000));
             $limitResolved = min($limitResolved, $maxSpotLimit);
         }
         $payload = array();
@@ -734,12 +734,13 @@ class gate extends \ccxt\async\gate {
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol, $this->order_book(array()));
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
         if ($nonce === null) {
-            $cacheLength = 0;
+            $cacheLength = $this->parse_to_int(0);
             if ($storedOrderBook !== null) {
-                $cacheLength = count($storedOrderBook->cache);
+                $storedCacheLength = count($storedOrderBook->cache);
+                $cacheLength = $this->parse_to_int($storedCacheLength);
             }
-            $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 10);
-            $waitAmount = 0;
+            $snapshotDelay = $this->parse_to_int($this->handle_option('watchOrderBook', 'snapshotDelay', 10));
+            $waitAmount = $this->parse_to_int(0);
             if ($isSpot) {
                 $waitAmount = $snapshotDelay;
             }
@@ -753,7 +754,7 @@ class gate extends \ccxt\async\gate {
             return;
         } elseif (($deltaEnd !== null) && ($nonce >= $deltaEnd)) {
             return;
-        } elseif (($deltaStart !== null) && ($nonce >= $deltaStart - 1)) {
+        } elseif (($deltaStart !== null) && ($nonce !== null) && ($nonce >= $deltaStart - 1)) {
             $this->handle_book_delta($storedOrderBook, $delta);
         } else {
             unset($client->subscriptions[$messageHash]);
@@ -835,7 +836,7 @@ class gate extends \ccxt\async\gate {
         $symbolValue = $market['symbol'];
         $params['callerMethodName'] = 'watchTicker';
         $result = Async\await($this->watch_tickers(array( $symbolValue ), $params));
-        return $this->safe_value($result, $symbolValue);
+        return $this->safe_dict($result, $symbolValue);
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -1108,9 +1109,12 @@ class gate extends \ccxt\async\gate {
         //     }]
         // }
         //
-        $result = $this->safe_value($message, 'result');
-        if ((gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result)))) {
-            $result = array( $result );
+        $rawResult = $this->safe_value($message, 'result');
+        $result = array();
+        if ((gettype($rawResult) === 'array' && array_keys($rawResult) === array_keys(array_keys($rawResult)))) {
+            $result = $this->safe_list($message, 'result', array());
+        } else {
+            $result = array( $rawResult );
         }
         $parsedTrades = $this->parse_trades($result);
         for ($i = 0; $i < count($parsedTrades); $i++) {
@@ -1194,9 +1198,12 @@ class gate extends \ccxt\async\gate {
         if ($rawMarketType === 'spot') {
             $marketType = 'spot';
         }
-        $result = $this->safe_value($message, 'result');
-        if ((gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result)))) {
-            $result = array( $result );
+        $rawResult = $this->safe_value($message, 'result');
+        $result = array();
+        if ((gettype($rawResult) === 'array' && array_keys($rawResult) === array_keys(array_keys($rawResult)))) {
+            $result = $this->safe_list($message, 'result', array());
+        } else {
+            $result = array( $rawResult );
         }
         $marketIds = array();
         for ($i = 0; $i < count($result); $i++) {

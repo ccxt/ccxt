@@ -106,9 +106,9 @@ public class Woo extends io.github.ccxt.exchanges.Woo
     {
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
-        Object newValue = this.sum(previousValue, 1);
+        Long newValue = (Long) this.sum(previousValue, 1);
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
-        return Helpers.toLongOrNull(newValue);
+        return newValue;
     }
 
     public CompletableFuture<Object> watchPublic(Object messageHash, Map<String, Object> message)
@@ -132,7 +132,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public CompletableFuture<Object> unwatchPublic(Object subHash, String symbol, Object topic, Object parameters)
+    public CompletableFuture<Object> unwatchPublic(Object subHash, String symbol, Object topic, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -159,7 +159,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "unsubMessageHashes", new ArrayList<Object>(Arrays.asList(unsubHash)) );
             }};
             List<Object> symbolsAndTimeframes = (List<Object>) this.safeList(parameters, "symbolsAndTimeframes", (Object) null);
-            Object paramsOmitted = (((!java.util.Objects.equals(symbolsAndTimeframes, null)))) ? this.omit(parameters, "symbolsAndTimeframes") : parameters;
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(symbolsAndTimeframes, null)))) ? this.omit(parameters, "symbolsAndTimeframes") : parameters;
             if (!java.util.Objects.equals(symbolsAndTimeframes, null))
             {
                 subscription.put("symbolsAndTimeframes", symbolsAndTimeframes);
@@ -244,7 +244,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "method", "orderbook");
             String method = methodparamsMethodVariable.first();
-            var paramsMethod = ((List<Object>) methodparamsMethodVariable).get(1);
+            Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             Map<String, Object> market = this.market(symbol);
             String subHash = ((market.get("id") + "@") + method);
             String topic = "orderbook";
@@ -356,7 +356,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         // handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
         orderbook.put("timestamp", null);
         orderbook.put("datetime", null);
-        Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
+        orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));
         this.spawn(() -> { try { this.fetchOrderBookSnapshot(client, (Map<String, Object>) (message), (Map<String, Object>) (subscription)); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
@@ -370,9 +370,9 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             try
             {
                 Long defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
-                Object limit = this.safeInteger(subscription, "limit", defaultLimit);
+                Long limit = this.safeInteger(subscription, "limit", defaultLimit);
                 Object parameters = this.safeDict(subscription, "params", (Object) null);
-                Object snapshot = (this.fetchRestOrderBookSafe(symbol, Helpers.toLongOrNull(limit), Helpers.toMapArg(parameters))).join();
+                Object snapshot = (this.fetchRestOrderBookSafe(symbol, limit, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })))).join();
                 if (java.util.Objects.equals(this.safeDict(this.orderbooks, symbol, (Object) null), null))
                 {
                     // if the orderbook is dropped before the snapshot is received
@@ -389,7 +389,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                     {
                         continue;
                     }
-                    if (Helpers.isLessThan(ts, (orderbook == null ? null : orderbook.get("timestamp"))))
+                    Long orderbookTimestamp = this.safeInteger(orderbook, "timestamp");
+                    if ((!java.util.Objects.equals(orderbookTimestamp, null)) && ((orderbookTimestamp != null && (ts == null || ts < orderbookTimestamp))))
                     {
                         continue;
                     } else
@@ -435,7 +436,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -490,7 +491,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTicker", "method", "ticker");
             String method = methodparamsMethodVariable.first();
-            var paramsMethod = ((List<Object>) methodparamsMethodVariable).get(1);
+            Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             Map<String, Object> market = this.market(symbol);
             String subHash = ((market.get("id") + "@") + method);
             String topic = "ticker";
@@ -661,14 +662,14 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //     }
         //
         String topic = this.safeString(message, "topic");
-        Object data = this.safeValue(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "ts");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(data); i++)
+        for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            String marketId = this.safeString(Helpers.GetValue(data, i), "symbol");
+            String marketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "symbol");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(this.extend(Helpers.GetValue(data, i), new HashMap<String, Object>() {{
+            Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), new HashMap<String, Object>() {{
                 put( "date", timestamp );
             }}), market);
             Helpers.addElementToObject(this.tickers, market.get("symbol"), ticker);
@@ -770,9 +771,9 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 continue;
             }
-            Helpers.addElementToObject(ticker, "ts", timestamp);
-            Object parsedTicker = this.parseWsBidAsk((Map<String, Object>) (ticker), (Map<String, Object>) null);
-            String symbol = (String) ((Map<String, Object>)parsedTicker).get("symbol");
+            ticker.put("ts", timestamp);
+            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (ticker), (Map<String, Object>) null);
+            String symbol = (String) parsedTicker.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 Helpers.addElementToObject(this.bidsasks, symbol, parsedTicker);
@@ -1082,10 +1083,12 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         Double feeCost = this.safeNumber(trade, "fee", (Object) null);
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", this.safeCurrencyCode(this.safeString(trade, "feeCurrency"), (Map<String, Object>) null)
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", this.safeCurrencyCode(this.safeString(trade, "feeCurrency"), (Map<String, Object>) null));
+                fee = hx4NewMap0;
+            }
         }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", this.safeString(trade, "tradeId"));
@@ -1216,7 +1219,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             String messageHash = topic;
-            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : null;
             if (!java.util.Objects.equals(symbolResolved, null))
             {
                 messageHash = (messageHash + (":" + symbolResolved));
@@ -1266,7 +1269,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             String messageHash = "myTrades";
-            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : null;
             if (!java.util.Objects.equals(symbolResolved, null))
             {
                 messageHash = (messageHash + (":" + symbolResolved));
@@ -1467,7 +1470,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     public void handleOrder(Client client, Map<String, Object> message, String topic)
     {
-        Object parsed = this.parseWsOrder((Map<String, Object>) (message), (Map<String, Object>) null);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message), (Map<String, Object>) null);
         String symbol = this.safeString(parsed, "symbol");
         String orderId = this.safeString(parsed, "id");
         if (!java.util.Objects.equals(symbol, null))
@@ -1485,16 +1488,16 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 Object fee = this.safeValue(order, "fee");
                 if (!java.util.Objects.equals(fee, null))
                 {
-                    ((Map<String, Object>)parsed).put("fee", fee);
+                    parsed.put("fee", fee);
                 }
                 List<Object> fees = (List<Object>) this.safeList(order, "fees", (Object) null);
                 if (!java.util.Objects.equals(fees, null))
                 {
                     ((Map<String, Object>)parsed).put("fees", fees);
                 }
-                ((Map<String, Object>)parsed).put("trades", this.safeValue(order, "trades"));
-                ((Map<String, Object>)parsed).put("timestamp", this.safeInteger(order, "timestamp"));
-                ((Map<String, Object>)parsed).put("datetime", this.safeString(order, "datetime"));
+                parsed.put("trades", this.safeValue(order, "trades"));
+                parsed.put("timestamp", this.safeInteger(order, "timestamp"));
+                parsed.put("datetime", this.safeString(order, "datetime"));
             }
             cachedOrders.append(parsed);
             client.resolve(this.orders, topic);
@@ -1770,17 +1773,17 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //    }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
-        Object balances = this.safeValue(data, "balances");
-        List<Object> keys = Helpers.objectKeys(balances);
+        Map<String, Object> balances = (Map<String, Object>) this.safeDict(data, "balances", new HashMap<String, Object>() {{}});
+        List<String> keys = new ArrayList<String>(balances.keySet());
         Long ts = this.safeInteger(message, "ts");
         Helpers.addElementToObject(this.balance, "info", data);
         Helpers.addElementToObject(this.balance, "timestamp", ts);
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(ts));
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> value = (Map<String, Object>) this.safeDict(balances, key, (Object) null);
-            String code = this.safeCurrencyCode((String) (key), (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(key, (Map<String, Object>) null);
             Object account = this.account();
             if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
             {
@@ -1879,7 +1882,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             return false;
         } catch(Exception error)
         {
-            if (Helpers.isInstance(error, AuthenticationError.class))
+            if ((switch ((Object) (error)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield AuthenticationError.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> AuthenticationError.class.isInstance(hx4J44v0); }))
             {
                 String messageHash = "authenticated";
                 client.reject(error, messageHash);

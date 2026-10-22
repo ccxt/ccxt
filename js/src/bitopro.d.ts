@@ -94,7 +94,7 @@ export default class bitopro extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    insertMissingCandles(candles: any, distance: number, since: Int, limit: number): any[];
+    insertMissingCandles(candles: any[], distanceInMs: number, since: Int, limit: number): any[];
     parseBalance(response: any): Balances;
     /**
      * @method

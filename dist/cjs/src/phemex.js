@@ -1234,7 +1234,7 @@ class phemex extends phemex$1["default"] {
         for (let i = 0; i < sides.length; i++) {
             const side = sides[i];
             const orders = [];
-            const bidasks = this.safeValue(orderbook, side);
+            const bidasks = this.safeList(orderbook, side, []);
             for (let k = 0; k < bidasks.length; k++) {
                 orders.push(this.customParseBidAsk(bidasks[k], priceKey, amountKey, market));
             }
@@ -1314,7 +1314,7 @@ class phemex extends phemex$1["default"] {
         }
         const stringN = this.numberToString(n);
         const precise = new Precise["default"](stringN);
-        precise.decimals = precise.decimals - scale;
+        precise.decimals = this.sum(precise.decimals, scale * -1);
         precise.reduce();
         const preciseString = precise.toString();
         return this.parseToNumeric(preciseString);
@@ -1420,32 +1420,33 @@ class phemex extends phemex$1["default"] {
         if (usesSpecialFromToEndpoint) {
             maxLimit = 2000;
         }
-        const limitResolved = (limit === undefined) ? maxLimit : limit;
-        request['limit'] = Math.min(limitResolved, maxLimit);
+        const limitResolved = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
+        request['limit'] = limitResolved;
         let sinceSeconds = undefined;
         let response;
         if ((market['linear'] === true) || isStableSettled) {
             if ((until !== undefined) || (since !== undefined)) {
                 const candleDuration = this.parseTimeframe(timeframe);
                 if (since !== undefined) {
-                    sinceSeconds = Math.round(since / 1000);
-                }
-                else {
-                    // when 'to' is defined since is mandatory
-                    sinceSeconds = Math.round(until / 1000) - (maxLimit * candleDuration);
-                }
-                request['from'] = sinceSeconds;
-                if (until !== undefined) {
-                    request['to'] = Math.round(until / 1000);
-                }
-                else {
-                    // when since is defined 'to' is mandatory
-                    let to = sinceSeconds + (maxLimit * candleDuration);
-                    const now = this.seconds();
-                    if (to > now) {
-                        to = now;
+                    const fromSeconds = Math.round(since / 1000);
+                    sinceSeconds = fromSeconds;
+                    request['from'] = fromSeconds;
+                    if (until !== undefined) {
+                        request['to'] = Math.round(until / 1000);
                     }
-                    request['to'] = to;
+                    else {
+                        // when since is defined 'to' is mandatory
+                        const now = this.seconds();
+                        const to = this.parseToInt(fromSeconds + (maxLimit * candleDuration));
+                        request['to'] = (to > now) ? now : to;
+                    }
+                }
+                else if (until !== undefined) {
+                    // when 'to' is defined since is mandatory
+                    const untilSeconds = Math.round(until / 1000);
+                    sinceSeconds = untilSeconds - (maxLimit * candleDuration);
+                    request['from'] = sinceSeconds;
+                    request['to'] = untilSeconds;
                 }
                 response = await this.publicGetMdV2KlineList(this.extend(request, paramsOmitted));
             }
@@ -2076,7 +2077,12 @@ class phemex extends phemex$1["default"] {
             const lockedWithdraw = this.fromEn(lockedWithdrawEv, scale);
             const used = Precise["default"].stringAdd(lockedTradingBalance, lockedWithdraw);
             const lastUpdateTimeNs = this.safeIntegerProduct(balance, 'lastUpdateTimeNs', 0.000001);
-            timestamp = (timestamp === undefined) ? lastUpdateTimeNs : Math.max(timestamp, lastUpdateTimeNs);
+            if ((timestamp === undefined) || (lastUpdateTimeNs === undefined)) {
+                timestamp = lastUpdateTimeNs;
+            }
+            else {
+                timestamp = Math.max(timestamp, lastUpdateTimeNs);
+            }
             account['total'] = total;
             account['used'] = used;
             result[code] = account;
@@ -2610,7 +2616,7 @@ class phemex extends phemex$1["default"] {
         const timeInForce = this.parseTimeInForce(this.safeString(order, 'timeInForce'));
         const triggerPrice = this.omitZero(this.safeString2(order, 'stopPx', 'stopPxRp'));
         const postOnly = (timeInForce === 'PO');
-        let reduceOnly = this.safeValue(order, 'reduceOnly');
+        let reduceOnly = this.safeBool(order, 'reduceOnly');
         const execInst = this.safeString(order, 'execInst');
         if (execInst === 'ReduceOnly') {
             reduceOnly = true;
@@ -3478,10 +3484,10 @@ class phemex extends phemex$1["default"] {
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         const request = {};
-        const limitResolved = (limit === undefined) ? undefined : Math.min(200, limit);
-        if (limitResolved !== undefined) {
-            request['limit'] = limitResolved;
+        if (limit !== undefined) {
+            request['limit'] = Math.min(200, limit);
         }
+        const limitResolved = this.safeInteger(request, 'limit');
         const isUSDTSettled = (type !== 'spot') && ((symbol === undefined) || (this.safeString(market, 'settle') === 'USDT'));
         if (isUSDTSettled) {
             request['currency'] = 'USDT';
@@ -3616,8 +3622,7 @@ class phemex extends phemex$1["default"] {
             data = this.safeList(response, 'data', []);
         }
         else {
-            data = this.safeValue(response, 'data', {});
-            data = this.safeList(data, 'rows', []);
+            data = this.safeList(this.safeDict(response, 'data', {}), 'rows', []);
         }
         return this.parseTrades(data, market, since, limitResolved);
     }
@@ -3929,7 +3934,7 @@ class phemex extends phemex$1["default"] {
         if (firstSymbol !== undefined) {
             market = this.market(firstSymbol);
             settle = this.safeString(market, 'settle');
-            code = market['settle'];
+            code = this.safeString(market, 'settle');
         }
         else {
             [settle, paramsSettle] = this.handleOptionStringAndParams(paramsOmitted, 'fetchPositions', 'settle', code);
@@ -4312,7 +4317,8 @@ class phemex extends phemex$1["default"] {
             request['limit'] = limit;
         }
         let response;
-        const isStableSettled = market['settle'] === 'USDT' || market['settle'] === 'USDC';
+        const marketSettle = this.safeString(market, 'settle');
+        const isStableSettled = marketSettle === 'USDT' || marketSettle === 'USDC';
         if (isStableSettled) {
             response = await this.privateGetApiDataGFuturesFundingFees(this.extend(request, params));
         }
@@ -4366,7 +4372,8 @@ class phemex extends phemex$1["default"] {
             return value;
         }
         // it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
-        const isStableSettled = market['settle'] === 'USDT' || market['settle'] === 'USDC';
+        const marketSettle = this.safeString(market, 'settle');
+        const isStableSettled = marketSettle === 'USDT' || marketSettle === 'USDC';
         if (isStableSettled) {
             return value;
         }
@@ -5155,7 +5162,7 @@ class phemex extends phemex$1["default"] {
         //    }
         //
         const data = this.safeDict(response, 'data', {});
-        const rates = this.safeValue(data, 'rows');
+        const rates = this.safeList(data, 'rows', []);
         const result = [];
         for (let i = 0; i < rates.length; i++) {
             const item = rates[i];
@@ -5196,7 +5203,7 @@ class phemex extends phemex$1["default"] {
         if (networkCode !== undefined) {
             networkId = this.networkCodeToId(networkCode, code);
         }
-        const stableCoins = this.safeValue(this.options, 'stableCoins');
+        const stableCoins = this.safeList(this.options, 'stableCoins', []);
         if (networkId === undefined) {
             if (!(this.inArray(code, stableCoins))) {
                 networkId = currency['id'];
@@ -5308,7 +5315,11 @@ class phemex extends phemex$1["default"] {
         //        volumeRq: '3388.5600312'
         //    }
         //
-        const timestamp = this.safeInteger(interest, 'timestamp') / 1000000;
+        const timestampNs = this.safeInteger(interest, 'timestamp');
+        let timestamp = undefined;
+        if (timestampNs !== undefined) {
+            timestamp = this.parseToInt(timestampNs / 1000000);
+        }
         const id = this.safeString(interest, 'symbol');
         return this.safeOpenInterest({
             'info': interest,
@@ -5572,7 +5583,7 @@ class phemex extends phemex$1["default"] {
         if (firstSymbol !== undefined) {
             market = this.market(firstSymbol);
             settle = this.safeString(market, 'settle');
-            code = market['settle'];
+            code = this.safeString(market, 'settle');
         }
         else {
             [settle, paramsSettle] = this.handleOptionStringAndParams(paramsOmitted, 'fetchPositionsADLRank', 'settle', code);

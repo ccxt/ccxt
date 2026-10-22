@@ -171,8 +171,7 @@ class poloniex(ccxt.async_support.poloniex):
         else:
             if symbols is None:
                 raise ArgumentsRequired(self.id + ' subscribe() symbols is required')
-            ids = self.market_ids(symbols)
-            marketIds = [] if (ids is None) else ids
+            marketIds = self.market_ids(symbols)
         symbolsSuffix = '' if (symbols is None) else ','.join(symbols)
         symbolsHash = None
         if self.is_empty(symbols):
@@ -633,8 +632,8 @@ class poloniex(ccxt.async_support.poloniex):
         #        ]
         #    }
         #
-        data = self.safe_value(message, 'data')
-        data = self.safe_value(data, 0)
+        dataList = self.safe_list(message, 'data')
+        data = self.safe_dict(dataList, 0)
         channel = self.safe_string(message, 'channel')
         marketId = self.safe_string(data, 'symbol')
         symbol = self.safe_symbol(marketId)

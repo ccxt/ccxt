@@ -629,15 +629,21 @@ class bydfi(Exchange, ImplicitAPI):
         return orderBook
 
     def get_closest_limit(self, limit: Int) -> Int:
-        limits = [5, 10, 20, 50, 100, 500, 1000]
-        result = 1000
-        for i in range(0, len(limits)):
-            if limit is None:
-                raise ArgumentsRequired(self.id + ' getClosestLimit() requires a limit argument')
-            if limit <= limits[i]:
-                result = limits[i]
-                break
-        return result
+        if limit is None:
+            raise ArgumentsRequired(self.id + ' getClosestLimit() requires a limit argument')
+        if limit <= 5:
+            return 5
+        elif limit <= 10:
+            return 10
+        elif limit <= 20:
+            return 20
+        elif limit <= 50:
+            return 50
+        elif limit <= 100:
+            return 100
+        elif limit <= 500:
+            return 500
+        return 1000
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -843,27 +849,28 @@ class bydfi(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'interval': interval,
         }
-        startTime = since
         numberOfCandles = maxLimit
         if limit is not None and limit is not None and limit != 0:
-            numberOfCandles = limit
-        until = None
-        paramsUntil = None
-        until, paramsUntil = self.handle_option_integer_and_params(paramsPaginate, 'fetchOHLCV', 'until')
+            numberOfCandles = self.parse_to_int(limit)
+        untilParam, paramsUntil = self.handle_option_integer_and_params(paramsPaginate, 'fetchOHLCV', 'until')
         now = self.milliseconds()
         duration = self.parse_timeframe(timeframe) * 1000
         timeDelta = duration * numberOfCandles
-        if startTime is None and until is None:
+        startTime = since
+        until = untilParam
+        if since is None and untilParam is None:
             startTime = now - timeDelta
             until = now
-        elif until is None:
-            if startTime is None:
+        elif untilParam is not None:
+            if since is None:
+                untilInt = self.parse_to_int(untilParam)
+                startTime = untilInt - timeDelta
+        else:
+            if since is None:
                 raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since or until argument')
-            until = startTime + timeDelta
-            if until > now:
-                until = now
-        elif startTime is None:
-            startTime = until - timeDelta
+            sinceInt = self.parse_to_int(since)
+            sinceEnd = sinceInt + timeDelta
+            until = now if (sinceEnd > now) else sinceEnd
         request['startTime'] = startTime
         request['endTime'] = until
         if limit is not None:
@@ -1683,25 +1690,25 @@ class bydfi(Exchange, ImplicitAPI):
         return self.parse_orders(data, market, since, limit)
 
     def handle_since_and_until(self, methodName: str, since: Int = None, params: dict = {}) -> dict:
-        until = None
-        paramsUntil = None
-        until, paramsUntil = self.handle_option_integer_and_params_2(params, methodName, 'until', 'endTime')
+        untilParam, paramsUntil = self.handle_option_integer_and_params_2(params, methodName, 'until', 'endTime')
         now = self.milliseconds()
         sevenDays = 7 * 24 * 60 * 60 * 1000  # the maximum range is 7 days
         startTime = since
-        if startTime is None:
-            if until is None:
+        until = untilParam
+        if since is None:
+            if untilParam is not None:
+                # since is undefined but until is defined
+                startTime = untilParam - sevenDays
+            else:
                 # both since and until are undefined
                 startTime = now - sevenDays
                 until = now
-            else:
-                # since is undefined but until is defined
-                startTime = until - sevenDays
-        elif until is None:
+        elif untilParam is None:
             # until is undefined but since is defined
-            delta = now - startTime
+            sinceInt = self.parse_to_int(since)
+            delta = now - sinceInt
             if delta > sevenDays:
-                until = startTime + sevenDays
+                until = sinceInt + sevenDays
             else:
                 until = now
         request = {
@@ -2668,7 +2675,7 @@ class bydfi(Exchange, ImplicitAPI):
         transactions = await self.fetch_transactions_helper('withdrawal', code, since, limit, params)
         return self.to_array(transactions)
 
-    async def fetch_transactions_helper(self, type: str, code: Str, since: Int, limit: Int, params: object) -> list[Transaction]:
+    async def fetch_transactions_helper(self, type: str, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         methodName = 'fetchWithdrawals'
         if type == 'deposit':
             methodName = 'fetchDeposits'
@@ -2686,25 +2693,25 @@ class bydfi(Exchange, ImplicitAPI):
         request = {
             'asset': currency['id'],
         }
-        until = None
-        paramsUntil = None
-        until, paramsUntil = self.handle_option_integer_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
+        untilParam, paramsUntil = self.handle_option_integer_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
         now = self.milliseconds()
         sevenDays = 7 * 24 * 60 * 60 * 1000  # the maximum range is 7 days
         startTime = since
-        if startTime is None:
-            if until is None:
+        until = untilParam
+        if since is None:
+            if untilParam is not None:
+                # since is undefined but until is defined
+                startTime = untilParam - sevenDays
+            else:
                 # both since and until are undefined
                 startTime = now - sevenDays
                 until = now
-            else:
-                # since is undefined but until is defined
-                startTime = until - sevenDays
-        elif until is None:
+        elif untilParam is None:
             # until is undefined but since is defined
-            delta = now - startTime
+            sinceInt = self.parse_to_int(since)
+            delta = now - sinceInt
             if delta > sevenDays:
-                until = startTime + sevenDays
+                until = sinceInt + sevenDays
             else:
                 until = now
         request['startTime'] = startTime

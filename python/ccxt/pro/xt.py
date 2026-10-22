@@ -684,7 +684,7 @@ class xt(ccxt.async_support.xt):
                 client.future(messageHash)
                 self.spawn(self.load_positions_snapshot, client, messageHash)
 
-    async def load_positions_snapshot(self, client: Client, messageHash: object):
+    async def load_positions_snapshot(self, client: Client, messageHash: str):
         positions = await self.fetch_positions()
         self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
@@ -1497,7 +1497,6 @@ class xt(ccxt.async_support.xt):
         #
         id = self.safe_string(message, 'id')
         subscriptionsById = self.index_by(client.subscriptions, 'id')
-        unsubscribe = False
         if id is not None:
             subscription = self.safe_dict(subscriptionsById, id, {})
             unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)

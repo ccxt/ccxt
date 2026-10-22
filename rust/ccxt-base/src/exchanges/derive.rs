@@ -167,8 +167,6 @@ impl crate::exchange_generated::ExchangeBase for DeriveCore {
                 "handle_derive_subaccount_id" => self.handle_derive_subaccount_id(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_derive_wallet_address" => self.handle_derive_wallet_address(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "hash_message" => self.hash_message(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "hash_order_message" => self.hash_order_message(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_borrow_interest" => self.parse_borrow_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -182,16 +180,13 @@ impl crate::exchange_generated::ExchangeBase for DeriveCore {
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_option" => self.parse_option(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_settlement" => self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_settlements" => self.parse_settlements(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_time_in_force" => self.parse_time_in_force(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trades" => self.parse_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "transfer" => self.transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
@@ -1324,13 +1319,13 @@ impl DeriveCore {
     m
 })]);
         let mut subaccountIds: Value = self.safe_list_k(result.clone(), "subaccount_ids", &[Value::from(vec![])]);
-        let mut accounts: Value = Value::from(vec![]);
+        let mut accounts: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_630: bool = true;
-            while { if !__for_first_630 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_630 = false; i.as_f64().unwrap_or(f64::NAN) < ((subaccountIds.len() as i64) as f64) } {
+            let mut __for_first_626: bool = true;
+            while { if !__for_first_626 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_626 = false; i.as_f64().unwrap_or(f64::NAN) < ((subaccountIds.len() as i64) as f64) } {
             let mut subaccountId: Value = self.safe_string(subaccountIds.clone(), i.clone(), &[]);
-            append_to_array(&mut accounts, Value::Map({
+            accounts.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), subaccountId);
                     m.insert("type".to_string(), Value::Null);
@@ -1340,7 +1335,7 @@ impl DeriveCore {
             }));
         }
         }
-        return accounts;
+        return Value::from(accounts);
 
     Value::Null
 }
@@ -1602,19 +1597,17 @@ impl DeriveCore {
     m
 }));
         let mut allInstruments: Value = Value::from(vec![]);
-        let mut maxPages: Value = Value::Int(25);
-        let mut paramsOmitted: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
-        { let __destr_tmp = self.handle_option_and_params(params, Value::Str("getMarketsPaginated".into()), Value::Str("maxMarketPages".into()), &[maxPages.clone()]); maxPages = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut pageSize: Value = Value::Int(1000);
-        { let __destr_tmp = self.handle_option_and_params(paramsOmitted.clone(), Value::Str("getMarketsPaginated".into()), Value::Str("maxMarketsPerPage".into()), &[pageSize.clone()]); pageSize = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut maxPagesparamsMaxPagesVariable = self.handle_option_integer_and_params(params, Value::Str("getMarketsPaginated".into()), Value::Str("maxMarketPages".into()), &[Value::Int(25)]);
+        let mut maxPages: Value = maxPagesparamsMaxPagesVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMaxPages: Value = maxPagesparamsMaxPagesVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut pageSizeparamsOmittedVariable = self.handle_option_and_params(paramsMaxPages, Value::Str("getMarketsPaginated".into()), Value::Str("maxMarketsPerPage".into()), &[Value::Int(1000)]);
+        let mut pageSize: Value = pageSizeparamsOmittedVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsOmitted: Value = pageSizeparamsOmittedVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut page: Value = Value::Int(1);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_631: bool = true;
-            while { if !__for_first_631 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_631 = false; i.as_f64().unwrap_or(f64::NAN) < maxPages.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_627: bool = true;
+            while { if !__for_first_627 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_627 = false; i.as_f64().unwrap_or(f64::NAN) < maxPages.as_f64().unwrap_or(f64::NAN) } {
             let mut requestExtension: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("page".to_string(), page.clone());
@@ -2292,15 +2285,15 @@ impl DeriveCore {
 
     pub fn parse_settlements(&self, mut settlements: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_632: bool = true;
-            while { if !__for_first_632 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_632 = false; i.as_f64().unwrap_or(f64::NAN) < ((settlements.len() as i64) as f64) } {
-            append_to_array(&mut result, self.parse_settlement(settlements.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]));
+            let mut __for_first_628: bool = true;
+            while { if !__for_first_628 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_628 = false; i.as_f64().unwrap_or(f64::NAN) < ((settlements.len() as i64) as f64) } {
+            result.push(self.parse_settlement(settlements.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]));
         }
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
@@ -2397,7 +2390,7 @@ impl DeriveCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_incremental(Value::Str("fetchTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(1000)]).await;
         }
         let mut request: Value = Value::Map({
@@ -2413,12 +2406,9 @@ impl DeriveCore {
         if (limit != Value::Null) && limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64) {
             limitResolved = Value::Int(1000);
         }
-        if (limitResolved != Value::Null) {
+        if (limit != Value::Null) {
             // the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
-            let mut pageSize: Value = (match (&(limitResolved), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            if pageSize.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64) {
-                pageSize = Value::Int(1000); // default 100, max 1000
-            }
+            let mut pageSize: Value = (if (limit.as_f64().unwrap_or(f64::NAN) > ((500i64) as f64)) { Value::Int(1000) } else { (match (&(limit), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }) }); // default 100, max 1000
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), pageSize); }
         }
         if (since != Value::Null) {
@@ -2554,17 +2544,17 @@ impl DeriveCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_633: bool = true;
-            while { if !__for_first_633 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_633 = false; i.as_f64().unwrap_or(f64::NAN) < ((tradesArray.len() as i64) as f64) } {
+            let mut __for_first_629: bool = true;
+            while { if !__for_first_629 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_629 = false; i.as_f64().unwrap_or(f64::NAN) < ((tradesArray.len() as i64) as f64) } {
             let mut rawTrade: Value = tradesArray.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut isFetchTrades: bool = !(in_op(&rawTrade, &Value::Str("order_id".into())));
+            let mut isFetchTrades: bool = !(({ let __r29o: &Value = &rawTrade; let __r29k: &Value = &Value::Str("order_id".into()); match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => __m.contains_key(&**__k), (Value::Arr(__a), __r29v) => __a.iter().any(|__r29e| (match (__r29e, __r29v) { (Value::Null, Value::Null) => true, (Value::Bool(__p), Value::Bool(__q)) => __p == __q, (Value::Str(__p), Value::Str(__q)) => __p == __q, (Value::Int(__p), Value::Int(__q)) => __p == __q, (Value::Float(__p), Value::Float(__q)) => __p == __q, (__p, __q) => matches!(((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })), (Some(__x), Some(__y)) if __x == __y) })), _ => false } }));
             let mut liquidityRole: Option<String> = self.safe_string_k(rawTrade.clone(), "liquidity_role", &[]).as_str().map(str::to_owned);
             if isFetchTrades && (liquidityRole.as_deref() == Some("maker")) {
                 continue;
             }
             let mut parsed: Value = self.parse_trade(rawTrade, &[market.clone()]);
             let mut trade: Value = self.extend(parsed, &[params.clone()]);
-            append_to_array(&mut result, trade);
+            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(trade); }
         }
         }
         result = self.sort_by2(result.clone(), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
@@ -2604,7 +2594,7 @@ impl DeriveCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsPaginate, Value::Int(5000)]).await;
         }
         // todo: check active spot markets after launch of v3
@@ -2616,30 +2606,30 @@ impl DeriveCore {
         let mut until: Value = self.safe_integer_k(paramsPrice.clone(), "until", &[]);
         let mut paramsOmitted: Value = self.omit(paramsPrice, Value::from(vec![Value::Str("until".into())]), &[]);
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
-        let mut end: Value = Value::Null;
+        let mut untilSeconds: Value = self.seconds();
         if (until != Value::Null) {
-            end = self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-        }  else {
-            end = self.seconds();
+            untilSeconds = self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         }
-        let mut limitResolved: Value = limit.clone();
-        if (limitResolved == Value::Null) {
-            limitResolved = (if (since != Value::Null) { Value::Int(5000) } else { Value::Int(1000) });
+        // the venue keeps only the latest 5000 buckets of the requested window
+        let mut defaultLimit: Value = (if (since == Value::Null) { Value::Int(1000) } else { Value::Int(5000) });
+        let mut limitResolved: Value = self.parse_to_int(defaultLimit);
+        if (limit != Value::Null) {
+            limitResolved = self.parse_to_int(limit.clone());
         }
         if limitResolved.as_f64().unwrap_or(f64::NAN) > ((5000i64) as f64) {
-            limitResolved = Value::Int(5000); // the venue keeps only the latest 5000 buckets of the requested window
+            limitResolved = self.parse_to_int(Value::Int(5000));
         }
-        let mut start: Value = Value::Null;
+        let mut span: Value = self.parse_to_int((match (&(limitResolved), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+        let mut windowStart: Value = self.parse_to_int((match (&(untilSeconds), &(span)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+        let mut start: Value = windowStart.clone();
+        let mut end: Value = untilSeconds;
         if (since != Value::Null) {
-            start = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+            let mut sinceSeconds: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+            start = sinceSeconds.clone();
             // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
-            let mut calculatedEnd: Value = (match (&(limitResolved), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut maxEnd: Value = self.sum(&[start.clone(), calculatedEnd]);
-            if maxEnd.as_f64().unwrap_or(f64::NAN) < end.as_f64().unwrap_or(f64::NAN) {
-                end = maxEnd;
+            if sinceSeconds.as_f64().unwrap_or(f64::NAN) < windowStart.as_f64().unwrap_or(f64::NAN) {
+                end = self.sum(&[sinceSeconds, span]);
             }
-        }  else {
-            start = (match (&(end), &((match (&(limitResolved), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2827,14 +2817,14 @@ impl DeriveCore {
     m
 })]);
         let mut data: Value = self.safe_list_k(result, "funding_rate_history", &[Value::from(vec![])]);
-        let mut rates: Value = Value::from(vec![]);
+        let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_634: bool = true;
-            while { if !__for_first_634 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_634 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_630: bool = true;
+            while { if !__for_first_630 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_630 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "timestamp", &[]);
-            append_to_array(&mut rates, Value::Map({
+            rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
@@ -2845,7 +2835,7 @@ impl DeriveCore {
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(rates, Value::Str("timestamp".into()), &[]);
+        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
         return self.filter_by_symbol_since_limit(sorted, &[self.safe_string_k(market, "symbol", &[]), since, limit]);
 
     Value::Null
@@ -2938,7 +2928,7 @@ impl DeriveCore {
     Value::Null
 }
 
-    pub fn hash_order_message(&self, mut order: Value) -> Value {
+    pub fn hash_order_message(&self, mut order: Value) -> Option<String> {
         let mut accountHash: Value = self.hash(self.eth_abi_encode(Value::from(vec![Value::Str("bytes32".into()), Value::Str("uint256".into()), Value::Str("uint256".into()), Value::Str("address".into()), Value::Str("bytes32".into()), Value::Str("uint256".into()), Value::Str("address".into()), Value::Str("address".into())]), order), Value::Str("keccak".into()), &[Value::Str("binary".into())]);
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         // EIP712Domain (name "Matching", version "1.0", verifyingContract 0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD) precomputed for chainId 1 (mainnet) and 11155111 (sepolia testnet)
@@ -2948,13 +2938,11 @@ impl DeriveCore {
         }
         let mut binaryDomainSeparator: Value = self.base16_to_binary(DOMAIN_SEPARATOR, &[]);
         let mut prefix: Value = self.base16_to_binary(Value::Str("1901".into()), &[]);
-        return self.hash(self.binary_concat(prefix, &[binaryDomainSeparator, accountHash]), Value::Str("keccak".into()), &[Value::Str("hex".into())]);
-
-    Value::Null
+        return self.hash(self.binary_concat(prefix, &[binaryDomainSeparator, accountHash]), Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str().map(str::to_owned);
 }
 
     pub fn sign_order(&self, mut order: Value, mut privateKey: Value) -> Option<String> {
-        let mut hashOrder: Value = self.hash_order_message(order);
+        let mut hashOrder: Value = self.hash_order_message(order).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         return self.sign_hash(hashOrder.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
 }
 
@@ -2972,19 +2960,17 @@ impl DeriveCore {
         let mut randomPart: Value = self.rand_number(Value::Int(6)); // guards against collisions of different instances with the same wallet
         let mut milliseconds: Value = self.number_to_string(rawNonce);
         let mut suffix: Value = self.number_to_string(randomPart);
-        let mut padded: Value = pad_start(&suffix, &Value::Int(6), &Value::Str("0".into()));
+        let mut padded: Value = suffix.as_str().map(|__s| Value::Str(format!("{:0>6}", __s).into())).unwrap_or(Value::Null);
         return Value::Str(format!("{}{}", milliseconds, padded).into()).as_str().map(str::to_owned);
 }
 
-    pub fn hash_message(&self, mut message: Value) -> Value {
+    pub fn hash_message(&self, mut message: Value) -> Option<String> {
         let mut binaryMessage: Value = self.encode(message);
         let mut binaryMessageLength: Value = self.binary_length(binaryMessage.clone(), &[]);
         let mut x19: Value = self.base16_to_binary(Value::Str("19".into()), &[]);
         let mut newline: Value = self.base16_to_binary(Value::Str("0a".into()), &[]);
         let mut prefix: Value = self.binary_concat(x19, &[self.encode(Value::Str("Ethereum Signed Message:".into())), newline, self.encode(self.number_to_string(binaryMessageLength))]);
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(self.binary_concat(prefix, &[binaryMessage]), Value::Str("keccak".into()), &[Value::Str("hex".into())])).into());
-
-    Value::Null
+        return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(self.binary_concat(prefix, &[binaryMessage]), Value::Str("keccak".into()), &[Value::Str("hex".into())])).into()).as_str().map(str::to_owned);
 }
 
     pub fn sign_hash(&self, mut hash: Value, mut privateKey: Value) -> Option<String> {
@@ -2993,11 +2979,11 @@ impl DeriveCore {
         let mut r: Value = signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null);
         let mut s: Value = signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null);
         let mut v: Value = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), pad_start(&r, &Value::Int(64), &Value::Str("0".into()))).into()), pad_start(&s, &Value::Int(64), &Value::Str("0".into()))).into()), v).into()).as_str().map(str::to_owned);
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), v).into()).as_str().map(str::to_owned);
 }
 
     pub fn sign_message(&self, mut message: Value, mut privateKey: Value) -> Option<String> {
-        return self.sign_hash(self.hash_message(message), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        return self.sign_hash(self.hash_message(message).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
 }
 
     pub fn parse_units(&self, mut num: Value, optional_args: &[Value]) -> Option<String> {
@@ -3046,8 +3032,8 @@ impl DeriveCore {
         let mut reduceOnly: Value = self.safe_bool2(paramsDeriveSubaccountId.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         let mut timeInForce: Value = self.safe_string_lower2(paramsDeriveSubaccountId.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]);
         let mut postOnly: Value = self.safe_bool_k(paramsDeriveSubaccountId.clone(), "postOnly", &[]);
-        let mut orderType: Value = to_lower(&type_var);
-        let mut orderSide: Value = to_lower(&side);
+        let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut orderSide: Value = side.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
         let mut orderSideIsBuy: Value = (Value::Bool(orderSide.as_str() == Some("buy"))); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         let mut nonce: Value = self.nonce_string().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         // Order signature expiry must be between 2592000 and 7776000 sec from now
@@ -3221,8 +3207,8 @@ impl DeriveCore {
         let mut reduceOnly: Value = self.safe_bool2(paramsDeriveSubaccountId.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         let mut timeInForce: Value = self.safe_string_lower2(paramsDeriveSubaccountId.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]);
         let mut postOnly: Value = self.safe_bool_k(paramsDeriveSubaccountId.clone(), "postOnly", &[]);
-        let mut orderType: Value = to_lower(&type_var);
-        let mut orderSide: Value = to_lower(&side);
+        let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut orderSide: Value = side.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
         let mut orderSideIsBuy: Value = (Value::Bool(orderSide.as_str() == Some("buy"))); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         let mut nonce: Value = self.nonce_string().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut signatureExpiry: Value = self.safe_number_k(paramsDeriveSubaccountId.clone(), "signature_expiry_sec", &[(match (&(self.seconds()), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
@@ -3557,7 +3543,7 @@ impl DeriveCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchCanceledAndClosedOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             // paginate without a symbol: the venue cannot filter the order history by instrument, so an inner call filtering by symbol could return an empty page and stop the pagination loop prematurely
             let mut allOrders: Value = self.fetch_paginated_call_incremental(Value::Str("fetchCanceledAndClosedOrders".into()), &[Value::Null, since.clone(), Value::Null, paramsPaginate.clone(), Value::Str("page".into()), Value::Int(500)]).await;
             return self.filter_by_symbol_since_limit(allOrders, &[symbol.clone(), since.clone(), limit.clone()]);
@@ -3860,7 +3846,7 @@ impl DeriveCore {
     Value::Null
 }
 
-    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Value {
+    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Option<String> {
         let mut timeInForces: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ioc".to_string(), Value::Str("IOC".into()));
@@ -3869,12 +3855,10 @@ impl DeriveCore {
                 m.insert("post_only".to_string(), Value::Str("PO".into()));
             m
         });
-        return self.safe_string(timeInForces, timeInForce, &[]);
-
-    Value::Null
+        return self.safe_string(timeInForces, timeInForce, &[]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         if (status != Value::Null) {
             let mut statuses: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3885,11 +3869,9 @@ impl DeriveCore {
                     m.insert("expired".to_string(), Value::Str("rejected".into()));
                 m
             });
-            return self.safe_string(statuses, status.clone(), &[status.clone()]);
+            return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 
     pub fn parse_order(&self, mut rawOrder: Value, optional_args: &[Value]) -> Value {
@@ -3980,10 +3962,10 @@ impl DeriveCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp);
-        m.insert("status".to_string(), self.parse_order_status(status));
+        m.insert("status".to_string(), self.parse_order_status(status).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), orderType);
-        m.insert("timeInForce".to_string(), self.parse_time_in_force(timeInForce));
+        m.insert("timeInForce".to_string(), self.parse_time_in_force(timeInForce).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduce_only", &[]));
         m.insert("side".to_string(), side);
@@ -4132,7 +4114,7 @@ impl DeriveCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_incremental(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(500)]).await;
         }
         let mut subaccountIdparamsDeriveSubaccountIdVariable = self.handle_derive_subaccount_id(Value::Str("fetchMyTrades".into()), paramsPaginate);
@@ -4353,7 +4335,7 @@ impl DeriveCore {
         let mut marketResolved: Value = self.safe_market(&[contract, market]);
         let mut size: Value = self.safe_string_k(position.clone(), "amount", &[]);
         let mut side: Value = Value::Null;
-        if is_true(&crate::precise::Precise::stringGt(&size, &Value::Str("0".into()))) {
+        if crate::precise::Precise::stringGt(&size, &Value::Str("0".into())).as_bool() == Some(true) {
             side = Value::Str("long".into());
         }  else {
             side = Value::Str("short".into());
@@ -4428,7 +4410,7 @@ impl DeriveCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_incremental(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(500)]).await;
         }
         let mut subaccountIdparamsDeriveSubaccountIdVariable = self.handle_derive_subaccount_id(Value::Str("fetchFundingHistory".into()), paramsPaginate);
@@ -4846,8 +4828,8 @@ impl DeriveCore {
         let mut usedUsd: Value = Value::Str("0".into());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_636: bool = true;
-            while { if !__for_first_636 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_636 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_632: bool = true;
+            while { if !__for_first_632 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_632 = false; i.as_f64().unwrap_or(f64::NAN) < ({ let __r29o: &Value = &response; match __r29o { Value::Dict(__d) if __d.contains_key("__sideKind") && !__d.contains_key("__cacheKind") && !matches!(__d.get("__book_cache_id"), Some(Value::Int(_))) => Value::Int(crate::value::side_entries_as_value(__r29o).map(|__s| __s.len()).unwrap_or(0) as i64), _ => Value::Int(__r29o.len() as i64) } }).as_f64().unwrap_or(f64::NAN) } {
             let mut subaccount: Value = self.safe_dict(response.clone(), i.clone(), &[]);
             let mut positionsMargin: Value = self.safe_string_k(subaccount.clone(), "positions_initial_margin", &[Value::Str("0".into())]);
             let mut ordersMargin: Value = self.safe_string_k(subaccount.clone(), "open_orders_margin", &[Value::Str("0".into())]);
@@ -4855,8 +4837,8 @@ impl DeriveCore {
             let mut collaterals: Value = self.safe_list_k(subaccount, "collaterals", &[Value::from(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_635: bool = true;
-                while { if !__for_first_635 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_635 = false; j.as_f64().unwrap_or(f64::NAN) < ((collaterals.len() as i64) as f64) } {
+                let mut __for_first_631: bool = true;
+                while { if !__for_first_631 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_631 = false; j.as_f64().unwrap_or(f64::NAN) < ((collaterals.len() as i64) as f64) } {
                 let mut balance: Value = self.safe_dict(collaterals.clone(), j.clone(), &[]);
                 let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "currency", &[]), &[]);
                 let mut account: Value = self.safe_dict(result.clone(), code.clone(), &[]);
@@ -4878,11 +4860,11 @@ impl DeriveCore {
         if (usdcAccount != Value::Null) {
             let mut totalUsdc: Value = self.safe_string_k(usdcAccount.clone(), "total", &[]);
             let mut used: Value = usedUsd;
-            if is_true(&crate::precise::Precise::stringGt(&used, &totalUsdc)) {
+            if crate::precise::Precise::stringGt(&used, &totalUsdc).as_bool() == Some(true) {
                 used = totalUsdc.clone();
             }
-            add_element_to_object(&mut usdcAccount, &Value::Str("used".into()), used.clone());
-            add_element_to_object(&mut usdcAccount, &Value::Str("free".into()), crate::precise::Precise::stringSub(&totalUsdc, &used));
+            if let Value::Dict(__d) = &mut usdcAccount { std::sync::Arc::make_mut(__d).insert("used".into(), used.clone()); }
+            if let Value::Dict(__d) = &mut usdcAccount { std::sync::Arc::make_mut(__d).insert("free".into(), crate::precise::Precise::stringSub(&totalUsdc, &used)); }
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("USDC".into(), usdcAccount); }
         }
         return self.safe_balance(result);
@@ -4925,7 +4907,7 @@ impl DeriveCore {
         }
         let mut fromId: Value = self.parse_to_int(fromAccount);
         // the destination is optional on the subaccount-creation path, an undefined must not reach the int conversion
-        let mut toId: Value = (if (toAccount == Value::Null) { Value::Int(0) } else { self.parse_to_int(toAccount) });
+        let mut toId: Value = self.parse_to_int((if (toAccount == Value::Null) { Value::Int(0) } else { toAccount }));
         let mut amountString: Value = self.number_to_string(amount);
         let mut maxFeeUsd: Value = self.safe_string_k(params.clone(), "max_fee_usd", &[Value::Str("0".into())]);
         let mut newSubaccountManager: Value = self.safe_integer_k(params.clone(), "new_subaccount_manager", &[Value::Int(0)]);
@@ -4983,9 +4965,9 @@ impl DeriveCore {
         let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
         if fillResponseFromRequest.as_bool() == Some(true) {
             // normalized through the int ids: the raw arguments arrive as strings in some languages and as numbers in others
-            add_element_to_object(&mut transferEntry, &Value::Str("fromAccount".into()), self.number_to_string(fromId));
-            add_element_to_object(&mut transferEntry, &Value::Str("toAccount".into()), (if (toId.as_f64() != Some(0.0)) { self.number_to_string(toId) } else { Value::Null }));
-            add_element_to_object(&mut transferEntry, &Value::Str("amount".into()), self.parse_number(amountString, &[]));
+            if let Value::Dict(__d) = &mut transferEntry { std::sync::Arc::make_mut(__d).insert("fromAccount".into(), self.number_to_string(fromId)); }
+            if let Value::Dict(__d) = &mut transferEntry { std::sync::Arc::make_mut(__d).insert("toAccount".into(), (if (toId.as_f64() != Some(0.0)) { self.number_to_string(toId) } else { Value::Null })); }
+            if let Value::Dict(__d) = &mut transferEntry { std::sync::Arc::make_mut(__d).insert("amount".into(), self.parse_number(amountString, &[])); }
         }
         return transferEntry;
 
@@ -5006,7 +4988,7 @@ impl DeriveCore {
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
         m.insert("fromAccount".to_string(), self.safe_string_k(transfer.clone(), "from_subaccount_id", &[]));
         m.insert("toAccount".to_string(), self.safe_string_k(transfer.clone(), "to_subaccount_id", &[]));
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string2(transfer, Value::Str("batch_status".into()), Value::Str("status".into()), &[])));
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string2(transfer, Value::Str("batch_status".into()), Value::Str("status".into()), &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
     m
 });
 
@@ -5084,18 +5066,18 @@ impl DeriveCore {
     m
 })]);
         let mut transfers: Value = self.safe_list_k(result, "transfers", &[Value::from(vec![])]);
-        let mut parsed: Value = Value::from(vec![]);
+        let mut parsed: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_637: bool = true;
-            while { if !__for_first_637 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_637 = false; i.as_f64().unwrap_or(f64::NAN) < ((transfers.len() as i64) as f64) } {
-            append_to_array(&mut parsed, self.parse_transfer(self.safe_dict(transfers.clone(), i.clone(), &[Value::Map({
+            let mut __for_first_633: bool = true;
+            while { if !__for_first_633 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_633 = false; i.as_f64().unwrap_or(f64::NAN) < ((transfers.len() as i64) as f64) } {
+            parsed.push(self.parse_transfer(self.safe_dict(transfers.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), &[]));
         }
         }
-        let mut sorted: Value = self.sort_by(parsed, Value::Str("timestamp".into()), &[]);
+        let mut sorted: Value = self.sort_by(Value::from(parsed), Value::Str("timestamp".into()), &[]);
         return self.filter_by_currency_since_limit(sorted, &[code, since, limit]);
 
     Value::Null
@@ -5177,19 +5159,19 @@ impl DeriveCore {
     m
 })]);
         let mut rows: Value = self.safe_list_k(result, "interest_rate_history", &[Value::from(vec![])]);
-        let mut rates: Value = Value::from(vec![]);
+        let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_638: bool = true;
-            while { if !__for_first_638 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_638 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_634: bool = true;
+            while { if !__for_first_634 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_634 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             // the base history helper parses without a currency, while the rows carry none, so the rate entries are built here with the requested currency attached
-            append_to_array(&mut rates, self.parse_borrow_rate(self.safe_dict(rows.clone(), i.clone(), &[Value::Map({
+            rates.push(self.parse_borrow_rate(self.safe_dict(rows.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), &[currency.clone()]));
         }
         }
-        let mut sorted: Value = self.sort_by(rates, Value::Str("timestamp".into()), &[]);
+        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
         return self.filter_by_currency_since_limit(sorted, &[code, since, limit]);
 
     Value::Null
@@ -5359,7 +5341,7 @@ impl DeriveCore {
         let mut amountString: Value = self.decimal_to_precision(self.number_to_string(amount), Value::Int(crate::runtime::TRUNCATE), decimals.clone(), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
         // the withdrawal amount is the protocol's only non-e18 action value, it is signed at the native decimals of the underlying erc20
         let mut one: Value = Value::Str("1".into());
-        let mut scale: Value = pad_end(&one, &(match (&(decimals), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &Value::Str("0".into()));
+        let mut scale: Value = ({ let __r31s: &Value = &one; let __r31l: &Value = &(match (&(decimals), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); let __r31p: &Value = &Value::Str("0".into()); let __t: usize = match (match __r31l { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1i64 } else { 0i64 }), _ => None }) { Some(__v) => __v as usize, None => 0 }; let __p: String = match __r31p { Value::Str(__x) => __x.to_string(), _ => " ".to_string() }; match __r31s { Value::Str(__sv) => { if __sv.chars().count() >= __t { Value::Str(__sv.clone()) } else { let __need = __t - __sv.chars().count(); let __fill = __p.repeat((__need / __p.chars().count().max(1)).max(1)); Value::Str(format!("{}{}", __sv, __fill).into()) } } _ => Value::Null } });
         let mut amountScaled: Value = crate::precise::Precise::stringMul(&amountString, &scale);
         let mut nonce: Value = self.nonce_string().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut signatureExpiry: Value = self.safe_integer_k(paramsOmitted.clone(), "signature_expiry_sec", &[(match (&(self.seconds()), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
@@ -5392,7 +5374,7 @@ impl DeriveCore {
     m
 })]);
         let mut transaction: Value = self.parse_transaction(result, &[currency.clone()]);
-        add_element_to_object(&mut transaction, &Value::Str("type".into()), Value::Str("withdrawal".into()));
+        if let Value::Dict(__d) = &mut transaction { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("withdrawal".into())); }
         let mut withdrawOptions: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5400,9 +5382,9 @@ impl DeriveCore {
         let mut fillResponseFromRequest: Value = self.safe_bool_k(withdrawOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
         if fillResponseFromRequest.as_bool() == Some(true) {
             // the response carries only the operation ids, the known request values fill the rest
-            add_element_to_object(&mut transaction, &Value::Str("currency".into()), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
-            add_element_to_object(&mut transaction, &Value::Str("amount".into()), self.parse_number(amountString, &[]));
-            add_element_to_object(&mut transaction, &Value::Str("addressTo".into()), address);
+            if let Value::Dict(__d) = &mut transaction { std::sync::Arc::make_mut(__d).insert("currency".into(), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut transaction { std::sync::Arc::make_mut(__d).insert("amount".into(), self.parse_number(amountString, &[])); }
+            if let Value::Dict(__d) = &mut transaction { std::sync::Arc::make_mut(__d).insert("addressTo".into(), address); }
         }
         return transaction;
 
@@ -5614,7 +5596,7 @@ impl DeriveCore {
         m.insert("type".to_string(), (if (addressTo != Value::Null) { Value::Str("withdrawal".into()) } else { Value::Str("deposit".into()) }));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("currency".to_string(), code);
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string2(transaction, Value::Str("batch_status".into()), Value::Str("tx_status".into()), &[])));
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string2(transaction, Value::Str("batch_status".into()), Value::Str("tx_status".into()), &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
@@ -5626,7 +5608,7 @@ impl DeriveCore {
     Value::Null
 }
 
-    pub fn parse_transaction_status(&self, mut status: Value) -> Value {
+    pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Batching".to_string(), Value::Str("pending".into()));
@@ -5645,9 +5627,7 @@ impl DeriveCore {
                 m.insert("reverted".to_string(), Value::Str("failed".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn handle_derive_subaccount_id(&self, mut methodName: Value, mut params: Value) -> Value {
@@ -5740,10 +5720,9 @@ impl DeriveCore {
             if (apiName.as_str() == Some("private")) {
                 let mut now: Value = self.number_to_string(self.nonce());
                 let mut signature: Value = self.sign_message(now.clone(), self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-                let mut deriveWalletAddress: Value = self.safe_string_k(self.options.clone(), "deriveWalletAddress", &[]);
-                if (deriveWalletAddress == Value::Null) || (deriveWalletAddress.as_str() == Some("")) {
-                    deriveWalletAddress = self.walletAddress.clone(); // v3: the owner wallet is the user's own EOA
-                }
+                let mut configuredWalletAddress: Value = self.safe_string_k(self.options.clone(), "deriveWalletAddress", &[]);
+                // v3: the owner wallet is the user's own EOA
+                let mut deriveWalletAddress: Value = (if ((configuredWalletAddress == Value::Null) || (configuredWalletAddress.as_str() == Some(""))) { self.walletAddress.clone() } else { configuredWalletAddress });
                 if let Value::Dict(__d) = &mut postHeaders { std::sync::Arc::make_mut(__d).insert("X-DeriveWallet".into(), deriveWalletAddress); }
                 if let Value::Dict(__d) = &mut postHeaders { std::sync::Arc::make_mut(__d).insert("X-DeriveTimestamp".into(), now); }
                 if let Value::Dict(__d) = &mut postHeaders { std::sync::Arc::make_mut(__d).insert("X-DeriveSignature".into(), signature); }

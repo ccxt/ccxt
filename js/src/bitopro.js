@@ -899,18 +899,20 @@ export default class bitopro extends Exchange {
         };
         // we need to have a limit argument because "to" and "from" are required
         // supports slightly more than 75k candles atm, but limit here to avoid errors
-        const limitResolved = (limit === undefined) ? 500 : Math.min(limit, 75000);
+        const limitResolved = this.parseToInt((limit === undefined) ? 500 : Math.min(limit, 75000));
         const timeframeInSeconds = this.parseTimeframe(timeframe);
         let alignedSince = undefined;
         if (since === undefined) {
-            request['to'] = this.seconds();
-            request['from'] = request['to'] - (limitResolved * timeframeInSeconds);
+            const toSeconds = this.seconds();
+            request['to'] = toSeconds;
+            request['from'] = toSeconds - (limitResolved * timeframeInSeconds);
         }
         else {
             const timeframeInMilliseconds = timeframeInSeconds * 1000;
-            alignedSince = Math.floor(since / timeframeInMilliseconds) * timeframeInMilliseconds;
-            request['from'] = Math.floor(since / 1000);
-            request['to'] = this.sum(request['from'], limitResolved * timeframeInSeconds);
+            alignedSince = this.parseToInt(Math.floor(since / timeframeInMilliseconds)) * timeframeInMilliseconds;
+            const fromSeconds = Math.floor(since / 1000);
+            request['from'] = fromSeconds;
+            request['to'] = this.sum(fromSeconds, limitResolved * timeframeInSeconds);
         }
         const response = await this.publicGetTradingHistoryPair(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
@@ -929,9 +931,9 @@ export default class bitopro extends Exchange {
         //     }
         //
         const sparse = this.parseOHLCVs(data, market, timeframe, since, limitResolved);
-        return this.insertMissingCandles(sparse, timeframeInSeconds, alignedSince, limitResolved);
+        return this.insertMissingCandles(sparse, timeframeInSeconds * 1000, alignedSince, limitResolved);
     }
-    insertMissingCandles(candles, distance, since, limit) {
+    insertMissingCandles(candles, distanceInMs, since, limit) {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
         const length = candles.length;
@@ -966,7 +968,7 @@ export default class bitopro extends Exchange {
                 copy[5] = this.parseNumber('0');
                 result.push(copy);
             }
-            timestamp = this.sum(timestamp, distance * 1000);
+            timestamp = this.sum(timestamp, distanceInMs);
             resultLength = result.length;
             copyFrom = result[resultLength - 1];
         }
@@ -1936,7 +1938,8 @@ export default class bitopro extends Exchange {
         if (response === undefined) {
             return undefined; // fallback to the default error handler
         }
-        if (code >= 200 && code < 300) {
+        const statusCode = this.parseToInt(code);
+        if (statusCode >= 200 && statusCode < 300) {
             return undefined;
         }
         const feedback = this.id + ' ' + body;

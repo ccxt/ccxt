@@ -1553,7 +1553,7 @@ public partial class xt : Exchange
     public override IList<object> parseMarkets(object markets)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(markets); i++)
+        for (int i = 0; i < (((object)(markets)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             Dictionary<string, object> parsed = this.parseMarket(getValue(markets, i));
             if ((parsed != null))
@@ -1880,13 +1880,13 @@ public partial class xt : Exchange
             // window start return one pre-since candle, shifting paginated windows and
             // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
             Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-            request["startTime"] = multiply(Math.Ceiling(Convert.ToDouble(((double?)since / duration))), duration);
+            request["startTime"] = (this.parseToInt(Math.Ceiling(Convert.ToDouble(((double?)since / duration)))) * duration);
         }
         object limitResolved = limit;
         if ((limit != null))
         {
             int maxLimit = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? 1000 : 1500; // spot : derivatives max limit
-            limitResolved = mathMin(limit, maxLimit);
+            limitResolved = (((((object)(limit)) is var c31v0) && (((object)(maxLimit)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
             request["limit"] = limitResolved;
         } else
         {
@@ -2284,7 +2284,7 @@ public partial class xt : Exchange
                 result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(result, "symbol", symbolsNormalized));
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
 
     /**
@@ -2389,7 +2389,7 @@ public partial class xt : Exchange
                 result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(result, "symbol", symbolsNormalized));
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -2440,7 +2440,7 @@ public partial class xt : Exchange
         //     }
         //
         string? marketId = this.safeString(ticker, "s");
-        string? marketType = ((market != null)) ? this.safeString(market, "type") : null;
+        string? marketType = this.safeString(market, "type");
         bool hasSpotKeys = ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("cv"))) || ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("aq")));
         if ((marketType == null))
         {
@@ -2825,7 +2825,7 @@ public partial class xt : Exchange
         //    }
         //
         string? marketId = this.safeString2(trade, "s", "symbol");
-        string? marketType = ((market != null)) ? this.safeString(market, "type") : null;
+        string? marketType = this.safeString(market, "type");
         bool hasSpotKeys = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("b"))) || ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("bizType"))) || ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("oi")));
         if ((marketType == null))
         {
@@ -3023,7 +3023,7 @@ public partial class xt : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString2(balance, "currency", "coin");
@@ -5462,7 +5462,7 @@ public partial class xt : Exchange
         //     }
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
         {
             IDictionary<string, object> entry = this.safeDict(response, i);
             string? marketId = this.safeString(entry, "symbol");
@@ -5560,12 +5560,12 @@ public partial class xt : Exchange
         //
         List<object> tiers = new List<object>() {};
         List<object> brackets = this.safeList(info, "leverageBrackets", new List<object>() {});
-        for (object i = 0; isLessThan(i, brackets.Count); postFixIncrement(ref i))
+        for (Int64 i = 0; (i < brackets.Count); i++)
         {
             IDictionary<string, object> tier = this.safeDict(brackets, i);
             string? marketId = this.safeString(info, "symbol");
             Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_", "contract");
-            double? minNotional = this.safeNumber(getValue(brackets, subtract(i, 1)), "maxNominalValue", 0);
+            double? minNotional = this.safeNumber(this.safeDict(brackets, (i - 1)), "maxNominalValue", 0);
             tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger(tier, "bracket") },
                 { "symbol", this.safeSymbol(marketId, marketResolved, "_", "contract") },
@@ -5758,11 +5758,8 @@ public partial class xt : Exchange
         string? marketId = this.safeString(contract, "symbol");
         string? symbol = this.safeSymbol(marketId, market, "_", "swap");
         Int64? timestamp = this.safeInteger(contract, "nextCollectionTime");
-        object interval = this.safeString(contract, "collectionInternal");
-        if ((interval != null))
-        {
-            interval = add(interval, "h");
-        }
+        object collectionInterval = this.safeString(contract, "collectionInternal");
+        object interval = ((collectionInterval != null)) ? (add(collectionInterval, "h")) : null;
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
@@ -6590,7 +6587,7 @@ public partial class xt : Exchange
         string positionType = (marginModeLower == "cross") ? "CROSSED" : "ISOLATED";
         string? posSide = this.safeStringUpper(parameters, "positionSide");
         this.checkRequiredArgument("setMarginMode", posSide, "positionSide", new List<object>() {"LONG", "SHORT"});
-        object paramsOmitted = this.omit(parameters, "positionSide");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "positionSide"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "positionType", positionType },
             { "positionSide", posSide },
@@ -6654,7 +6651,7 @@ public partial class xt : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         double? stopLoss = this.safeNumber2(parameters, "stopLoss", "triggerStopPrice");
         double? takeProfit = this.safeNumber2(parameters, "takeProfit", "triggerProfitPrice");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stopLoss", "takeProfit"}));
         bool isStopLoss = ((stopLoss != null));
         bool isTakeProfit = ((takeProfit != null));
         if (isStopLoss || isTakeProfit)
@@ -6784,7 +6781,7 @@ public partial class xt : Exchange
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        bool signed = isEqual(getValue(api, 0), "private");
+        bool signed = (getValue(api, 0) is "private");
         object endpoint = getValue(api, 1);
         string request = ("/" + this.implodeParams(path, parameters));
         string? payload = null;
@@ -6822,17 +6819,9 @@ public partial class xt : Exchange
             if ((payload == "/v4/order") || (payload == "/future/trade/v1/order/create") || (payload == "/future/trade/v1/entrust/create-plan") || (payload == "/future/trade/v1/entrust/create-profit") || (payload == "/future/trade/v1/order/create-batch"))
             {
                 string id = "CCXT";
-                if ((query == null))
-                {
-                    throw new NullResponse ((this.id + " sign() returned empty body")) ;
-                }
                 if ((payload?.IndexOf("future", StringComparison.Ordinal) ?? -1) > -1)
                 {
                     ((IDictionary<string,object>)query)["clientMedia"] = id;
-                    if ((query == null))
-                    {
-                        throw new NullResponse ((this.id + " sign() returned empty body")) ;
-                    }
                 } else
                 {
                     ((IDictionary<string,object>)query)["media"] = id;

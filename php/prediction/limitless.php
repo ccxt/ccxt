@@ -214,7 +214,10 @@ class limitless extends Exchange {
             $requestedLimit = $this->safe_integer($params, 'limit', 50);
             // the search endpoint rejects limit > 50 - cap the per-query request and let
             // maxMarkets bound the overall collection
-            $limit = min($requestedLimit, 50);
+            $limit = 50;
+            if (($requestedLimit !== null) && ($requestedLimit < 50)) {
+                $limit = $requestedLimit;
+            }
             $searchRest = $this->omit($rest, array( 'limit' ));
             $seen = array();
             for ($i = 0; $i < count($queries); $i++) {
@@ -238,15 +241,16 @@ class limitless extends Exchange {
                 'limit' => $pageSize,
             );
             $firstPageResponse = Async\await($this->limitlessPublicGetMarketsActive($this->extend($request, $rest)));
-            $totalMarketsCount = $this->safe_integer($firstPageResponse, 'totalMarketsCount');
             $firstData = $this->safe_list($firstPageResponse, 'data', array());
             $allRaw = $this->array_concat($allRaw, $firstData);
             $promises = array();
             $cappedPages = (int) ceil($maxMarkets / $pageSize);
-            $knownTotal = ($totalMarketsCount !== null) ? $totalMarketsCount : 0;
-            $allPages = (int) ceil($knownTotal / $pageSize);
-            $totalPages = min($allPages, $cappedPages);
-            for ($i = 2; $i <= $totalPages; $i++) {
+            $knownTotal = $this->safe_integer($firstPageResponse, 'totalMarketsCount', 0);
+            $allPages = $this->parse_to_int((int) ceil($knownTotal / $pageSize));
+            for ($i = 2; $i <= $allPages; $i++) {
+                if ($i > $cappedPages) {
+                    break;
+                }
                 $page = $i;
                 $request['page'] = $page;
                 $promises[] = $this->limitlessPublicGetMarketsActive($this->extend($request, $rest));
@@ -271,8 +275,7 @@ class limitless extends Exchange {
                     if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
                         $responseRows = $response;
                     }
-                    $rawPageMarkets = $this->safe_list($response, 'data', $responseRows);
-                    $page_markets = ($rawPageMarkets !== null) ? $rawPageMarkets : array();
+                    $page_markets = $this->safe_list($response, 'data', $responseRows);
                     $pageMarketsLength = count($page_markets);
                     if ($pageMarketsLength === 0) {
                         break;
@@ -1100,7 +1103,11 @@ class limitless extends Exchange {
         $prices = $this->safe_list($raw, 'prices', array());
         $pricesLength = count($prices);
         if (($lastStr === null) && ($pricesLength > 0)) {
-            $lastStr = ($isYes) ? $this->safe_string($prices, 0) : $this->safe_string($prices, 1);
+            if ($isYes) {
+                $lastStr = $this->safe_string($prices, 0);
+            } else {
+                $lastStr = $this->safe_string($prices, 1);
+            }
         }
         // volume and book sizes are in USDC micro-units (6 decimals)
         $rawVolume = $this->safe_string($raw, 'volume');
@@ -1179,7 +1186,7 @@ class limitless extends Exchange {
                 $slugs[] = $slug;
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            $grouped = $this->safe_value($outcomesBySlug, $slug);
+            $grouped = $this->safe_list($outcomesBySlug, $slug, array());
             $grouped[] = $outcomeObj;
             if ($slug !== null) {
                 $outcomesBySlug[$slug] = $grouped;
@@ -1198,7 +1205,7 @@ class limitless extends Exchange {
             $detail = $responses[$detailIndex];
             $book = $responses[$this->sum($detailIndex, 1)];
             $tickerInput = array( 'market' => $detail, 'book' => $book );
-            $grouped = $outcomesBySlug[$slug];
+            $grouped = $this->safe_list($outcomesBySlug, $slug, array());
             for ($j = 0; $j < count($grouped); $j++) {
                 $ticker = $this->parse_prediction_ticker($tickerInput, $grouped[$j]);
                 $symbolKey = $this->safe_string($ticker, 'outcome');
@@ -1427,8 +1434,7 @@ class limitless extends Exchange {
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             $responseRows = $response;
         }
-        $rawHistoryList = $this->safe_list($response, 'data', $this->safe_list($response, 'prices', $responseRows));
-        $rawHistory = ($rawHistoryList !== null) ? $rawHistoryList : array();
+        $rawHistory = $this->safe_list($response, 'data', $this->safe_list($response, 'prices', $responseRows));
         $history = $rawHistory;
         $rawHistoryLength = count($rawHistory);
         if ($rawHistoryLength > 0) {
@@ -1456,13 +1462,14 @@ class limitless extends Exchange {
         for ($i = 0; $i < count($history); $i++) {
             $point = $this->safe_dict($history, $i);
             $pointPrice = $this->safe_number($point, 'price');
-            $pointTs = $this->safe_integer($point, 'timestamp');
-            if ($pointTs === null) {
+            $rawTs = $this->safe_integer($point, 'timestamp');
+            $pointTs = $rawTs;
+            if ($rawTs === null) {
                 $tsString = $this->safe_string($point, 'timestamp');
                 $pointTs = ($tsString !== null && $tsString !== '') ? $this->parse8601($tsString) : null;
-            } elseif ($pointTs < 1000000000000) {
+            } elseif ($rawTs < 1000000000000) {
                 // old responses may return unix seconds
-                $pointTs = $pointTs * 1000;
+                $pointTs = $rawTs * 1000;
             }
             if (($pointPrice !== null) && ($pointTs !== null)) {
                 $pseudoTrades[] = array( 'timestamp' => $pointTs, 'price' => $pointPrice, 'amount' => 0 );
@@ -1483,18 +1490,25 @@ class limitless extends Exchange {
             if ($pTs === null) {
                 throw new ExchangeError($this->id . ' method() missing pTs');
             }
-            $bucket = $this->parse_to_int($pTs / $ms) * $ms;
+            if ($pPrice === null) {
+                throw new ExchangeError($this->id . ' fetchOHLCV() missing pPrice');
+            }
+            $bucketIndex = $this->parse_to_int($pTs / $ms);
+            $bucket = $bucketIndex * $ms;
             $key = (string) $bucket;
             if (!(is_array($candles) && array_key_exists($key ?? '', $candles))) {
                 $candles[$key] = array( $bucket, $pPrice, $pPrice, $pPrice, $pPrice, 0 );
                 $bucketOrder[] = $key;
             } else {
                 $candle = $candles[$key];
-                $pPriceOrZero = ($pPrice === null) ? 0 : $pPrice;
-                $candle[2] = max($candle[2], $pPriceOrZero);
-                $candleLow = ($candle[3] === null) ? $pPrice : $candle[3];
-                $pPriceOrCandleLow = ($pPrice === null) ? $candle[3] : $pPrice;
-                $candle[3] = min($candleLow, $pPriceOrCandleLow);
+                $prevHigh = $this->safe_number($candle, 2);
+                if (($prevHigh === null) || ($pPrice > $prevHigh)) {
+                    $candle[2] = $pPrice;
+                }
+                $prevLow = $this->safe_number($candle, 3);
+                if (($prevLow === null) || ($prevLow > $pPrice)) {
+                    $candle[3] = $pPrice;
+                }
                 $candle[4] = $pPrice;
                 $candles[$key] = $candle; // php arrays are value types - write the mutation back
             }
@@ -2224,7 +2238,8 @@ class limitless extends Exchange {
         $response = Async\await($this->limitlessPrivatePostOrders($this->extend($request, $paramsValue)));
         $parsedOrder = $this->parse_prediction_order($response, $outcomeObj);
         // the create-order response omits a status field; a freshly accepted order is open
-        if ($parsedOrder['status'] === null) {
+        $parsedStatus = $this->safe_string($parsedOrder, 'status');
+        if ($parsedStatus === null) {
             $parsedOrder['status'] = 'open';
         }
         return $parsedOrder;
@@ -2265,11 +2280,11 @@ class limitless extends Exchange {
         return $this->sign_message($msg, $this->privateKey);
     }
 
-    public function hash_message(mixed $message) {
+    public function hash_message(mixed $message): string {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash(mixed $hash, mixed $privateKey) {
+    public function sign_hash(string $hash, string $privateKey) {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $s = $signature['s'];
@@ -2280,7 +2295,7 @@ class limitless extends Exchange {
         return strtolower($result);
     }
 
-    public function sign_message(mixed $message, mixed $privateKey) {
+    public function sign_message(mixed $message, string $privateKey) {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
@@ -2386,10 +2401,12 @@ class limitless extends Exchange {
         $response = Async\await($this->limitlessPrivateDeleteOrdersOrderId($this->extend($request, $params)));
         // the delete response carries no order body, so backfill the id and the resulting status
         $order = $this->parse_prediction_order($response);
-        if ($order['id'] === null) {
+        $orderId = $this->safe_string($order, 'id');
+        if ($orderId === null) {
             $order['id'] = $id;
         }
-        if ($order['status'] === null) {
+        $orderStatus = $this->safe_string($order, 'status');
+        if ($orderStatus === null) {
             $order['status'] = 'canceled';
         }
         return $order;
@@ -2539,7 +2556,7 @@ class limitless extends Exchange {
         }
         $request = array();
         if ($limit !== null) {
-            $request['limit'] = min($limit, $maxLimit);
+            $request['limit'] = min($limit, 100);
         }
         $response = Async\await($this->limitlessPrivateGetPortfolioHistory($this->extend($request, $paramsValue)));
         //
@@ -3003,7 +3020,10 @@ class limitless extends Exchange {
         if ($queriesLength > 0) {
             $requestedLimit = $this->safe_integer($params, 'limit', 50);
             // the search endpoint rejects limit > 50 - cap the per-query request
-            $limit = min($requestedLimit, 50);
+            $limit = 50;
+            if (($requestedLimit !== null) && ($requestedLimit < 50)) {
+                $limit = $requestedLimit;
+            }
             $seen = array();
             for ($i = 0; $i < count($queries); $i++) {
                 if ($queries === null) {
@@ -3113,7 +3133,6 @@ class limitless extends Exchange {
         $rest = $this->omit($params, array( 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags' ));
         $allRaw = array();
         $page = 1;
-        $collected = 0;
         while (true) {
             $request = array( 'page' => $page, 'limit' => $pageSize );
             $response = null;
@@ -3129,13 +3148,14 @@ class limitless extends Exchange {
                 break;
             }
             for ($i = 0; $i < $dataLength; $i++) {
+                $collected = count($allRaw);
                 if ($collected < $maxMarkets) {
                     $allRaw[] = $data[$i];
-                    $collected = $this->sum($collected, 1);
                 }
             }
             $page = $this->sum($page, 1);
-            if ($dataLength < $pageSize || $collected >= $maxMarkets) {
+            $collectedTotal = count($allRaw);
+            if ($dataLength < $pageSize || $collectedTotal >= $maxMarkets) {
                 break;
             }
         }
@@ -3222,8 +3242,7 @@ class limitless extends Exchange {
          * @return {array} a dictionary with $url, $method, body and headers
          */
         $apiGroup = $api[0];
-        $apiLength = count($api);
-        $access = ($apiLength > 1) ? $api[1] : 'public';
+        $access = $this->safe_string($api, 1, 'public');
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['limitless']);
         $url = '/' . $this->implode_params($path, $params);
@@ -3236,17 +3255,14 @@ class limitless extends Exchange {
         $bodyValue = null;
         if ($access === 'private') {
             $bodyString = '';
-            if ($headersValue === null) {
-                $headersValue = array();
-            }
+            $headersValue = array();
             if ($method === 'POST' && ($querystring !== '')) {
                 $bodyString = $this->json($query);
                 $bodyValue = $bodyString;
-                $headerDefaults = ($headersValue !== null) ? $headersValue : array();
                 $headersValue = $this->extend(array(
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/json',
-                ), $headerDefaults);
+                ), $headersValue);
             }
             $this->check_required_credentials();
             $timestamp = $this->iso8601($this->milliseconds());
@@ -3274,7 +3290,8 @@ class limitless extends Exchange {
         if ($response === null) {
             return null;
         }
-        if (($statusCode >= 200) && ($statusCode < 300)) {
+        $statusCodeInt = $this->parse_to_int($statusCode);
+        if (($statusCodeInt >= 200) && ($statusCodeInt < 300)) {
             return null;
         }
         $feedback = $this->id . ' ' . $responseBody;
@@ -3287,7 +3304,7 @@ class limitless extends Exchange {
         // a 400 is a client-side bad request (bad params, or a business rule like "market not
         // resolved"), not a transport outage — throw BadRequest with the exchange message instead
         // of letting the base map the bare 400 to a retryable network-unavailable error
-        if ($statusCode === 400) {
+        if ($statusCodeInt === 400) {
             throw new BadRequest($feedback);
         }
         return null;

@@ -853,10 +853,12 @@ class bitso extends Exchange {
                 $duration = $this->parse_timeframe($timeframe);
                 $request['end'] = $this->sum($since, $duration * $limit * 1000);
             }
-        } elseif ($limit !== null) {
-            $now = $this->milliseconds();
-            $request['end'] = $now;
-            $request['start'] = $now - $this->parse_timeframe($timeframe) * 1000 * $limit;
+        } else {
+            if ($limit !== null) {
+                $now = $this->milliseconds();
+                $request['end'] = $now;
+                $request['start'] = $now - $this->parse_timeframe($timeframe) * 1000 * $limit;
+            }
         }
         $response = $this->publicGetOhlc($this->extend($request, $params));
         //
@@ -1288,7 +1290,7 @@ class bitso extends Exchange {
         return $canceledOrders;
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'partial-fill' => 'open', // this is a common substitution in ccxt
             'partially filled' => 'open',
@@ -1653,7 +1655,7 @@ class bitso extends Exchange {
             }
             if ($code !== null) {
                 $result[$code] = array(
-                    'deposit' => $this->safe_value($this->safe_dict($result, $code), 'deposit'),
+                    'deposit' => $this->safe_number($this->safe_dict($result, $code), 'deposit'),
                     'withdraw' => $this->safe_number($withdrawalFees, $currencyId),
                     'info' => array(
                         'deposit' => $this->safe_value($this->safe_dict($this->safe_dict($result, $code), 'info'), 'deposit'),
@@ -1938,7 +1940,7 @@ class bitso extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'pending' => 'pending',
             'in_progress' => 'pending',
@@ -1976,8 +1978,9 @@ class bitso extends Exchange {
             $request = implode('', $content);
             if ($method !== 'GET' && $method !== 'DELETE') {
                 if (count($query) > 0) {
-                    $requestBody = $this->json($query);
-                    $request .= $requestBody;
+                    $jsonBody = $this->json($query);
+                    $requestBody = $jsonBody;
+                    $request .= $jsonBody;
                 }
             }
             $signature = $this->hmac($this->encode($request), $this->encode($this->secret), 'sha256');

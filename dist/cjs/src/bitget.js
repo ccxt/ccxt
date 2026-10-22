@@ -2170,7 +2170,7 @@ class bitget extends bitget$1["default"] {
         const promises = [];
         let fetchMargins = false;
         for (let i = 0; i < types.length; i++) {
-            const type = types[i];
+            const type = this.safeString(types, i);
             if ((type === 'swap') || (type === 'future')) {
                 const subTypes = ['USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES', 'SUSDT-FUTURES', 'SCOIN-FUTURES', 'SUSDC-FUTURES'];
                 for (let j = 0; j < subTypes.length; j++) {
@@ -2340,8 +2340,9 @@ class bitget extends bitget$1["default"] {
                 }
                 else if (symbolType === 'delivery') {
                     expiry = this.safeInteger(market, 'deliveryTime');
-                    expiryDatetime = this.iso8601(expiry);
-                    const expiryParts = expiryDatetime.split('-');
+                    const expiryIso = this.iso8601(expiry);
+                    expiryDatetime = expiryIso;
+                    const expiryParts = expiryIso.split('-');
                     const yearPart = this.safeString(expiryParts, 0, '');
                     const dayPart = this.safeString(expiryParts, 2, '');
                     const year = yearPart.slice(2, 4);
@@ -2563,7 +2564,6 @@ class bitget extends bitget$1["default"] {
             const isRealityValue = this.safeStringLower(market, 'isReality', '');
             const isReality = (isRealityValue === 'yes');
             let settleId = undefined;
-            let settle = undefined;
             if (category === 'USDT-FUTURES') {
                 settleId = 'USDT';
             }
@@ -2573,9 +2573,7 @@ class bitget extends bitget$1["default"] {
             else if (category === 'COIN-FUTURES') {
                 settleId = base;
             }
-            if (settleId !== undefined) {
-                settle = this.safeCurrencyCode(settleId);
-            }
+            const settle = this.safeCurrencyCode(settleId);
             let symbol = base + '/' + quote;
             let type = undefined;
             let swap = false;
@@ -2618,8 +2616,9 @@ class bitget extends bitget$1["default"] {
                 }
                 else if (symbolType === 'delivery') {
                     expiry = this.safeInteger(market, 'deliveryTime');
-                    expiryDatetime = this.iso8601(expiry);
-                    const expiryParts = expiryDatetime.split('-');
+                    const expiryIso = this.iso8601(expiry);
+                    expiryDatetime = expiryIso;
+                    const expiryParts = expiryIso.split('-');
                     const yearPart = this.safeString(expiryParts, 0, '');
                     const dayPart = this.safeString(expiryParts, 2, '');
                     const year = yearPart.slice(2, 4);
@@ -3066,7 +3065,10 @@ class bitget extends bitget$1["default"] {
             }
             return await this.fetchPaginatedCallCursor('fetchDeposits', undefined, since, limit, paramsPaginate, 'idLessThan', 'idLessThan', undefined, 100);
         }
-        const defaultWindow = (uta === true) ? 2592000000 : 7776000000; // uta allows a window of 30 days at most, else 90 days
+        let defaultWindow = 7776000000; // uta allows a window of 30 days at most, else 90 days
+        if (uta === true) {
+            defaultWindow = 2592000000;
+        }
         const sinceResolved = (since === undefined) ? this.milliseconds() - defaultWindow : since;
         const request = {
             'startTime': sinceResolved,
@@ -3261,7 +3263,10 @@ class bitget extends bitget$1["default"] {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const defaultWindow = (uta === true) ? 2592000000 : 7776000000; // uta allows a window of 30 days at most, else 90 days
+        let defaultWindow = 7776000000; // uta allows a window of 30 days at most, else 90 days
+        if (uta === true) {
+            defaultWindow = 2592000000;
+        }
         const sinceResolved = (since === undefined) ? this.milliseconds() - defaultWindow : since;
         const request = {
             'startTime': sinceResolved,
@@ -4843,8 +4848,6 @@ class bitget extends bitget$1["default"] {
         const duration = this.parseTimeframe(timeframe) * 1000;
         const until = this.safeInteger(paramsStock, 'until');
         const limitDefined = limit !== undefined;
-        const sinceDefined = since !== undefined;
-        const untilDefined = until !== undefined;
         const paramsOmitted = this.omit(paramsStock, ['until']);
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
@@ -4855,57 +4858,62 @@ class bitget extends bitget$1["default"] {
         }
         const ohlcOptions = this.safeDict(this.options['fetchOHLCV'], key, {});
         const maxLimitPerTimeframe = this.safeDict(ohlcOptions, 'maxLimitPerTimeframe', {});
-        const maxLimitForThisTimeframe = this.safeInteger(maxLimitPerTimeframe, timeframe, limit);
+        const timeframeLimitValue = this.safeInteger(maxLimitPerTimeframe, timeframe);
+        // the per-timeframe cap only applies to a user-supplied limit
+        const timeframeLimit = (timeframeLimitValue === undefined) ? maxLimitForRecentEndpoint : timeframeLimitValue;
+        const requestedLimit = (limit === undefined) ? defaultLimit : limit;
+        const limitCapped = (requestedLimit > maxLimitForRecentEndpoint) ? maxLimitForRecentEndpoint : requestedLimit;
+        // the per-timeframe cap only applies to a user-supplied limit
+        const recentLimit = ((limit !== undefined) && (limitCapped > timeframeLimit)) ? timeframeLimit : limitCapped;
+        let limitResolved = recentLimit;
+        const recentDuration = recentLimit * duration;
         const recentEndpointDaysMap = this.safeDict(this.options['fetchOHLCV'], 'maxRecentDaysPerTimeframe', {});
         const recentEndpointAvailableDays = this.safeInteger(recentEndpointDaysMap, timeframe);
-        const recentEndpointBoundaryTs = now - (recentEndpointAvailableDays - 1) * msInDay;
-        let limitResolved = defaultLimit;
-        if (limitDefined) {
-            const limitCapped = Math.min(limit, maxLimitForRecentEndpoint);
-            limitResolved = Math.min(limitCapped, maxLimitForThisTimeframe);
-        }
-        let limitMultipliedDuration = limitResolved * duration;
+        let historicalEndpointNeeded = (useHistoryEndpoint === true);
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
         let calculatedStartTime = undefined;
         let calculatedEndTime = undefined;
-        if (sinceDefined) {
+        if (since !== undefined) {
             calculatedStartTime = since;
             request['startTime'] = since;
-            if (!untilDefined) {
-                calculatedEndTime = this.sum(calculatedStartTime, limitMultipliedDuration);
-                if (calculatedEndTime > now) {
+            if (until === undefined) {
+                calculatedEndTime = this.sum(since, recentDuration);
+                if (since > now - recentDuration) {
                     calculatedEndTime = now;
                 }
                 request['endTime'] = calculatedEndTime;
             }
-        }
-        if (untilDefined) {
-            calculatedEndTime = until;
-            if (calculatedEndTime > now) {
-                calculatedEndTime = now;
+            if ((recentEndpointAvailableDays !== undefined) && (since <= now - (recentEndpointAvailableDays - 1) * msInDay)) {
+                historicalEndpointNeeded = true;
             }
-            request['endTime'] = calculatedEndTime;
-            if (!sinceDefined) {
-                calculatedStartTime = calculatedEndTime - limitMultipliedDuration;
+        }
+        if (until !== undefined) {
+            const untilEndTime = (until > now) ? now : until;
+            calculatedEndTime = untilEndTime;
+            request['endTime'] = untilEndTime;
+            if (since === undefined) {
+                const untilStartTime = untilEndTime - recentDuration;
+                calculatedStartTime = untilStartTime;
                 // we do not need to set "startTime" here
+                if ((recentEndpointAvailableDays !== undefined) && (untilStartTime <= now - (recentEndpointAvailableDays - 1) * msInDay)) {
+                    historicalEndpointNeeded = true;
+                }
             }
         }
-        // if historical endpoint is needed, we should re-set the variables
-        let historicalEndpointNeeded = false;
-        if ((calculatedStartTime !== undefined && calculatedStartTime <= recentEndpointBoundaryTs) || (useHistoryEndpoint)) {
-            historicalEndpointNeeded = true;
+        if (historicalEndpointNeeded) {
             // only for "historical-candles" - ensure we use correct max limit
-            limitResolved = Math.min(limitResolved, maxLimitForHistoryEndpoint);
-            limitMultipliedDuration = limitResolved * duration;
-            calculatedStartTime = calculatedEndTime - limitMultipliedDuration;
+            const historicalLimit = (recentLimit > maxLimitForHistoryEndpoint) ? maxLimitForHistoryEndpoint : recentLimit;
+            limitResolved = historicalLimit;
+            const historicalDuration = historicalLimit * duration;
+            calculatedStartTime = calculatedEndTime - historicalDuration;
             request['startTime'] = calculatedStartTime;
             // for contract, maximum 90 days allowed between start-end times
             if (market['spot'] !== true) {
-                const maxDistanceDaysForContracts = 90;
-                // only correct if request is larger
-                if (calculatedEndTime - calculatedStartTime > maxDistanceDaysForContracts * msInDay) {
-                    calculatedEndTime = this.sum(calculatedStartTime, maxDistanceDaysForContracts * msInDay);
+                const maxDistanceForContracts = 90 * msInDay;
+                // endTime - startTime is historicalDuration here; an undefined endTime never passed this check
+                if ((calculatedEndTime !== undefined) && (historicalDuration > maxDistanceForContracts)) {
+                    calculatedEndTime = this.sum(calculatedStartTime, maxDistanceForContracts);
                     request['endTime'] = calculatedEndTime;
                 }
             }
@@ -6036,7 +6044,7 @@ class bitget extends bitget$1["default"] {
         //     throw new ExchangeError (this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         // }
         //
-        if (this.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isTrailingPercentOrder) > 1) {
+        if ((isTriggerOrder && (isStopLossTriggerOrder || isTakeProfitTriggerOrder || isTrailingPercentOrder)) || (isStopLossTriggerOrder && (isTakeProfitTriggerOrder || isTrailingPercentOrder)) || (isTakeProfitTriggerOrder && isTrailingPercentOrder)) {
             throw new errors.ExchangeError(this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         }
         if (type === 'limit') {
@@ -6259,7 +6267,7 @@ class bitget extends bitget$1["default"] {
             await this.loadMarkets();
         }
         const ordersRequests = [];
-        let symbol = undefined;
+        let symbol = this.safeString(this.safeDict(orders, 0), 'symbol');
         let marginMode = undefined;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict(orders, i);
@@ -6335,7 +6343,7 @@ class bitget extends bitget$1["default"] {
             return await this.createUtaOrders(orders, paramsUTA);
         }
         const ordersRequests = [];
-        let symbol = undefined;
+        let symbol = this.safeString(this.safeDict(orders, 0), 'symbol');
         let marginMode = undefined;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict(orders, i);
@@ -6497,7 +6505,7 @@ class bitget extends bitget$1["default"] {
         // if (multipleTriggers) {
         //     throw new ExchangeError (this.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         // }
-        if (this.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder) > 1) {
+        if ((isTriggerOrder && (isStopLossOrder || isTakeProfitOrder || isTrailingPercentOrder)) || (isStopLossOrder && (isTakeProfitOrder || isTrailingPercentOrder)) || (isTakeProfitOrder && isTrailingPercentOrder)) {
             throw new errors.ExchangeError(this.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
         }
         let paramsOmitted = this.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent']);
@@ -9148,7 +9156,7 @@ class bitget extends bitget$1["default"] {
         else if (method === 'privateMixGetV2MixPositionAllPosition') {
             let marginCoin = this.safeString(paramsPaginate, 'marginCoin', 'USDT');
             if (market !== undefined) {
-                marginCoin = market['settleId'];
+                marginCoin = this.safeString(market, 'settleId');
             }
             else if (productType === 'USDT-FUTURES') {
                 marginCoin = 'USDT';

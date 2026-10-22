@@ -420,9 +420,9 @@ class deepcoin(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(types)):
             promises.append(self.fetch_markets_by_type(types[i], params))
-        promises = await asyncio.gather(*promises)
-        for i in range(0, len(promises)):
-            result = self.array_concat(result, promises[i])
+        responses = await asyncio.gather(*promises)
+        for i in range(0, len(responses)):
+            result = self.array_concat(result, responses[i])
         return result
 
     async def fetch_markets_by_type(self, type: Str, params: dict = {}) -> list[Market]:
@@ -905,7 +905,7 @@ class deepcoin(Exchange, ImplicitAPI):
             'fee': fee,
         }, marketResolved)
 
-    def parse_taker_or_maker(self, execType: Str):
+    def parse_taker_or_maker(self, execType: Str) -> Str:
         types = {
             'T': 'taker',
             'M': 'maker',

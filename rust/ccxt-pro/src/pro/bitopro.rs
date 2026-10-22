@@ -406,7 +406,7 @@ impl BitoproCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("TRADE".into()), Value::Str(":".into())).into()), symbolValue).into());
         let mut trades: Value = self.watch_public(Value::Str("trades".into()), messageHash, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -497,7 +497,7 @@ impl BitoproCore {
         self.authenticate(url.clone());
         let mut trades: Value = self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -709,7 +709,7 @@ impl BitoproCore {
 }
 
     pub fn authenticate(&mut self, mut url: Value) {
-        if (self.clients.clone() != Value::Null) && (in_op(&self.clients, &url)) {
+        if (self.clients.clone() != Value::Null) && (matches!((&self.clients, &url), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
         self.check_required_credentials(&[]);
@@ -810,7 +810,7 @@ impl BitoproCore {
 }) });
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
         let mut datetime: Value = self.safe_string_k(message, "datetime", &[]);
-        let mut currencies: Value = object_keys(&data);
+        let mut currencies: Value = ({ let __r29o: &Value = &data; match __r29o { Value::Dict(__m) => Value::List(__m.keys().filter(|__k| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|__k| Value::Str(__k.clone().into())).collect()), _ => Value::List(vec![]) } });
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), data.clone());

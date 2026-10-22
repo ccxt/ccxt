@@ -45,7 +45,7 @@ class okx(Exchange, ImplicitAPI):
             'name': 'OKX',
             'countries': ['CN', 'US'],
             'version': 'v5',
-            'rateLimit': 100 * 1.10,  # 10% tolerance because of #26973
+            'rateLimit': 110,  # 100 plus 10% tolerance because of #26973
             'pro': True,
             'certified': True,
             'has': {
@@ -1528,7 +1528,7 @@ class okx(Exchange, ImplicitAPI):
             paramsOmitted['type'] = instType
         return super(okx, self).handle_market_type_and_params(methodName, market, paramsOmitted, defaultValue)
 
-    def convert_to_instrument_type(self, type: object):
+    def convert_to_instrument_type(self, type: Str) -> Str:
         exchangeTypes = self.safe_dict(self.options, 'exchangeType', {})
         return self.safe_string(exchangeTypes, type, type)
 
@@ -1777,9 +1777,9 @@ class okx(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(types)):
             promises.append(self.fetch_markets_by_type(types[i], params))
-        promises = promises
-        for i in range(0, len(promises)):
-            result = self.array_concat(result, promises[i])
+        responses = promises
+        for i in range(0, len(responses)):
+            result = self.array_concat(result, responses[i])
         return result
 
     def parse_market(self, market: dict) -> Market:
@@ -2170,15 +2170,15 @@ class okx(Exchange, ImplicitAPI):
         requestedLimit = defaultLimit if (limit is None) else limit
         # the rpi book hard-errors with 51000 "Parameter sz error." above 400,
         # including the 5000 that publicGetMarketBooksFull defaults to
-        limitResolved = requestedLimit
-        if rpi and (requestedLimit > 400):
-            limitResolved = 400
+        isFullBook = (method == 'publicGetMarketBooksFull')
+        largeLimit = ((limit is None) and isFullBook) or ((limit is not None) and (limit > 400))
+        limitResolved = 400 if (rpi and largeLimit) else requestedLimit
         if limitResolved is not None:
             request['sz'] = limitResolved  # max 400
         response: dict
         if rpi:
             response = self.publicGetMarketBooksRpi(self.extend(request, paramsMethod))
-        elif (method == 'publicGetMarketBooksFull') or (limitResolved > 400):
+        elif isFullBook or largeLimit:
             response = self.publicGetMarketBooksFull(self.extend(request, paramsMethod))
         else:
             response = self.publicGetMarketBooks(self.extend(request, paramsMethod))
@@ -2693,12 +2693,11 @@ class okx(Exchange, ImplicitAPI):
             now = self.milliseconds()
             durationInMilliseconds = duration * 1000
             # switch to history candles if since is past the cutoff for current candles
-            historyBorder = now - ((1440 - 1) * durationInMilliseconds)
+            historyBorder = now - (1439 * durationInMilliseconds)
             if since < historyBorder:
+                # limitResolved is already at most 100 for mark or index candles and 300 otherwise
                 defaultType = 'HistoryCandles'
-                maxLimit = 100 if isMarkOrIndex else 300
-                limitResolved = min(limitResolved, maxLimit)
-            startTime = max(since - 1, 0)
+            startTime = (since - 1) if (since > 1) else 0
             request['before'] = startTime
             request['after'] = self.sum(since, durationInMilliseconds * limitResolved)
         until = self.safe_integer(paramsPrice, 'until')
@@ -3162,12 +3161,11 @@ class okx(Exchange, ImplicitAPI):
         isReduceOnly = (self.safe_bool(params, 'reduceOnly', False)) or (closeFraction is not None)
         defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
         marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not omitted so as to be extended into the request
-        margin = False
-        if (marginMode is not None) and (marginMode != 'cash'):
-            margin = True
-        else:
+        marginModeIsExplicit = (marginMode is not None) and (marginMode != 'cash')
+        if not marginModeIsExplicit:
             marginMode = defaultMarginMode
-            margin = self.safe_bool(params, 'margin', False)
+        marginParam = self.safe_bool(params, 'margin', False)
+        margin = marginModeIsExplicit or (marginParam is True)
         # position side / hedged options only apply to swap and future orders
         isSwapOrFuture = (contract is True) and ((market['swap'] is True) or (market['future'] is True))
         positionSide, paramsPositionSide = self.handle_option_string_and_params(params, 'createOrder', 'positionSide')
@@ -3971,7 +3969,7 @@ class okx(Exchange, ImplicitAPI):
         #
         return response
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'canceled': 'canceled',
             'order_failed': 'canceled',
@@ -5062,7 +5060,9 @@ class okx(Exchange, ImplicitAPI):
             # 'limit': 100, // default 100, max 100
         }
         marginModeOption, paramsMarginMode = self.handle_margin_mode_and_params('fetchLedger', paramsOmitted)
-        marginMode = self.safe_string(paramsMarginMode, 'mgnMode') if (marginModeOption is None) else marginModeOption
+        marginMode = marginModeOption
+        if marginMode is None:
+            marginMode = self.safe_string(paramsMarginMode, 'mgnMode')
         if method != 'privateGetAssetBills':
             if marginMode is not None:
                 request['mgnMode'] = marginMode
@@ -5670,7 +5670,7 @@ class okx(Exchange, ImplicitAPI):
         withdrawal = self.safe_dict(data, 0, {})
         return self.parse_transaction(withdrawal)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         #
         # deposit statuses
         #
@@ -7846,7 +7846,7 @@ class okx(Exchange, ImplicitAPI):
         :returns dict[]: the request and the remaining params
         """
         maxLimit = 100
-        effectiveLimit = maxLimit if (limit is None) else min(limit, maxLimit)
+        effectiveLimit = 100 if ((limit is None) or (limit > 100)) else limit
         if limit is not None:
             request['limit'] = effectiveLimit
         if since is not None:
@@ -8345,9 +8345,7 @@ class okx(Exchange, ImplicitAPI):
             self.load_markets()
         request = {}
         symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
-        symbolsLength = None
-        if symbolsNormalized is not None:
-            symbolsLength = len(symbolsNormalized)
+        symbolsLength = 0 if (symbolsNormalized is None) else len(symbolsNormalized)
         if (symbolsNormalized is None) or (symbolsLength != 1):
             uly = self.safe_string(params, 'uly')
             if uly is not None:

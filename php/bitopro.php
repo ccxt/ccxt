@@ -902,17 +902,19 @@ class bitopro extends Exchange {
         );
         // we need to have a limit argument because "to" and "from" are required
         // supports slightly more than 75k candles atm, but limit here to avoid errors
-        $limitResolved = ($limit === null) ? 500 : min($limit, 75000);
+        $limitResolved = $this->parse_to_int(($limit === null) ? 500 : min($limit, 75000));
         $timeframeInSeconds = $this->parse_timeframe($timeframe);
         $alignedSince = null;
         if ($since === null) {
-            $request['to'] = $this->seconds();
-            $request['from'] = $request['to'] - ($limitResolved * $timeframeInSeconds);
+            $toSeconds = $this->seconds();
+            $request['to'] = $toSeconds;
+            $request['from'] = $toSeconds - ($limitResolved * $timeframeInSeconds);
         } else {
             $timeframeInMilliseconds = $timeframeInSeconds * 1000;
-            $alignedSince = (int) floor($since / $timeframeInMilliseconds) * $timeframeInMilliseconds;
-            $request['from'] = (int) floor($since / 1000);
-            $request['to'] = $this->sum($request['from'], $limitResolved * $timeframeInSeconds);
+            $alignedSince = $this->parse_to_int((int) floor($since / $timeframeInMilliseconds)) * $timeframeInMilliseconds;
+            $fromSeconds = (int) floor($since / 1000);
+            $request['from'] = $fromSeconds;
+            $request['to'] = $this->sum($fromSeconds, $limitResolved * $timeframeInSeconds);
         }
         $response = $this->publicGetTradingHistoryPair($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
@@ -931,10 +933,10 @@ class bitopro extends Exchange {
         //     }
         //
         $sparse = $this->parse_ohlcvs($data, $market, $timeframe, $since, $limitResolved);
-        return $this->insert_missing_candles($sparse, $timeframeInSeconds, $alignedSince, $limitResolved);
+        return $this->insert_missing_candles($sparse, $timeframeInSeconds * 1000, $alignedSince, $limitResolved);
     }
 
-    public function insert_missing_candles(mixed $candles, float $distance, ?int $since, float $limit): array {
+    public function insert_missing_candles(array $candles, float $distanceInMs, ?int $since, float $limit): array {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
         $length = count($candles);
@@ -967,7 +969,7 @@ class bitopro extends Exchange {
                 $copy[5] = $this->parse_number('0');
                 $result[] = $copy;
             }
-            $timestamp = $this->sum($timestamp, $distance * 1000);
+            $timestamp = $this->sum($timestamp, $distanceInMs);
             $resultLength = count($result);
             $copyFrom = $result[$resultLength - 1];
         }
@@ -1034,7 +1036,7 @@ class bitopro extends Exchange {
         return $this->parse_balance($balances);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             '-1' => 'open',
             '0' => 'open',
@@ -1238,7 +1240,7 @@ class bitopro extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function parse_cancel_orders(mixed $data) {
+    public function parse_cancel_orders(mixed $data): array {
         $dataKeys = is_array($data) ? array_keys($data) : array();
         $orders = array();
         for ($i = 0; $i < count($dataKeys); $i++) {
@@ -1536,7 +1538,7 @@ class bitopro extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $states = array(
             'COMPLETE' => 'ok',
             'INVALID' => 'failed',
@@ -1956,7 +1958,8 @@ class bitopro extends Exchange {
         if ($response === null) {
             return null; // fallback to the default error handler
         }
-        if ($code >= 200 && $code < 300) {
+        $statusCode = $this->parse_to_int($code);
+        if ($statusCode >= 200 && $statusCode < 300) {
             return null;
         }
         $feedback = $this->id . ' ' . $body;

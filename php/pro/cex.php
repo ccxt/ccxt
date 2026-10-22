@@ -408,9 +408,9 @@ class cex extends \ccxt\async\cex {
         $messageHash = 'ticker:' . $symbol;
         $client->resolve($ticker, $messageHash);
         $client->resolve($ticker, 'tickers');
-        $messageHash = $this->safe_string($message, 'oid');
-        if ($messageHash !== null) {
-            $client->resolve($ticker, $messageHash);
+        $oid = $this->safe_string($message, 'oid');
+        if ($oid !== null) {
+            $client->resolve($ticker, $oid);
         }
     }
 
@@ -453,10 +453,7 @@ class cex extends \ccxt\async\cex {
         if (($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
         }
-        $timestamp = $this->safe_integer($ticker, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -965,7 +962,7 @@ class cex extends \ccxt\async\cex {
         return $this->safe_order($parsedOrder, $marketResolved);
     }
 
-    public function from_precision(mixed $amount, mixed $scale) {
+    public function from_precision(mixed $amount, mixed $scale): ?string {
         if ($amount === null) {
             return null;
         }
@@ -975,7 +972,7 @@ class cex extends \ccxt\async\cex {
         return (string) $precise;
     }
 
-    public function currency_from_precision(mixed $currency, mixed $amount) {
+    public function currency_from_precision(string $currency, mixed $amount): ?string {
         $scale = $this->safe_integer($this->currencies[$currency], 'precision', 0);
         return $this->from_precision($amount, $scale);
     }

@@ -779,7 +779,7 @@ class bitflyer extends Exchange {
         ));
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'ACTIVE' => 'open',
             'COMPLETED' => 'closed',
@@ -1350,8 +1350,9 @@ class bitflyer extends Exchange {
             $auth = implode('', $content);
             if (count($params) > 0) {
                 if ($method !== 'GET') {
-                    $bodySigned = $this->json($params);
-                    $auth .= $bodySigned;
+                    $body = $this->json($params);
+                    $bodySigned = $body;
+                    $auth .= $body;
                 }
             }
             $headersSigned = array(

@@ -814,8 +814,9 @@ class toobit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = self.safe_dict(self.options, 'exchangeInfo')
-        if response is not None:
+        cachedInfo = self.safe_dict(self.options, 'exchangeInfo')
+        response = cachedInfo
+        if cachedInfo is not None:
             self.options['exchangeInfo'] = None  # reset it to avoid using old cached data
         else:
             response = self.commonGetApiV1ExchangeInfo(params)
@@ -1165,15 +1166,11 @@ class toobit(Exchange, ImplicitAPI):
         isBuyer = self.safe_bool(trade, 'isBuyer')
         side = None
         isBuyerMaker = self.safe_bool(trade, 'ibm')
-        if isBuyerMaker is None:
-            isBuyerTaker = self.safe_bool(trade, 'm')
-            if isBuyerTaker is not None:
-                isBuyerMaker = not isBuyerTaker
+        isBuyerTaker = self.safe_bool(trade, 'm')
         if isBuyerMaker is not None:
-            if isBuyerMaker:
-                side = 'sell'
-            else:
-                side = 'buy'
+            side = 'sell' if (isBuyerMaker is True) else 'buy'
+        elif isBuyerTaker is not None:
+            side = 'buy' if (isBuyerTaker is True) else 'sell'
         else:
             if isBuyer is True:
                 side = 'buy'
@@ -1250,8 +1247,10 @@ class toobit(Exchange, ImplicitAPI):
         elif isPriceKlines and (since is not None):
             # mark and index klines walk backwards from `to` and ignore a lone `from`
             duration = self.parse_timeframe(timeframe)
-            requestedLimit = 2000 if (limit is None) else limit  # exchange default
-            request['to'] = self.sum(since, duration * requestedLimit * 1000)
+            if limit is None:
+                request['to'] = self.sum(since, duration * 2000 * 1000)  # exchange default limit
+            else:
+                request['to'] = self.sum(since, duration * limit * 1000)
         if limit is not None:
             request['limit'] = limit
         response = []
@@ -1399,9 +1398,10 @@ class toobit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(ticker, 't')
         last = self.safe_string(ticker, 'c')
         baseVolume = self.safe_string(ticker, 'v')
-        if (marketResolved['contract'] is True) and (marketResolved['contractSize'] is not None):
+        contractSize = self.safe_number(marketResolved, 'contractSize')
+        if (marketResolved['contract'] is True) and (contractSize is not None):
             # 'v' counts contracts, and a ticker reports base volume
-            baseVolume = Precise.string_mul(baseVolume, self.number_to_string(marketResolved['contractSize']))
+            baseVolume = Precise.string_mul(baseVolume, self.number_to_string(contractSize))
         return self.safe_ticker({
             'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
@@ -1821,7 +1821,7 @@ class toobit(Exchange, ImplicitAPI):
         }
         if hasStopLoss:
             request['stopLoss'] = self.safe_value(stopLoss, 'triggerPrice')
-            limitPrice = self.safe_value(stopLoss, 'price')
+            limitPrice = self.safe_string(stopLoss, 'price')
             if limitPrice is not None:
                 request['slOrderType'] = 'LIMIT'
                 request['slLimitPrice'] = self.price_to_precision(symbol, limitPrice)
@@ -1830,7 +1830,7 @@ class toobit(Exchange, ImplicitAPI):
                 request['slTriggerBy'] = self.safe_string(triggerPriceTypes, triggerPriceType, triggerPriceType)
         if hasTakeProfit:
             request['takeProfit'] = self.safe_value(takeProfit, 'triggerPrice')
-            limitPrice = self.safe_value(takeProfit, 'price')
+            limitPrice = self.safe_string(takeProfit, 'price')
             if limitPrice is not None:
                 request['tpOrderType'] = 'LIMIT'
                 request['tpLimitPrice'] = self.price_to_precision(symbol, limitPrice)
@@ -1916,9 +1916,8 @@ class toobit(Exchange, ImplicitAPI):
             if sideSuffix is not None:
                 reduceOnly = (sideSuffix == 'close')
             rawSideLower = self.safe_string(sideParts, 0)
+        # omitZero already maps '0.0' to undefined
         triggerPrice = self.omit_zero(self.safe_string(order, 'stopPrice'))
-        if triggerPrice == '0.0':
-            triggerPrice = None
         return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'orderId'),
@@ -1948,7 +1947,7 @@ class toobit(Exchange, ImplicitAPI):
             'hedged': None,
         }, marketResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'PENDING_NEW': 'open',
             'NEW': 'open',
@@ -1962,7 +1961,7 @@ class toobit(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status: Str):
+    def parse_order_type(self, status: Str) -> Str:
         statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -2701,7 +2700,7 @@ class toobit(Exchange, ImplicitAPI):
         currencyCode = currency['code'] if (currency is not None) else None
         return self.filter_by_currency_since_limit(sorted, currencyCode, since, limit)
 
-    def parse_transaction_with_type(self, transaction: dict, currency: Currency = None, transactType: Str = None):
+    def parse_transaction_with_type(self, transaction: dict, currency: Currency = None, transactType: Str = None) -> Transaction:
         result = self.parse_transaction(transaction, currency)
         if transactType is not None:
             result['type'] = transactType
@@ -2789,7 +2788,7 @@ class toobit(Exchange, ImplicitAPI):
             'internal': None,
         }
 
-    def parse_transaction_status(self, status: Str, type: Str = None):
+    def parse_transaction_status(self, status: Str, type: Str = None) -> Str:
         statusesByType = {
             'deposit': {
                 '2': 'ok',  # DEPOSIT_CAN_WITHDRAW

@@ -1390,18 +1390,18 @@ class bigone extends bigone$1["default"] {
             'period': this.safeString(this.timeframes, timeframe, timeframe),
             'limit': limitResolved,
         };
-        if (sinceIsDefined) {
+        if (since !== undefined) {
             // const start = this.parseToInt (since / 1000);
             const duration = this.parseTimeframe(timeframe);
-            const endByLimit = this.sum(since, limitResolved * duration * 1000);
-            if (untilIsDefined) {
+            const endByLimit = this.parseToInt(this.sum(since, limitResolved * duration * 1000));
+            if (until !== undefined) {
                 request['time'] = this.iso8601(Math.min(endByLimit, until + 1));
             }
             else {
                 request['time'] = this.iso8601(endByLimit);
             }
         }
-        else if (untilIsDefined) {
+        else if (until !== undefined) {
             request['time'] = this.iso8601(until + 1);
         }
         const paramsOmitted = this.omit(params, 'until');
@@ -1974,7 +1974,8 @@ class bigone extends bigone$1["default"] {
         return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
     }
     nonce() {
-        const exchangeTimeCorrection = this.safeInteger(this.options, 'exchangeMillisecondsCorrection', 0) * 1000000;
+        const exchangeMillisecondsCorrection = this.safeInteger(this.options, 'exchangeMillisecondsCorrection', 0);
+        const exchangeTimeCorrection = exchangeMillisecondsCorrection * 1000000;
         return this.sum(this.microseconds() * 1000, exchangeTimeCorrection);
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {

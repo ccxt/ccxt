@@ -105,6 +105,7 @@ type IExchange interface {
 	UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error)
 	FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error)
 	UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error)
+	ClosePosition(symbol string, options ...ClosePositionOptions) (Order, error)
 	EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error)
 	FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error)
 	FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error)

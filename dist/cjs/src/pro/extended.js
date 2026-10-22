@@ -861,9 +861,10 @@ class extended extends extended$1["default"] {
             return;
         }
         const type = this.safeString(message, 'type');
-        const data = this.safeValue(message, 'data');
-        if (Array.isArray(data)) {
-            const first = this.safeDict(data, 0, {});
+        const dataList = this.safeList(message, 'data');
+        const data = this.safeDict(message, 'data');
+        if (dataList !== undefined) {
+            const first = this.safeDict(dataList, 0, {});
             const side = this.safeString(first, 'S');
             if (side !== undefined) {
                 this.handleTrades(client, message);

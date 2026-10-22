@@ -800,8 +800,8 @@ export default class alpaca extends Exchange {
         let paginate = false;
         let query = undefined;
         [paginate, query] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
-        let paginationCalls = 10;
-        [paginationCalls, query] = this.handleOptionIntegerAndParams(query, 'fetchOHLCV', 'paginationCalls', 10);
+        const [paginationCalls, queryPagination] = this.handleOptionIntegerAndParams(query, 'fetchOHLCV', 'paginationCalls', 10);
+        query = queryPagination;
         const request = {
             'symbols': marketId,
             'loc': loc,
@@ -2243,7 +2243,8 @@ export default class alpaca extends Exchange {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             const codeAsString = code.toString();
-            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+            const statusCode = this.parseToInt(code);
+            if ((statusCode < 400) || !(codeAsString in this.httpExceptions)) {
                 // an error envelope must always throw — also for statuses the http-status handler has no entry for
                 throw new ExchangeError(feedback);
             }

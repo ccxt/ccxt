@@ -746,7 +746,7 @@ class bitstamp extends Exchange {
         return $result;
     }
 
-    public function construct_currency_object(mixed $id, mixed $code, mixed $name, mixed $precision, mixed $minCost, mixed $originalPayload) {
+    public function construct_currency_object(?string $id, ?string $code, ?string $name, ?int $precision, ?float $minCost, array $originalPayload): array {
         $currencyType = 'crypto';
         $description = $this->describe();
         if ($this->is_fiat($code)) {
@@ -793,7 +793,7 @@ class bitstamp extends Exchange {
         $timestamp = $this->safe_integer($options, 'timestamp');
         $expires = $this->safe_integer($options, 'expires', 1000);
         $now = $this->milliseconds();
-        if (($timestamp === null) || (($now - $timestamp) > $expires)) {
+        if (($timestamp === null) || (($expires !== null) && (($now - $timestamp) > $expires))) {
             $response = $this->publicGetMarkets($params);
             //
             //    [
@@ -1046,7 +1046,7 @@ class bitstamp extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function get_currency_id_from_transaction(array $transaction) {
+    public function get_currency_id_from_transaction(array $transaction): ?string {
         //
         //     {
         //         "fee": "0.00000000",
@@ -1212,8 +1212,8 @@ class bitstamp extends Exchange {
                 $timestamp = $this->parse8601($datetimeString);
             } else {
                 // string unix epoch in seconds
-                $timestamp = intval($datetimeString);
-                $timestamp = $timestamp * 1000;
+                $seconds = $this->parse_to_int($datetimeString);
+                $timestamp = $seconds * 1000;
             }
         }
         // if it is a private trade
@@ -1353,39 +1353,41 @@ class bitstamp extends Exchange {
         $until = $this->safe_integer($params, 'until');
         $untilIsDefined = ($until !== null);
         $limitResolved = ($limit === null) ? 1000 : $limit;
-        if ($limit === null) {
-            if ($since === null) {
-                $request['limit'] = $limitResolved;
-                if ($untilIsDefined) {
-                    $end = $this->parse_to_int($until / 1000);
-                    $request['start'] = $end - ($duration * $limitResolved) - 1;
-                    $request['end'] = $end;
-                }
-            } else {
-                $start = $this->parse_to_int($since / 1000);
-                $request['start'] = $start;
-                if ($untilIsDefined) {
-                    $request['end'] = $this->parse_to_int($until / 1000);
-                } else {
-                    $request['end'] = $this->sum($start, $duration * $limitResolved - 1);
-                }
-                $request['limit'] = $limitResolved;
-            }
-        } else {
+        if ($limit !== null) {
             if ($since !== null) {
                 $start = $this->parse_to_int($since / 1000);
                 $request['start'] = $start;
-                $end = $this->sum($start, $duration * $limitResolved - 1);
                 if ($untilIsDefined) {
-                    $end = min($end, $this->parse_to_int($until / 1000));
+                    // Math.min (start + duration * limit - 1, untilSeconds) on integers
+                    $untilSeconds = $this->parse_to_int($until / 1000);
+                    $request['end'] = (($untilSeconds - $start) < $duration * $limit - 1) ? $untilSeconds : $this->sum($start, $duration * $limit - 1);
+                } else {
+                    $request['end'] = $this->sum($start, $duration * $limit - 1);
                 }
-                $request['end'] = $end;
             } elseif ($untilIsDefined) {
-                $end = $this->parse_to_int($until / 1000);
-                $request['end'] = $end;
-                $request['start'] = $end - ($duration * $limitResolved) - 1;
+                $untilEnd = $this->parse_to_int($until / 1000);
+                $request['end'] = $untilEnd;
+                $request['start'] = $untilEnd - ($duration * $limit) - 1;
             }
-            $request['limit'] = min($limitResolved, 1000); // min 1, max 1000
+            $request['limit'] = min($limit, 1000); // min 1, max 1000
+        } else {
+            if ($since === null) {
+                $request['limit'] = 1000;
+                if ($untilIsDefined) {
+                    $untilEndDefault = $this->parse_to_int($until / 1000);
+                    $request['start'] = $untilEndDefault - ($duration * 1000) - 1;
+                    $request['end'] = $untilEndDefault;
+                }
+            } else {
+                $startDefault = $this->parse_to_int($since / 1000);
+                $request['start'] = $startDefault;
+                if ($untilIsDefined) {
+                    $request['end'] = $this->parse_to_int($until / 1000);
+                } else {
+                    $request['end'] = $this->sum($startDefault, $duration * 1000 - 1);
+                }
+                $request['limit'] = 1000;
+            }
         }
         $paramsOmitted = $this->omit($params, 'until');
         $response = $this->publicGetOhlcPair($this->extend($request, $paramsOmitted));
@@ -1832,7 +1834,7 @@ class bitstamp extends Exchange {
         return $this->parse_orders($canceled);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'In Queue' => 'open',
             'Open' => 'open',
@@ -2162,10 +2164,10 @@ class bitstamp extends Exchange {
         if (is_array($transaction) && array_key_exists('amount' ?? '', $transaction)) {
             $amount = $this->safe_string($transaction, 'amount');
         } elseif ($currency !== null) {
-            $amount = $this->safe_string($transaction, $currency['id'], $amount);
+            $amount = $this->safe_string($transaction, $currency['id']);
             $feeCurrency = $currency['code'];
         } elseif (($code !== null) && ($currencyId !== null)) {
-            $amount = $this->safe_string($transaction, $currencyId, $amount);
+            $amount = $this->safe_string($transaction, $currencyId);
             $feeCurrency = $code;
         }
         if ($amount !== null) {
@@ -2236,7 +2238,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         //
         //   withdrawals:
         //   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
@@ -2428,7 +2430,8 @@ class bitstamp extends Exchange {
         } else {
             $parsedTransaction = $this->parse_transaction($item, $currency);
             $direction = null;
-            $hasTransactionCurrency = !(is_array($item) && array_key_exists('amount' ?? '', $item)) && (is_array($parsedTransaction) && array_key_exists('currency' ?? '', $parsedTransaction)) && ($parsedTransaction['currency'] !== null);
+            $transactionCurrency = $this->safe_string($parsedTransaction, 'currency');
+            $hasTransactionCurrency = !(is_array($item) && array_key_exists('amount' ?? '', $item)) && ($transactionCurrency !== null);
             $currencyResolved = $currency;
             if ($hasTransactionCurrency) {
                 $currencyResolved = $this->currency($this->safe_string($parsedTransaction, 'currency'));
@@ -2436,7 +2439,7 @@ class bitstamp extends Exchange {
             if (is_array($item) && array_key_exists('amount' ?? '', $item)) {
                 $amount = $this->safe_string($item, 'amount');
                 $direction = Precise::string_gt($amount, '0') ? 'in' : 'out';
-            } elseif ((is_array($parsedTransaction) && array_key_exists('currency' ?? '', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
+            } elseif ($transactionCurrency !== null) {
                 $amount = $this->safe_string($item, $this->safe_string($currencyResolved, 'id'));
                 $direction = Precise::string_gt($amount, '0') ? 'in' : 'out';
             }

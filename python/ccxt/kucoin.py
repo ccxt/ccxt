@@ -3311,7 +3311,7 @@ class kucoin(Exchange, ImplicitAPI):
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe) * 1000
-        endAt = self.milliseconds()  # required param
+        now = self.milliseconds()  # required param
         denominator = 1000
         # For each query, the system would return at most 1500 pieces of data.
         # To obtain more data, please page the data by time.
@@ -3319,12 +3319,12 @@ class kucoin(Exchange, ImplicitAPI):
         limitResolved = windowLimit if (since is not None) else limit
         sinceResolved = since
         if (since is None) and (limit is not None):
-            sinceResolved = endAt - limit * duration
+            sinceResolved = now - limit * duration
+        endAt = self.parse_to_int(self.sum(since, windowLimit * duration)) if (since is not None) else now
         if since is not None:
             request['startAt'] = self.parse_to_int(int(math.floor(since / denominator)))
-            endAt = self.sum(since, windowLimit * duration)
         elif limit is not None:
-            request['startAt'] = self.parse_to_int(int(math.floor((endAt - limit * duration)) / denominator))
+            request['startAt'] = self.parse_to_int(int(math.floor((now - limit * duration)) / denominator))
         request['endAt'] = self.parse_to_int(int(math.floor(endAt / denominator)))
         type, paramsMarketType = self.handle_market_type_and_params('fetchOHLCV', market, paramsPaginate)
         if (type == 'spot') or (type == 'margin'):
@@ -3388,7 +3388,7 @@ class kucoin(Exchange, ImplicitAPI):
             'type': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe) * 1000
-        endAt = self.milliseconds()  # required param
+        now = self.milliseconds()  # required param
         denominator = 1000
         # For each query, the system would return at most 1500 pieces of data.
         # To obtain more data, please page the data by time.
@@ -3396,12 +3396,12 @@ class kucoin(Exchange, ImplicitAPI):
         limitResolved = windowLimit if (since is not None) else limit
         sinceResolved = since
         if (since is None) and (limit is not None):
-            sinceResolved = endAt - limit * duration
+            sinceResolved = now - limit * duration
+        endAt = self.parse_to_int(self.sum(since, windowLimit * duration)) if (since is not None) else now
         if since is not None:
             request['startAt'] = self.parse_to_int(int(math.floor(since / denominator)))
-            endAt = self.sum(since, windowLimit * duration)
         elif limit is not None:
-            request['startAt'] = self.parse_to_int(int(math.floor((endAt - limit * duration)) / denominator))
+            request['startAt'] = self.parse_to_int(int(math.floor((now - limit * duration)) / denominator))
         request['endAt'] = self.parse_to_int(int(math.floor(endAt / denominator)))
         response = self.publicGetMarketCandles(self.extend(request, paramsPaginate))
         #
@@ -3449,14 +3449,15 @@ class kucoin(Exchange, ImplicitAPI):
         else:
             request['granularity'] = timeframe
         duration = self.parse_timeframe(timeframe) * 1000
-        endAt = self.milliseconds()  # required param
+        now = self.milliseconds()  # required param
         # For each query, the system would return at most 200 pieces of data.
         # To obtain more data, please page the data by time.
         windowLimit = self.safe_integer(self.options, 'fetchOHLCVLimit', maxLimit) if (limit is None) else limit
         limitResolved = windowLimit if (since is not None) else limit
         sinceResolved = since
         if (since is None) and (limit is not None):
-            sinceResolved = endAt - limit * duration
+            sinceResolved = now - limit * duration
+        endAt = now
         if since is not None:
             request['from'] = since
             endAt = self.sum(since, windowLimit * duration)
@@ -4045,7 +4046,7 @@ class kucoin(Exchange, ImplicitAPI):
             request['postOnly'] = True
         return self.extend(request, paramsOmitted)
 
-    def market_order_amount_to_precision(self, symbol: Str, amount: object):
+    def market_order_amount_to_precision(self, symbol: Str, amount: object) -> str:
         market = self.market(symbol)
         result = self.decimal_to_precision(amount, TRUNCATE, market['info']['quoteIncrement'], self.precisionMode, self.paddingMode)
         if result == '0':
@@ -6890,14 +6891,14 @@ class kucoin(Exchange, ImplicitAPI):
         id = self.safe_string_2(trade, 'tradeId', 'id')
         orderId = self.safe_string(trade, 'orderId')
         takerOrMaker = self.safe_string(trade, 'liquidity')
-        timestamp = self.safe_integer_2(trade, 'time', 'ts')
-        if timestamp is not None:
-            timestamp = self.parse_to_int(timestamp / 1000000)
-        else:
-            timestamp = self.safe_integer(trade, 'createdAt')
-            # if it's a historical v1 trade, the exchange returns timestamp in seconds
-            if ('dealValue' in trade) and (timestamp is not None):
-                timestamp = timestamp * 1000
+        nanoseconds = self.safe_integer_2(trade, 'time', 'ts')
+        createdAt = self.safe_integer(trade, 'createdAt')
+        # if it's a historical v1 trade, the exchange returns timestamp in seconds
+        timestamp = createdAt
+        if ('dealValue' in trade) and (createdAt is not None):
+            timestamp = createdAt * 1000
+        if nanoseconds is not None:
+            timestamp = self.parse_to_int(nanoseconds / 1000000)
         priceString = self.safe_string_2(trade, 'price', 'dealPrice')
         amountString = self.safe_string_2(trade, 'size', 'amount')
         side = self.safe_string(trade, 'side')
@@ -7014,14 +7015,14 @@ class kucoin(Exchange, ImplicitAPI):
         id = self.safe_string_2(trade, 'tradeId', 'id')
         orderId = self.safe_string(trade, 'orderId')
         takerOrMaker = self.safe_string(trade, 'liquidity')
-        timestamp = self.safe_integer(trade, 'ts')
-        if timestamp is not None:
-            timestamp = self.parse_to_int(timestamp / 1000000)
-        else:
-            timestamp = self.safe_integer(trade, 'createdAt')
-            # if it's a historical v1 trade, the exchange returns timestamp in seconds
-            if ('dealValue' in trade) and (timestamp is not None):
-                timestamp = timestamp * 1000
+        nanoseconds = self.safe_integer(trade, 'ts')
+        createdAt = self.safe_integer(trade, 'createdAt')
+        # if it's a historical v1 trade, the exchange returns timestamp in seconds
+        timestamp = createdAt
+        if ('dealValue' in trade) and (createdAt is not None):
+            timestamp = createdAt * 1000
+        if nanoseconds is not None:
+            timestamp = self.parse_to_int(nanoseconds / 1000000)
         priceString = self.safe_string_2(trade, 'price', 'dealPrice')
         amountString = self.safe_string_2(trade, 'size', 'amount')
         side = self.safe_string(trade, 'side')
@@ -7253,7 +7254,7 @@ class kucoin(Exchange, ImplicitAPI):
         })
         return withdrawal
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'SUCCESS': 'ok',
             'PROCESSING': 'pending',
@@ -7335,16 +7336,16 @@ class kucoin(Exchange, ImplicitAPI):
                 'rate': self.parse_number(rate),
                 'currency': code,
             }
-        timestamp = self.safe_integer_2(transaction, 'createdAt', 'createAt')
-        updated = self.safe_integer(transaction, 'updatedAt')
+        createdAt = self.safe_integer_2(transaction, 'createdAt', 'createAt')
+        updatedAt = self.safe_integer(transaction, 'updatedAt')
         isV1 = not ('createdAt' in transaction)
         # if it's a v1 structure
         if isV1:
             type = 'withdrawal' if ('address' in transaction) else 'deposit'
-            if timestamp is not None:
-                timestamp = timestamp * 1000
-            if updated is not None:
-                updated = updated * 1000
+        createdAtMs = None if (createdAt is None) else createdAt * 1000
+        updatedAtMs = None if (updatedAt is None) else updatedAt * 1000
+        timestamp = createdAtMs if isV1 else createdAt
+        updated = updatedAtMs if isV1 else updatedAt
         internal = self.safe_bool(transaction, 'isInner')
         tag = self.safe_string(transaction, 'memo')
         chainId = self.safe_string(transaction, 'chain')
@@ -7806,7 +7807,7 @@ class kucoin(Exchange, ImplicitAPI):
         }
         if isolated:
             data = self.safe_dict(response, 'data', {})
-            assets = self.safe_value(data, 'assets', data)
+            assets = self.safe_list(data, 'assets', [])
             for i in range(0, len(assets)):
                 entry = self.safe_dict(assets, i)
                 base = self.safe_dict(entry, 'baseAsset', {})

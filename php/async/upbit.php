@@ -923,7 +923,7 @@ class upbit extends Exchange {
         return $this->parse_tickers($tickers, $symbolsNormalized);
     }
 
-    public function ids_query_strings(?array $ids, float $maxQueryLength): array {
+    public function ids_query_strings(?array $ids, int $maxQueryLength): array {
         if ($ids === null) {
             return array();
         }
@@ -1830,7 +1830,7 @@ class upbit extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'submitting' => 'pending', // 처리 중
             'submitted' => 'pending', // 처리 완료
@@ -1912,7 +1912,7 @@ class upbit extends Exchange {
         );
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'wait' => 'open',
             'done' => 'closed',

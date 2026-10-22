@@ -1385,7 +1385,7 @@ class bingx extends \ccxt\async\bingx {
         for ($i = 0; $i < count($positions); $i++) {
             $position = $positions[$i];
             $contracts = $this->safe_number($position, 'contracts', 0);
-            if ($contracts > 0) {
+            if (($contracts !== null) && ($contracts > 0)) {
                 $cache->append($position);
             }
         }
@@ -1579,7 +1579,7 @@ class bingx extends \ccxt\async\bingx {
         $time = $this->milliseconds();
         $lastAuthenticatedTime = $this->safe_integer($this->options, 'lastAuthenticatedTime', 0);
         $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 3600000); // 1 hour
-        if ($time - $lastAuthenticatedTime > $listenKeyRefreshRate) {
+        if (($listenKeyRefreshRate !== null) && ($time - $lastAuthenticatedTime > $listenKeyRefreshRate)) {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
             // different keys and the key rides the private url, so losers

@@ -35,7 +35,7 @@ export default class xt extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
-    fetchSpotMarkets(params?: any): Promise<Market[]>;
+    fetchSpotMarkets(params?: Dict): Promise<Market[]>;
     fetchSwapAndFutureMarkets(params?: Dict): Promise<Market[]>;
     parseMarkets(markets: any): List;
     parseMarket(market: Dict): Market;
@@ -182,7 +182,7 @@ export default class xt extends Exchange {
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     createSpotOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: Num, params?: Dict): Promise<Order>;
-    createContractOrder(symbol: string, type: OrderType, side: any, amount: any, price?: Num, params?: Dict): Promise<Order>;
+    createContractOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name xt#fetchOrder

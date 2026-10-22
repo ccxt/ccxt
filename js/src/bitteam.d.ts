@@ -148,7 +148,7 @@ export default class bitteam extends Exchange {
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): Str;
     parseOrderType(status: Str): Str;
-    parseValueToPricision(valueObject: Dict, valueKey: string, preciseObject: NullableDict, precisionKey: string): string | undefined;
+    parseValueToPricision(valueObject: Dict, valueKey: string, preciseObject: NullableDict, precisionKey: string): Str;
     /**
      * @method
      * @name bitteam#fetchTickers

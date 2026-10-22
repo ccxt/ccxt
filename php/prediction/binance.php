@@ -213,20 +213,16 @@ class binance extends Exchange {
          * @param {array} [$rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
          * @return {array[]} raw market topic objects
          */
-        $maxTopicsResolved = ($maxTopics === null) ? $this->safe_integer($this->options, 'maxFetchMarketsLimit', 200) : $maxTopics;
-        $pageLimit = $this->safe_integer($this->options, 'marketsPageLimit', 100);
-        if ($pageLimit > 100) {
-            $pageLimit = 100;
-        }
+        $maxTopicsOption = $this->safe_integer($this->options, 'maxFetchMarketsLimit', 200);
+        $maxTopicsResolved = ($maxTopics !== null) ? $maxTopics : $maxTopicsOption;
+        $pageLimitOption = $this->safe_integer($this->options, 'marketsPageLimit', 100);
+        $pageLimit = ($pageLimitOption > 100) ? 100 : $pageLimitOption;
         $collected = array();
         $offset = 0;
         while (true) {
-            $reqLimit = $pageLimit;
             $collectedLength = count($collected);
             $remaining = $maxTopicsResolved - $collectedLength;
-            if ($remaining < $reqLimit) {
-                $reqLimit = $remaining;
-            }
+            $reqLimit = ($remaining < $pageLimit) ? $remaining : $pageLimit;
             if ($reqLimit <= 0) {
                 break;
             }
@@ -468,12 +464,8 @@ class binance extends Exchange {
         $seen = array();
         $collected = array();
         $queriesLength = count($queries);
-        $limitResolved = $limit;
-        if ($limit === null) {
-            $limitResolved = 20;
-        } elseif ($limit > 50) {
-            $limitResolved = 50;
-        }
+        $limitValue = ($limit === null) ? 20 : $limit;
+        $limitResolved = ($limitValue > 50) ? 50 : $limitValue;
         for ($qi = 0; $qi < $queriesLength; $qi++) {
             $request = array(
                 'query' => $queries[$qi],
@@ -507,7 +499,7 @@ class binance extends Exchange {
         }
         $capped = $collected;
         $collectedLength = count($collected);
-        if (($limitResolved !== null) && ($collectedLength > $limitResolved)) {
+        if ($collectedLength > $limitResolved) {
             $capped = $this->array_slice($collected, 0, $limitResolved);
         }
         return Async\await($this->complete_raw_topics($capped));
@@ -531,7 +523,7 @@ class binance extends Exchange {
         return $this->safe_dict($events, 0);
     }
 
-    public function parse_event(array $rawTopic): mixed {
+    public function parse_event(array $rawTopic): array {
         /**
          * @ignore
          * parses a raw binance market topic (with nested markets) into the unified event shape

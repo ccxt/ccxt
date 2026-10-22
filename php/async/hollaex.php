@@ -280,7 +280,7 @@ class hollaex extends Exchange {
             ),
             'options' => array(
                 // how many seconds before the authenticated request expires
-                'api-expires' => $this->parse_to_int($this->timeout / 1000),
+                'api-expires' => $this->parse_to_int($this->parse_to_int($this->timeout) / 1000),
                 'networks' => array(
                     'BTC' => 'btc',
                     'ERC20' => 'eth',
@@ -988,17 +988,15 @@ class hollaex extends Exchange {
         if ($paginateOption) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit));
         }
-        $until = $this->safe_integer($paramsPaginate, 'until');
-        $timeDelta = $this->parse_timeframe($timeframe) * $maxLimit * 1000;
-        $start = $since;
         $now = $this->milliseconds();
-        if ($until === null) {
-            $until = $now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        $until = $this->safe_integer($paramsPaginate, 'until', $now);
+        $timeDelta = $this->parse_timeframe($timeframe) * $maxLimit * 1000;
+        if ($since === null) {
+            $request['from'] = $this->parse_to_int(($until - $timeDelta) / 1000); // convert to seconds
+        } else {
+            $request['from'] = $this->parse_to_int($since / 1000); // convert to seconds
         }
-        if ($start === null) {
-            $start = $until - $timeDelta;
-        }
-        $request['from'] = $this->parse_to_int($start / 1000); // convert to seconds
         $request['to'] = $this->parse_to_int($until / 1000); // convert to seconds
         $paramsOmitted = $this->omit($paramsPaginate, 'until');
         $response = Async\await($this->publicGetChart($this->extend($request, $paramsOmitted)));
@@ -1317,7 +1315,7 @@ class hollaex extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'new' => 'open',
             'pfilled' => 'open',
@@ -1955,10 +1953,11 @@ class hollaex extends Exchange {
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $currencyResolved = $this->safe_currency($currencyId, $currency);
-        $status = $this->safe_value($transaction, 'status');
+        $completed = $this->safe_bool($transaction, 'status');
         $dismissed = $this->safe_bool($transaction, 'dismissed');
         $rejected = $this->safe_bool($transaction, 'rejected');
-        if ($status === true) {
+        $status = null;
+        if ($completed === true) {
             $status = 'ok';
         } elseif ($dismissed === true) {
             $status = 'canceled';
@@ -2195,7 +2194,8 @@ class hollaex extends Exchange {
         $requestHeaders = null;
         if ($api[0] === 'private') {
             $this->check_required_credentials();
-            $defaultExpires = $this->safe_integer_2($this->options, 'api-expires', 'expires', $this->parse_to_int($this->timeout / 1000));
+            $timeoutMs = $this->parse_to_int($this->timeout);
+            $defaultExpires = $this->safe_integer_2($this->options, 'api-expires', 'expires', $this->parse_to_int($timeoutMs / 1000));
             $expires = $this->sum($this->seconds(), $defaultExpires);
             $expiresString = (string) $expires;
             $auth = $method . $requestPath . $expiresString;
@@ -2223,7 +2223,8 @@ class hollaex extends Exchange {
         if ($response === null) {
             return null;
         }
-        if (($code >= 400) && ($code <= 503)) {
+        $statusCode = $this->parse_to_int($code);
+        if (($statusCode >= 400) && ($statusCode <= 503)) {
             //
             //  { "message": "Invalid token" }
             //

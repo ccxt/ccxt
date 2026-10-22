@@ -840,7 +840,6 @@ class paradex(Exchange, ImplicitAPI):
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             'symbol': market['id'],
         }
-        maxLimit = 1000  # exchange has undocumented limit slightly above, but this is reliable limit
         duration = self.parse_timeframe(timeframe)
         price = self.safe_string(params, 'price')
         if price is not None:
@@ -848,15 +847,19 @@ class paradex(Exchange, ImplicitAPI):
         requestUntil, paramsUntil = self.handle_until_option('end_at', request, params)
         hasEnd = ('end_at' in request)
         paramsOmitted = self.omit(paramsUntil, ['price'])
-        limitResolved = maxLimit if (limit is None) else min(limit, maxLimit)
+        # exchange has undocumented limit slightly above, but 1000 is reliable limit
+        limitResolved = 1000 if ((limit is None) or (limit > 1000)) else limit
+        windowLength = self.parse_to_int(duration * (self.parse_to_int(limitResolved) + 1) * 1000)
         if since is not None:
             requestUntil['start_at'] = since
             if not hasEnd:
-                requestUntil['end_at'] = since + duration * (limitResolved + 1) * 1000 - 1
+                sinceInt = self.parse_to_int(since)
+                requestUntil['end_at'] = sinceInt + windowLength - 1
         else:
-            if not hasEnd:
-                requestUntil['end_at'] = self.milliseconds()
-            requestUntil['start_at'] = requestUntil['end_at'] - duration * (limitResolved + 1) * 1000 + 1
+            endAtRaw = self.safe_integer(requestUntil, 'end_at', 0) if hasEnd else self.milliseconds()
+            endAt = self.parse_to_int(endAtRaw)
+            requestUntil['end_at'] = endAt
+            requestUntil['start_at'] = endAt - windowLength + 1
         response = self.publicGetMarketsKlines(self.extend(requestUntil, paramsOmitted))
         #
         #     {
@@ -1364,7 +1367,7 @@ class paradex(Exchange, ImplicitAPI):
             'info': interest,
         }, marketResolved)
 
-    def hash_message(self, message: object):
+    def hash_message(self, message: object) -> str:
         hashed = self.hash(message, 'keccak', 'hex')
         return '0x' + hashed
 
@@ -1444,7 +1447,7 @@ class paradex(Exchange, ImplicitAPI):
 
     def authenticate_rest(self, params: dict = {}) -> Str:
         cachedToken = self.safe_string(self.options, 'authToken')
-        now = self.nonce()
+        now = self.parse_to_int(self.nonce())
         if cachedToken is not None:
             cachedExpires = self.safe_integer(self.options, 'expires')
             if cachedExpires is None:
@@ -1576,7 +1579,7 @@ class paradex(Exchange, ImplicitAPI):
             'info': order,
         }, marketResolved)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'IOC': 'IOC',
             'GTC': 'GTC',
@@ -1584,7 +1587,7 @@ class paradex(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         if status is not None:
             statuses = {
                 'NEW': 'open',
@@ -1595,7 +1598,7 @@ class paradex(Exchange, ImplicitAPI):
             return self.safe_string(statuses, status, status)
         return None
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -1604,7 +1607,7 @@ class paradex(Exchange, ImplicitAPI):
         }
         return self.safe_string_lower(types, type, type)
 
-    def scale_number(self, num: str):
+    def scale_number(self, num: str) -> Str:
         return Precise.string_mul(num, '100000000')
 
     def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
@@ -1685,7 +1688,7 @@ class paradex(Exchange, ImplicitAPI):
 
     def sign_order_request(self, request: dict, modify: bool = False) -> dict:
         account = self.retrieve_account()
-        now = self.nonce()
+        now = self.parse_to_int(self.nonce())
         orderType = self.safe_string(request, 'type')
         if orderType is None:
             raise ExchangeError(self.id + ' signOrderRequest() missing orderType')
@@ -2766,7 +2769,7 @@ class paradex(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'PENDING': 'pending',
             'AVAILABLE': 'pending',

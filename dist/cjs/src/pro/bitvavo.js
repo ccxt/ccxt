@@ -741,7 +741,8 @@ class bitvavo extends bitvavo$1["default"] {
         //     }
         //
         const nonce = this.safeInteger(message, 'nonce');
-        if (nonce > orderbook['nonce']) {
+        const currentNonce = this.safeInteger(orderbook, 'nonce');
+        if ((nonce !== undefined) && (currentNonce !== undefined) && (nonce > currentNonce)) {
             this.handleDeltas(orderbook['asks'], this.safeList(message, 'asks', []));
             this.handleDeltas(orderbook['bids'], this.safeList(message, 'bids', []));
             orderbook['nonce'] = nonce;

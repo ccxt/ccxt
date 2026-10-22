@@ -2355,7 +2355,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'open': 'open',
             'cancelled': 'canceled',
@@ -2365,7 +2365,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'stop_limit': 'limit',
             'take_limit': 'limit',
@@ -3095,7 +3095,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         rpcMethod = access + '/' + path
         requestParams = self.handle_route_and_params('sign', params)
         isNativeDeribit = self.is_native_deribit_credentials()
-        baseApiUrl = self.urls['api']['rest']
+        baseApiUrl = self.safe_string(self.urls['api'], 'rest', '')
         if isNativeDeribit:
             baseApiUrl = 'https://www.deribit.com/api/v2'
         url = baseApiUrl + '/' + rpcMethod

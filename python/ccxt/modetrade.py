@@ -809,9 +809,6 @@ class modetrade(Exchange, ImplicitAPI):
         amount = self.safe_string(trade, 'executed_quantity')
         order_id = self.safe_string(trade, 'order_id')
         fee = self.parse_token_and_fee_temp(trade, 'fee_asset', 'fee')
-        feeCost = self.safe_string(fee, 'cost')
-        if (feeCost is not None) and (fee is not None):
-            fee['cost'] = feeCost
         cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
         id = self.safe_string(trade, 'id')
@@ -895,7 +892,7 @@ class modetrade(Exchange, ImplicitAPI):
         fundingTimeString = self.safe_string(fundingRate, 'last_funding_rate_timestamp')
         nextFundingTimeString = self.safe_string(fundingRate, 'next_funding_time')
         millisecondsInterval = Precise.string_sub(nextFundingTimeString, fundingTimeString)
-        fundingSymbol = marketValue['symbol'] if (marketValue is not None) else None
+        fundingSymbol = self.safe_string(marketValue, 'symbol')
         return {
             'info': fundingRate,
             'symbol': fundingSymbol,
@@ -1556,7 +1553,7 @@ class modetrade(Exchange, ImplicitAPI):
             'info': order,
         }, marketResolved)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -1566,7 +1563,7 @@ class modetrade(Exchange, ImplicitAPI):
             return None
         return self.safe_string(timeInForces, timeInForce)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         if status is not None:
             statuses = {
                 'NEW': 'open',
@@ -1584,7 +1581,7 @@ class modetrade(Exchange, ImplicitAPI):
             return self.safe_string(statuses, status, status)
         return None
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -1626,7 +1623,8 @@ class modetrade(Exchange, ImplicitAPI):
         hasStopLoss = stopLoss is not None
         hasTakeProfit = takeProfit is not None
         algoType = self.safe_string(params, 'algoType')
-        isConditional = triggerPrice is not None or hasStopLoss or hasTakeProfit or (self.safe_value(params, 'childOrders') is not None)
+        paramsChildOrders = self.safe_value(params, 'childOrders')
+        isConditional = triggerPrice is not None or hasStopLoss or hasTakeProfit or (paramsChildOrders is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
@@ -1730,7 +1728,8 @@ class modetrade(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
-        isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
+        childOrders = self.safe_value(params, 'childOrders')
+        isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (childOrders is not None)
         response: dict
         if isConditional:
             response = self.v1PrivatePostAlgoOrder(request)
@@ -1795,7 +1794,8 @@ class modetrade(Exchange, ImplicitAPI):
             triggerPrice = self.safe_string_2(orderParams, 'triggerPrice', 'stopPrice')
             stopLoss = self.safe_dict(orderParams, 'stopLoss')
             takeProfit = self.safe_dict(orderParams, 'takeProfit')
-            isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(orderParams, 'childOrders') is not None)
+            childOrders = self.safe_value(orderParams, 'childOrders')
+            isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (childOrders is not None)
             if isConditional:
                 raise NotSupported(self.id + ' createOrders() only support non-stop order')
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
@@ -1853,7 +1853,8 @@ class modetrade(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
         if triggerPrice is not None:
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-        isConditional = (triggerPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
+        childOrders = self.safe_value(params, 'childOrders')
+        isConditional = (triggerPrice is not None) or (childOrders is not None)
         orderQtyKey = 'order_quantity'
         if isConditional:
             orderQtyKey = 'quantity'
@@ -2413,7 +2414,7 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_balance(data)
 
-    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> object:
+    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> object:
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -2584,7 +2585,7 @@ class modetrade(Exchange, ImplicitAPI):
             'network': None,  # raw rows carry only a chain id, no mapping to unified network codes exists yet
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',

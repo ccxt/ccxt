@@ -204,18 +204,16 @@ class binance(PredictionExchange, ImplicitAPI):
         :param dict [rest]: extra params forwarded verbatim to the listing endpoint(l1Category, l2Category, sortBy, orderBy)
         :returns dict[]: raw market topic objects
         """
-        maxTopicsResolved = self.safe_integer(self.options, 'maxFetchMarketsLimit', 200) if (maxTopics is None) else maxTopics
-        pageLimit = self.safe_integer(self.options, 'marketsPageLimit', 100)
-        if pageLimit > 100:
-            pageLimit = 100
+        maxTopicsOption = self.safe_integer(self.options, 'maxFetchMarketsLimit', 200)
+        maxTopicsResolved = maxTopics if (maxTopics is not None) else maxTopicsOption
+        pageLimitOption = self.safe_integer(self.options, 'marketsPageLimit', 100)
+        pageLimit = 100 if (pageLimitOption > 100) else pageLimitOption
         collected = []
         offset = 0
         while(True):
-            reqLimit = pageLimit
             collectedLength = len(collected)
             remaining = maxTopicsResolved - collectedLength
-            if remaining < reqLimit:
-                reqLimit = remaining
+            reqLimit = remaining if (remaining < pageLimit) else pageLimit
             if reqLimit <= 0:
                 break
             request = {
@@ -415,11 +413,8 @@ class binance(PredictionExchange, ImplicitAPI):
         seen = {}
         collected = []
         queriesLength = len(queries)
-        limitResolved = limit
-        if limit is None:
-            limitResolved = 20
-        elif limit > 50:
-            limitResolved = 50
+        limitValue = 20 if (limit is None) else limit
+        limitResolved = 50 if (limitValue > 50) else limitValue
         for qi in range(0, queriesLength):
             request = {
                 'query': queries[qi],
@@ -449,7 +444,7 @@ class binance(PredictionExchange, ImplicitAPI):
                         collected.append(rawTopic)
         capped = collected
         collectedLength = len(collected)
-        if (limitResolved is not None) and (collectedLength > limitResolved):
+        if collectedLength > limitResolved:
             capped = self.array_slice(collected, 0, limitResolved)
         return await self.complete_raw_topics(capped)
 
@@ -466,7 +461,7 @@ class binance(PredictionExchange, ImplicitAPI):
         events = await self.fetch_events(self.extend({'eventId': id}, params))
         return self.safe_dict(events, 0)
 
-    def parse_event(self, rawTopic: dict) -> object:
+    def parse_event(self, rawTopic: dict) -> dict:
         """
  @ignore
         parses a raw binance market topic(with nested markets) into the unified event shape
