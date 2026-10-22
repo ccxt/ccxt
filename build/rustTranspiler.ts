@@ -12571,9 +12571,10 @@ impl std::ops::DerefMut for ${coreName} {
             if (name === 'get_array_length' && a.length === 1) {
                 return `({ let __r29o: &Value = ${a[0]}; match __r29o { Value::Dict(__d) if __d.contains_key("__sideKind") && !__d.contains_key("__cacheKind") && !matches!(__d.get("__book_cache_id"), Some(Value::Int(_))) => Value::Int(crate::value::side_entries_as_value(__r29o).map(|__s| __s.len()).unwrap_or(0) as i64), _ => Value::Int(__r29o.len() as i64) } })`;
             }
-            if (name === 'remove' && a.length === 2 && a[0].startsWith('&mut ')) {
-                return `{ let __r29o: &mut Value = ${a[0]}; let __r29k: &Value = ${a[1]}; match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => { if let Some(Value::Str(__u)) = __m.get("__ws_subs_url") { crate::pro::ws_client::value_subs_remove(__u, __k); } std::sync::Arc::make_mut(__m).shift_remove(&**__k); } (Value::Arr(__a), Value::Int(__i)) => { let __i = *__i as usize; let __a = std::sync::Arc::make_mut(__a); if __i < __a.len() { __a.remove(__i); } } _ => {} } }`;
-            }
+            // hx5 X36 — `remove` is never inlined. Every generated receiver is a `Value` (no typed
+            // `IndexMap` local exists in emitted Rust), so no site proves a plain map and the native
+            // `shift_remove` would also skip `try_ws_subs_remove`; `remove(...)` stays the helper call.
+            if (name === 'remove') return undefined;
             return undefined;
         };
         const re = /(?<![A-Za-z0-9_:.])(in_op|object_keys|get_array_length|remove)\(/g;
