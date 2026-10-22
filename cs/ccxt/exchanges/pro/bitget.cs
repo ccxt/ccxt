@@ -572,6 +572,7 @@ public partial class bitget : ccxt.bitget
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -591,11 +592,16 @@ public partial class bitget : ccxt.bitget
         (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchOHLCV", "uta", false);
         bool? uta = utaparamsUtaVariable.Item1;
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaparamsUtaVariable.Item2);
-        var instTypeparamsInstTypeVariable = this.getInstType("watchOHLCV", market, uta, paramsUta);
+        bool? stockDefault = this.safeBool(market, "stock", false);
+        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(paramsUta, "watchOHLCV", "stock", stockDefault);
+        bool? stock = stockparamsStockVariable.Item1;
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
+        bool isStockOrUta = (((stock == true)) || ((uta == true)));
+        var instTypeparamsInstTypeVariable = this.getInstType("watchOHLCV", market, isStockOrUta, paramsStock);
         var instType = instTypeparamsInstTypeVariable[0];
         var paramsInstType = instTypeparamsInstTypeVariable[1];
         object paramsRequest = paramsInstType;
-        if ((uta == true))
+        if (isStockOrUta)
         {
             paramsRequest = this.extend(paramsInstType, new Dictionary<string, object>() {
                 { "uta", true },
@@ -604,7 +610,7 @@ public partial class bitget : ccxt.bitget
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
         };
-        if ((uta == true))
+        if (isStockOrUta)
         {
             args["topic"] = "kline";
             args["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
@@ -616,7 +622,7 @@ public partial class bitget : ccxt.bitget
             args["instId"] = (market.ContainsKey("id") ? market["id"] : null);
             messageHash = ((("candles:" + (timeframeVar)) + ":") + symbolValue);
         }
-        object ohlcv = await this.watchPublic(uta, messageHash, args, paramsRequest);
+        object ohlcv = await this.watchPublic(isStockOrUta, messageHash, args, paramsRequest);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
@@ -636,6 +642,7 @@ public partial class bitget : ccxt.bitget
      * @param {string} [timeframe] the period for the ratio, default is 1 minute
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
@@ -654,11 +661,16 @@ public partial class bitget : ccxt.bitget
         object messageHash = null;
         (bool?, object) values = this.handleOptionBoolAndParams(parameters, "watchOHLCV", "uta", false);
         bool? uta = values.Item1;
-        var instTypeparamsInstTypeVariable = this.getInstType("watchOHLCV", market, uta, parameters);
+        bool? stockDefault = this.safeBool(market, "stock", false);
+        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "watchOHLCV", "stock", stockDefault);
+        bool? stock = stockparamsStockVariable.Item1;
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
+        bool isStockOrUta = (((stock == true)) || ((uta == true)));
+        var instTypeparamsInstTypeVariable = this.getInstType("watchOHLCV", market, isStockOrUta, paramsStock);
         var instType = instTypeparamsInstTypeVariable[0];
         var paramsInstType = instTypeparamsInstTypeVariable[1];
         object paramsRequest = paramsInstType;
-        if ((uta == true))
+        if (isStockOrUta)
         {
             paramsRequest = this.extend(paramsInstType, new Dictionary<string, object>() {
                 { "uta", true },
@@ -668,7 +680,7 @@ public partial class bitget : ccxt.bitget
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
         };
-        if ((uta == true))
+        if (isStockOrUta)
         {
             channel = "kline";
             args["topic"] = channel;
@@ -823,7 +835,8 @@ public partial class bitget : ccxt.bitget
         //     }
         //
         int volumeIndex = 5;
-        if (((market != null)) && (isEqual(getValue(market, "inverse"), true)))
+        bool? isInverse = this.safeBool(market, "inverse", false);
+        if ((isInverse == true))
         {
             volumeIndex = 6;
         }
@@ -841,6 +854,7 @@ public partial class bitget : ccxt.bitget
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
@@ -860,6 +874,7 @@ public partial class bitget : ccxt.bitget
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
@@ -869,13 +884,29 @@ public partial class bitget : ccxt.bitget
         {
             await this.loadMarkets();
         }
+        Dictionary<string, object> market = this.market(symbol);
+        bool? stockDefault = this.safeBool(market, "stock", false);
+        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "unWatchOrderBook", "stock", stockDefault);
+        bool? stock = stockparamsStockVariable.Item1;
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
+        (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(paramsStock, "unWatchOrderBook", "uta", false);
+        bool? uta = utaparamsUtaVariable.Item1;
+        IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaparamsUtaVariable.Item2);
+        bool isStockOrUta = (((stock == true)) || ((uta == true)));
+        object paramsRequest = paramsUta;
+        if (isStockOrUta)
+        {
+            paramsRequest = this.extend(paramsUta, new Dictionary<string, object>() {
+                { "uta", true },
+            });
+        }
         string channel = "books";
-        Int64? limit = this.safeInteger(parameters, "limit");
+        Int64? limit = this.safeInteger(paramsRequest, "limit");
         bool isFixedDepth = ((limit == 1)) || ((limit == 5)) || ((limit == 15)) || ((limit == 50));
-        object paramsOmitted = parameters;
+        object paramsOmitted = paramsRequest;
         if (isFixedDepth)
         {
-            paramsOmitted = this.omit(parameters, "limit");
+            paramsOmitted = this.omit(paramsRequest, "limit");
         }
         if (isFixedDepth)
         {
@@ -896,7 +927,10 @@ public partial class bitget : ccxt.bitget
         (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, methodName, "uta", false);
         bool? uta = utaparamsUtaVariable.Item1;
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaparamsUtaVariable.Item2);
-        var instTypeparamsInstTypeVariable = this.getInstType(methodName, market, uta, paramsUta);
+        (bool?, object) privateChannelparamsPrivateChannelVariable = this.handleOptionBoolAndParams(paramsUta, methodName, "privateChannel", false);
+        bool? privateChannel = privateChannelparamsPrivateChannelVariable.Item1;
+        IDictionary<string, object> paramsPrivateChannel = ((IDictionary<string, object>)privateChannelparamsPrivateChannelVariable.Item2);
+        var instTypeparamsInstTypeVariable = this.getInstType(methodName, market, uta, paramsPrivateChannel);
         var instType = instTypeparamsInstTypeVariable[0];
         var paramsInstType = instTypeparamsInstTypeVariable[1];
         object paramsRequest = paramsInstType;
@@ -913,11 +947,18 @@ public partial class bitget : ccxt.bitget
         {
             args["topic"] = channel;
             args["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
-            args["interval"] = this.safeString(paramsInstType, "interval", "1m");
+            if ((channel is "kline"))
+            {
+                args["interval"] = this.safeString(paramsInstType, "interval", "1m");
+            }
         } else
         {
             args["channel"] = channel;
             args["instId"] = (market.ContainsKey("id") ? market["id"] : null);
+        }
+        if ((privateChannel == true))
+        {
+            return await this.unWatchPrivate(uta, messageHash, args, paramsRequest);
         }
         return await this.unWatchPublic(uta, messageHash, args, paramsRequest);
     }
@@ -933,6 +974,7 @@ public partial class bitget : ccxt.bitget
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
@@ -943,6 +985,20 @@ public partial class bitget : ccxt.bitget
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        int symbolsLength = (symbolsNormalized?.Count ?? 0);
+        Dictionary<string, object> firstMarket = null;
+        if (symbolsLength > 0)
+        {
+            firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+        }
+        bool? stockDefault = this.safeBool(firstMarket, "stock", false);
+        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "watchOrderBookForSymbols", "stock", stockDefault);
+        bool? stock = stockparamsStockVariable.Item1;
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
+        (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(paramsStock, "watchOrderBookForSymbols", "uta", false);
+        bool? uta = utaparamsUtaVariable.Item1;
+        IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaparamsUtaVariable.Item2);
+        bool isStockOrUta = (((stock == true)) || ((uta == true)));
         string channel = "books";
         bool incrementalFeed = true;
         if (((limit == 1)) || ((limit == 5)) || ((limit == 15)) || ((limit == 50)))
@@ -952,15 +1008,12 @@ public partial class bitget : ccxt.bitget
         }
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchOrderBookForSymbols", "uta", false);
-        bool? uta = utaparamsUtaVariable.Item1;
-        IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaparamsUtaVariable.Item2);
         object paramsCursor = paramsUta;
-        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
+        for (int i = 0; i < symbolsLength; i++)
         {
-            string? symbol = ((string)symbolsNormalized[i]);
+            string? symbol = ((string)(symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null));
             Dictionary<string, object> market = this.market(symbol);
-            var instTypeparamsInstTypeVariable = this.getInstType("watchOrderBookForSymbols", market, uta, paramsCursor);
+            var instTypeparamsInstTypeVariable = this.getInstType("watchOrderBookForSymbols", market, isStockOrUta, paramsCursor);
             var instType = instTypeparamsInstTypeVariable[0];
             var paramsInstType = instTypeparamsInstTypeVariable[1];
             paramsCursor = paramsInstType;
@@ -968,12 +1021,12 @@ public partial class bitget : ccxt.bitget
                 { "instType", instType },
             };
             string topicOrChannel = "channel";
-            if ((uta == true))
+            if (isStockOrUta)
             {
                 topicOrChannel = "topic";
             }
             string symbolOrInstId = "instId";
-            if ((uta == true))
+            if (isStockOrUta)
             {
                 symbolOrInstId = "symbol";
             }
@@ -982,11 +1035,11 @@ public partial class bitget : ccxt.bitget
             topics.Add(args);
             messageHashes.Add(("orderbook:" + symbol));
         }
-        if ((uta == true))
+        if (isStockOrUta)
         {
             ((IDictionary<string,object>)paramsCursor)["uta"] = true;
         }
-        object orderbook = await this.watchPublicMultiple(uta, messageHashes, topics, paramsCursor);
+        object orderbook = await this.watchPublicMultiple(isStockOrUta, messageHashes, topics, paramsCursor);
         if (incrementalFeed)
         {
             return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
@@ -1056,10 +1109,19 @@ public partial class bitget : ccxt.bitget
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orderbook:" + symbol);
-        List<object> data = this.safeList(message, "data");
-        IDictionary<string, object> rawOrderBook = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        object data = this.safeValue(message, "data");
+        IDictionary<string, object> rawOrderBook = this.safeDict(data, 0);
+        if ((rawOrderBook == null))
+        {
+            // tokenized stock snapshots arrive as a plain dict instead of a list
+            rawOrderBook = this.safeDict(message, "data");
+        }
+        if ((rawOrderBook == null))
+        {
+            return;
+        }
         Int64? timestamp = this.safeInteger(rawOrderBook, "ts");
-        bool incrementalBook = channel == "books";
+        bool incrementalBook = (channel == "books");
         if (incrementalBook)
         {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
@@ -1488,8 +1550,8 @@ public partial class bitget : ccxt.bitget
             { "type", this.safeString(trade, "orderType") },
             { "side", this.safeString2(trade, "side", "S") },
             { "takerOrMaker", this.safeString(trade, "tradeScope") },
-            { "price", this.safeStringN(trade, new List<object>() {"priceAvg", "price", "execPrice", "P"}) },
-            { "amount", this.safeStringN(trade, new List<object>() {"size", "baseVolume", "execQty", "v"}) },
+            { "price", this.safeStringN(trade, new List<object>() {"priceAvg", "price", "execPrice", "P", "p"}) },
+            { "amount", this.safeStringN(trade, new List<object>() {"size", "baseVolume", "execQty", "v", "qty"}) },
             { "cost", this.safeStringN(trade, new List<object>() {"amount", "quoteVolume", "execValue"}) },
             { "fee", fee },
         }, marketResolved);
@@ -2648,6 +2710,7 @@ public partial class bitget : ccxt.bitget
      * @param {string} [params.instType] one of 'SPOT', 'MARGIN', 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin balances
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock balances, defaults to false
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
@@ -2656,7 +2719,11 @@ public partial class bitget : ccxt.bitget
         (bool?, object) utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchBalance", "uta", false);
         bool? uta = utaparamsUtaVariable.Item1;
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaparamsUtaVariable.Item2);
-        IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, paramsUta);
+        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(paramsUta, "watchBalance", "stock", false);
+        bool? stock = stockparamsStockVariable.Item1;
+        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
+        bool isStockOrUta = (((stock == true)) || ((uta == true)));
+        IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, paramsStock);
         string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchBalance", paramsMarketType);
@@ -2670,7 +2737,7 @@ public partial class bitget : ccxt.bitget
         } else if ((marginMode != null))
         {
             instTypeDefault = "MARGIN";
-            if (!(uta == true))
+            if (!isStockOrUta)
             {
                 if ((marginMode == "isolated"))
                 {
@@ -2680,7 +2747,7 @@ public partial class bitget : ccxt.bitget
                     channel = "account-crossed";
                 }
             }
-        } else if (!(uta == true))
+        } else if (!isStockOrUta)
         {
             instTypeDefault = "SPOT";
         }
@@ -2688,7 +2755,7 @@ public partial class bitget : ccxt.bitget
         string? instTypeOption = instTypeOptionparamsInstTypeVariable.Item1;
         IDictionary<string, object> paramsInstType = ((IDictionary<string, object>)instTypeOptionparamsInstTypeVariable.Item2);
         string? instType = instTypeOption;
-        if ((uta == true))
+        if (isStockOrUta)
         {
             instType = "UTA";
         }
@@ -2696,25 +2763,25 @@ public partial class bitget : ccxt.bitget
             { "instType", instType },
         };
         string topicOrChannel = "channel";
-        if ((uta == true))
+        if (isStockOrUta)
         {
             topicOrChannel = "topic";
         }
         args[(string)topicOrChannel] = channel;
         object paramsRequest = paramsInstType;
-        if ((uta == true))
+        if (isStockOrUta)
         {
             paramsRequest = this.extend(paramsInstType, new Dictionary<string, object>() {
                 { "uta", true },
             });
         }
-        if (!(uta == true))
+        if (!isStockOrUta)
         {
             args["coin"] = "default";
         }
         string instTypeLower = ((instType == null)) ? "" : instType.ToLower();
         string messageHash = ("balance:" + instTypeLower);
-        return ccxt.BaseExchange.ToBalances(await this.watchPrivate(uta, messageHash, messageHash, args, paramsRequest));
+        return ccxt.BaseExchange.ToBalances(await this.watchPrivate(isStockOrUta, messageHash, messageHash, args, paramsRequest));
     }
 
     public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
@@ -2923,6 +2990,37 @@ public partial class bitget : ccxt.bitget
                 }
             }
         }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "op", "unsubscribe" },
+            { "args", new List<object>() {args} },
+        };
+        Dictionary<string, object> message = this.extend(request, parameters);
+        return await this.watch(url, messageHash, message, messageHash);
+    }
+
+    public async virtual Task<object> unWatchPrivate(object uta, object messageHash, object args, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        bool isUta = ((uta is true));
+        object url = isUta ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "utaPrivate") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+        bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        if ((sandboxMode == true))
+        {
+            string? instType = this.safeString(args, "instType");
+            if ((instType != "SCOIN-FUTURES") && (instType != "SUSDT-FUTURES") && (instType != "SUSDC-FUTURES"))
+            {
+                if (isUta)
+                {
+                    url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "utaPrivate");
+                } else
+                {
+                    url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "demo"), "private");
+                }
+            }
+        }
+        await this.authenticate(new Dictionary<string, object>() {
+            { "url", url },
+        });
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "unsubscribe" },
             { "args", new List<object>() {args} },

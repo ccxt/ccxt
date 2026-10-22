@@ -1473,7 +1473,7 @@ export default class paradex extends Exchange {
 
     async prepareParadexDomain (l1: boolean = false): Promise<Dict> {
         const systemConfig = await this.getSystemConfig ();
-        if (l1 === true) {
+        if (l1) {
             const l1D = {
                 'name': 'Paradex',
                 'chainId': systemConfig['l1_chain_id'],

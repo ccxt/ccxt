@@ -989,7 +989,7 @@ export default class apex extends apexRest {
                 throw new ExchangeError (feedback);
             }
             const success = this.safeBool (message, 'success');
-            if ((success !== undefined) && (success !== true)) {
+            if ((success !== undefined) && (!success)) {
                 const ret_msg = this.safeString (message, 'ret_msg');
                 const request = this.safeDict (message, 'request', {});
                 const op = this.safeString (request, 'op');

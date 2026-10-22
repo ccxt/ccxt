@@ -1574,7 +1574,7 @@ export default class dydx extends Exchange {
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         const paramsOmitted: Dict = this.omit (params, [ 'trigger', 'stop' ]);
-        if ((isTrigger !== true) && (symbol === undefined)) {
+        if ((!isTrigger) && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -1594,7 +1594,7 @@ export default class dydx extends Exchange {
         const goodTillBlockTimeInSeconds = 2592000;
         const [ goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds ] = this.handleOptionIntegerAndParams (paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         let goodTillBlockTime: Num = undefined;
-        const defaultOrderFlags = (isTrigger === true) ? 32 : 64;
+        const defaultOrderFlags = (isTrigger) ? 32 : 64;
         const orderFlags = this.safeInteger (paramsGoodTillBlockTimeInSeconds, 'orderFlags', defaultOrderFlags);
         const subAccountId = 0;
         const subAccountIdOption = this.handleOptionIntegerAndParams (paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId)[0];

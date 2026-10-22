@@ -785,7 +785,7 @@ export default class kalshi extends Exchange {
         //
         const tradingActive = this.safeBool (response, 'trading_active', false);
         return {
-            'status': (tradingActive === true) ? 'ok' : 'maintenance',
+            'status': (tradingActive) ? 'ok' : 'maintenance',
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
@@ -1490,7 +1490,7 @@ export default class kalshi extends Exchange {
         }
         const isTaker = this.safeBool (fill, 'is_taker', true);
         let takerOrMaker: Str = 'maker';
-        if (isTaker === true) {
+        if (isTaker) {
             takerOrMaker = 'taker';
         }
         const feeCost = this.safeNumber (fill, 'fee_cost');

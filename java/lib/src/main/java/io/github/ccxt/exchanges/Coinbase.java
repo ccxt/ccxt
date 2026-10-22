@@ -442,18 +442,6 @@ public class Coinbase extends CoinbaseApi
                             put( "brokerage/cfm/intraday/margin_setting", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
-                            put( "brokerage/intx/balances/{portfolio_uuid}", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "brokerage/intx/portfolio/{portfolio_uuid}", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "brokerage/intx/positions/{portfolio_uuid}", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "brokerage/intx/positions/{portfolio_uuid}/{symbol}", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
                             put( "brokerage/payment_methods", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -496,12 +484,6 @@ public class Coinbase extends CoinbaseApi
                                 put( "cost", 1 );
                             }} );
                             put( "brokerage/cfm/intraday/margin_setting", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "brokerage/intx/allocate", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
-                            }} );
-                            put( "brokerage/intx/multi_asset_collateral", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "brokerage/orders/close_position", new HashMap<String, Object>() {{
@@ -1625,6 +1607,11 @@ public class Coinbase extends CoinbaseApi
         if ((!java.util.Objects.equals(priceString, null)) && (!java.util.Objects.equals(amountString, null)))
         {
             cost = Precise.stringMul(priceString, amountString);
+            String contractSize = this.safeString(marketResolved, "contractSize");
+            if (!java.util.Objects.equals(contractSize, null))
+            {
+                cost = Precise.stringMul(cost, contractSize);
+            }
         } else
         {
             cost = costString;
@@ -1877,9 +1864,6 @@ public class Coinbase extends CoinbaseApi
             {
                 unresolvedContractPromises = new ArrayList<Object>(Arrays.asList(this.v3PublicGetBrokerageMarketProducts(this.extend(paramsUsePrivate, new HashMap<String, Object>() {{
         put( "product_type", "FUTURE" );
-    }})), this.v3PublicGetBrokerageMarketProducts(this.extend(paramsUsePrivate, new HashMap<String, Object>() {{
-        put( "product_type", "FUTURE" );
-        put( "contract_expiry_type", "PERPETUAL" );
     }}))));
             } catch(Exception e)
             {
@@ -2191,6 +2175,9 @@ public class Coinbase extends CoinbaseApi
         //           }
         //        }
         //
+        // if (this.safeString (market, 'product_venue') === 'INTX') {
+        //     return undefined; // INTX perpetuals were retired from Advanced Trade on 2026-10-01, they trade via coinbaseinternational now
+        // }
         String id = this.safeString(market, "product_id");
         Map<String, Object> futureProductDetails = (Map<String, Object>) this.safeDict(market, "future_product_details", new HashMap<String, Object>() {{}});
         String contractExpiryType = this.safeString(futureProductDetails, "contract_expiry_type");
@@ -2198,7 +2185,11 @@ public class Coinbase extends CoinbaseApi
         String contractExpire = this.safeString(futureProductDetails, "contract_expiry");
         Long expireTimestamp = this.parse8601(contractExpire);
         String expireDateTime = this.iso8601(expireTimestamp);
-        Boolean isSwap = (java.util.Objects.equals(contractExpiryType, "PERPETUAL"));
+        // US perpetual-style futures are listed as EXPIRING with a placeholder expiry, a funding interval, and a PERP display name
+        String fundingInterval = this.safeString(futureProductDetails, "funding_interval");
+        String displayName = this.safeString(market, "display_name");
+        Boolean isPerpetualDisplayName = (!java.util.Objects.equals(displayName, null)) && (displayName.endsWith(((String)"PERP")));
+        Boolean isSwap = (java.util.Objects.equals(contractExpiryType, "PERPETUAL")) || (!java.util.Objects.equals(fundingInterval, null)) || Boolean.TRUE.equals(isPerpetualDisplayName);
         String baseId = this.safeString(futureProductDetails, "contract_root_unit");
         String quoteId = this.safeString(market, "quote_currency_id");
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
@@ -2246,8 +2237,8 @@ public class Coinbase extends CoinbaseApi
         mapLiteral5.put("taker", taker);
         mapLiteral5.put("maker", maker);
         mapLiteral5.put("contractSize", contractSize);
-        mapLiteral5.put("expiry", expireTimestamp);
-        mapLiteral5.put("expiryDatetime", expireDateTime);
+        mapLiteral5.put("expiry", ((Boolean.TRUE.equals(isSwap))) ? null : expireTimestamp);
+        mapLiteral5.put("expiryDatetime", ((Boolean.TRUE.equals(isSwap))) ? null : expireDateTime);
         mapLiteral5.put("strike", null);
         mapLiteral5.put("optionType", null);
         mapLiteral5.put("precision", new HashMap<String, Object>() {{
@@ -2873,6 +2864,26 @@ public class Coinbase extends CoinbaseApi
 
     public Object parseCustomBalance(Map<String, Object> response, Map<String, Object> parameters)
     {
+        Map<String, Object> summary = (Map<String, Object>) this.safeDict(response, "balance_summary", new HashMap<String, Object>() {{}});
+        Map<String, Object> totalUsdBalanceData = (Map<String, Object>) this.safeDict(summary, "total_usd_balance", new HashMap<String, Object>() {{}});
+        Map<String, Object> futuresBuyingPowerData = (Map<String, Object>) this.safeDict(summary, "futures_buying_power", new HashMap<String, Object>() {{}});
+        String totalUsdBalance = this.safeString(totalUsdBalanceData, "value");
+        String futuresBuyingPower = this.safeString(futuresBuyingPowerData, "value");
+        if ((!java.util.Objects.equals(totalUsdBalance, null)) || (!java.util.Objects.equals(futuresBuyingPower, null)))
+        {
+            Object total = (((!java.util.Objects.equals(totalUsdBalance, null)))) ? totalUsdBalance : futuresBuyingPower;
+            Object free = (((!java.util.Objects.equals(futuresBuyingPower, null)))) ? futuresBuyingPower : total;
+            Object used = Precise.stringSub(total, free);
+            Map<String, Object> balanceResult = new HashMap<String, Object>() {{
+                put( "info", response );
+            }};
+            balanceResult.put("USD", new HashMap<String, Object>() {{
+    put( "free", free );
+    put( "used", used );
+    put( "total", total );
+}});
+            return this.safeBalance(balanceResult);
+        }
         List<Object> balances = (List<Object>) this.safeList2(response, "data", "accounts", new ArrayList<Object>(Arrays.asList()));
         Object accounts = this.safeList(parameters, "type", this.options.get("accounts"));
         Object v3Accounts = this.safeList(parameters, "type", this.options.get("v3Accounts"));
@@ -2948,7 +2959,7 @@ public class Coinbase extends CoinbaseApi
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
      * @see https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary
+     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/get-futures-balance-summary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
      * @param {string} [params.type] "spot" (default) or "swap" or "future"
@@ -2972,7 +2983,7 @@ public class Coinbase extends CoinbaseApi
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             String method = this.safeString(this.options, "fetchBalance", "v3PrivateGetBrokerageAccounts");
-            if (java.util.Objects.equals(marketType, "future"))
+            if ((java.util.Objects.equals(marketType, "future")) || (java.util.Objects.equals(marketType, "swap")))
             {
                 response = (this.v3PrivateGetBrokerageCfmBalanceSummary(this.extend(request, paramsMarketType))).join();
             } else if ((java.util.Objects.equals(isV3, true)) || (java.util.Objects.equals(method, "v3PrivateGetBrokerageAccounts")))
@@ -5753,11 +5764,9 @@ public class Coinbase extends CoinbaseApi
      * @method
      * @name coinbase#fetchPositions
      * @description fetch all open positions
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/list-futures-positions
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/list-perpetuals-positions
+     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/list-futures-positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.portfolio] the portfolio UUID to fetch positions for
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
@@ -5765,36 +5774,29 @@ public class Coinbase extends CoinbaseApi
 
         return BaseExchange.supplyAsync(() -> {
 
+            this.checkIntxPortfolioParam("fetchPositions", (Map<String, Object>) (parameters));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbolsNormalized, null))
-            {
-                market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
-            }
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchPositions", market, parameters, (String) null);
-            String marketType = marketTypeparamsMarketTypeVariable.first();
-            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            Map<String, Object> response = null;
-            if (java.util.Objects.equals(marketType, "future"))
-            {
-                response = (this.v3PrivateGetBrokerageCfmPositions(paramsMarketType)).join();
-            } else
-            {
-                Pair<String, Map<String, Object>> portfolioparamsPortfolioVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarketType), "fetchPositions", "portfolio", (String) null);
-                String portfolio = portfolioparamsPortfolioVariable.first();
-                Map<String, Object> paramsPortfolio = portfolioparamsPortfolioVariable.second();
-                if (java.util.Objects.equals(portfolio, null))
-                {
-                    throw new ArgumentsRequired((this.id + " fetchPositions() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()")) ;
-                }
-                Map<String, Object> request = new HashMap<String, Object>();
-                request.put("portfolio_uuid", portfolio);
-                response = (this.v3PrivateGetBrokerageIntxPositionsPortfolioUuid(this.extend(request, paramsPortfolio))).join();
-            }
+            Map<String, Object> response = (this.v3PrivateGetBrokerageCfmPositions(parameters)).join();
+            //
+            //     {
+            //         "positions": [
+            //             {
+            //                 "product_id": "BIT-26APR24-CDE",
+            //                 "expiration_time": "2024-04-26T15:00:00Z",
+            //                 "side": "LONG",
+            //                 "number_of_contracts": "2",
+            //                 "current_price": "71145",
+            //                 "avg_entry_price": "70980",
+            //                 "unrealized_pnl": "33",
+            //                 "daily_realized_pnl": "0"
+            //             }
+            //         ]
+            //     }
+            //
             List<Object> positions = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(positions, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -5805,12 +5807,9 @@ public class Coinbase extends CoinbaseApi
      * @method
      * @name coinbase#fetchPosition
      * @description fetch data on a single open contract trade position
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/get-perpetuals-position
-     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-position
-     * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/get-futures-position
+     * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.product_id] *futures only* the product id of the position to fetch, required for futures markets only
-     * @param {string} [params.portfolio] *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public CompletableFuture<Position> fetchPosition(Object symbol, Map<String, Object> parameters)
@@ -5818,167 +5817,77 @@ public class Coinbase extends CoinbaseApi
 
         return BaseExchange.supplyAsync(() -> {
 
+            this.checkIntxPortfolioParam("fetchPosition", (Map<String, Object>) (parameters));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("future"), true))
-            {
-                String productId = this.safeString(market, "product_id");
-                if (java.util.Objects.equals(productId, null))
-                {
-                    throw new ArgumentsRequired((this.id + " fetchPosition() requires a \"product_id\" in params")) ;
-                }
-                Map<String, Object> futureRequest = new HashMap<String, Object>();
-                futureRequest.put("product_id", productId);
-                response = (this.v3PrivateGetBrokerageCfmPositionsProductId(this.extend(futureRequest, parameters))).join();
-            } else
-            {
-                Pair<String, Map<String, Object>> portfolioparamsPortfolioVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositions", "portfolio", (String) null);
-                String portfolio = portfolioparamsPortfolioVariable.first();
-                Map<String, Object> paramsPortfolio = portfolioparamsPortfolioVariable.second();
-                if (java.util.Objects.equals(portfolio, null))
-                {
-                    throw new ArgumentsRequired((this.id + " fetchPosition() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()")) ;
-                }
-                Map<String, Object> request = new HashMap<String, Object>();
-                request.put("symbol", market.get("id"));
-                request.put("portfolio_uuid", portfolio);
-                response = (this.v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(this.extend(request, paramsPortfolio))).join();
-            }
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "product_id", market.get("id") );
+            }};
+            Map<String, Object> response = (this.v3PrivateGetBrokerageCfmPositionsProductId(this.extend(request, parameters))).join();
             Map<String, Object> position = (Map<String, Object>) this.safeDict(response, "position", new HashMap<String, Object>() {{}});
             return this.parsePosition((Map<String, Object>) (position), market);
         }).thenApply(Position::new);
 
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description throws a NotSupported error pointing to coinbaseinternational when an INTX perpetuals portfolio is requested
+     * @param {string} methodName the name of the calling method
+     * @param {object} params the parameters passed to the calling method
+     */
+    public void checkIntxPortfolioParam(Object methodName, Map<String, Object> parameters)
+    {
+        String portfolio = this.safeString(parameters, "portfolio");
+        if (!java.util.Objects.equals(portfolio, null))
+        {
+            throw new NotSupported((((this.id + " ") + methodName) + "() INTX perpetuals were removed from Coinbase Advanced Trade on 2026-10-01, use the coinbaseinternational exchange class for international perpetuals")) ;
+        }
+    }
+
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
-        // {
-        //     "product_id": "1r4njf84-0-0",
-        //     "product_uuid": "cd34c18b-3665-4ed8-9305-3db277c49fc5",
-        //     "symbol": "ADA-PERP-INTX",
-        //     "vwap": {
-        //        "value": "0.6171",
-        //        "currency": "USDC"
-        //     },
-        //     "position_side": "POSITION_SIDE_LONG",
-        //     "net_size": "20",
-        //     "buy_order_size": "0",
-        //     "sell_order_size": "0",
-        //     "im_contribution": "0.1",
-        //     "unrealized_pnl": {
-        //        "value": "0.074",
-        //        "currency": "USDC"
-        //     },
-        //     "mark_price": {
-        //        "value": "0.6208",
-        //        "currency": "USDC"
-        //     },
-        //     "liquidation_price": {
-        //        "value": "0",
-        //        "currency": "USDC"
-        //     },
-        //     "leverage": "1",
-        //     "im_notional": {
-        //        "value": "12.342",
-        //        "currency": "USDC"
-        //     },
-        //     "mm_notional": {
-        //        "value": "0.814572",
-        //        "currency": "USDC"
-        //     },
-        //     "position_notional": {
-        //        "value": "12.342",
-        //        "currency": "USDC"
-        //     },
-        //     "margin_type": "MARGIN_TYPE_CROSS",
-        //     "liquidation_buffer": "19.677828",
-        //     "liquidation_percentage": "4689.3506",
-        //     "portfolio_summary": {
-        //        "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
-        //        "collateral": "20.4184",
-        //        "position_notional": "12.342",
-        //        "open_position_notional": "12.342",
-        //        "pending_fees": "0",
-        //        "borrow": "0",
-        //        "accrued_interest": "0",
-        //        "rolling_debt": "0",
-        //        "portfolio_initial_margin": "0.1",
-        //        "portfolio_im_notional": {
-        //           "value": "12.342",
-        //           "currency": "USDC"
-        //        },
-        //        "portfolio_maintenance_margin": "0.066",
-        //        "portfolio_mm_notional": {
-        //           "value": "0.814572",
-        //           "currency": "USDC"
-        //        },
-        //        "liquidation_percentage": "4689.3506",
-        //        "liquidation_buffer": "19.677828",
-        //        "margin_type": "MARGIN_TYPE_CROSS",
-        //        "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
-        //        "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_NOT_LIQUIDATING",
-        //        "unrealized_pnl": {
-        //           "value": "0.074",
-        //           "currency": "USDC"
-        //        },
-        //        "buying_power": {
-        //           "value": "8.1504",
-        //           "currency": "USDC"
-        //        },
-        //        "total_balance": {
-        //           "value": "20.4924",
-        //           "currency": "USDC"
-        //        },
-        //        "max_withdrawal": {
-        //           "value": "8.0764",
-        //           "currency": "USDC"
-        //        }
-        //     },
-        //     "entry_vwap": {
-        //        "value": "0.6091",
-        //        "currency": "USDC"
+        //     {
+        //         "product_id": "BIT-26APR24-CDE",
+        //         "expiration_time": "2024-04-26T15:00:00Z",
+        //         "side": "LONG",
+        //         "number_of_contracts": "2",
+        //         "current_price": "71145",
+        //         "avg_entry_price": "70980",
+        //         "unrealized_pnl": "33",
+        //         "daily_realized_pnl": "0"
         //     }
-        // }
         //
-        String marketId = this.safeString(position, "symbol", "");
+        String marketId = this.safeString(position, "product_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String rawMargin = this.safeString(position, "margin_type");
-        String marginMode = null;
-        if (!java.util.Objects.equals(rawMargin, null))
-        {
-            marginMode = (((java.util.Objects.equals(rawMargin, "MARGIN_TYPE_CROSS")))) ? "cross" : "isolated";
-        }
-        Map<String, Object> notionalObject = (Map<String, Object>) this.safeDict(position, "position_notional", new HashMap<String, Object>() {{}});
-        String positionSide = this.safeString(position, "position_side");
-        String side = "short";
-        if (java.util.Objects.equals(positionSide, "POSITION_SIDE_LONG"))
+        String rawSide = this.safeString(position, "side");
+        String side = null;
+        if (java.util.Objects.equals(rawSide, "LONG"))
         {
             side = "long";
+        } else if (java.util.Objects.equals(rawSide, "SHORT"))
+        {
+            side = "short";
         }
-        Map<String, Object> unrealizedPNLObject = (Map<String, Object>) this.safeDict(position, "unrealized_pnl", new HashMap<String, Object>() {{}});
-        Map<String, Object> liquidationPriceObject = (Map<String, Object>) this.safeDict(position, "liquidation_price", new HashMap<String, Object>() {{}});
-        Double liquidationPrice = this.safeNumber(liquidationPriceObject, "value", (Object) null);
-        Map<String, Object> vwapObject = (Map<String, Object>) this.safeDict(position, "vwap", new HashMap<String, Object>() {{}});
-        Map<String, Object> summaryObject = (Map<String, Object>) this.safeDict(position, "portfolio_summary", new HashMap<String, Object>() {{}});
         HashMap<String, Object> mapLiteral28 = new HashMap<String, Object>();
         mapLiteral28.put("info", position);
         mapLiteral28.put("id", this.safeString(position, "product_id"));
         mapLiteral28.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
-        mapLiteral28.put("notional", this.safeNumber(notionalObject, "value", (Object) null));
-        mapLiteral28.put("marginMode", marginMode);
-        mapLiteral28.put("liquidationPrice", liquidationPrice);
-        mapLiteral28.put("entryPrice", this.safeNumber(vwapObject, "value", (Object) null));
-        mapLiteral28.put("unrealizedPnl", this.safeNumber(unrealizedPNLObject, "value", (Object) null));
-        mapLiteral28.put("realizedPnl", null);
+        mapLiteral28.put("notional", null);
+        mapLiteral28.put("marginMode", null);
+        mapLiteral28.put("liquidationPrice", null);
+        mapLiteral28.put("entryPrice", this.safeNumber(position, "avg_entry_price", (Object) null));
+        mapLiteral28.put("unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null));
+        mapLiteral28.put("realizedPnl", this.safeNumber(position, "daily_realized_pnl", (Object) null));
         mapLiteral28.put("percentage", null);
-        mapLiteral28.put("contracts", this.safeNumber(position, "net_size", (Object) null));
+        mapLiteral28.put("contracts", this.safeNumber(position, "number_of_contracts", (Object) null));
         mapLiteral28.put("contractSize", marketResolved.get("contractSize"));
-        mapLiteral28.put("markPrice", null);
+        mapLiteral28.put("markPrice", this.safeNumber(position, "current_price", (Object) null));
         mapLiteral28.put("lastPrice", null);
         mapLiteral28.put("side", side);
         mapLiteral28.put("hedged", null);
@@ -5987,10 +5896,10 @@ public class Coinbase extends CoinbaseApi
         mapLiteral28.put("lastUpdateTimestamp", null);
         mapLiteral28.put("maintenanceMargin", null);
         mapLiteral28.put("maintenanceMarginPercentage", null);
-        mapLiteral28.put("collateral", this.safeNumber(summaryObject, "collateral", (Object) null));
+        mapLiteral28.put("collateral", null);
         mapLiteral28.put("initialMargin", null);
         mapLiteral28.put("initialMarginPercentage", null);
-        mapLiteral28.put("leverage", this.safeNumber(position, "leverage", (Object) null));
+        mapLiteral28.put("leverage", null);
         mapLiteral28.put("marginRatio", null);
         mapLiteral28.put("stopLossPrice", null);
         mapLiteral28.put("takeProfitPrice", null);

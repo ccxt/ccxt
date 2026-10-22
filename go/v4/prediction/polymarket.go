@@ -4189,8 +4189,8 @@ func (this *Polymarket) EthChecksumAddress(address any) string {
 	}
 	return "0x" + result
 }
-func (this *Polymarket) SignHash(hash any, privateKey string) map[string]any {
-	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
+func (this *Polymarket) SignHash(hash any, privateKey any) map[string]any {
+	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, int64(-64), nil), ccxt.Slice(privateKey, int64(-64), nil), ccxt.Secp256k1, nil)
 	// assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
 	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
 	var sRaw *string = ccxt.SafeStringPtr(signature["s"])
@@ -6095,6 +6095,20 @@ func (this *Polymarket) FetchOptionChain(code string, options ...ccxt.FetchOptio
 func (this *Polymarket) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (ccxt.OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
+
+/**
+ * @method
+ * @name polymarket#fetchOrders
+ * @description fetches the latest known snapshot of up to one hundred orders
+ * @see https://docs.polymarket.com/perps/trading
+ * @param {string} [symbol] unified market symbol of the market orders were made in
+ * @param {int} [since] timestamp in ms of the earliest order
+ * @param {int} [limit] not sent to the venue, applied client-side
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest order
+ * @param {string} [params.clientOrderId] fetch the order with this client order id only
+ * @returns {ccxt.Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
 func (this *Polymarket) FetchOrders(params map[string]any, options ...FetchOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
 	opts := FetchOrdersOptionsStruct{}

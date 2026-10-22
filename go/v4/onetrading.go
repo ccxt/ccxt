@@ -1583,7 +1583,7 @@ func (this *Onetrading) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = r1.Value
+	var response map[string]any = MapTyped(r1.Raw)
 
 	//
 	//     {
@@ -2154,7 +2154,7 @@ func (this *Onetrading) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalAr
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = r1.Value
+	var response map[string]any = MapTyped(r1.Raw)
 	//
 	//     {
 	//         "order_history": [

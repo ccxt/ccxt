@@ -66,7 +66,7 @@ export default class bitfinex extends bitfinexRest {
         };
         const result = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, { 'checksum': false });
         const checksum = this.safeBool (this.options, 'checksum', true);
-        if ((checksum === true) && (channel === 'book')) {
+        if ((checksum) && (channel === 'book')) {
             const sub = client.subscriptions[messageHash];
             const subChecksum = this.safeBool (sub, 'checksum');
             if ((sub !== undefined) && (subChecksum !== true)) {

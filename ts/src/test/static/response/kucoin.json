@@ -10,7 +10,10 @@
                 "description": "cross borrow rate parses the current rate and leaves timestamp undefined - the response carries no createdAt/timestamp",
                 "method": "fetchCrossBorrowRate",
                 "input": [
-                    "USDT"
+                    "USDT",
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "200000",
@@ -1033,7 +1036,7 @@
                     "symbol": "ETH/USDT:USDT",
                     "type": null,
                     "marginMode": "isolated",
-                    "amount": "1",
+                    "amount": 1,
                     "total": null,
                     "code": "USDT",
                     "status": null,
@@ -3926,16 +3929,16 @@
                   "timestamp": null,
                   "datetime": null,
                   "network": null,
-                  "address": null,
-                  "addressTo": null,
+                  "address": "0x62d35481cb74fa959aec61d33a5d4507a1234567",
+                  "addressTo": "0x62d35481cb74fa959aec61d33a5d4507a1234567",
                   "addressFrom": null,
                   "tag": null,
                   "tagTo": null,
                   "tagFrom": null,
                   "currency": "USDT",
-                  "amount": null,
+                  "amount": 3,
                   "txid": null,
-                  "type": "deposit",
+                  "type": "withdrawal",
                   "status": null,
                   "comment": null,
                   "internal": null,

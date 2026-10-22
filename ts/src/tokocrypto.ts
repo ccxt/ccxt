@@ -1065,7 +1065,7 @@ export default class tokocrypto extends Exchange {
         const buyerMaker = this.safeBool2 (trade, 'm', 'isBuyerMaker');
         let takerOrMaker: Str = undefined;
         if (buyerMaker !== undefined) {
-            side = (buyerMaker === true) ? 'sell' : 'buy'; // this is reversed intentionally
+            side = (buyerMaker) ? 'sell' : 'buy'; // this is reversed intentionally
             takerOrMaker = 'taker';
         } else if ('side' in trade) {
             side = this.safeStringLower (trade, 'side');
@@ -1846,10 +1846,10 @@ export default class tokocrypto extends Exchange {
         const isPostOnlyTimeInForce = (requestedTimeInForce === 'GTX');
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (isMarketOrder, isPostOnlyTimeInForce, params);
         // only supported for spot/margin api
-        const typeResolved: OrderType = (postOnly === true) ? 'LIMIT_MAKER' : type;
+        const typeResolved: OrderType = (postOnly) ? 'LIMIT_MAKER' : type;
         // post only is expressed by the order type here, not by a time force
         let timeInForceResolved: Str = requestedTimeInForce;
-        if (postOnly === true) {
+        if (postOnly) {
             timeInForceResolved = undefined;
         }
         const initialUppercaseType = typeResolved.toUpperCase ();
@@ -1858,7 +1858,7 @@ export default class tokocrypto extends Exchange {
         const triggerKeys: string[] = (triggerPrice !== undefined) ? [ 'triggerPrice', 'stopPrice' ] : [];
         let paramsRequest: Dict = this.omit (paramsPostOnly, this.arrayConcat ([ 'clientId', 'clientOrderId', 'timeInForce' ], triggerKeys));
         if (triggerPrice !== undefined) {
-            if (postOnly === true) {
+            if (postOnly) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support post only trigger orders, the venue has no post only trigger order type');
             }
             if (uppercaseType === 'MARKET') {
@@ -2769,7 +2769,7 @@ export default class tokocrypto extends Exchange {
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool (response, 'success', true);
         let parsedMessage: NullableDict = undefined;
-        if (success !== true) {
+        if (!success) {
             const messageInner = this.safeString (response, 'msg');
             if (messageInner !== undefined) {
                 try {
@@ -2812,7 +2812,7 @@ export default class tokocrypto extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             throw new ExchangeError (feedback);
         }
-        if (success !== true) {
+        if (!success) {
             throw new ExchangeError (this.id + ' ' + body);
         }
         return undefined;

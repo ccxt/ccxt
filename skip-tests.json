@@ -899,17 +899,21 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. coinbase does not have currency code TIA",
-                "max": "zero values"
+                "max": "zero values",
+                "precisionAmountAbnormal": "some markets report integer min_trade_amount such as 2",
+                "strike": "option_combo instruments are multi-leg spreads without a single strike",
+                "optionType": "option_combo instruments are multi-leg spreads without a single optionType"
             },
             "fetchCurrencies": {
-                "precision": "not provided",
-                "networks": "not provided",
                 "withdraw": "not provided",
                 "deposit": "not provided",
                 "type": "todo",
                 "activeMajorCurrencies": "todo"
             },
-            "fetchOrderBook": "exchange does not have it"
+            "ticker": {
+                "lastBetweenBidAsk": "gateway spot BTC/USDT is illiquid, last_price can lag the book by more than 1%"
+            },
+            "fetchTickers": "requires custom param"
         }
     },
     "coinmetro": {
@@ -2189,7 +2193,13 @@
         "httpsProxy": "http://188.245.226.105:8911",
         "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
-            "createOrder": "Polymarket geo-blocks order placement and CI runs via an EU proxy (403 from /order); verified live locally + the signed payload is covered by the static request fixtures"
+            "createOrder": "Polymarket geo-blocks order placement and CI runs via an EU proxy (403 from /order); verified live locally + the signed payload is covered by the static request fixtures",
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "perps collateral is pUSD only; BTC/ETH are perpetual-contract underlyings, not depositable or withdrawable assets, so their deposit/withdraw flags are false by design"
+            },
+            "fetchTrades": {
+                "sideSequence": "venue data: info/trades returns same-millisecond fills unsorted, e.g. two fills at timestamp 1792566132107 on BTC/USD:PUSD, both buys at 82716 then 82714, so the price direction cannot be checked against the side"
+            }
         },
         "preferredPredictionOutcome": "DEMOCRATIC_PRESIDENTIAL_NOMINEE_2028_BERNIE_SANDERS_WIN_2028_DEMOCRATIC_PRESIDENTIAL_NOMINATION_879:YES",
         "predictionNote": "liquid book, resolves 2028; C#/Go/Java dict ordering otherwise scans onto placeholder markets (Another team / Person Y) whose CLOB books 404; the harness falls back to a scan if this pin goes stale"
@@ -2702,6 +2712,9 @@
         "httpsProxy": "http://188.245.226.105:8911",
         "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
+            "fetchTrades": {
+                "sideSequence": "venue data: separate taker orders fill in the same block at one timestamp, live recentTrades BTC showed 81501.7 sell -> 81502.1 sell at one timestamp from two different ask accounts"
+            },
             "watchTicker.go": "Go test harness repanics the NotSupported thrown for spot symbols (the market_stats channel is swap-only) instead of skipping it like the other languages, recheck 2026-12-17",
             "watchTickers.go": "Go test harness repanics the NotSupported thrown for spot symbols (the market_stats channel is swap-only) instead of skipping it like the other languages, recheck 2026-12-17",
             "loadMarkets": {

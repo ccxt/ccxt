@@ -3370,7 +3370,7 @@ export default class bitrue extends Exchange {
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool (response, 'success', true);
         let parsedMessage: NullableDict = undefined;
-        if (success !== true) {
+        if (!success) {
             const messageInner = this.safeString (response, 'msg');
             if (messageInner !== undefined) {
                 try {
@@ -3405,7 +3405,7 @@ export default class bitrue extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             throw new ExchangeError (feedback);
         }
-        if (success !== true) {
+        if (!success) {
             throw new ExchangeError (this.id + ' ' + body);
         }
         return undefined;

@@ -2466,6 +2466,34 @@ class okx extends okx$1["default"] {
         };
         return await this.watch(url, messageHash, request, messageHash);
     }
+    handleCancelOrders(client, message) {
+        //
+        //    {
+        //        "id": "1512",
+        //        "op": "batch-cancel-orders",
+        //        "data": [
+        //            {
+        //                "clOrdId": "",
+        //                "ordId": "2510789768709120",
+        //                "sCode": "0",
+        //                "sMsg": ""
+        //            }
+        //        ],
+        //        "code": "0",
+        //        "msg": ""
+        //    }
+        //
+        const messageHash = this.safeString(message, 'id');
+        let args = this.safeList(message, 'data', []);
+        args = this.filterBy(args, 'sCode', '0');
+        if (this.isEmpty(args)) {
+            const method = this.safeString(message, 'op');
+            const stringMsg = this.json(message);
+            this.handleErrors(1, '', client.url, method, {}, stringMsg, message, {}, {});
+        }
+        const orders = this.parseOrders(args, undefined, undefined, undefined);
+        client.resolve(orders, messageHash);
+    }
     handleCancelAllOrders(client, message) {
         //
         //    {
@@ -2628,6 +2656,7 @@ class okx extends okx$1["default"] {
                 'amend-order': this.handlePlaceOrders,
                 'batch-amend-orders': this.handlePlaceOrders,
                 'cancel-order': this.handlePlaceOrders,
+                'batch-cancel-orders': this.handleCancelOrders,
                 'mass-cancel': this.handleCancelAllOrders,
             };
             const method = this.safeValue(methods, event);
@@ -2700,6 +2729,10 @@ class okx extends okx$1["default"] {
         const subMessageHash = 'multi:' + channel + ':' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription(client, subMessageHash, messageHash);
+        // watchOHLCV subscribes through subscribe () under channel:marketId
+        if (symbol !== undefined) {
+            this.cleanUnsubscription(client, channel + ':' + this.marketId(symbol), undefined);
+        }
         if ((symbol !== undefined) && (timeframe !== undefined) && (timeframe in this.ohlcvs[symbol])) {
             delete this.ohlcvs[symbol][timeframe];
         }

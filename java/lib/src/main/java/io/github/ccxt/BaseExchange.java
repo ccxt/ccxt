@@ -6351,21 +6351,22 @@ public Object describe()
     public Object setMarkets(Object markets, Object currencies)
     {
         List<Object> values = new ArrayList<Object>(Arrays.asList());
-        this.markets_by_id = this.createSafeDictionary();
+        // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
+        Map<String, Object> marketsById = new HashMap<String, Object>() {{}};
         // handle marketId conflicts
         // we insert spot markets first
         List<Object> marketValues = this.sortBy(this.toArray(markets), "spot", true, true);
         for (var i = 0; i < ((List<?>)marketValues).size(); i++)
         {
             Object value = (marketValues == null || i < 0 || i >= marketValues.size() ? null : marketValues.get(i));
-            if (Helpers.inOp(this.markets_by_id, Helpers.GetValue(value, "id")))
+            if (Helpers.inOp(marketsById, Helpers.GetValue(value, "id")))
             {
-                Object marketsByIdArray = ((Object)Helpers.GetValue(this.markets_by_id, Helpers.GetValue(value, "id")));
+                Object marketsByIdArray = ((Object)Helpers.GetValue(marketsById, Helpers.GetValue(value, "id")));
                 ((List<Object>)marketsByIdArray).add(value);
-                Helpers.addElementToObject(this.markets_by_id, Helpers.GetValue(value, "id"), marketsByIdArray);
+                Helpers.addElementToObject(marketsById, Helpers.GetValue(value, "id"), marketsByIdArray);
             } else
             {
-                Helpers.addElementToObject(this.markets_by_id, Helpers.GetValue(value, "id"), new ArrayList<Object>(Arrays.asList(value)));
+                Helpers.addElementToObject(marketsById, Helpers.GetValue(value, "id"), new ArrayList<Object>(Arrays.asList(value)));
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
@@ -6397,6 +6398,7 @@ public Object describe()
             ((List<Object>)values).add(market);
         }
         this.markets = this.mapToSafeMap(this.indexBy(values, "symbol"));
+        this.markets_by_id = this.mapToSafeMap(marketsById);
         Map<String,Object> marketsSortedBySymbol = this.keysort(this.markets);
         Map<String,Object> marketsSortedById = this.keysort(this.markets_by_id);
         this.symbols = new ArrayList<String>(marketsSortedBySymbol.keySet());
@@ -11532,6 +11534,7 @@ public Object describe()
                 }
                 paginationTimestamp = since;
             }
+            Boolean shouldBreak = false;
             while ((Helpers.isLessThan(calls, maxCallsPaginationCalls)))
             {
                 calls = Helpers.add(calls, 1);
@@ -11558,6 +11561,7 @@ public Object describe()
                         }
                         if ((responseLength != null && responseLength == 0))
                         {
+                            shouldBreak = true;
                             break;
                         }
                         errors = 0;
@@ -11566,10 +11570,12 @@ public Object describe()
                         paginationTimestamp = this.safeInteger2(firstElement, "timestamp", 0);
                         if (java.util.Objects.equals(paginationTimestamp, null))
                         {
+                            shouldBreak = true;
                             break;
                         }
                         if ((!java.util.Objects.equals(since, null)) && (Helpers.isLessThanOrEqual(paginationTimestamp, since)))
                         {
+                            shouldBreak = true;
                             break;
                         }
                     } else
@@ -11588,6 +11594,7 @@ public Object describe()
                         }
                         if ((responseLength != null && responseLength == 0))
                         {
+                            shouldBreak = true;
                             break;
                         }
                         errors = 0;
@@ -11596,12 +11603,14 @@ public Object describe()
                         Long lastTimestamp = this.safeInteger(last, "timestamp", 0);
                         if (java.util.Objects.equals(lastTimestamp, null))
                         {
+                            shouldBreak = true;
                             break;
                         }
                         Long nextPaginationTimestamp = (Long) (lastTimestamp + 1L);
                         paginationTimestamp = nextPaginationTimestamp;
                         if ((!java.util.Objects.equals(until, null)) && ((until == null || (nextPaginationTimestamp != null && nextPaginationTimestamp >= until))))
                         {
+                            shouldBreak = true;
                             break;
                         }
                     }
@@ -11612,6 +11621,10 @@ public Object describe()
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
+                }
+                if (Boolean.TRUE.equals(shouldBreak))
+                {
+                    break; // go turns a break inside try into a panic that only ends the iteration
                 }
             }
             Object uniqueResults = result;
@@ -11728,7 +11741,8 @@ public Object describe()
                     break;
                 }
                 ((List<Object>)tasks).add(this.safeDeterministicCall(method, symbol, Helpers.toLongOrNull(currentSince), Helpers.toLongOrNull(maxEntriesPerRequestValue), timeframe, paramsOmitted));
-                currentSince = Helpers.subtract(Helpers.add(currentSince, step), 1);
+                // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
+                currentSince = Helpers.subtract(this.sum(currentSince, step), 1);
             }
             Object results = (Helpers.promiseAll(tasks)).join();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -11767,6 +11781,7 @@ public Object describe()
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             String timeframe = this.safeString(paramsMaxEntriesPerRequest, "timeframe");
             Map<String, Object> paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "timeframe"); // reading the timeframe from the method arguments to avoid changing the signature
+            Boolean shouldBreak = false;
             while (Helpers.isLessThan(i, maxCallsPaginationCalls))
             {
                 try
@@ -11775,9 +11790,9 @@ public Object describe()
                     {
                         if (!java.util.Objects.equals(cursorIncrement, null))
                         {
-                            cursorValue = Helpers.add(this.parseToInt(cursorValue), cursorIncrement);
+                            cursorValue = this.sum(this.parseToInt(cursorValue), cursorIncrement);
                         }
-                        paramsOmitted.put((String)((String)cursorSent), cursorValue);
+                        Helpers.addElementToObject(paramsOmitted, ((String)cursorSent), cursorValue);
                     }
                     Object response = null;
                     if (java.util.Objects.equals(method, "fetchAccounts"))
@@ -11816,6 +11831,7 @@ public Object describe()
                     }
                     if (java.util.Objects.equals(responseLength, 0))
                     {
+                        shouldBreak = true;
                         break;
                     }
                     if (!java.util.Objects.equals(response, null))
@@ -11825,20 +11841,20 @@ public Object describe()
                     Map<String, Object> last = (Map<String, Object>) this.safeDict(response, (((long) responseLength) - 1L), (Object) null);
                     // cursorValue = this.safeValue (last['info'], cursorReceived);
                     cursorValue = null; // search for the cursor
+                    // guard instead of break: inside a try block go turns break into a panic that ends the whole iteration
                     for (var j = 0; (responseLength != null && j < responseLength); j++)
                     {
-                        Long index = ((((long) responseLength) - ((long) j)) - 1L);
-                        Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, index, (Object) null);
-                        Map<String, Object> info = (Map<String, Object>) this.safeDict(entry, "info", (Object) null);
-                        Object cursor = (((java.util.Objects.equals(cursorReceived, null)))) ? null : this.safeValue(info, cursorReceived);
-                        if (!java.util.Objects.equals(cursor, null))
+                        if (java.util.Objects.equals(cursorValue, null))
                         {
-                            cursorValue = cursor;
-                            break;
+                            Long index = ((((long) responseLength) - ((long) j)) - 1L);
+                            Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, index, (Object) null);
+                            Map<String, Object> info = (Map<String, Object>) this.safeDict(entry, "info", (Object) null);
+                            cursorValue = (((java.util.Objects.equals(cursorReceived, null)))) ? null : this.safeValue(info, cursorReceived);
                         }
                     }
                     if (java.util.Objects.equals(cursorValue, null))
                     {
+                        shouldBreak = true;
                         break;
                     }
                     Long lastTimestamp = this.safeInteger(last, "timestamp");
@@ -11848,6 +11864,7 @@ public Object describe()
                     }
                     if (!java.util.Objects.equals(lastTimestamp, null) && ((lastTimestamp == null || lastTimestamp < since)))
                     {
+                        shouldBreak = true;
                         break;
                     }
                 } catch(Exception e)
@@ -11857,6 +11874,10 @@ public Object describe()
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
+                }
+                if (Boolean.TRUE.equals(shouldBreak))
+                {
+                    break; // go turns a break inside try into a panic that only ends the iteration
                 }
                 i = (i + 1L);
             }
@@ -11886,6 +11907,7 @@ public Object describe()
             long i = 0;
             long errors = 0;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
+            Boolean shouldBreak = false;
             while (Helpers.isLessThan(i, maxCallsPaginationCalls))
             {
                 try
@@ -11902,6 +11924,7 @@ public Object describe()
                     }
                     if ((responseLength != null && responseLength == 0))
                     {
+                        shouldBreak = true;
                         break;
                     }
                     result = (List<Object>) this.arrayConcat(result, response);
@@ -11912,6 +11935,10 @@ public Object describe()
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
+                }
+                if (Boolean.TRUE.equals(shouldBreak))
+                {
+                    break; // go turns a break inside try into a panic that only ends the iteration
                 }
                 i = (i + 1L);
             }

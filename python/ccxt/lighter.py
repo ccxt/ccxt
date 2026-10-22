@@ -115,7 +115,7 @@ class lighter(Exchange, ImplicitAPI):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
-                'fetchTrades': False,
+                'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTransfer': False,
@@ -2734,6 +2734,52 @@ class lighter(Exchange, ImplicitAPI):
         response = self.publicPostSendTx(request)
         return self.parse_transaction(response)
 
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+        """
+        get the list of most recent trades for a particular symbol
+
+        https://apidocs.lighter.xyz/reference/recenttrades
+
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch, default 100, max 100
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market_id': market['id'],
+            'limit': 100,
+        }
+        if limit is not None:
+            request['limit'] = min(limit, 100)
+        response = self.publicGetRecentTrades(self.extend(request, params))
+        #
+        #     {
+        #         "code": 200,
+        #         "trades": [
+        #             {
+        #                 "trade_id": 35564491385,
+        #                 "type": "trade",
+        #                 "market_id": 0,
+        #                 "size": "0.0003",
+        #                 "price": "2385.57",
+        #                 "usd_amount": "0.715671",
+        #                 "ask_id": 281478054267183,
+        #                 "bid_id": 562946767299880,
+        #                 "ask_account_id": 723632,
+        #                 "bid_account_id": 317087,
+        #                 "is_maker_ask": false,
+        #                 "timestamp": 1792497687525
+        #             }
+        #         ]
+        #     }
+        #
+        trades = self.safe_list(response, 'trades', [])
+        return self.parse_trades(trades, market, since, limit)
+
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
@@ -2857,6 +2903,9 @@ class lighter(Exchange, ImplicitAPI):
             elif accountIndex == bidAccountId:
                 side = 'buy'
                 orderId = self.safe_string(trade, 'bid_id')
+        # public trades use Lighter's taker-side convention
+        if (side is None) and (isMakerAsk is not None):
+            side = 'buy' if (isMakerAsk is True) else 'sell'
         takerOrMaker = None
         if side is not None and isMakerAsk is not None:
             isMaker = isMakerAsk if (side == 'sell') else not isMakerAsk

@@ -256,7 +256,7 @@ export default class binance extends Exchange {
                 collected.push (pageTopics[i]);
             }
             const hasMore = this.safeBool (response, 'hasMore', false);
-            if ((hasMore !== true) || (pageTopicsLength < reqLimit)) {
+            if ((!hasMore) || (pageTopicsLength < reqLimit)) {
                 break;
             }
             offset = this.sum (offset, pageTopicsLength);
@@ -336,7 +336,7 @@ export default class binance extends Exchange {
      */
     override async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         const allowUnscopedFetchEvents = this.safeBool (this.options, 'allowUnscopedFetchEvents', false);
-        if (allowUnscopedFetchEvents !== true) {
+        if (!allowUnscopedFetchEvents) {
             this.requireEventQuery (params);
         }
         const queries = this.parseSearchQueries (params);

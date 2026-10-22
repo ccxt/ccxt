@@ -235,7 +235,7 @@ export class BaseExchange {
     [key: string]: any;
 
     // this is updated by vss.js when building
-    static ccxtVersion = '4.5.88';
+    static ccxtVersion = '4.5.89';
 
     options: Dict;
 
@@ -755,7 +755,7 @@ export class BaseExchange {
                 } catch (e) {
                     //  when they are actually needed (in setProxyAgents) 'NotSupported' exception with install instructions is already raised
                 }
-                if (this.socksProxyAgentModuleChecked === false) {
+                if (!this.socksProxyAgentModuleChecked) {
                     try {
                         // @ts-ignore
                         this.socksProxyAgentModule = await dynamicImport ('socks-proxy-agent');
@@ -4109,7 +4109,7 @@ export class BaseExchange {
         this.initRestRateLimiter ();
         // sanbox mode
         const isSandbox = this.safeBool2 (this.options, 'sandbox', 'testnet', false);
-        if (isSandbox === true) {
+        if (isSandbox) {
             this.setSandboxMode (isSandbox);
         }
         // compatibility for sandbox/testnet options in userConfig
@@ -4601,18 +4601,19 @@ export class BaseExchange {
 
     setMarkets (markets: any, currencies: any = undefined): Dictionary<Market> {
         const values: Dict[] = [];
-        this.markets_by_id = this.createSafeDictionary ();
+        // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
+        const marketsById: Dict = {};
         // handle marketId conflicts
         // we insert spot markets first
         const marketValues = this.sortBy (this.toArray (markets), 'spot', true, true);
         for (let i = 0; i < marketValues.length; i++) {
             const value = marketValues[i];
-            if (value['id'] in this.markets_by_id) {
-                const marketsByIdArray = (this.markets_by_id[value['id']] as any);
+            if (value['id'] in marketsById) {
+                const marketsByIdArray = (marketsById[value['id']] as any);
                 marketsByIdArray.push (value);
-                this.markets_by_id[value['id']] = marketsByIdArray;
+                marketsById[value['id']] = marketsByIdArray;
             } else {
-                this.markets_by_id[value['id']] = [ value ];
+                marketsById[value['id']] = [ value ];
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
@@ -4639,6 +4640,7 @@ export class BaseExchange {
             values.push (market);
         }
         this.markets = this.mapToSafeMap (this.indexBy (values, 'symbol'));
+        this.markets_by_id = this.mapToSafeMap (marketsById);
         const marketsSortedBySymbol = this.keysort (this.markets);
         const marketsSortedById = this.keysort (this.markets_by_id);
         this.symbols = Object.keys (marketsSortedBySymbol);
@@ -4967,7 +4969,7 @@ export class BaseExchange {
         if (average === undefined) {
             if ((filled !== undefined) && (cost !== undefined) && Precise.stringGt (filled, '0')) {
                 const filledTimesContractSize = Precise.stringMul (filled, contractSize);
-                if (inverse === true) {
+                if (inverse) {
                     average = Precise.stringDiv (filledTimesContractSize, cost);
                 } else {
                     average = Precise.stringDiv (cost, filledTimesContractSize);
@@ -4990,7 +4992,7 @@ export class BaseExchange {
             }
             // contract trading
             const filledTimesContractSize = Precise.stringMul (filled, contractSize);
-            if (inverse === true) {
+            if (inverse) {
                 cost = Precise.stringDiv (filledTimesContractSize, multiplyPrice);
             } else {
                 cost = Precise.stringMul (filledTimesContractSize, multiplyPrice);
@@ -5212,7 +5214,7 @@ export class BaseExchange {
             let multiplyPrice = price;
             if (contractSize !== undefined) {
                 const inverse = this.safeBool (market, 'inverse', false);
-                if (inverse === true) {
+                if (inverse) {
                     multiplyPrice = Precise.stringDiv ('1', price);
                 }
                 multiplyPrice = Precise.stringMul (multiplyPrice, contractSize);
@@ -5687,7 +5689,7 @@ export class BaseExchange {
         } catch (e) {
             errorMessage = this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.';
         }
-        if (muteOnFailure === true) {
+        if (muteOnFailure) {
             return undefined;
         } else {
             throw new BadResponse (errorMessage);
@@ -6059,7 +6061,7 @@ export class BaseExchange {
                 const market = this.safeMarket (id, undefined, undefined, 'swap');
                 const symbol = market['symbol'];
                 const contract = this.safeBool (market, 'contract', false);
-                if ((contract === true) && (noSymbols || ((symbolsNormalized !== undefined) && this.inArray (symbol, symbolsNormalized)))) {
+                if ((contract) && (noSymbols || ((symbolsNormalized !== undefined) && this.inArray (symbol, symbolsNormalized)))) {
                     tiers[symbol] = this.parseMarketLeverageTiers (item, market);
                 }
             }
@@ -6071,7 +6073,7 @@ export class BaseExchange {
                 const market = this.safeMarket (marketId, undefined, undefined, 'swap');
                 const symbol = market['symbol'];
                 const contract = this.safeBool (market, 'contract', false);
-                if ((contract === true) && (noSymbols || ((symbolsNormalized !== undefined) && this.inArray (symbol, symbolsNormalized)))) {
+                if ((contract) && (noSymbols || ((symbolsNormalized !== undefined) && this.inArray (symbol, symbolsNormalized)))) {
                     tiers[symbol] = this.parseMarketLeverageTiers (item, market);
                 }
             }
@@ -6829,7 +6831,7 @@ export class BaseExchange {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' buildOHLCVC() requires a price argument');
             }
-            if ((skipZeroPrices === true) && !(price > 0) && !(price < 0)) {
+            if ((skipZeroPrices) && !(price > 0) && !(price < 0)) {
                 continue;
             }
             let isNewCandle = candle === -1;
@@ -8188,13 +8190,13 @@ export class BaseExchange {
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const timeInForcePostOnly = timeInForce === 'PO';
-        if (postOnly !== true) {
+        if (!postOnly) {
             postOnly = timeInForcePostOnly;
         }
-        if (postOnly !== true) {
+        if (!postOnly) {
             postOnly = exchangeSpecificParam;
         }
-        if (postOnly === true) {
+        if (postOnly) {
             if (ioc || fok) {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
             } else if (isMarketOrder) {
@@ -8221,13 +8223,13 @@ export class BaseExchange {
         const ioc = timeInForce === 'IOC';
         const fok = timeInForce === 'FOK';
         const po = timeInForce === 'PO';
-        if (postOnly !== true) {
+        if (!postOnly) {
             postOnly = po;
         }
-        if (postOnly !== true) {
+        if (!postOnly) {
             postOnly = exchangeSpecificPostOnlyOption;
         }
-        if (postOnly === true) {
+        if (postOnly) {
             if (ioc || fok) {
                 throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
             } else if (isMarketOrder) {
@@ -8684,6 +8686,7 @@ export class BaseExchange {
             }
             paginationTimestamp = since;
         }
+        let shouldBreak = false;
         while ((calls < maxCallsPaginationCalls)) {
             calls += 1;
             try {
@@ -8703,6 +8706,7 @@ export class BaseExchange {
                         this.log (backwardMessage);
                     }
                     if (responseLength === 0) {
+                        shouldBreak = true;
                         break;
                     }
                     errors = 0;
@@ -8710,9 +8714,11 @@ export class BaseExchange {
                     const firstElement = this.safeValue (response, 0);
                     paginationTimestamp = this.safeInteger2 (firstElement, 'timestamp', 0);
                     if (paginationTimestamp === undefined) {
+                        shouldBreak = true;
                         break;
                     }
                     if ((since !== undefined) && (paginationTimestamp <= since)) {
+                        shouldBreak = true;
                         break;
                     }
                 } else {
@@ -8727,6 +8733,7 @@ export class BaseExchange {
                         this.log (forwardMessage);
                     }
                     if (responseLength === 0) {
+                        shouldBreak = true;
                         break;
                     }
                     errors = 0;
@@ -8734,11 +8741,13 @@ export class BaseExchange {
                     const last = this.safeValue (response, responseLength - 1);
                     const lastTimestamp = this.safeInteger (last, 'timestamp', 0);
                     if (lastTimestamp === undefined) {
+                        shouldBreak = true;
                         break;
                     }
                     const nextPaginationTimestamp = lastTimestamp + 1;
                     paginationTimestamp = nextPaginationTimestamp;
                     if ((until !== undefined) && (nextPaginationTimestamp >= until)) {
+                        shouldBreak = true;
                         break;
                     }
                 }
@@ -8747,6 +8756,9 @@ export class BaseExchange {
                 if (errors > maxRetriesOption) {
                     throw e;
                 }
+            }
+            if (shouldBreak) {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
         }
         let uniqueResults = result;
@@ -8827,7 +8839,8 @@ export class BaseExchange {
                 break;
             }
             tasks.push (this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted));
-            currentSince = currentSince + step - 1;
+            // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
+            currentSince = this.sum (currentSince, step) - 1;
         }
         const results = await Promise.all (tasks);
         let result: any[] = [];
@@ -8853,11 +8866,12 @@ export class BaseExchange {
         let result: any[] = [];
         const timeframe = this.safeString (paramsMaxEntriesPerRequest, 'timeframe');
         const paramsOmitted: Dict = this.omit (paramsMaxEntriesPerRequest, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
+        let shouldBreak = false;
         while (i < maxCallsPaginationCalls) {
             try {
                 if (cursorValue !== undefined) {
                     if (cursorIncrement !== undefined) {
-                        cursorValue = this.parseToInt (cursorValue) + cursorIncrement;
+                        cursorValue = this.sum (this.parseToInt (cursorValue), cursorIncrement);
                     }
                     paramsOmitted[cursorSent as string] = cursorValue;
                 }
@@ -8890,6 +8904,7 @@ export class BaseExchange {
                     this.log (cursorMessage);
                 }
                 if (responseLength === 0) {
+                    shouldBreak = true;
                     break;
                 }
                 if (response !== undefined) {
@@ -8898,17 +8913,17 @@ export class BaseExchange {
                 const last = this.safeDict (response, responseLength - 1);
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = undefined; // search for the cursor
+                // guard instead of break: inside a try block go turns break into a panic that ends the whole iteration
                 for (let j = 0; j < responseLength; j++) {
-                    const index = responseLength - j - 1;
-                    const entry = this.safeDict (response, index);
-                    const info = this.safeDict (entry, 'info');
-                    const cursor = (cursorReceived === undefined) ? undefined : this.safeValue (info, cursorReceived);
-                    if (cursor !== undefined) {
-                        cursorValue = cursor;
-                        break;
+                    if (cursorValue === undefined) {
+                        const index = responseLength - j - 1;
+                        const entry = this.safeDict (response, index);
+                        const info = this.safeDict (entry, 'info');
+                        cursorValue = (cursorReceived === undefined) ? undefined : this.safeValue (info, cursorReceived);
                     }
                 }
                 if (cursorValue === undefined) {
+                    shouldBreak = true;
                     break;
                 }
                 const lastTimestamp = this.safeInteger (last, 'timestamp');
@@ -8916,6 +8931,7 @@ export class BaseExchange {
                     throw new ArgumentsRequired (this.id + ' fetchPaginatedCallCursor() requires a since argument');
                 }
                 if (lastTimestamp !== undefined && lastTimestamp < since) {
+                    shouldBreak = true;
                     break;
                 }
             } catch (e) {
@@ -8923,6 +8939,9 @@ export class BaseExchange {
                 if (errors > maxRetriesOption) {
                     throw e;
                 }
+            }
+            if (shouldBreak) {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
             i += 1;
         }
@@ -8940,6 +8959,7 @@ export class BaseExchange {
         let i = 0;
         let errors = 0;
         let result: any[] = [];
+        let shouldBreak = false;
         while (i < maxCallsPaginationCalls) {
             try {
                 paramsMaxEntriesPerRequest[pageKey as string] = i + 1;
@@ -8947,11 +8967,12 @@ export class BaseExchange {
                 errors = 0;
                 const responseLength: number = response.length;
                 if (this.verbose) {
-                    const iteration = (i + 1).toString ();
-                    const incrementalMessage = 'Incremental pagination call ' + iteration + ' method ' + method + ' response length ' + responseLength.toString ();
+                    const iteration = (i + 1);
+                    const incrementalMessage = 'Incremental pagination call ' + iteration.toString () + ' method ' + method + ' response length ' + responseLength.toString ();
                     this.log (incrementalMessage);
                 }
                 if (responseLength === 0) {
+                    shouldBreak = true;
                     break;
                 }
                 result = this.arrayConcat (result, response);
@@ -8960,6 +8981,9 @@ export class BaseExchange {
                 if (errors > maxRetriesOption) {
                     throw e;
                 }
+            }
+            if (shouldBreak) {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
             i += 1;
         }

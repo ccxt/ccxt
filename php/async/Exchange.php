@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.88';
+$version = '4.5.89';
 
 class BaseExchange extends \ccxt\BaseExchange {
 
-    const VERSION = '4.5.88';
+    const VERSION = '4.5.89';
 
     public $browser;
     public $marketsLoading = null;
@@ -2220,18 +2220,19 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function set_markets(mixed $markets, mixed $currencies = null) {
         $values = array();
-        $this->markets_by_id = $this->create_safe_dictionary();
+        // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
+        $marketsById = array();
         // handle marketId conflicts
         // we insert spot markets first
         $marketValues = $this->sort_by($this->to_array($markets), 'spot', true, true);
         for ($i = 0; $i < count($marketValues); $i++) {
             $value = $marketValues[$i];
-            if (is_array($this->markets_by_id) && array_key_exists($value['id'] ?? '', $this->markets_by_id)) {
-                $marketsByIdArray = ($this->markets_by_id[$value['id']]);
+            if (is_array($marketsById) && array_key_exists($value['id'] ?? '', $marketsById)) {
+                $marketsByIdArray = ($marketsById[$value['id']]);
                 $marketsByIdArray[] = $value;
-                $this->markets_by_id[$value['id']] = $marketsByIdArray;
+                $marketsById[$value['id']] = $marketsByIdArray;
             } else {
-                $this->markets_by_id[$value['id']] = array( $value );
+                $marketsById[$value['id']] = array( $value );
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
@@ -2258,6 +2259,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             $values[] = $market;
         }
         $this->markets = $this->map_to_safe_map($this->index_by($values, 'symbol'));
+        $this->markets_by_id = $this->map_to_safe_map($marketsById);
         $marketsSortedBySymbol = $this->keysort($this->markets);
         $marketsSortedById = $this->keysort($this->markets_by_id);
         $this->symbols = is_array($marketsSortedBySymbol) ? array_keys($marketsSortedBySymbol) : array();
@@ -6286,6 +6288,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             }
             $paginationTimestamp = $since;
         }
+        $shouldBreak = false;
         while (($calls < $maxCallsPaginationCalls)) {
             $calls += 1;
             try {
@@ -6305,6 +6308,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                         $this->log($backwardMessage);
                     }
                     if ($responseLength === 0) {
+                        $shouldBreak = true;
                         break;
                     }
                     $errors = 0;
@@ -6312,9 +6316,11 @@ class BaseExchange extends \ccxt\BaseExchange {
                     $firstElement = $this->safe_value($response, 0);
                     $paginationTimestamp = $this->safe_integer_2($firstElement, 'timestamp', 0);
                     if ($paginationTimestamp === null) {
+                        $shouldBreak = true;
                         break;
                     }
                     if (($since !== null) && ($paginationTimestamp <= $since)) {
+                        $shouldBreak = true;
                         break;
                     }
                 } else {
@@ -6329,6 +6335,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                         $this->log($forwardMessage);
                     }
                     if ($responseLength === 0) {
+                        $shouldBreak = true;
                         break;
                     }
                     $errors = 0;
@@ -6336,11 +6343,13 @@ class BaseExchange extends \ccxt\BaseExchange {
                     $last = $this->safe_value($response, $responseLength - 1);
                     $lastTimestamp = $this->safe_integer($last, 'timestamp', 0);
                     if ($lastTimestamp === null) {
+                        $shouldBreak = true;
                         break;
                     }
                     $nextPaginationTimestamp = $lastTimestamp + 1;
                     $paginationTimestamp = $nextPaginationTimestamp;
                     if (($until !== null) && ($nextPaginationTimestamp >= $until)) {
+                        $shouldBreak = true;
                         break;
                     }
                 }
@@ -6349,6 +6358,9 @@ class BaseExchange extends \ccxt\BaseExchange {
                 if ($errors > $maxRetriesOption) {
                     throw $e;
                 }
+            }
+            if ($shouldBreak) {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
         }
         $uniqueResults = $result;
@@ -6437,7 +6449,8 @@ class BaseExchange extends \ccxt\BaseExchange {
                 break;
             }
             $tasks[] = $this->safe_deterministic_call($method, $symbol, $currentSince, $maxEntriesPerRequestValue, $timeframe, $paramsOmitted);
-            $currentSince = $currentSince . $step - 1;
+            // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
+            $currentSince = $this->sum($currentSince, $step) - 1;
         }
         $results = Async\await(Promise\all($tasks));
         $result = array();
@@ -6465,11 +6478,12 @@ class BaseExchange extends \ccxt\BaseExchange {
         $result = array();
         $timeframe = $this->safe_string($paramsMaxEntriesPerRequest, 'timeframe');
         $paramsOmitted = $this->omit($paramsMaxEntriesPerRequest, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
+        $shouldBreak = false;
         while ($i < $maxCallsPaginationCalls) {
             try {
                 if ($cursorValue !== null) {
                     if ($cursorIncrement !== null) {
-                        $cursorValue = $this->parse_to_int($cursorValue) . $cursorIncrement;
+                        $cursorValue = $this->sum($this->parse_to_int($cursorValue), $cursorIncrement);
                     }
                     $paramsOmitted[$cursorSent] = $cursorValue;
                 }
@@ -6502,6 +6516,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                     $this->log($cursorMessage);
                 }
                 if ($responseLength === 0) {
+                    $shouldBreak = true;
                     break;
                 }
                 if ($response !== null) {
@@ -6510,17 +6525,17 @@ class BaseExchange extends \ccxt\BaseExchange {
                 $last = $this->safe_dict($response, $responseLength - 1);
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 $cursorValue = null; // search for the cursor
+                // guard instead of break: inside a try block go turns break into a panic that ends the whole iteration
                 for ($j = 0; $j < $responseLength; $j++) {
-                    $index = $responseLength - $j - 1;
-                    $entry = $this->safe_dict($response, $index);
-                    $info = $this->safe_dict($entry, 'info');
-                    $cursor = ($cursorReceived === null) ? null : $this->safe_value($info, $cursorReceived);
-                    if ($cursor !== null) {
-                        $cursorValue = $cursor;
-                        break;
+                    if ($cursorValue === null) {
+                        $index = $responseLength - $j - 1;
+                        $entry = $this->safe_dict($response, $index);
+                        $info = $this->safe_dict($entry, 'info');
+                        $cursorValue = ($cursorReceived === null) ? null : $this->safe_value($info, $cursorReceived);
                     }
                 }
                 if ($cursorValue === null) {
+                    $shouldBreak = true;
                     break;
                 }
                 $lastTimestamp = $this->safe_integer($last, 'timestamp');
@@ -6528,6 +6543,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                     throw new ArgumentsRequired($this->id . ' fetchPaginatedCallCursor() requires a since argument');
                 }
                 if ($lastTimestamp !== null && $lastTimestamp < $since) {
+                    $shouldBreak = true;
                     break;
                 }
             } catch (Exception $e) {
@@ -6535,6 +6551,9 @@ class BaseExchange extends \ccxt\BaseExchange {
                 if ($errors > $maxRetriesOption) {
                     throw $e;
                 }
+            }
+            if ($shouldBreak) {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
             $i += 1;
         }
@@ -6556,6 +6575,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $i = 0;
         $errors = 0;
         $result = array();
+        $shouldBreak = false;
         while ($i < $maxCallsPaginationCalls) {
             try {
                 $paramsMaxEntriesPerRequest[$pageKey] = $i + 1;
@@ -6563,11 +6583,12 @@ class BaseExchange extends \ccxt\BaseExchange {
                 $errors = 0;
                 $responseLength = count($response);
                 if ($this->verbose) {
-                    $iteration = ($i . (string) 1);
-                    $incrementalMessage = 'Incremental pagination call ' . $iteration . ' method ' . $method . ' response length ' . (string) $responseLength;
+                    $iteration = ($i + 1);
+                    $incrementalMessage = 'Incremental pagination call ' . (string) $iteration . ' method ' . $method . ' response length ' . (string) $responseLength;
                     $this->log($incrementalMessage);
                 }
                 if ($responseLength === 0) {
+                    $shouldBreak = true;
                     break;
                 }
                 $result = $this->array_concat($result, $response);
@@ -6576,6 +6597,9 @@ class BaseExchange extends \ccxt\BaseExchange {
                 if ($errors > $maxRetriesOption) {
                     throw $e;
                 }
+            }
+            if ($shouldBreak) {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
             $i += 1;
         }

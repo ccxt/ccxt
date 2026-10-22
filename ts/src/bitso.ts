@@ -2024,7 +2024,7 @@ export default class bitso extends Exchange {
                     success = false;
                 }
             }
-            if (success !== true) {
+            if (!success) {
                 const feedback = this.id + ' ' + this.json (response);
                 const error = this.safeDict (response, 'error');
                 if (error === undefined) {

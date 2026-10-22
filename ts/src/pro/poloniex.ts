@@ -592,7 +592,7 @@ export default class poloniex extends poloniexRest {
         const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool (options, 'awaitBalanceSnapshot', true);
-        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
+        if ((fetchBalanceSnapshot) && (awaitBalanceSnapshot)) {
             await client.future (name + ':fetchBalanceSnapshot');
         }
         return await this.subscribe (name, name, true, undefined, params);
@@ -604,7 +604,7 @@ export default class poloniex extends poloniexRest {
         }
         const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot === true) {
+        if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);

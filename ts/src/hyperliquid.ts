@@ -1153,7 +1153,7 @@ export default class hyperliquid extends Exchange {
         const dex = this.safeString (paramsValue, 'dex');
         const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
         const request: Dict = {
-            'type': (isSpot === true) ? 'spotClearinghouseState' : 'clearinghouseState',
+            'type': (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState',
             'user': userAddress,
         };
         const response = await this.publicPostInfo (this.extend (request, paramsValue));
@@ -1198,7 +1198,7 @@ export default class hyperliquid extends Exchange {
             for (let i = 0; i < balances.length; i++) {
                 const balance = this.safeDict (balances, i);
                 const unifiedCode = this.safeCurrencyCode (this.safeString (balance, 'coin'));
-                const code = (isSpot === true) ? this.updateSpotCurrencyCode (unifiedCode) : unifiedCode;
+                const code = (isSpot) ? this.updateSpotCurrencyCode (unifiedCode) : unifiedCode;
                 const account = this.account ();
                 const total = this.safeString (balance, 'total');
                 const used = this.safeString (balance, 'hold');
@@ -1820,6 +1820,22 @@ export default class hyperliquid extends Exchange {
         return this.signUserSignedAction (messageTypes, message);
     }
 
+    buildSendAssetSig (message: Dict): Dict {
+        const messageTypes: Dict = {
+            'HyperliquidTransaction:SendAsset': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
+                { 'name': 'destination', 'type': 'string' },
+                { 'name': 'sourceDex', 'type': 'string' },
+                { 'name': 'destinationDex', 'type': 'string' },
+                { 'name': 'token', 'type': 'string' },
+                { 'name': 'amount', 'type': 'string' },
+                { 'name': 'fromSubAccount', 'type': 'string' },
+                { 'name': 'nonce', 'type': 'uint64' },
+            ],
+        };
+        return this.signUserSignedAction (messageTypes, message);
+    }
+
     buildWithdrawSig (message: Dict): Dict {
         const messageTypes: Dict = {
             'HyperliquidTransaction:Withdraw': [
@@ -1898,7 +1914,7 @@ export default class hyperliquid extends Exchange {
         const nonce = this.incrementingNonce ();
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const payload: Dict = {
-            'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain': (isSandboxMode) ? 'Testnet' : 'Mainnet',
             'maxFeeRate': maxFeeRate,
             'builder': builder,
             'nonce': nonce,
@@ -1941,7 +1957,7 @@ export default class hyperliquid extends Exchange {
     async handleBuilderFeeApproval (): Promise<boolean> {
         const buildFee = this.safeBool (this.options, 'builderFee', true);
         const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee === true) {
+        if (approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
         try {
@@ -1949,7 +1965,7 @@ export default class hyperliquid extends Exchange {
             // when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
             // but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
             let maxFeeRate = this.safeString (this.options, 'feeRate', '0.01%');
-            if (buildFee !== true) {
+            if (!buildFee) {
                 maxFeeRate = '0%';
             }
             await this.approveBuilderFee (builder, maxFeeRate);
@@ -1988,7 +2004,9 @@ export default class hyperliquid extends Exchange {
             };
             let response: Str = undefined;
             try {
-                const rawResponse = await this.publicPostInfo (this.extend (request, paramsEnableUnifiedMargin));
+                // the request keys win: a caller's own 'type' or 'user' params (e.g. transfer's
+                // type 'swap') must not overwrite the info query, which would silently fail here
+                const rawResponse = await this.publicPostInfo (this.extend (paramsEnableUnifiedMargin, request));
                 if (typeof rawResponse === 'string') {
                     response = rawResponse;
                 }
@@ -2028,7 +2046,7 @@ export default class hyperliquid extends Exchange {
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const type = this.safeString (paramsPublicAddress, 'type', 'userSetAbstraction');
         const payload: Dict = {
-            'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain': (isSandboxMode) ? 'Testnet' : 'Mainnet',
             'user': userAddress,
             'abstraction': abstraction,
             'nonce': nonce,
@@ -2074,7 +2092,7 @@ export default class hyperliquid extends Exchange {
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const type = this.safeString (paramsPublicAddress, 'type', 'userDexAbstraction');
         const payload: Dict = {
-            'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain': (isSandboxMode) ? 'Testnet' : 'Mainnet',
             'user': userAddress,
             'enabled': enabled,
             'nonce': nonce,
@@ -2303,7 +2321,7 @@ export default class hyperliquid extends Exchange {
             defaultTimeInForce = 'ioc';
         }
         const postOnly = this.safeBool (params, 'postOnly', false);
-        if (postOnly === true) {
+        if (postOnly) {
             defaultTimeInForce = 'alo';
         }
         let timeInForce = this.safeStringLower (params, 'timeInForce', defaultTimeInForce);
@@ -2858,7 +2876,7 @@ export default class hyperliquid extends Exchange {
                 defaultTimeInForce = 'ioc';
             }
             const postOnly = this.safeBool (orderParams, 'postOnly', false);
-            if (postOnly === true) {
+            if (postOnly) {
                 defaultTimeInForce = 'alo';
             }
             let timeInForce = this.safeStringLower (orderParams, 'timeInForce', defaultTimeInForce);
@@ -4284,13 +4302,21 @@ export default class hyperliquid extends Exchange {
      * @method
      * @name hyperliquid#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-from-spot-account-to-perp-account-and-vice-versa
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-between-sub-accounts
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#send-asset
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from *spot, swap*
-     * @param {string} toAccount account to transfer to *swap, spot or address*
+     * @param {string} fromAccount account to transfer from *spot, swap, main or a sub-account address*
+     * @param {string} toAccount account to transfer to *swap, spot, main or a sub-account address*
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.vaultAddress] the vault address for order
+     * @param {string} [params.vaultAddress] spot <> swap only, moves the balance inside this vault or sub-account instead of the main account
+     * @param {string} [params.type] main <> sub-account only, 'spot' moves the spot ledger instead of the perp ledger
+     * @param {string} [params.method] main <> sub-account only, 'sendAsset' forces the unified-account route, 'subAccountTransfer' forces the legacy sub-account actions; defaults to sendAsset when the account abstraction is unifiedAccount
+     * @param {boolean} [params.enableUnifiedMargin] main <> sub-account only, skips the abstraction lookup and states whether the account is unified
+     * @param {string} [params.sourceDex] sendAsset only, perp dex to move from, '' for the default USDC perp dex or 'spot', defaults to 'spot'
+     * @param {string} [params.destinationDex] sendAsset only, perp dex to move to, '' for the default USDC perp dex or 'spot', defaults to 'spot'
+     * @param {string} [params.user] sendAsset only, the master wallet address, defaults to walletAddress
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params: Dict = {}): Promise<TransferEntry> {
@@ -4353,10 +4379,66 @@ export default class hyperliquid extends Exchange {
             throw new NotSupported (this.id + ' transfer() only support main <> subaccount transfer');
         }
         this.checkAddress (subAccountAddress);
-        // hyperliquid keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
+        const transferType = this.safeString (params, 'type');
+        // subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
+        // unified account is active", a unified account has to move balances with sendAsset instead
+        let transferMethod: Str = undefined;
+        let query: Dict = params;
+        [ transferMethod, query ] = this.handleOptionAndParams (query, 'transfer', 'method');
+        let masterAddress: Str = undefined;
+        [ masterAddress, query ] = this.handlePublicAddress ('transfer', query);
+        let useSendAsset = (transferMethod === 'sendAsset');
+        if (transferMethod === undefined) {
+            let isUnified: Bool = undefined;
+            [ isUnified, query ] = await this.isUnifiedEnabled ('transfer', masterAddress, false, query);
+            useSendAsset = (isUnified === true);
+        }
+        if (useSendAsset) {
+            const paramsSendAsset = query;
+            const sendAssetCurrency = this.currency (code);
+            const sendAssetCurrencyInfo = this.safeDict (sendAssetCurrency, 'info', {});
+            const sendAssetToken = this.safeString (sendAssetCurrencyInfo, 'name') + ':' + this.safeString (sendAssetCurrencyInfo, 'tokenId');
+            // '' addresses the default USDC perp dex and 'spot' the spot balance, a unified account
+            // keeps every balance in the spot clearinghouse so spot is the default on both sides
+            const defaultDex = ((transferType === 'swap') || (transferType === 'perp')) ? '' : 'spot';
+            const sourceDex = this.safeString (paramsSendAsset, 'sourceDex', defaultDex);
+            const destinationDex = this.safeString (paramsSendAsset, 'destinationDex', defaultDex);
+            const sendAssetPayload: Dict = {
+                'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+                'destination': (isDeposit) ? subAccountAddress : masterAddress,
+                'sourceDex': sourceDex,
+                'destinationDex': destinationDex,
+                'token': sendAssetToken,
+                'amount': this.numberToString (amount),
+                'fromSubAccount': (isDeposit) ? '' : subAccountAddress,
+                'nonce': nonce,
+            };
+            const sendAssetSig = this.buildSendAssetSig (sendAssetPayload);
+            const sendAssetRequest: Dict = {
+                'action': {
+                    'hyperliquidChain': sendAssetPayload['hyperliquidChain'],
+                    'signatureChainId': '0x66eee',
+                    'type': 'sendAsset',
+                    'destination': sendAssetPayload['destination'],
+                    'sourceDex': sourceDex,
+                    'destinationDex': destinationDex,
+                    'token': sendAssetToken,
+                    'amount': sendAssetPayload['amount'],
+                    'fromSubAccount': sendAssetPayload['fromSubAccount'],
+                    'nonce': nonce,
+                },
+                'nonce': nonce,
+                'signature': sendAssetSig,
+            };
+            const sendAssetResponse = await this.privatePostExchange (sendAssetRequest);
+            //
+            // {'response': {'type': 'default'}, 'status': 'ok'}
+            //
+            return this.parseTransfer (sendAssetResponse, sendAssetCurrency);
+        }
+        // a standard account keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
         // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
         // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
-        const transferType = this.safeString (params, 'type');
         const isUsdc = (code.toUpperCase () === 'USDC');
         if (isUsdc && (transferType !== 'spot')) {
             // Transfer USDC with subAccountTransfer
@@ -4377,7 +4459,7 @@ export default class hyperliquid extends Exchange {
             //
             // {'response': {'type': 'default'}, 'status': 'ok'}
             //
-            return this.parseTransfer (response);
+            return this.parseTransfer (response, this.safeCurrency (code));
         } else {
             // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
             // expects the token as "NAME:tokenId", e.g. "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
@@ -4403,7 +4485,7 @@ export default class hyperliquid extends Exchange {
                 'signature': sig,
             };
             const response = await this.privatePostExchange (request);
-            return this.parseTransfer (response);
+            return this.parseTransfer (response, currency);
         }
     }
 
@@ -4463,7 +4545,7 @@ export default class hyperliquid extends Exchange {
         } else {
             const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
             const payload: Dict = {
-                'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+                'hyperliquidChain': (isSandboxMode) ? 'Testnet' : 'Mainnet',
                 'destination': address,
                 'amount': amount.toString (),
                 'time': nonce,

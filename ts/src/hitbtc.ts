@@ -1463,7 +1463,7 @@ export default class hitbtc extends Exchange {
         const taker = this.safeBool (trade, 'taker');
         let takerOrMaker: Str = undefined;
         if (taker !== undefined) {
-            takerOrMaker = (taker === true) ? 'taker' : 'maker';
+            takerOrMaker = (taker) ? 'taker' : 'maker';
         } else {
             takerOrMaker = 'taker'; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
@@ -2864,7 +2864,7 @@ export default class hitbtc extends Exchange {
         }
         const withdrawOptions = this.safeDict (this.options, 'withdraw', {});
         const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
-        if (includeFee === true) {
+        if (includeFee) {
             request['include_fee'] = true;
         }
         const response = await this.privatePostWalletCryptoWithdraw (this.extend (request, paramsOmitted));
@@ -3844,7 +3844,7 @@ export default class hitbtc extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
         const [ marginMode, paramsMarginMode ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
-        if ((marginMode === undefined) && ((defaultType === 'margin') || (isMargin === true))) {
+        if ((marginMode === undefined) && ((defaultType === 'margin') || (isMargin))) {
             return [ 'isolated', paramsMarginMode ];
         }
         return [ marginMode, paramsMarginMode ];

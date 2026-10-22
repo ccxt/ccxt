@@ -66,7 +66,6 @@ from ccxt.test.base.test_strip import test_strip  # noqa E402
 from ccxt.test.base.test_array_concat import test_array_concat  # noqa E402
 from ccxt.test.base.test_arrays_concat import test_arrays_concat  # noqa E402
 from ccxt.test.base.test_set_markets_from_exchange import test_set_markets_from_exchange  # noqa E402
-from ccxt.test.base.test_sleep import test_sleep  # noqa E402
 from ccxt.test.base.test_eth_methods import test_eth_methods  # noqa E402
 from ccxt.test.base.test_timeframes import test_timeframes  # noqa E402
 from ccxt.test.base.test_keysort import test_keysort  # noqa E402
@@ -77,7 +76,6 @@ from ccxt.test.base.test_string_to_base16 import test_string_to_base16  # noqa E
 from ccxt.test.base.test_capitalize import test_capitalize  # noqa E402
 from ccxt.test.base.test_incrementing_nonce import test_incrementing_nonce  # noqa E402
 from ccxt.test.base.test_binary_concat import test_binary_concat  # noqa E402
-from ccxt.test.base.test_constants import test_constants  # noqa E402
 from ccxt.test.base.test_base58_to_binary import test_base58_to_binary  # noqa E402
 from ccxt.test.base.test_is_json_encoded_object import test_is_json_encoded_object  # noqa E402
 from ccxt.test.base.test_is_dictionary import test_is_dictionary  # noqa E402
@@ -85,7 +83,6 @@ from ccxt.test.base.test_encode_decode import test_encode_decode  # noqa E402
 
 async def base_tests_init():
     await test_language_specific()
-    test_constants()
     test_after_constructor()
     test_aggregate()
     test_extend()
@@ -146,7 +143,6 @@ async def base_tests_init():
     test_implode_params()
     test_unique()
     test_urlencode_nested()
-    await test_sleep()
     await test_fetch_history()
     test_io()
     test_is_json_encoded_object()

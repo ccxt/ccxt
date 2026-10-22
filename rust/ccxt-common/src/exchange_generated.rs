@@ -2691,7 +2691,11 @@ pub trait ExchangeBase:
     fn set_markets(&mut self, mut markets: Value, optional_args: &[Value]) -> Value {
         let mut currencies = get_arg(optional_args, 0, Value::Null);
         let mut values: Value = Value::from(vec![]);
-        { let __t = self.create_safe_dictionary(&[]); self.markets_by_id = __t; }
+        // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
+        let mut marketsById: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         // handle marketId conflicts
         // we insert spot markets first
         let mut marketValues: Value = self.sort_by(self.to_array(markets.clone()), Value::Str("spot".into()), &[Value::Bool(true), Value::Bool(true)]);
@@ -2700,12 +2704,12 @@ pub trait ExchangeBase:
             let mut __for_first_87: bool = true;
             while { if !__for_first_87 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_87 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketValues.len() as i64) as f64) } {
             let mut value: Value = marketValues.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if (in_op(&self.markets_by_id, &crate::value::get_value_k(&value, "id"))) {
-                let mut marketsByIdArray: Value = get_value(&self.markets_by_id, &crate::value::get_value_k(&value, "id"));
+            if (in_op(&marketsById, &crate::value::get_value_k(&value, "id"))) {
+                let mut marketsByIdArray: Value = get_value(&marketsById, &crate::value::get_value_k(&value, "id"));
                 append_to_array(&mut marketsByIdArray, value.clone());
-                add_element_to_object(&mut self.markets_by_id, &crate::value::get_value_k(&value, "id"), marketsByIdArray);
+                add_element_to_object(&mut marketsById, &crate::value::get_value_k(&value, "id"), marketsByIdArray);
             }  else {
-                add_element_to_object(&mut self.markets_by_id, &crate::value::get_value_k(&value, "id"), Value::from(vec![value.clone()]));
+                add_element_to_object(&mut marketsById, &crate::value::get_value_k(&value, "id"), Value::from(vec![value.clone()]));
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
@@ -2742,6 +2746,7 @@ pub trait ExchangeBase:
         }
         }
         { let __t = self.map_to_safe_map(self.index_by(values.clone(), Value::Str("symbol".into()))); self.markets = __t; }
+        { let __t = self.map_to_safe_map(marketsById); self.markets_by_id = __t; }
         let mut marketsSortedBySymbol: Value = self.keysort(self.markets.clone(), &[]);
         let mut marketsSortedById: Value = self.keysort(self.markets_by_id.clone(), &[]);
         self.symbols = object_keys(&marketsSortedBySymbol);
@@ -8565,6 +8570,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             paginationTimestamp = since.clone();
         }
+        let mut shouldBreak: bool = false;
         while (calls.as_f64().unwrap_or(f64::NAN) < maxCallsPaginationCalls.as_f64().unwrap_or(f64::NAN)) {
             calls = (match (&(calls), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             {
@@ -8584,6 +8590,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         self.log(backwardMessage);
                     }
                     if (responseLength.as_f64() == Some(0.0)) {
+                        shouldBreak = true;
                         break;
                     }
                     errors = Value::Int(0);
@@ -8591,9 +8598,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut firstElement: Value = self.safe_value(response.clone(), Value::Int(0), &[]);
                     paginationTimestamp = self.safe_integer2(firstElement, Value::Str("timestamp".into()), Value::Int(0), &[]);
                     if (paginationTimestamp == Value::Null) {
+                        shouldBreak = true;
                         break;
                     }
                     if (since != Value::Null) && (paginationTimestamp.as_f64().unwrap_or(f64::NAN) <= since.as_f64().unwrap_or(f64::NAN)) {
+                        shouldBreak = true;
                         break;
                     }
                 }  else {
@@ -8608,6 +8617,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         self.log(forwardMessage);
                     }
                     if (responseLength.as_f64() == Some(0.0)) {
+                        shouldBreak = true;
                         break;
                     }
                     errors = Value::Int(0);
@@ -8615,14 +8625,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut last: Value = self.safe_value(response, (match (&(responseLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
                     let mut lastTimestamp: Value = self.safe_integer_k(last, "timestamp", &[Value::Int(0)]);
                     if (lastTimestamp == Value::Null) {
+                        shouldBreak = true;
                         break;
                     }
                     let mut nextPaginationTimestamp: Value = (match (&(lastTimestamp), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
                     paginationTimestamp = nextPaginationTimestamp.clone();
                     if (until != Value::Null) && (nextPaginationTimestamp.as_f64().unwrap_or(f64::NAN) >= until.as_f64().unwrap_or(f64::NAN)) {
+                        shouldBreak = true;
                         break;
                     }
                 }
+            }
+            if shouldBreak {
+                break;
             }
         }
         let mut uniqueResults: Value = result.clone();
@@ -8734,7 +8749,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 break;
             }
             append_to_array(&mut tasks, self.safe_deterministic_call(method.clone(), &[symbol.clone(), currentSince.clone(), maxEntriesPerRequestValue.clone(), timeframe.clone(), paramsOmitted.clone()]).await);
-            currentSince = (match (&((match (&(currentSince), &(step)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
+            currentSince = subtract(&self.sum(&[currentSince.clone(), step.clone()]), &Value::Int(1));
         }
         }
         let mut results: Value = promise_all(&tasks).await;
@@ -8784,11 +8800,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut result: Value = Value::from(vec![]);
         let mut timeframe: Value = self.safe_string_k(paramsMaxEntriesPerRequest.clone(), "timeframe", &[]);
         let mut paramsOmitted: Value = self.omit(paramsMaxEntriesPerRequest, Value::Str("timeframe".into()), &[]); // reading the timeframe from the method arguments to avoid changing the signature
+        let mut shouldBreak: bool = false;
         while i.as_f64().unwrap_or(f64::NAN) < maxCallsPaginationCalls.as_f64().unwrap_or(f64::NAN) {
             {
                 if (cursorValue != Value::Null) {
                     if (cursorIncrement != Value::Null) {
-                        cursorValue = (match (&(self.parse_to_int(cursorValue.clone())), &(cursorIncrement)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+                        cursorValue = self.sum(&[self.parse_to_int(cursorValue.clone()), cursorIncrement.clone()]);
                     }
                     add_element_to_object(&mut paramsOmitted, &cursorSent, cursorValue.clone());
                 }
@@ -8820,6 +8837,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     self.log(cursorMessage);
                 }
                 if (responseLength.as_f64() == Some(0.0)) {
+                    shouldBreak = true;
                     break;
                 }
                 if (response != Value::Null) {
@@ -8832,17 +8850,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_163: bool = true;
                     while { if !__for_first_163 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_163 = false; j.as_f64().unwrap_or(f64::NAN) < responseLength.as_f64().unwrap_or(f64::NAN) } {
-                    let mut index: Value = (match (&((match (&(responseLength), &(j)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-                    let mut entry: Value = self.safe_dict(response.clone(), index, &[]);
-                    let mut info: Value = self.safe_dict_k(entry, "info", &[]);
-                    let mut cursor: Value = (if (cursorReceived == Value::Null) { Value::Null } else { self.safe_value(info, cursorReceived.clone(), &[]) });
-                    if (cursor != Value::Null) {
-                        cursorValue = cursor;
-                        break;
+                    if (cursorValue == Value::Null) {
+                        let mut index: Value = (match (&((match (&(responseLength), &(j)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                        let mut entry: Value = self.safe_dict(response.clone(), index, &[]);
+                        let mut info: Value = self.safe_dict_k(entry, "info", &[]);
+                        cursorValue = (if (cursorReceived == Value::Null) { Value::Null } else { self.safe_value(info, cursorReceived.clone(), &[]) });
                     }
                 }
                 }
                 if (cursorValue == Value::Null) {
+                    shouldBreak = true;
                     break;
                 }
                 let mut lastTimestamp: Value = self.safe_integer_k(last, "timestamp", &[]);
@@ -8850,8 +8867,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchPaginatedCallCursor() requires a since argument".into()))));
                 }
                 if (lastTimestamp != Value::Null) && lastTimestamp.as_f64().unwrap_or(f64::NAN) < since.as_f64().unwrap_or(f64::NAN) {
+                    shouldBreak = true;
                     break;
                 }
+            }
+            if shouldBreak {
+                break;
             }
             i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
         }
@@ -8886,6 +8907,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut i: Value = Value::Int(0);
         let mut errors: Value = Value::Int(0);
         let mut result: Value = Value::from(vec![]);
+        let mut shouldBreak: bool = false;
         while i.as_f64().unwrap_or(f64::NAN) < maxCallsPaginationCalls.as_f64().unwrap_or(f64::NAN) {
             {
                 add_element_to_object(&mut paramsMaxEntriesPerRequest, &pageKey, (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
@@ -8893,14 +8915,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 errors = Value::Int(0);
                 let mut responseLength: Value = get_array_length(&response);
                 if is_true(&self.verbose) {
-                    let mut iteration: Value = to_string_val(&((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })));
-                    let mut incrementalMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Incremental pagination call ".into()), iteration).into()), Value::Str(" method ".into())).into()), method).into()), Value::Str(" response length ".into())).into()), to_string_val(&responseLength)).into());
+                    let mut iteration: Value = ((match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
+                    let mut incrementalMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Incremental pagination call ".into()), to_string_val(&iteration)).into()), Value::Str(" method ".into())).into()), method).into()), Value::Str(" response length ".into())).into()), to_string_val(&responseLength)).into());
                     self.log(incrementalMessage);
                 }
                 if (responseLength.as_f64() == Some(0.0)) {
+                    shouldBreak = true;
                     break;
                 }
                 result = self.array_concat(result.clone(), response);
+            }
+            if shouldBreak {
+                break;
             }
             i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
         }

@@ -115,7 +115,7 @@ class lighter extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
-                'fetchTrades' => false,
+                'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchTransfer' => false,
@@ -3057,6 +3057,59 @@ class lighter extends Exchange {
         return $this->parse_transaction($response);
     }
 
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         *
+         * @see https://apidocs.lighter.xyz/reference/recenttrades
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch, default 100, max 100
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market_id' => $market['id'],
+            'limit' => 100,
+        );
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 100);
+        }
+        $response = Async\await($this->publicGetRecentTrades($this->extend($request, $params)));
+        //
+        //     {
+        //         "code": 200,
+        //         "trades": [
+        //             {
+        //                 "trade_id": 35564491385,
+        //                 "type": "trade",
+        //                 "market_id": 0,
+        //                 "size": "0.0003",
+        //                 "price": "2385.57",
+        //                 "usd_amount": "0.715671",
+        //                 "ask_id": 281478054267183,
+        //                 "bid_id": 562946767299880,
+        //                 "ask_account_id": 723632,
+        //                 "bid_account_id": 317087,
+        //                 "is_maker_ask": false,
+        //                 "timestamp": 1792497687525
+        //             }
+        //         ]
+        //     }
+        //
+        $trades = $this->safe_list($response, 'trades', array());
+        return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
@@ -3193,6 +3246,10 @@ class lighter extends Exchange {
                 $side = 'buy';
                 $orderId = $this->safe_string($trade, 'bid_id');
             }
+        }
+        // public trades use Lighter's taker-side convention
+        if (($side === null) && ($isMakerAsk !== null)) {
+            $side = ($isMakerAsk === true) ? 'buy' : 'sell';
         }
         $takerOrMaker = null;
         if ($side !== null && $isMakerAsk !== null) {

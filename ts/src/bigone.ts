@@ -1627,7 +1627,7 @@ export default class bigone extends Exchange {
         const exchangeSpecificParam = this.safeBool (params, 'post_only', false);
         let postOnly: Bool = undefined;
         let query = undefined;
-        [ postOnly, query ] = this.handlePostOnly (uppercaseType === 'MARKET', exchangeSpecificParam === true, params);
+        [ postOnly, query ] = this.handlePostOnly (uppercaseType === 'MARKET', exchangeSpecificParam, params);
         const triggerPrice = this.safeStringN (query, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const request: Dict = {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
@@ -1645,7 +1645,7 @@ export default class bigone extends Exchange {
                 if (timeInForce === 'IOC') {
                     request['immediate_or_cancel'] = true;
                 }
-                if (postOnly === true) {
+                if (postOnly) {
                     request['post_only'] = true;
                 }
             }
@@ -2331,7 +2331,7 @@ export default class bigone extends Exchange {
         const transfer = this.parseTransfer (response, currency);
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;

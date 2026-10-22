@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official coinbase API documentation:** [docs.cdp.coinbase.com](https://docs.cdp.coinbase.com/coinbase-app/introduction/welcome) · [docs.cdp.coinbase.com](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/api-reference)
 
-> 97 implicit endpoints across 2 access groups.
+> 91 implicit endpoints across 2 access groups.
 
 ## v2
 
@@ -139,10 +139,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v3PrivateGetBrokerageCfmSweeps` | GET | `brokerage/cfm/sweeps` | 1 |
 | `v3PrivateGetBrokerageCfmIntradayCurrentMarginWindow` | GET | `brokerage/cfm/intraday/current_margin_window` | 1 |
 | `v3PrivateGetBrokerageCfmIntradayMarginSetting` | GET | `brokerage/cfm/intraday/margin_setting` | 1 |
-| `v3PrivateGetBrokerageIntxBalancesPortfolioUuid` | GET | `brokerage/intx/balances/{portfolio_uuid}` | 1 |
-| `v3PrivateGetBrokerageIntxPortfolioPortfolioUuid` | GET | `brokerage/intx/portfolio/{portfolio_uuid}` | 1 |
-| `v3PrivateGetBrokerageIntxPositionsPortfolioUuid` | GET | `brokerage/intx/positions/{portfolio_uuid}` | 1 |
-| `v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol` | GET | `brokerage/intx/positions/{portfolio_uuid}/{symbol}` | 1 |
 | `v3PrivateGetBrokeragePaymentMethods` | GET | `brokerage/payment_methods` | 1 |
 | `v3PrivateGetBrokeragePaymentMethodsPaymentMethodId` | GET | `brokerage/payment_methods/{payment_method_id}` | 1 |
 | `v3PrivateGetBrokerageKeyPermissions` | GET | `brokerage/key_permissions` | 1 |
@@ -157,8 +153,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v3PrivatePostBrokerageConvertTradeTradeId` | POST | `brokerage/convert/trade/{trade_id}` | 1 |
 | `v3PrivatePostBrokerageCfmSweepsSchedule` | POST | `brokerage/cfm/sweeps/schedule` | 1 |
 | `v3PrivatePostBrokerageCfmIntradayMarginSetting` | POST | `brokerage/cfm/intraday/margin_setting` | 1 |
-| `v3PrivatePostBrokerageIntxAllocate` | POST | `brokerage/intx/allocate` | 1 |
-| `v3PrivatePostBrokerageIntxMultiAssetCollateral` | POST | `brokerage/intx/multi_asset_collateral` | 1 |
 | `v3PrivatePostBrokerageOrdersClosePosition` | POST | `brokerage/orders/close_position` | 1 |
 | `v3PrivatePutBrokeragePortfoliosPortfolioUuid` | PUT | `brokerage/portfolios/{portfolio_uuid}` | 1 |
 | `v3PrivateDeleteBrokeragePortfoliosPortfolioUuid` | DELETE | `brokerage/portfolios/{portfolio_uuid}` | 1 |

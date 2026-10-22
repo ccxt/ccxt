@@ -519,7 +519,7 @@ export default class mexc extends mexcRest {
         const paramsOmitted: Dict = this.omit (params, [ 'unsubscribed' ]);
         const url = this.urls['api']['ws']['spot'];
         let method: Str = 'SUBSCRIPTION';
-        if (unsubscribed === true) {
+        if (unsubscribed) {
             method = 'UNSUBSCRIPTION';
         }
         const request: Dict = {
@@ -2058,7 +2058,7 @@ export default class mexc extends mexcRest {
         const client = this.client (this.urls['api']['ws']['spot']);
         const messageHash = 'authenticate:listenKey';
         const isFetching = this.safeBool (this.options, 'listenKeyFetching', false);
-        if (isFetching === true) {
+        if (isFetching) {
             await client.future (messageHash);
             return this.safeString (this.options, 'listenKey');
         }

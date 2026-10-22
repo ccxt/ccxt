@@ -859,7 +859,7 @@ class blofin(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id'],
+            'instId': market['id'],
         }
         response = await self.publicGetMarketMarkPrice(self.extend(request, params))
         data = self.safe_list(response, 'data', [])

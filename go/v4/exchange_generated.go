@@ -2448,7 +2448,8 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 	currencies := GetArg(optionalArgs, 0, nil)
 	_ = currencies
 	var values []any = []any{}
-	this.Markets_by_id = this.CreateSafeDictionary()
+	// build the id index locally and publish it in one swap, so ws handlers never see a half-built table
+	var marketsById map[string]any = map[string]any{}
 	// handle marketId conflicts
 	// we insert spot markets first
 	var marketValues []any = this.SortBy(this.ToArray(markets), "spot", true, true)
@@ -2459,12 +2460,12 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 			}
 			return nil
 		}()
-		if InOp(this.Markets_by_id, GetValue(value, "id")) {
-			var marketsByIdArray any = GetValue(this.Markets_by_id, GetValue(value, "id"))
+		if InOp(marketsById, GetValue(value, "id")) {
+			var marketsByIdArray any = GetValue(marketsById, GetValue(value, "id"))
 			AppendToArray(&marketsByIdArray, value)
-			AddElementToObject(this.Markets_by_id, GetValue(value, "id"), marketsByIdArray)
+			AddElementToObject(marketsById, GetValue(value, "id"), marketsByIdArray)
 		} else {
-			AddElementToObject(this.Markets_by_id, GetValue(value, "id"), []any{value})
+			AddElementToObject(marketsById, GetValue(value, "id"), []any{value})
 		}
 		// strip undefined-valued keys from the parsed market before deepExtend,
 		// otherwise an explicit `taker: undefined` (from safeMarketStructure)
@@ -2491,6 +2492,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		values = append(values, MarketTyped(market))
 	}
 	this.Markets = this.MapToSafeMap(this.IndexBy(values, "symbol"))
+	this.Markets_by_id = this.MapToSafeMap(marketsById)
 	var marketsSortedBySymbol map[string]any = this.Keysort(this.Markets)
 	var marketsSortedById map[string]any = this.Keysort(this.Markets_by_id)
 	this.Symbols = ObjectKeys(marketsSortedBySymbol)
@@ -5786,11 +5788,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan EndpointResult[map[str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes700215 map[string]any = MapTyped(r.Value)
-	if retRes700215 == nil {
+	var retRes700415 map[string]any = MapTyped(r.Value)
+	if retRes700415 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes700215, Raw: retRes700215}
+		ch <- EndpointResult[map[string]any]{Value: retRes700415, Raw: retRes700415}
 	}
 	return nil
 }
@@ -8174,6 +8176,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[any]
 		}
 		paginationTimestamp = since
 	}
+	var shouldBreak bool = false
 	for IsLessThan(calls, maxCallsPaginationCalls) {
 		calls = Add(calls, 1)
 
@@ -8216,6 +8219,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[any]
 						this.Log(backwardMessage)
 					}
 					if responseLength == 0 {
+						shouldBreak = true
 						panic("break")
 					}
 					errors = 0
@@ -8223,9 +8227,11 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[any]
 					var firstElement any = this.SafeValue(response, 0)
 					paginationTimestamp = this.SafeInteger2(firstElement, "timestamp", 0)
 					if IsEqual(paginationTimestamp, nil) {
+						shouldBreak = true
 						panic("break")
 					}
 					if (since != nil) && (IsLessThanOrEqual(paginationTimestamp, since)) {
+						shouldBreak = true
 						panic("break")
 					}
 				} else {
@@ -8245,6 +8251,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[any]
 						this.Log(forwardMessage)
 					}
 					if responseLength == 0 {
+						shouldBreak = true
 						panic("break")
 					}
 					errors = 0
@@ -8252,17 +8259,22 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[any]
 					var last any = this.SafeValue(response, responseLength-1)
 					var lastTimestamp *int64 = this.SafeInteger(last, "timestamp", 0)
 					if lastTimestamp == nil {
+						shouldBreak = true
 						panic("break")
 					}
 					var nextPaginationTimestamp int64 = Add(lastTimestamp, 1).(int64)
 					paginationTimestamp = nextPaginationTimestamp
 					if (until != nil) && (nextPaginationTimestamp >= *until) {
+						shouldBreak = true
 						panic("break")
 					}
 				}
 				return nil
 			}(this)
 
+		}
+		if shouldBreak {
+			break // go turns a break inside try into a panic that only ends the iteration
 		}
 	}
 	var uniqueResults any = result
@@ -8427,7 +8439,8 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan AsyncResul
 			break
 		}
 		tasks = append(tasks, this.SafeDeterministicCallAsync(method, symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted))
-		currentSince = Subtract(Add(currentSince, step), 1)
+		// this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
+		currentSince = Subtract(this.Sum(currentSince, step), 1)
 	}
 
 	r := <-promiseAll(tasks)
@@ -8494,6 +8507,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[any],
 	var result []any = []any{}
 	var timeframe *string = this.SafeString(paramsMaxEntriesPerRequest, "timeframe")
 	var paramsOmitted any = this.Omit(paramsMaxEntriesPerRequest, "timeframe") // reading the timeframe from the method arguments to avoid changing the signature
+	var shouldBreak bool = false
 	for IsLessThan(i, maxCallsPaginationCalls) {
 
 		{
@@ -8516,7 +8530,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[any],
 				// try block:
 				if !IsEqual(cursorValue, nil) {
 					if cursorIncrement != nil {
-						cursorValue = Add(this.ParseToInt(cursorValue), cursorIncrement)
+						cursorValue = this.Sum(this.ParseToInt(cursorValue), cursorIncrement)
 					}
 					AddElementToObject(paramsOmitted, cursorSent, cursorValue)
 				}
@@ -8573,6 +8587,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[any],
 					this.Log(cursorMessage)
 				}
 				if responseLength == 0 {
+					shouldBreak = true
 					panic("break")
 				}
 				if !IsEqual(response, nil) {
@@ -8581,22 +8596,22 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[any],
 				var last map[string]any = SafeMapTyped(response, responseLength-1)
 				// cursorValue = this.safeValue (last['info'], cursorReceived);
 				cursorValue = nil // search for the cursor
+				// guard instead of break: inside a try block go turns break into a panic that ends the whole iteration
 				for j := 0; j < responseLength; j++ {
-					var index any = Subtract(Subtract(responseLength, j), 1)
-					var entry map[string]any = SafeMapTyped(response, index)
-					var info map[string]any = SafeMapTyped(entry, "info")
-					var cursor any = func() any {
-						if cursorReceived == nil {
-							return nil
-						}
-						return this.SafeValue(info, cursorReceived)
-					}()
-					if !IsEqual(cursor, nil) {
-						cursorValue = cursor
-						panic("break")
+					if IsEqual(cursorValue, nil) {
+						var index any = Subtract(Subtract(responseLength, j), 1)
+						var entry map[string]any = SafeMapTyped(response, index)
+						var info map[string]any = SafeMapTyped(entry, "info")
+						cursorValue = func() any {
+							if cursorReceived == nil {
+								return nil
+							}
+							return this.SafeValue(info, cursorReceived)
+						}()
 					}
 				}
 				if IsEqual(cursorValue, nil) {
+					shouldBreak = true
 					panic("break")
 				}
 				var lastTimestamp *int64 = this.SafeInteger(last, "timestamp")
@@ -8604,11 +8619,15 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[any],
 					panic(ArgumentsRequired(this.Id + " fetchPaginatedCallCursor() requires a since argument"))
 				}
 				if (lastTimestamp != nil) && IsLessThan(lastTimestamp, since) {
+					shouldBreak = true
 					panic("break")
 				}
 				return nil
 			}(this)
 
+		}
+		if shouldBreak {
+			break // go turns a break inside try into a panic that only ends the iteration
 		}
 		i = Add(i, 1)
 	}
@@ -8657,6 +8676,7 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[
 	var i any = 0
 	var errors any = 0
 	var result []any = []any{}
+	var shouldBreak bool = false
 	for IsLessThan(i, maxCallsPaginationCalls) {
 
 		{
@@ -8687,17 +8707,21 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[
 				errors = 0
 				var responseLength int = GetArrayLength(response)
 				if this.Verbose {
-					var iteration string = ToString((Add(i, 1)))
-					var incrementalMessage *string = SafeStringPtr(Add(Add(Add("Incremental pagination call "+iteration+" method ", method), " response length "), ToString(responseLength)))
+					var iteration any = (Add(i, 1))
+					var incrementalMessage *string = SafeStringPtr(Add(Add(Add("Incremental pagination call "+ToString(iteration)+" method ", method), " response length "), ToString(responseLength)))
 					this.Log(incrementalMessage)
 				}
 				if responseLength == 0 {
+					shouldBreak = true
 					panic("break")
 				}
 				result = this.ArrayConcat(result, response)
 				return nil
 			}(this)
 
+		}
+		if shouldBreak {
+			break // go turns a break inside try into a panic that only ends the iteration
 		}
 		i = Add(i, 1)
 	}
@@ -11815,12 +11839,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan EndpointResult[
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11336, _ := r.Value.([]any)
-	var retRes1042915 []any = listRecv11336
-	if retRes1042915 == nil {
+	listRecv11360, _ := r.Value.([]any)
+	var retRes1045315 []any = listRecv11360
+	if retRes1045315 == nil {
 		ch <- EndpointResult[[]any]{}
 	} else {
-		ch <- EndpointResult[[]any]{Value: retRes1042915, Raw: retRes1042915}
+		ch <- EndpointResult[[]any]{Value: retRes1045315, Raw: retRes1045315}
 	}
 	return nil
 }

@@ -112,7 +112,7 @@ export default class lighter extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransfer': false,
@@ -635,11 +635,11 @@ export default class lighter extends Exchange {
 
     async handleBuilderFeeApproval (accountIndex: number, apiKeyIndex: number): Promise<boolean> {
         const buildFee = this.safeBool (this.options, 'builderFee', true);
-        if (buildFee !== true) {
+        if (!buildFee) {
             return false;
         }
         const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee === true) {
+        if (approvedBuilderFee) {
             return true;
         }
         let standardTier = false;
@@ -869,7 +869,7 @@ export default class lighter extends Exchange {
         request['order_expiry'] = orderExpiry;
         request['order_type'] = orderTypeNum;
         request['time_in_force'] = timeInForceNum;
-        request['reduce_only'] = (reduceOnly === true) ? 1 : 0;
+        request['reduce_only'] = (reduceOnly) ? 1 : 0;
         request['client_order_index'] = clientOrderId;
         request['base_amount'] = this.parseToInt (Precise.stringMul (amountStr, amountScale));
         request['avg_execution_price'] = this.parseToInt (Precise.stringMul (priceStr, priceScale));
@@ -2926,6 +2926,55 @@ export default class lighter extends Exchange {
 
     /**
      * @method
+     * @name lighter#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://apidocs.lighter.xyz/reference/recenttrades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch, default 100, max 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market_id': market['id'],
+            'limit': 100,
+        };
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 100);
+        }
+        const response = await this.publicGetRecentTrades (this.extend (request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "trades": [
+        //             {
+        //                 "trade_id": 35564491385,
+        //                 "type": "trade",
+        //                 "market_id": 0,
+        //                 "size": "0.0003",
+        //                 "price": "2385.57",
+        //                 "usd_amount": "0.715671",
+        //                 "ask_id": 281478054267183,
+        //                 "bid_id": 562946767299880,
+        //                 "ask_account_id": 723632,
+        //                 "bid_account_id": 317087,
+        //                 "is_maker_ask": false,
+        //                 "timestamp": 1792497687525
+        //             }
+        //         ]
+        //     }
+        //
+        const trades = this.safeList (response, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    /**
+     * @method
      * @name lighter#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://apidocs.lighter.xyz/reference/trades
@@ -3056,6 +3105,10 @@ export default class lighter extends Exchange {
                 side = 'buy';
                 orderId = this.safeString (trade, 'bid_id');
             }
+        }
+        // public trades use Lighter's taker-side convention
+        if ((side === undefined) && (isMakerAsk !== undefined)) {
+            side = (isMakerAsk) ? 'buy' : 'sell';
         }
         let takerOrMaker: Str = undefined;
         if (side !== undefined && isMakerAsk !== undefined) {

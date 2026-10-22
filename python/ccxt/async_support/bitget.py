@@ -344,6 +344,17 @@ class bitget(Exchange, ImplicitAPI):
                             'v3/market/futures-long-short': {'cost': 20},
                             'v3/market/futures-position-long-short': {'cost': 20},
                             'v3/market/futures-account-long-short': {'cost': 20},
+                            'v3/stockplus/market/static': {'cost': 2},
+                            'v3/stockplus/market/quote': {'cost': 2},
+                            'v3/stockplus/market/intraday': {'cost': 2},
+                            'v3/stockplus/market/depth': {'cost': 2},
+                            'v3/stockplus/market/candlestick': {'cost': 2},
+                            'v3/stockplus/market/history-candlestick': {'cost': 2},
+                            'v3/stockplus/market/trade': {'cost': 2},
+                            'v3/stockplus/market/option-quote': {'cost': 2},
+                            'v3/stockplus/market/option-chain-info': {'cost': 2},
+                            'v3/stockplus/market/option-expiry-date': {'cost': 2},
+                            'v3/stockplus/market/option-volume': {'cost': 2},
                             'v3/reality/market/stock-info': {'cost': 20},
                             'v3/reality/market/states': {'cost': 20},
                             'v3/reality/market/calendar': {'cost': 20},
@@ -935,6 +946,17 @@ class bitget(Exchange, ImplicitAPI):
                             'v3/position/current-position': {'cost': 1},
                             'v3/position/history-position': {'cost': 1},
                             'v3/position/adlRank': {'cost': 20},
+                            'v3/account/reality-orderbook': {'cost': 2},
+                            'v3/account/reality-fills': {'cost': 2},
+                            'v3/stockplus/asset/transfer-records': {'cost': 2},
+                            'v3/stockplus/asset/account': {'cost': 2},
+                            'v3/stockplus/asset/stock-position': {'cost': 2},
+                            'v3/stockplus/asset/cash-flow': {'cost': 2},
+                            'v3/stockplus/trade/today-orders': {'cost': 20},
+                            'v3/stockplus/trade/history-orders': {'cost': 20},
+                            'v3/stockplus/trade/order-detail': {'cost': 20},
+                            'v3/stockplus/trade/today-executions': {'cost': 20},
+                            'v3/stockplus/trade/history-executions': {'cost': 20},
                             'v3/tax/records': {'cost': 20},
                             'v3/trade/order-info': {'cost': 1},
                             'v3/trade/unfilled-orders': {'cost': 1},
@@ -957,8 +979,6 @@ class bitget(Exchange, ImplicitAPI):
                             'v3/account/eligible-loan-info': {'cost': 2},
                             'v3/account/eligible-discount-rate': {'cost': 1},
                             'v3/account/funding-financial-records': {'cost': 2},
-                            'v3/account/reality-orderbook': {'cost': 2},
-                            'v3/account/reality-fills': {'cost': 2},
                             'v3/copy/futures/trading-pairs': {'cost': 4},
                             'v3/copy/futures/position-summary': {'cost': 4},
                             'v3/copy/futures/max-transferable': {'cost': 20},
@@ -993,15 +1013,6 @@ class bitget(Exchange, ImplicitAPI):
                             'v3/stockplus/market/intraday': {'cost': 2},
                             'v3/stockplus/market/history-candlestick': {'cost': 2},
                             'v3/stockplus/market/candlestick': {'cost': 2},
-                            'v3/stockplus/trade/today-orders': {'cost': 20},
-                            'v3/stockplus/trade/history-orders': {'cost': 20},
-                            'v3/stockplus/trade/order-detail': {'cost': 20},
-                            'v3/stockplus/trade/today-executions': {'cost': 20},
-                            'v3/stockplus/trade/history-executions': {'cost': 20},
-                            'v3/stockplus/asset/account': {'cost': 2},
-                            'v3/stockplus/asset/cash-flow': {'cost': 2},
-                            'v3/stockplus/asset/stock-position': {'cost': 2},
-                            'v3/stockplus/asset/transfer-records': {'cost': 2},
                             'v3/p2p/ad-list': {'cost': 2},
                             'v3/p2p/ad-info': {'cost': 2},
                             'v3/p2p/ad-limit': {'cost': 2},
@@ -1039,6 +1050,10 @@ class bitget(Exchange, ImplicitAPI):
                             'v3/loan/borrow': {'cost': 2},
                             'v3/loan/repay': {'cost': 2},
                             'v3/loan/revise-pledge': {'cost': 2},
+                            'v3/stockplus/asset/transfer': {'cost': 4},
+                            'v3/stockplus/trade/place-order': {'cost': 20},
+                            'v3/stockplus/trade/modify-order': {'cost': 20},
+                            'v3/stockplus/trade/cancel-order': {'cost': 20},
                             'v3/trade/place-order': {'cost': 2},
                             'v3/trade/place-strategy-order': {'cost': 2},
                             'v3/trade/modify-order': {'cost': 2},
@@ -1078,10 +1093,6 @@ class bitget(Exchange, ImplicitAPI):
                             'v3/trade/grid/modify-neutral-grid-interval': {'cost': 20},
                             'v3/user/set-rate-limit-quota': {'cost': 4},
                             'v3/user/sub-account/agent-create': {'cost': 20},
-                            'v3/stockplus/trade/place-order': {'cost': 20},
-                            'v3/stockplus/trade/cancel-order': {'cost': 20},
-                            'v3/stockplus/trade/modify-order': {'cost': 20},
-                            'v3/stockplus/asset/transfer': {'cost': 4},
                             'v3/p2p/ad-create': {'cost': 2},
                             'v3/p2p/ad-update': {'cost': 2},
                             'v3/p2p/ad-operate': {'cost': 2},
@@ -1750,7 +1761,7 @@ class bitget(Exchange, ImplicitAPI):
                 },
                 'fetchTrades': {
                     'spot': {
-                        'method': 'publicSpotGetV2SpotMarketFillsHistory',  # or publicSpotGetV2SpotMarketFills
+                        'method': 'publicSpotGetV2SpotMarketFillsHistory',  # or publicSpotGetV2SpotMarketFills or privateUtaGetV3AccountRealityFills
                     },
                     'swap': {
                         'method': 'publicMixGetV2MixMarketFillsHistory',  # or publicMixGetV2MixMarketFills
@@ -2133,12 +2144,14 @@ class bitget(Exchange, ImplicitAPI):
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param boolean [params.stock]: set to True if you would like to fetch tokenized stock markets
         :returns dict[]: an array of objects representing market data
         """
         if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             await self.load_time_difference()
-        uta, paramsUTA = await self.handle_uta_and_params(params, 'fetchMarkets', False)
-        if uta is True:
+        stock, paramsStock = self.handle_option_bool_and_params(params, 'fetchMarkets', 'stock', False)
+        uta, paramsUTA = await self.handle_uta_and_params(paramsStock, 'fetchMarkets', False)
+        if (stock is True) or (uta is True):
             return await self.fetch_uta_markets(paramsUTA)
         return await self.fetch_default_markets(paramsUTA)
 
@@ -2434,7 +2447,11 @@ class bitget(Exchange, ImplicitAPI):
         #         "maxSymbolOrderNum": "400",
         #         "maxProductOrderNum": "400",
         #         "status": "online",
-        #         "maintainTime": ""
+        #         "maintainTime": "",
+        #         "areaSymbol": "yes",
+        #         "maxPositionNum": "200",
+        #         "isReality": "yes",
+        #         "launchTime": "1786698824814"
         #     }
         #
         # margin uta
@@ -2515,6 +2532,8 @@ class bitget(Exchange, ImplicitAPI):
             base = self.safe_currency_code(baseId)
             if (base is None) or (quote is None):
                 continue
+            isRealityValue = self.safe_string_lower(market, 'isReality', '')
+            isReality = (isRealityValue == 'yes')
             settleId = None
             settle = None
             if category == 'USDT-FUTURES':
@@ -2529,6 +2548,7 @@ class bitget(Exchange, ImplicitAPI):
             type = None
             swap = False
             spot = False
+            stock = False
             future = False
             contract = False
             pricePrecision = None
@@ -2541,9 +2561,10 @@ class bitget(Exchange, ImplicitAPI):
             marginModes = None
             isMarginTradingAllowed = False
             isUtaMargin = (category == 'MARGIN')
-            if isUtaMargin or (category == 'SPOT'):
+            if isReality or isUtaMargin or (category == 'SPOT'):
                 type = 'spot'
                 spot = True
+                stock = isReality
                 if isUtaMargin:
                     isolatedBase = self.safe_string(market, 'isIsolatedBaseBorrowable')
                     isolatedQuote = self.safe_string(market, 'isIsolatedQuotedBorrowable')
@@ -2603,6 +2624,7 @@ class bitget(Exchange, ImplicitAPI):
                 'swap': swap,
                 'future': future,
                 'option': False,
+                'stock': stock,
                 'active': active,
                 'contract': contract,
                 'linear': linear,
@@ -3444,11 +3466,13 @@ class bitget(Exchange, ImplicitAPI):
         https://www.bitget.com/api-doc/spot/market/Get-Orderbook
         https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth
         https://www.bitget.com/api-doc/uta/public/OrderBook
+        https://www.bitget.com/api-doc/uta/reality/market/Reality-OrderBook
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param boolean [params.stock]: set to True if you would like to fetch tokenized stock order books
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
@@ -3461,8 +3485,18 @@ class bitget(Exchange, ImplicitAPI):
             request['limit'] = limit
         productType, paramsProductType = self.handle_product_type_and_params(market, params)
         response = None
-        uta, paramsUTA = await self.handle_uta_and_params(paramsProductType, 'fetchOrderBook', False)
-        if uta is True:
+        stockDefault = self.safe_bool(market, 'stock', False)
+        stock, paramsStock = self.handle_option_bool_and_params(paramsProductType, 'fetchOrderBook', 'stock', stockDefault)
+        uta, paramsUTA = await self.handle_uta_and_params(paramsStock, 'fetchOrderBook', False)
+        isStock = (stock is True)
+        isStockOrUta = (isStock or (uta is True))
+        if isStock:
+            if limit is not None:
+                raise BadRequest(self.id + ' fetchOrderBook() does not support limit for tokenized stock markets')
+            if not self.check_required_credentials(False):
+                raise BadRequest(self.id + ' fetchOrderBook() requires a whitelisted API key for tokenized stock markets')
+            response = await self.privateUtaGetV3AccountRealityOrderbook(self.extend(request, paramsUTA))
+        elif uta is True:
             request['category'] = productType
             response = await self.publicUtaGetV3MarketOrderbook(self.extend(request, paramsUTA))
         elif market['spot'] is True:
@@ -3482,7 +3516,7 @@ class bitget(Exchange, ImplicitAPI):
         #       }
         #     }
         #
-        # uta
+        # uta and tokenized stocks
         #
         #     {
         #         "code": "00000",
@@ -3497,10 +3531,9 @@ class bitget(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         bidsKey = 'bids'
-        if uta is True:
-            bidsKey = 'b'
         asksKey = 'asks'
-        if uta is True:
+        if isStockOrUta:
+            bidsKey = 'b'
             asksKey = 'a'
         timestamp = self.safe_integer(data, 'ts')
         return self.parse_order_book(data, market['symbol'], timestamp, bidsKey, asksKey)
@@ -3657,6 +3690,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param boolean [params.stock]: set to True if you would like to fetch tokenized stock tickers
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if self.markets is None:
@@ -3667,8 +3701,12 @@ class bitget(Exchange, ImplicitAPI):
         }
         productType, paramsProductType = self.handle_product_type_and_params(market, params)
         response = None
-        uta, paramsUTA = await self.handle_uta_and_params(paramsProductType, 'fetchTicker', False)
-        if uta is True:
+        stockDefault = self.safe_bool(market, 'stock', False)
+        stock, paramsStock = self.handle_option_bool_and_params(paramsProductType, 'fetchTicker', 'stock', stockDefault)
+        uta, paramsUTA = await self.handle_uta_and_params(paramsStock, 'fetchTicker', False)
+        isStock = (stock is True)
+        isStockOrUta = (isStock or (uta is True))
+        if isStockOrUta:
             request['category'] = productType
             response = await self.publicUtaGetV3MarketTickers(self.extend(request, paramsUTA))
         elif market['spot'] is True:
@@ -3839,6 +3877,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param boolean [params.stock]: set to True if you would like to fetch tokenized stock tickers
         :param str [params.subType]: *contract only* 'linear', 'inverse'
         :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
@@ -3846,9 +3885,11 @@ class bitget(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = None
+        stockDefault = None
         if symbols is not None:
             symbol = self.safe_string(symbols, 0)
             market = self.market(symbol)
+            stockDefault = self.safe_bool(market, 'stock', False)
         response = None
         request = {}
         type, paramsMarketType = self.handle_market_type_and_params('fetchTickers', market, params)
@@ -3857,20 +3898,38 @@ class bitget(Exchange, ImplicitAPI):
         # with higher priority and only default to spot, if `subType` is not set in params
         passedSubType = self.safe_string(paramsMarketType, 'subType')
         productType, paramsProductType = self.handle_product_type_and_params(market, paramsMarketType)
+        stock, paramsStock = self.handle_option_bool_and_params(paramsProductType, 'fetchTickers', 'stock', stockDefault)
         # only if passedSubType && productType is undefined, then use spot
-        uta, paramsUTA = await self.handle_uta_and_params(paramsProductType, 'fetchTickers', False)
-        if uta is True:
+        uta, paramsUTA = await self.handle_uta_and_params(paramsStock, 'fetchTickers', False)
+        isStock = (stock is True)
+        isStockOrUta = (isStock or (uta is True))
+        if isStockOrUta:
             if symbols is not None:
                 symbolsLength = len(symbols)
                 if symbolsLength == 1:
                     request['symbol'] = self.safe_string(market, 'id')
-            request['category'] = productType
+            if isStock:
+                request['category'] = 'SPOT'
+            elif not ('category' in request):
+                request['category'] = productType
             response = await self.publicUtaGetV3MarketTickers(self.extend(request, paramsUTA))
         elif type == 'spot' and passedSubType is None:
             response = await self.publicSpotGetV2SpotMarketTickers(self.extend(request, paramsUTA))
         else:
             request['productType'] = productType
             response = await self.publicMixGetV2MixMarketTickers(self.extend(request, paramsUTA))
+        symbolsResolved = symbols
+        if isStock and (symbols is None):
+            # for returning only tokenized stock symbols
+            symbolsResolved = []
+            for i in range(0, len(self.symbols)):
+                symbol = self.symbols[i]
+                entry = self.market(symbol)
+                isStockMarket = self.safe_bool(entry, 'stock', False)
+                if isStockMarket:
+                    marketSymbol = self.safe_string(entry, 'symbol')
+                    if marketSymbol is not None:
+                        symbolsResolved.append(marketSymbol)
         #
         # spot
         #
@@ -3988,7 +4047,7 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        return self.parse_tickers(data, symbols)
+        return self.parse_tickers(data, symbolsResolved)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -4150,12 +4209,14 @@ class bitget(Exchange, ImplicitAPI):
         https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills
         https://www.bitget.com/api-doc/contract/market/Get-Fills-History
         https://www.bitget.com/api-doc/uta/public/Fills
+        https://www.bitget.com/api-doc/uta/reality/market/Reality-Fills
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param boolean [params.stock]: set to True if you would like to fetch tokenized stock trades
         :param int [params.until]: *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
         :param boolean [params.paginate]: *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default False, when True will automatically paginate by calling self endpoint multiple times
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
@@ -4165,16 +4226,25 @@ class bitget(Exchange, ImplicitAPI):
         paginate = False
         paramsPaginate = None
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
-        if paginate:
-            return await self.fetch_paginated_call_cursor('fetchTrades', symbol, since, limit, paramsPaginate, 'idLessThan', 'idLessThan')
         market = self.market(symbol)
+        stockDefault = self.safe_bool(market, 'stock', False)
+        if paginate:
+            # the recursive calls read 'stock' and 'uta' themselves, so only peek at the flag here
+            stockForPagination = self.handle_option_bool_and_params(paramsPaginate, 'fetchTrades', 'stock', stockDefault)[0]
+            if stockForPagination is True:
+                raise BadRequest(self.id + ' fetchTrades() does not support paginate for tokenized stock markets')
+            return await self.fetch_paginated_call_cursor('fetchTrades', symbol, since, limit, paramsPaginate, 'idLessThan', 'idLessThan')
         request = {
             'symbol': market['id'],
         }
+        stock = None
+        stock, paramsPaginate = self.handle_option_bool_and_params(paramsPaginate, 'fetchTrades', 'stock', stockDefault)
         uta = None
         uta, paramsPaginate = await self.handle_uta_and_params(paramsPaginate, 'fetchTrades', False)
+        isStock = (stock is True)
+        isStockOrUta = (isStock or (uta is True))
         if limit is not None:
-            if uta is True:
+            if isStockOrUta:
                 request['limit'] = min(limit, 100)
             elif market['contract'] is True:
                 request['limit'] = min(limit, 1000)
@@ -4184,7 +4254,14 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         productType = None
         productType, paramsPaginate = self.handle_product_type_and_params(market, paramsPaginate)
-        if uta is True:
+        if isStock:
+            if since is not None:
+                raise BadRequest(self.id + ' fetchTrades() does not support since for tokenized stock markets')
+            if not self.check_required_credentials(False):
+                raise BadRequest(self.id + ' fetchTrades() requires a whitelisted API key for tokenized stock markets')
+            paramsPaginate = self.omit(paramsPaginate, ['until', 'idLessThan'])
+            response = await self.privateUtaGetV3AccountRealityFills(self.extend(request, paramsPaginate))
+        elif uta is True:
             if productType == 'SPOT':
                 marginMode = None
                 marginMode, paramsPaginate = self.handle_margin_mode_and_params('fetchTrades', paramsPaginate)
@@ -4254,7 +4331,7 @@ class bitget(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        # uta
+        # uta and tokenized stock
         #
         #     {
         #         "code": "00000",
@@ -4555,6 +4632,7 @@ class bitget(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param boolean [params.stock]: set to True if you would like to fetch tokenized stock candlesticks
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.useHistoryEndpoint]: whether to force to use historical endpoint(it has max limit of 200, 100 for uta)
         :param boolean [params.useHistoryEndpointForPagination]: whether to force to use historical endpoint for pagination(default True)
@@ -4581,10 +4659,14 @@ class bitget(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
+        stockDefault = self.safe_bool(market, 'stock', False)
+        stock, paramsStock = self.handle_option_bool_and_params(paramsUTA, 'fetchOHLCV', 'stock', stockDefault)
         marketType = None
         timeframes = None
         timeframesOption = self.handle_option('fetchOHLCV', 'timeframes')
-        if uta is True:
+        isStock = (stock is True)
+        isStockOrUta = (isStock or (uta is True))
+        if isStockOrUta:
             timeframes = timeframesOption['uta']
             request['interval'] = self.safe_string(timeframes, timeframe, timeframe)
         else:
@@ -4594,11 +4676,11 @@ class bitget(Exchange, ImplicitAPI):
         msInDay = 86400000
         now = self.milliseconds()
         duration = self.parse_timeframe(timeframe) * 1000
-        until = self.safe_integer(paramsUTA, 'until')
+        until = self.safe_integer(paramsStock, 'until')
         limitDefined = limit is not None
         sinceDefined = since is not None
         untilDefined = until is not None
-        paramsOmitted = self.omit(paramsUTA, ['until'])
+        paramsOmitted = self.omit(paramsStock, ['until'])
         # retrievable periods listed here:
         # - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         # - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
@@ -4658,7 +4740,9 @@ class bitget(Exchange, ImplicitAPI):
         response = None
         priceType, paramsPrice = self.handle_param_string(paramsOmitted, 'price')
         productType, paramsProductType = self.handle_product_type_and_params(market, paramsPrice)
-        if uta is True:
+        if isStock and (priceType is not None):
+            raise BadRequest(self.id + ' fetchOHLCV() for stock markets supports only market-price candles')
+        if isStockOrUta:
             if priceType is not None:
                 if priceType == 'mark':
                     request['type'] = 'MARK'
@@ -4725,6 +4809,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param str [params.uta]: set to True for the unified trading account(uta), defaults to False
         :param str [params.type]: 'funding' to fetch the uta funding-account assets(uta only, classic accounts route funding through 'spot')
+        :param boolean [params.stock]: set to True if you would like to fetch tokenized stock account balances
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         if self.markets is None:
@@ -4733,12 +4818,15 @@ class bitget(Exchange, ImplicitAPI):
         marketType = None
         marginMode = None
         response = None
+        stock, paramsStock = self.handle_option_bool_and_params(params, 'fetchBalance', 'stock', False)
         uta = None
         paramsUTA = None
-        uta, paramsUTA = await self.handle_uta_and_params(params, 'fetchBalance', False)
+        uta, paramsUTA = await self.handle_uta_and_params(paramsStock, 'fetchBalance', False)
+        isStock = (stock is True)
+        isStockOrUta = (isStock or (uta is True))
         marketType, paramsUTA = self.handle_market_type_and_params('fetchBalance', None, paramsUTA)
         marginMode, paramsUTA = self.handle_margin_mode_and_params('fetchBalance', paramsUTA)
-        if uta is True:
+        if isStockOrUta:
             assets = None
             if marketType == 'funding':
                 response = await self.privateUtaGetV3AccountFundingAssets(self.extend(request, paramsUTA))
@@ -5403,6 +5491,7 @@ class bitget(Exchange, ImplicitAPI):
         https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
         https://www.bitget.com/api-doc/uta/trade/Place-Order
         https://www.bitget.com/api-doc/uta/strategy/Place-Strategy-Order
+        https://www.bitget.com/api-doc/uta/reality/trade/Place-Reality-Order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -5433,6 +5522,7 @@ class bitget(Exchange, ImplicitAPI):
         :param bool [params.hedged]: *swap and future only* True for hedged mode, False for one way mode, default is False
         :param bool [params.reduceOnly]: True or False whether the order is reduce-only
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param boolean [params.stock]: set to True if you would like to place tokenized stock orders
         :param str [params.posSide]: *uta only* hedged two-way position side, long or short
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -5441,20 +5531,33 @@ class bitget(Exchange, ImplicitAPI):
         market = self.market(symbol)
         marginParams = self.handle_margin_mode_and_params('createOrder', params)
         marginMode = marginParams[0]
-        triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
-        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
-        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
+        stockDefault = self.safe_bool(market, 'stock', False)
+        stock, paramsStock = self.handle_option_bool_and_params(params, 'createOrder', 'stock', stockDefault)
+        triggerPrice = self.safe_number_2(paramsStock, 'stopPrice', 'triggerPrice')
+        stopLossTriggerPrice = self.safe_number(paramsStock, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_number(paramsStock, 'takeProfitPrice')
+        stopLoss = self.safe_dict(paramsStock, 'stopLoss')
+        takeProfit = self.safe_dict(paramsStock, 'takeProfit')
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRatio')
         isTrailingPercentOrder = trailingPercent is not None
         isTriggerOrder = triggerPrice is not None
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
+        hasStopLoss = stopLoss is not None
+        hasTakeProfit = takeProfit is not None
         response = None
-        uta, paramsUTA = await self.handle_uta_and_params(params, 'createOrder', False)
-        if uta is True:
+        uta, paramsUTA = await self.handle_uta_and_params(paramsStock, 'createOrder', False)
+        isStock = (stock is True)
+        isStockOrUta = (isStock or (uta is True))
+        if isStock:
+            if isTriggerOrder or isStopLossOrTakeProfitTrigger or hasStopLoss or hasTakeProfit or isTrailingPercentOrder:
+                raise InvalidOrder(self.id + ' createOrder() only supports market and limit orders for tokenized stock markets')
+        if isStockOrUta:
             request = self.create_uta_order_request(symbol, type, side, amount, price, paramsUTA)
-            if isStopLossOrTakeProfitTrigger:
+            if isStock:
+                response = await self.privateUtaPostV3TradePlaceRealityOrder(request)
+            elif isStopLossOrTakeProfitTrigger:
                 response = await self.privateUtaPostV3TradePlaceStrategyOrder(request)
             else:
                 response = await self.privateUtaPostV3TradePlaceOrder(request)
@@ -6170,6 +6273,7 @@ class bitget(Exchange, ImplicitAPI):
         https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order
         https://www.bitget.com/api-doc/uta/trade/Cancel-Order
         https://www.bitget.com/api-doc/uta/strategy/Cancel-Strategy-Order
+        https://www.bitget.com/api-doc/uta/reality/trade/Cancel-Reality-Order
 
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -6179,6 +6283,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.planType]: *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
         :param boolean [params.trailing]: set to True if you want to cancel a trailing order
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param boolean [params.stock]: set to True if you would like to cancel tokenized stock orders
         :param str [params.clientOrderId]: the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -6191,6 +6296,9 @@ class bitget(Exchange, ImplicitAPI):
         response = {}
         paramsMarginMode = None
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('cancelOrder', params)
+        stockDefault = self.safe_bool(market, 'stock', False)
+        stock = None
+        stock, paramsMarginMode = self.handle_option_bool_and_params(paramsMarginMode, 'cancelOrder', 'stock', stockDefault)
         request = {}
         trailing = self.safe_bool(paramsMarginMode, 'trailing')
         trigger = self.safe_bool_2(paramsMarginMode, 'stop', 'trigger')
@@ -6199,10 +6307,14 @@ class bitget(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         uta = None
         uta, paramsMarginMode = await self.handle_uta_and_params(paramsMarginMode, 'cancelOrder', False)
+        isStock = (stock is True)
+        isStockOrUta = (isStock or (uta is True))
         isPlanOrder = (trigger is True) or (trailing is True)
         isContract = (market['swap'] is True) or (market['future'] is True)
-        isContractTriggerEndpoint = isContract and isPlanOrder and (uta is not True)
+        isContractTriggerEndpoint = isContract and isPlanOrder and not isStockOrUta
         clientOrderId = self.safe_string_2(paramsMarginMode, 'clientOrderId', 'clientOid')
+        if isStock and isPlanOrder:
+            raise InvalidOrder(self.id + ' cancelOrder() does not support trigger or trailing orders for tokenized stock markets')
         if isContractTriggerEndpoint:
             orderIdList = []
             orderId = {}
@@ -6219,7 +6331,9 @@ class bitget(Exchange, ImplicitAPI):
                 request['clientOid'] = clientOrderId
             else:
                 request['orderId'] = id
-        if uta is True:
+        if isStock:
+            response = await self.privateUtaPostV3TradeCancelRealityOrder(self.extend(request, paramsMarginMode))
+        elif isStockOrUta:
             if trigger is True:
                 response = await self.privateUtaPostV3TradeCancelStrategyOrder(self.extend(request, paramsMarginMode))
             else:
@@ -6250,7 +6364,7 @@ class bitget(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' cancelOrder() does not support ' + market['type'] + ' orders')
         #
-        # spot, swap, future and spot margin
+        # spot, swap, future, spot margin and tokenized stock
         #
         #     {
         #         "code": "00000",
@@ -6305,7 +6419,7 @@ class bitget(Exchange, ImplicitAPI):
             orderInfo = self.safe_list(data, 'successList', [])
             order = self.safe_dict(orderInfo, 0, {})
         else:
-            if (uta is True) and (trigger is True):
+            if isStockOrUta and (trigger is True):
                 order = response
             else:
                 order = data

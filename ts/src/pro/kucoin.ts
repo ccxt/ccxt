@@ -98,7 +98,7 @@ export default class kucoin extends kucoinRest {
 
     async negotiate (privateChannel: boolean, isFuturesMethod: boolean = false, params: Dict = {}) {
         let connectId: Str = 'public';
-        if (privateChannel === true) {
+        if (privateChannel) {
             connectId = 'private';
         }
         if (isFuturesMethod) {
@@ -207,7 +207,7 @@ export default class kucoin extends kucoinRest {
         let action = 'subscribe';
         if (subscription !== undefined) {
             const unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
-            action = (unsubscribe === true) ? 'unsubscribe' : action;
+            action = (unsubscribe) ? 'unsubscribe' : action;
         }
         const request: Dict = {
             'id': requestId,
@@ -231,7 +231,7 @@ export default class kucoin extends kucoinRest {
         let action = 'subscribe';
         if (subscription !== undefined) {
             const unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
-            action = (unsubscribe === true) ? 'unsubscribe' : action;
+            action = (unsubscribe) ? 'unsubscribe' : action;
         }
         const request: Dict = {
             'id': requestId,
@@ -502,7 +502,7 @@ export default class kucoin extends kucoinRest {
         let action = 'subscribe';
         if (subscription !== undefined) {
             const unsubscribe = this.safeBool (subscription, 'unsubscribe', false);
-            action = (unsubscribe === true) ? 'unsubscribe' : action;
+            action = (unsubscribe) ? 'unsubscribe' : action;
         }
         const request: Dict = {
             'id': requestId,
@@ -1912,7 +1912,7 @@ export default class kucoin extends kucoinRest {
             method.call (this, client, message, subscription);
         }
         const isUnSub = this.safeBool (subscription, 'unsubscribe', false);
-        if (isUnSub === true) {
+        if (isUnSub) {
             const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
             const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
             for (let i = 0; i < messageHashes.length; i++) {
@@ -2681,7 +2681,7 @@ export default class kucoin extends kucoinRest {
         const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool (options, 'awaitBalanceSnapshot', true);
-        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
+        if ((fetchBalanceSnapshot) && (awaitBalanceSnapshot)) {
             await client.future (uniformType + ':fetchBalanceSnapshot');
         }
         const messageHash = uniformType + ':balance';
@@ -2714,7 +2714,7 @@ export default class kucoin extends kucoinRest {
         }
         const options = this.safeDict (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot === true) {
+        if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -3583,7 +3583,7 @@ export default class kucoin extends kucoinRest {
             this.handleSubject (client, message);
         } else if ('result' in message) { // subscription uta messages
             const result = this.safeBool (message, 'result', true);
-            if (result !== true) {
+            if (!result) {
                 this.handleErrorMessage (client, message);
             }
             this.handleSubscriptionStatus (client, message);

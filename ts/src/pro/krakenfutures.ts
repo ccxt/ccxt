@@ -1040,7 +1040,7 @@ export default class krakenfutures extends krakenfuturesRest {
         let status: Str = undefined;
         if (isCancelled !== undefined) {
             unparsedOrder = this.safeValue (order, 'order');
-            if (isCancelled === true) {
+            if (isCancelled) {
                 status = 'cancelled';
             }
         }

@@ -900,7 +900,7 @@ export default class okx extends okxRest {
         const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let accessType: Str = 'private';
-        if (isTrigger === true) {
+        if (isTrigger) {
             accessType = 'business';
         }
         await this.authenticate ({ 'access': accessType });
@@ -1840,12 +1840,12 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         let access: Str = 'private';
-        if (isTrigger === true) {
+        if (isTrigger) {
             access = 'business';
         }
         await this.authenticate ({ 'access': access });
         let channel: Str = 'orders';
-        if (isTrigger === true) {
+        if (isTrigger) {
             channel = 'orders-algo';
         }
         let messageHash = channel + '::myTrades';
@@ -2046,7 +2046,7 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         let accessType: Str = 'private';
-        if (isTrigger === true) {
+        if (isTrigger) {
             accessType = 'business';
         }
         await this.authenticate ({ 'access': accessType });
@@ -2075,7 +2075,7 @@ export default class okx extends okxRest {
             'instType': uppercaseType,
         };
         let channel: Str = 'orders';
-        if (isTrigger === true) {
+        if (isTrigger) {
             channel = 'orders-algo';
         }
         const orders = await this.subscribe ('private', channel, channel, symbolResolved, this.extend (request, paramsMarginMode));
@@ -2512,6 +2512,35 @@ export default class okx extends okxRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
+    handleCancelOrders (client: Client, message: Dict) {
+        //
+        //    {
+        //        "id": "1512",
+        //        "op": "batch-cancel-orders",
+        //        "data": [
+        //            {
+        //                "clOrdId": "",
+        //                "ordId": "2510789768709120",
+        //                "sCode": "0",
+        //                "sMsg": ""
+        //            }
+        //        ],
+        //        "code": "0",
+        //        "msg": ""
+        //    }
+        //
+        const messageHash = this.safeString (message, 'id');
+        let args = this.safeList (message, 'data', []);
+        args = this.filterBy (args, 'sCode', '0');
+        if (this.isEmpty (args)) {
+            const method = this.safeString (message, 'op');
+            const stringMsg = this.json (message);
+            this.handleErrors (1, '', client.url, method as string, {}, stringMsg, message, {}, {});
+        }
+        const orders = this.parseOrders (args, undefined, undefined, undefined);
+        client.resolve (orders, messageHash);
+    }
+
     handleCancelAllOrders (client: Client, message: Dict) {
         //
         //    {
@@ -2678,6 +2707,7 @@ export default class okx extends okxRest {
                 'amend-order': this.handlePlaceOrders,
                 'batch-amend-orders': this.handlePlaceOrders,
                 'cancel-order': this.handlePlaceOrders,
+                'batch-cancel-orders': this.handleCancelOrders,
                 'mass-cancel': this.handleCancelAllOrders,
             };
             const method = this.safeValue (methods, event);
@@ -2751,6 +2781,10 @@ export default class okx extends okxRest {
         const subMessageHash = 'multi:' + channel + ':' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
+        // watchOHLCV subscribes through subscribe () under channel:marketId
+        if (symbol !== undefined) {
+            this.cleanUnsubscription (client, channel + ':' + this.marketId (symbol), undefined);
+        }
         if ((symbol !== undefined) && (timeframe !== undefined) && (timeframe in this.ohlcvs[symbol])) {
             delete this.ohlcvs[symbol][timeframe];
         }

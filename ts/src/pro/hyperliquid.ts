@@ -1121,7 +1121,7 @@ export default class hyperliquid extends hyperliquidRest {
         const dex = this.safeString (paramsValue2, 'dex');
         const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
         let topic: Str = 'clearinghouseState';
-        if (isSpot === true) {
+        if (isSpot) {
             topic = 'spotState';
         }
         const messageHash = topic + '::balance';
@@ -1130,7 +1130,7 @@ export default class hyperliquid extends hyperliquidRest {
             'type': topic,
             'user': userAddress,
         };
-        if (isSpot === true) {
+        if (isSpot) {
             if (isUnifiedEnabled === true) {
                 subscription['isPortfolioMargin'] = true;
             }
@@ -1174,7 +1174,7 @@ export default class hyperliquid extends hyperliquidRest {
         const dex = this.safeString (paramsValue2, 'dex');
         const isSpot = ((type === 'spot') || (isUnifiedEnabled === true)) && (dex === undefined);
         let topic: Str = 'clearinghouseState';
-        if (isSpot === true) {
+        if (isSpot) {
             topic = 'spotState';
         }
         const messageHash = 'unsubscribe' + ':' + topic;

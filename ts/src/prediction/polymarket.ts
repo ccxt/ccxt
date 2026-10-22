@@ -714,7 +714,7 @@ export default class polymarket extends Exchange {
             const active = this.safeBool (market, 'active', false);
             const closed = this.safeBool (market, 'closed', false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
-            const marketResolved = (closed === true) || (this.safeStringLower (market, 'umaResolutionStatus') === 'resolved');
+            const marketResolved = (closed) || (this.safeStringLower (market, 'umaResolutionStatus') === 'resolved');
             let resolvedOutcome: Str = undefined;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             const tickSize = this.safeNumber2 (market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01);
@@ -794,7 +794,7 @@ export default class polymarket extends Exchange {
                     'market': marketSymbol,
                     'label': outcomeLabel,
                     'price': outcomePrice,
-                    'active': (active === true) && (closed !== true),
+                    'active': (active) && (!closed),
                     'winner': winner,
                     'settleFraction': settleFraction,
                     // carry the order precision so createOrder needs no extra request
@@ -829,7 +829,7 @@ export default class polymarket extends Exchange {
                 'future': false,
                 'option': false,
                 'prediction': true,
-                'active': (active === true) && (closed !== true),
+                'active': (active) && (!closed),
                 'resolved': marketResolved,
                 'resolvedOutcome': marketResolvedOutcome,
                 'contract': false,
@@ -2120,7 +2120,7 @@ export default class polymarket extends Exchange {
             if (builderHex.length <= 40) {
                 const builderFeeEnabled = this.safeBool (this.options, 'builderFee', true);
                 let feeRate = 0;
-                if (builderFeeEnabled === true) {
+                if (builderFeeEnabled) {
                     feeRate = this.safeInteger (this.options, 'feeRate', 0);
                 }
                 let feeHex = this.intToBase16 (feeRate);
@@ -2157,7 +2157,7 @@ export default class polymarket extends Exchange {
         const exchangeV2 = this.safeString (this.options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B');
         const negRiskExchangeV2 = this.safeString (this.options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59');
         let exchangeAddress: Str = exchangeV2;
-        if (negRisk === true) {
+        if (negRisk) {
             exchangeAddress = negRiskExchangeV2;
         }
         const domainVersion = this.safeString (this.options, 'ctfExchangeVersion', '2');
@@ -2627,7 +2627,7 @@ export default class polymarket extends Exchange {
         const closed = this.safeBool (rawEvent, 'closed', false);
         let active: Bool = undefined;
         if (rawActive !== undefined) {
-            active = (rawActive === true) && (closed !== true);
+            active = (rawActive) && (!closed);
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.

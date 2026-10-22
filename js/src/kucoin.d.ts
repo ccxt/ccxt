@@ -1187,7 +1187,7 @@ export default class kucoin extends Exchange {
     calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: Dict): any;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: Str;
-        rate: Num;
+        rate: number;
         period: number;
         timestamp: Int;
         datetime: string | undefined;
@@ -1317,6 +1317,7 @@ export default class kucoin extends Exchange {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     /**
      * @method
      * @name kucoin#setLeverage

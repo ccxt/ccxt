@@ -2027,6 +2027,38 @@ public class Hyperliquid extends HyperliquidApi
         return this.signUserSignedAction((Map<String, Object>) (messageTypes), (Map<String, Object>) (message));
     }
 
+    public Object buildSendAssetSig(Map<String, Object> message)
+    {
+        Map<String, Object> messageTypes = new HashMap<String, Object>() {{
+            put( "HyperliquidTransaction:SendAsset", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+    put( "name", "hyperliquidChain" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "destination" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "sourceDex" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "destinationDex" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "token" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "amount" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "fromSubAccount" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "nonce" );
+    put( "type", "uint64" );
+}})) );
+        }};
+        return this.signUserSignedAction((Map<String, Object>) (messageTypes), (Map<String, Object>) (message));
+    }
+
     public Object buildWithdrawSig(Map<String, Object> message)
     {
         Map<String, Object> messageTypes = new HashMap<String, Object>() {{
@@ -2270,7 +2302,9 @@ public class Hyperliquid extends HyperliquidApi
                 Object response = null;
                 try
                 {
-                    Object rawResponse = (this.publicPostInfo(this.extend(request, paramsEnableUnifiedMargin))).join();
+                    // the request keys win: a caller's own 'type' or 'user' params (e.g. transfer's
+                    // type 'swap') must not overwrite the info query, which would silently fail here
+                    Object rawResponse = (this.publicPostInfo(this.extend(paramsEnableUnifiedMargin, request))).join();
                     if ((rawResponse instanceof String))
                     {
                         response = rawResponse;
@@ -4970,13 +5004,21 @@ public class Hyperliquid extends HyperliquidApi
      * @method
      * @name hyperliquid#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-from-spot-account-to-perp-account-and-vice-versa
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-between-sub-accounts
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#send-asset
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from *spot, swap*
-     * @param {string} toAccount account to transfer to *swap, spot or address*
+     * @param {string} fromAccount account to transfer from *spot, swap, main or a sub-account address*
+     * @param {string} toAccount account to transfer to *swap, spot, main or a sub-account address*
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.vaultAddress] the vault address for order
+     * @param {string} [params.vaultAddress] spot <> swap only, moves the balance inside this vault or sub-account instead of the main account
+     * @param {string} [params.type] main <> sub-account only, 'spot' moves the spot ledger instead of the perp ledger
+     * @param {string} [params.method] main <> sub-account only, 'sendAsset' forces the unified-account route, 'subAccountTransfer' forces the legacy sub-account actions; defaults to sendAsset when the account abstraction is unifiedAccount
+     * @param {boolean} [params.enableUnifiedMargin] main <> sub-account only, skips the abstraction lookup and states whether the account is unified
+     * @param {string} [params.sourceDex] sendAsset only, perp dex to move from, '' for the default USDC perp dex or 'spot', defaults to 'spot'
+     * @param {string} [params.destinationDex] sendAsset only, perp dex to move to, '' for the default USDC perp dex or 'spot', defaults to 'spot'
+     * @param {string} [params.user] sendAsset only, the master wallet address, defaults to walletAddress
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
@@ -5049,10 +5091,73 @@ public class Hyperliquid extends HyperliquidApi
                 throw new NotSupported((this.id + " transfer() only support main <> subaccount transfer")) ;
             }
             this.checkAddress(Helpers.toStringArg(subAccountAddress), (String) null, (String) null);
-            // hyperliquid keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
+            String transferType = this.safeString(parameters, "type");
+            // subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
+            // unified account is active", a unified account has to move balances with sendAsset instead
+            Object transferMethod = null;
+            Object query = parameters;
+            List<Object> transferMethodqueryVariable = (List<Object>) this.handleOptionAndParams(query, "transfer", "method", (Object) null);
+            transferMethod = ((List<Object>) transferMethodqueryVariable).get(0);
+            query = ((List<Object>) transferMethodqueryVariable).get(1);
+            String masterAddress = null;
+            List<Object> masterAddressqueryVariable = (List<Object>) this.handlePublicAddress("transfer", (Map<String, Object>) (query));
+            masterAddress = (String) ((List<Object>) masterAddressqueryVariable).get(0);
+            query = ((List<Object>) masterAddressqueryVariable).get(1);
+            Boolean useSendAsset = (java.util.Objects.equals(transferMethod, "sendAsset"));
+            if (java.util.Objects.equals(transferMethod, null))
+            {
+                Object isUnified = null;
+                var isUnifiedqueryVariable = (this.isUnifiedEnabled("transfer", masterAddress, false, Helpers.toMapArg(query))).join();
+                isUnified = ((List<Object>) isUnifiedqueryVariable).get(0);
+                query = ((List<Object>) isUnifiedqueryVariable).get(1);
+                useSendAsset = (java.util.Objects.equals(isUnified, true));
+            }
+            if (Boolean.TRUE.equals(useSendAsset))
+            {
+                Object paramsSendAsset = query;
+                Map<String, Object> sendAssetCurrency = this.currency((String) (code));
+                Map<String, Object> sendAssetCurrencyInfo = (Map<String, Object>) this.safeDict(sendAssetCurrency, "info", new HashMap<String, Object>() {{}});
+                String sendAssetToken = ((this.safeString(sendAssetCurrencyInfo, "name") + ":") + this.safeString(sendAssetCurrencyInfo, "tokenId"));
+                // '' addresses the default USDC perp dex and 'spot' the spot balance, a unified account
+                // keeps every balance in the spot clearinghouse so spot is the default on both sides
+                String defaultDex = ((((java.util.Objects.equals(transferType, "swap")) || (java.util.Objects.equals(transferType, "perp"))))) ? "" : "spot";
+                String sourceDex = this.safeString(paramsSendAsset, "sourceDex", defaultDex);
+                String destinationDex = this.safeString(paramsSendAsset, "destinationDex", defaultDex);
+                Map<String, Object> sendAssetPayload = new HashMap<String, Object>();
+                sendAssetPayload.put("hyperliquidChain", (((java.util.Objects.equals(isSandboxMode, true)))) ? "Testnet" : "Mainnet");
+                sendAssetPayload.put("destination", ((Boolean.TRUE.equals(isDeposit))) ? subAccountAddress : masterAddress);
+                sendAssetPayload.put("sourceDex", sourceDex);
+                sendAssetPayload.put("destinationDex", destinationDex);
+                sendAssetPayload.put("token", sendAssetToken);
+                sendAssetPayload.put("amount", this.numberToString(amount));
+                sendAssetPayload.put("fromSubAccount", ((Boolean.TRUE.equals(isDeposit))) ? "" : subAccountAddress);
+                sendAssetPayload.put("nonce", nonce);
+                Object sendAssetSig = this.buildSendAssetSig((Map<String, Object>) (sendAssetPayload));
+                Map<String, Object> sendAssetRequest = new HashMap<String, Object>() {{
+                    put( "action", new HashMap<String, Object>() {{
+                        put( "hyperliquidChain", sendAssetPayload.get("hyperliquidChain") );
+                        put( "signatureChainId", "0x66eee" );
+                        put( "type", "sendAsset" );
+                        put( "destination", sendAssetPayload.get("destination") );
+                        put( "sourceDex", sourceDex );
+                        put( "destinationDex", destinationDex );
+                        put( "token", sendAssetToken );
+                        put( "amount", sendAssetPayload.get("amount") );
+                        put( "fromSubAccount", sendAssetPayload.get("fromSubAccount") );
+                        put( "nonce", nonce );
+                    }} );
+                    put( "nonce", nonce );
+                    put( "signature", sendAssetSig );
+                }};
+                Map<String, Object> sendAssetResponse = (this.privatePostExchange(sendAssetRequest)).join();
+                //
+                // {'response': {'type': 'default'}, 'status': 'ok'}
+                //
+                return this.parseTransfer(sendAssetResponse, sendAssetCurrency);
+            }
+            // a standard account keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
             // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
             // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
-            String transferType = this.safeString(parameters, "type");
             Boolean isUsdc = (java.util.Objects.equals(((String)code).toUpperCase(), "USDC"));
             if (Boolean.TRUE.equals(isUsdc) && (!java.util.Objects.equals(transferType, "spot")))
             {
@@ -5073,7 +5178,7 @@ public class Hyperliquid extends HyperliquidApi
                 //
                 // {'response': {'type': 'default'}, 'status': 'ok'}
                 //
-                return this.parseTransfer(response, (Map<String, Object>) null);
+                return this.parseTransfer(response, Helpers.toMapArg(this.safeCurrency((String) (code), (Map<String, Object>) null)));
             } else
             {
                 // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
@@ -5100,7 +5205,7 @@ public class Hyperliquid extends HyperliquidApi
                     put( "signature", sig );
                 }};
                 Map<String, Object> response = (this.privatePostExchange(request)).join();
-                return this.parseTransfer(response, (Map<String, Object>) null);
+                return this.parseTransfer(response, currency);
             }
         }).thenApply(TransferEntry::new);
 

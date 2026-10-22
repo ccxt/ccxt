@@ -1275,7 +1275,7 @@ export default class hyperliquid extends Exchange {
         if (isMarket) {
             defaultTif = 'Ioc';
         }
-        if (postOnly === true) {
+        if (postOnly) {
             defaultTif = 'Alo';
         }
         let tif = this.capitalize (this.safeStringLower (params, 'timeInForce', defaultTif)); // eslint-disable-line
@@ -2206,7 +2206,7 @@ export default class hyperliquid extends Exchange {
         const nonce = this.incrementingNonce ();
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const payload: Dict = {
-            'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain': (isSandboxMode) ? 'Testnet' : 'Mainnet',
             'maxFeeRate': maxFeeRate,
             'builder': builder,
             'nonce': nonce,
@@ -2235,7 +2235,7 @@ export default class hyperliquid extends Exchange {
         // async for the PHP and typed transpilers, which mishandle an async body that never suspends
         await this.loadMarkets ();
         const buildFee = this.safeBool (this.options, 'builderFee', false);
-        if (buildFee !== true) {
+        if (!buildFee) {
             return undefined;
         }
         if (this.safeBool (this.options, 'approvedBuilderFee', false)) {
@@ -2281,7 +2281,7 @@ export default class hyperliquid extends Exchange {
         const apiGroup = api[0];
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let baseUrl: string;
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             const testUrls = this.safeDict (this.urls, 'test', {});
             baseUrl = this.safeString (testUrls, apiGroup, this.safeString (testUrls, 'public', ''));
         } else {

@@ -2162,7 +2162,7 @@ export default class woofipro extends Exchange {
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
-        if ((trigger !== true) && (symbol === undefined)) {
+        if ((!trigger) && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -2179,7 +2179,7 @@ export default class woofipro extends Exchange {
         const clientOrderIdExchangeSpecific = this.safeString (paramsOmitted, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response: NullableDict = undefined;
-        if (trigger === true) {
+        if (trigger) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
                 const paramsOmitted2: Dict = this.omit (paramsOmitted, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
@@ -2219,7 +2219,7 @@ export default class woofipro extends Exchange {
         } else {
             extendParams['id'] = id;
         }
-        if (trigger === true) {
+        if (trigger) {
             const parsedResponse = (response === undefined) ? {} : response;
             return this.extend (this.parseOrder (parsedResponse), extendParams) as Order;
         }
@@ -2346,7 +2346,7 @@ export default class woofipro extends Exchange {
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         let response: NullableDict = undefined;
-        if (trigger === true) {
+        if (trigger) {
             if (clientOrderId !== undefined && clientOrderId !== '') {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetAlgoClientOrderClientOrderId (this.extend (request, paramsOmitted));
@@ -2417,7 +2417,7 @@ export default class woofipro extends Exchange {
             await this.loadMarkets ();
         }
         const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        const maxLimit = (isTrigger === true) ? 100 : 500;
+        const maxLimit = (isTrigger) ? 100 : 500;
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallIncremental ('fetchOrders', symbol, since, limit, paramsPaginate, 'page', maxLimit) as Order[];
@@ -2437,12 +2437,12 @@ export default class woofipro extends Exchange {
         } else {
             request['size'] = maxLimit;
         }
-        if (isTrigger === true) {
+        if (isTrigger) {
             request['algo_type'] = 'STOP';
         }
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_t', request, paramsOmitted);
         let response: NullableDict = undefined;
-        if (isTrigger === true) {
+        if (isTrigger) {
             response = await this.v1PrivateGetAlgoOrders (this.extend (requestUntil, paramsUntil));
         } else {
             response = await this.v1PrivateGetOrders (this.extend (requestUntil, paramsUntil));
@@ -3160,7 +3160,7 @@ export default class woofipro extends Exchange {
             'amount': undefined,
             'total': undefined,
             'code': this.safeString (market, 'settle'),
-            'status': (success === true) ? 'ok' : 'failed',
+            'status': (success) ? 'ok' : 'failed',
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         } as MarginModification;
@@ -3509,7 +3509,7 @@ export default class woofipro extends Exchange {
             this.checkRequiredCredentials ();
             if ((method === 'POST' || method === 'PUT') && (path === 'algo/order' || path === 'order' || path === 'batch-order')) {
                 const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-                if (isSandboxMode !== true) {
+                if (!isSandboxMode) {
                     const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
                     if (path === 'batch-order') {
                         const ordersList = this.safeList (requestParams, 'orders', []);

@@ -301,22 +301,6 @@ abstract class Exchange extends _Exchange {
         return this.request ('brokerage/cfm/intraday/margin_setting', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
     }
 
-    v3PrivateGetBrokerageIntxBalancesPortfolioUuid (params = {}): Promise<Dict> {
-        return this.request ('brokerage/intx/balances/{portfolio_uuid}', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    v3PrivateGetBrokerageIntxPortfolioPortfolioUuid (params = {}): Promise<Dict> {
-        return this.request ('brokerage/intx/portfolio/{portfolio_uuid}', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    v3PrivateGetBrokerageIntxPositionsPortfolioUuid (params = {}): Promise<Dict> {
-        return this.request ('brokerage/intx/positions/{portfolio_uuid}', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
-    v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol (params = {}): Promise<Dict> {
-        return this.request ('brokerage/intx/positions/{portfolio_uuid}/{symbol}', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
     v3PrivateGetBrokeragePaymentMethods (params = {}): Promise<Dict> {
         return this.request ('brokerage/payment_methods', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
     }
@@ -371,14 +355,6 @@ abstract class Exchange extends _Exchange {
 
     v3PrivatePostBrokerageCfmIntradayMarginSetting (params = {}): Promise<Dict> {
         return this.request ('brokerage/cfm/intraday/margin_setting', [ 'v3', 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    v3PrivatePostBrokerageIntxAllocate (params = {}): Promise<Dict> {
-        return this.request ('brokerage/intx/allocate', [ 'v3', 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    v3PrivatePostBrokerageIntxMultiAssetCollateral (params = {}): Promise<Dict> {
-        return this.request ('brokerage/intx/multi_asset_collateral', [ 'v3', 'private' ], 'POST', params, { 'cost': 1 });
     }
 
     v3PrivatePostBrokerageOrdersClosePosition (params = {}): Promise<Dict> {

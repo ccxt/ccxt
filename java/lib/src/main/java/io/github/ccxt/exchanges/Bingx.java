@@ -1070,6 +1070,8 @@ public class Bingx extends BingxApi
                     put( "100419", PermissionDenied.class );
                     put( "100437", BadRequest.class );
                     put( "101204", InsufficientFunds.class );
+                    put( "101205", InvalidOrder.class );
+                    put( "101400", InvalidOrder.class );
                     put( "110425", InvalidOrder.class );
                     put( "100490", BadSymbol.class );
                     put( "101481", DuplicateOrderId.class );
@@ -4812,7 +4814,7 @@ public class Bingx extends BingxApi
         mapLiteral9.put("status", this.parseOrderStatus(statusId));
         HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
         mapLiteral10.put("currency", feeCurrencyCode);
-        mapLiteral10.put("cost", Precise.stringAbs(feeCost));
+        mapLiteral10.put("cost", this.parseNumber(Precise.stringAbs(feeCost)));
         mapLiteral9.put("fee", mapLiteral10);
         mapLiteral9.put("trades", null);
         mapLiteral9.put("reduceOnly", this.safeBool2(orderData, "reduceOnly", "ro", (Object) null));
