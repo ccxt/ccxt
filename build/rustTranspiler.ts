@@ -12627,9 +12627,7 @@ impl std::ops::DerefMut for ${coreName} {
         const str = (v: string) => `(match ${v} { Value::Str(__s) => __s.to_string(), Value::Int(__n) => __n.to_string(), Value::Float(__f) => __f.to_string(), Value::Bool(__b) => __b.to_string(), Value::Null => "null".to_string(), Value::Dict(__m) if __m.contains_key("__precise") => crate::runtime::stringify_param(${v}), __o => format!("{}", __o) })`;
         const build = (name: string, args: string[]): string | undefined => {
             const a = args.map(s => s.trim());
-            if (name === 'to_string_val' && a.length === 1) {
-                return `({ let __r31v: &Value = ${a[0]}; Value::Str(${str('__r31v')}.into()) })`;
-            }
+            if (name === 'to_string_val') return this.x42ToStr(a); // hx5 X42: proven native or helper
             // hx5 X40: split/join/replace_str are never inlined. Every r31 site reaches this pass as a
             // `&Value` operand that no emitted declaration proves to be a `Value::Str` / `Value::Arr` of
             // strings (and the runtime differs from a bare `.split`/`.join`/`.replace` on non-Str, null and
@@ -12650,7 +12648,7 @@ impl std::ops::DerefMut for ${coreName} {
                 const close = this.closeParenAt(content, open);
                 if (close < 0) continue;
                 const inner = content.slice(open + 1, close);
-                if (/(?<![A-Za-z0-9_:.])(to_string_val|ends_with|starts_with|pad_end|pad_start|to_fixed)\(/.test(this.maskStringsAndComments(inner))) continue; // hx5 X40: helper-call args do not block the outer site
+                if (/(?<![A-Za-z0-9_:.])(to_string_val)\(/.test(this.maskStringsAndComments(inner))) continue; // hx5 X40: helper-call args do not block the outer site (X39/X41: affix/pad/to_fixed no longer rewritten here)
                 const text = build(name, this.splitTopLevelCommas(inner));
                 if (text === undefined) continue;
                 rewrites.push({ start, end: close + 1, text });
@@ -13010,6 +13008,18 @@ impl std::ops::DerefMut for ${coreName} {
             at = close + 1;
         }
         return out + content.slice(at);
+    }
+
+    // hx5 X42 — `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box
+    // (helper = `Value::Str(stringify_simple(..))`, identity on Str, so the box itself is
+    // the result and E is evaluated once). Every other operand keeps the helper call verbatim:
+    // `Display` differs from `stringify_simple` on Arr/Dict and the `__precise` dict.
+    // parse_int/parse_float are emitted as `crate::runtime::parse_*`, never inlined by r31: left alone.
+    x42ToStr(a: string[]): string | undefined {
+        if (a.length !== 1) return undefined;
+        const m = /^&\s*(Value::Str\(([\s\S]*)\))$/.exec(a[0]);
+        if (m === null || this.closeParenAt(m[1], 'Value::Str'.length) !== m[1].length - 1) return undefined;
+        return m[1];
     }
 }
 
