@@ -12558,13 +12558,13 @@ impl std::ops::DerefMut for ${coreName} {
     hx4R29InlineCollectionHelpers(content: string): string {
         const names = [ 'in_op', 'object_keys', 'get_array_length', 'remove' ];
         if (!names.some(n => content.includes(n + '('))) return content;
-        const loose = (v: string) => `(match ${v} { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })`;
-        const eq = `(match (__r29e, __r29v) { (Value::Null, Value::Null) => true, (Value::Bool(__p), Value::Bool(__q)) => __p == __q, (Value::Str(__p), Value::Str(__q)) => __p == __q, (Value::Int(__p), Value::Int(__q)) => __p == __q, (Value::Float(__p), Value::Float(__q)) => __p == __q, (__p, __q) => matches!((${loose('__p')}, ${loose('__q')}), (Some(__x), Some(__y)) if __x == __y) })`;
         const build = (name: string, args: string[]): string | undefined => {
             const a = args.map(s => s.trim());
-            if (name === 'in_op' && a.length === 2) {
-                return `({ let __r29o: &Value = ${a[0]}; let __r29k: &Value = ${a[1]}; match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => __m.contains_key(&**__k), (Value::Arr(__a), __r29v) => __a.iter().any(|__r29e| ${eq}), _ => false } })`;
-            }
+            // hx5 X33 — in_op: no inline `match`. Native `contains_key` only on a local declared as a
+            // concrete map (`Arc<IndexMap<String, Value>>` / `IndexMap<String, Value>`) with a literal
+            // string key; every other site keeps the `in_op(..)` helper call (Null / non-map / array).
+            if (name === 'in_op') return hx5X33InOp(a, content);
+
             if (name === 'object_keys' && a.length === 1) {
                 return `({ let __r29o: &Value = ${a[0]}; match __r29o { Value::Dict(__m) => Value::List(__m.keys().filter(|__k| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|__k| Value::Str(__k.clone().into())).collect()), _ => Value::List(vec![]) } })`;
             }
@@ -12590,7 +12590,8 @@ impl std::ops::DerefMut for ${coreName} {
                 const close = this.closeParenAt(content, open);
                 if (close < 0) continue;
                 const inner = content.slice(open + 1, close);
-                if (/(?<![A-Za-z0-9_:.])(in_op|object_keys|get_array_length|remove)\(/.test(this.maskStringsAndComments(inner))) continue;
+                // hx5 X33: a retained `in_op(` helper call inside the args no longer blocks the outer rewrite.
+                if (/(?<![A-Za-z0-9_:.])(object_keys|get_array_length|remove)\(/.test(this.maskStringsAndComments(inner))) continue;
                 const text = build(name, this.splitTopLevelCommas(inner));
                 if (text === undefined) continue;
                 if (name === 'remove' && !/^\s*;/.test(content.slice(close + 1, close + 8))) continue;
@@ -12776,4 +12777,21 @@ if (isMainEntry(import.meta.url)) {
     } else {
         await t.transpileEverything(force, child, false);
     }
+}
+
+// hx5 X33 — `in_op` arm of the r29 pass: plain native op on a proven map, else the helper call.
+function hx5X33InOp (a: string[], content: string): string | undefined {
+    if (a.length !== 2) return undefined;
+    const recv = /^&([A-Za-z_][A-Za-z0-9_]*)$/.exec(a[0]);
+    const key = /^&Value::Str\(("(?:[^"\\]|\\.)*")\.into\(\)\)$/.exec(a[1]);
+    if (recv === null || key === null) return undefined;
+    const x = recv[1];
+    const declRe = new RegExp('\\blet\\s+(?:mut\\s+)?' + x + '\\s*:\\s*([^=;]+?)\\s*=', 'g');
+    const types = [ ...content.matchAll(declRe) ].map(m => m[1].replace(/\s+/g, ''));
+    const mapTy = /^(?:(?:std::sync::)?Arc<)?(?:indexmap::)?IndexMap<String,Value>>?$/;
+    if (types.length === 0 || !types.every(t => mapTy.test(t))) return undefined;
+    // A parameter / closure binding of the same name could shadow the proven local: require no `x:` binder outside `let`.
+    const binder = new RegExp('(?<!let\\s(?:mut\\s)?)[(,|]\\s*(?:mut\\s+)?' + x + '\\s*:');
+    if (binder.test(content)) return undefined;
+    return `${x}.contains_key(${key[1]})`;
 }
