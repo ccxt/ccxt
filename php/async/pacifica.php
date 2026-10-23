@@ -3311,25 +3311,34 @@ class pacifica extends Exchange {
         //
         $timestamp = $this->safe_integer($item, 'created_at');
         $type = $this->safe_string($item, 'event_type');
-        $amount = $this->safe_string($item, 'amount');
+        $change = $this->safe_string($item, 'amount');
         $balance = $this->safe_string($item, 'balance');
+        $currencyResolved = $this->safe_currency('USDC', $currency);
+        $direction = null;
+        $amount = $change;
+        if (Precise::string_lt($amount, '0')) {
+            $direction = 'out';
+            $amount = Precise::string_abs($amount);
+        } else {
+            $direction = 'in';
+        }
         return $this->safe_ledger_entry(array(
             'info' => $item,
             'id' => null,
-            'direction' => null,
+            'direction' => $direction,
             'account' => null,
             'referenceAccount' => null,
             'referenceId' => null,
             'type' => $this->parse_ledger_entry_type($type),
-            'currency' => null,
+            'currency' => $currencyResolved['code'],
             'amount' => $this->parse_number($amount),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'before' => null,
+            'before' => $this->parse_number(Precise::string_sub($balance, $change)),
             'after' => $this->parse_number($balance),
             'status' => null,
             'fee' => null,
-        ), $currency);
+        ), $currencyResolved);
     }
 
     public function parse_ledger_entry_type(?string $type): ?string {

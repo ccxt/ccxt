@@ -820,7 +820,7 @@ class mexc extends Exchange {
                             'mark' => true,
                             'index' => true,
                         ),
-                        'triggerDirection' => true, // todo
+                        'triggerDirection' => true,
                         'stopLossPrice' => false, // todo
                         'takeProfitPrice' => false, // todo
                         'hedged' => true,
@@ -2382,6 +2382,7 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] only 'isolated' is supported for spot-margin trading
          * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+         * @param {string} [$params->triggerDirection] *swap only* 'ascending' triggers when the $price rises to triggerPrice, 'descending' when it falls to it, default is 'ascending'
          * @param {bool} [$params->postOnly] if true, the order will only be posted if it will be a maker order
          * @param {bool} [$params->reduceOnly] *contract only* indicates if this order is to reduce the size of a position
          * @param {bool} [$params->hedged] *swap only* true for hedged mode, false for one way mode, default is false
@@ -2639,7 +2640,16 @@ class mexc extends Exchange {
         $paramsOmitted = $this->omit($paramsReduceOnly, array( 'clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged' ));
         if (($triggerPrice !== null) && ($triggerPrice !== 0)) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-            $request['triggerType'] = $this->safe_integer($paramsOmitted, 'triggerType', 1);
+            list($triggerDirection, $paramsTriggerDirection) = $this->handle_trigger_direction_and_params($paramsOmitted, 'triggerType', true);
+            $triggerType = $this->safe_integer($paramsTriggerDirection, 'triggerType', 1);
+            if ($triggerDirection === 'ascending') {
+                $triggerType = 1;
+            } elseif ($triggerDirection === 'descending') {
+                $triggerType = 2;
+            } elseif ($triggerDirection !== null) {
+                throw new BadRequest($this->id . ' createOrder() triggerDirection must be either "ascending" or "descending"');
+            }
+            $request['triggerType'] = $triggerType;
             $request['executeCycle'] = $this->safe_integer($paramsOmitted, 'executeCycle', 1);
             $request['trend'] = $this->safe_integer($paramsOmitted, 'trend', 1);
             $planOrderType = $orderType;
@@ -2647,7 +2657,7 @@ class mexc extends Exchange {
                 $planOrderType = 5; // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
             }
             $request['orderType'] = $this->safe_integer($paramsOmitted, 'orderType', $planOrderType);
-            $response = $this->contractPrivatePostPlanorderPlace($this->extend($request, $paramsOmitted));
+            $response = $this->contractPrivatePostPlanorderPlace($this->extend($request, $paramsTriggerDirection));
         } else {
             $response = $this->contractPrivatePostOrderCreate($this->extend($request, $paramsOmitted));
         }
