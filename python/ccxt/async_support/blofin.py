@@ -1145,6 +1145,15 @@ class blofin(Exchange, ImplicitAPI):
         marketId = self.safe_string(contract, 'instId')
         symbol = self.safe_symbol(marketId, market)
         fundingTime = self.safe_integer(contract, 'fundingTime')
+        fundingInterval = self.safe_string(contract, 'fundingInterval')
+        intervalUnits = {
+            'hour': 'h',
+            'minute': 'm',
+        }
+        intervalUnit = self.safe_string(intervalUnits, self.safe_string(contract, 'fundingIntervalUnit'))
+        intervalString = None
+        if (fundingInterval is not None) and (intervalUnit is not None):
+            intervalString = fundingInterval + intervalUnit
         # > The current interest is 0.
         return {
             'info': contract,
@@ -1164,7 +1173,7 @@ class blofin(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': None,
+            'interval': intervalString,
         }
 
     async def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
