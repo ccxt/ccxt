@@ -185487,7 +185487,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     }
 }
 // this is updated by vss.js when building
-_define_property(BaseExchange, "ccxtVersion", '4.5.89');
+_define_property(BaseExchange, "ccxtVersion", '4.5.90');
 class Exchange extends BaseExchange {
     async closePosition(symbol, side = undefined, params = {}) {
         throw new _errors_js__rspack_import_2.NotSupported(this.id + ' closePosition() is not supported yet');
@@ -444505,6 +444505,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.triggerDirection] *swap only* 'ascending' triggers when the price rises to triggerPrice, 'descending' when it falls to it, default is 'ascending'
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
      * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
@@ -444762,7 +444763,16 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         let response;
         if (triggerPrice !== undefined && triggerPrice !== 0) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
-            request['triggerType'] = this.safeInteger(paramsOmitted, 'triggerType', 1);
+            const [triggerDirection, paramsTriggerDirection] = this.handleTriggerDirectionAndParams(paramsOmitted, 'triggerType', true);
+            let triggerType = this.safeInteger(paramsTriggerDirection, 'triggerType', 1);
+            if (triggerDirection === 'ascending') {
+                triggerType = 1;
+            } else if (triggerDirection === 'descending') {
+                triggerType = 2;
+            } else if (triggerDirection !== undefined) {
+                throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' createOrder() triggerDirection must be either "ascending" or "descending"');
+            }
+            request['triggerType'] = triggerType;
             request['executeCycle'] = this.safeInteger(paramsOmitted, 'executeCycle', 1);
             request['trend'] = this.safeInteger(paramsOmitted, 'trend', 1);
             let planOrderType = orderType;
@@ -444770,7 +444780,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
                 planOrderType = 5; // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
             }
             request['orderType'] = this.safeInteger(paramsOmitted, 'orderType', planOrderType);
-            response = await this.contractPrivatePostPlanorderPlace(this.extend(request, paramsOmitted));
+            response = await this.contractPrivatePostPlanorderPlace(this.extend(request, paramsTriggerDirection));
         } else {
             response = await this.contractPrivatePostOrderCreate(this.extend(request, paramsOmitted));
         }
@@ -477661,25 +477671,34 @@ class pacifica extends _abstract_pacifica_js__rspack_import_0/* ["default"] */.A
         //
         const timestamp = this.safeInteger(item, 'created_at');
         const type = this.safeString(item, 'event_type');
-        const amount = this.safeString(item, 'amount');
+        const change = this.safeString(item, 'amount');
         const balance = this.safeString(item, 'balance');
+        const currencyResolved = this.safeCurrency('USDC', currency);
+        let direction = undefined;
+        let amount = change;
+        if (_base_Precise_js__rspack_import_3/* .Precise.stringLt */.Y.stringLt(amount, '0')) {
+            direction = 'out';
+            amount = _base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(amount);
+        } else {
+            direction = 'in';
+        }
         return this.safeLedgerEntry({
             'info': item,
             'id': undefined,
-            'direction': undefined,
+            'direction': direction,
             'account': undefined,
             'referenceAccount': undefined,
             'referenceId': undefined,
             'type': this.parseLedgerEntryType(type),
-            'currency': undefined,
+            'currency': currencyResolved['code'],
             'amount': this.parseNumber(amount),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'before': undefined,
+            'before': this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(balance, change)),
             'after': this.parseNumber(balance),
             'status': undefined,
             'fee': undefined
-        }, currency);
+        }, currencyResolved);
     }
     parseLedgerEntryType(type) {
         const ledgerType = {
@@ -540799,6 +540818,13 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
                 this.orderbooks[symbol] = ob;
             }
             const storedOrderBook = this.orderbooks[symbol];
+            const isSnapshot = this.safeString(message, 'action') === 'snapshot'; // snapshot does not have a checksum
+            if (isSnapshot) {
+                // a snapshot replaces the book, e.g. after a reconnect, levels absent from it must not survive
+                storedOrderBook.reset({
+                    'symbol': symbol
+                });
+            }
             const asks = this.safeList2(rawOrderBook, 'asks', 'a', []);
             const bids = this.safeList2(rawOrderBook, 'bids', 'b', []);
             this.handleDeltas(storedOrderBook['asks'], asks);
@@ -540806,7 +540832,6 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601(timestamp);
             const checksum = this.handleOption('watchOrderBook', 'checksum', true);
-            const isSnapshot = this.safeString(message, 'action') === 'snapshot'; // snapshot does not have a checksum
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
             const responseChecksum = this.safeInteger(rawOrderBook, 'checksum');

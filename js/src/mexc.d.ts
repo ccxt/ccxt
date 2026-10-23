@@ -184,6 +184,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.triggerDirection] *swap only* 'ascending' triggers when the price rises to triggerPrice, 'descending' when it falls to it, default is 'ascending'
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
      * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false

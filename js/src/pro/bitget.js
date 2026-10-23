@@ -992,6 +992,11 @@ export default class bitget extends bitgetRest {
                 this.orderbooks[symbol] = ob;
             }
             const storedOrderBook = this.orderbooks[symbol];
+            const isSnapshot = this.safeString(message, 'action') === 'snapshot'; // snapshot does not have a checksum
+            if (isSnapshot) {
+                // a snapshot replaces the book, e.g. after a reconnect, levels absent from it must not survive
+                storedOrderBook.reset({ 'symbol': symbol });
+            }
             const asks = this.safeList2(rawOrderBook, 'asks', 'a', []);
             const bids = this.safeList2(rawOrderBook, 'bids', 'b', []);
             this.handleDeltas(storedOrderBook['asks'], asks);
@@ -999,7 +1004,6 @@ export default class bitget extends bitgetRest {
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601(timestamp);
             const checksum = this.handleOption('watchOrderBook', 'checksum', true);
-            const isSnapshot = this.safeString(message, 'action') === 'snapshot'; // snapshot does not have a checksum
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
             const responseChecksum = this.safeInteger(rawOrderBook, 'checksum');

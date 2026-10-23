@@ -3118,25 +3118,35 @@ class pacifica extends pacifica$1["default"] {
         //
         const timestamp = this.safeInteger(item, 'created_at');
         const type = this.safeString(item, 'event_type');
-        const amount = this.safeString(item, 'amount');
+        const change = this.safeString(item, 'amount');
         const balance = this.safeString(item, 'balance');
+        const currencyResolved = this.safeCurrency('USDC', currency);
+        let direction = undefined;
+        let amount = change;
+        if (Precise["default"].stringLt(amount, '0')) {
+            direction = 'out';
+            amount = Precise["default"].stringAbs(amount);
+        }
+        else {
+            direction = 'in';
+        }
         return this.safeLedgerEntry({
             'info': item,
             'id': undefined,
-            'direction': undefined,
+            'direction': direction,
             'account': undefined,
             'referenceAccount': undefined,
             'referenceId': undefined,
             'type': this.parseLedgerEntryType(type),
-            'currency': undefined,
+            'currency': currencyResolved['code'],
             'amount': this.parseNumber(amount),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'before': undefined,
+            'before': this.parseNumber(Precise["default"].stringSub(balance, change)),
             'after': this.parseNumber(balance),
             'status': undefined,
             'fee': undefined,
-        }, currency);
+        }, currencyResolved);
     }
     parseLedgerEntryType(type) {
         const ledgerType = {

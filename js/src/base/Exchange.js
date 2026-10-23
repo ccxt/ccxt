@@ -100,7 +100,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 export class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.89'; }
+    static { this.ccxtVersion = '4.5.90'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
