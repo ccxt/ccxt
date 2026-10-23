@@ -2976,25 +2976,33 @@ class pacifica(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(item, 'created_at')
         type = self.safe_string(item, 'event_type')
-        amount = self.safe_string(item, 'amount')
+        change = self.safe_string(item, 'amount')
         balance = self.safe_string(item, 'balance')
+        currencyResolved = self.safe_currency('USDC', currency)
+        direction = None
+        amount = change
+        if Precise.string_lt(amount, '0'):
+            direction = 'out'
+            amount = Precise.string_abs(amount)
+        else:
+            direction = 'in'
         return self.safe_ledger_entry({
             'info': item,
             'id': None,
-            'direction': None,
+            'direction': direction,
             'account': None,
             'referenceAccount': None,
             'referenceId': None,
             'type': self.parse_ledger_entry_type(type),
-            'currency': None,
+            'currency': currencyResolved['code'],
             'amount': self.parse_number(amount),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'before': None,
+            'before': self.parse_number(Precise.string_sub(balance, change)),
             'after': self.parse_number(balance),
             'status': None,
             'fee': None,
-        }, currency)
+        }, currencyResolved)
 
     def parse_ledger_entry_type(self, type: Str) -> Str:
         ledgerType = {

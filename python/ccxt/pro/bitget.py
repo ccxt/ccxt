@@ -932,6 +932,10 @@ class bitget(ccxt.async_support.bitget):
                 ob['symbol'] = symbol
                 self.orderbooks[symbol] = ob
             storedOrderBook = self.orderbooks[symbol]
+            isSnapshot = self.safe_string(message, 'action') == 'snapshot'  # snapshot does not have a checksum
+            if isSnapshot:
+                # a snapshot replaces the book, e.g. after a reconnect, levels absent from it must not survive
+                storedOrderBook.reset({'symbol': symbol})
             asks = self.safe_list_2(rawOrderBook, 'asks', 'a', [])
             bids = self.safe_list_2(rawOrderBook, 'bids', 'b', [])
             self.handle_deltas(storedOrderBook['asks'], asks)
@@ -939,7 +943,6 @@ class bitget(ccxt.async_support.bitget):
             storedOrderBook['timestamp'] = timestamp
             storedOrderBook['datetime'] = self.iso8601(timestamp)
             checksum = self.handle_option('watchOrderBook', 'checksum', True)
-            isSnapshot = self.safe_string(message, 'action') == 'snapshot'  # snapshot does not have a checksum
             # UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             # so only validate the checksum when the exchange actually sends one
             responseChecksum = self.safe_integer(rawOrderBook, 'checksum')
