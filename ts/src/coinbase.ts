@@ -1195,7 +1195,7 @@ export default class coinbase extends Exchange {
         const id = this.safeString (transaction, 'id');
         const currencyId = this.safeString (amountAndCurrencyObject, 'currency');
         const feeCurrencyId = this.safeString (feeObject, 'currency');
-        const datetime = this.safeString (transaction, 'created_at');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
         const resource = this.safeString (transaction, 'resource');
         let type = resource;
         if (!this.inArray (type, [ 'deposit', 'withdrawal' ])) {
@@ -1213,8 +1213,8 @@ export default class coinbase extends Exchange {
             'info': transaction,
             'id': id,
             'txid': this.safeString (network, 'hash', id),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'network': this.networkIdToCode (networkId, code),
             'address': addressTo,
             'addressTo': addressTo,
@@ -1347,15 +1347,15 @@ export default class coinbase extends Exchange {
         if ((feeCurrencyId === undefined) && (marketResolved !== undefined) && (feeCost !== undefined)) {
             feeCurrencyId = this.safeString (marketResolved, 'quote');
         }
-        const datetime = this.safeStringN (trade, [ 'created_at', 'trade_time', 'time' ]);
+        const timestamp = this.parse8601 (this.safeStringN (trade, [ 'created_at', 'trade_time', 'time' ]));
         const side = this.safeStringLower2 (trade, 'resource', 'side');
         const takerOrMaker = this.safeStringLower (trade, 'liquidity_indicator');
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString2 (trade, 'id', 'trade_id'),
             'order': this.safeString (trade, 'order_id'),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
             'side': (side === 'unknown_order_side') ? undefined : side,
@@ -2442,11 +2442,11 @@ export default class coinbase extends Exchange {
         const marketId = this.safeString (ticker, 'product_id');
         const marketResolved: Market = this.safeMarket (marketId, market);
         const last = this.safeNumber (ticker, 'price');
-        const datetime = this.safeString (ticker, 'time');
+        const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
         return this.safeTicker ({
             'symbol': marketResolved['symbol'],
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'bid': bid,
             'ask': ask,
             'last': last,
@@ -3466,7 +3466,7 @@ export default class coinbase extends Exchange {
         } else {
             amount = this.safeString (marketIOC, 'base_size');
         }
-        const datetime = this.safeString (order, 'created_time');
+        const timestamp = this.parse8601 (this.safeString (order, 'created_time'));
         const totalFees = this.safeString (order, 'total_fees');
         let currencyFee: Str = undefined;
         if ((totalFees !== undefined) && (marketResolved !== undefined)) {
@@ -3476,8 +3476,8 @@ export default class coinbase extends Exchange {
             'info': order,
             'id': this.safeString (order, 'order_id'),
             'clientOrderId': this.safeString (order, 'client_order_id'),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': this.parseOrderType (this.safeString (order, 'order_type')),
