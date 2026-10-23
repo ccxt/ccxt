@@ -1117,6 +1117,11 @@ class blofin extends Exchange {
             'bar' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'limit' => $limitResolved,
         );
+        if ($since !== null) {
+            $durationInMilliseconds = $this->parse_timeframe($timeframe) * 1000;
+            $request['before'] = max($since - 1, 0);
+            $request['after'] = $this->sum($since, $durationInMilliseconds * $limitResolved);
+        }
         $until = $this->safe_integer($query, 'until');
         if ($until !== null) {
             $request['after'] = $until;
@@ -1925,6 +1930,9 @@ class blofin extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['instId'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['begin'] = $since;
         }
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end', $request, $paramsPaginate);
         if ($limit !== null) {
