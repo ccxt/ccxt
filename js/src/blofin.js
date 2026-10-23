@@ -1078,6 +1078,11 @@ export default class blofin extends Exchange {
             'bar': this.safeString(this.timeframes, timeframe, timeframe),
             'limit': limitResolved,
         };
+        if (since !== undefined) {
+            const durationInMilliseconds = this.parseTimeframe(timeframe) * 1000;
+            request['before'] = Math.max(since - 1, 0);
+            request['after'] = this.sum(since, durationInMilliseconds * limitResolved);
+        }
         const until = this.safeInteger(query, 'until');
         if (until !== undefined) {
             request['after'] = until;
@@ -1855,6 +1860,9 @@ export default class blofin extends Exchange {
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['instId'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['begin'] = since;
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, paramsPaginate);
         if (limit !== undefined) {
