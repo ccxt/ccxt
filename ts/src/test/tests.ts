@@ -38,7 +38,6 @@ import {
     getTestFiles,
     setFetchResponse,
     setFetchResponseByUrl,
-    setFetchResponseQueueByUrl,
     setupWsMockTransport,
     injectWsMessage,
     rejectPendingWsFutures,
@@ -2067,11 +2066,8 @@ class testMainClass {
         // endpoints; the typed ports narrow each body to the shape its api leaf declares,
         // so one shared 'httpResponse' cannot cover two differently-shaped endpoints
         const responsesByUrl = exchange.safeDict (data, 'httpResponseByUrl');
-        const queueByUrl = exchange.safeDict (data, 'httpResponseQueueByUrl');
         let mockedExchange = exchange;
-        if (queueByUrl !== undefined) {
-            mockedExchange = setFetchResponseQueueByUrl (exchange, queueByUrl);
-        } else if (responsesByUrl !== undefined) {
+        if (responsesByUrl !== undefined) {
             mockedExchange = setFetchResponseByUrl (exchange, responsesByUrl);
         } else {
             mockedExchange = setFetchResponse (exchange, data['httpResponse']);

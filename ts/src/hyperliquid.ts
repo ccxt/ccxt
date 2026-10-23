@@ -3462,8 +3462,8 @@ export default class hyperliquid extends Exchange {
             if (Array.isArray (fillsResponse)) {
                 const orderId = this.safeString (parsedOrder, 'id');
                 const amountString = this.safeString (parsedOrder, 'amount');
-                let filledString = '0';
-                let costString = '0';
+                let filledString: Str = '0';
+                let costString: Str = '0';
                 let hasFills = false;
                 for (let i = 0; i < fillsResponse.length; i++) {
                     const fill = fillsResponse[i];
@@ -3475,7 +3475,7 @@ export default class hyperliquid extends Exchange {
                     }
                 }
                 if (hasFills) {
-                    // the fills window is bounded, so clamp at the ordered amount
+                    // recovered fills can overcount (partial fills outside the window or a larger real fill), so clamp at the ordered amount
                     if (amountString !== undefined) {
                         filledString = Precise.stringMin (filledString, amountString);
                     }

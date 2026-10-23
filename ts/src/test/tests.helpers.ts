@@ -213,25 +213,6 @@ function setFetchResponseByUrl (exchange: Exchange, responsesByUrl: any) {
     return exchange;
 }
 
-function setFetchResponseQueueByUrl (exchange: Exchange, queuesByUrl: any) {
-    // for methods that call the same url several times in sequence (e.g. a
-    // status lookup followed by a fills lookup on one endpoint), serve the
-    // queued bodies in order and keep the last one for any further calls
-    const fragments = Object.keys (queuesByUrl);
-    exchange.fetch = async (url, method = 'GET', headers: any = undefined, body: any = undefined) => {
-        for (let i = 0; i < fragments.length; i++) {
-            const fragment = fragments[i];
-            if (url.indexOf (fragment) >= 0) {
-                const queue = queuesByUrl[fragment];
-                return (queue.length > 1) ? queue.shift () : queue[0];
-            }
-        }
-        const firstQueue = queuesByUrl[fragments[0]];
-        return firstQueue[firstQueue.length - 1];
-    };
-    return exchange;
-}
-
 function setupWsMockTransport (exchange: any, url: string) {
     // put the ws client for the given url into an "already connected" state
     // with a transport stub, so watch* methods never open a real socket;
@@ -375,7 +356,6 @@ export {
     getTestFilesSync,
     setFetchResponse,
     setFetchResponseByUrl,
-    setFetchResponseQueueByUrl,
     setupWsMockTransport,
     injectWsMessage,
     rejectPendingWsFutures,
