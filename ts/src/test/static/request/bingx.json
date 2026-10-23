@@ -1679,6 +1679,21 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "fetch my trades - linear swap explicit tradingUnit CONT",
+                "method": "fetchMyTrades",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allFillOrders?endTs=1792140564000&startTs=1792140561000&symbol=ADA-USDT&timestamp=1792756094928&tradingUnit=CONT&signature=704503da96316e75865eb14e75132cc0520edde942d3ccc1a44b4d7e41aeae6d",
+                "input": [
+                    "ADA/USDT:USDT",
+                    1792140561000,
+                    null,
+                    {
+                        "until": 1792140564000,
+                        "tradingUnit": "cont"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch my trades - linear swap defaults to tradingUnit COIN",
                 "method": "fetchMyTrades",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allFillOrders?endTs=1792140564000&startTs=1792140561000&symbol=ADA-USDT&timestamp=1792687379750&tradingUnit=COIN&signature=db23c98f4ea2e0ea0040101a09feefcdcfd2b55bcc0b68c6535521613bb6f082",
