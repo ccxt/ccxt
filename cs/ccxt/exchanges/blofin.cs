@@ -1391,6 +1391,17 @@ public partial class blofin : Exchange
         string? marketId = this.safeString(contract, "instId");
         string? symbol = this.safeSymbol(marketId, market);
         Int64? fundingTime = this.safeInteger(contract, "fundingTime");
+        string? fundingInterval = this.safeString(contract, "fundingInterval");
+        Dictionary<string, object> intervalUnits = new Dictionary<string, object>() {
+            { "hour", "h" },
+            { "minute", "m" },
+        };
+        string? intervalUnit = this.safeString(intervalUnits, this.safeString(contract, "fundingIntervalUnit"));
+        string? intervalString = null;
+        if (((fundingInterval != null)) && ((intervalUnit != null)))
+        {
+            intervalString = (fundingInterval + intervalUnit);
+        }
         // > The current interest is 0.
         return new Dictionary<string, object>() {
             { "info", contract },
@@ -1410,7 +1421,7 @@ public partial class blofin : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
-            { "interval", null },
+            { "interval", intervalString },
         };
     }
 
