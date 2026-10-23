@@ -1,0 +1,242 @@
+{
+    "BTC/USDC:USDC": {
+        "id": "BTCUSDC",
+        "lowercaseId": null,
+        "symbol": "BTC/USDC:USDC",
+        "base": "BTC",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "BTC",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00065,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.0001,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 50
+            },
+            "amount": {
+                "min": 0.0001,
+                "max": 10
+            },
+            "price": {
+                "min": 38862,
+                "max": 116586
+            },
+            "cost": {
+                "min": 5,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "BTCUSDC",
+            "base": "BTC",
+            "quote": "USDC",
+            "status": "Normal",
+            "active": true,
+            "lotSize": "0.0001",
+            "tickSize": "1",
+            "minOrderNotionalUsd": 5,
+            "maxOrderSize": "10",
+            "maxPositionSize": "30",
+            "maxLeverage": 50,
+            "makerFeePct": 0.02,
+            "takerFeePct": 0.065,
+            "fundingRate8h": "0.000051626316",
+            "priceBands": {
+                "min": "38862",
+                "max": "116586"
+            },
+            "isNew": false
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "ETH/USDC:USDC": {
+        "id": "ETHUSDC",
+        "lowercaseId": null,
+        "symbol": "ETH/USDC:USDC",
+        "base": "ETH",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "ETH",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00065,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 40
+            },
+            "amount": {
+                "min": 0.001,
+                "max": 100
+            },
+            "price": {
+                "min": 1250.1,
+                "max": 3750.5
+            },
+            "cost": {
+                "min": 5,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "ETHUSDC",
+            "base": "ETH",
+            "quote": "USDC",
+            "status": "Normal",
+            "active": true,
+            "lotSize": "0.001",
+            "tickSize": "0.1",
+            "minOrderNotionalUsd": 5,
+            "maxOrderSize": "100",
+            "maxPositionSize": "800",
+            "maxLeverage": 40,
+            "makerFeePct": 0.02,
+            "takerFeePct": 0.065,
+            "fundingRate8h": "0.000051437223",
+            "priceBands": {
+                "min": "1250.1",
+                "max": "3750.5"
+            },
+            "isNew": false
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "SOL/USDC:USDC": {
+        "id": "SOLUSDC",
+        "lowercaseId": null,
+        "symbol": "SOL/USDC:USDC",
+        "base": "SOL",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "SOL",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00065,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 25
+            },
+            "amount": {
+                "min": 0.01,
+                "max": 1300
+            },
+            "price": {
+                "min": 59.7,
+                "max": 179.2
+            },
+            "cost": {
+                "min": 5,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "SOLUSDC",
+            "base": "SOL",
+            "quote": "USDC",
+            "status": "Normal",
+            "active": true,
+            "lotSize": "0.01",
+            "tickSize": "0.01",
+            "minOrderNotionalUsd": 5,
+            "maxOrderSize": "1300",
+            "maxPositionSize": "16000",
+            "maxLeverage": 25,
+            "makerFeePct": 0.02,
+            "takerFeePct": 0.065,
+            "fundingRate8h": "0.000050294375",
+            "priceBands": {
+                "min": "59.7",
+                "max": "179.2"
+            },
+            "isNew": false
+        },
+        "tierBased": false,
+        "percentage": true
+    }
+}
