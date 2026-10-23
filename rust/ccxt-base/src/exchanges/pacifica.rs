@@ -4375,27 +4375,36 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut timestamp: Value = self.safe_integer_k(item.clone(), "created_at", &[]);
         let mut type_var: Value = self.safe_string_k(item.clone(), "event_type", &[]);
-        let mut amount: Value = self.safe_string_k(item.clone(), "amount", &[]);
+        let mut change: Value = self.safe_string_k(item.clone(), "amount", &[]);
         let mut balance: Value = self.safe_string_k(item.clone(), "balance", &[]);
+        let mut currencyResolved: Value = self.safe_currency(Value::Str("USDC".into()), &[currency]);
+        let mut direction: Value = Value::Null;
+        let mut amount: Value = change.clone();
+        if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
+            direction = Value::Str("out".into());
+            amount = crate::precise::Precise::stringAbs(&amount);
+        }  else {
+            direction = Value::Str("in".into());
+        }
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item);
         m.insert("id".to_string(), Value::Null);
-        m.insert("direction".to_string(), Value::Null);
+        m.insert("direction".to_string(), direction);
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("referenceId".to_string(), Value::Null);
         m.insert("type".to_string(), self.parse_ledger_entry_type(type_var).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), Value::Null);
+        m.insert("currency".to_string(), currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount, &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("before".to_string(), Value::Null);
+        m.insert("before".to_string(), self.parse_number(crate::precise::Precise::stringSub(&balance, &change), &[]));
         m.insert("after".to_string(), self.parse_number(balance, &[]));
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[currency]);
+}), &[currencyResolved]);
 
     Value::Null
 }
