@@ -275425,6 +275425,16 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         const marketId = this.safeString(contract, 'instId');
         const symbol = this.safeSymbol(marketId, market);
         const fundingTime = this.safeInteger(contract, 'fundingTime');
+        const fundingInterval = this.safeString(contract, 'fundingInterval');
+        const intervalUnits = {
+            'hour': 'h',
+            'minute': 'm'
+        };
+        const intervalUnit = this.safeString(intervalUnits, this.safeString(contract, 'fundingIntervalUnit'));
+        let intervalString = undefined;
+        if (fundingInterval !== undefined && intervalUnit !== undefined) {
+            intervalString = fundingInterval + intervalUnit;
+        }
         // > The current interest is 0.
         return {
             'info': contract,
@@ -275444,7 +275454,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined
+            'interval': intervalString
         };
     }
     /**
