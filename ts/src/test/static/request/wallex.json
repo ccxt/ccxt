@@ -1,0 +1,92 @@
+{
+    "exchange": "wallex",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchBalance": [
+            {
+                "description": "balance",
+                "method": "fetchBalance",
+                "url": "https://api.wallex.ir/v1/account/balances",
+                "input": [],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "limit with clientOrderId",
+                "method": "createOrder",
+                "url": "https://api.wallex.ir/v1/account/orders",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.01,
+                    3000,
+                    {
+                        "clientOrderId": "my_order_1"
+                    }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"type\":\"LIMIT\",\"side\":\"BUY\",\"quantity\":\"0.01\",\"price\":\"3000\",\"client_id\":\"my_order_1\"}"
+            },
+            {
+                "description": "stop market via triggerPrice",
+                "method": "createOrder",
+                "url": "https://api.wallex.ir/v1/account/orders",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "sell",
+                    0.001,
+                    null,
+                    {
+                        "triggerPrice": 80000
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"type\":\"STOP_MARKET\",\"side\":\"SELL\",\"quantity\":\"0.001\",\"stop_Price\":\"80000\"}"
+            },
+            {
+                "description": "stop limit via triggerPrice",
+                "method": "createOrder",
+                "url": "https://api.wallex.ir/v1/account/orders",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    90000,
+                    {
+                        "triggerPrice": 89000
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"type\":\"STOP_LIMIT\",\"side\":\"BUY\",\"quantity\":\"0.001\",\"price\":\"90000\",\"stop_Price\":\"89000\"}"
+            },
+            {
+                "description": "market sell irt market",
+                "method": "createOrder",
+                "url": "https://api.wallex.ir/v1/account/orders",
+                "input": [
+                    "USDT/IRT",
+                    "market",
+                    "sell",
+                    10
+                ],
+                "output": "{\"symbol\":\"USDTTMN\",\"type\":\"MARKET\",\"side\":\"SELL\",\"quantity\":\"10\"}"
+            },
+            {
+                "description": "limit buy",
+                "method": "createOrder",
+                "url": "https://api.wallex.ir/v1/account/orders",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    82494.123
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"type\":\"LIMIT\",\"side\":\"BUY\",\"quantity\":\"0.001\",\"price\":\"82494.12\"}"
+            }
+        ]
+  },
+    "outputType": "both"
+}
