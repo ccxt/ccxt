@@ -3,24 +3,20 @@ description: Report bugs here
 labels: []
 assignees: []
 body:
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Please confirm
+      options:
+        - label: I have already searched across existing issues
+          required: true
+
   - type: markdown
     attributes:
       value: |
-        ## Ensure :
-        - You have already searched across the existing issues
-        - Your local CCXT version is up to date (check the [latest available version](https://github.com/ccxt/ccxt/blob/master/package.json#L3) )
-        - Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) or search for the specific subject in the [Manual](https://github.com/ccxt/ccxt/wiki/Manual) (eg: `Exchange Properties`, `Rate Limit`, `Authentication`, `API keys`, etc).
-        - Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) to better understand your issue.
-
-        ## Please:
-        - Set `exchange.verbose = true` property before calling exchange functions
-        - Provide the minimal, reproducible example/code
-        - Surround your code/output with triple backticks:
-          ````markdown
-          ```
-          your data here
-          ```
-        - Hide the keys & credentials.
+        ## Ensure:
+        - You have looked through the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) or searched for the specific subject in the [Manual](https://github.com/ccxt/ccxt/wiki/Manual) (eg: `Exchange Properties`, `Rate Limit`, `Authentication`, `API keys`, etc).
+        - You have looked through the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) to better understand the issue.
 
   - type: input
     id: operating-system
@@ -46,12 +42,31 @@ body:
   - type: input
     id: ccxt-version
     attributes:
-      label: CCXT Version
+      label: CCXT version 
     validations:
       required: false
 
+  - type: markdown
+    attributes:
+      value: |
+        (ensure you have the latest version as shown [here](https://github.com/ccxt/ccxt/blob/master/package.json#L3) )
+
+
+  - type: markdown
+    attributes:
+      value: |
+        ### Please provide:
+        - Set `exchange.verbose = true` property before calling exchange functions
+        - minimal, reproducible example/code
+        - surround your code and verbose output with triple backticks:
+          ````markdown
+          ```
+          your codes or output
+          ```
+        - do not expose API keys
+
   - type: textarea
     attributes:
-      label: Description
+      label: textarea
     validations:
-      required: false
+      required: true
