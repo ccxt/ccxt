@@ -1071,6 +1071,10 @@ class blofin(Exchange, ImplicitAPI):
             'bar': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': limitResolved,
         }
+        if since is not None:
+            durationInMilliseconds = self.parse_timeframe(timeframe) * 1000
+            request['before'] = max(since - 1, 0)
+            request['after'] = self.sum(since, durationInMilliseconds * limitResolved)
         until = self.safe_integer(query, 'until')
         if until is not None:
             request['after'] = until
@@ -1773,6 +1777,8 @@ class blofin(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
+        if since is not None:
+            request['begin'] = since
         requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
         if limit is not None:
             requestUntil['limit'] = limit  # default 100, max 100
