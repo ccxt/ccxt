@@ -1359,6 +1359,12 @@ public class Blofin extends BlofinApi
                 put( "bar", Blofin.this.safeString(Blofin.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
                 put( "limit", limitResolved );
             }};
+            if (!java.util.Objects.equals(since, null))
+            {
+                Long durationInMilliseconds = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
+                request.put("before", Math.max((since - 1L), 0));
+                request.put("after", this.sum(since, (durationInMilliseconds * limitResolved)));
+            }
             Long until = this.safeInteger(query, "until");
             if (!java.util.Objects.equals(until, null))
             {
@@ -2288,6 +2294,10 @@ public class Blofin extends BlofinApi
             {
                 market = this.market(symbol);
                 request.put("instId", market.get("id"));
+            }
+            if (!java.util.Objects.equals(since, null))
+            {
+                request.put("begin", since);
             }
             Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
