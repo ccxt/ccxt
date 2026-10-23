@@ -3596,25 +3596,36 @@ public partial class pacifica : Exchange
         //
         Int64? timestamp = this.safeInteger(item, "created_at");
         string? type = this.safeString(item, "event_type");
-        string? amount = this.safeString(item, "amount");
+        string? change = this.safeString(item, "amount");
         string? balance = this.safeString(item, "balance");
+        Dictionary<string, object> currencyResolved = this.safeCurrency("USDC", currency);
+        string? direction = null;
+        string? amount = change;
+        if (Precise.stringLt(amount, "0"))
+        {
+            direction = "out";
+            amount = Precise.stringAbs(amount);
+        } else
+        {
+            direction = "in";
+        }
         return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", null },
-            { "direction", null },
+            { "direction", direction },
             { "account", null },
             { "referenceAccount", null },
             { "referenceId", null },
             { "type", this.parseLedgerEntryType(type) },
-            { "currency", null },
+            { "currency", (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null) },
             { "amount", this.parseNumber(amount) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "before", null },
+            { "before", this.parseNumber(Precise.stringSub(balance, change)) },
             { "after", this.parseNumber(balance) },
             { "status", null },
             { "fee", null },
-        }, currency);
+        }, currencyResolved);
     }
 
     public virtual string? parseLedgerEntryType(string? type)

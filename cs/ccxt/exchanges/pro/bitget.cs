@@ -1133,6 +1133,14 @@ public partial class bitget : ccxt.bitget
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
             }
             ccxt.pro.IOrderBook storedOrderBook = this.getOrderBook(this.orderbooks, symbol);
+            bool isSnapshot = (this.safeString(message, "action") == "snapshot"); // snapshot does not have a checksum
+            if (isSnapshot)
+            {
+                // a snapshot replaces the book, e.g. after a reconnect, levels absent from it must not survive
+                storedOrderBook.reset(new Dictionary<string, object>() {
+                    { "symbol", symbol },
+                });
+            }
             List<object> asks = this.safeList2(rawOrderBook, "asks", "a", new List<object>() {});
             List<object> bids = this.safeList2(rawOrderBook, "bids", "b", new List<object>() {});
             this.handleDeltas(storedOrderBook?.asks, asks);
@@ -1140,7 +1148,6 @@ public partial class bitget : ccxt.bitget
             storedOrderBook["timestamp"] = timestamp;
             storedOrderBook["datetime"] = this.iso8601(timestamp);
             bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
-            bool isSnapshot = (this.safeString(message, "action") == "snapshot"); // snapshot does not have a checksum
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
             Int64? responseChecksum = this.safeInteger(rawOrderBook, "checksum");
