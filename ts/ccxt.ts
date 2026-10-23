@@ -136,6 +136,7 @@ import p2b from  './src/p2b.js'
 import pacifica from  './src/pacifica.js'
 import paradex from  './src/paradex.js'
 import paymium from  './src/paymium.js'
+import perpl from  './src/perpl.js'
 import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
 import polymarket from  './src/polymarket.js'
@@ -219,6 +220,7 @@ import onetradingPro from  './src/pro/onetrading.js'
 import p2bPro from  './src/pro/p2b.js'
 import pacificaPro from  './src/pro/pacifica.js'
 import paradexPro from  './src/pro/paradex.js'
+import perplPro from  './src/pro/perpl.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
 import polymarketPro from  './src/pro/polymarket.js'
@@ -331,6 +333,7 @@ const exchanges = {
     'pacifica':               pacifica,
     'paradex':                paradex,
     'paymium':                paymium,
+    'perpl':                  perpl,
     'phemex':                 phemex,
     'poloniex':               poloniex,
     'polymarket':             polymarket,
@@ -414,6 +417,7 @@ const pro = {
     'p2b':                    p2bPro,
     'pacifica':               pacificaPro,
     'paradex':                paradexPro,
+    'perpl':                  perplPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
     'polymarket':             polymarketPro,
@@ -706,6 +710,7 @@ export {
     pacifica,
     paradex,
     paymium,
+    perpl,
     phemex,
     poloniex,
     polymarket,
