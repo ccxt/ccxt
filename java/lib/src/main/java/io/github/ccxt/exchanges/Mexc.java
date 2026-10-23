@@ -2826,6 +2826,7 @@ public class Mexc extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.triggerDirection] *swap only* 'ascending' triggers when the price rises to triggerPrice, 'descending' when it falls to it, default is 'ascending'
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
      * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
@@ -3142,7 +3143,21 @@ public class Mexc extends MexcApi
             if ((!java.util.Objects.equals(triggerPrice, null)) && ((triggerPrice == null || triggerPrice != 0)))
             {
                 request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
-                request.put("triggerType", this.safeInteger(paramsOmitted, "triggerType", 1));
+                List<Object> triggerDirectionparamsTriggerDirectionVariable = (List<Object>) this.handleTriggerDirectionAndParams(paramsOmitted, "triggerType", true);
+                String triggerDirection = (String) ((List<Object>) triggerDirectionparamsTriggerDirectionVariable).get(0);
+                var paramsTriggerDirection = ((List<Object>) triggerDirectionparamsTriggerDirectionVariable).get(1);
+                Long triggerType = this.safeInteger(paramsTriggerDirection, "triggerType", 1);
+                if (java.util.Objects.equals(triggerDirection, "ascending"))
+                {
+                    triggerType = 1L;
+                } else if (java.util.Objects.equals(triggerDirection, "descending"))
+                {
+                    triggerType = 2L;
+                } else if (!java.util.Objects.equals(triggerDirection, null))
+                {
+                    throw new BadRequest((this.id + " createOrder() triggerDirection must be either \"ascending\" or \"descending\"")) ;
+                }
+                request.put("triggerType", triggerType);
                 request.put("executeCycle", this.safeInteger(paramsOmitted, "executeCycle", 1));
                 request.put("trend", this.safeInteger(paramsOmitted, "trend", 1));
                 Object planOrderType = orderType;
@@ -3151,7 +3166,7 @@ public class Mexc extends MexcApi
                     planOrderType = 5; // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
                 }
                 request.put("orderType", this.safeInteger(paramsOmitted, "orderType", planOrderType));
-                response = (this.contractPrivatePostPlanorderPlace(this.extend(request, paramsOmitted))).join();
+                response = (this.contractPrivatePostPlanorderPlace(this.extend(request, paramsTriggerDirection))).join();
             } else
             {
                 response = (this.contractPrivatePostOrderCreate(this.extend(request, paramsOmitted))).join();
