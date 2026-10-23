@@ -1976,6 +1976,18 @@ impl BlofinCore {
         let mut marketId: Value = self.safe_string_k(contract.clone(), "instId", &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market]);
         let mut fundingTime: Value = self.safe_integer_k(contract.clone(), "fundingTime", &[]);
+        let mut fundingInterval: Value = self.safe_string_k(contract.clone(), "fundingInterval", &[]);
+        let mut intervalUnits: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("hour".to_string(), Value::Str("h".into()));
+                m.insert("minute".to_string(), Value::Str("m".into()));
+            m
+        });
+        let mut intervalUnit: Value = self.safe_string(intervalUnits, self.safe_string_k(contract.clone(), "fundingIntervalUnit", &[]), &[]);
+        let mut intervalString: Value = Value::Null;
+        if (fundingInterval != Value::Null) && (intervalUnit != Value::Null) {
+            intervalString = Value::Str(format!("{}{}", fundingInterval, intervalUnit).into());
+        }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
@@ -1995,7 +2007,7 @@ impl BlofinCore {
         m.insert("previousFundingRate".to_string(), Value::Null);
         m.insert("previousFundingTimestamp".to_string(), Value::Null);
         m.insert("previousFundingDatetime".to_string(), Value::Null);
-        m.insert("interval".to_string(), Value::Null);
+        m.insert("interval".to_string(), intervalString);
     m
 });
 
