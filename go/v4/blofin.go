@@ -1463,6 +1463,11 @@ func (this *Blofin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		"bar":    this.SafeString(this.Timeframes, timeframe, timeframe),
 		"limit":  limitResolved,
 	}
+	if since != nil {
+		var durationInMilliseconds int64 = this.ParseTimeframe(timeframe) * 1000
+		request["before"] = mathMax(*since-1, 0)
+		request["after"] = this.Sum(since, (durationInMilliseconds * limitResolved))
+	}
 	var until *int64 = this.SafeInteger(query, "until")
 	if until != nil {
 		request["after"] = until
@@ -1528,11 +1533,11 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes112119 []any = r1.Value
-		if retRes112119 == nil {
+		var retRes112619 []any = r1.Value
+		if retRes112619 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes112119)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes112619)}
 		}
 		return nil
 	}
@@ -2422,11 +2427,11 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes180819 []any = r1.Value
-		if retRes180819 == nil {
+		var retRes181319 []any = r1.Value
+		if retRes181319 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes180819)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes181319)}
 		}
 		return nil
 	}
@@ -2518,11 +2523,11 @@ func (this *Blofin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes185819 []any = r1.Value
-		if retRes185819 == nil {
+		var retRes186319 []any = r1.Value
+		if retRes186319 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes185819)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes186319)}
 		}
 		return nil
 	}
@@ -2531,6 +2536,9 @@ func (this *Blofin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["instId"] = market["id"]
+	}
+	if since != nil {
+		request["begin"] = since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 	if limit != nil {
@@ -2625,11 +2633,11 @@ func (this *Blofin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes192419 []any = r1.Value
-		if retRes192419 == nil {
+		var retRes193219 []any = r1.Value
+		if retRes193219 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes192419)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes193219)}
 		}
 		return nil
 	}
@@ -2701,11 +2709,11 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes196419 []any = r1.Value
-		if retRes196419 == nil {
+		var retRes197219 []any = r1.Value
+		if retRes197219 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes196419)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes197219)}
 		}
 		return nil
 	}
@@ -3411,11 +3419,11 @@ func (this *Blofin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes247319 []any = r1.Value
-		if retRes247319 == nil {
+		var retRes248119 []any = r1.Value
+		if retRes248119 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes247319)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes248119)}
 		}
 		return nil
 	}
@@ -4504,11 +4512,11 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes326819 []any = r1.Value
-		if retRes326819 == nil {
+		var retRes327619 []any = r1.Value
+		if retRes327619 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes326819)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes327619)}
 		}
 		return nil
 	}
