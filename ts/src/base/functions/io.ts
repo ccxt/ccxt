@@ -71,13 +71,13 @@ export function getTempDir(): string | undefined {
  */
 function ensureWhitelistedFile(filePath: string) {
     if (pathSyncModule === null) {
-        throw new Error('path module is not available');
+        throw new Error ('path module is not available');
     }
-    const sanitizedFilePath = pathSyncModule.resolve(filePath);
-    if ((sanitizedFilePath.startsWith(filePath) && sanitizedFilePath.endsWith('.ccxtfile')) || sanitizedFilePath.endsWith('.wasm')) {
-        return;
+    const resolvedInputFilePath = pathSyncModule.resolve (filePath);
+    const allowedExtensions = [ '.ccxtfile', '.wasm' ];
+    if (!allowedExtensions.some (ext => resolvedInputFilePath.endsWith (ext))) {
+        throw new Error ('File extension not permitted: ' + filePath + ', allowed extensions are: ' + allowedExtensions.join (', '));
     }
-    throw new Error('invalid file path: ' + filePath);
 }
 
 /*  ------------------------------------------------------------------------ */
