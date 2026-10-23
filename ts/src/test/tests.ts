@@ -2222,7 +2222,13 @@ class testMainClass {
         const url = exchange.safeString (data, 'url');
         setupWsMockTransport (exchange, url);
         const httpResponse = exchange.safeValue (data, 'httpResponse');
-        if (httpResponse !== undefined) {
+        const httpResponsesByUrl = exchange.safeDict (data, 'httpResponseByUrl');
+        if (httpResponsesByUrl !== undefined) {
+            // a watch flow can call several differently-shaped rest endpoints
+            // (e.g. an auth-token fetch plus a balance snapshot) — serve one
+            // body per url fragment, as the static response tests do
+            setFetchResponseByUrl (exchange, httpResponsesByUrl);
+        } else if (httpResponse !== undefined) {
             // some watch methods fetch a rest snapshot (e.g. watchOrderBook)
             setFetchResponse (exchange, httpResponse);
         }
