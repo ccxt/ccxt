@@ -1170,6 +1170,16 @@ export default class blofin extends Exchange {
         const marketId = this.safeString (contract, 'instId');
         const symbol = this.safeSymbol (marketId, market);
         const fundingTime = this.safeInteger (contract, 'fundingTime');
+        const fundingInterval = this.safeString (contract, 'fundingInterval');
+        const intervalUnits: Dict = {
+            'hour': 'h',
+            'minute': 'm',
+        };
+        const intervalUnit = this.safeString (intervalUnits, this.safeString (contract, 'fundingIntervalUnit'));
+        let intervalString: Str = undefined;
+        if ((fundingInterval !== undefined) && (intervalUnit !== undefined)) {
+            intervalString = fundingInterval + intervalUnit;
+        }
         // > The current interest is 0.
         return {
             'info': contract,
@@ -1189,7 +1199,7 @@ export default class blofin extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
+            'interval': intervalString,
         } as FundingRate;
     }
 
