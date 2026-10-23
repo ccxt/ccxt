@@ -54,6 +54,40 @@
         ],
         "createOrder": [
             {
+                "description": "swap market trigger order with ascending direction",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v1/private/planorder/place",
+                "input": [
+                    "ADA/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "triggerPrice": 0.4,
+                        "triggerDirection": "ascending"
+                    }
+                ],
+                "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":6,\"openType\":2,\"side\":1,\"triggerPrice\":\"0.4\",\"triggerType\":1,\"executeCycle\":1,\"trend\":1,\"orderType\":5}"
+            },
+            {
+                "description": "swap market trigger order with descending direction",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v1/private/planorder/place",
+                "input": [
+                    "ADA/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "triggerPrice": 0.1,
+                        "triggerDirection": "descending"
+                    }
+                ],
+                "output": "{\"symbol\":\"ADA_USDT\",\"vol\":1,\"type\":6,\"openType\":2,\"side\":1,\"triggerPrice\":\"0.1\",\"triggerType\":2,\"executeCycle\":1,\"trend\":1,\"orderType\":5}"
+            },
+            {
                 "description": "swap market buy trigger order",
                 "method": "createOrder",
                 "url": "https://api.mexc.com/api/v1/private/planorder/place",
