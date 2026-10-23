@@ -1464,27 +1464,40 @@ public class Blofin extends BlofinApi
         String marketId = this.safeString(contract, "instId");
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         Long fundingTime = this.safeInteger(contract, "fundingTime");
-        // > The current interest is 0.
-        return new HashMap<String, Object>() {{
-            put( "info", contract );
-            put( "symbol", symbol );
-            put( "markPrice", null );
-            put( "indexPrice", null );
-            put( "interestRate", Blofin.this.parseNumber("0") );
-            put( "estimatedSettlePrice", null );
-            put( "timestamp", null );
-            put( "datetime", null );
-            put( "fundingRate", Blofin.this.safeNumber(contract, "fundingRate", (Object) null) );
-            put( "fundingTimestamp", fundingTime );
-            put( "fundingDatetime", Blofin.this.iso8601(fundingTime) );
-            put( "nextFundingRate", null );
-            put( "nextFundingTimestamp", null );
-            put( "nextFundingDatetime", null );
-            put( "previousFundingRate", null );
-            put( "previousFundingTimestamp", null );
-            put( "previousFundingDatetime", null );
-            put( "interval", null );
+        String fundingInterval = this.safeString(contract, "fundingInterval");
+        Map<String, Object> intervalUnits = new HashMap<String, Object>() {{
+            put( "hour", "h" );
+            put( "minute", "m" );
         }};
+        String intervalUnit = this.safeString(intervalUnits, this.safeString(contract, "fundingIntervalUnit"));
+        String intervalString = null;
+        if ((!java.util.Objects.equals(fundingInterval, null)) && (!java.util.Objects.equals(intervalUnit, null)))
+        {
+            intervalString = (fundingInterval + intervalUnit);
+        }
+        // > The current interest is 0.
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", contract);
+            h2kMap0.put("symbol", symbol);
+            h2kMap0.put("markPrice", null);
+            h2kMap0.put("indexPrice", null);
+            h2kMap0.put("interestRate", this.parseNumber("0"));
+            h2kMap0.put("estimatedSettlePrice", null);
+            h2kMap0.put("timestamp", null);
+            h2kMap0.put("datetime", null);
+            h2kMap0.put("fundingRate", this.safeNumber(contract, "fundingRate", (Object) null));
+            h2kMap0.put("fundingTimestamp", fundingTime);
+            h2kMap0.put("fundingDatetime", this.iso8601(fundingTime));
+            h2kMap0.put("nextFundingRate", null);
+            h2kMap0.put("nextFundingTimestamp", null);
+            h2kMap0.put("nextFundingDatetime", null);
+            h2kMap0.put("previousFundingRate", null);
+            h2kMap0.put("previousFundingTimestamp", null);
+            h2kMap0.put("previousFundingDatetime", null);
+            h2kMap0.put("interval", intervalString);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -2731,13 +2744,13 @@ public class Blofin extends BlofinApi
         }
         this.checkAddress(address, (String) null, (String) null);
         {
-            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
-            h2kMap0.put("info", depositAddress);
-            h2kMap0.put("currency", this.safeCurrencyCode(currencyId, currency));
-            h2kMap0.put("network", this.chainIdToNetworkCode(networkId));
-            h2kMap0.put("address", address);
-            h2kMap0.put("tag", tag);
-            return h2kMap0;
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", depositAddress);
+            h2kMap1.put("currency", this.safeCurrencyCode(currencyId, currency));
+            h2kMap1.put("network", this.chainIdToNetworkCode(networkId));
+            h2kMap1.put("address", address);
+            h2kMap1.put("tag", tag);
+            return h2kMap1;
         }
     }
 
@@ -3131,31 +3144,31 @@ public class Blofin extends BlofinApi
         String feeCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
         Double feeCost = this.safeNumber(transaction, "fee", (Object) null);
         {
-            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
-            h2kMap1.put("info", transaction);
-            h2kMap1.put("id", id);
-            h2kMap1.put("currency", code);
-            h2kMap1.put("amount", amount);
-            h2kMap1.put("network", networkCode);
-            h2kMap1.put("addressFrom", null);
-            h2kMap1.put("addressTo", addressTo);
-            h2kMap1.put("address", address);
-            h2kMap1.put("tagFrom", null);
-            h2kMap1.put("tagTo", tagTo);
-            h2kMap1.put("tag", tagTo);
-            h2kMap1.put("status", status);
-            h2kMap1.put("type", type);
-            h2kMap1.put("updated", null);
-            h2kMap1.put("txid", txid);
-            h2kMap1.put("timestamp", timestamp);
-            h2kMap1.put("datetime", this.iso8601(timestamp));
-            h2kMap1.put("internal", null);
-            h2kMap1.put("comment", null);
-            h2kMap1.put("fee", new HashMap<String, Object>() {{
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", transaction);
+            h2kMap2.put("id", id);
+            h2kMap2.put("currency", code);
+            h2kMap2.put("amount", amount);
+            h2kMap2.put("network", networkCode);
+            h2kMap2.put("addressFrom", null);
+            h2kMap2.put("addressTo", addressTo);
+            h2kMap2.put("address", address);
+            h2kMap2.put("tagFrom", null);
+            h2kMap2.put("tagTo", tagTo);
+            h2kMap2.put("tag", tagTo);
+            h2kMap2.put("status", status);
+            h2kMap2.put("type", type);
+            h2kMap2.put("updated", null);
+            h2kMap2.put("txid", txid);
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("internal", null);
+            h2kMap2.put("comment", null);
+            h2kMap2.put("fee", new HashMap<String, Object>() {{
                 put( "currency", feeCode );
                 put( "cost", feeCost );
             }});
-            return h2kMap1;
+            return h2kMap2;
         }
     }
 
@@ -4120,10 +4133,10 @@ public class Blofin extends BlofinApi
             //     }
             //
             {
-                HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
-                h2kMap2.put("info", data);
-                h2kMap2.put("hedged", java.util.Objects.equals(positionMode, "long_short_mode"));
-                return h2kMap2;
+                HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+                h2kMap3.put("info", data);
+                h2kMap3.put("hedged", java.util.Objects.equals(positionMode, "long_short_mode"));
+                return h2kMap3;
             }
         }).thenApply(PositionModeInfo::new);
 
@@ -4348,21 +4361,21 @@ public class Blofin extends BlofinApi
             signedHeaders.put("ACCESS-SIGN", signature);
             String bodyResolved = signedBody;
             {
-                HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
-                h2kMap3.put("url", url);
-                h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-                h2kMap3.put("body", bodyResolved);
-                h2kMap3.put("headers", signedHeaders);
-                return h2kMap3;
+                HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+                h2kMap4.put("url", url);
+                h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap4.put("body", bodyResolved);
+                h2kMap4.put("headers", signedHeaders);
+                return h2kMap4;
             }
         }
         {
-            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
-            h2kMap4.put("url", url);
-            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap4.put("body", null);
-            h2kMap4.put("headers", null);
-            return h2kMap4;
+            HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
+            h2kMap5.put("url", url);
+            h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap5.put("body", null);
+            h2kMap5.put("headers", null);
+            return h2kMap5;
         }
     }
 }

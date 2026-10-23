@@ -132,7 +132,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             }};
             if (Boolean.TRUE.equals(isGenerationTwo))
             {
-                String marketIdRequest = this.getGen2MarketId((Map<String, Object>) (market));
+                Object marketIdRequest = this.getGen2MarketId((Map<String, Object>) (market));
                 request = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "ticket", Bithumb.this.uuid() );
     }}, this.extend(new HashMap<String, Object>() {{
@@ -466,7 +466,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             }};
             if (Boolean.TRUE.equals(isGenerationTwo))
             {
-                String marketIdRequest = this.getGen2MarketId((Map<String, Object>) (market));
+                Object marketIdRequest = this.getGen2MarketId((Map<String, Object>) (market));
                 request = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "ticket", Bithumb.this.uuid() );
     }}, this.extend(new HashMap<String, Object>() {{
@@ -678,7 +678,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             }};
             if (Boolean.TRUE.equals(isGenerationTwo))
             {
-                String marketIdRequest = this.getGen2MarketId((Map<String, Object>) (market));
+                Object marketIdRequest = this.getGen2MarketId((Map<String, Object>) (market));
                 request = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "ticket", Bithumb.this.uuid() );
     }}, this.extend(new HashMap<String, Object>() {{
