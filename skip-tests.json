@@ -2640,6 +2640,9 @@
             },
             "fetchOrderBook": {
                 "timestamp": "not provided"
+            },
+            "fetchOHLCV": {
+                "ohlcvVolumeNotional": "Deepcoin's ticker is the current UTC day, not a rolling 24h"
             }
         }
     },

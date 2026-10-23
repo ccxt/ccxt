@@ -1406,6 +1406,9 @@ export default class bybit extends Exchange {
                 'swap': {
                     'linear': {
                         'extends': 'default',
+                        'fetchOHLCV': {
+                            'volume': 'base',
+                        },
                     },
                     'inverse': {
                         'extends': 'default',
