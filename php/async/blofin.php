@@ -1206,6 +1206,16 @@ class blofin extends Exchange {
         $marketId = $this->safe_string($contract, 'instId');
         $symbol = $this->safe_symbol($marketId, $market);
         $fundingTime = $this->safe_integer($contract, 'fundingTime');
+        $fundingInterval = $this->safe_string($contract, 'fundingInterval');
+        $intervalUnits = array(
+            'hour' => 'h',
+            'minute' => 'm',
+        );
+        $intervalUnit = $this->safe_string($intervalUnits, $this->safe_string($contract, 'fundingIntervalUnit'));
+        $intervalString = null;
+        if (($fundingInterval !== null) && ($intervalUnit !== null)) {
+            $intervalString = $fundingInterval . $intervalUnit;
+        }
         // > The current interest is 0.
         return array(
             'info' => $contract,
@@ -1225,7 +1235,7 @@ class blofin extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => null,
+            'interval' => $intervalString,
         );
     }
 
