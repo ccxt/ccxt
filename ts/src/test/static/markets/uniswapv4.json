@@ -1,0 +1,138 @@
+{
+    "ETH/USDC": {
+        "id": "0x21c67e77068de97969ba93d4aab21826d33ca12bb9f565d8496e8fda8a82ca27",
+        "symbol": "ETH/USDC",
+        "base": "ETH",
+        "quote": "USDC",
+        "baseId": "0x0000000000000000000000000000000000000000",
+        "quoteId": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0005,
+        "maker": 0.0005,
+        "precision": {
+            "amount": 1e-18
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "id": "0x21c67e77068de97969ba93d4aab21826d33ca12bb9f565d8496e8fda8a82ca27",
+            "feeTier": "500",
+            "tickSpacing": "10",
+            "hooks": "0x0000000000000000000000000000000000000000",
+            "volumeUSD": "12054033665.69677458954430078441165",
+            "token0": {
+                "id": "0x0000000000000000000000000000000000000000",
+                "symbol": "ETH",
+                "decimals": "18"
+            },
+            "token1": {
+                "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                "symbol": "USDC",
+                "decimals": "6"
+            }
+        }
+    },
+    "ETH/USDT": {
+        "id": "0x72331fcb696b0151904c03584b66dc8365bc63f8a144d89a773384e3a579ca73",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "0x0000000000000000000000000000000000000000",
+        "quoteId": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0005,
+        "maker": 0.0005,
+        "precision": {
+            "amount": 1e-18
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "id": "0x72331fcb696b0151904c03584b66dc8365bc63f8a144d89a773384e3a579ca73",
+            "feeTier": "500",
+            "tickSpacing": "10",
+            "hooks": "0x0000000000000000000000000000000000000000",
+            "volumeUSD": "14080425618.31059810851042582185417",
+            "token0": {
+                "id": "0x0000000000000000000000000000000000000000",
+                "symbol": "ETH",
+                "decimals": "18"
+            },
+            "token1": {
+                "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                "symbol": "USDT",
+                "decimals": "6"
+            }
+        }
+    },
+    "WETH/USDT": {
+        "id": "0x90078845bceb849b171873cfbc92db8540e9c803ff57d9d21b1215ec158e79b3",
+        "symbol": "WETH/USDT",
+        "base": "WETH",
+        "quote": "USDT",
+        "baseId": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+        "quoteId": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "precision": {
+            "amount": 1e-18
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "id": "0x90078845bceb849b171873cfbc92db8540e9c803ff57d9d21b1215ec158e79b3",
+            "feeTier": "8388608",
+            "tickSpacing": "10",
+            "hooks": "0x0000000aa232009084bd71a5797d089aa4edfad4",
+            "volumeUSD": "1164623119.815100721344772940995852",
+            "token0": {
+                "id": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                "symbol": "WETH",
+                "decimals": "18"
+            },
+            "token1": {
+                "id": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                "symbol": "USDT",
+                "decimals": "6"
+            }
+        }
+    }
+}
