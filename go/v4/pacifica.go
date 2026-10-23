@@ -4429,25 +4429,34 @@ func (this *Pacifica) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(item, "created_at")
 	var typeVar *string = this.SafeString(item, "event_type")
-	var amount *string = this.SafeString(item, "amount")
+	var change *string = this.SafeString(item, "amount")
 	var balance *string = this.SafeString(item, "balance")
+	var currencyResolved map[string]any = this.SafeCurrency("USDC", currency)
+	var direction string
+	var amount *string = change
+	if Precise.StringLt(amount, "0") {
+		direction = "out"
+		amount = Precise.StringAbs(amount)
+	} else {
+		direction = "in"
+	}
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
 		"id":               nil,
-		"direction":        nil,
+		"direction":        direction,
 		"account":          nil,
 		"referenceAccount": nil,
 		"referenceId":      nil,
 		"type":             this.ParseLedgerEntryType(typeVar),
-		"currency":         nil,
+		"currency":         currencyResolved["code"],
 		"amount":           this.ParseNumber(amount),
 		"timestamp":        timestamp,
 		"datetime":         this.Iso8601(timestamp),
-		"before":           nil,
+		"before":           this.ParseNumber(Precise.StringSub(balance, change)),
 		"after":            this.ParseNumber(balance),
 		"status":           nil,
 		"fee":              nil,
-	}, currency)
+	}, currencyResolved)
 }
 func (this *Pacifica) ParseLedgerEntryType(typeVar *string) *string {
 	var ledgerType map[string]any = map[string]any{
@@ -4680,11 +4689,11 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes332919 []any = r1.Value
-		if retRes332919 == nil {
+		var retRes333819 []any = r1.Value
+		if retRes333819 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes332919)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes333819)}
 		}
 		return nil
 	}

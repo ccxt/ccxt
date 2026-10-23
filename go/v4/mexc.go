@@ -3029,6 +3029,7 @@ func (this *Mexc) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
  * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+ * @param {string} [params.triggerDirection] *swap only* 'ascending' triggers when the price rises to triggerPrice, 'descending' when it falls to it, default is 'ascending'
  * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
  * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
  * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
@@ -3068,11 +3069,11 @@ func (this *Mexc) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes241019 map[string]any = StructResultMap(r1.Value, OrderToMap)
-		if retRes241019 == nil {
+		var retRes241119 map[string]any = StructResultMap(r1.Value, OrderToMap)
+		if retRes241119 == nil {
 			ch <- AsyncResult[Order]{}
 		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes241019)}
+			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes241119)}
 		}
 		return nil
 	} else {
@@ -3081,11 +3082,11 @@ func (this *Mexc) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes241219 map[string]any = StructResultMap(r2.Value, OrderToMap)
-		if retRes241219 == nil {
+		var retRes241319 map[string]any = StructResultMap(r2.Value, OrderToMap)
+		if retRes241319 == nil {
 			ch <- AsyncResult[Order]{}
 		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes241219)}
+			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes241319)}
 		}
 		return nil
 	}
@@ -3410,7 +3411,23 @@ func (this *Mexc) createSwapOrderBody(ch chan AsyncResult[Order], market any, ty
 	var response map[string]any = nil
 	if (triggerPrice != nil) && (triggerPrice == nil || *triggerPrice != 0) {
 		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
-		request["triggerType"] = this.SafeInteger(paramsOmitted, "triggerType", 1)
+		var triggerDirectionparamsTriggerDirectionVariable []any = this.HandleTriggerDirectionAndParams(paramsOmitted, "triggerType", true)
+		var triggerDirection *string = SafeStringPtr(func() any {
+			if 0 >= 0 && 0 < len(triggerDirectionparamsTriggerDirectionVariable) {
+				return triggerDirectionparamsTriggerDirectionVariable[0]
+			}
+			return nil
+		}())
+		paramsTriggerDirection := GetValue(triggerDirectionparamsTriggerDirectionVariable, 1)
+		var triggerType any = DerefScalar(this.SafeInteger(paramsTriggerDirection, "triggerType", 1))
+		if triggerDirection != nil && *triggerDirection == "ascending" {
+			triggerType = 1
+		} else if triggerDirection != nil && *triggerDirection == "descending" {
+			triggerType = 2
+		} else if triggerDirection != nil {
+			panic(BadRequest(this.Id + " createOrder() triggerDirection must be either \"ascending\" or \"descending\""))
+		}
+		request["triggerType"] = triggerType
 		request["executeCycle"] = this.SafeInteger(paramsOmitted, "executeCycle", 1)
 		request["trend"] = this.SafeInteger(paramsOmitted, "trend", 1)
 		var planOrderType any = orderType
@@ -3419,7 +3436,7 @@ func (this *Mexc) createSwapOrderBody(ch chan AsyncResult[Order], market any, ty
 		}
 		request["orderType"] = this.SafeInteger(paramsOmitted, "orderType", planOrderType)
 
-		r1 := <-this.ContractPrivatePostPlanorderPlace(this.Extend(request, paramsOmitted))
+		r1 := <-this.ContractPrivatePostPlanorderPlace(this.Extend(request, paramsTriggerDirection))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -3515,11 +3532,11 @@ func (this *Mexc) createOrdersBody(ch chan AsyncResult[[]Order], orders any, opt
 		"batchOrders": this.Json(ordersRequests),
 	}
 
-	listEp3358 := <-this.SpotPrivatePostBatchOrders(request)
-	if listEp3358.Err != nil {
-		panic(listEp3358.Err)
+	listEp3375 := <-this.SpotPrivatePostBatchOrders(request)
+	if listEp3375.Err != nil {
+		panic(listEp3375.Err)
 	}
-	var response []any = listEp3358.Value
+	var response []any = listEp3375.Value
 
 	//
 	// [
@@ -4042,18 +4059,18 @@ func (this *Mexc) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 				panic(BadRequest(this.Id + " fetchOpenOrders() does not support marginMode " + *marginMode + " for spot-margin trading"))
 			}
 
-			listEp3843 := <-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query))
-			if listEp3843.Err != nil {
-				panic(listEp3843.Err)
+			listEp3860 := <-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query))
+			if listEp3860.Err != nil {
+				panic(listEp3860.Err)
 			}
-			response = listEp3843.Value
+			response = listEp3860.Value
 		} else {
 
-			listEp3846 := <-this.SpotPrivateGetOpenOrders(this.Extend(request, query))
-			if listEp3846.Err != nil {
-				panic(listEp3846.Err)
+			listEp3863 := <-this.SpotPrivateGetOpenOrders(this.Extend(request, query))
+			if listEp3863.Err != nil {
+				panic(listEp3863.Err)
 			}
-			response = listEp3846.Value
+			response = listEp3863.Value
 		}
 
 		//
@@ -4171,12 +4188,12 @@ func (this *Mexc) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3960, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes325515 []any = listRecv3960
-	if retRes325515 == nil {
+	listRecv3977, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes326515 []any = listRecv3977
+	if retRes326515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes325515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes326515)}
 	}
 	return nil
 }
@@ -4215,12 +4232,12 @@ func (this *Mexc) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3999, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes327215 []any = listRecv3999
-	if retRes327215 == nil {
+	listRecv4016, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes328215 []any = listRecv4016
+	if retRes328215 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes327215)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes328215)}
 	}
 	return nil
 }
@@ -4262,11 +4279,11 @@ func (this *Mexc) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state any
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes328919 []any = OrdersToList(r1.Value)
-		if retRes328919 == nil {
+		var retRes329919 []any = OrdersToList(r1.Value)
+		if retRes329919 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes328919)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes329919)}
 		}
 		return nil
 	}
@@ -5616,11 +5633,11 @@ func (this *Mexc) reduceMarginBody(ch chan AsyncResult[map[string]any], symbol s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes443715 map[string]any = r.Value
-	if retRes443715 == nil {
+	var retRes444715 map[string]any = r.Value
+	if retRes444715 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes443715}
+		ch <- AsyncResult[map[string]any]{Value: retRes444715}
 	}
 	return nil
 }
@@ -5650,11 +5667,11 @@ func (this *Mexc) addMarginBody(ch chan AsyncResult[map[string]any], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes445115 map[string]any = r.Value
-	if retRes445115 == nil {
+	var retRes446115 map[string]any = r.Value
+	if retRes446115 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes445115}
+		ch <- AsyncResult[map[string]any]{Value: retRes446115}
 	}
 	return nil
 }
@@ -5904,11 +5921,11 @@ func (this *Mexc) fetchFundingIntervalBody(ch chan AsyncResult[FundingRate], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes463215 map[string]any = StructResultMap(r.Value, FundingRateToMap)
-	if retRes463215 == nil {
+	var retRes464215 map[string]any = StructResultMap(r.Value, FundingRateToMap)
+	if retRes464215 == nil {
 		ch <- AsyncResult[FundingRate]{}
 	} else {
-		ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(retRes463215)}
+		ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(retRes464215)}
 	}
 	return nil
 }
@@ -6338,11 +6355,11 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[str
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 
-	listEp5941 := <-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted))
-	if listEp5941.Err != nil {
-		panic(listEp5941.Err)
+	listEp5958 := <-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted))
+	if listEp5958.Err != nil {
+		panic(listEp5958.Err)
 	}
-	var response []any = listEp5941.Value
+	var response []any = listEp5958.Value
 	//
 	//    [
 	//        {
@@ -6567,11 +6584,11 @@ func (this *Mexc) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 		return params
 	}()
 
-	listEp6138 := <-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted))
-	if listEp6138.Err != nil {
-		panic(listEp6138.Err)
+	listEp6155 := <-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted))
+	if listEp6155.Err != nil {
+		panic(listEp6155.Err)
 	}
-	var response []any = listEp6138.Value
+	var response []any = listEp6155.Value
 
 	//
 	// [
@@ -6646,11 +6663,11 @@ func (this *Mexc) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 		request["limit"] = limit
 	}
 
-	listEp6210 := <-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))
-	if listEp6210.Err != nil {
-		panic(listEp6210.Err)
+	listEp6227 := <-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))
+	if listEp6227.Err != nil {
+		panic(listEp6227.Err)
 	}
-	var response []any = listEp6210.Value
+	var response []any = listEp6227.Value
 
 	//
 	// [
@@ -7724,11 +7741,11 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any], 
 		}
 	}
 
-	listEp7204 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7204.Err != nil {
-		panic(listEp7204.Err)
+	listEp7221 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7221.Err != nil {
+		panic(listEp7221.Err)
 	}
-	var response []any = listEp7204.Value
+	var response []any = listEp7221.Value
 
 	//
 	//    [
@@ -7851,11 +7868,11 @@ func (this *Mexc) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]De
 		}
 	}
 
-	listEp7324 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7324.Err != nil {
-		panic(listEp7324.Err)
+	listEp7341 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7341.Err != nil {
+		panic(listEp7341.Err)
 	}
-	var response []any = listEp7324.Value
+	var response []any = listEp7341.Value
 
 	//
 	//    [
@@ -8710,6 +8727,7 @@ func (this *Mexc) CreateMarketSellOrderWithCost(symbol string, cost float64, opt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
  * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+ * @param {string} [params.triggerDirection] *swap only* 'ascending' triggers when the price rises to triggerPrice, 'descending' when it falls to it, default is 'ascending'
  * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
  * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
  * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
