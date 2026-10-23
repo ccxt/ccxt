@@ -1292,6 +1292,12 @@ public partial class blofin : Exchange
             { "bar", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", limitResolved },
         };
+        if ((since != null))
+        {
+            Int64 durationInMilliseconds = (this.parseTimeframe(timeframeVar) * 1000L);
+            request["before"] = mathMax((since - 1), 0);
+            request["after"] = this.sum(since, (durationInMilliseconds * limitResolved));
+        }
         Int64? until = this.safeInteger(query, "until");
         if ((until != null))
         {
@@ -2193,6 +2199,10 @@ public partial class blofin : Exchange
         {
             market = this.market(symbol);
             request["instId"] = (market.ContainsKey("id") ? market["id"] : null);
+        }
+        if ((since != null))
+        {
+            request["begin"] = since;
         }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end", request, paramsPaginate);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
