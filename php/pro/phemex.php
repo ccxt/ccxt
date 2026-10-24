@@ -828,8 +828,14 @@ class phemex extends \ccxt\async\phemex {
             $book = $this->safe_dict_2($message, 'book', 'orderbook_p', array());
             $snapshot = $this->custom_parse_order_book($book, $symbol, $timestamp, 'bids', 'asks', 0, 1, $market);
             $snapshot['nonce'] = $nonce;
-            $orderbook = $this->order_book($snapshot, $depth);
-            $this->orderbooks[$symbol] = $orderbook;
+            // reset the existing orderbook instead of replacing it: a consumer
+            // holds a reference to the old object and would never see updates
+            // after a re-subscription snapshot
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                $this->orderbooks[$symbol] = $this->order_book(array(), $depth);
+            }
+            $orderbook = $this->orderbooks[$symbol];
+            $orderbook->reset($snapshot);
             $client->resolve($orderbook, $messageHash);
         } else {
             if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {

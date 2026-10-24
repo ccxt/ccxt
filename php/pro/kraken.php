@@ -1657,21 +1657,27 @@ class kraken extends \ccxt\async\kraken {
         //         "sequence": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance[type], and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        $type = 'spot';
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        $this->balance[$type] = $this->safe_dict($this->balance, $type, array());
+        $this->balance[$type]['info'] = $message;
         $data = $this->safe_list($message, 'data', array());
-        $result = array( 'info' => $message );
         for ($i = 0; $i < count($data); $i++) {
             $currencyId = $this->safe_string($data[$i], 'asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $eq = $this->safe_string($data[$i], 'balance');
             $account['total'] = $eq;
-            $result[$code] = $account;
+            $this->balance[$type][$code] = $account;
         }
-        $type = 'spot';
-        $balance = $this->safe_balance($result);
-        $oldBalance = $this->safe_dict($this->balance, $type, array());
-        $newBalance = $this->deep_extend($oldBalance, $balance);
-        $this->balance[$type] = $this->safe_balance($newBalance);
+        $this->balance[$type] = $this->safe_balance($this->balance[$type]);
         $channel = $this->safe_string($message, 'channel');
         $client->resolve($this->balance[$type], $channel);
     }

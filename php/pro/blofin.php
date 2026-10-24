@@ -552,7 +552,28 @@ class blofin extends \ccxt\async\blofin {
         //     }
         //
         $marketType = 'swap'; // for now
-        $this->balance[$marketType] = $this->parse_ws_balance($message);
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance[marketType], and Client.resolve is a no-op
+        // while nobody is awaiting, so a replaced object would make updates
+        // landing in that window invisible to the consumer forever (same class
+        // as issue #26773); the free/used/total aggregates are rebuilt from
+        // the merged currencies by safeBalance
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        $this->balance[$marketType] = $this->safe_dict($this->balance, $marketType, array());
+        $parsed = $this->parse_ws_balance($message);
+        $reserved = array( 'free', 'used', 'total' );
+        $keys = is_array($parsed) ? array_keys($parsed) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($this->in_array($key, $reserved)) {
+                continue;
+            }
+            $this->balance[$marketType][$key] = $parsed[$key];
+        }
+        $this->balance[$marketType] = $this->safe_balance($this->balance[$marketType]);
         $messageHash = $marketType . ':balance';
         $client->resolve($this->balance[$marketType], $messageHash);
     }

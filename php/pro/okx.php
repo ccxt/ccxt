@@ -1670,10 +1670,20 @@ class okx extends \ccxt\async\okx {
         if ($action === 'snapshot') {
             for ($i = 0; $i < count($data); $i++) {
                 $update = $data[$i];
-                $orderbook = $this->order_book(array(), $limit);
-                $this->orderbooks[$symbol] = $orderbook;
-                $orderbook['symbol'] = $symbol;
-                $this->handle_order_book_message($client, $update, $orderbook, $messageHash, $market);
+                // reset the existing orderbook instead of replacing it: a consumer
+                // holds a reference to the old object and would never see updates
+                // after a re-subscription snapshot
+                if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                    $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+                }
+                $orderbook = $this->orderbooks[$symbol];
+                $timestamp = $this->safe_integer($update, 'ts');
+                // rows are [ price, amount, liquidatedOrders, numOrders ] - store
+                // price and amount only, matching handleDelta, so countOrIdKey
+                // points past the row on purpose
+                $snapshot = $this->parse_order_book($update, $symbol, $timestamp, 'bids', 'asks', 0, 1, 4);
+                $snapshot['nonce'] = $this->safe_integer($update, 'seqId');
+                $orderbook->reset($snapshot);
                 if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
                     break;
                 }
@@ -1873,9 +1883,27 @@ class okx extends \ccxt\async\okx {
         //
         $arg = $this->safe_dict($message, 'arg', array());
         $channel = $this->safe_string($arg, 'channel');
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
         $balance = $this->parseTradingBalance($message);
-        $newBalance = $this->deep_extend($this->balance, $balance);
-        $this->balance = $this->safe_balance($newBalance);
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        $reserved = array( 'free', 'used', 'total' );
+        $keys = is_array($balance) ? array_keys($balance) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($this->in_array($key, $reserved)) {
+                continue;
+            }
+            $this->balance[$key] = $balance[$key];
+        }
+        $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, $channel);
     }
 

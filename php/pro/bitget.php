@@ -1077,7 +1077,14 @@ class bitget extends \ccxt\async\bitget {
                 }
             }
         } else {
-            $orderbook = $this->order_book(array());
+            // reset the existing orderbook instead of replacing it: a consumer
+            // holds a reference to the old object and would never see updates
+            // after this snapshot (every frame of the non-incremental channels
+            // is a full snapshot)
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                $this->orderbooks[$symbol] = $this->order_book(array());
+            }
+            $orderbook = $this->orderbooks[$symbol];
             $bidsKey = 'bids';
             $asksKey = 'asks';
             // bitget UTA has `a` and `b` instead of `asks` and `bids`
@@ -1093,7 +1100,6 @@ class bitget extends \ccxt\async\bitget {
             }
             $parsedOrderbook = $this->parse_order_book($rawOrderBook, $symbol, $timestamp, $bidsKey, $asksKey);
             $orderbook->reset($parsedOrderbook);
-            $this->orderbooks[$symbol] = $orderbook;
         }
         $client->resolve($this->orderbooks[$symbol], $messageHash);
     }

@@ -1394,8 +1394,27 @@ class hitbtc extends \ccxt\async\hitbtc {
         //
         $messageHash = $this->safe_string($message, 'method');
         $params = $this->safe_list($message, 'params', array());
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
         $balance = $this->parse_balance($params);
-        $this->balance = $this->deep_extend($this->balance, $balance);
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        $reserved = array( 'free', 'used', 'total' );
+        $keys = is_array($balance) ? array_keys($balance) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($this->in_array($key, $reserved)) {
+                continue;
+            }
+            $this->balance[$key] = $balance[$key];
+        }
+        $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, $messageHash);
     }
 
