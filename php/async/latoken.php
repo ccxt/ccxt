@@ -283,6 +283,33 @@ class latoken extends Exchange {
                     'ACCOUNT_TYPE_WALLET' => 'wallet',
                     'ACCOUNT_TYPE_SPOT' => 'spot',
                 ),
+                'networks' => array(
+                    // the venue names a token chain "<CHAIN>_TOKEN" and the native
+                    // chain by its own ticker, so only the former needs a mapping
+                    'BEP20' => 'BSC_TOKEN',
+                    'TRC20' => 'TRON',
+                    'ADA' => 'ADA_TOKEN',
+                    'ALGO' => 'ALGO_TOKEN',
+                    'ARBITRUM' => 'ARB_TOKEN',
+                    'AVAXC' => 'AVAXC_TOKEN',
+                    'BASE' => 'BASE_TOKEN',
+                    'CELO' => 'CELO_TOKEN',
+                    'EOS' => 'EOS_TOKEN',
+                    'FTM' => 'FTM_TOKEN',
+                    'MATIC' => 'MATIC_TOKEN',
+                    'OP' => 'OP_TOKEN',
+                    'QTUM' => 'QTUM_TOKEN',
+                    'SOL' => 'SOL_TOKEN',
+                    'TON' => 'TON_TOKEN',
+                    'VET' => 'VECHAIN_TOKEN',
+                    'WAVES' => 'WAVES_TOKEN',
+                    'XDC' => 'XDC_TOKEN',
+                    'XLM' => 'XLM_TOKEN',
+                    'XRP' => 'XRP_TOKEN',
+                ),
+                'networksById' => array(
+                    'BSC' => 'BEP20', // second provider id for the same chain
+                ),
                 'fetchTradingFee' => array(
                     'method' => 'fetchPrivateTradingFee', // or 'fetchPublicTradingFee'
                 ),
@@ -511,9 +538,15 @@ class latoken extends Exchange {
     private function do_fetch_currencies($params = array()) {
         /**
          * fetches all available currencies on an exchange
+         *
+         * @see https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+         * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
+        // sequential on purpose - with Promise.all the static request harness records
+        // whichever call finished last, which differs between the sync and async ports
         $response = Async\await($this->publicGetCurrency($params));
         //
         //     [
@@ -547,7 +580,41 @@ class latoken extends Exchange {
         //         },
         //     ]
         //
-        return $this->parse_currencies($response);
+        //     [
+        //         {
+        //             "id":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "tag":"USDT",
+        //             "bindings":[
+        //                 {
+        //                     "minAmount":"5.000000000000000000",
+        //                     "maxAmount":"0",
+        //                     "fee":"3.000000000000000000",
+        //                     "percentFee":"0.250000000000000000",
+        //                     "providerName":"ERC20",
+        //                     "id":"973d2079-1fae-4fa7-82e4-bae55eba8284",
+        //                     "currencyProvider":"4d26b9ec-4bed-4bec-ba2f-02aaca8e84a1",
+        //                     "deflation":"0"
+        //                 },
+        //             ]
+        //         },
+        //     ]
+        //
+        // no params on this one - they belong to the currency request, not to the bindings
+        $bindingsResponse = Async\await($this->publicGetTransactionBindings());
+        $bindingsById = $this->index_by($bindingsResponse, 'id');
+        $rawCurrencies = $this->to_array($response);
+        $merged = array();
+        for ($i = 0; $i < count($rawCurrencies); $i++) {
+            $rawCurrency = $rawCurrencies[$i];
+            $bindingEntry = $this->safe_dict($bindingsById, $this->safe_string($rawCurrency, 'id'));
+            $bindings = $this->safe_list($bindingEntry, 'bindings');
+            $mergedCurrency = $rawCurrency;
+            if ($bindings !== null) {
+                $mergedCurrency = $this->extend($rawCurrency, array( 'bindings' => $bindings ));
+            }
+            $merged[] = $mergedCurrency;
+        }
+        return $this->parse_currencies($merged);
     }
 
     public function parse_currency(array $currency): array {
@@ -556,6 +623,42 @@ class latoken extends Exchange {
         $code = $this->safe_currency_code($tag);
         $currencyType = $this->safe_string($currency, 'type');
         $isCrypto = ($currencyType === 'CURRENCY_TYPE_CRYPTO' || $currencyType === 'CURRENCY_TYPE_IEO');
+        $bindings = $this->safe_list($currency, 'bindings', array());
+        $networks = array();
+        for ($i = 0; $i < count($bindings); $i++) {
+            $binding = $bindings[$i];
+            $networkId = $this->safe_string($binding, 'providerName');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
+            // entries would land on the same unified code - keep the first one for a
+            // deterministic binding id, since withdrawals resolve the chain through it
+            if (($networkCode !== null) && !(is_array($networks) && array_key_exists($networkCode ?? '', $networks))) {
+                $networks[$networkCode] = array(
+                    'info' => $binding,
+                    'id' => $this->safe_string($binding, 'id'),
+                    'network' => $networkCode,
+                    'active' => null,
+                    // the public endpoint serves one entry per chain without saying
+                    // whether it is bound for deposits, withdrawals or both
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => $this->safe_number($binding, 'fee'),
+                    'precision' => null,
+                    'limits' => array(
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($binding, 'minAmount'),
+                            // maxAmount is "0" on 1990 of the 1996 bindings and contradicts its
+                            // own minimum on the rest, so the venue does not keep it as a real cap
+                            'max' => null,
+                        ),
+                    ),
+                );
+            }
+        }
         return $this->safe_currency_structure(array(
             'id' => $id,
             'code' => $code,
@@ -565,7 +668,7 @@ class latoken extends Exchange {
             'active' => $this->safe_string($currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
             'deposit' => null,
             'withdraw' => null,
-            'fee' => $this->safe_number($currency, 'fee'),
+            'fee' => null,
             'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals'))),
             'limits' => array(
                 'amount' => array(
@@ -577,7 +680,7 @@ class latoken extends Exchange {
                     'max' => null,
                 ),
             ),
-            'networks' => array(),
+            'networks' => $networks,
         ));
     }
 

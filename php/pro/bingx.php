@@ -913,7 +913,7 @@ class bingx extends \ccxt\async\bingx {
         $marketOptions = $this->safe_dict($this->options, $marketType);
         $timeframes = $this->safe_dict($marketOptions, 'timeframes', array());
         $unifiedTimeframe = $this->find_timeframe($rawTimeframe, $timeframes);
-        if ($this->safe_value($this->ohlcvs[$symbol], $rawTimeframe) === null) {
+        if ($this->safe_value($this->ohlcvs[$symbol], $unifiedTimeframe) === null) {
             $subscriptionHash = $dataType;
             $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash);
             // subscription.limit is only set when watchOHLCV registers the subscription;

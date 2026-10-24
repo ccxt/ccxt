@@ -135,6 +135,8 @@ class bingx extends Exchange {
                     'copyTrading' => 'https://open-api.{hostname}/openApi',
                     'cswap' => 'https://open-api.{hostname}/openApi',
                     'api' => 'https://open-api.{hostname}/openApi',
+                    'agent' => 'https://open-api.{hostname}/openApi',
+                    'wealth' => 'https://open-api.{hostname}/openApi',
                 ),
                 'test' => array(
                     'fund' => 'https://open-api-vst.{hostname}/openApi',
@@ -148,6 +150,8 @@ class bingx extends Exchange {
                     'copyTrading' => 'https://open-api-vst.{hostname}/openApi',
                     'cswap' => 'https://open-api-vst.{hostname}/openApi',
                     'api' => 'https://open-api-vst.{hostname}/openApi',
+                    'agent' => 'https://open-api-vst.{hostname}/openApi',
+                    'wealth' => 'https://open-api-vst.{hostname}/openApi',
                 ),
                 'www' => 'https://bingx.com/',
                 'doc' => 'https://bingx-api.github.io/docs/',
@@ -2739,7 +2743,7 @@ class bingx extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string_2($balance, 'availableMargin', 'availableBalance');
                 $account['used'] = $this->safe_string($balance, 'usedMargin');
-                $account['total'] = $this->safe_string($balance, 'maxWithdrawAmount');
+                $account['total'] = $this->safe_string_2($balance, 'balance', 'maxWithdrawAmount');
                 if ($code !== null) {
                     $result[$code] = $account;
                 }
@@ -3109,7 +3113,13 @@ class bingx extends Exchange {
                 $collateralString = ($unrealizedPnlString !== null) ? Precise::string_add($initialMarginString, $unrealizedPnlString) : $initialMarginString;
             }
         }
-        $timestamp = $this->safe_integer($position, 'openTime');
+        $timestamp = $this->safe_integer_2($position, 'openTime', 'createTime');
+        $positionSide = $this->safe_string($position, 'positionSide');
+        $hedged = null;
+        if ($positionSide !== null) {
+            $hedged = ($positionSide !== 'BOTH');
+        }
+        $percentageString = $this->safe_string($position, 'pnlRatio');
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'positionId'),
@@ -3120,13 +3130,13 @@ class bingx extends Exchange {
             'entryPrice' => $this->safe_number_2($position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
             'realizedPnl' => $this->safe_number($position, 'realisedProfit'),
-            'percentage' => null,
+            'percentage' => $this->parse_number(Precise::string_mul($percentageString, '100')),
             'contracts' => $this->safe_number($position, 'positionAmt'),
             'contractSize' => null,
             'markPrice' => $this->safe_number($position, 'markPrice'),
             'lastPrice' => null,
             'side' => $this->safe_string_lower($position, 'positionSide'),
-            'hedged' => null,
+            'hedged' => $hedged,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastUpdateTimestamp' => $this->safe_integer($position, 'updateTime'),
@@ -4827,8 +4837,12 @@ class bingx extends Exchange {
             $request['symbol'] = $market['id'];
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
+        list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchOrders', $market, $paramsMarketType);
         if ($type !== 'swap') {
             throw new NotSupported($this->id . ' fetchOrders() is only supported for swap markets');
+        }
+        if (($subType === 'inverse') || (($market !== null) && ($market['inverse'] === true))) {
+            throw new NotSupported($this->id . ' fetchOrders() is not supported for inverse swap markets');
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -4836,7 +4850,7 @@ class bingx extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $paramsMarketType);
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $paramsSubType);
         $response = $this->swapV1PrivateGetTradeFullOrder($this->extend($requestUntil, $paramsUntil));
         //
         //     {

@@ -1823,7 +1823,7 @@ class mexc extends Exchange {
             if (is_array($trade) && array_key_exists('positionMode' ?? '', $trade)) {
                 $timestamp = $this->safe_integer($trade, 'timestamp');
                 $amountString = $this->safe_string($trade, 'vol');
-                $side = $this->parse_order_side($this->safe_string($trade, 'side'));
+                $side = $this->parse_contract_order_side($this->safe_string($trade, 'side'));
                 $fee = array(
                     'cost' => $this->safe_string($trade, 'fee'),
                     'currency' => $this->safe_currency_code($this->safe_string($trade, 'feeCurrency')),
@@ -3846,6 +3846,9 @@ class mexc extends Exchange {
         }
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
+        $isContract = $marketResolved['contract'];
+        $sideRaw = $this->safe_string($order, 'side');
+        $side = ($isContract === true) ? $this->parse_contract_order_side($sideRaw) : $this->parse_order_side($sideRaw);
         $timestamp = $this->safe_integer_n($order, array( 'time', 'createTime', 'transactTime' ));
         $fee = null;
         $feeCurrency = $this->safe_string($order, 'feeCurrency');
@@ -3869,7 +3872,7 @@ class mexc extends Exchange {
             'symbol' => $marketResolved['symbol'],
             'type' => $this->parse_order_type($typeRaw),
             'timeInForce' => $timeInForce,
-            'side' => $this->parse_order_side($this->safe_string($order, 'side')),
+            'side' => $side,
             'price' => $this->safe_number($order, 'price'),
             'triggerPrice' => $this->safe_number_2($order, 'stopPrice', 'triggerPrice'),
             'average' => $this->safe_number($order, 'dealAvgPrice'),
@@ -3889,9 +3892,18 @@ class mexc extends Exchange {
             'SELL' => 'sell',
             '1' => 'buy',
             '2' => 'sell',
-            // contracts v1 : TODO
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_contract_order_side(?string $side): ?string {
+        $sides = array(
+            '1' => 'buy', // open long
+            '2' => 'buy', // close short
+            '3' => 'sell', // open short
+            '4' => 'sell', // close long
+        );
+        return $this->safe_string($sides, $side, $side);
     }
 
     public function parse_order_type(?string $status): ?string {
