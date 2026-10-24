@@ -339,11 +339,9 @@ export default class grvt extends grvtRest {
         const trades = await this.subscribeMultiple (messageHashes, this.extend (params, request), rawHashes);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -444,11 +442,9 @@ export default class grvt extends grvtRest {
             'selectors': rawHashes,
         };
         const [ symbol, timeframe, stored ] = await this.subscribeMultiple (messageHashes, this.extend (params, request), rawHashes);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = stored.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (stored, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        const filtered = this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -698,11 +694,9 @@ export default class grvt extends grvtRest {
             'selectors': rawHashes,
         };
         const trades = await this.subscribeMultiple (messageHashes, this.extend (request, params), messageHashes, false);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     handleMyTrade (client: Client, message: Dict) {
@@ -877,11 +871,9 @@ export default class grvt extends grvtRest {
             'selectors': rawHashes,
         };
         const orders = await this.subscribeMultiple (messageHashes, this.extend (request, params), rawHashes, false);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbol, since, limitResolved, true);
     }
 
     handleOrder (client: Client, message: Dict) {

@@ -153,11 +153,9 @@ export default class mudrex extends mudrexRest {
         };
         const request = this.extend (subscribe, paramsOmitted);
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     override handleMessage (client: Client, message: any) {

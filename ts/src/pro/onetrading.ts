@@ -325,11 +325,9 @@ export default class onetrading extends onetradingRest {
         };
         const request = this.deepExtend (subscribe, params);
         let trades = await this.watch (url, messageHash, request, subscribeHash, request);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limit);
-        }
-        trades = this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        trades = this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved);
         const numTrades: number = trades.length;
         if (numTrades === 0) {
             return await this.watchMyTrades (symbolResolved, since, limitResolved, params);
@@ -494,11 +492,9 @@ export default class onetrading extends onetradingRest {
         };
         const request = this.deepExtend (subscribe, params);
         let orders = await this.watch (url, messageHash, request, subscribeHash, request);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        orders = this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        orders = this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved);
         const numOrders: number = orders.length;
         if (numOrders === 0) {
             return await this.watchOrders (symbolResolved, since, limitResolved, params);
@@ -1159,11 +1155,9 @@ export default class onetrading extends onetradingRest {
             ],
         };
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash, subscription);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict) {

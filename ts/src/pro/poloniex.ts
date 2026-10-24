@@ -387,11 +387,9 @@ export default class poloniex extends poloniexRest {
             throw new BadRequest (this.id + ' watchOHLCV cannot take a timeframe of ' + timeframe);
         }
         const ohlcv = await this.subscribe (channel, channel, false, [ symbol ], params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     /**
@@ -485,11 +483,9 @@ export default class poloniex extends poloniexRest {
         const trades: ArrayCache = await this.watchMultiple (url, messageHashes, request, messageHashes);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -533,11 +529,9 @@ export default class poloniex extends poloniexRest {
         const symbolResolved: Str = (symbol === undefined) ? undefined : this.symbol (symbol);
         const symbols = (symbolResolved === undefined) ? undefined : [ symbolResolved ];
         const orders = await this.subscribe (name, name, true, symbols, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -561,11 +555,9 @@ export default class poloniex extends poloniexRest {
         const symbolResolved: Str = (symbol === undefined) ? undefined : this.symbol (symbol);
         const symbols = (symbolResolved === undefined) ? undefined : [ symbolResolved ];
         const trades = await this.subscribe (name, messageHash, true, symbols, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**

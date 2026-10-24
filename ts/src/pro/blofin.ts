@@ -107,11 +107,9 @@ export default class blofin extends blofinRest {
         const trades = await this.watchMultipleWrapper (true, 'trades', 'watchTradesForSymbols', symbols, params);
         const firstMarket = this.safeDict (trades, 0);
         const firstSymbol = this.safeString (firstMarket, 'symbol');
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (firstSymbol, limit);
-        }
-        const result = this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, firstSymbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        const result = this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
         return this.sortBy (result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
     }
 
@@ -426,11 +424,9 @@ export default class blofin extends blofinRest {
             await this.loadMarkets ();
         }
         const [ symbol, timeframe, candles ] = await this.watchMultipleWrapper (true, 'candle', 'watchOHLCVForSymbols', symbolsAndTimeframes, params);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = candles.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (candles, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (candles, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        const filtered = this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -585,11 +581,9 @@ export default class blofin extends blofinRest {
         const orders = await this.watchMultipleWrapper (false, channel, 'watchOrdersForSymbols', symbols, paramsOmitted);
         const first = this.safeDict (orders, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (orders, tradeSymbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     handleOrders (client: Client, message: Dict) {

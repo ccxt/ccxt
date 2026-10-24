@@ -3604,6 +3604,22 @@ export class BaseExchange {
         return array;
     }
 
+    getCacheRead (cache: any, symbol: Str = undefined, limit: Int = undefined): Dict {
+        /**
+         * @ignore
+         * @method
+         * @description read the cache and its update limit together for synchronous filtering
+         */
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = cache.getLimit (symbol, limit);
+        }
+        return {
+            'data': cache,
+            'limit': limitResolved,
+        };
+    }
+
     filterBySinceLimit (array: object[] | undefined, since: Int = undefined, limit: Int = undefined, key: IndexType = 'timestamp', tail = false): any[] {
         if (array === undefined) {
             return [];

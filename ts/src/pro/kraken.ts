@@ -766,13 +766,13 @@ export default class kraken extends krakenRest {
      */
     override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const trades = await this.watchMultiHelper ('trade', 'trade', symbols, undefined, params);
-        let limitResolved: Int = limit;
+        let tradeSymbol: Str = undefined;
         if (this.newUpdates) {
             const first = this.safeList (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limitResolved = trades.getLimit (tradeSymbol, limit);
+            tradeSymbol = this.safeString (first, 'symbol');
         }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+        return this.filterBySinceLimit (cacheRead['data'], since, this.safeInteger (cacheRead, 'limit'), 'timestamp', true);
     }
 
     /**
@@ -843,11 +843,9 @@ export default class kraken extends krakenRest {
         };
         const request = this.deepExtend (subscribe, params);
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (ohlcv, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     override async loadMarkets (reload = false, params: Dict = {}) {
@@ -1198,11 +1196,9 @@ export default class kraken extends krakenRest {
             subscribe['params'] = this.deepExtend (subscribe['params'], params);
         }
         const result: ArrayCache = await this.watch (url, messageHash, subscribe, subscriptionHash);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = result.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (result, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (result, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     /**

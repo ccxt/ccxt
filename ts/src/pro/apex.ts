@@ -105,11 +105,9 @@ export default class apex extends apexRest {
         const trades = await this.watchTopics (url, messageHashes, topics, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -520,11 +518,9 @@ export default class apex extends apexRest {
             messageHashes.push ('ohlcv::' + market['symbol'] + '::' + unfiedTimeframe);
         }
         const [ symbol, timeframe, stored ] = await this.watchTopics (url, messageHashes, rawHashes, params);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = stored.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (stored, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        const filtered = this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -633,11 +629,9 @@ export default class apex extends apexRest {
         const url = this.getWsPrivateUrl ();
         await this.authenticate (url);
         const trades = await this.watchTopics (url, [ messageHash ], [ 'myTrades' ], params);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -708,11 +702,9 @@ export default class apex extends apexRest {
         await this.authenticate (url);
         const topics = [ 'orders' ];
         const orders = await this.watchTopics (url, [ messageHash ], topics, params);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     handleMyTrades (client: Client, lists: any[]) {

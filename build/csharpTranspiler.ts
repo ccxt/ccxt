@@ -7812,6 +7812,9 @@ class NewTranspiler {
                 // no second class (older single-class layout): keep prior behaviour
                 baseMethods = rest.replace (/\s*class Exchange\s*:\s*BaseExchange\s*\{\s*\}\s*$/, '\n');
             }
+            // The C# cache read must be atomic with receive-thread appends.
+            // Exchange.WsCache.cs supplies the native implementation.
+            baseMethods = this.stripCSharpMethod (baseMethods, 'getCacheRead').body;
             const fileHeader = this.getCsharpImports(undefined).concat([
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"

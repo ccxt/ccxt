@@ -660,11 +660,9 @@ export default class hitbtc extends hitbtcRest {
         }
         const name = 'trades';
         const trades = await this.subscribePublic (name, 'trades', [ symbol ], this.deepExtend (request, params));
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp');
+        const cacheRead = this.getCacheRead (trades, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp');
     }
 
     handleTrades (client: Client, message: Dict): Dict {
@@ -794,11 +792,9 @@ export default class hitbtc extends hitbtcRest {
             request['params']['limit'] = limit;
         }
         const ohlcv = await this.subscribePublic (name, 'candles', [ symbol ], this.deepExtend (request, params));
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0);
+        const cacheRead = this.getCacheRead (ohlcv, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0);
     }
 
     handleOHLCV (client: Client, message: Dict): Dict {
@@ -916,11 +912,9 @@ export default class hitbtc extends hitbtcRest {
             'future': 'futures_subscribe',
         });
         const orders = await this.subscribePrivate (name, symbol, paramsMarketType);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp');
+        const cacheRead = this.getCacheRead (orders, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp');
     }
 
     handleOrder (client: Client, message: Dict): Dict {

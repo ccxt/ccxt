@@ -77,11 +77,9 @@ export default class gemini extends geminiRest {
         }
         const url = wsUrl + '/v2/marketdata';
         const trades: ArrayCache = await this.watch (url, messageHash, request, subscribeHash);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (market['symbol'], limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, market['symbol'], limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -99,11 +97,9 @@ export default class gemini extends geminiRest {
         const trades = await this.helperForWatchMultipleConstruct ('trades', symbols, params);
         const first = this.safeList (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
@@ -313,11 +309,9 @@ export default class gemini extends geminiRest {
         }
         const url = wsUrl + '/v2/marketdata';
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict): Dict {
@@ -715,11 +709,9 @@ export default class gemini extends geminiRest {
         const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : undefined;
         const messageHash = 'orders';
         const orders: ArrayCache = await this.watch (url, messageHash, undefined, messageHash);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     handleHeartbeat (client: Client, message: Dict): Dict {

@@ -6046,6 +6046,8 @@ ${constStatements.join('\n')}
             this._baseMethodsTranspileCache[baseExchangeFile] = baseFile;
         }
         let baseClass = baseFile.content as any; // remove this later
+        // Base cache readers need the same interface dispatch as WS methods.
+        baseClass = baseClass.replace (/([a-zA-Z]\w*)\.GetLimit\(/g, 'ToGetsLimit($1).GetLimit(');
 
         // capture the 62 symbol-based method names from the TS `Exchange extends BaseExchange` tier,
         // so the wrappers keep them on Exchange (regular venues) and off prediction venues.

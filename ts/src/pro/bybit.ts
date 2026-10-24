@@ -742,11 +742,9 @@ export default class bybit extends bybitRest {
             messageHashes.push ('ohlcv::' + symbolString + '::' + unfiedTimeframe);
         }
         const [ symbol, timeframe, stored ] = await this.watchTopics (url, messageHashes, rawHashes, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = stored.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (stored, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        const filtered = this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -1147,11 +1145,8 @@ export default class bybit extends bybitRest {
         const trades = await this.watchTopics (url, messageHashes, topics, paramsValue);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (tradeSymbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, tradeSymbol, limit);
+        return this.filterBySinceLimit (cacheRead['data'], since, this.safeInteger (cacheRead, 'limit'), 'timestamp', true);
     }
 
     /**
@@ -1364,11 +1359,9 @@ export default class bybit extends bybitRest {
             topic = 'execution.fast';
         }
         const trades = await this.watchTopics (url, [ messageHash ], [ topic ], paramsExecutionFast);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -1903,11 +1896,9 @@ export default class bybit extends bybitRest {
         };
         const topics = this.safeList (topicsByMarket, this.getPrivateType (url));
         const orders = await this.watchTopics (url, [ messageHash ], topics, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolResolved, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (orders, symbolResolved, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolResolved, since, limitResolved, true);
     }
 
     /**
