@@ -222,8 +222,12 @@ func (this *P2b) Describe() any {
 			"trading": map[string]any{
 				"tierBased":  true,
 				"percentage": true,
-				"taker":      []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.2")}, []any{this.ParseNumber("1"), this.ParseNumber("0.19")}, []any{this.ParseNumber("5"), this.ParseNumber("0.18")}, []any{this.ParseNumber("10"), this.ParseNumber("0.17")}, []any{this.ParseNumber("25"), this.ParseNumber("0.16")}, []any{this.ParseNumber("75"), this.ParseNumber("0.15")}, []any{this.ParseNumber("100"), this.ParseNumber("0.14")}, []any{this.ParseNumber("150"), this.ParseNumber("0.13")}, []any{this.ParseNumber("300"), this.ParseNumber("0.12")}, []any{this.ParseNumber("450"), this.ParseNumber("0.11")}, []any{this.ParseNumber("500"), this.ParseNumber("0.1")}},
-				"maker":      []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.2")}, []any{this.ParseNumber("1"), this.ParseNumber("0.18")}, []any{this.ParseNumber("5"), this.ParseNumber("0.16")}, []any{this.ParseNumber("10"), this.ParseNumber("0.14")}, []any{this.ParseNumber("25"), this.ParseNumber("0.12")}, []any{this.ParseNumber("75"), this.ParseNumber("0.1")}, []any{this.ParseNumber("100"), this.ParseNumber("0.08")}, []any{this.ParseNumber("150"), this.ParseNumber("0.06")}, []any{this.ParseNumber("300"), this.ParseNumber("0.04")}, []any{this.ParseNumber("450"), this.ParseNumber("0.02")}, []any{this.ParseNumber("500"), this.ParseNumber("0.01")}},
+				"taker":      this.ParseNumber("0.002"),
+				"maker":      this.ParseNumber("0.002"),
+				"tiers": map[string]any{
+					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.002")}, []any{this.ParseNumber("1"), this.ParseNumber("0.0019")}, []any{this.ParseNumber("5"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("10"), this.ParseNumber("0.0017")}, []any{this.ParseNumber("25"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("75"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("100"), this.ParseNumber("0.0014")}, []any{this.ParseNumber("150"), this.ParseNumber("0.0013")}, []any{this.ParseNumber("300"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("450"), this.ParseNumber("0.0011")}, []any{this.ParseNumber("500"), this.ParseNumber("0.001")}},
+					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.002")}, []any{this.ParseNumber("1"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("5"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("10"), this.ParseNumber("0.0014")}, []any{this.ParseNumber("25"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("75"), this.ParseNumber("0.001")}, []any{this.ParseNumber("100"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("150"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("300"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("450"), this.ParseNumber("0.0002")}, []any{this.ParseNumber("500"), this.ParseNumber("0.0001")}},
+				},
 			},
 		},
 		"features": map[string]any{

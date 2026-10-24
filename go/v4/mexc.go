@@ -2278,7 +2278,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 		if InOp(trade, "positionMode") {
 			timestamp = this.SafeInteger(trade, "timestamp")
 			amountString = this.SafeString(trade, "vol")
-			side = this.ParseOrderSide(this.SafeString(trade, "side"))
+			side = this.ParseContractOrderSide(this.SafeString(trade, "side"))
 			fee = map[string]any{
 				"cost":     this.SafeString(trade, "fee"),
 				"currency": this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency")),
@@ -4803,6 +4803,14 @@ func (this *Mexc) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	var marketId *string = this.SafeString(order, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var isContract *bool = SafeBoolPtr(marketResolved["contract"])
+	var sideRaw *string = this.SafeString(order, "side")
+	var side *string = func() *string {
+		if isContract != nil && *isContract == true {
+			return this.ParseContractOrderSide(sideRaw)
+		}
+		return this.ParseOrderSide(sideRaw)
+	}()
 	var timestamp *int64 = this.SafeIntegerN(order, []any{"time", "createTime", "transactTime"})
 	var fee map[string]any = nil
 	var feeCurrency *string = this.SafeString(order, "feeCurrency")
@@ -4826,7 +4834,7 @@ func (this *Mexc) ParseOrder(order any, optionalArgs ...any) Order {
 		"symbol":              marketResolved["symbol"],
 		"type":                this.ParseOrderType(typeRaw),
 		"timeInForce":         timeInForce,
-		"side":                this.ParseOrderSide(this.SafeString(order, "side")),
+		"side":                side,
 		"price":               this.SafeNumber(order, "price"),
 		"triggerPrice":        this.SafeNumber2(order, "stopPrice", "triggerPrice"),
 		"average":             this.SafeNumber(order, "dealAvgPrice"),
@@ -4847,6 +4855,15 @@ func (this *Mexc) ParseOrderSide(status *string) *string {
 		"2":    "sell",
 	}
 	return this.SafeString(statuses, status, status)
+}
+func (this *Mexc) ParseContractOrderSide(side *string) *string {
+	var sides map[string]any = map[string]any{
+		"1": "buy",
+		"2": "buy",
+		"3": "sell",
+		"4": "sell",
+	}
+	return this.SafeString(sides, side, side)
 }
 func (this *Mexc) ParseOrderType(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -5633,11 +5650,11 @@ func (this *Mexc) reduceMarginBody(ch chan AsyncResult[map[string]any], symbol s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes444715 map[string]any = r.Value
-	if retRes444715 == nil {
+	var retRes445915 map[string]any = r.Value
+	if retRes445915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes444715}
+		ch <- AsyncResult[map[string]any]{Value: retRes445915}
 	}
 	return nil
 }
@@ -5667,11 +5684,11 @@ func (this *Mexc) addMarginBody(ch chan AsyncResult[map[string]any], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes446115 map[string]any = r.Value
-	if retRes446115 == nil {
+	var retRes447315 map[string]any = r.Value
+	if retRes447315 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes446115}
+		ch <- AsyncResult[map[string]any]{Value: retRes447315}
 	}
 	return nil
 }
@@ -5921,11 +5938,11 @@ func (this *Mexc) fetchFundingIntervalBody(ch chan AsyncResult[FundingRate], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes464215 map[string]any = StructResultMap(r.Value, FundingRateToMap)
-	if retRes464215 == nil {
+	var retRes465415 map[string]any = StructResultMap(r.Value, FundingRateToMap)
+	if retRes465415 == nil {
 		ch <- AsyncResult[FundingRate]{}
 	} else {
-		ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(retRes464215)}
+		ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(retRes465415)}
 	}
 	return nil
 }
@@ -6355,11 +6372,11 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[str
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 
-	listEp5958 := <-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted))
-	if listEp5958.Err != nil {
-		panic(listEp5958.Err)
+	listEp5975 := <-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted))
+	if listEp5975.Err != nil {
+		panic(listEp5975.Err)
 	}
-	var response []any = listEp5958.Value
+	var response []any = listEp5975.Value
 	//
 	//    [
 	//        {
@@ -6584,11 +6601,11 @@ func (this *Mexc) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 		return params
 	}()
 
-	listEp6155 := <-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted))
-	if listEp6155.Err != nil {
-		panic(listEp6155.Err)
+	listEp6172 := <-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted))
+	if listEp6172.Err != nil {
+		panic(listEp6172.Err)
 	}
-	var response []any = listEp6155.Value
+	var response []any = listEp6172.Value
 
 	//
 	// [
@@ -6663,11 +6680,11 @@ func (this *Mexc) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 		request["limit"] = limit
 	}
 
-	listEp6227 := <-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))
-	if listEp6227.Err != nil {
-		panic(listEp6227.Err)
+	listEp6244 := <-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))
+	if listEp6244.Err != nil {
+		panic(listEp6244.Err)
 	}
-	var response []any = listEp6227.Value
+	var response []any = listEp6244.Value
 
 	//
 	// [
@@ -7741,11 +7758,11 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any], 
 		}
 	}
 
-	listEp7221 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7221.Err != nil {
-		panic(listEp7221.Err)
+	listEp7238 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7238.Err != nil {
+		panic(listEp7238.Err)
 	}
-	var response []any = listEp7221.Value
+	var response []any = listEp7238.Value
 
 	//
 	//    [
@@ -7868,11 +7885,11 @@ func (this *Mexc) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]De
 		}
 	}
 
-	listEp7341 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7341.Err != nil {
-		panic(listEp7341.Err)
+	listEp7358 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7358.Err != nil {
+		panic(listEp7358.Err)
 	}
-	var response []any = listEp7341.Value
+	var response []any = listEp7358.Value
 
 	//
 	//    [

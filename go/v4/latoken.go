@@ -391,6 +391,31 @@ func (this *Latoken) Describe() any {
 				"ACCOUNT_TYPE_WALLET": "wallet",
 				"ACCOUNT_TYPE_SPOT":   "spot",
 			},
+			"networks": map[string]any{
+				"BEP20":    "BSC_TOKEN",
+				"TRC20":    "TRON",
+				"ADA":      "ADA_TOKEN",
+				"ALGO":     "ALGO_TOKEN",
+				"ARBITRUM": "ARB_TOKEN",
+				"AVAXC":    "AVAXC_TOKEN",
+				"BASE":     "BASE_TOKEN",
+				"CELO":     "CELO_TOKEN",
+				"EOS":      "EOS_TOKEN",
+				"FTM":      "FTM_TOKEN",
+				"MATIC":    "MATIC_TOKEN",
+				"OP":       "OP_TOKEN",
+				"QTUM":     "QTUM_TOKEN",
+				"SOL":      "SOL_TOKEN",
+				"TON":      "TON_TOKEN",
+				"VET":      "VECHAIN_TOKEN",
+				"WAVES":    "WAVES_TOKEN",
+				"XDC":      "XDC_TOKEN",
+				"XLM":      "XLM_TOKEN",
+				"XRP":      "XRP_TOKEN",
+			},
+			"networksById": map[string]any{
+				"BSC": "BEP20",
+			},
 			"fetchTradingFee": map[string]any{
 				"method": "fetchPrivateTradingFee",
 			},
@@ -528,11 +553,11 @@ func (this *Latoken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp526 := <-this.PublicGetPair(params)
-	if listEp526.Err != nil {
-		panic(listEp526.Err)
+	listEp551 := <-this.PublicGetPair(params)
+	if listEp551.Err != nil {
+		panic(listEp551.Err)
 	}
-	var response []any = listEp526.Value
+	var response []any = listEp551.Value
 	//
 	//     [
 	//         {
@@ -648,6 +673,8 @@ func (this *Latoken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
  * @method
  * @name latoken#fetchCurrencies
  * @description fetches all available currencies on an exchange
+ * @see https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+ * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -659,15 +686,16 @@ func (this *Latoken) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResul
 func (this *Latoken) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
+	// sequential on purpose - with Promise.all the static request harness records
+	// whichever call finished last, which differs between the sync and async ports
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp653 := <-this.PublicGetCurrency(params)
-	if listEp653.Err != nil {
-		panic(listEp653.Err)
+	listEp682 := <-this.PublicGetCurrency(params)
+	if listEp682.Err != nil {
+		panic(listEp682.Err)
 	}
-	var response []any = listEp653.Value
-
+	var response []any = listEp682.Value
 	//
 	//     [
 	//         {
@@ -700,7 +728,54 @@ func (this *Latoken) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	//         },
 	//     ]
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(response)}
+	//     [
+	//         {
+	//             "id":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+	//             "tag":"USDT",
+	//             "bindings":[
+	//                 {
+	//                     "minAmount":"5.000000000000000000",
+	//                     "maxAmount":"0",
+	//                     "fee":"3.000000000000000000",
+	//                     "percentFee":"0.250000000000000000",
+	//                     "providerName":"ERC20",
+	//                     "id":"973d2079-1fae-4fa7-82e4-bae55eba8284",
+	//                     "currencyProvider":"4d26b9ec-4bed-4bec-ba2f-02aaca8e84a1",
+	//                     "deflation":"0"
+	//                 },
+	//             ]
+	//         },
+	//     ]
+	//
+	// no params on this one - they belong to the currency request, not to the bindings
+
+	listEp736 := <-this.PublicGetTransactionBindings()
+	if listEp736.Err != nil {
+		panic(listEp736.Err)
+	}
+	var bindingsResponse []any = listEp736.Value
+	var bindingsById map[string]any = this.IndexBy(bindingsResponse, "id")
+	var rawCurrencies []any = this.ToArray(response)
+	var merged []any = []any{}
+	for i := 0; i < len(rawCurrencies); i++ {
+		var rawCurrency any = func() any {
+			if i >= 0 && i < len(rawCurrencies) {
+				return DerefScalar(rawCurrencies[i])
+			}
+			return nil
+		}()
+		var bindingEntry map[string]any = SafeMapTyped(bindingsById, this.SafeString(rawCurrency, "id"))
+		var bindings []any = SafeListTyped(bindingEntry, "bindings")
+		var mergedCurrency any = rawCurrency
+		if bindings != nil {
+			mergedCurrency = this.Extend(rawCurrency, map[string]any{
+				"bindings": bindings,
+			})
+		}
+		merged = append(merged, mergedCurrency)
+	}
+
+	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(merged)}
 	return nil
 }
 func (this *Latoken) ParseCurrency(currency any) map[string]any {
@@ -709,6 +784,49 @@ func (this *Latoken) ParseCurrency(currency any) map[string]any {
 	var code *string = this.SafeCurrencyCode(tag)
 	var currencyType *string = this.SafeString(currency, "type")
 	var isCrypto bool = ((currencyType != nil && *currencyType == "CURRENCY_TYPE_CRYPTO") || (currencyType != nil && *currencyType == "CURRENCY_TYPE_IEO"))
+	var bindings []any = SafeListTyped(currency, "bindings")
+	var networks map[string]any = map[string]any{}
+	for i := 0; i < len(bindings); i++ {
+		var binding any = func() any {
+			if i >= 0 && i < len(bindings) {
+				return DerefScalar(bindings[i])
+			}
+			return nil
+		}()
+		var networkId *string = this.SafeString(binding, "providerName")
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
+		// the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
+		// entries would land on the same unified code - keep the first one for a
+		// deterministic binding id, since withdrawals resolve the chain through it
+		if (networkCode != nil) && !(func() bool {
+			if networkCode == nil {
+				return false
+			}
+			_, ok := networks[*networkCode]
+			return ok
+		}()) {
+			networks[*networkCode] = map[string]any{
+				"info":      binding,
+				"id":        this.SafeString(binding, "id"),
+				"network":   networkCode,
+				"active":    nil,
+				"deposit":   nil,
+				"withdraw":  nil,
+				"fee":       this.SafeNumber(binding, "fee"),
+				"precision": nil,
+				"limits": map[string]any{
+					"deposit": map[string]any{
+						"min": nil,
+						"max": nil,
+					},
+					"withdraw": map[string]any{
+						"min": this.SafeNumber(binding, "minAmount"),
+						"max": nil,
+					},
+				},
+			}
+		}
+	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":   id,
 		"code": code,
@@ -723,7 +841,7 @@ func (this *Latoken) ParseCurrency(currency any) map[string]any {
 		"active":    (this.SafeString(currency, "status") != nil && *this.SafeString(currency, "status") == "CURRENCY_STATUS_ACTIVE"),
 		"deposit":   nil,
 		"withdraw":  nil,
-		"fee":       this.SafeNumber(currency, "fee"),
+		"fee":       nil,
 		"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals"))),
 		"limits": map[string]any{
 			"amount": map[string]any{
@@ -735,7 +853,7 @@ func (this *Latoken) ParseCurrency(currency any) map[string]any {
 				"max": nil,
 			},
 		},
-		"networks": map[string]any{},
+		"networks": networks,
 	})
 }
 
@@ -1087,11 +1205,11 @@ func (this *Latoken) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		}
 	}
 
-	listEp1051 := <-this.PublicGetTicker(params)
-	if listEp1051.Err != nil {
-		panic(listEp1051.Err)
+	listEp1165 := <-this.PublicGetTicker(params)
+	if listEp1165.Err != nil {
+		panic(listEp1165.Err)
 	}
-	var response []any = listEp1051.Value
+	var response []any = listEp1165.Value
 
 	//
 	//    [
@@ -1262,11 +1380,11 @@ func (this *Latoken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		request["limit"] = mathMin(limit, 100) // default 100, limit 100
 	}
 
-	listEp1219 := <-this.PublicGetTradeHistoryCurrencyQuote(this.Extend(request, params))
-	if listEp1219.Err != nil {
-		panic(listEp1219.Err)
+	listEp1333 := <-this.PublicGetTradeHistoryCurrencyQuote(this.Extend(request, params))
+	if listEp1333.Err != nil {
+		panic(listEp1333.Err)
 	}
-	var response []any = listEp1219.Value
+	var response []any = listEp1333.Value
 
 	//
 	//     [
@@ -1309,11 +1427,11 @@ func (this *Latoken) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes99619 map[string]any = StructResultMap(r.Value, TradingFeeInterfaceToMap)
-		if retRes99619 == nil {
+		var retRes109719 map[string]any = StructResultMap(r.Value, TradingFeeInterfaceToMap)
+		if retRes109719 == nil {
 			ch <- AsyncResult[TradingFeeInterface]{}
 		} else {
-			ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(retRes99619)}
+			ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(retRes109719)}
 		}
 		return nil
 	} else if method != nil && *method == "fetchPublicTradingFee" {
@@ -1322,11 +1440,11 @@ func (this *Latoken) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes99819 map[string]any = StructResultMap(r1.Value, TradingFeeInterfaceToMap)
-		if retRes99819 == nil {
+		var retRes109919 map[string]any = StructResultMap(r1.Value, TradingFeeInterfaceToMap)
+		if retRes109919 == nil {
 			ch <- AsyncResult[TradingFeeInterface]{}
 		} else {
-			ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(retRes99819)}
+			ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(retRes109919)}
 		}
 		return nil
 	} else {
@@ -1691,18 +1809,18 @@ func (this *Latoken) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	}
 	if isTrigger != nil && *isTrigger == true {
 
-		listEp1612 := <-this.PrivateGetAuthStopOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted))
-		if listEp1612.Err != nil {
-			panic(listEp1612.Err)
+		listEp1726 := <-this.PrivateGetAuthStopOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted))
+		if listEp1726.Err != nil {
+			panic(listEp1726.Err)
 		}
-		response = listEp1612.Value
+		response = listEp1726.Value
 	} else {
 
-		listEp1615 := <-this.PrivateGetAuthOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted))
-		if listEp1615.Err != nil {
-			panic(listEp1615.Err)
+		listEp1729 := <-this.PrivateGetAuthOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted))
+		if listEp1729.Err != nil {
+			panic(listEp1729.Err)
 		}
-		response = listEp1615.Value
+		response = listEp1729.Value
 	}
 
 	//
@@ -1783,34 +1901,34 @@ func (this *Latoken) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		request["quote"] = market["quoteId"]
 		if isTrigger != nil && *isTrigger == true {
 
-			listEp1693 := <-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))
-			if listEp1693.Err != nil {
-				panic(listEp1693.Err)
+			listEp1807 := <-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))
+			if listEp1807.Err != nil {
+				panic(listEp1807.Err)
 			}
-			response = listEp1693.Value
+			response = listEp1807.Value
 		} else {
 
-			listEp1696 := <-this.PrivateGetAuthOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))
-			if listEp1696.Err != nil {
-				panic(listEp1696.Err)
+			listEp1810 := <-this.PrivateGetAuthOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))
+			if listEp1810.Err != nil {
+				panic(listEp1810.Err)
 			}
-			response = listEp1696.Value
+			response = listEp1810.Value
 		}
 	} else {
 		if isTrigger != nil && *isTrigger == true {
 
-			listEp1701 := <-this.PrivateGetAuthStopOrder(this.Extend(request, paramsOmitted))
-			if listEp1701.Err != nil {
-				panic(listEp1701.Err)
+			listEp1815 := <-this.PrivateGetAuthStopOrder(this.Extend(request, paramsOmitted))
+			if listEp1815.Err != nil {
+				panic(listEp1815.Err)
 			}
-			response = listEp1701.Value
+			response = listEp1815.Value
 		} else {
 
-			listEp1704 := <-this.PrivateGetAuthOrder(this.Extend(request, paramsOmitted))
-			if listEp1704.Err != nil {
-				panic(listEp1704.Err)
+			listEp1818 := <-this.PrivateGetAuthOrder(this.Extend(request, paramsOmitted))
+			if listEp1818.Err != nil {
+				panic(listEp1818.Err)
 			}
-			response = listEp1704.Value
+			response = listEp1818.Value
 		}
 	}
 
@@ -2654,6 +2772,8 @@ func (this *Latoken) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @method
  * @name latoken#fetchCurrencies
  * @description fetches all available currencies on an exchange
+ * @see https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+ * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */

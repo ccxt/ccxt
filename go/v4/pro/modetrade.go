@@ -268,10 +268,11 @@ func (this *Modetrade) ParseWsTicker(ticker map[string]any, optionalArgs ...any)
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
+	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        this.SafeSymbol(nil, market),
-		"timestamp":     nil,
-		"datetime":      nil,
+		"timestamp":     timestamp,
+		"datetime":      this.Iso8601(timestamp),
 		"high":          this.SafeString(ticker, "high"),
 		"low":           this.SafeString(ticker, "low"),
 		"bid":           nil,
@@ -313,8 +314,9 @@ func (this *Modetrade) HandleTicker(client any, message map[string]any) any {
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	data["date"] = timestamp
-	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data, market))
+	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(this.Extend(data, map[string]any{
+		"timestamp": timestamp,
+	}), market))
 	ticker["symbol"] = market["symbol"]
 	this.Tickers.Store(market["symbol"], ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, topic)
@@ -415,7 +417,7 @@ func (this *Modetrade) HandleTickers(client any, message map[string]any) {
 			}
 			return nil
 		}(), map[string]any{
-			"date": timestamp,
+			"timestamp": timestamp,
 		}), market))
 		this.Tickers.Store(market["symbol"], ticker)
 		result = append(result, ticker)
@@ -1462,7 +1464,7 @@ func (this *Modetrade) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Modetrade) SetPositionsCache(client any, typeVar any, optionalArgs ...any) {
+func (this *Modetrade) SetPositionsCache(client any, optionalArgs ...any) {
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
