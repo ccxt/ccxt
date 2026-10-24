@@ -133,7 +133,6 @@ export default class krakenfutures extends Exchange {
                         'notifications': { 'cost': 1 } as Endpoint<Dict>,
                         'accounts': { 'cost': 1 } as Endpoint<Dict>,
                         'openorders': { 'cost': 1 } as Endpoint<Dict>,
-                        'recentorders': { 'cost': 1 } as Endpoint<Dict>,
                         'fills': { 'cost': 1 } as Endpoint<Dict>,
                         'transfers': { 'cost': 1 } as Endpoint<Dict>,
                         'leveragepreferences': { 'cost': 1 } as Endpoint<Dict>,
