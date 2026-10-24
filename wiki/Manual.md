@@ -8546,16 +8546,19 @@ https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-sync-python-requests-
 
 #### Forcing IPv4
 
-On a host with both IPv4 and IPv6 connectivity, ccxt connects over IPv6 whenever the exchange's domain resolves to an IPv6 address (`www.okx.com` does, for example). Private requests then fail if the API key's IP whitelist only contains your IPv4 address, or if the exchange rejects IPv6 on some routes (binanceus: `{"code":-71012,"msg":"IPv6 not supported"}`). Either add your IPv6 address to the whitelist too (check it at [api64.ipify.org](https://api64.ipify.org/)), or pin ccxt to IPv4.
+On a host with both IPv4 and IPv6 connectivity, when the exchange's domain resolves to both (`www.okx.com` does, for example), ccxt races IPv6 against IPv4 and uses whichever connects first, so some or all of its connections go out over IPv6. Private requests then fail, often only some of the time, if the API key's IP whitelist only contains your IPv4 address, or if the exchange rejects IPv6 on some routes (binanceus: `{"code":-71012,"msg":"IPv6 not supported"}`). Either add your IPv6 address to the whitelist too (check it at [api64.ipify.org](https://api64.ipify.org/)), or pin ccxt to IPv4.
 
-In Python, the async client accepts your own `aiohttp` session. Create it with an IPv4-only connector, and close it yourself, because ccxt does not close a session it did not create:
+In Python, the async client accepts your own `aiohttp` session and uses it for both REST and ccxt.pro WebSocket connections. Create it with an IPv4-only connector, and close it yourself, because ccxt does not close a session it did not create. Pass the certifi CA bundle too, so certificate verification stays the same as with the session ccxt creates:
 
 ```python
 import socket
+import ssl
 import aiohttp
+import certifi
 import ccxt.async_support as ccxt
 
-session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(family=socket.AF_INET))
+connector = aiohttp.TCPConnector(family=socket.AF_INET, ssl=ssl.create_default_context(cafile=certifi.where()))
+session = aiohttp.ClientSession(connector=connector)
 exchange = ccxt.okx({'session': session})
 # ...
 await exchange.close()
