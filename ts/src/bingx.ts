@@ -2500,9 +2500,10 @@ export default class bingx extends Exchange {
         const close = this.safeString (ticker, 'lastPrice');
         let quoteVolume = this.safeString (ticker, 'quoteVolume');
         let baseVolume = this.safeString (ticker, 'volume');
-        if (market['inverse'] === true) {
+        if (marketResolved['inverse'] === true) {
             // Coin-M volume is in contracts; quoteVolume is in the base currency.
-            const contractSize = this.safeString (market, 'contractSize');
+            // read the resolved market: parseTickers and fetchTickers reach here with no market argument
+            const contractSize = this.safeString (marketResolved, 'contractSize');
             baseVolume = quoteVolume;
             quoteVolume = Precise.stringMul (this.safeString (ticker, 'volume'), contractSize);
         }
