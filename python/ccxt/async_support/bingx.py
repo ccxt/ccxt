@@ -155,6 +155,8 @@ class bingx(Exchange, ImplicitAPI):
                     'copyTrading': 'https://open-api.{hostname}/openApi',
                     'cswap': 'https://open-api.{hostname}/openApi',
                     'api': 'https://open-api.{hostname}/openApi',
+                    'agent': 'https://open-api.{hostname}/openApi',
+                    'wealth': 'https://open-api.{hostname}/openApi',
                 },
                 'test': {
                     'fund': 'https://open-api-vst.{hostname}/openApi',
@@ -168,6 +170,8 @@ class bingx(Exchange, ImplicitAPI):
                     'copyTrading': 'https://open-api-vst.{hostname}/openApi',
                     'cswap': 'https://open-api-vst.{hostname}/openApi',
                     'api': 'https://open-api-vst.{hostname}/openApi',
+                    'agent': 'https://open-api-vst.{hostname}/openApi',
+                    'wealth': 'https://open-api-vst.{hostname}/openApi',
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
@@ -2644,7 +2648,7 @@ class bingx(Exchange, ImplicitAPI):
                 account = self.account()
                 account['free'] = self.safe_string_2(balance, 'availableMargin', 'availableBalance')
                 account['used'] = self.safe_string(balance, 'usedMargin')
-                account['total'] = self.safe_string(balance, 'maxWithdrawAmount')
+                account['total'] = self.safe_string_2(balance, 'balance', 'maxWithdrawAmount')
                 if code is not None:
                     result[code] = account
         else:
@@ -2993,7 +2997,12 @@ class bingx(Exchange, ImplicitAPI):
             collateralString = self.omit_zero(self.safe_string(position, 'margin'))
             if (collateralString is None) and (initialMarginString is not None):
                 collateralString = Precise.string_add(initialMarginString, unrealizedPnlString) if (unrealizedPnlString is not None) else initialMarginString
-        timestamp = self.safe_integer(position, 'openTime')
+        timestamp = self.safe_integer_2(position, 'openTime', 'createTime')
+        positionSide = self.safe_string(position, 'positionSide')
+        hedged = None
+        if positionSide is not None:
+            hedged = (positionSide != 'BOTH')
+        percentageString = self.safe_string(position, 'pnlRatio')
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'positionId'),
@@ -3004,13 +3013,13 @@ class bingx(Exchange, ImplicitAPI):
             'entryPrice': self.safe_number_2(position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl': self.parse_number(unrealizedPnlString),
             'realizedPnl': self.safe_number(position, 'realisedProfit'),
-            'percentage': None,
+            'percentage': self.parse_number(Precise.string_mul(percentageString, '100')),
             'contracts': self.safe_number(position, 'positionAmt'),
             'contractSize': None,
             'markPrice': self.safe_number(position, 'markPrice'),
             'lastPrice': None,
             'side': self.safe_string_lower(position, 'positionSide'),
-            'hedged': None,
+            'hedged': hedged,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastUpdateTimestamp': self.safe_integer(position, 'updateTime'),
@@ -4603,13 +4612,16 @@ class bingx(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         type, paramsMarketType = self.handle_market_type_and_params('fetchOrders', market, params)
+        subType, paramsSubType = self.handle_sub_type_and_params('fetchOrders', market, paramsMarketType)
         if type != 'swap':
             raise NotSupported(self.id + ' fetchOrders() is only supported for swap markets')
+        if (subType == 'inverse') or ((market is not None) and (market['inverse'] is True)):
+            raise NotSupported(self.id + ' fetchOrders() is not supported for inverse swap markets')
         if limit is not None:
             request['limit'] = limit
         if since is not None:
             request['startTime'] = since
-        requestUntil, paramsUntil = self.handle_until_option('endTime', request, paramsMarketType)
+        requestUntil, paramsUntil = self.handle_until_option('endTime', request, paramsSubType)
         response = await self.swapV1PrivateGetTradeFullOrder(self.extend(requestUntil, paramsUntil))
         #
         #     {

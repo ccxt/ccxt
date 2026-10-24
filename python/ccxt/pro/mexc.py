@@ -179,7 +179,6 @@ class mexc(ccxt.async_support.mexc):
         #         "s": "BTCUSDT"
         #     }
         #
-        self.handle_bid_ask(client, message)
         rawTicker = self.safe_dict_n(message, ['d', 'data', 'publicAggreBookTicker'])
         marketId = self.safe_string_2(message, 's', 'symbol')
         timestamp = self.safe_integer_2(message, 't', 'sendTime')
@@ -187,6 +186,7 @@ class mexc(ccxt.async_support.mexc):
         symbol = market['symbol']
         ticker: Ticker
         if market['spot'] is True:
+            self.handle_bid_ask(client, message)  # the bids-asks channel is spot only
             ticker = self.parse_ws_ticker(rawTicker, market)
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)
@@ -452,6 +452,22 @@ class mexc(ccxt.async_support.mexc):
 
     def handle_bid_ask(self, client: Client, message: dict):
         #
+        # protobuf
+        #
+        #    {
+        #        "channel": "spot@public.aggre.bookTicker.v3.api.pb@100ms@BTCUSDT",
+        #        "symbol": "BTCUSDT",
+        #        "sendTime": "1792779974344",
+        #        "publicAggreBookTicker": {
+        #            "bidPrice": "81577.79",
+        #            "bidQuantity": "0.11985594",
+        #            "askPrice": "81577.8",
+        #            "askQuantity": "0.12200121"
+        #        }
+        #    }
+        #
+        # retired json channel
+        #
         #    {
         #        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
         #        "d": {
@@ -473,19 +489,19 @@ class mexc(ccxt.async_support.mexc):
         client.resolve(parsedTicker, messageHash)
 
     def parse_ws_bid_ask(self, ticker: dict, market: Market = None) -> Ticker:
-        data = self.safe_dict(ticker, 'd')
-        marketId = self.safe_string(ticker, 's')
+        data = self.safe_dict_n(ticker, ['d', 'data', 'publicAggreBookTicker'])
+        marketId = self.safe_string_2(ticker, 's', 'symbol')
         marketResolved = self.safe_market(marketId, market)
         symbol = self.safe_string(marketResolved, 'symbol')
-        timestamp = self.safe_integer(ticker, 't')
+        timestamp = self.safe_integer_2(ticker, 't', 'sendTime')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'ask': self.safe_number(data, 'a'),
-            'askVolume': self.safe_number(data, 'A'),
-            'bid': self.safe_number(data, 'b'),
-            'bidVolume': self.safe_number(data, 'B'),
+            'ask': self.safe_number_2(data, 'a', 'askPrice'),
+            'askVolume': self.safe_number_2(data, 'A', 'askQuantity'),
+            'bid': self.safe_number_2(data, 'b', 'bidPrice'),
+            'bidVolume': self.safe_number_2(data, 'B', 'bidQuantity'),
             'info': ticker,
         }, marketResolved)
 

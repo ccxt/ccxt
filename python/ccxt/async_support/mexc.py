@@ -1766,7 +1766,7 @@ class mexc(Exchange, ImplicitAPI):
             if 'positionMode' in trade:
                 timestamp = self.safe_integer(trade, 'timestamp')
                 amountString = self.safe_string(trade, 'vol')
-                side = self.parse_order_side(self.safe_string(trade, 'side'))
+                side = self.parse_contract_order_side(self.safe_string(trade, 'side'))
                 fee = {
                     'cost': self.safe_string(trade, 'fee'),
                     'currency': self.safe_currency_code(self.safe_string(trade, 'feeCurrency')),
@@ -3550,6 +3550,9 @@ class mexc(Exchange, ImplicitAPI):
             timeInForce = self.get_tif_from_raw_order_type(typeRaw)
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
+        isContract = marketResolved['contract']
+        sideRaw = self.safe_string(order, 'side')
+        side = self.parse_contract_order_side(sideRaw) if (isContract is True) else self.parse_order_side(sideRaw)
         timestamp = self.safe_integer_n(order, ['time', 'createTime', 'transactTime'])
         fee = None
         feeCurrency = self.safe_string(order, 'feeCurrency')
@@ -3572,7 +3575,7 @@ class mexc(Exchange, ImplicitAPI):
             'symbol': marketResolved['symbol'],
             'type': self.parse_order_type(typeRaw),
             'timeInForce': timeInForce,
-            'side': self.parse_order_side(self.safe_string(order, 'side')),
+            'side': side,
             'price': self.safe_number(order, 'price'),
             'triggerPrice': self.safe_number_2(order, 'stopPrice', 'triggerPrice'),
             'average': self.safe_number(order, 'dealAvgPrice'),
@@ -3591,9 +3594,17 @@ class mexc(Exchange, ImplicitAPI):
             'SELL': 'sell',
             '1': 'buy',
             '2': 'sell',
-            # contracts v1 : TODO
         }
         return self.safe_string(statuses, status, status)
+
+    def parse_contract_order_side(self, side: Str) -> Str:
+        sides = {
+            '1': 'buy',  # open long
+            '2': 'buy',  # close short
+            '3': 'sell',  # open short
+            '4': 'sell',  # close long
+        }
+        return self.safe_string(sides, side, side)
 
     def parse_order_type(self, status: Str) -> Str:
         statuses = {
