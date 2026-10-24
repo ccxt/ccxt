@@ -1,0 +1,92 @@
+{
+    "ETH": {
+        "info": {
+            "accountName": "1000000000000000000",
+            "pid": "1000000000000000000",
+            "uid": "100000000000001",
+            "cid": "100000000000002",
+            "currency": "ETH",
+            "currencyType": "crypto",
+            "name": "Ethereum",
+            "icon": "https://static.xcoin.com/COIN/20260114-183337.png",
+            "depositAuth": true,
+            "withdrawAuth": true,
+            "currencyPrecision": "8",
+            "transfer": {
+                "fundToTradeAuth": true,
+                "fundToSecuritiesAuth": false,
+                "securitiesToFundAuth": false,
+                "securitiesToTradeAuth": false,
+                "tradeToFundAuth": true,
+                "tradeToSecuritiesAuth": false
+            }
+        },
+        "id": "ETH",
+        "numericId": null,
+        "code": "ETH",
+        "precision": 1e-08,
+        "type": "crypto",
+        "name": "Ethereum",
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "USDT": {
+        "info": {
+            "accountName": "1000000000000000000",
+            "pid": "1000000000000000000",
+            "uid": "100000000000001",
+            "cid": "100000000000002",
+            "currency": "USDT",
+            "currencyType": "crypto",
+            "name": "Tether",
+            "icon": "https://static.xcoin.com/COIN/USDT.png",
+            "depositAuth": true,
+            "withdrawAuth": true,
+            "currencyPrecision": "6",
+            "transfer": {
+                "fundToTradeAuth": true,
+                "fundToSecuritiesAuth": false,
+                "securitiesToFundAuth": false,
+                "securitiesToTradeAuth": false,
+                "tradeToFundAuth": true,
+                "tradeToSecuritiesAuth": false
+            }
+        },
+        "id": "USDT",
+        "numericId": null,
+        "code": "USDT",
+        "precision": 1e-06,
+        "type": "crypto",
+        "name": "Tether",
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    }
+}
