@@ -188,7 +188,9 @@ public partial class BaseExchange
     public ccxt.pro.ArrayCache myTrades;
     public ccxt.pro.ArrayCache orders;
     public object triggerOrders;
-    public IDictionary<string, object> balance = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    // a plain dict: safeBalance hands the merged balance back by reference and every
+    // ws balance handler stores that return value, so a concurrent map type is not kept
+    public IDictionary<string, object> balance = new Dictionary<string, object>() {};
 
     public bool newUpdates;
 
