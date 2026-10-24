@@ -6356,7 +6356,7 @@ export default class bingx extends Exchange {
                     'withdraw': { 'fee': this.safeNumber (network, 'fee'), 'percentage': false },
                 };
                 if (networksLength === 1) {
-                    result['withdraw']['fee'] = this.safeNumber (network, 'withdrawFee');
+                    result['withdraw']['fee'] = this.safeNumber (network, 'fee');
                     result['withdraw']['percentage'] = false;
                 }
             }
