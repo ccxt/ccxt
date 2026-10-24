@@ -65,6 +65,7 @@ import testBase58ToBinary from './test.base58ToBinary.js';
 import testIsJsonEncodedObject from './test.isJsonEncodedObject.js';
 import testIsDictionary from './test.isDictionary.js';
 import testEncodeDecode from './test.encodeDecode.js';
+import testBuildOHLCVC from './test.buildOHLCVC.js';
 
 async function baseTestsInit () {
     await testLanguageSpecific ();
@@ -132,6 +133,7 @@ async function baseTestsInit () {
     testIo ();
     testIsJsonEncodedObject ();
     testEncodeDecode ();
+    testBuildOHLCVC ();
     return true;
 }
 
