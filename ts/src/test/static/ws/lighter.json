@@ -88,8 +88,7 @@
                         "channel": "order_book/0"
                     }
                 ],
-                "parsedResponse": true,
-                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, investigate separately"
+                "parsedResponse": true
             }
         ]
     }
