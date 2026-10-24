@@ -237,6 +237,49 @@
         ],
         "createOrder": [
             {
+                "description": "swap trigger order with a unified trigger price type",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&price=60000&quantity=0.0001&side=BUY&stopPrice=61000&symbol=BTC-USDT&timestamp=1790928062870&type=TRIGGER_LIMIT&workingType=CONTRACT_PRICE&signature=d1ea38e6929f447431322d35e6a833ab4d4b2be76b330090bd59fa706962c263",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    60000,
+                    {
+                        "hedged": true,
+                        "triggerPrice": 61000,
+                        "triggerPriceType": "last"
+                    }
+                ]
+            },
+            {
+                "description": "swap order with attached stop loss and take profit using unified trigger price types",
+                "disabledGO": true,
+                "disabledJava": true,
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&price=60000&quantity=0.0001&side=BUY&stopLoss=%7B%22stopPrice%22%3A55000%2C%22workingType%22%3A%22CONTRACT_PRICE%22%2C%22type%22%3A%22STOP%22%2C%22price%22%3A54900%2C%22quantity%22%3A0.0001%7D&symbol=BTC-USDT&takeProfit=%7B%22stopPrice%22%3A70000%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22quantity%22%3A0.0001%7D&timestamp=1790928030655&type=LIMIT&signature=b41240b1a415fb649e102cf936783c80ea4af3bd238953c7217110b5b2e18cdc",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    60000,
+                    {
+                        "hedged": true,
+                        "stopLoss": {
+                            "triggerPrice": 55000,
+                            "price": 54900,
+                            "triggerPriceType": "last"
+                        },
+                        "takeProfit": {
+                            "triggerPrice": 70000,
+                            "triggerPriceType": "mark"
+                        }
+                    }
+                ]
+            },
+            {
                 "description": "swap trailing percent order with an activation price",
                 "method": "createOrder",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?activationPrice=60000&positionSide=LONG&priceRate=0.01&quantity=0.0001&side=BUY&symbol=BTC-USDT&timestamp=1791475633791&type=TRAILING_STOP_MARKET&signature=83e92222f6fd2d1ea35879c4d7fbee4f73ea409ddb4b2142f18ae8ec7737adb8",
@@ -1679,20 +1722,40 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "fetch my trades - linear swap explicit tradingUnit CONT",
+                "method": "fetchMyTrades",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allFillOrders?endTs=1792140564000&startTs=1792140561000&symbol=ADA-USDT&timestamp=1792756094928&tradingUnit=CONT&signature=704503da96316e75865eb14e75132cc0520edde942d3ccc1a44b4d7e41aeae6d",
+                "input": [
+                    "ADA/USDT:USDT",
+                    1792140561000,
+                    null,
+                    {
+                        "until": 1792140564000,
+                        "tradingUnit": "cont"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch my trades - linear swap defaults to tradingUnit COIN",
+                "method": "fetchMyTrades",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allFillOrders?endTs=1792140564000&startTs=1792140561000&symbol=ADA-USDT&timestamp=1792687379750&tradingUnit=COIN&signature=db23c98f4ea2e0ea0040101a09feefcdcfd2b55bcc0b68c6535521613bb6f082",
+                "input": [
+                    "ADA/USDT:USDT",
+                    1792140561000,
+                    null,
+                    {
+                        "until": 1792140564000
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch my trades - spot",
                 "method": "fetchMyTrades",
                 "url": "https://open-api.bingx.com/openApi/spot/v1/trade/myTrades?symbol=LTC-USDT&timestamp=1699460638640&signature=e5942598ddd9d11cceec8f7e2acb3269c8c2dfe237642314eca3b5d8a5c308e0",
                 "input": [
                     "LTC/USDT"
-                ]
-            },
-            {
-                "description": "fetch my trades - swap",
-                "method": "fetchMyTrades",
-                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allFillOrders?endTs=1705040628035&startTs=1687964205000&symbol=LTC-USDT&tradingUnit=CONT&timestamp=1699460638640&signature=e5942598ddd9d11cceec8f7e2acb3269c8c2dfe237642314eca3b5d8a5c308e0",
-                "input": [
-                    "LTC/USDT:USDT",
-                    1687964205000
                 ]
             },
             {
@@ -2227,6 +2290,18 @@
                   "BTC/USDT:USDT",
                   1
                 ]
+            },
+            {
+                "description": "Coin-M add margin",
+                "method": "addMargin",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/positionMargin?amount=1&positionSide=LONG&symbol=SOL-USD&timestamp=1711660769522&type=1&signature=458d505cde75249731b6e64fd35e992419332f8b5418996712729408ea463759",
+                "input": [
+                  "SOL/USD:SOL",
+                  1,
+                  {
+                    "positionSide": "LONG"
+                  }
+                ]
             }
         ],
         "reduceMargin": [
@@ -2237,6 +2312,18 @@
                 "input": [
                   "BTC/USDT:USDT",
                   1
+                ]
+            },
+            {
+                "description": "Coin-M reduce margin",
+                "method": "reduceMargin",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/positionMargin?amount=1&positionSide=LONG&symbol=SOL-USD&timestamp=1711660858980&type=2&signature=7993a15b0cca670ba19d9a7bdde51acbee1998bfd7f1aa9870151cb95a6e26a0",
+                "input": [
+                  "SOL/USD:SOL",
+                  1,
+                  {
+                    "positionSide": "LONG"
+                  }
                 ]
             }
         ],
