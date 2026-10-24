@@ -1907,10 +1907,21 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Object update = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-                io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}}, limit);
-                Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
-                orderbook.put("symbol", symbol);
-                this.handleOrderBookMessage(client, (Map<String, Object>) (update), orderbook, messageHash, market);
+                // reset the existing orderbook instead of replacing it: a consumer
+                // holds a reference to the old object and would never see updates
+                // after a re-subscription snapshot
+                if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+                {
+                    Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                }
+                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+                Long timestamp = this.safeInteger(update, "ts");
+                // rows are [ price, amount, liquidatedOrders, numOrders ] - store
+                // price and amount only, matching handleDelta, so countOrIdKey
+                // points past the row on purpose
+                Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1, 4);
+                snapshot.put("nonce", this.safeInteger(update, "seqId"));
+                orderbook.reset(snapshot);
                 if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
                 {
                     break;
@@ -2126,9 +2137,30 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
         String channel = this.safeString(arg, "channel");
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
         Object balance = this.parseTradingBalance((Map<String, Object>) (message));
-        Map<String,Object> newBalance = this.deepExtend(this.balance, balance);
-        this.balance = this.safeBalance(newBalance);
+        if (java.util.Objects.equals(this.balance, null))
+        {
+            this.balance = new HashMap<String, Object>() {{}};
+        }
+        List<String> reserved = new ArrayList<String>(Arrays.asList("free", "used", "total"));
+        List<String> keys = new ArrayList<String>(((Map<String, Object>)balance).keySet());
+        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        {
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            if (this.inArray(key, reserved))
+            {
+                continue;
+            }
+            Helpers.addElementToObject(this.balance, key, Helpers.GetValue(balance, key));
+        }
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, channel);
     }
 

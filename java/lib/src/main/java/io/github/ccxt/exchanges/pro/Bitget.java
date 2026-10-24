@@ -1247,7 +1247,15 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
         } else
         {
-            io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}});
+            // reset the existing orderbook instead of replacing it: a consumer
+            // holds a reference to the old object and would never see updates
+            // after this snapshot (every frame of the non-incremental channels
+            // is a full snapshot)
+            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            {
+                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}));
+            }
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             String bidsKey = "bids";
             String asksKey = "asks";
             // bitget UTA has `a` and `b` instead of `asks` and `bids`
@@ -1267,7 +1275,6 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             Map<String, Object> parsedOrderbook = (Map<String, Object>) this.parseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey, 0, 1, 2);
             orderbook.reset(parsedOrderbook);
-            Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         }
         client.resolve(((Map<?, ?>)this.orderbooks).get(symbol), messageHash);
     }

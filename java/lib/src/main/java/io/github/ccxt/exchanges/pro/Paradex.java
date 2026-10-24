@@ -806,7 +806,30 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        this.balance = this.parseWsBalance((Map<String, Object>) (data));
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
+        Object balance = this.parseWsBalance((Map<String, Object>) (data));
+        if (java.util.Objects.equals(this.balance, null))
+        {
+            this.balance = new HashMap<String, Object>() {{}};
+        }
+        List<String> reserved = new ArrayList<String>(Arrays.asList("free", "used", "total"));
+        List<String> keys = new ArrayList<String>(((Map<String, Object>)balance).keySet());
+        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        {
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            if (this.inArray(key, reserved))
+            {
+                continue;
+            }
+            Helpers.addElementToObject(this.balance, key, Helpers.GetValue(balance, key));
+        }
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, "balance");
     }
 

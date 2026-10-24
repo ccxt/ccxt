@@ -102,7 +102,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "e", "get-balance" );
                 put( "data", new HashMap<String, Object>() {{}} );
-                put( "oid", Cex.this.requestId() );
+                put( "oid", messageHash );
             }};
             Map<String,Object> request = this.deepExtend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, request)).join();
@@ -132,12 +132,19 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //         "ok": "ok"
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make responses landing in that
+        // window invisible to the consumer forever (same class as issue #26773)
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> freeBalance = (Map<String, Object>) this.safeDict(data, "balance", new HashMap<String, Object>() {{}});
         Map<String, Object> usedBalance = (Map<String, Object>) this.safeDict(data, "obalance", new HashMap<String, Object>() {{}});
-        Map<String, Object> result = new HashMap<String, Object>() {{
-            put( "info", data );
-        }};
+        if (java.util.Objects.equals(this.balance, null))
+        {
+            this.balance = new HashMap<String, Object>() {{}};
+        }
+        Helpers.addElementToObject(this.balance, "info", data);
         List<String> currencyIds = new ArrayList<String>(freeBalance.keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
@@ -148,10 +155,10 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             if (!java.util.Objects.equals(code, null))
             {
-                result.put(code, account);
+                Helpers.addElementToObject(this.balance, code, account);
             }
         }
-        this.balance = this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
         String messageHash = this.safeString(message, "oid");
         client.resolve(this.balance, messageHash);
     }
@@ -1179,14 +1186,20 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         String messageHash = ("orderbook:" + symbol);
         Long timestamp = (Long) this.safeInteger2(data, "timestamp_ms", "timestamp");
         Long incrementalId = this.safeInteger(data, "id");
-        io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}});
+        // reset the existing orderbook instead of replacing it: a consumer
+        // holds a reference to the old object and would never see updates
+        // after a re-subscription snapshot
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        {
+            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}));
+        }
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
         snapshot.put("nonce", incrementalId);
         orderbook.reset(snapshot);
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("orderbook")), symbol, new HashMap<String, Object>() {{
     put( "incrementalId", incrementalId );
 }});
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 
@@ -1342,18 +1355,26 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
         String messageHash = ("ohlcv:" + symbol);
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-        var stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-        List<Object> sorted = this.sortBy(data, 0);
-        for (var i = 0; i < ((List<?>)sorted).size(); i++)
-        {
-            ((io.github.ccxt.ws.ArrayCache) stored).append(this.parseOHLCV((sorted == null || i < 0 || i >= sorted.size() ? null : sorted.get(i)), market));
-        }
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
         }
-        Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), "unknown", stored);
+        // fill the existing cache when there is one: replacing it would orphan
+        // consumers holding a reference to the old cache (they would never see
+        // candles appended after a re-subscription)
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), "unknown");
+        if (java.util.Objects.equals(stored, null))
+        {
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), "unknown", stored);
+        }
+        List<Object> sorted = this.sortBy(data, 0);
+        for (var i = 0; i < ((List<?>)sorted).size(); i++)
+        {
+            List<Object> parsed = (List<Object>) this.parseOHLCV((sorted == null || i < 0 || i >= sorted.size() ? null : sorted.get(i)), market);
+            stored.append(parsed);
+        }
         client.resolve(stored, messageHash);
     }
 
