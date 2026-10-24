@@ -1181,7 +1181,15 @@ public partial class bitget : ccxt.bitget
             }
         } else
         {
-            ccxt.pro.OrderBook orderbook = this.orderBook(new Dictionary<string, object>() {});
+            // reset the existing orderbook instead of replacing it: a consumer
+            // holds a reference to the old object and would never see updates
+            // after this snapshot (every frame of the non-incremental channels
+            // is a full snapshot)
+            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+            {
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
+            }
+            ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
             string bidsKey = "bids";
             string asksKey = "asks";
             // bitget UTA has `a` and `b` instead of `asks` and `bids`
@@ -1201,7 +1209,6 @@ public partial class bitget : ccxt.bitget
             }
             ccxt.OrderBook parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey);
             (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(parsedOrderbook));
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         }
         client.resolve(this.getOrderBook(this.orderbooks, symbol), messageHash);
     }
