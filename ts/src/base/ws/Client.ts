@@ -351,6 +351,11 @@ export default class Client {
         }
         message = (typeof message === 'string') ? message : JSON.stringify (message)
         const future = Future ()
+        // reject instead of letting the socket throw/reject for a CLOSING or CLOSED connection
+        if (!(this as any).isOpen ()) {
+            future.reject (new NetworkError ('Connection to ' + this.url + ' is not open, cannot send message'))
+            return future
+        }
         if (usesNodeWsPackage) {
             // bun's native WebSocket send () does not accept a completion callback
             /* eslint-disable no-inner-declarations */
