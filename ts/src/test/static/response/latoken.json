@@ -63,6 +63,228 @@
                         }
                     }
                 }
+            },
+            {
+                "description": "currency networks from the public transaction bindings",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponseByUrl": {
+                    "/v2/currency": [
+                        {
+                            "id": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                            "status": "CURRENCY_STATUS_ACTIVE",
+                            "type": "CURRENCY_TYPE_CRYPTO",
+                            "name": "Tether USD",
+                            "tag": "USDT",
+                            "description": "",
+                            "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
+                            "decimals": "6",
+                            "created": "1572912000000",
+                            "tier": "1",
+                            "assetClass": "ASSET_CLASS_UNKNOWN",
+                            "minTransferAmount": "0"
+                        }
+                    ],
+                    "/v2/transaction/bindings": [
+                        {
+                            "id": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                            "tag": "USDT",
+                            "bindings": [
+                                {
+                                    "minAmount": "5.000000000000000000",
+                                    "maxAmount": "0",
+                                    "fee": "3.000000000000000000",
+                                    "percentFee": "0.250000000000000000",
+                                    "providerName": "ERC20",
+                                    "id": "973d2079-1fae-4fa7-82e4-bae55eba8284",
+                                    "currencyProvider": "4d26b9ec-4bed-4bec-ba2f-02aaca8e84a1",
+                                    "deflation": "0"
+                                },
+                                {
+                                    "minAmount": "5.000000000000000000",
+                                    "maxAmount": "0",
+                                    "fee": "3.000000000000000000",
+                                    "percentFee": "0.250000000000000000",
+                                    "providerName": "BSC_TOKEN",
+                                    "id": "4ad17957-bc12-47e4-9ee4-c593c5449771",
+                                    "currencyProvider": "0506dd69-d45b-42b9-897b-337f1ebfb7cd",
+                                    "deflation": "0"
+                                },
+                                {
+                                    "minAmount": "0.000000000000000000",
+                                    "maxAmount": "0",
+                                    "fee": "3.000000000000000000",
+                                    "percentFee": "0.250000000000000000",
+                                    "providerName": "TRC20",
+                                    "id": "b733bbf3-1e34-4e11-bdc0-c64931547979",
+                                    "currencyProvider": "4a8c68fd-16f9-49c8-8a44-34f30ed2fe4c"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "id": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                            "status": "CURRENCY_STATUS_ACTIVE",
+                            "type": "CURRENCY_TYPE_CRYPTO",
+                            "name": "Tether USD",
+                            "tag": "USDT",
+                            "description": "",
+                            "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
+                            "decimals": "6",
+                            "created": "1572912000000",
+                            "tier": "1",
+                            "assetClass": "ASSET_CLASS_UNKNOWN",
+                            "minTransferAmount": "0",
+                            "bindings": [
+                                {
+                                    "minAmount": "5.000000000000000000",
+                                    "maxAmount": "0",
+                                    "fee": "3.000000000000000000",
+                                    "percentFee": "0.250000000000000000",
+                                    "providerName": "ERC20",
+                                    "id": "973d2079-1fae-4fa7-82e4-bae55eba8284",
+                                    "currencyProvider": "4d26b9ec-4bed-4bec-ba2f-02aaca8e84a1",
+                                    "deflation": "0"
+                                },
+                                {
+                                    "minAmount": "5.000000000000000000",
+                                    "maxAmount": "0",
+                                    "fee": "3.000000000000000000",
+                                    "percentFee": "0.250000000000000000",
+                                    "providerName": "BSC_TOKEN",
+                                    "id": "4ad17957-bc12-47e4-9ee4-c593c5449771",
+                                    "currencyProvider": "0506dd69-d45b-42b9-897b-337f1ebfb7cd",
+                                    "deflation": "0"
+                                },
+                                {
+                                    "minAmount": "0.000000000000000000",
+                                    "maxAmount": "0",
+                                    "fee": "3.000000000000000000",
+                                    "percentFee": "0.250000000000000000",
+                                    "providerName": "TRC20",
+                                    "id": "b733bbf3-1e34-4e11-bdc0-c64931547979",
+                                    "currencyProvider": "4a8c68fd-16f9-49c8-8a44-34f30ed2fe4c"
+                                }
+                            ]
+                        },
+                        "id": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 1e-06,
+                        "type": "crypto",
+                        "name": "Tether USD",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 3,
+                        "fees": {},
+                        "networks": {
+                            "ERC20": {
+                                "info": {
+                                    "minAmount": "5.000000000000000000",
+                                    "maxAmount": "0",
+                                    "fee": "3.000000000000000000",
+                                    "percentFee": "0.250000000000000000",
+                                    "providerName": "ERC20",
+                                    "id": "973d2079-1fae-4fa7-82e4-bae55eba8284",
+                                    "currencyProvider": "4d26b9ec-4bed-4bec-ba2f-02aaca8e84a1",
+                                    "deflation": "0"
+                                },
+                                "id": "973d2079-1fae-4fa7-82e4-bae55eba8284",
+                                "network": "ERC20",
+                                "active": null,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": 3,
+                                "precision": null,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 5,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "BEP20": {
+                                "info": {
+                                    "minAmount": "5.000000000000000000",
+                                    "maxAmount": "0",
+                                    "fee": "3.000000000000000000",
+                                    "percentFee": "0.250000000000000000",
+                                    "providerName": "BSC_TOKEN",
+                                    "id": "4ad17957-bc12-47e4-9ee4-c593c5449771",
+                                    "currencyProvider": "0506dd69-d45b-42b9-897b-337f1ebfb7cd",
+                                    "deflation": "0"
+                                },
+                                "id": "4ad17957-bc12-47e4-9ee4-c593c5449771",
+                                "network": "BEP20",
+                                "active": null,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": 3,
+                                "precision": null,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 5,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "TRC20": {
+                                "info": {
+                                    "minAmount": "0.000000000000000000",
+                                    "maxAmount": "0",
+                                    "fee": "3.000000000000000000",
+                                    "percentFee": "0.250000000000000000",
+                                    "providerName": "TRC20",
+                                    "id": "b733bbf3-1e34-4e11-bdc0-c64931547979",
+                                    "currencyProvider": "4a8c68fd-16f9-49c8-8a44-34f30ed2fe4c"
+                                },
+                                "id": "b733bbf3-1e34-4e11-bdc0-c64931547979",
+                                "network": "TRC20",
+                                "active": null,
+                                "deposit": null,
+                                "withdraw": null,
+                                "fee": 3,
+                                "precision": null,
+                                "limits": {
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 0,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": 0,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
             }
         ],
         "fetchTrades": [
