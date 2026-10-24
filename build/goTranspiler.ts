@@ -1500,6 +1500,80 @@ function assertTypedElementAccess (content: string): string {
     );
 }
 
+// JS `x[key].push (v)` mutates the array the slot holds; Go cannot take the address of a
+// map slot or a slice element, so the printer copies the receiver into `retResN` and the
+// append reaches only that copy. Store the grown slice back into the container.
+const GO_APPEND_COPY_DECL = /^(\s*)(retRes\d+) := (.+)$/;
+const GO_APPEND_COPY_CALL = /^(\s*)(?:[A-Za-z_]\w*\.)?AppendToArray\(&(retRes\d+), /;
+const GO_APPEND_SIMPLE_ARG = /^(?:[A-Za-z_]\w*(?:\.\w+)*(?:\[\*?\w+\])?|\*\w+|"[^"\\\n]*"|-?\d+)$/;
+
+// `container, key` for a receiver the printer copied, or undefined when the receiver is not
+// a mutable slot this pass can address (a temporary call result is never written back).
+function goAppendCopySlot (receiver: string): [string, string] | undefined {
+    const text = receiver.trim ();
+    const call = /^((?:[A-Za-z_]\w*\.)?)GetValue\(([\s\S]*)\)$/.exec (text);
+    if (call !== null) {
+        const args: string[] = [];
+        let depth = 0;
+        let start = 0;
+        const inner = call[2];
+        for (let i = 0; i < inner.length; i++) {
+            const c = inner[i];
+            if ((c === '(') || (c === '[') || (c === '{')) {
+                depth++;
+            } else if ((c === ')') || (c === ']') || (c === '}')) {
+                depth--;
+            } else if ((c === ',') && (depth === 0)) {
+                args.push (inner.substring (start, i));
+                start = i + 1;
+            }
+        }
+        args.push (inner.substring (start));
+        if (args.length !== 2) {
+            return undefined;
+        }
+        const [ container, key ] = args.map ((a: string) => a.trim ());
+        if (!/^[A-Za-z_]\w*(?:\.\w+)*$/.test (container) || !GO_APPEND_SIMPLE_ARG.test (key)) {
+            return undefined;
+        }
+        return [ container, key ];
+    }
+    const index = /^([A-Za-z_]\w*(?:\.\w+)*)\[([^\[\]]+)\]$/.exec (text);
+    if ((index !== null) && GO_APPEND_SIMPLE_ARG.test (index[2].trim ())) {
+        return [ index[1], index[2].trim () ];
+    }
+    return undefined;
+}
+
+function nativeAppendWriteBack (content: string): string {
+    if (content.indexOf ('AppendToArray(&retRes') < 0) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const out: string[] = [];
+    for (let k = 0; k < lines.length; k++) {
+        out.push (lines[k]);
+        const decl = GO_APPEND_COPY_DECL.exec (lines[k]);
+        if (decl === null) {
+            continue;
+        }
+        const call = GO_APPEND_COPY_CALL.exec (lines[k + 1] ?? '');
+        if ((call === null) || (call[2] !== decl[2]) || (call[1] !== decl[1])) {
+            continue;
+        }
+        const slot = goAppendCopySlot (decl[3]);
+        if (slot === undefined) {
+            continue;
+        }
+        // a ccxtpro file reaches both helpers through the imported ccxt package
+        const pkg = /(?:^|[^\w.])ccxt\./.test (decl[3] + lines[k + 1]) ? 'ccxt.' : '';
+        out.push (lines[k + 1]);
+        out.push (decl[1] + pkg + 'AddElementToObject(' + slot[0] + ', ' + slot[1] + ', ' + decl[2] + ')');
+        k++;
+    }
+    return out.join ('\n');
+}
+
 // gofmt's declaration-list rule (go/printer nodes.go `declList`): a top-level declaration
 // that carries a doc comment is separated from the declaration above it by exactly one
 // blank line (`min = 2` linebreaks), while a declaration without one is emitted adjacent
@@ -2689,6 +2763,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = guardMultiSendCores (content);
     content = h2kG11NativeBoxAbsentSends (content);
     content = assertTypedElementAccess (content);
+    content = nativeAppendWriteBack (content);
     content = retagLoopBoundedElementReads (content);
     content = nativeLoopBoundedSliceReads (content);
     content = hx4X01TupleProducerReads (content);
