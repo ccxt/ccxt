@@ -382,6 +382,31 @@ public partial class latoken : Exchange
                     { "ACCOUNT_TYPE_WALLET", "wallet" },
                     { "ACCOUNT_TYPE_SPOT", "spot" },
                 } },
+                { "networks", new Dictionary<string, object>() {
+                    { "BEP20", "BSC_TOKEN" },
+                    { "TRC20", "TRON" },
+                    { "ADA", "ADA_TOKEN" },
+                    { "ALGO", "ALGO_TOKEN" },
+                    { "ARBITRUM", "ARB_TOKEN" },
+                    { "AVAXC", "AVAXC_TOKEN" },
+                    { "BASE", "BASE_TOKEN" },
+                    { "CELO", "CELO_TOKEN" },
+                    { "EOS", "EOS_TOKEN" },
+                    { "FTM", "FTM_TOKEN" },
+                    { "MATIC", "MATIC_TOKEN" },
+                    { "OP", "OP_TOKEN" },
+                    { "QTUM", "QTUM_TOKEN" },
+                    { "SOL", "SOL_TOKEN" },
+                    { "TON", "TON_TOKEN" },
+                    { "VET", "VECHAIN_TOKEN" },
+                    { "WAVES", "WAVES_TOKEN" },
+                    { "XDC", "XDC_TOKEN" },
+                    { "XLM", "XLM_TOKEN" },
+                    { "XRP", "XRP_TOKEN" },
+                } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "BSC", "BEP20" },
+                } },
                 { "fetchTradingFee", new Dictionary<string, object>() {
                     { "method", "fetchPrivateTradingFee" },
                 } },
@@ -609,11 +634,15 @@ public partial class latoken : Exchange
      * @method
      * @name latoken#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+     * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
+        // sequential on purpose - with Promise.all the static request harness records
+        // whichever call finished last, which differs between the sync and async ports
         parameters ??= new Dictionary<string, object>();
         List<object> response = await this.publicGetCurrency(parameters);
         //
@@ -648,7 +677,45 @@ public partial class latoken : Exchange
         //         },
         //     ]
         //
-        return this.parseCurrencies(response);
+        //     [
+        //         {
+        //             "id":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "tag":"USDT",
+        //             "bindings":[
+        //                 {
+        //                     "minAmount":"5.000000000000000000",
+        //                     "maxAmount":"0",
+        //                     "fee":"3.000000000000000000",
+        //                     "percentFee":"0.250000000000000000",
+        //                     "providerName":"ERC20",
+        //                     "id":"973d2079-1fae-4fa7-82e4-bae55eba8284",
+        //                     "currencyProvider":"4d26b9ec-4bed-4bec-ba2f-02aaca8e84a1",
+        //                     "deflation":"0"
+        //                 },
+        //             ]
+        //         },
+        //     ]
+        //
+        // no params on this one - they belong to the currency request, not to the bindings
+        List<object> bindingsResponse = await this.publicGetTransactionBindings();
+        Dictionary<string, object> bindingsById = this.indexBy(bindingsResponse, "id");
+        IList<object> rawCurrencies = this.toArray(response);
+        List<object> merged = new List<object>() {};
+        for (int i = 0; i < (rawCurrencies?.Count ?? 0); i++)
+        {
+            object rawCurrency = rawCurrencies[i];
+            IDictionary<string, object> bindingEntry = this.safeDict(bindingsById, this.safeString(rawCurrency, "id"));
+            List<object> bindings = this.safeList(bindingEntry, "bindings");
+            object mergedCurrency = rawCurrency;
+            if ((bindings != null))
+            {
+                mergedCurrency = this.extend(rawCurrency, new Dictionary<string, object>() {
+                    { "bindings", bindings },
+                });
+            }
+            merged.Add(mergedCurrency);
+        }
+        return this.parseCurrencies(merged);
     }
 
     public override Dictionary<string, object> parseCurrency(object currency)
@@ -658,6 +725,40 @@ public partial class latoken : Exchange
         string? code = this.safeCurrencyCode(tag);
         string? currencyType = this.safeString(currency, "type");
         bool isCrypto = (currencyType == "CURRENCY_TYPE_CRYPTO" || currencyType == "CURRENCY_TYPE_IEO");
+        List<object> bindings = this.safeList(currency, "bindings", new List<object>() {});
+        Dictionary<string, object> networks = new Dictionary<string, object>() {};
+        for (int i = 0; i < bindings.Count; i++)
+        {
+            object binding = bindings[i];
+            string? networkId = this.safeString(binding, "providerName");
+            string? networkCode = this.networkIdToCode(networkId, code);
+            // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
+            // entries would land on the same unified code - keep the first one for a
+            // deterministic binding id, since withdrawals resolve the chain through it
+            if (((networkCode != null)) && !(((networkCode != null) && (networks?.ContainsKey(networkCode) == true))))
+            {
+                networks[(string)networkCode] = new Dictionary<string, object>() {
+                    { "info", binding },
+                    { "id", this.safeString(binding, "id") },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", this.safeNumber(binding, "fee") },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(binding, "minAmount") },
+                            { "max", null },
+                        } },
+                    } },
+                };
+            }
+        }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
             { "code", code },
@@ -667,7 +768,7 @@ public partial class latoken : Exchange
             { "active", (this.safeString(currency, "status") == "CURRENCY_STATUS_ACTIVE") },
             { "deposit", null },
             { "withdraw", null },
-            { "fee", this.safeNumber(currency, "fee") },
+            { "fee", null },
             { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals"))) },
             { "limits", new Dictionary<string, object>() {
                 { "amount", new Dictionary<string, object>() {
@@ -679,7 +780,7 @@ public partial class latoken : Exchange
                     { "max", null },
                 } },
             } },
-            { "networks", new Dictionary<string, object>() {} },
+            { "networks", networks },
         });
     }
 

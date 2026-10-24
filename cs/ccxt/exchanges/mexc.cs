@@ -2104,7 +2104,7 @@ public partial class mexc : Exchange
             {
                 timestamp = this.safeInteger(trade, "timestamp");
                 amountString = this.safeString(trade, "vol");
-                side = this.parseOrderSide(this.safeString(trade, "side"));
+                side = this.parseContractOrderSide(this.safeString(trade, "side"));
                 fee = new Dictionary<string, object>() {
                     { "cost", this.safeString(trade, "fee") },
                     { "currency", this.safeCurrencyCode(this.safeString(trade, "feeCurrency")) },
@@ -4184,6 +4184,9 @@ public partial class mexc : Exchange
         }
         string? marketId = this.safeString(order, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        bool? isContract = ((bool?)(marketResolved != null && marketResolved.ContainsKey("contract") ? marketResolved["contract"] : null));
+        string? sideRaw = this.safeString(order, "side");
+        string? side = ((isContract == true)) ? this.parseContractOrderSide(sideRaw) : this.parseOrderSide(sideRaw);
         Int64? timestamp = this.safeIntegerN(order, new List<object>() {"time", "createTime", "transactTime"});
         Dictionary<string, object> fee = null;
         string? feeCurrency = this.safeString(order, "feeCurrency");
@@ -4208,7 +4211,7 @@ public partial class mexc : Exchange
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "type", this.parseOrderType(typeRaw) },
             { "timeInForce", timeInForce },
-            { "side", this.parseOrderSide(this.safeString(order, "side")) },
+            { "side", side },
             { "price", this.safeNumber(order, "price") },
             { "triggerPrice", this.safeNumber2(order, "stopPrice", "triggerPrice") },
             { "average", this.safeNumber(order, "dealAvgPrice") },
@@ -4231,6 +4234,17 @@ public partial class mexc : Exchange
             { "2", "sell" },
         };
         return this.safeString(statuses, status, status);
+    }
+
+    public virtual string? parseContractOrderSide(string? side)
+    {
+        Dictionary<string, object> sides = new Dictionary<string, object>() {
+            { "1", "buy" },
+            { "2", "buy" },
+            { "3", "sell" },
+            { "4", "sell" },
+        };
+        return this.safeString(sides, side, side);
     }
 
     public virtual string? parseOrderType(string? status)
