@@ -4944,7 +4944,7 @@ Note that your private requests will fail with an exception or error if you don'
 #### API Key Permissions
 When you get errors like `"Invalid API-key, IP, or permissions for action."` or `"API-key format invalid"`, then, most likely, the problem is not within ccxt, please avoid opening a new issue unless you ensure that:
 1) You don't have typos, empty spaces, or quotes in your keys
-2) Your current IP address (check [IPv4](https://api.ipify.org/) or [IPv6](https://api64.ipify.org/)) is added into API-KEY's whitelist (if you use proxy, consider that too)
+2) Your current IP address (check [IPv4](https://api.ipify.org/) or [IPv6](https://api64.ipify.org/)) is added into API-KEY's whitelist (if you use proxy, consider that too). On a host with both IPv4 and IPv6, ccxt may connect over IPv6 even if you only whitelisted your IPv4 address, see [Forcing IPv4](#forcing-ipv4)
 3) You have selected the correct options in permissions list for that api-key
 4) You are not accidentally mixing "testnet" api-keys or "testnet" mode in your script
 5) You have checked already [reported issues](https://github.com/ccxt/ccxt/issues?q=is%3Aissue+%22Invalid+Api-Key+ID%22) about this error
@@ -8543,6 +8543,39 @@ https://github.com/ccxt/ccxt/blob/master/examples/py/proxies-for-synchronous-pyt
 https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-asyncio-aiohttp-python-3.py), [proxy-asyncio-aiohttp-socks](
 https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-asyncio-aiohttp-socks.py), [proxy-sync-python-requests-2-and-3](
 https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-sync-python-requests-2-and-3.py)
+
+#### Forcing IPv4
+
+On a host with both IPv4 and IPv6 connectivity, when the exchange's domain resolves to both (`www.okx.com` does, for example), some or all of ccxt's connections go out over IPv6: the async client races IPv6 against IPv4 and uses whichever connects first, while the sync client tries IPv6 first. Private requests then fail (only some of the time with the async client, every time with the sync client) if the API key's IP whitelist only contains your IPv4 address, or if the exchange rejects IPv6 on some routes (binanceus: `{"code":-71012,"msg":"IPv6 not supported"}`). Either add your IPv6 address to the whitelist too (check it at [api64.ipify.org](https://api64.ipify.org/)), or pin ccxt to IPv4.
+
+In Python, the async client accepts your own `aiohttp` session and uses it for both REST and ccxt.pro WebSocket connections. Create it with an IPv4-only connector, and close it yourself, because ccxt does not close a session it did not create. Pass the certifi CA bundle too, so certificate verification stays the same as with the session ccxt creates:
+
+```python
+import socket
+import ssl
+import aiohttp
+import certifi
+import ccxt.async_support as ccxt
+
+connector = aiohttp.TCPConnector(family=socket.AF_INET, ssl=ssl.create_default_context(cafile=certifi.where()))
+session = aiohttp.ClientSession(connector=connector)
+exchange = ccxt.okx({'session': session})
+# ...
+await exchange.close()
+await session.close()
+```
+
+The sync client uses `requests`, which takes the address family from `urllib3`. This setting applies to the whole process, so make it before the first request:
+
+```python
+import socket
+import urllib3.util.connection
+
+urllib3.util.connection.allowed_gai_family = lambda: socket.AF_INET
+
+import ccxt
+exchange = ccxt.okx()
+```
 
 #### CORS (Access-Control-Allow-Origin)
 
