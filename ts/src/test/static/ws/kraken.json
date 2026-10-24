@@ -3,6 +3,136 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchBalance": [
+            {
+                "description": "spot balance snapshot followed by two rapid updates - updates arriving while no consumer is awaiting must still reach the object handed to the consumer (issue 26773)",
+                "disabledPHP": "php arrays are value types - the consumer holds a copy, so updates resolved with no waiter can only be delivered by a client-level queue (see issue 30220)",
+                "disabledCS": "the typed WatchBalance wrapper copies the dict into a Balances struct at resolve time, freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledGO": "since the go typed-returns campaign the WatchBalance wrapper copies the map into a Balances struct at resolve time (NewBalances), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledRS": "the rust Value runtime is copy-on-write (Arc-backed dicts) - the in-place merge detaches from the clone the consumer received at resolve time, and the typed watch_balance wrapper additionally copies into a Balances struct (Balances::from_value), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "input": [],
+                "url": "wss://ws-auth.kraken.com/v2",
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "token": "testToken",
+                        "expires": 900
+                    }
+                },
+                "messages": [
+                    {
+                        "channel": "balances",
+                        "type": "snapshot",
+                        "data": [
+                            {
+                                "asset": "JUNO",
+                                "asset_class": "currency",
+                                "wallets": [
+                                    {
+                                        "type": "spot",
+                                        "id": "main",
+                                        "balance": 30.1097
+                                    }
+                                ],
+                                "balance": 30.1097
+                            },
+                            {
+                                "asset": "EUR",
+                                "asset_class": "currency",
+                                "wallets": [
+                                    {
+                                        "type": "spot",
+                                        "id": "main",
+                                        "balance": 20.5841
+                                    }
+                                ],
+                                "balance": 20.5841
+                            }
+                        ],
+                        "sequence": 1
+                    },
+                    {
+                        "channel": "balances",
+                        "type": "update",
+                        "data": [
+                            {
+                                "asset": "JUNO",
+                                "asset_class": "currency",
+                                "amount": -18.537,
+                                "fee": 0.0,
+                                "balance": 11.5727
+                            }
+                        ],
+                        "sequence": 2
+                    },
+                    {
+                        "channel": "balances",
+                        "type": "update",
+                        "data": [
+                            {
+                                "asset": "EUR",
+                                "asset_class": "currency",
+                                "amount": 1.0527,
+                                "fee": 0.0,
+                                "balance": 21.6368
+                            }
+                        ],
+                        "sequence": 3
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "req_id": 1,
+                        "params": {
+                            "channel": "balances",
+                            "token": "testToken"
+                        }
+                    }
+                ],
+                "sentSkipKeys": [
+                    "req_id"
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "channel": "balances",
+                        "type": "update",
+                        "data": [
+                            {
+                                "asset": "EUR",
+                                "asset_class": "currency",
+                                "amount": 1.0527,
+                                "fee": 0.0,
+                                "balance": 21.6368
+                            }
+                        ],
+                        "sequence": 3
+                    },
+                    "JUNO": {
+                        "free": null,
+                        "used": null,
+                        "total": 11.5727
+                    },
+                    "EUR": {
+                        "free": null,
+                        "used": null,
+                        "total": 21.6368
+                    },
+                    "free": {
+                        "JUNO": null,
+                        "EUR": null
+                    },
+                    "used": {
+                        "JUNO": null,
+                        "EUR": null
+                    },
+                    "total": {
+                        "JUNO": 11.5727,
+                        "EUR": 21.6368
+                    }
+                }
+            }
+        ],
         "watchTicker": [
             {
                 "description": "spot ticker",

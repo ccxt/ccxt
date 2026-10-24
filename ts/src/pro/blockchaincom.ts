@@ -108,7 +108,16 @@ export default class blockchaincom extends blockchaincomRest {
         if (event === 'subscribed') {
             return;
         }
-        const result: Dict = { 'info': message };
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773)
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance['info'] = message;
         const balances: Dict[] = this.safeList (message, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = this.safeDict (balances, i);
@@ -118,11 +127,11 @@ export default class blockchaincom extends blockchaincomRest {
             account['free'] = this.safeString (entry, 'available');
             account['total'] = this.safeString (entry, 'balance');
             if (code !== undefined) {
-                result[code] = account;
+                this.balance[code] = account;
             }
         }
         const messageHash = 'balance';
-        this.balance = this.safeBalance (result);
+        this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, messageHash);
     }
 
