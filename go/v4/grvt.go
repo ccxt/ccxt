@@ -3167,9 +3167,11 @@ func (this *Grvt) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		request["base"] = []any{}
 		retRes229612 := request["base"]
 		AppendToArray(&retRes229612, market["baseId"])
+		AddElementToObject(request, "base", retRes229612)
 		request["quote"] = []any{}
 		retRes229812 := request["quote"]
 		AppendToArray(&retRes229812, market["quoteId"])
+		AddElementToObject(request, "quote", retRes229812)
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -3269,8 +3271,10 @@ func (this *Grvt) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 			}
 			retRes236716 := request["base"]
 			AppendToArray(&retRes236716, market["baseId"])
+			AddElementToObject(request, "base", retRes236716)
 			retRes236816 := request["quote"]
 			AppendToArray(&retRes236816, market["quoteId"])
+			AddElementToObject(request, "quote", retRes236816)
 		}
 	}
 
@@ -3645,9 +3649,11 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 		request["base"] = []any{}
 		retRes263512 := request["base"]
 		AppendToArray(&retRes263512, market["baseId"])
+		AddElementToObject(request, "base", retRes263512)
 		request["quote"] = []any{}
 		retRes263712 := request["quote"]
 		AppendToArray(&retRes263712, market["quoteId"])
+		AddElementToObject(request, "quote", retRes263712)
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -3760,9 +3766,11 @@ func (this *Grvt) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		request["base"] = []any{}
 		retRes271412 := request["base"]
 		AppendToArray(&retRes271412, market["baseId"])
+		AddElementToObject(request, "base", retRes271412)
 		request["quote"] = []any{}
 		retRes271612 := request["quote"]
 		AppendToArray(&retRes271612, market["quoteId"])
+		AddElementToObject(request, "quote", retRes271612)
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -4286,9 +4294,11 @@ func (this *Grvt) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		request["base"] = []any{}
 		retRes314412 := request["base"]
 		AppendToArray(&retRes314412, market["baseId"])
+		AddElementToObject(request, "base", retRes314412)
 		request["quote"] = []any{}
 		retRes314612 := request["quote"]
 		AppendToArray(&retRes314612, market["quoteId"])
+		AddElementToObject(request, "quote", retRes314612)
 	}
 
 	r1 := <-this.PrivateTradingPostFullV1CancelAllOrders(this.Extend(request, params))

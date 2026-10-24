@@ -2192,10 +2192,18 @@ func (this *Kraken) HandleBalance(client any, message map[string]any) {
 	//         "sequence": 1
 	//     }
 	//
-	var data []any = ccxt.SafeListTyped(message, "data")
-	var result map[string]any = map[string]any{
-		"info": message,
+	// merge updates into the existing balance object instead of building a
+	// fresh one: a consumer awakened by an earlier message holds a reference
+	// to this.balance[type], and ccxt.Client.resolve is a no-op while nobody is
+	// awaiting, so a replaced object would make updates landing in that
+	// window invisible to the consumer forever (issue #26773)
+	var typeVar string = "spot"
+	if ccxt.IsEqual(this.Balance, nil) {
+		this.Balance = map[string]any{}
 	}
+	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeDict(this.Balance, typeVar, map[string]any{}))
+	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "info", message)
+	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
 		var currencyId *string = this.SafeString(func() any {
 			if i >= 0 && i < len(data) {
@@ -2212,15 +2220,9 @@ func (this *Kraken) HandleBalance(client any, message map[string]any) {
 			return nil
 		}(), "balance")
 		account["total"] = eq
-		if code != nil {
-			result[*code] = account
-		}
+		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 	}
-	var typeVar string = "spot"
-	var balance map[string]any = ccxt.MapTyped(this.SafeBalance(result))
-	var oldBalance any = this.SafeDict(this.Balance, typeVar, map[string]any{})
-	var newBalance map[string]any = this.DeepExtend(oldBalance, balance)
-	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(newBalance))
+	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))
 	var channel *string = this.SafeString(message, "channel")
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), channel)
 }

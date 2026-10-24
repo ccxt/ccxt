@@ -2839,6 +2839,7 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 						if insertNewFeeCurrency {
 							retRes190332 := ccxt.GetValue(order, "fees")
 							ccxt.AppendToArray(&retRes190332, tradeFee)
+							ccxt.AddElementToObject(order, "fees", retRes190332)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {

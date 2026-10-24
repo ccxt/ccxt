@@ -2360,10 +2360,20 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 				}
 				return nil
 			}()
-			var orderbook ccxt.OrderBookInterface = this.OrderBook(map[string]any{}, limit)
-			ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
-			ccxt.AddElementToObject(orderbook, "symbol", symbol)
-			this.HandleOrderBookMessage(client, update, orderbook, messageHash, market)
+			// reset the existing orderbook instead of replacing it: a consumer
+			// holds a reference to the old object and would never see updates
+			// after a re-subscription snapshot
+			if !(ccxt.InOp(this.Orderbooks, symbol)) {
+				ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+			}
+			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+			var timestamp *int64 = this.SafeInteger(update, "ts")
+			// rows are [ price, amount, liquidatedOrders, numOrders ] - store
+			// price and amount only, matching handleDelta, so countOrIdKey
+			// points past the row on purpose
+			var snapshot map[string]any = this.ParseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1, 4)
+			snapshot["nonce"] = this.SafeInteger(update, "seqId")
+			orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 			if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 				break
 			}
@@ -2617,9 +2627,33 @@ func (this *Okx) HandleBalance(client any, message map[string]any) {
 	//
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channel *string = this.SafeString(arg, "channel")
+	// merge the parsed update into the existing balance object instead of
+	// replacing it: a consumer awakened by an earlier message holds a
+	// reference to this.balance, and ccxt.Client.resolve is a no-op while
+	// nobody is awaiting, so a replaced object would make updates landing
+	// in that window invisible to the consumer forever (same class as
+	// issue #26773); the free/used/total aggregates are rebuilt from the
+	// merged currencies by safeBalance
 	var balance map[string]any = this.ParseTradingBalance(message)
-	var newBalance map[string]any = this.DeepExtend(this.Balance, balance)
-	this.Balance = this.SafeBalance(newBalance)
+	if ccxt.IsEqual(this.Balance, nil) {
+		this.Balance = map[string]any{}
+	}
+	var reserved []any = []any{"free", "used", "total"}
+	var keys []string = nil
+	if balance != nil {
+		keys = make([]string, 0, len(balance))
+		for objectKey := range balance {
+			keys = append(keys, objectKey)
+		}
+	}
+	for i := 0; i < len(keys); i++ {
+		var key string = keys[i]
+		if this.InArray(key, reserved) {
+			continue
+		}
+		ccxt.AddElementToObject(this.Balance, key, balance[key])
+	}
+	this.Balance = this.SafeBalance(this.Balance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, channel)
 }
 func (this *Okx) OrderToTrade(order any, optionalArgs ...any) any {

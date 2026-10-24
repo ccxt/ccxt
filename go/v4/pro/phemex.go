@@ -1056,8 +1056,14 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 		var book map[string]any = ccxt.SafeDict2Typed(message, "book", "orderbook_p", map[string]any{})
 		var snapshot any = this.CustomParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market)
 		ccxt.AddElementToObject(snapshot, "nonce", nonce)
-		var orderbook ccxt.OrderBookInterface = this.OrderBook(snapshot, depth)
-		ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+		// reset the existing orderbook instead of replacing it: a consumer
+		// holds a reference to the old object and would never see updates
+		// after a re-subscription snapshot
+		if !(ccxt.InOp(this.Orderbooks, symbol)) {
+			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, depth))
+		}
+		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
 		if ccxt.InOp(this.Orderbooks, symbol) {

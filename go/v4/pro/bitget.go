@@ -1357,7 +1357,14 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 			}
 		}
 	} else {
-		var orderbook ccxt.OrderBookInterface = this.OrderBook(map[string]any{})
+		// reset the existing orderbook instead of replacing it: a consumer
+		// holds a reference to the old object and would never see updates
+		// after this snapshot (every frame of the non-incremental channels
+		// is a full snapshot)
+		if !(ccxt.InOp(this.Orderbooks, symbol)) {
+			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
+		}
+		var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
 		var bidsKey string = "bids"
 		var asksKey string = "asks"
 		// bitget UTA has `a` and `b` instead of `asks` and `bids`
@@ -1373,7 +1380,6 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 		}
 		var parsedOrderbook map[string]any = this.ParseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey)
 		orderbook.(ccxt.OrderBookInterface).Reset(parsedOrderbook)
-		ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	}
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Orderbooks, symbol), messageHash)
 }

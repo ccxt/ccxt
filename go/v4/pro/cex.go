@@ -96,7 +96,7 @@ func (this *Cex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optio
 	var subscribe map[string]any = map[string]any{
 		"e":    "get-balance",
 		"data": map[string]any{},
-		"oid":  this.RequestId(),
+		"oid":  messageHash,
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
@@ -138,12 +138,18 @@ func (this *Cex) HandleBalance(client any, message map[string]any) {
 	//         "ok": "ok"
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	// merge updates into the existing balance object instead of building a
+	// fresh one: a consumer awakened by an earlier message holds a reference
+	// to this.balance, and ccxt.Client.resolve is a no-op while nobody is
+	// awaiting, so a replaced object would make responses landing in that
+	// window invisible to the consumer forever (same class as issue #26773)
+	var data any = this.SafeDict(message, "data", map[string]any{})
 	var freeBalance map[string]any = ccxt.SafeMapTyped(data, "balance")
 	var usedBalance map[string]any = ccxt.SafeMapTyped(data, "obalance")
-	var result map[string]any = map[string]any{
-		"info": data,
+	if ccxt.IsEqual(this.Balance, nil) {
+		this.Balance = map[string]any{}
 	}
+	ccxt.AddElementToObject(this.Balance, "info", data)
 	var currencyIds []string = nil
 	if freeBalance != nil {
 		currencyIds = make([]string, 0, len(freeBalance))
@@ -158,10 +164,10 @@ func (this *Cex) HandleBalance(client any, message map[string]any) {
 		account["used"] = this.SafeString(usedBalance, currencyId)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if code != nil {
-			result[*code] = account
+			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 	}
-	this.Balance = this.SafeBalance(result)
+	this.Balance = this.SafeBalance(this.Balance)
 	var messageHash *string = this.SafeString(message, "oid")
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
@@ -1320,14 +1326,19 @@ func (this *Cex) HandleOrderBookSnapshot(client any, message map[string]any) {
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
 	var timestamp *int64 = this.SafeInteger2(data, "timestamp_ms", "timestamp")
 	var incrementalId *int64 = this.SafeInteger(data, "id")
-	var orderbook ccxt.OrderBookInterface = this.OrderBook(map[string]any{})
+	// reset the existing orderbook instead of replacing it: a consumer
+	// holds a reference to the old object and would never see updates
+	// after a re-subscription snapshot
+	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
+	}
+	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
 	snapshot["nonce"] = incrementalId
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "orderbook"), symbol, map[string]any{
 		"incrementalId": incrementalId,
 	})
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Cex) PairToSymbol(pair any) any {
@@ -1485,21 +1496,28 @@ func (this *Cex) HandleInitOHLCV(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(symbol)
 	var messageHash string = "ohlcv:" + symbol
 	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
-	var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
-	stored := ccxt.NewArrayCacheByTimestamp(limit)
+	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
+		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
+	}
+	// fill the existing cache when there is one: replacing it would orphan
+	// consumers holding a reference to the old cache (they would never see
+	// candles appended after a re-subscription)
+	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), "unknown")
+	if stored == nil {
+		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
+		stored = ccxt.NewArrayCacheByTimestamp(limit)
+		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), "unknown", stored)
+	}
 	var sorted []any = this.SortBy(data, 0)
 	for i := 0; i < len(sorted); i++ {
-		stored.Append(ccxt.OHLCVToList(this.ParseOHLCV(func() any {
+		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(func() any {
 			if i >= 0 && i < len(sorted) {
 				return ccxt.DerefScalar(sorted[i])
 			}
 			return nil
-		}(), market)))
+		}(), market))
+		stored.(ccxt.Appender).Append(parsed)
 	}
-	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
-	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), "unknown", stored)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Cex) HandleOHLCV24(client any, message map[string]any) any {

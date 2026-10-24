@@ -658,12 +658,19 @@ func (this *Ndax) HandleOrderBookSubscription(client any, message map[string]any
 	//     ]
 	//
 	var symbol *string = this.SafeString(subscription, "symbol")
+	if symbol == nil {
+		return
+	}
 	var snapshot map[string]any = this.ParseOrderBook(payload, symbol)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
-	var orderbook ccxt.OrderBookInterface = this.OrderBook(snapshot, limit)
-	if symbol != nil {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	// reset the existing orderbook instead of replacing it: a consumer
+	// holds a reference to the old object and would never see updates
+	// after a re-subscription snapshot
+	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 	}
+	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	var messageHash *string = this.SafeString(subscription, "messageHash")
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }

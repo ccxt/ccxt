@@ -7616,6 +7616,7 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 						if insertNewFeeCurrency {
 							retRes562332 := ccxt.GetValue(order, "fees")
 							ccxt.AppendToArray(&retRes562332, tradeFee)
+							ccxt.AddElementToObject(order, "fees", retRes562332)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {

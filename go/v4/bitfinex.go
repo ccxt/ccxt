@@ -1652,6 +1652,7 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 		}
 		retRes122412 := result[side]
 		AppendToArray(&retRes122412, []any{price, this.ParseNumber(amount)})
+		AddElementToObject(result, side, retRes122412)
 	}
 	result["bids"] = this.SortBy(result["bids"], 0, true)
 	result["asks"] = this.SortBy(result["asks"], 0)
@@ -5137,11 +5138,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], 
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
-	listEp4883 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
-	if listEp4883.Err != nil {
-		panic(listEp4883.Err)
+	listEp4884 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
+	if listEp4884.Err != nil {
+		panic(listEp4884.Err)
 	}
-	var response []any = listEp4883.Value
+	var response []any = listEp4884.Value
 
 	//
 	//     [

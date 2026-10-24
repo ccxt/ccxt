@@ -633,21 +633,22 @@ func (this *Bitopro) HandleBalance(client any, message map[string]any) {
 	//     }
 	//
 	var event *string = this.SafeString(message, "event")
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data any = this.SafeDict(message, "data", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	var datetime *string = this.SafeString(message, "datetime")
-	var currencies []string = nil
-	if data != nil {
-		currencies = make([]string, 0, len(data))
-		for objectKey := range data {
-			currencies = append(currencies, objectKey)
-		}
+	var currencies []string = ccxt.ObjectKeys(data)
+	// merge updates into the existing balance object instead of building a
+	// fresh one: a consumer awakened by an earlier message holds a
+	// reference to this.balance, and ccxt.Client.resolve is a no-op while
+	// nobody is awaiting, so a replaced object would make updates landing
+	// in that window invisible to the consumer forever (same class as
+	// issue #26773)
+	if ccxt.IsEqual(this.Balance, nil) {
+		this.Balance = map[string]any{}
 	}
-	var result map[string]any = map[string]any{
-		"info":      data,
-		"timestamp": timestamp,
-		"datetime":  datetime,
-	}
+	ccxt.AddElementToObject(this.Balance, "info", data)
+	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
+	ccxt.AddElementToObject(this.Balance, "datetime", datetime)
 	for i := 0; i < len(currencies); i++ {
 		var currency *string = this.SafeString(currencies, i)
 		var balance map[string]any = ccxt.SafeMapTyped(data, currency)
@@ -657,10 +658,10 @@ func (this *Bitopro) HandleBalance(client any, message map[string]any) {
 		account["free"] = this.SafeString(balance, "available")
 		account["total"] = this.SafeString(balance, "amount")
 		if code != nil {
-			result[*code] = account
+			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 	}
-	this.Balance = this.SafeBalance(result)
+	this.Balance = this.SafeBalance(this.Balance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, event)
 }
 func (this *Bitopro) HandleMessage(client any, message any) {

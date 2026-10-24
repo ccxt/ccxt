@@ -1126,10 +1126,12 @@ func (this *Deepcoin) HandleOrderBookSnapshot(client any, message any) {
 			// bid
 			retRes81416 := orderedEntries["bids"]
 			ccxt.AppendToArray(&retRes81416, []any{price, volume})
+			ccxt.AddElementToObject(orderedEntries, "bids", retRes81416)
 		} else if side != nil && *side == "1" {
 			// ask
 			retRes81716 := orderedEntries["asks"]
 			ccxt.AppendToArray(&retRes81716, []any{price, volume})
+			ccxt.AddElementToObject(orderedEntries, "asks", retRes81716)
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(message, "mt", 0)
