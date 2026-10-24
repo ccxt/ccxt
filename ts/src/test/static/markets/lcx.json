@@ -1,0 +1,230 @@
+{
+    "LCX/EUR": {
+        "id": "LCX/EUR",
+        "symbol": "LCX/EUR",
+        "base": "LCX",
+        "quote": "EUR",
+        "baseId": "LCX",
+        "quoteId": "EUR",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.003,
+        "maker": 0.003,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.00001,
+            "cost": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 10,
+                "max": 1000000
+            },
+            "price": {},
+            "cost": {
+                "min": 1,
+                "max": 100000
+            }
+        },
+        "marginModes": {},
+        "created": 1620830202226,
+        "info": {
+            "Id": "ae70d5d9-c075-4e30-87f4-ed67bbe52499",
+            "Symbol": "LCX/EUR",
+            "Base": "LCX",
+            "Quote": "EUR",
+            "Precision": {
+                "Amount": 4,
+                "Price": 6,
+                "Total": 2
+            },
+            "Orderprecision": {
+                "Amount": 1,
+                "Price": 5,
+                "Total": 2
+            },
+            "MinOrder": {
+                "Base": 10,
+                "Quote": 1
+            },
+            "MaxOrder": {
+                "Base": 1000000,
+                "Quote": 100000
+            },
+            "Status": true,
+            "CreatedAt": "2021-05-12T14:36:42.226318Z",
+            "UpdatedAt": "2024-09-06T09:40:18.578345Z",
+            "ListingPrice": 0,
+            "ListingTime": "2021-05-12T14:36:42.226318Z",
+            "Mode": "trade",
+            "BaseFullName": "LCX Token",
+            "QuoteFullName": "EUR",
+            "DiscountedFeePercentage": 0,
+            "AllowedRegions": [
+                "EU"
+            ]
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "BTC/EUR": {
+        "id": "BTC/EUR",
+        "symbol": "BTC/EUR",
+        "base": "BTC",
+        "quote": "EUR",
+        "baseId": "BTC",
+        "quoteId": "EUR",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.003,
+        "maker": 0.003,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01,
+            "cost": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0001,
+                "max": 10
+            },
+            "price": {},
+            "cost": {
+                "min": 1,
+                "max": 100000
+            }
+        },
+        "marginModes": {},
+        "created": 1620928770516,
+        "info": {
+            "Id": "e701f25c-0f2f-489c-923e-ac430af6beec",
+            "Symbol": "BTC/EUR",
+            "Base": "BTC",
+            "Quote": "EUR",
+            "Precision": {
+                "Amount": 8,
+                "Price": 4,
+                "Total": 2
+            },
+            "Orderprecision": {
+                "Amount": 5,
+                "Price": 2,
+                "Total": 2
+            },
+            "MinOrder": {
+                "Base": 0.0001,
+                "Quote": 1
+            },
+            "MaxOrder": {
+                "Base": 10,
+                "Quote": 100000
+            },
+            "Status": true,
+            "CreatedAt": "2021-05-13T17:59:30.516529Z",
+            "UpdatedAt": "2025-07-11T10:22:10.481774Z",
+            "ListingPrice": 0,
+            "ListingTime": "2021-05-13T17:59:30.516529Z",
+            "Mode": "trade",
+            "BaseFullName": "Bitcoin",
+            "QuoteFullName": "EUR",
+            "DiscountedFeePercentage": 0,
+            "AllowedRegions": [
+                "EU"
+            ]
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "ETH/EUR": {
+        "id": "ETH/EUR",
+        "symbol": "ETH/EUR",
+        "base": "ETH",
+        "quote": "EUR",
+        "baseId": "ETH",
+        "quoteId": "EUR",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.003,
+        "maker": 0.003,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.0001,
+            "cost": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.0005,
+                "max": 1000
+            },
+            "price": {},
+            "cost": {
+                "min": 1,
+                "max": 10000000
+            }
+        },
+        "marginModes": {},
+        "created": 1621019359386,
+        "info": {
+            "Id": "87b164db-3707-4907-b58f-5ede6e0e32ea",
+            "Symbol": "ETH/EUR",
+            "Base": "ETH",
+            "Quote": "EUR",
+            "Precision": {
+                "Amount": 4,
+                "Price": 8,
+                "Total": 2
+            },
+            "Orderprecision": {
+                "Amount": 4,
+                "Price": 4,
+                "Total": 2
+            },
+            "MinOrder": {
+                "Base": 0.0005,
+                "Quote": 1
+            },
+            "MaxOrder": {
+                "Base": 1000,
+                "Quote": 10000000
+            },
+            "Status": true,
+            "CreatedAt": "2021-05-14T19:09:19.386134Z",
+            "UpdatedAt": "2025-05-20T08:14:11.700637Z",
+            "ListingPrice": 0,
+            "ListingTime": "2021-05-14T19:09:19.386134Z",
+            "Mode": "trade",
+            "BaseFullName": "Ethereum",
+            "QuoteFullName": "EUR",
+            "DiscountedFeePercentage": 0,
+            "AllowedRegions": [
+                "EU"
+            ]
+        },
+        "tierBased": false,
+        "percentage": true
+    }
+}
