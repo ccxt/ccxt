@@ -6190,7 +6190,7 @@ export default class bingx extends Exchange {
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
-     * @param {string} params.trandingUnit COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
+     * @param {string} [params.tradingUnit] COIN (default, base currency amount) or CONT (number of contract sheets)
      * @param {string} params.orderId the order id required for inverse swap
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
@@ -6297,7 +6297,7 @@ export default class bingx extends Exchange {
                 //     }
                 //
             } else {
-                const tradingUnit = this.safeStringUpper (paramsUntil, 'tradingUnit', 'CONT');
+                const tradingUnit = this.safeStringUpper (paramsUntil, 'tradingUnit', 'COIN');
                 paramsTrades = this.omit (paramsUntil, 'tradingUnit');
                 request['tradingUnit'] = tradingUnit;
                 response = await this.swapV2PrivateGetTradeAllFillOrders (this.extend (request, paramsTrades));
