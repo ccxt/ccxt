@@ -4135,6 +4135,60 @@
                 }
             }
         ],
+        "fetchDepositAddresses": [
+            {
+                "description": "USDT on ERC20",
+                "method": "fetchDepositAddresses",
+                "input": [
+                    [
+                        "USDT"
+                    ],
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "coin": "ETH",
+                        "address": "0x1111111111111111111111111111111111111111",
+                        "tag": "",
+                        "isDefault": 1
+                    },
+                    {
+                        "coin": "ETH",
+                        "address": "0x2222222222222222222222222222222222222222",
+                        "tag": "",
+                        "isDefault": 0
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "coin": "ETH",
+                            "address": "0x1111111111111111111111111111111111111111",
+                            "tag": "",
+                            "isDefault": 1
+                        },
+                        "currency": "USDT",
+                        "network": "ERC20",
+                        "address": "0x1111111111111111111111111111111111111111",
+                        "tag": null
+                    },
+                    {
+                        "info": {
+                            "coin": "ETH",
+                            "address": "0x2222222222222222222222222222222222222222",
+                            "tag": "",
+                            "isDefault": 0
+                        },
+                        "currency": "USDT",
+                        "network": "ERC20",
+                        "address": "0x2222222222222222222222222222222222222222",
+                        "tag": null
+                    }
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "spot +selfTradePrevention +iceberg",

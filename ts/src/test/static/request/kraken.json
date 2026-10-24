@@ -634,6 +634,33 @@
                 "output": "nonce=1724594503685&asset=MATIC&method=Polygon%20%28MATIC%29"
               }
         ],
+        "fetchDepositAddresses": [
+            {
+                "description": "fetchDepositAddresses requests the deposit methods of the first currency",
+                "method": "fetchDepositAddresses",
+                "url": "https://api.kraken.com/0/private/DepositMethods",
+                "input": [
+                    [
+                        "USDT"
+                    ]
+                ],
+                "output": "nonce=1729512345678&asset=USDT"
+            },
+            {
+                "description": "unified network param is filtered locally and not sent to the deposit methods endpoint",
+                "method": "fetchDepositAddresses",
+                "url": "https://api.kraken.com/0/private/DepositMethods",
+                "input": [
+                    [
+                        "USDT"
+                    ],
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "output": "nonce=1729512345678&asset=USDT"
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "spot with since",

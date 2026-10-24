@@ -7,6 +7,21 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchDepositAddresses": [
+            {
+                "description": "USDT on ERC20",
+                "method": "fetchDepositAddresses",
+                "url": "https://api.bybit.com/v5/asset/deposit/query-address?coin=USDT&chainType=ETH",
+                "input": [
+                    [
+                        "USDT"
+                    ],
+                    {
+                        "network": "ERC20"
+                    }
+                ]
+            }
+        ],
         "fetchFundingRateHistory": [
             {
                 "description": "contract with a funding interval different from 8h",

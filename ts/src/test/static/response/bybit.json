@@ -2,6 +2,55 @@
   "exchange": "bybit",
   "options": {},
   "methods": {
+    "fetchDepositAddresses": [
+      {
+        "description": "USDT on ERC20",
+        "method": "fetchDepositAddresses",
+        "input": [
+          [
+            "USDT"
+          ],
+          {
+            "network": "ERC20"
+          }
+        ],
+        "httpResponse": {
+          "retCode": 0,
+          "retMsg": "success",
+          "result": {
+            "coin": "USDT",
+            "chains": [
+              {
+                "chainType": "Ethereum (ERC20)",
+                "addressDeposit": "0x3333333333333333333333333333333333333333",
+                "tagDeposit": "",
+                "chain": "ETH",
+                "batchReleaseLimit": "-1",
+                "contractAddress": "831ec7"
+              }
+            ]
+          },
+          "retExtInfo": {},
+          "time": 1790172266530
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "chainType": "Ethereum (ERC20)",
+              "addressDeposit": "0x3333333333333333333333333333333333333333",
+              "tagDeposit": "",
+              "chain": "ETH",
+              "batchReleaseLimit": "-1",
+              "contractAddress": "831ec7"
+            },
+            "currency": "USDT",
+            "network": "ERC20",
+            "address": "0x3333333333333333333333333333333333333333",
+            "tag": null
+          }
+        ]
+      }
+    ],
     "fetchFundingRateHistory": [
       {
         "description": "contract with a funding interval different from 8h",
