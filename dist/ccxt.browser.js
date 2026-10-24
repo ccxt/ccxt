@@ -218817,7 +218817,9 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                     'account': 'https://open-api.{hostname}/openApi',
                     'copyTrading': 'https://open-api.{hostname}/openApi',
                     'cswap': 'https://open-api.{hostname}/openApi',
-                    'api': 'https://open-api.{hostname}/openApi'
+                    'api': 'https://open-api.{hostname}/openApi',
+                    'agent': 'https://open-api.{hostname}/openApi',
+                    'wealth': 'https://open-api.{hostname}/openApi'
                 },
                 'test': {
                     'fund': 'https://open-api-vst.{hostname}/openApi',
@@ -218830,7 +218832,9 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                     'account': 'https://open-api-vst.{hostname}/openApi',
                     'copyTrading': 'https://open-api-vst.{hostname}/openApi',
                     'cswap': 'https://open-api-vst.{hostname}/openApi',
-                    'api': 'https://open-api-vst.{hostname}/openApi'
+                    'api': 'https://open-api-vst.{hostname}/openApi',
+                    'agent': 'https://open-api-vst.{hostname}/openApi',
+                    'wealth': 'https://open-api-vst.{hostname}/openApi'
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
@@ -221839,7 +221843,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                 const account = this.account();
                 account['free'] = this.safeString2(balance, 'availableMargin', 'availableBalance');
                 account['used'] = this.safeString(balance, 'usedMargin');
-                account['total'] = this.safeString(balance, 'maxWithdrawAmount');
+                account['total'] = this.safeString2(balance, 'balance', 'maxWithdrawAmount');
                 if (code !== undefined) {
                     result[code] = account;
                 }
@@ -222205,7 +222209,13 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                 collateralString = unrealizedPnlString !== undefined ? _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
             }
         }
-        const timestamp = this.safeInteger(position, 'openTime');
+        const timestamp = this.safeInteger2(position, 'openTime', 'createTime');
+        const positionSide = this.safeString(position, 'positionSide');
+        let hedged = undefined;
+        if (positionSide !== undefined) {
+            hedged = positionSide !== 'BOTH';
+        }
+        const percentageString = this.safeString(position, 'pnlRatio');
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'positionId'),
@@ -222216,13 +222226,13 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'entryPrice': this.safeNumber2(position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl': this.parseNumber(unrealizedPnlString),
             'realizedPnl': this.safeNumber(position, 'realisedProfit'),
-            'percentage': undefined,
+            'percentage': this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(percentageString, '100')),
             'contracts': this.safeNumber(position, 'positionAmt'),
             'contractSize': undefined,
             'markPrice': this.safeNumber(position, 'markPrice'),
             'lastPrice': undefined,
             'side': this.safeStringLower(position, 'positionSide'),
-            'hedged': undefined,
+            'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastUpdateTimestamp': this.safeInteger(position, 'updateTime'),
@@ -223954,8 +223964,12 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             request['symbol'] = market['id'];
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrders', market, params);
+        const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchOrders', market, paramsMarketType);
         if (type !== 'swap') {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOrders() is only supported for swap markets');
+        }
+        if (subType === 'inverse' || market !== undefined && market['inverse'] === true) {
+            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOrders() is not supported for inverse swap markets');
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -223963,7 +223977,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsMarketType);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsSubType);
         const response = await this.swapV1PrivateGetTradeFullOrder(this.extend(requestUntil, paramsUntil));
         //
         //     {
@@ -430201,6 +430215,33 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
                     'ACCOUNT_TYPE_WALLET': 'wallet',
                     'ACCOUNT_TYPE_SPOT': 'spot'
                 },
+                'networks': {
+                    // the venue names a token chain "<CHAIN>_TOKEN" and the native
+                    // chain by its own ticker, so only the former needs a mapping
+                    'BEP20': 'BSC_TOKEN',
+                    'TRC20': 'TRON',
+                    'ADA': 'ADA_TOKEN',
+                    'ALGO': 'ALGO_TOKEN',
+                    'ARBITRUM': 'ARB_TOKEN',
+                    'AVAXC': 'AVAXC_TOKEN',
+                    'BASE': 'BASE_TOKEN',
+                    'CELO': 'CELO_TOKEN',
+                    'EOS': 'EOS_TOKEN',
+                    'FTM': 'FTM_TOKEN',
+                    'MATIC': 'MATIC_TOKEN',
+                    'OP': 'OP_TOKEN',
+                    'QTUM': 'QTUM_TOKEN',
+                    'SOL': 'SOL_TOKEN',
+                    'TON': 'TON_TOKEN',
+                    'VET': 'VECHAIN_TOKEN',
+                    'WAVES': 'WAVES_TOKEN',
+                    'XDC': 'XDC_TOKEN',
+                    'XLM': 'XLM_TOKEN',
+                    'XRP': 'XRP_TOKEN'
+                },
+                'networksById': {
+                    'BSC': 'BEP20'
+                },
                 'fetchTradingFee': {
                     'method': 'fetchPrivateTradingFee'
                 },
@@ -430412,9 +430453,13 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name latoken#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+     * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */ async fetchCurrencies(params = {}) {
+        // sequential on purpose - with Promise.all the static request harness records
+        // whichever call finished last, which differs between the sync and async ports
         const response = await this.publicGetCurrency(params);
         //
         //     [
@@ -430448,7 +430493,43 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
         //         },
         //     ]
         //
-        return this.parseCurrencies(response);
+        //     [
+        //         {
+        //             "id":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "tag":"USDT",
+        //             "bindings":[
+        //                 {
+        //                     "minAmount":"5.000000000000000000",
+        //                     "maxAmount":"0",
+        //                     "fee":"3.000000000000000000",
+        //                     "percentFee":"0.250000000000000000",
+        //                     "providerName":"ERC20",
+        //                     "id":"973d2079-1fae-4fa7-82e4-bae55eba8284",
+        //                     "currencyProvider":"4d26b9ec-4bed-4bec-ba2f-02aaca8e84a1",
+        //                     "deflation":"0"
+        //                 },
+        //             ]
+        //         },
+        //     ]
+        //
+        // no params on this one - they belong to the currency request, not to the bindings
+        const bindingsResponse = await this.publicGetTransactionBindings();
+        const bindingsById = this.indexBy(bindingsResponse, 'id');
+        const rawCurrencies = this.toArray(response);
+        const merged = [];
+        for(let i = 0; i < rawCurrencies.length; i++){
+            const rawCurrency = rawCurrencies[i];
+            const bindingEntry = this.safeDict(bindingsById, this.safeString(rawCurrency, 'id'));
+            const bindings = this.safeList(bindingEntry, 'bindings');
+            let mergedCurrency = rawCurrency;
+            if (bindings !== undefined) {
+                mergedCurrency = this.extend(rawCurrency, {
+                    'bindings': bindings
+                });
+            }
+            merged.push(mergedCurrency);
+        }
+        return this.parseCurrencies(merged);
     }
     parseCurrency(currency) {
         const id = this.safeString(currency, 'id');
@@ -430456,6 +430537,42 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
         const code = this.safeCurrencyCode(tag);
         const currencyType = this.safeString(currency, 'type');
         const isCrypto = currencyType === 'CURRENCY_TYPE_CRYPTO' || currencyType === 'CURRENCY_TYPE_IEO';
+        const bindings = this.safeList(currency, 'bindings', []);
+        const networks = {};
+        for(let i = 0; i < bindings.length; i++){
+            const binding = bindings[i];
+            const networkId = this.safeString(binding, 'providerName');
+            const networkCode = this.networkIdToCode(networkId, code);
+            // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
+            // entries would land on the same unified code - keep the first one for a
+            // deterministic binding id, since withdrawals resolve the chain through it
+            if (networkCode !== undefined && !(networkCode in networks)) {
+                networks[networkCode] = {
+                    'info': binding,
+                    'id': this.safeString(binding, 'id'),
+                    'network': networkCode,
+                    'active': undefined,
+                    // the public endpoint serves one entry per chain without saying
+                    // whether it is bound for deposits, withdrawals or both
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': this.safeNumber(binding, 'fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(binding, 'minAmount'),
+                            // maxAmount is "0" on 1990 of the 1996 bindings and contradicts its
+                            // own minimum on the rest, so the venue does not keep it as a real cap
+                            'max': undefined
+                        }
+                    }
+                };
+            }
+        }
         return this.safeCurrencyStructure({
             'id': id,
             'code': code,
@@ -430465,7 +430582,7 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
             'active': this.safeString(currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
             'deposit': undefined,
             'withdraw': undefined,
-            'fee': this.safeNumber(currency, 'fee'),
+            'fee': undefined,
             'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals'))),
             'limits': {
                 'amount': {
@@ -430477,7 +430594,7 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
                     'max': undefined
                 }
             },
-            'networks': {}
+            'networks': networks
         });
     }
     /**
@@ -443920,7 +444037,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             if ('positionMode' in trade) {
                 timestamp = this.safeInteger(trade, 'timestamp');
                 amountString = this.safeString(trade, 'vol');
-                side = this.parseOrderSide(this.safeString(trade, 'side'));
+                side = this.parseContractOrderSide(this.safeString(trade, 'side'));
                 fee = {
                     'cost': this.safeString(trade, 'fee'),
                     'currency': this.safeCurrencyCode(this.safeString(trade, 'feeCurrency'))
@@ -445854,6 +445971,9 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         }
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
+        const isContract = marketResolved['contract'];
+        const sideRaw = this.safeString(order, 'side');
+        const side = isContract === true ? this.parseContractOrderSide(sideRaw) : this.parseOrderSide(sideRaw);
         const timestamp = this.safeIntegerN(order, [
             'time',
             'createTime',
@@ -445881,7 +446001,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             'symbol': marketResolved['symbol'],
             'type': this.parseOrderType(typeRaw),
             'timeInForce': timeInForce,
-            'side': this.parseOrderSide(this.safeString(order, 'side')),
+            'side': side,
             'price': this.safeNumber(order, 'price'),
             'triggerPrice': this.safeNumber2(order, 'stopPrice', 'triggerPrice'),
             'average': this.safeNumber(order, 'dealAvgPrice'),
@@ -445902,6 +446022,15 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             '2': 'sell'
         };
         return this.safeString(statuses, status, status);
+    }
+    parseContractOrderSide(side) {
+        const sides = {
+            '1': 'buy',
+            '2': 'buy',
+            '3': 'sell',
+            '4': 'sell'
+        };
+        return this.safeString(sides, side, side);
     }
     parseOrderType(status) {
         const statuses = {
@@ -473089,98 +473218,102 @@ class p2b extends _abstract_p2b_js__rspack_import_0/* ["default"] */.A {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': [
-                        [
-                            this.parseNumber('0'),
-                            this.parseNumber('0.2')
+                    'taker': this.parseNumber('0.002'),
+                    'maker': this.parseNumber('0.002'),
+                    'tiers': {
+                        'taker': [
+                            [
+                                this.parseNumber('0'),
+                                this.parseNumber('0.002')
+                            ],
+                            [
+                                this.parseNumber('1'),
+                                this.parseNumber('0.0019')
+                            ],
+                            [
+                                this.parseNumber('5'),
+                                this.parseNumber('0.0018')
+                            ],
+                            [
+                                this.parseNumber('10'),
+                                this.parseNumber('0.0017')
+                            ],
+                            [
+                                this.parseNumber('25'),
+                                this.parseNumber('0.0016')
+                            ],
+                            [
+                                this.parseNumber('75'),
+                                this.parseNumber('0.0015')
+                            ],
+                            [
+                                this.parseNumber('100'),
+                                this.parseNumber('0.0014')
+                            ],
+                            [
+                                this.parseNumber('150'),
+                                this.parseNumber('0.0013')
+                            ],
+                            [
+                                this.parseNumber('300'),
+                                this.parseNumber('0.0012')
+                            ],
+                            [
+                                this.parseNumber('450'),
+                                this.parseNumber('0.0011')
+                            ],
+                            [
+                                this.parseNumber('500'),
+                                this.parseNumber('0.001')
+                            ]
                         ],
-                        [
-                            this.parseNumber('1'),
-                            this.parseNumber('0.19')
-                        ],
-                        [
-                            this.parseNumber('5'),
-                            this.parseNumber('0.18')
-                        ],
-                        [
-                            this.parseNumber('10'),
-                            this.parseNumber('0.17')
-                        ],
-                        [
-                            this.parseNumber('25'),
-                            this.parseNumber('0.16')
-                        ],
-                        [
-                            this.parseNumber('75'),
-                            this.parseNumber('0.15')
-                        ],
-                        [
-                            this.parseNumber('100'),
-                            this.parseNumber('0.14')
-                        ],
-                        [
-                            this.parseNumber('150'),
-                            this.parseNumber('0.13')
-                        ],
-                        [
-                            this.parseNumber('300'),
-                            this.parseNumber('0.12')
-                        ],
-                        [
-                            this.parseNumber('450'),
-                            this.parseNumber('0.11')
-                        ],
-                        [
-                            this.parseNumber('500'),
-                            this.parseNumber('0.1')
+                        'maker': [
+                            [
+                                this.parseNumber('0'),
+                                this.parseNumber('0.002')
+                            ],
+                            [
+                                this.parseNumber('1'),
+                                this.parseNumber('0.0018')
+                            ],
+                            [
+                                this.parseNumber('5'),
+                                this.parseNumber('0.0016')
+                            ],
+                            [
+                                this.parseNumber('10'),
+                                this.parseNumber('0.0014')
+                            ],
+                            [
+                                this.parseNumber('25'),
+                                this.parseNumber('0.0012')
+                            ],
+                            [
+                                this.parseNumber('75'),
+                                this.parseNumber('0.001')
+                            ],
+                            [
+                                this.parseNumber('100'),
+                                this.parseNumber('0.0008')
+                            ],
+                            [
+                                this.parseNumber('150'),
+                                this.parseNumber('0.0006')
+                            ],
+                            [
+                                this.parseNumber('300'),
+                                this.parseNumber('0.0004')
+                            ],
+                            [
+                                this.parseNumber('450'),
+                                this.parseNumber('0.0002')
+                            ],
+                            [
+                                this.parseNumber('500'),
+                                this.parseNumber('0.0001')
+                            ]
                         ]
-                    ],
-                    'maker': [
-                        [
-                            this.parseNumber('0'),
-                            this.parseNumber('0.2')
-                        ],
-                        [
-                            this.parseNumber('1'),
-                            this.parseNumber('0.18')
-                        ],
-                        [
-                            this.parseNumber('5'),
-                            this.parseNumber('0.16')
-                        ],
-                        [
-                            this.parseNumber('10'),
-                            this.parseNumber('0.14')
-                        ],
-                        [
-                            this.parseNumber('25'),
-                            this.parseNumber('0.12')
-                        ],
-                        [
-                            this.parseNumber('75'),
-                            this.parseNumber('0.1')
-                        ],
-                        [
-                            this.parseNumber('100'),
-                            this.parseNumber('0.08')
-                        ],
-                        [
-                            this.parseNumber('150'),
-                            this.parseNumber('0.06')
-                        ],
-                        [
-                            this.parseNumber('300'),
-                            this.parseNumber('0.04')
-                        ],
-                        [
-                            this.parseNumber('450'),
-                            this.parseNumber('0.02')
-                        ],
-                        [
-                            this.parseNumber('500'),
-                            this.parseNumber('0.01')
-                        ]
-                    ]
+                    }
                 }
             },
             'features': {
@@ -537387,7 +537520,7 @@ class bingx extends _bingx_js__rspack_import_0/* ["default"] */.A {
         const marketOptions = this.safeDict(this.options, marketType);
         const timeframes = this.safeDict(marketOptions, 'timeframes', {});
         const unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
-        if (this.safeValue(this.ohlcvs[symbol], rawTimeframe) === undefined) {
+        if (this.safeValue(this.ohlcvs[symbol], unifiedTimeframe) === undefined) {
             const subscriptionHash = dataType;
             const subscription = this.safeDict(client.subscriptions, subscriptionHash);
             // subscription.limit is only set when watchOHLCV registers the subscription;
@@ -592103,7 +592236,6 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         //         "s": "BTCUSDT"
         //     }
         //
-        this.handleBidAsk(client, message);
         const rawTicker = this.safeDictN(message, [
             'd',
             'data',
@@ -592115,6 +592247,7 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         const symbol = market['symbol'];
         let ticker;
         if (market['spot'] === true) {
+            this.handleBidAsk(client, message); // the bids-asks channel is spot only
             ticker = this.parseWsTicker(rawTicker, market);
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601(timestamp);
@@ -592395,6 +592528,22 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
     }
     handleBidAsk(client, message) {
         //
+        // protobuf
+        //
+        //    {
+        //        "channel": "spot@public.aggre.bookTicker.v3.api.pb@100ms@BTCUSDT",
+        //        "symbol": "BTCUSDT",
+        //        "sendTime": "1792779974344",
+        //        "publicAggreBookTicker": {
+        //            "bidPrice": "81577.79",
+        //            "bidQuantity": "0.11985594",
+        //            "askPrice": "81577.8",
+        //            "askQuantity": "0.12200121"
+        //        }
+        //    }
+        //
+        // retired json channel
+        //
         //    {
         //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
         //        "d": {
@@ -592417,19 +592566,23 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         client.resolve(parsedTicker, messageHash);
     }
     parseWsBidAsk(ticker, market = undefined) {
-        const data = this.safeDict(ticker, 'd');
-        const marketId = this.safeString(ticker, 's');
+        const data = this.safeDictN(ticker, [
+            'd',
+            'data',
+            'publicAggreBookTicker'
+        ]);
+        const marketId = this.safeString2(ticker, 's', 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = this.safeString(marketResolved, 'symbol');
-        const timestamp = this.safeInteger(ticker, 't');
+        const timestamp = this.safeInteger2(ticker, 't', 'sendTime');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'ask': this.safeNumber(data, 'a'),
-            'askVolume': this.safeNumber(data, 'A'),
-            'bid': this.safeNumber(data, 'b'),
-            'bidVolume': this.safeNumber(data, 'B'),
+            'ask': this.safeNumber2(data, 'a', 'askPrice'),
+            'askVolume': this.safeNumber2(data, 'A', 'askQuantity'),
+            'bid': this.safeNumber2(data, 'b', 'bidPrice'),
+            'bidVolume': this.safeNumber2(data, 'B', 'bidQuantity'),
             'info': ticker
         }, marketResolved);
     }
@@ -594355,10 +594508,11 @@ class modetrade extends _modetrade_js__rspack_import_0/* ["default"] */.A {
         //         "count": 3689
         //     }
         //
+        const timestamp = this.safeInteger(ticker, 'timestamp');
         return this.safeTicker({
             'symbol': this.safeSymbol(undefined, market),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'high': this.safeString(ticker, 'high'),
             'low': this.safeString(ticker, 'low'),
             'bid': undefined,
@@ -594400,8 +594554,9 @@ class modetrade extends _modetrade_js__rspack_import_0/* ["default"] */.A {
         const marketId = this.safeString(data, 'symbol');
         const market = this.safeMarket(marketId);
         const timestamp = this.safeInteger(message, 'ts');
-        data['date'] = timestamp;
-        const ticker = this.parseWsTicker(data, market);
+        const ticker = this.parseWsTicker(this.extend(data, {
+            'timestamp': timestamp
+        }), market);
         ticker['symbol'] = market['symbol'];
         this.tickers[market['symbol']] = ticker;
         client.resolve(ticker, topic);
@@ -594458,7 +594613,7 @@ class modetrade extends _modetrade_js__rspack_import_0/* ["default"] */.A {
             const marketId = this.safeString(data[i], 'symbol');
             const market = this.safeMarket(marketId);
             const ticker = this.parseWsTicker(this.extend(data[i], {
-                'date': timestamp
+                'timestamp': timestamp
             }), market);
             this.tickers[market['symbol']] = ticker;
             result.push(ticker);
@@ -595218,7 +595373,7 @@ class modetrade extends _modetrade_js__rspack_import_0/* ["default"] */.A {
         }
         return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
     }
-    setPositionsCache(client, type, symbols = undefined) {
+    setPositionsCache(client, symbols = undefined) {
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';

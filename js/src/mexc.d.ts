@@ -369,6 +369,7 @@ export default class mexc extends Exchange {
     cancelAllOrders(symbol?: Str, params?: Dict): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderSide(status: Str): Str;
+    parseContractOrderSide(side: Str): Str;
     parseOrderType(status: Str): Str;
     parseOrderStatus(status: Str): Str;
     parseOrderTimeInForce(status: Str): Str;

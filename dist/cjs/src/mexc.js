@@ -1782,7 +1782,7 @@ class mexc extends mexc$1["default"] {
             if ('positionMode' in trade) {
                 timestamp = this.safeInteger(trade, 'timestamp');
                 amountString = this.safeString(trade, 'vol');
-                side = this.parseOrderSide(this.safeString(trade, 'side'));
+                side = this.parseContractOrderSide(this.safeString(trade, 'side'));
                 fee = {
                     'cost': this.safeString(trade, 'fee'),
                     'currency': this.safeCurrencyCode(this.safeString(trade, 'feeCurrency')),
@@ -3762,6 +3762,9 @@ class mexc extends mexc$1["default"] {
         }
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
+        const isContract = marketResolved['contract'];
+        const sideRaw = this.safeString(order, 'side');
+        const side = (isContract === true) ? this.parseContractOrderSide(sideRaw) : this.parseOrderSide(sideRaw);
         const timestamp = this.safeIntegerN(order, ['time', 'createTime', 'transactTime']);
         let fee = undefined;
         const feeCurrency = this.safeString(order, 'feeCurrency');
@@ -3785,7 +3788,7 @@ class mexc extends mexc$1["default"] {
             'symbol': marketResolved['symbol'],
             'type': this.parseOrderType(typeRaw),
             'timeInForce': timeInForce,
-            'side': this.parseOrderSide(this.safeString(order, 'side')),
+            'side': side,
             'price': this.safeNumber(order, 'price'),
             'triggerPrice': this.safeNumber2(order, 'stopPrice', 'triggerPrice'),
             'average': this.safeNumber(order, 'dealAvgPrice'),
@@ -3804,9 +3807,17 @@ class mexc extends mexc$1["default"] {
             'SELL': 'sell',
             '1': 'buy',
             '2': 'sell',
-            // contracts v1 : TODO
         };
         return this.safeString(statuses, status, status);
+    }
+    parseContractOrderSide(side) {
+        const sides = {
+            '1': 'buy', // open long
+            '2': 'buy', // close short
+            '3': 'sell', // open short
+            '4': 'sell', // close long
+        };
+        return this.safeString(sides, side, side);
     }
     parseOrderType(status) {
         const statuses = {

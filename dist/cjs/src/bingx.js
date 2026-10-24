@@ -141,6 +141,8 @@ class bingx extends bingx$1["default"] {
                     'copyTrading': 'https://open-api.{hostname}/openApi',
                     'cswap': 'https://open-api.{hostname}/openApi',
                     'api': 'https://open-api.{hostname}/openApi',
+                    'agent': 'https://open-api.{hostname}/openApi',
+                    'wealth': 'https://open-api.{hostname}/openApi',
                 },
                 'test': {
                     'fund': 'https://open-api-vst.{hostname}/openApi',
@@ -154,6 +156,8 @@ class bingx extends bingx$1["default"] {
                     'copyTrading': 'https://open-api-vst.{hostname}/openApi',
                     'cswap': 'https://open-api-vst.{hostname}/openApi',
                     'api': 'https://open-api-vst.{hostname}/openApi',
+                    'agent': 'https://open-api-vst.{hostname}/openApi',
+                    'wealth': 'https://open-api-vst.{hostname}/openApi',
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
@@ -2753,7 +2757,7 @@ class bingx extends bingx$1["default"] {
                 const account = this.account();
                 account['free'] = this.safeString2(balance, 'availableMargin', 'availableBalance');
                 account['used'] = this.safeString(balance, 'usedMargin');
-                account['total'] = this.safeString(balance, 'maxWithdrawAmount');
+                account['total'] = this.safeString2(balance, 'balance', 'maxWithdrawAmount');
                 if (code !== undefined) {
                     result[code] = account;
                 }
@@ -3127,7 +3131,13 @@ class bingx extends bingx$1["default"] {
                 collateralString = (unrealizedPnlString !== undefined) ? Precise["default"].stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
             }
         }
-        const timestamp = this.safeInteger(position, 'openTime');
+        const timestamp = this.safeInteger2(position, 'openTime', 'createTime');
+        const positionSide = this.safeString(position, 'positionSide');
+        let hedged = undefined;
+        if (positionSide !== undefined) {
+            hedged = (positionSide !== 'BOTH');
+        }
+        const percentageString = this.safeString(position, 'pnlRatio');
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'positionId'),
@@ -3138,13 +3148,13 @@ class bingx extends bingx$1["default"] {
             'entryPrice': this.safeNumber2(position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl': this.parseNumber(unrealizedPnlString),
             'realizedPnl': this.safeNumber(position, 'realisedProfit'),
-            'percentage': undefined,
+            'percentage': this.parseNumber(Precise["default"].stringMul(percentageString, '100')),
             'contracts': this.safeNumber(position, 'positionAmt'),
             'contractSize': undefined,
             'markPrice': this.safeNumber(position, 'markPrice'),
             'lastPrice': undefined,
             'side': this.safeStringLower(position, 'positionSide'),
-            'hedged': undefined,
+            'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastUpdateTimestamp': this.safeInteger(position, 'updateTime'),
@@ -4884,8 +4894,12 @@ class bingx extends bingx$1["default"] {
             request['symbol'] = market['id'];
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrders', market, params);
+        const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchOrders', market, paramsMarketType);
         if (type !== 'swap') {
             throw new errors.NotSupported(this.id + ' fetchOrders() is only supported for swap markets');
+        }
+        if ((subType === 'inverse') || ((market !== undefined) && (market['inverse'] === true))) {
+            throw new errors.NotSupported(this.id + ' fetchOrders() is not supported for inverse swap markets');
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -4893,7 +4907,7 @@ class bingx extends bingx$1["default"] {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsMarketType);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsSubType);
         const response = await this.swapV1PrivateGetTradeFullOrder(this.extend(requestUntil, paramsUntil));
         //
         //     {
