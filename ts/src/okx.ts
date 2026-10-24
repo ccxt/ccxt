@@ -772,8 +772,10 @@ export default class okx extends Exchange {
                     '50026': ExchangeNotAvailable, // System error, please try again later.
                     '50027': PermissionDenied, // The account is restricted from trading
                     '50028': ExchangeError, // Unable to take the order, please reach out to support center for details
+                    '50030': PermissionDenied, // You don't have permission to use this API endpoint
+                    '50040': RateLimitExceeded, // Too frequent operations, please try again later
                     '50044': BadRequest, // Must select one broker type
-                    '50061': ExchangeError, // You've reached the maximum order rate limit for this account.
+                    '50061': RateLimitExceeded, // You've reached the maximum order rate limit for this account.
                     '50062': ExchangeError, // This feature is currently unavailable.
                     // API Class
                     '50100': ExchangeError, // API frozen, please contact customer service
@@ -792,6 +794,8 @@ export default class okx extends Exchange {
                     '50113': AuthenticationError, // Invalid signature
                     '50114': AuthenticationError, // Invalid authorization
                     '50115': BadRequest, // Invalid request method
+                    '50120': PermissionDenied, // This API key doesn't have permission to use this function
+                    '50123': PermissionDenied, // This API Key does not have trading permission for the Crypto.
                     // Trade Class
                     '51000': BadRequest, // Parameter {0} error
                     '51001': BadSymbol, // Instrument ID does not exist
@@ -883,6 +887,8 @@ export default class okx extends Exchange {
                     '51162': InvalidOrder, // You have {instrument} open orders. Cancel these orders and try again
                     '51163': InvalidOrder, // You hold {instrument} positions. Close these positions and try again
                     '51166': InvalidOrder, // Currently, we don't support leading trades with this instrument
+                    '51169': InvalidOrder, // Order failed because you don't have any positions in this direction for this contract to reduce or close.
+                    '51170': InvalidOrder, // Failed to place order. A reduce-only order can't be the same trading direction as your existing positions.
                     '51174': InvalidOrder, // The number of {param0} pending orders reached the upper limit of {param1} (orders).
                     '51185': InvalidOrder, // The maximum value allowed per order is {maxOrderValue} USD
                     '51201': InvalidOrder, // Value of per market order cannot exceed 100,000 USDT
