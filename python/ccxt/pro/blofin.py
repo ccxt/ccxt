@@ -462,7 +462,25 @@ class blofin(ccxt.async_support.blofin):
         #     }
         #
         marketType = 'swap'  # for now
-        self.balance[marketType] = self.parse_ws_balance(message)
+        # merge the parsed update into the existing balance object instead of
+        # replacing it: a consumer awakened by an earlier message holds a
+        # reference to this.balance[marketType], and Client.resolve is a no-op
+        # while nobody is awaiting, so a replaced object would make updates
+        # landing in that window invisible to the consumer forever (same class
+        # as issue #26773); the free/used/total aggregates are rebuilt from
+        # the merged currencies by safeBalance
+        if self.balance is None:
+            self.balance = {}
+        self.balance[marketType] = self.safe_dict(self.balance, marketType, {})
+        parsed = self.parse_ws_balance(message)
+        reserved = ['free', 'used', 'total']
+        keys = list(parsed.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if self.in_array(key, reserved):
+                continue
+            self.balance[marketType][key] = parsed[key]
+        self.balance[marketType] = self.safe_balance(self.balance[marketType])
         messageHash = marketType + ':balance'
         client.resolve(self.balance[marketType], messageHash)
 

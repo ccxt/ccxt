@@ -109,7 +109,15 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         event = self.safe_string(message, 'event')
         if event == 'subscribed':
             return
-        result = {'info': message}
+        # merge updates into the existing balance object instead of building a
+        # fresh one: a consumer awakened by an earlier message holds a
+        # reference to this.balance, and Client.resolve is a no-op while
+        # nobody is awaiting, so a replaced object would make updates landing
+        # in that window invisible to the consumer forever (same class as
+        # issue #26773)
+        if self.balance is None:
+            self.balance = {}
+        self.balance['info'] = message
         balances = self.safe_list(message, 'balances', [])
         for i in range(0, len(balances)):
             entry = self.safe_dict(balances, i)
@@ -119,9 +127,9 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             account['free'] = self.safe_string(entry, 'available')
             account['total'] = self.safe_string(entry, 'balance')
             if code is not None:
-                result[code] = account
+                self.balance[code] = account
         messageHash = 'balance'
-        self.balance = self.safe_balance(result)
+        self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, messageHash)
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:

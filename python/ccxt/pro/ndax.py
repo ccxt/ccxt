@@ -484,11 +484,17 @@ class ndax(ccxt.async_support.ndax):
         #     ]
         #
         symbol = self.safe_string(subscription, 'symbol')
+        if symbol is None:
+            return
         snapshot = self.parse_order_book(payload, symbol)
         limit = self.safe_integer(subscription, 'limit')
-        orderbook = self.order_book(snapshot, limit)
-        if symbol is not None:
-            self.orderbooks[symbol] = orderbook
+        # reset the existing orderbook instead of replacing it: a consumer
+        # holds a reference to the old object and would never see updates
+        # after a re-subscription snapshot
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({}, limit)
+        orderbook = self.orderbooks[symbol]
+        orderbook.reset(snapshot)
         messageHash = self.safe_string(subscription, 'messageHash')
         client.resolve(orderbook, messageHash)
 

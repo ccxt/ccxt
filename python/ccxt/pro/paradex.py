@@ -628,7 +628,24 @@ class paradex(ccxt.async_support.paradex):
         #
         params = self.safe_dict(message, 'params', {})
         data = self.safe_dict(params, 'data', {})
-        self.balance = self.parse_ws_balance(data)
+        # merge the parsed update into the existing balance object instead of
+        # replacing it: a consumer awakened by an earlier message holds a
+        # reference to this.balance, and Client.resolve is a no-op while
+        # nobody is awaiting, so a replaced object would make updates landing
+        # in that window invisible to the consumer forever (same class as
+        # issue #26773); the free/used/total aggregates are rebuilt from the
+        # merged currencies by safeBalance
+        balance = self.parse_ws_balance(data)
+        if self.balance is None:
+            self.balance = {}
+        reserved = ['free', 'used', 'total']
+        keys = list(balance.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if self.in_array(key, reserved):
+                continue
+            self.balance[key] = balance[key]
+        self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
     def parse_ws_balance(self, data: dict) -> Balances:

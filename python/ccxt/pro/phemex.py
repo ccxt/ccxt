@@ -747,8 +747,13 @@ class phemex(ccxt.async_support.phemex):
             book = self.safe_dict_2(message, 'book', 'orderbook_p', {})
             snapshot = self.custom_parse_order_book(book, symbol, timestamp, 'bids', 'asks', 0, 1, market)
             snapshot['nonce'] = nonce
-            orderbook = self.order_book(snapshot, depth)
-            self.orderbooks[symbol] = orderbook
+            # reset the existing orderbook instead of replacing it: a consumer
+            # holds a reference to the old object and would never see updates
+            # after a re-subscription snapshot
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book({}, depth)
+            orderbook = self.orderbooks[symbol]
+            orderbook.reset(snapshot)
             client.resolve(orderbook, messageHash)
         else:
             if symbol in self.orderbooks:

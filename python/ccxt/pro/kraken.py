@@ -1461,20 +1461,25 @@ class kraken(ccxt.async_support.kraken):
         #         "sequence": 1
         #     }
         #
+        # merge updates into the existing balance object instead of building a
+        # fresh one: a consumer awakened by an earlier message holds a reference
+        # to this.balance[type], and Client.resolve is a no-op while nobody is
+        # awaiting, so a replaced object would make updates landing in that
+        # window invisible to the consumer forever (issue #26773)
+        type = 'spot'
+        if self.balance is None:
+            self.balance = {}
+        self.balance[type] = self.safe_dict(self.balance, type, {})
+        self.balance[type]['info'] = message
         data = self.safe_list(message, 'data', [])
-        result = {'info': message}
         for i in range(0, len(data)):
             currencyId = self.safe_string(data[i], 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
             eq = self.safe_string(data[i], 'balance')
             account['total'] = eq
-            result[code] = account
-        type = 'spot'
-        balance = self.safe_balance(result)
-        oldBalance = self.safe_dict(self.balance, type, {})
-        newBalance = self.deep_extend(oldBalance, balance)
-        self.balance[type] = self.safe_balance(newBalance)
+            self.balance[type][code] = account
+        self.balance[type] = self.safe_balance(self.balance[type])
         channel = self.safe_string(message, 'channel')
         client.resolve(self.balance[type], channel)
 

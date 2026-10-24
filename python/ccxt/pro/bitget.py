@@ -965,7 +965,13 @@ class bitget(ccxt.async_support.bitget):
                     self.spawn(self.handle_check_sum_error, client, symbol, messageHash)
                     return
         else:
-            orderbook = self.order_book({})
+            # reset the existing orderbook instead of replacing it: a consumer
+            # holds a reference to the old object and would never see updates
+            # after this snapshot (every frame of the non-incremental channels
+            # is a full snapshot)
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book({})
+            orderbook = self.orderbooks[symbol]
             bidsKey = 'bids'
             asksKey = 'asks'
             # bitget UTA has `a` and `b` instead of `asks` and `bids`
@@ -977,7 +983,6 @@ class bitget(ccxt.async_support.bitget):
                     bidsKey = 'b'
             parsedOrderbook = self.parse_order_book(rawOrderBook, symbol, timestamp, bidsKey, asksKey)
             orderbook.reset(parsedOrderbook)
-            self.orderbooks[symbol] = orderbook
         client.resolve(self.orderbooks[symbol], messageHash)
 
     async def handle_check_sum_error(self, client: Client, symbol: str, messageHash: str):
