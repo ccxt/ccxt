@@ -658,6 +658,35 @@ impl LatokenCore {
         m.insert("ACCOUNT_TYPE_SPOT".to_string(), Value::Str("spot".into()));
     m
 }));
+        m.insert("networks".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("BEP20".to_string(), Value::Str("BSC_TOKEN".into()));
+        m.insert("TRC20".to_string(), Value::Str("TRON".into()));
+        m.insert("ADA".to_string(), Value::Str("ADA_TOKEN".into()));
+        m.insert("ALGO".to_string(), Value::Str("ALGO_TOKEN".into()));
+        m.insert("ARBITRUM".to_string(), Value::Str("ARB_TOKEN".into()));
+        m.insert("AVAXC".to_string(), Value::Str("AVAXC_TOKEN".into()));
+        m.insert("BASE".to_string(), Value::Str("BASE_TOKEN".into()));
+        m.insert("CELO".to_string(), Value::Str("CELO_TOKEN".into()));
+        m.insert("EOS".to_string(), Value::Str("EOS_TOKEN".into()));
+        m.insert("FTM".to_string(), Value::Str("FTM_TOKEN".into()));
+        m.insert("MATIC".to_string(), Value::Str("MATIC_TOKEN".into()));
+        m.insert("OP".to_string(), Value::Str("OP_TOKEN".into()));
+        m.insert("QTUM".to_string(), Value::Str("QTUM_TOKEN".into()));
+        m.insert("SOL".to_string(), Value::Str("SOL_TOKEN".into()));
+        m.insert("TON".to_string(), Value::Str("TON_TOKEN".into()));
+        m.insert("VET".to_string(), Value::Str("VECHAIN_TOKEN".into()));
+        m.insert("WAVES".to_string(), Value::Str("WAVES_TOKEN".into()));
+        m.insert("XDC".to_string(), Value::Str("XDC_TOKEN".into()));
+        m.insert("XLM".to_string(), Value::Str("XLM_TOKEN".into()));
+        m.insert("XRP".to_string(), Value::Str("XRP_TOKEN".into()));
+    m
+}));
+        m.insert("networksById".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("BSC".to_string(), Value::Str("BEP20".into()));
+    m
+}));
         m.insert("fetchTradingFee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::Str("fetchPrivateTradingFee".into()));
@@ -931,6 +960,8 @@ impl LatokenCore {
  * @method
  * @name latoken#fetchCurrencies
  * @description fetches all available currencies on an exchange
+ * @see https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+ * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -939,8 +970,84 @@ impl LatokenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        // sequential on purpose - with Promise.all the static request harness records
+        // whichever call finished last, which differs between the sync and async ports
         let mut response: Value = self.public_get_currency(&[params]).await;
-        return self.parse_currencies(response);
+        //
+        //     [
+        //         {
+        //             "id":"1a075819-9e0b-48fc-8784-4dab1d186d6d",
+        //             "status":"CURRENCY_STATUS_ACTIVE",
+        //             "type":"CURRENCY_TYPE_ALTERNATIVE", // CURRENCY_TYPE_CRYPTO, CURRENCY_TYPE_IEO
+        //             "name":"MyCryptoBank",
+        //             "tag":"MCB",
+        //             "description":"",
+        //             "logo":"",
+        //             "decimals":18,
+        //             "created":1572912000000,
+        //             "tier":1,
+        //             "assetClass":"ASSET_CLASS_UNKNOWN",
+        //             "minTransferAmount":0
+        //         },
+        //         {
+        //             "id":"db02758e-2507-46a5-a805-7bc60355b3eb",
+        //             "status":"CURRENCY_STATUS_ACTIVE",
+        //             "type":"CURRENCY_TYPE_FUTURES_CONTRACT",
+        //             "name":"BTC USDT Futures Contract",
+        //             "tag":"BTCUSDT",
+        //             "description":"",
+        //             "logo":"",
+        //             "decimals":8,
+        //             "created":1589459984395,
+        //             "tier":1,
+        //             "assetClass":"ASSET_CLASS_UNKNOWN",
+        //             "minTransferAmount":0
+        //         },
+        //     ]
+        //
+        //     [
+        //         {
+        //             "id":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "tag":"USDT",
+        //             "bindings":[
+        //                 {
+        //                     "minAmount":"5.000000000000000000",
+        //                     "maxAmount":"0",
+        //                     "fee":"3.000000000000000000",
+        //                     "percentFee":"0.250000000000000000",
+        //                     "providerName":"ERC20",
+        //                     "id":"973d2079-1fae-4fa7-82e4-bae55eba8284",
+        //                     "currencyProvider":"4d26b9ec-4bed-4bec-ba2f-02aaca8e84a1",
+        //                     "deflation":"0"
+        //                 },
+        //             ]
+        //         },
+        //     ]
+        //
+        // no params on this one - they belong to the currency request, not to the bindings
+        let mut bindingsResponse: Value = self.public_get_transaction_bindings(&[]).await;
+        let mut bindingsById: Value = self.index_by(bindingsResponse, Value::Str("id".into()));
+        let mut rawCurrencies: Value = self.to_array(response);
+        let mut merged: Vec<Value> = Vec::new();
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_907: bool = true;
+            while { if !__for_first_907 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_907 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawCurrencies.len() as i64) as f64) } {
+            let mut rawCurrency: Value = rawCurrencies.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut bindingEntry: Value = self.safe_dict(bindingsById.clone(), self.safe_string_k(rawCurrency.clone(), "id", &[]), &[]);
+            let mut bindings: Value = self.safe_list_k(bindingEntry, "bindings", &[]);
+            let mut mergedCurrency: Value = rawCurrency.clone();
+            if (bindings != Value::Null) {
+                mergedCurrency = self.extend(rawCurrency, &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("bindings".to_string(), bindings);
+                    m
+                })]);
+            }
+            merged.push(mergedCurrency);
+        }
+        }
+        return self.parse_currencies(Value::from(merged));
 
     Value::Null
 }
@@ -951,6 +1058,53 @@ impl LatokenCore {
         let mut code: Value = self.safe_currency_code(tag, &[]);
         let mut currencyType: Option<String> = self.safe_string_k(currency.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut isCrypto: bool = (currencyType.as_deref() == Some("CURRENCY_TYPE_CRYPTO")) || (currencyType.as_deref() == Some("CURRENCY_TYPE_IEO"));
+        let mut bindings: Value = self.safe_list_k(currency.clone(), "bindings", &[Value::from(vec![])]);
+        let mut networks: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_908: bool = true;
+            while { if !__for_first_908 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_908 = false; i.as_f64().unwrap_or(f64::NAN) < ((bindings.len() as i64) as f64) } {
+            let mut binding: Value = bindings.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut networkId: Value = self.safe_string_k(binding.clone(), "providerName", &[]);
+            let mut networkCode: Value = self.network_id_to_code(&[networkId, code.clone()]);
+            // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
+            // entries would land on the same unified code - keep the first one for a
+            // deterministic binding id, since withdrawals resolve the chain through it
+            if (networkCode != Value::Null) && !(matches!((&networks, &networkCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if let Value::Dict(__d) = &mut networks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), binding.clone());
+        m.insert("id".to_string(), self.safe_string_k(binding.clone(), "id", &[]));
+        m.insert("network".to_string(), networkCode.clone());
+        m.insert("active".to_string(), Value::Null);
+        m.insert("deposit".to_string(), Value::Null);
+        m.insert("withdraw".to_string(), Value::Null);
+        m.insert("fee".to_string(), self.safe_number_k(binding.clone(), "fee", &[]));
+        m.insert("precision".to_string(), Value::Null);
+        m.insert("limits".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("deposit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), Value::Null);
+        m.insert("max".to_string(), Value::Null);
+    m
+}));
+        m.insert("withdraw".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(binding, "minAmount", &[]));
+        m.insert("max".to_string(), Value::Null);
+    m
+}));
+    m
+}));
+    m
+})); }
+            }
+        }
+        }
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -961,7 +1115,7 @@ impl LatokenCore {
         m.insert("active".to_string(), Value::Bool(self.safe_string_k(currency.clone(), "status", &[]).as_str() == Some("CURRENCY_STATUS_ACTIVE")));
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
-        m.insert("fee".to_string(), self.safe_number_k(currency.clone(), "fee", &[]));
+        m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "decimals", &[])]), &[]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -979,10 +1133,7 @@ impl LatokenCore {
 }));
     m
 }));
-        m.insert("networks".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
+        m.insert("networks".to_string(), networks);
     m
 }));
 
@@ -1048,8 +1199,8 @@ impl LatokenCore {
         let mut balances: Value = self.safe_list(balancesByType, accountType, &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_907: bool = true;
-            while { if !__for_first_907 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_907 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
+            let mut __for_first_909: bool = true;
+            while { if !__for_first_909 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_909 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
             let mut timestamp: Value = self.safe_integer_k(balance.clone(), "timestamp", &[]);
@@ -1135,8 +1286,8 @@ impl LatokenCore {
         let mut bids: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_908: bool = true;
-            while { if !__for_first_908 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_908 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawAsks.len() as i64) as f64) } {
+            let mut __for_first_910: bool = true;
+            while { if !__for_first_910 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_910 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawAsks.len() as i64) as f64) } {
             let mut askEntry: Value = rawAsks.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut askQuantity: Value = self.safe_string_k(askEntry.clone(), "quantity", &[]);
             if crate::precise::Precise::stringGt(&askQuantity, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -1146,8 +1297,8 @@ impl LatokenCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_909: bool = true;
-            while { if !__for_first_909 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_909 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBids.len() as i64) as f64) } {
+            let mut __for_first_911: bool = true;
+            while { if !__for_first_911 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_911 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBids.len() as i64) as f64) } {
             let mut bidEntry: Value = rawBids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut bidQuantity: Value = self.safe_string_k(bidEntry.clone(), "quantity", &[]);
             if crate::precise::Precise::stringGt(&bidQuantity, &Value::Str("0".into())).as_bool() == Some(true) {

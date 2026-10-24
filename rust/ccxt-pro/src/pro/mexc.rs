@@ -483,14 +483,14 @@ impl MexcCore {
         //         "s": "BTCUSDT"
         //     }
         //
-        self.handle_bid_ask(client.clone(), message.clone());
         let mut rawTicker: Value = self.safe_dict_n(message.clone(), Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("publicAggreBookTicker".into())]), &[]);
         let mut marketId: Value = self.safe_string2(message.clone(), Value::Str("s".into()), Value::Str("symbol".into()), &[]);
-        let mut timestamp: Value = self.safe_integer2(message, Value::Str("t".into()), Value::Str("sendTime".into()), &[]);
+        let mut timestamp: Value = self.safe_integer2(message.clone(), Value::Str("t".into()), Value::Str("sendTime".into()), &[]);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut ticker: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            self.handle_bid_ask(client.clone(), message); // the bids-asks channel is spot only
             ticker = self.parse_ws_ticker(rawTicker.clone(), &[market.clone()]);
             add_element_to_object(&mut ticker, &Value::Str("timestamp".into()), timestamp.clone());
             add_element_to_object(&mut ticker, &Value::Str("datetime".into()), self.iso8601(timestamp));
@@ -801,6 +801,22 @@ impl MexcCore {
 
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
         //
+        // protobuf
+        //
+        //    {
+        //        "channel": "spot@public.aggre.bookTicker.v3.api.pb@100ms@BTCUSDT",
+        //        "symbol": "BTCUSDT",
+        //        "sendTime": "1792779974344",
+        //        "publicAggreBookTicker": {
+        //            "bidPrice": "81577.79",
+        //            "bidQuantity": "0.11985594",
+        //            "askPrice": "81577.8",
+        //            "askQuantity": "0.12200121"
+        //        }
+        //    }
+        //
+        // retired json channel
+        //
         //    {
         //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
         //        "d": {
@@ -825,20 +841,20 @@ impl MexcCore {
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut data: Value = self.safe_dict_k(ticker.clone(), "d", &[]);
-        let mut marketId: Value = self.safe_string_k(ticker.clone(), "s", &[]);
+        let mut data: Value = self.safe_dict_n(ticker.clone(), Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("publicAggreBookTicker".into())]), &[]);
+        let mut marketId: Value = self.safe_string2(ticker.clone(), Value::Str("s".into()), Value::Str("symbol".into()), &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId, market]);
         let mut symbol: Value = self.safe_string_k(marketResolved.clone(), "symbol", &[]);
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "t", &[]);
+        let mut timestamp: Value = self.safe_integer2(ticker.clone(), Value::Str("t".into()), Value::Str("sendTime".into()), &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("ask".to_string(), self.safe_number_k(data.clone(), "a", &[]));
-        m.insert("askVolume".to_string(), self.safe_number_k(data.clone(), "A", &[]));
-        m.insert("bid".to_string(), self.safe_number_k(data.clone(), "b", &[]));
-        m.insert("bidVolume".to_string(), self.safe_number_k(data, "B", &[]));
+        m.insert("ask".to_string(), self.safe_number2(data.clone(), Value::Str("a".into()), Value::Str("askPrice".into()), &[]));
+        m.insert("askVolume".to_string(), self.safe_number2(data.clone(), Value::Str("A".into()), Value::Str("askQuantity".into()), &[]));
+        m.insert("bid".to_string(), self.safe_number2(data.clone(), Value::Str("b".into()), Value::Str("bidPrice".into()), &[]));
+        m.insert("bidVolume".to_string(), self.safe_number2(data, Value::Str("B".into()), Value::Str("bidQuantity".into()), &[]));
         m.insert("info".to_string(), ticker);
     m
 }), &[marketResolved]);
