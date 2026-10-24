@@ -194,9 +194,21 @@ To get the full list of ids of supported exchanges programmatically:
 <!-- tabs:start -->
 #### **Javascript**
 ```javascript
+// CommonJS
 const ccxt = require ('ccxt')
-console.log (ccxt.exchanges)
+console.log (ccxt.exchanges) // print all available exchanges
 ```
+
+```javascript
+// ESM
+import ccxt from 'ccxt'
+console.log (ccxt.exchanges) // print all available exchanges
+```
+
+Note:
+- `ccxt.exchanges` (default import) is an `Array<string>` containing all available exchange IDs (e.g. `['binance', 'kraken', ...]`).
+- The named import `import { exchanges } from 'ccxt'` (ESM) is a dictionary object (`Record<string, typeof Exchange>`) mapping each exchange ID to its constructor class.
+- With CommonJS `require` (e.g. `const { exchanges } = require('ccxt')`), `exchanges` is always the same id array as `ccxt.exchanges`. For consistency across all runtimes and bundlers, use `ccxt.exchanges` directly rather than calling `Object.keys(exchanges)`.
 #### **Python**
 ```python
 import ccxt
@@ -234,6 +246,7 @@ An exchange can be instantiated like shown in the examples below:
 <!-- tabs:start -->
 #### **Javascript**
 ```javascript
+// CommonJS
 const ccxt = require ('ccxt')
 let exchange = new ccxt.kraken () // default id
 let kraken1 = new ccxt.kraken ({ id: 'kraken1' })
@@ -248,6 +261,17 @@ const exchangeId = 'binance'
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
     })
+```
+
+Or with named imports:
+
+```javascript
+// ESM named import
+import { binance } from 'ccxt'
+const exchange = new binance ({
+    'apiKey': 'YOUR_API_KEY',
+    'secret': 'YOUR_SECRET',
+})
 ```
 #### **Python**
 ```python
