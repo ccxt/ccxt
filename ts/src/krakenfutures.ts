@@ -2523,6 +2523,10 @@ export default class krakenfutures extends Exchange {
         const fills: Dict[] = this.safeList (response, 'fills', []);
         // the endpoint returns the fills of every contract, each row resolves its own market
         const trades = this.parseTrades (fills);
+        // a fill of a contract that is no longer listed in /instruments has no unified symbol,
+        // so safeMarket keeps the raw id (eg 'PF_XRPUSD') in trade['symbol']: it is filtered out
+        // whenever a symbol is requested and returned as-is when symbol is undefined, on purpose,
+        // because it is still the user's own fill and dropping it would hide real trades
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limit) as Trade[];
     }
 
