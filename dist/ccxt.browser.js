@@ -540869,7 +540869,14 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
                 }
             }
         } else {
-            const orderbook = this.orderBook({});
+            // reset the existing orderbook instead of replacing it: a consumer
+            // holds a reference to the old object and would never see updates
+            // after this snapshot (every frame of the non-incremental channels
+            // is a full snapshot)
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook({});
+            }
+            const orderbook = this.orderbooks[symbol];
             let bidsKey = 'bids';
             let asksKey = 'asks';
             // bitget UTA has `a` and `b` instead of `asks` and `bids`
@@ -540885,7 +540892,6 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
             }
             const parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey);
             orderbook.reset(parsedOrderbook);
-            this.orderbooks[symbol] = orderbook;
         }
         client.resolve(this.orderbooks[symbol], messageHash);
     }
@@ -544607,11 +544613,18 @@ class bitopro extends _bitopro_js__rspack_import_0/* ["default"] */.A {
         const timestamp = this.safeInteger(message, 'timestamp');
         const datetime = this.safeString(message, 'datetime');
         const currencies = Object.keys(data);
-        const result = {
-            'info': data,
-            'timestamp': timestamp,
-            'datetime': datetime
-        };
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773)
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance['info'] = data;
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = datetime;
         for(let i = 0; i < currencies.length; i++){
             const currency = this.safeString(currencies, i);
             const balance = this.safeDict(data, currency, {});
@@ -544621,10 +544634,10 @@ class bitopro extends _bitopro_js__rspack_import_0/* ["default"] */.A {
             account['free'] = this.safeString(balance, 'available');
             account['total'] = this.safeString(balance, 'amount');
             if (code !== undefined) {
-                result[code] = account;
+                this.balance[code] = account;
             }
         }
-        this.balance = this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, event);
     }
     handleMessage(client, message) {
@@ -549335,9 +549348,16 @@ class blockchaincom extends _blockchaincom_js__rspack_import_0/* ["default"] */.
         if (event === 'subscribed') {
             return;
         }
-        const result = {
-            'info': message
-        };
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773)
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance['info'] = message;
         const balances = this.safeList(message, 'balances', []);
         for(let i = 0; i < balances.length; i++){
             const entry = this.safeDict(balances, i);
@@ -549347,11 +549367,11 @@ class blockchaincom extends _blockchaincom_js__rspack_import_0/* ["default"] */.
             account['free'] = this.safeString(entry, 'available');
             account['total'] = this.safeString(entry, 'balance');
             if (code !== undefined) {
-                result[code] = account;
+                this.balance[code] = account;
             }
         }
         const messageHash = 'balance';
-        this.balance = this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, messageHash);
     }
     /**
@@ -550517,7 +550537,32 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const marketType = 'swap'; // for now
-        this.balance[marketType] = this.parseWsBalance(message);
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance[marketType], and Client.resolve is a no-op
+        // while nobody is awaiting, so a replaced object would make updates
+        // landing in that window invisible to the consumer forever (same class
+        // as issue #26773); the free/used/total aggregates are rebuilt from
+        // the merged currencies by safeBalance
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance[marketType] = this.safeDict(this.balance, marketType, {});
+        const parsed = this.parseWsBalance(message);
+        const reserved = [
+            'free',
+            'used',
+            'total'
+        ];
+        const keys = Object.keys(parsed);
+        for(let i = 0; i < keys.length; i++){
+            const key = keys[i];
+            if (this.inArray(key, reserved)) {
+                continue;
+            }
+            this.balance[marketType][key] = parsed[key];
+        }
+        this.balance[marketType] = this.safeBalance(this.balance[marketType]);
         const messageHash = marketType + ':balance';
         client.resolve(this.balance[marketType], messageHash);
     }
@@ -555669,7 +555714,37 @@ class bydfi extends _bydfi_js__rspack_import_0/* ["default"] */.A {
             'type': 'swap'
         };
         const response = await this.fetchBalance(params);
-        this.balance = this.extend(response, this.balance);
+        // merge the snapshot into the existing balance object per currency so
+        // the object keeps its identity and deltas that arrived while the
+        // snapshot was in flight are not overwritten; the free/used/total
+        // aggregates are rebuilt from the merged currencies by safeBalance
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        const reserved = [
+            'info',
+            'timestamp',
+            'datetime',
+            'free',
+            'used',
+            'total'
+        ];
+        const keys = Object.keys(response);
+        for(let i = 0; i < keys.length; i++){
+            const key = keys[i];
+            if (this.inArray(key, reserved)) {
+                continue;
+            }
+            if (!(key in this.balance)) {
+                this.balance[key] = response[key];
+            }
+        }
+        if (!('info' in this.balance)) {
+            this.balance['info'] = response['info'];
+            this.balance['timestamp'] = response['timestamp'];
+            this.balance['datetime'] = response['datetime'];
+        }
+        this.balance = this.safeBalance(this.balance);
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
         future.resolve();
@@ -555716,31 +555791,34 @@ class bydfi extends _bydfi_js__rspack_import_0/* ["default"] */.A {
         //         "e": "ACCOUNT_UPDATE"
         //     }
         //
-        const messageHash = 'balance';
-        if (messageHash in client.futures) {
-            const data = this.safeDict(message, 'a', {});
-            const balances = this.safeList(data, 'B', []);
-            const timestamp = this.safeInteger(message, 'T');
-            const result = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp)
-            };
-            for(let i = 0; i < balances.length; i++){
-                const balance = this.safeDict(balances, i);
-                const currencyId = this.safeString(balance, 'a');
-                const code = this.safeCurrencyCode(currencyId);
-                const account = this.account();
-                account['total'] = this.safeString(balance, 'wb');
-                account['used'] = this.safeString(balance, 'tfm');
-                if (code !== undefined) {
-                    result[code] = account;
-                }
-            }
-            const parsedBalance = this.safeBalance(result);
-            this.balance = this.extend(this.balance, parsedBalance);
-            client.resolve(this.balance, messageHash);
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        if (this.balance === undefined) {
+            this.balance = {};
         }
+        const data = this.safeDict(message, 'a', {});
+        const balances = this.safeList(data, 'B', []);
+        const timestamp = this.safeInteger(message, 'T');
+        this.balance['info'] = message;
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601(timestamp);
+        for(let i = 0; i < balances.length; i++){
+            const balance = this.safeDict(balances, i);
+            const currencyId = this.safeString(balance, 'a');
+            const code = this.safeCurrencyCode(currencyId);
+            const account = this.account();
+            account['total'] = this.safeString(balance, 'wb');
+            account['used'] = this.safeString(balance, 'tfm');
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
+        }
+        this.balance = this.safeBalance(this.balance);
+        const messageHash = 'balance';
+        client.resolve(this.balance, messageHash);
     }
     handleSubscriptionStatus(client, message) {
         //
@@ -555911,7 +555989,7 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         const subscribe = {
             'e': 'get-balance',
             'data': {},
-            'oid': this.requestId()
+            'oid': messageHash
         };
         const request = this.deepExtend(subscribe, params);
         return await this.watch(url, messageHash, request, messageHash, request);
@@ -555937,12 +556015,18 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         //         "ok": "ok"
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make responses landing in that
+        // window invisible to the consumer forever (same class as issue #26773)
         const data = this.safeDict(message, 'data', {});
         const freeBalance = this.safeDict(data, 'balance', {});
         const usedBalance = this.safeDict(data, 'obalance', {});
-        const result = {
-            'info': data
-        };
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance['info'] = data;
         const currencyIds = Object.keys(freeBalance);
         for(let i = 0; i < currencyIds.length; i++){
             const currencyId = currencyIds[i];
@@ -555951,10 +556035,10 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
             account['used'] = this.safeString(usedBalance, currencyId);
             const code = this.safeCurrencyCode(currencyId);
             if (code !== undefined) {
-                result[code] = account;
+                this.balance[code] = account;
             }
         }
-        this.balance = this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
         const messageHash = this.safeString(message, 'oid');
         client.resolve(this.balance, messageHash);
     }
@@ -556855,14 +556939,19 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger2(data, 'timestamp_ms', 'timestamp');
         const incrementalId = this.safeInteger(data, 'id');
-        const orderbook = this.orderBook({});
+        // reset the existing orderbook instead of replacing it: a consumer
+        // holds a reference to the old object and would never see updates
+        // after a re-subscription snapshot
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({});
+        }
+        const orderbook = this.orderbooks[symbol];
         const snapshot = this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks');
         snapshot['nonce'] = incrementalId;
         orderbook.reset(snapshot);
         this.options['orderbook'][symbol] = {
             'incrementalId': incrementalId
         };
-        this.orderbooks[symbol] = orderbook;
         client.resolve(orderbook, messageHash);
     }
     pairToSymbol(pair) {
@@ -556994,16 +557083,23 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         const market = this.safeMarket(symbol);
         const messageHash = 'ohlcv:' + symbol;
         const data = this.safeList(message, 'data', []);
-        const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
-        const stored = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheByTimestamp */.TG(limit);
-        const sorted = this.sortBy(data, 0);
-        for(let i = 0; i < sorted.length; i++){
-            stored.append(this.parseOHLCV(sorted[i], market));
-        }
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        this.ohlcvs[symbol]['unknown'] = stored;
+        // fill the existing cache when there is one: replacing it would orphan
+        // consumers holding a reference to the old cache (they would never see
+        // candles appended after a re-subscription)
+        let stored = this.safeValue(this.ohlcvs[symbol], 'unknown');
+        if (stored === undefined) {
+            const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
+            stored = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheByTimestamp */.TG(limit);
+            this.ohlcvs[symbol]['unknown'] = stored;
+        }
+        const sorted = this.sortBy(data, 0);
+        for(let i = 0; i < sorted.length; i++){
+            const parsed = this.parseOHLCV(sorted[i], market);
+            stored.append(parsed);
+        }
         client.resolve(stored, messageHash);
     }
     handleOHLCV24(client, message) {
@@ -575293,8 +575389,31 @@ class hitbtc extends _hitbtc_js__rspack_import_0/* ["default"] */.A {
         //
         const messageHash = this.safeString(message, 'method');
         const params = this.safeList(message, 'params', []);
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
         const balance = this.parseBalance(params);
-        this.balance = this.deepExtend(this.balance, balance);
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        const reserved = [
+            'free',
+            'used',
+            'total'
+        ];
+        const keys = Object.keys(balance);
+        for(let i = 0; i < keys.length; i++){
+            const key = keys[i];
+            if (this.inArray(key, reserved)) {
+                continue;
+            }
+            this.balance[key] = balance[key];
+        }
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, messageHash);
     }
     handleNotification(client, message) {
@@ -583017,23 +583136,27 @@ class kraken extends _kraken_js__rspack_import_0/* ["default"] */.A {
         //         "sequence": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance[type], and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        const type = 'spot';
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance[type] = this.safeDict(this.balance, type, {});
+        this.balance[type]['info'] = message;
         const data = this.safeList(message, 'data', []);
-        const result = {
-            'info': message
-        };
         for(let i = 0; i < data.length; i++){
             const currencyId = this.safeString(data[i], 'asset');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             const eq = this.safeString(data[i], 'balance');
             account['total'] = eq;
-            result[code] = account;
+            this.balance[type][code] = account;
         }
-        const type = 'spot';
-        const balance = this.safeBalance(result);
-        const oldBalance = this.safeDict(this.balance, type, {});
-        const newBalance = this.deepExtend(oldBalance, balance);
-        this.balance[type] = this.safeBalance(newBalance);
+        this.balance[type] = this.safeBalance(this.balance[type]);
         const channel = this.safeString(message, 'channel');
         client.resolve(this.balance[type], channel);
     }
@@ -598192,12 +598315,19 @@ class ndax extends _ndax_js__rspack_import_0/* ["default"] */.A {
         //     ]
         //
         const symbol = this.safeString(subscription, 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
         const snapshot = this.parseOrderBook(payload, symbol);
         const limit = this.safeInteger(subscription, 'limit');
-        const orderbook = this.orderBook(snapshot, limit);
-        if (symbol !== undefined) {
-            this.orderbooks[symbol] = orderbook;
+        // reset the existing orderbook instead of replacing it: a consumer
+        // holds a reference to the old object and would never see updates
+        // after a re-subscription snapshot
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({}, limit);
         }
+        const orderbook = this.orderbooks[symbol];
+        orderbook.reset(snapshot);
         const messageHash = this.safeString(subscription, 'messageHash');
         client.resolve(orderbook, messageHash);
     }
@@ -599845,10 +599975,20 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         if (action === 'snapshot') {
             for(let i = 0; i < data.length; i++){
                 const update = data[i];
-                const orderbook = this.orderBook({}, limit);
-                this.orderbooks[symbol] = orderbook;
-                orderbook['symbol'] = symbol;
-                this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
+                // reset the existing orderbook instead of replacing it: a consumer
+                // holds a reference to the old object and would never see updates
+                // after a re-subscription snapshot
+                if (!(symbol in this.orderbooks)) {
+                    this.orderbooks[symbol] = this.orderBook({}, limit);
+                }
+                const orderbook = this.orderbooks[symbol];
+                const timestamp = this.safeInteger(update, 'ts');
+                // rows are [ price, amount, liquidatedOrders, numOrders ] - store
+                // price and amount only, matching handleDelta, so countOrIdKey
+                // points past the row on purpose
+                const snapshot = this.parseOrderBook(update, symbol, timestamp, 'bids', 'asks', 0, 1, 4);
+                snapshot['nonce'] = this.safeInteger(update, 'seqId');
+                orderbook.reset(snapshot);
                 if (!(messageHash in client.subscriptions)) {
                     break;
                 }
@@ -600037,9 +600177,31 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         //
         const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
         const balance = this.parseTradingBalance(message);
-        const newBalance = this.deepExtend(this.balance, balance);
-        this.balance = this.safeBalance(newBalance);
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        const reserved = [
+            'free',
+            'used',
+            'total'
+        ];
+        const keys = Object.keys(balance);
+        for(let i = 0; i < keys.length; i++){
+            const key = keys[i];
+            if (this.inArray(key, reserved)) {
+                continue;
+            }
+            this.balance[key] = balance[key];
+        }
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, channel);
     }
     orderToTrade(order, market = undefined) {
@@ -601247,7 +601409,31 @@ class onetrading extends _onetrading_js__rspack_import_0/* ["default"] */.A {
         //         ]
         //     }
         //
-        this.balance = this.parseBalance(message);
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
+        const balance = this.parseBalance(message);
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        const reserved = [
+            'free',
+            'used',
+            'total'
+        ];
+        const keys = Object.keys(balance);
+        for(let i = 0; i < keys.length; i++){
+            const key = keys[i];
+            if (this.inArray(key, reserved)) {
+                continue;
+            }
+            this.balance[key] = balance[key];
+        }
+        this.balance = this.safeBalance(this.balance);
         const messageHash = 'balance';
         client.resolve(this.balance, messageHash);
     }
@@ -605223,7 +605409,31 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
         //
         const params = this.safeDict(message, 'params', {});
         const data = this.safeDict(params, 'data', {});
-        this.balance = this.parseWsBalance(data);
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
+        const balance = this.parseWsBalance(data);
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        const reserved = [
+            'free',
+            'used',
+            'total'
+        ];
+        const keys = Object.keys(balance);
+        for(let i = 0; i < keys.length; i++){
+            const key = keys[i];
+            if (this.inArray(key, reserved)) {
+                continue;
+            }
+            this.balance[key] = balance[key];
+        }
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, 'balance');
     }
     parseWsBalance(data) {
@@ -606910,8 +607120,14 @@ class phemex extends _phemex_js__rspack_import_0/* ["default"] */.A {
             const book = this.safeDict2(message, 'book', 'orderbook_p', {});
             const snapshot = this.customParseOrderBook(book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
             snapshot['nonce'] = nonce;
-            const orderbook = this.orderBook(snapshot, depth);
-            this.orderbooks[symbol] = orderbook;
+            // reset the existing orderbook instead of replacing it: a consumer
+            // holds a reference to the old object and would never see updates
+            // after a re-subscription snapshot
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook({}, depth);
+            }
+            const orderbook = this.orderbooks[symbol];
+            orderbook.reset(snapshot);
             client.resolve(orderbook, messageHash);
         } else {
             if (symbol in this.orderbooks) {
