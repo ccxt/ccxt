@@ -1568,10 +1568,17 @@ impl BitgetCore {
                 }
             }
         }  else {
-            let mut orderbook: Value = self.order_book(&[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+            // reset the existing orderbook instead of replacing it: a consumer
+            // holds a reference to the old object and would never see updates
+            // after this snapshot (every frame of the non-incremental channels
+            // is a full snapshot)
+            if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                { let __be_tmp = self.order_book(&[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+            }
+            let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut bidsKey: Value = Value::Str("bids".into());
             let mut asksKey: Value = Value::Str("asks".into());
             // bitget UTA has `a` and `b` instead of `asks` and `bids`
@@ -1587,7 +1594,6 @@ impl BitgetCore {
             }
             let mut parsedOrderbook: Value = self.parse_order_book(rawOrderBook, symbol.clone(), &[timestamp, bidsKey, asksKey]);
             orderbook.reset(parsedOrderbook);
-            if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook); }
         }
         client.resolve(&[self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash]);
 }
