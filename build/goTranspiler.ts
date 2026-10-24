@@ -4709,6 +4709,9 @@ class NewTranspiler {
             [/;\s*\n/g, '\n'],  // Remove stray semicolons that leak from TS/CS syntax
             
             [/\.Append\(/g, '.(Appender).Append('],
+            // Order caches are stored as any. Keep Clear calls on concrete cache
+            // locals and unrelated types statically checked.
+            [/(?<![\w.])(cachedOrders|this\.Orders)\.Clear\(\)/g, '$1.(interface{ Clear() }).Clear()'],
             [/stored\.\(Appender\)\.Append\(this\.ParseOHLCV/g, "stored.Append(this.ParseOHLCV"],
             [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
             // `const stored = new ArrayCache (limit)` prints as a short declaration; the ws regexes
@@ -8776,6 +8779,28 @@ async function runLocalTypeAudit () {
     process.exit (pass ? 0 : 1);
 }
 
+function goCacheClearSelfTest (): string[] {
+    const driver = new NewTranspiler ();
+    const cases = [
+        [ 'cachedOrders.Clear()', 'cachedOrders.(interface{ Clear() }).Clear()' ],
+        [ 'this.Orders.Clear()', 'this.Orders.(interface{ Clear() }).Clear()' ],
+        [ 'arrayCache.Clear()', 'arrayCache.Clear()' ],
+        [ 'cacheClearById.Clear()', 'cacheClearById.Clear()' ],
+        [ 'cacheClearTimestamp.Clear()', 'cacheClearTimestamp.Clear()' ],
+        [ 'cacheClearBySide.Clear()', 'cacheClearBySide.Clear()' ],
+        [ 'buffer.Clear()', 'buffer.Clear()' ],
+        [ 'other.Orders.Clear()', 'other.Orders.Clear()' ],
+    ];
+    const problems: string[] = [];
+    for (const [ input, expected ] of cases) {
+        const actual = driver.regexAll (input, driver.getWsRegexes ());
+        if (actual !== expected) {
+            problems.push (`cache clear: ${input} became ${actual}, expected ${expected}`);
+        }
+    }
+    return problems;
+}
+
 async function runMain () {
     if (process.argv.includes ('--audit-local-types')) {
         await runLocalTypeAudit ();
@@ -8787,6 +8812,7 @@ async function runMain () {
     }
     if (process.argv.includes ('--self-test')) {
         const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ());
+        problems.push (...goCacheClearSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
