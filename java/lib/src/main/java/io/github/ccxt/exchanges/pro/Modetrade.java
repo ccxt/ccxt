@@ -246,10 +246,11 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //         "count": 3689
         //     }
         //
+        Long timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", Modetrade.this.safeSymbol(null, market, (String) null, (String) null) );
-            put( "timestamp", null );
-            put( "datetime", null );
+            put( "timestamp", timestamp );
+            put( "datetime", Modetrade.this.iso8601(timestamp) );
             put( "high", Modetrade.this.safeString(ticker, "high") );
             put( "low", Modetrade.this.safeString(ticker, "low") );
             put( "bid", null );
@@ -293,8 +294,9 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Long timestamp = this.safeInteger(message, "ts");
-        data.put("date", timestamp);
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(this.extend(data, new HashMap<String, Object>() {{
+            put( "timestamp", timestamp );
+        }}), market);
         ticker.put("symbol", market.get("symbol"));
         Helpers.addElementToObject(this.tickers, market.get("symbol"), ticker);
         client.resolve(ticker, topic);
@@ -363,7 +365,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             String marketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "symbol");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), new HashMap<String, Object>() {{
-                put( "date", timestamp );
+                put( "timestamp", timestamp );
             }}), market);
             Helpers.addElementToObject(this.tickers, market.get("symbol"), ticker);
             ((List<Object>)result).add(ticker);
@@ -1230,7 +1232,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }
             String url = ((wsUrl + "/") + this.accountId);
             Client client = this.client(url);
-            this.setPositionsCache(client, symbolsNormalized, (List<String>) null);
+            this.setPositionsCache(client, symbolsNormalized);
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
             if ((java.util.Objects.equals(fetchPositionsSnapshot, true)) && (java.util.Objects.equals(awaitPositionsSnapshot, true)) && (java.util.Objects.equals(this.positions, null)))
@@ -1252,7 +1254,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
 
     }
 
-    public void setPositionsCache(Client client, Object type, List<String> symbols)
+    public void setPositionsCache(Client client, List<String> symbols)
     {
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (java.util.Objects.equals(fetchPositionsSnapshot, true))

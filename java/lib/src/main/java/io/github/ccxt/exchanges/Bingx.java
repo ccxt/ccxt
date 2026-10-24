@@ -178,6 +178,8 @@ public class Bingx extends BingxApi
                     put( "copyTrading", "https://open-api.{hostname}/openApi" );
                     put( "cswap", "https://open-api.{hostname}/openApi" );
                     put( "api", "https://open-api.{hostname}/openApi" );
+                    put( "agent", "https://open-api.{hostname}/openApi" );
+                    put( "wealth", "https://open-api.{hostname}/openApi" );
                 }} );
                 put( "test", new HashMap<String, Object>() {{
                     put( "fund", "https://open-api-vst.{hostname}/openApi" );
@@ -191,6 +193,8 @@ public class Bingx extends BingxApi
                     put( "copyTrading", "https://open-api-vst.{hostname}/openApi" );
                     put( "cswap", "https://open-api-vst.{hostname}/openApi" );
                     put( "api", "https://open-api-vst.{hostname}/openApi" );
+                    put( "agent", "https://open-api-vst.{hostname}/openApi" );
+                    put( "wealth", "https://open-api-vst.{hostname}/openApi" );
                 }} );
                 put( "www", "https://bingx.com/" );
                 put( "doc", "https://bingx-api.github.io/docs/" );
@@ -3360,7 +3364,7 @@ public class Bingx extends BingxApi
                 Map<String, Object> account = this.account();
                 account.put("free", this.safeString2(balance, "availableMargin", "availableBalance"));
                 account.put("used", this.safeString(balance, "usedMargin"));
-                account.put("total", this.safeString(balance, "maxWithdrawAmount"));
+                account.put("total", this.safeString2(balance, "balance", "maxWithdrawAmount"));
                 if (!java.util.Objects.equals(code, null))
                 {
                     result.put(code, account);
@@ -3667,7 +3671,14 @@ public class Bingx extends BingxApi
                 collateralString = (((!java.util.Objects.equals(unrealizedPnlString, null)))) ? Precise.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
             }
         }
-        Long timestamp = this.safeInteger(position, "openTime");
+        Long timestamp = (Long) this.safeInteger2(position, "openTime", "createTime");
+        String positionSide = this.safeString(position, "positionSide");
+        Boolean hedged = null;
+        if (!java.util.Objects.equals(positionSide, null))
+        {
+            hedged = (!java.util.Objects.equals(positionSide, "BOTH"));
+        }
+        String percentageString = this.safeString(position, "pnlRatio");
         HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
         mapLiteral8.put("info", position);
         mapLiteral8.put("id", this.safeString(position, "positionId"));
@@ -3678,13 +3689,13 @@ public class Bingx extends BingxApi
         mapLiteral8.put("entryPrice", this.safeNumber2(position, "avgPrice", "entryPrice", (Object) null));
         mapLiteral8.put("unrealizedPnl", this.parseNumber(unrealizedPnlString));
         mapLiteral8.put("realizedPnl", this.safeNumber(position, "realisedProfit", (Object) null));
-        mapLiteral8.put("percentage", null);
+        mapLiteral8.put("percentage", this.parseNumber(Precise.stringMul(percentageString, "100")));
         mapLiteral8.put("contracts", this.safeNumber(position, "positionAmt", (Object) null));
         mapLiteral8.put("contractSize", null);
         mapLiteral8.put("markPrice", this.safeNumber(position, "markPrice", (Object) null));
         mapLiteral8.put("lastPrice", null);
         mapLiteral8.put("side", this.safeStringLower(position, "positionSide"));
-        mapLiteral8.put("hedged", null);
+        mapLiteral8.put("hedged", hedged);
         mapLiteral8.put("timestamp", timestamp);
         mapLiteral8.put("datetime", this.iso8601(timestamp));
         mapLiteral8.put("lastUpdateTimestamp", this.safeInteger(position, "updateTime"));
@@ -5315,9 +5326,16 @@ public class Bingx extends BingxApi
             Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOrders", market, paramsMarketType, (Object) null);
+            String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
+            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             if (!java.util.Objects.equals(type, "swap"))
             {
                 throw new NotSupported((this.id + " fetchOrders() is only supported for swap markets")) ;
+            }
+            if ((java.util.Objects.equals(subType, "inverse")) || ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(market.get("inverse"), true))))
+            {
+                throw new NotSupported((this.id + " fetchOrders() is not supported for inverse swap markets")) ;
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -5327,7 +5345,7 @@ public class Bingx extends BingxApi
             {
                 request.put("startTime", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsSubType), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.swapV1PrivateGetTradeFullOrder(this.extend(requestUntil, paramsUntil))).join();

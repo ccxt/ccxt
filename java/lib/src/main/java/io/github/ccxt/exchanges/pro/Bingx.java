@@ -1010,7 +1010,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Map<String, Object> marketOptions = (Map<String, Object>) this.safeDict(this.options, marketType, (Object) null);
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(marketOptions, "timeframes", new HashMap<String, Object>() {{}});
         String unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
-        if (java.util.Objects.equals(this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), rawTimeframe), null))
+        if (java.util.Objects.equals(this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe), null))
         {
             String subscriptionHash = dataType;
             Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, subscriptionHash, (Object) null);

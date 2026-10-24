@@ -2093,7 +2093,7 @@ public class Mexc extends MexcApi
         Object symbol = null;
         Map<String, Object> fee = null;
         List<String> type = null;
-        String side = null;
+        Object side = null;
         String takerOrMaker = null;
         String priceString = null;
         String amountString = null;
@@ -2184,7 +2184,7 @@ public class Mexc extends MexcApi
             {
                 timestamp = this.safeInteger(trade, "timestamp");
                 amountString = this.safeString(trade, "vol");
-                side = this.parseOrderSide(this.safeString(trade, "side"));
+                side = this.parseContractOrderSide(this.safeString(trade, "side"));
                 fee = new HashMap<String, Object>() {{
                     put( "cost", Mexc.this.safeString(trade, "fee") );
                     put( "currency", Mexc.this.safeCurrencyCode(Mexc.this.safeString(trade, "feeCurrency"), (Map<String, Object>) null) );
@@ -2226,7 +2226,7 @@ public class Mexc extends MexcApi
         }
         if (java.util.Objects.equals(id, null) && Boolean.TRUE.equals(this.safeBool(this.options, "useCcxtTradeId", true)))
         {
-            id = this.createCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker);
+            id = this.createCcxtTradeId(timestamp, java.util.Objects.toString(side, null), amountString, priceString, takerOrMaker);
         }
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("id", id);
@@ -4346,6 +4346,9 @@ public class Mexc extends MexcApi
         }
         String marketId = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Boolean isContract = (Boolean) marketResolved.get("contract");
+        String sideRaw = this.safeString(order, "side");
+        Object side = (((java.util.Objects.equals(isContract, true)))) ? this.parseContractOrderSide(sideRaw) : this.parseOrderSide(sideRaw);
         Long timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("time", "createTime", "transactTime")));
         Map<String, Object> fee = null;
         String feeCurrency = this.safeString(order, "feeCurrency");
@@ -4372,7 +4375,7 @@ public class Mexc extends MexcApi
         mapLiteral6.put("symbol", marketResolved.get("symbol"));
         mapLiteral6.put("type", this.parseOrderType(typeRaw));
         mapLiteral6.put("timeInForce", timeInForce);
-        mapLiteral6.put("side", this.parseOrderSide(this.safeString(order, "side")));
+        mapLiteral6.put("side", side);
         mapLiteral6.put("price", this.safeNumber(order, "price", (Object) null));
         mapLiteral6.put("triggerPrice", this.safeNumber2(order, "stopPrice", "triggerPrice", (Object) null));
         mapLiteral6.put("average", this.safeNumber(order, "dealAvgPrice", (Object) null));
@@ -4395,6 +4398,17 @@ public class Mexc extends MexcApi
             put( "2", "sell" );
         }};
         return this.safeString(statuses, status, status);
+    }
+
+    public String parseContractOrderSide(String side)
+    {
+        Map<String, Object> sides = new HashMap<String, Object>() {{
+            put( "1", "buy" );
+            put( "2", "buy" );
+            put( "3", "sell" );
+            put( "4", "sell" );
+        }};
+        return this.safeString(sides, side, side);
     }
 
     public String parseOrderType(String status)
