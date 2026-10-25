@@ -1,0 +1,180 @@
+{
+    "exchange": "reya",
+    "walletAddress": "0x0000000000000000000000000000000000000001",
+    "options": {
+        "accountId": 42,
+        "mainnet": {
+            "chainId": 89346162,
+            "ordersGateway": "0x7Ec89E555c771D2B5939aBE5C4E4291852633D4D",
+            "exchangeId": 2
+        }
+    },
+    "outputType": "json",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "input": [],
+                "url": "https://api.reya.xyz/v2/perpMarketDefinitions"
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/RUSD:RUSD",
+                    5
+                ],
+                "url": "https://api.reya.xyz/v2/market/BTCRUSDPERP/depth?limit=5"
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "url": "https://api.reya.xyz/v2/perpMarket/BTCRUSDPERP/summary"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [],
+                "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/accountBalances"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/openOrders"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "SDK golden order",
+                "method": "createOrder",
+                "input": [
+                    "ETH/RUSD:RUSD",
+                    "limit",
+                    "buy",
+                    0.5,
+                    3000,
+                    {
+                        "accountId": 12345,
+                        "clientOrderId": "42",
+                        "timeInForce": "IOC",
+                        "nonce": "1700000000000000",
+                        "deadline": 1745000000
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/createOrder",
+                "output": {
+                    "accountId": 12345,
+                    "symbol": "ETHRUSDPERP",
+                    "exchangeId": 2,
+                    "orderType": "LIMIT",
+                    "isBuy": true,
+                    "qty": "0.5",
+                    "limitPx": "3000",
+                    "timeInForce": "IOC",
+                    "clientOrderId": "42",
+                    "nonce": "1700000000000000",
+                    "deadline": 1745000000,
+                    "reduceOnly": false,
+                    "signerWallet": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+                    "signature": "0x8b7d36f622ad44815d66a6f75678f40c99cdb965088bcc857b53db5f8a7b272d0204574e11bb9c8109c132490b7f36ff4dc6ee1e93c277a616cf60c2db26cce61c"
+                }
+            },
+            {
+                "description": "SDK golden order_sell",
+                "method": "createOrder",
+                "input": [
+                    "ETH/RUSD:RUSD",
+                    "limit",
+                    "sell",
+                    0.5,
+                    3000,
+                    {
+                        "accountId": 12345,
+                        "clientOrderId": "42",
+                        "timeInForce": "IOC",
+                        "nonce": "1700000000000000",
+                        "deadline": 1745000000
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/createOrder",
+                "output": {
+                    "accountId": 12345,
+                    "symbol": "ETHRUSDPERP",
+                    "exchangeId": 2,
+                    "orderType": "LIMIT",
+                    "isBuy": false,
+                    "qty": "0.5",
+                    "limitPx": "3000",
+                    "timeInForce": "IOC",
+                    "clientOrderId": "42",
+                    "nonce": "1700000000000000",
+                    "deadline": 1745000000,
+                    "reduceOnly": false,
+                    "signerWallet": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+                    "signature": "0xf2d69b90a93c361c28a44483d26e6667721f63fb8c8ec1a12106773c663a43972c42d4b2ea68531b9b63d25e3a90cf093892db8983525424a6b0044d4c6d28bf1b"
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "SDK golden order_cancel",
+                "method": "cancelOrder",
+                "input": [
+                    "63552420354981888",
+                    "ETH/RUSD:RUSD",
+                    {
+                        "accountId": 12345,
+                        "nonce": "1700000000000001",
+                        "deadline": 1745000060
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/cancelOrder",
+                "output": {
+                    "accountId": 12345,
+                    "nonce": "1700000000000001",
+                    "deadline": 1745000060,
+                    "orderId": "63552420354981888",
+                    "symbol": "ETHRUSDPERP",
+                    "signature": "0x90ddba6ff879dee4773c214c927a470720f42378574281866edce100ea8c59d775fb29e4ab6108a9ea84bfe12fffcdbbd6dfff98ea6ae034bbd87f4c21254f941b"
+                }
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "SDK golden mass_cancel",
+                "method": "cancelAllOrders",
+                "input": [
+                    null,
+                    {
+                        "accountId": 12345,
+                        "nonce": "1700000000000002",
+                        "deadline": 1745000120
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/cancelAll",
+                "output": {
+                    "accountId": 12345,
+                    "nonce": "1700000000000002",
+                    "deadline": 1745000120,
+                    "signature": "0x86d4f060ffbba16698cf8f89fdeabb0397a814be6f54075f908ccbd73894a4227c33b0b77ac8c2e495eca0848e56e60711cd5fa60b657a4ba675fd6bd13be9201b"
+                }
+            }
+        ]
+    },
+    "privateKey": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+}

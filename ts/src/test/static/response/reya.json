@@ -1,0 +1,904 @@
+{
+    "exchange": "reya",
+    "walletAddress": "0x0000000000000000000000000000000000000001",
+    "options": {
+        "accountId": 42
+    },
+    "skipKeys": [
+        "info"
+    ],
+    "methods": {
+        "fetchOrderBook": [
+            {
+                "description": "bounded REST depth",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/RUSD:RUSD",
+                    5
+                ],
+                "httpResponse": {
+                    "symbol": "BTCRUSDPERP",
+                    "type": "SNAPSHOT",
+                    "bids": [
+                        {
+                            "px": "80000",
+                            "qty": "0.02"
+                        }
+                    ],
+                    "asks": [
+                        {
+                            "px": "80001",
+                            "qty": "0.01"
+                        }
+                    ],
+                    "updatedAt": 1700000000000
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/RUSD:RUSD",
+                    "bids": [
+                        [
+                            80000,
+                            0.02
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            80001,
+                            0.01
+                        ]
+                    ],
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets account isolation and public API semantics",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "symbol": "BTCRUSDPERP",
+                        "marketId": 2,
+                        "status": "TRADING",
+                        "qtyStepSize": "0.0001",
+                        "tickSize": "0.001",
+                        "minOrderQty": "0.0001",
+                        "initialMarginParameter": "0.02",
+                        "maxLeverage": 50,
+                        "liquidationMarginParameter": "0.015"
+                    },
+                    {
+                        "symbol": "ETHRUSDPERP",
+                        "marketId": 1,
+                        "status": "TRADING",
+                        "qtyStepSize": "0.0001",
+                        "tickSize": "0.001",
+                        "minOrderQty": "0.0001",
+                        "initialMarginParameter": "0.02",
+                        "maxLeverage": 50,
+                        "liquidationMarginParameter": "0.015"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "BTCRUSDPERP",
+                        "lowercaseId": null,
+                        "symbol": "BTC/RUSD:RUSD",
+                        "base": "BTC",
+                        "quote": "RUSD",
+                        "settle": "RUSD",
+                        "baseId": "BTC",
+                        "quoteId": "RUSD",
+                        "settleId": "RUSD",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": null,
+                        "maker": null,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 0.001
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": 0.0001,
+                                "max": null
+                            },
+                            "price": {
+                                "min": 0.001,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": 1,
+                                "max": 50
+                            }
+                        },
+                        "marginModes": {
+                            "cross": true,
+                            "isolated": false
+                        },
+                        "created": null,
+                        "info": {
+                            "symbol": "BTCRUSDPERP",
+                            "marketId": 2,
+                            "status": "TRADING",
+                            "qtyStepSize": "0.0001",
+                            "tickSize": "0.001",
+                            "minOrderQty": "0.0001",
+                            "initialMarginParameter": "0.02",
+                            "maxLeverage": 50,
+                            "liquidationMarginParameter": "0.015"
+                        }
+                    },
+                    {
+                        "id": "ETHRUSDPERP",
+                        "lowercaseId": null,
+                        "symbol": "ETH/RUSD:RUSD",
+                        "base": "ETH",
+                        "quote": "RUSD",
+                        "settle": "RUSD",
+                        "baseId": "ETH",
+                        "quoteId": "RUSD",
+                        "settleId": "RUSD",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": null,
+                        "maker": null,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 0.001
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": 0.0001,
+                                "max": null
+                            },
+                            "price": {
+                                "min": 0.001,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": 1,
+                                "max": 50
+                            }
+                        },
+                        "marginModes": {
+                            "cross": true,
+                            "isolated": false
+                        },
+                        "created": null,
+                        "info": {
+                            "symbol": "ETHRUSDPERP",
+                            "marketId": 1,
+                            "status": "TRADING",
+                            "qtyStepSize": "0.0001",
+                            "tickSize": "0.001",
+                            "minOrderQty": "0.0001",
+                            "initialMarginParameter": "0.02",
+                            "maxLeverage": 50,
+                            "liquidationMarginParameter": "0.015"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker account isolation and public API semantics",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "httpResponse": {
+                    "symbol": "BTCRUSDPERP",
+                    "updatedAt": 1700000000000,
+                    "markPrice": "100",
+                    "oraclePrice": "99",
+                    "fundingRate": "0.0001",
+                    "volume24h": "50000",
+                    "pxChange24h": "2"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/RUSD:RUSD",
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": null,
+                    "last": null,
+                    "previousClose": null,
+                    "change": 2,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": 50000,
+                    "markPrice": 100,
+                    "indexPrice": 99,
+                    "info": {
+                        "symbol": "BTCRUSDPERP",
+                        "updatedAt": 1700000000000,
+                        "markPrice": "100",
+                        "oraclePrice": "99",
+                        "fundingRate": "0.0001",
+                        "volume24h": "50000",
+                        "pxChange24h": "2"
+                    }
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers account isolation and public API semantics",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "symbol": "BTCRUSDPERP",
+                        "updatedAt": 1700000000000,
+                        "markPrice": "100",
+                        "oraclePrice": "99",
+                        "fundingRate": "0.0001",
+                        "volume24h": "50000",
+                        "pxChange24h": "2"
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC/RUSD:RUSD": {
+                        "symbol": "BTC/RUSD:RUSD",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": null,
+                        "last": null,
+                        "previousClose": null,
+                        "change": 2,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": 50000,
+                        "markPrice": 100,
+                        "indexPrice": 99,
+                        "info": {
+                            "symbol": "BTCRUSDPERP",
+                            "updatedAt": 1700000000000,
+                            "markPrice": "100",
+                            "oraclePrice": "99",
+                            "fundingRate": "0.0001",
+                            "volume24h": "50000",
+                            "pxChange24h": "2"
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate account isolation and public API semantics",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "httpResponse": {
+                    "symbol": "BTCRUSDPERP",
+                    "updatedAt": 1700000000000,
+                    "markPrice": "100",
+                    "oraclePrice": "99",
+                    "fundingRate": "0.0001",
+                    "volume24h": "50000",
+                    "pxChange24h": "2"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTCRUSDPERP",
+                        "updatedAt": 1700000000000,
+                        "markPrice": "100",
+                        "oraclePrice": "99",
+                        "fundingRate": "0.0001",
+                        "volume24h": "50000",
+                        "pxChange24h": "2"
+                    },
+                    "symbol": "BTC/RUSD:RUSD",
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "markPrice": 100,
+                    "indexPrice": 99,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "fundingRate": 0.000001,
+                    "interval": "1h",
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null
+                }
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts account isolation and public API semantics",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "accountId": 42,
+                        "type": "MAINPERP"
+                    },
+                    {
+                        "accountId": 43,
+                        "type": "AGENTPERP"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "42",
+                        "type": "MAINPERP",
+                        "code": "RUSD",
+                        "info": {
+                            "accountId": 42,
+                            "type": "MAINPERP"
+                        }
+                    },
+                    {
+                        "id": "43",
+                        "type": "AGENTPERP",
+                        "code": "RUSD",
+                        "info": {
+                            "accountId": 43,
+                            "type": "AGENTPERP"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance account isolation and public API semantics",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "accountId": 42,
+                        "asset": "RUSD",
+                        "realBalance": "1000"
+                    },
+                    {
+                        "accountId": 43,
+                        "asset": "RUSD",
+                        "realBalance": "50000"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "realBalance": "1000"
+                        },
+                        {
+                            "accountId": 43,
+                            "asset": "RUSD",
+                            "realBalance": "50000"
+                        }
+                    ],
+                    "RUSD": {
+                        "free": null,
+                        "used": null,
+                        "total": 1000
+                    },
+                    "free": {
+                        "RUSD": null
+                    },
+                    "used": {
+                        "RUSD": null
+                    },
+                    "total": {
+                        "RUSD": 1000
+                    }
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions account isolation and public API semantics",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "BTC/RUSD:RUSD"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "accountId": 42,
+                        "symbol": "BTCRUSDPERP",
+                        "side": "A",
+                        "qty": "2",
+                        "avgEntryPrice": "105"
+                    },
+                    {
+                        "accountId": 43,
+                        "symbol": "BTCRUSDPERP",
+                        "side": "B",
+                        "qty": "100",
+                        "avgEntryPrice": "90"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "accountId": 42,
+                            "symbol": "BTCRUSDPERP",
+                            "side": "A",
+                            "qty": "2",
+                            "avgEntryPrice": "105"
+                        },
+                        "id": null,
+                        "symbol": "BTC/RUSD:RUSD",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastUpdateTimestamp": null,
+                        "hedged": false,
+                        "side": "short",
+                        "contracts": 2,
+                        "contractSize": 1,
+                        "entryPrice": 105,
+                        "markPrice": null,
+                        "notional": null,
+                        "leverage": null,
+                        "collateral": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "unrealizedPnl": null,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": "cross",
+                        "percentage": null,
+                        "positionMargin": null
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders account isolation and public API semantics",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "httpResponse": [
+                    {
+                        "accountId": 42,
+                        "orderId": "123456789012345678",
+                        "clientOrderId": "42",
+                        "symbol": "BTCRUSDPERP",
+                        "orderType": "LIMIT",
+                        "side": "B",
+                        "timeInForce": "GTC",
+                        "qty": "2",
+                        "cumQty": "0",
+                        "avgFillPx": "100",
+                        "limitPx": "100",
+                        "createdAt": 1700000000000,
+                        "lastUpdateAt": 1700000000000,
+                        "status": "OPEN",
+                        "sequenceNumber": 1,
+                        "postOnly": true,
+                        "reduceOnly": false
+                    },
+                    {
+                        "accountId": 42,
+                        "orderId": "123456789012345678",
+                        "clientOrderId": "42",
+                        "symbol": "BTCRUSDPERP",
+                        "orderType": "LIMIT",
+                        "side": "B",
+                        "timeInForce": "GTC",
+                        "qty": "2",
+                        "cumQty": "0.5",
+                        "avgFillPx": "100",
+                        "limitPx": "100",
+                        "createdAt": 1700000000000,
+                        "lastUpdateAt": 1700000000000,
+                        "status": "OPEN",
+                        "sequenceNumber": 2,
+                        "postOnly": true,
+                        "reduceOnly": false
+                    },
+                    {
+                        "accountId": 43,
+                        "orderId": "99",
+                        "clientOrderId": "42",
+                        "symbol": "BTCRUSDPERP",
+                        "orderType": "LIMIT",
+                        "side": "B",
+                        "timeInForce": "GTC",
+                        "qty": "2",
+                        "cumQty": "0.5",
+                        "avgFillPx": "100",
+                        "limitPx": "100",
+                        "createdAt": 1700000000000,
+                        "lastUpdateAt": 1700000000000,
+                        "status": "OPEN",
+                        "sequenceNumber": 2,
+                        "postOnly": true,
+                        "reduceOnly": false
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "accountId": 42,
+                            "orderId": "123456789012345678",
+                            "clientOrderId": "42",
+                            "symbol": "BTCRUSDPERP",
+                            "orderType": "LIMIT",
+                            "side": "B",
+                            "timeInForce": "GTC",
+                            "qty": "2",
+                            "cumQty": "0.5",
+                            "avgFillPx": "100",
+                            "limitPx": "100",
+                            "createdAt": 1700000000000,
+                            "lastUpdateAt": 1700000000000,
+                            "status": "OPEN",
+                            "sequenceNumber": 2,
+                            "postOnly": true,
+                            "reduceOnly": false
+                        },
+                        "id": "123456789012345678",
+                        "clientOrderId": "42",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1700000000000,
+                        "symbol": "BTC/RUSD:RUSD",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": true,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 100,
+                        "triggerPrice": null,
+                        "amount": 2,
+                        "filled": 0.5,
+                        "remaining": 1.5,
+                        "average": 100,
+                        "cost": 50,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders account isolation and public API semantics",
+                "method": "fetchOrders",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "accountId": 42,
+                            "orderId": "123456789012345678",
+                            "clientOrderId": "42",
+                            "symbol": "BTCRUSDPERP",
+                            "orderType": "LIMIT",
+                            "side": "B",
+                            "timeInForce": "GTC",
+                            "qty": "2",
+                            "cumQty": "0.5",
+                            "avgFillPx": "100",
+                            "limitPx": "100",
+                            "createdAt": 1700000000000,
+                            "lastUpdateAt": 1700000000000,
+                            "status": "CANCELLED",
+                            "sequenceNumber": 2,
+                            "postOnly": true,
+                            "reduceOnly": false
+                        }
+                    ],
+                    "meta": {}
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "accountId": 42,
+                            "orderId": "123456789012345678",
+                            "clientOrderId": "42",
+                            "symbol": "BTCRUSDPERP",
+                            "orderType": "LIMIT",
+                            "side": "B",
+                            "timeInForce": "GTC",
+                            "qty": "2",
+                            "cumQty": "0.5",
+                            "avgFillPx": "100",
+                            "limitPx": "100",
+                            "createdAt": 1700000000000,
+                            "lastUpdateAt": 1700000000000,
+                            "status": "CANCELLED",
+                            "sequenceNumber": 2,
+                            "postOnly": true,
+                            "reduceOnly": false
+                        },
+                        "id": "123456789012345678",
+                        "clientOrderId": "42",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1700000000000,
+                        "symbol": "BTC/RUSD:RUSD",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": true,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 100,
+                        "triggerPrice": null,
+                        "amount": 2,
+                        "filled": 0.5,
+                        "remaining": 1.5,
+                        "average": 100,
+                        "cost": 50,
+                        "status": "canceled",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades account isolation and public API semantics",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "symbol": "BTCRUSDPERP",
+                            "takerAccountId": 99,
+                            "makerAccountId": 42,
+                            "takerOrderId": "9",
+                            "makerOrderId": "123456789012345678",
+                            "qty": "0.5",
+                            "price": "100",
+                            "side": "B",
+                            "timestamp": 1700000000000,
+                            "sequenceNumber": 9,
+                            "makerFee": "-0.01",
+                            "takerFee": "0.03",
+                            "type": "ORDER_MATCH"
+                        }
+                    ],
+                    "meta": {}
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTCRUSDPERP",
+                            "takerAccountId": 99,
+                            "makerAccountId": 42,
+                            "takerOrderId": "9",
+                            "makerOrderId": "123456789012345678",
+                            "qty": "0.5",
+                            "price": "100",
+                            "side": "B",
+                            "timestamp": 1700000000000,
+                            "sequenceNumber": 9,
+                            "makerFee": "-0.01",
+                            "takerFee": "0.03",
+                            "type": "ORDER_MATCH"
+                        },
+                        "id": "9",
+                        "order": "123456789012345678",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "symbol": "BTC/RUSD:RUSD",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "maker",
+                        "price": 100,
+                        "amount": 0.5,
+                        "cost": 50,
+                        "fee": {
+                            "currency": "RUSD",
+                            "cost": -0.01
+                        },
+                        "fees": [
+                            {
+                                "currency": "RUSD",
+                                "cost": -0.01
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades account isolation and public API semantics",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "symbol": "BTCRUSDPERP",
+                            "takerAccountId": 99,
+                            "makerAccountId": 42,
+                            "takerOrderId": "9",
+                            "makerOrderId": "123456789012345678",
+                            "qty": "0.5",
+                            "price": "100",
+                            "side": "B",
+                            "timestamp": 1700000000000,
+                            "sequenceNumber": 9,
+                            "makerFee": "-0.01",
+                            "takerFee": "0.03",
+                            "type": "ORDER_MATCH"
+                        }
+                    ],
+                    "meta": {}
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTCRUSDPERP",
+                            "takerAccountId": 99,
+                            "makerAccountId": 42,
+                            "takerOrderId": "9",
+                            "makerOrderId": "123456789012345678",
+                            "qty": "0.5",
+                            "price": "100",
+                            "side": "B",
+                            "timestamp": 1700000000000,
+                            "sequenceNumber": 9,
+                            "makerFee": "-0.01",
+                            "takerFee": "0.03",
+                            "type": "ORDER_MATCH"
+                        },
+                        "id": "9",
+                        "order": null,
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "symbol": "BTC/RUSD:RUSD",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 100,
+                        "amount": 0.5,
+                        "cost": 50,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV account isolation and public API semantics",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/RUSD:RUSD",
+                    "1m",
+                    1699999920000,
+                    2
+                ],
+                "httpResponse": {
+                    "t": [
+                        1699999980,
+                        1699999920
+                    ],
+                    "o": [
+                        100,
+                        99
+                    ],
+                    "h": [
+                        102,
+                        101
+                    ],
+                    "l": [
+                        99,
+                        98
+                    ],
+                    "c": [
+                        101,
+                        100
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1699999920000,
+                        99,
+                        101,
+                        98,
+                        100,
+                        null
+                    ],
+                    [
+                        1699999980000,
+                        100,
+                        102,
+                        99,
+                        101,
+                        null
+                    ]
+                ]
+            }
+        ]
+    }
+}
