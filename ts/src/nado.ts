@@ -3081,7 +3081,8 @@ export default class nado extends Exchange {
     }
 
     async queryContracts (params: Dict = {}): Promise<Dict> {
-        if (this.safeDict (this.options, 'gatewayContracts') === undefined) {
+        const gatewayContracts = this.safeDict (this.options, 'gatewayContracts');
+        if (gatewayContracts === undefined) {
             const request: Dict = {
                 'type': 'contracts',
             };
