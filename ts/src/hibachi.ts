@@ -294,11 +294,11 @@ export default class hibachi extends Exchange {
         const quoteId = this.safeString (market, 'settlementSymbol');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        if ((base === undefined) || (quote === undefined)) {
-            return undefined;
-        }
         const settleId = this.safeString (market, 'settlementSymbol');
         const settle = this.safeCurrencyCode (settleId);
+        if ((base === undefined) || (quote === undefined) || (settle === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote + ':' + settle;
         const created = this.safeIntegerProduct (market, 'marketCreationTimestamp', 1000);
         return this.safeMarketStructure ({
@@ -853,8 +853,8 @@ export default class hibachi extends Exchange {
         const amountStr = this.amountToPrecision (this.safeString (market, 'symbol'), amount);
         const feeRateStr = this.numberToString (feeRate);
         const info = this.safeDict (market, 'info');
-        const underlying = '1e' + this.safeString (info, 'underlyingDecimals');
-        const settlement = '1e' + this.safeString (info, 'settlementDecimals');
+        const underlying = '1e' + this.safeString (info, 'underlyingDecimals', '');
+        const settlement = '1e' + this.safeString (info, 'settlementDecimals', '');
         const one = '1';
         const feeRateFactor = '100000000'; // 10^8
         const priceFactor = '4294967296'; // 2^32
@@ -987,7 +987,8 @@ export default class hibachi extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const nonce = this.incrementingNonce ();
+        const nonceValue = this.incrementingNonce ();
+        const nonce = this.parseToInt (nonceValue);
         const requestOrders: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);
@@ -1093,7 +1094,8 @@ export default class hibachi extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const nonce = this.incrementingNonce ();
+        const nonceValue = this.incrementingNonce ();
+        const nonce = this.parseToInt (nonceValue);
         const requestOrders: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);
@@ -1849,11 +1851,11 @@ export default class hibachi extends Exchange {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
-        if ('status' in response) {
-            //
-            //     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
-            //
-            const status = this.safeString (response, 'status');
+        const status = this.safeString (response, 'status');
+        //
+        //     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
+        //
+        if (status !== undefined) {
             if (status === 'failed') {
                 const code = this.safeString (response, 'errorCode');
                 const feedback = this.id + ' ' + body;
