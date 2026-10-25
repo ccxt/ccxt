@@ -212,7 +212,7 @@ export default class mudrex extends Exchange {
                 return { 'url': url, 'method': methodUpper, 'body': bodyStr, 'headers': requestHeaders };
             }
         }
-        if (Object.keys (query).length > 0) {
+        if (!this.isEmpty (query)) {
             url += '?' + this.urlencode (query);
         }
         return { 'url': url, 'method': methodUpper, 'body': undefined, 'headers': requestHeaders };
@@ -384,7 +384,12 @@ export default class mudrex extends Exchange {
         const request: Dict = {};
         const response = await this.privateGetFutures (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
-        const rows = Array.isArray (data) ? data : this.safeList (data, 'items', []);
+        let rows: Dict[] = [];
+        if (Array.isArray (data)) {
+            rows = this.toArray (data);
+        } else {
+            rows = this.safeList (data, 'items', []);
+        }
         const resultTickers: Dict = {};
         for (let i = 0; i < rows.length; i++) {
             const t = rows[i];
@@ -1171,15 +1176,14 @@ export default class mudrex extends Exchange {
         const amount = this.safeValue (params, 'amount');
         if (positionId === undefined) {
             const positions = await this.fetchPositions ([ symbol ], params);
-            for (let i = 0; i < positions.length; i++) {
-                const p = positions[i];
-                if (side !== undefined && p['side'] !== side) {
-                    continue;
-                }
-                if (p['symbol'] === market['symbol']) {
-                    positionId = this.safeString (p, 'id');
-                    break;
-                }
+            let candidates = this.filterBy (positions, 'symbol', market['symbol']);
+            if (side !== undefined) {
+                candidates = this.filterBy (candidates, 'side', side);
+            }
+            const numCandidates = candidates.length;
+            if (numCandidates > 0) {
+                const found = candidates[0];
+                positionId = this.safeString (found, 'id');
             }
         }
         if (positionId === undefined) {
@@ -1225,12 +1229,11 @@ export default class mudrex extends Exchange {
         let positionId = this.safeString (params, 'position_id');
         if (positionId === undefined) {
             const positions = await this.fetchPositions ([ symbol ], params);
-            for (let i = 0; i < positions.length; i++) {
-                const p = positions[i];
-                if (p['symbol'] === symbol) {
-                    positionId = this.safeString (p, 'id');
-                    break;
-                }
+            const matches = this.filterBy (positions, 'symbol', symbol);
+            const numMatches = matches.length;
+            if (numMatches > 0) {
+                const found = matches[0];
+                positionId = this.safeString (found, 'id');
             }
         }
         if (positionId === undefined) {
