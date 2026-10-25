@@ -1,0 +1,281 @@
+{
+    "BTC/USDT": {
+        "id": "BTCUSDT",
+        "symbol": "BTCUSDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 8,
+            "price": 6
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "BTCUSDT",
+            "base_currency": "BTC",
+            "is_trader_geofenced": false,
+            "quote_currency": "USDT"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2000000,
+                    0.0005
+                ],
+                [
+                    4000000,
+                    0.0004
+                ],
+                [
+                    8000000,
+                    0.0002
+                ],
+                [
+                    30000000,
+                    0.0002
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0005
+                ],
+                [
+                    2000000,
+                    0.0004
+                ],
+                [
+                    4000000,
+                    0.0003
+                ],
+                [
+                    8000000,
+                    0.0001
+                ],
+                [
+                    30000000,
+                    0.0000
+                ]
+            ]
+        },
+        "created": 1602201600000
+    },
+    "ETH/USDT": {
+        "id": "ETHUSDT",
+        "symbol": "ETHUSDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 8,
+            "price": 6
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "ETHUSDT",
+            "base_currency": "ETH",
+            "is_trader_geofenced": false,
+            "type": "spot",
+            "quote_currency": "USDT"
+
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2000000,
+                    0.0005
+                ],
+                [
+                    4000000,
+                    0.0004
+                ],
+                [
+                    8000000,
+                    0.0002
+                ],
+                [
+                    30000000,
+                    0.0002
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0005
+                ],
+                [
+                    2000000,
+                    0.0004
+                ],
+                [
+                    4000000,
+                    0.0003
+                ],
+                [
+                    8000000,
+                    0.0001
+                ],
+                [
+                    30000000,
+                    0.0000
+                ]
+            ]
+        },
+        "created": 1602201600000
+    },
+    "SOL/USDT": {
+        "id": "SOLUSDT",
+        "symbol": "SOLUSDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 8,
+            "price": 6
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "SOLUSDT",
+            "base_currency": "SOL",
+            "is_trader_geofenced": false,
+            "type": "spot",
+            "quote_currency": "USDT"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "feeSide": "get",
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0006
+                ],
+                [
+                    2000000,
+                    0.0005
+                ],
+                [
+                    4000000,
+                    0.0004
+                ],
+                [
+                    8000000,
+                    0.0002
+                ],
+                [
+                    30000000,
+                    0.0002
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    1000000,
+                    0.0005
+                ],
+                [
+                    2000000,
+                    0.0004
+                ],
+                [
+                    4000000,
+                    0.0003
+                ],
+                [
+                    8000000,
+                    0.0001
+                ],
+                [
+                    30000000,
+                    0.0000
+                ]
+            ]
+        },
+        "created": 1602201600000
+    }
+}
