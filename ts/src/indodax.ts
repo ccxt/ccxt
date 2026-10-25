@@ -548,8 +548,10 @@ export default class indodax extends Exchange {
         //
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeTimestamp (ticker, 'server_time');
-        const baseVolume = 'vol_' + this.safeStringLower (market, 'baseId');
-        const quoteVolume = 'vol_' + this.safeStringLower (market, 'quoteId');
+        const baseId = this.safeStringLower (market, 'baseId', '');
+        const quoteId = this.safeStringLower (market, 'quoteId', '');
+        const baseVolume = 'vol_' + baseId;
+        const quoteVolume = 'vol_' + quoteId;
         const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
@@ -822,10 +824,7 @@ export default class indodax extends Exchange {
         //        }
         //    }
         //
-        let side: Str = undefined;
-        if ('type' in order) {
-            side = this.safeString (order, 'type');
-        }
+        const side = this.safeString (order, 'type');
         const status = this.parseOrderStatus (this.safeString (order, 'status', 'open'));
         let symbol: Str = undefined;
         let cost: Str = undefined;
@@ -942,11 +941,12 @@ export default class indodax extends Exchange {
             return this.parseOrders (rawOrders, market, since, limit);
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
-        const marketIds = Object.keys (rawOrders);
+        const ordersDict = this.safeDict (openOrdersResult, 'orders', {});
+        const marketIds = Object.keys (ordersDict);
         let exchangeOrders: List = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const marketOrders = rawOrders[marketId];
+            const marketOrders = ordersDict[marketId];
             market = this.safeMarket (marketId);
             const parsedOrders = this.parseOrders (marketOrders, market, since, limit);
             exchangeOrders = this.arrayConcat (exchangeOrders, parsedOrders);
@@ -1265,14 +1265,14 @@ export default class indodax extends Exchange {
         let transactions: List = [];
         let currency: Currency = undefined;
         if (code === undefined) {
-            let keys = Object.keys (withdraw);
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
+            const withdrawKeys = Object.keys (withdraw);
+            for (let i = 0; i < withdrawKeys.length; i++) {
+                const key = withdrawKeys[i];
                 transactions = this.arrayConcat (transactions, withdraw[key]);
             }
-            keys = Object.keys (deposit);
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
+            const depositKeys = Object.keys (deposit);
+            for (let i = 0; i < depositKeys.length; i++) {
+                const key = depositKeys[i];
                 transactions = this.arrayConcat (transactions, deposit[key]);
             }
         } else {
