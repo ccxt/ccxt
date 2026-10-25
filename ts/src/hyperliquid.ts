@@ -554,7 +554,7 @@ export default class hyperliquid extends Exchange {
         const promises = await Promise.all (rawPromises);
         let result: List = [];
         for (let i = 0; i < promises.length; i++) {
-            result = this.arrayConcat (result, promises[i]);
+            result = this.arrayConcat (result, this.safeList (promises, i, []));
         }
         return result;
     }
@@ -1047,7 +1047,7 @@ export default class hyperliquid extends Exchange {
         const swap = true;
         if (contract) {
             if (swap) {
-                symbol = symbol + ':' + settle;
+                symbol = base + '/' + quote + ':' + settle;
             }
         }
         const fees = this.safeDict (this.fees, 'swap', {});
@@ -1325,8 +1325,8 @@ export default class hyperliquid extends Exchange {
         // same response as under "fetchMarkets"
         const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const info = market['info'];
+            const market: Market = response[i];
+            const info = this.safeDict (market, 'info', {});
             const ticker = this.parseTicker (info, market);
             const symbol = this.safeString (ticker, 'symbol');
             result[(symbol as string)] = ticker;
@@ -1683,7 +1683,8 @@ export default class hyperliquid extends Exchange {
     override priceToPrecision (symbol: Str, price: any): Str {
         const market = this.market (symbol);
         const priceStr = this.numberToString (price);
-        const integerPart = (priceStr as string).split ('.')[0];
+        const priceStrParts = (priceStr as string).split ('.');
+        const integerPart = priceStrParts[0];
         const significantDigits = Math.max (5, integerPart.length);
         const result = this.decimalToPrecision (price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
         let maxDecimals: int = 6;
@@ -1700,9 +1701,11 @@ export default class hyperliquid extends Exchange {
 
     signHash (hash: string, privateKey: string): Dict {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        const signatureR = this.safeString (signature, 'r', '');
+        const signatureS = this.safeString (signature, 's', '');
         return {
-            'r': '0x' + signature['r'],
-            's': '0x' + signature['s'],
+            'r': '0x' + signatureR,
+            's': '0x' + signatureS,
             'v': this.sum (27, signature['v']),
         };
     }
@@ -2393,7 +2396,8 @@ export default class hyperliquid extends Exchange {
         let defaultSlippage = this.safeString (this.options, 'defaultSlippage');
         defaultSlippage = this.safeString (params, 'slippage', defaultSlippage);
         let hasClientOrderId = false;
-        for (let i = 0; i < orders.length; i++) {
+        const ordersLength = orders.length;
+        for (let i = 0; i < ordersLength; i++) {
             const rawOrder = this.safeDict (orders, i);
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
@@ -2402,7 +2406,7 @@ export default class hyperliquid extends Exchange {
             }
         }
         if (hasClientOrderId) {
-            for (let i = 0; i < orders.length; i++) {
+            for (let i = 0; i < ordersLength; i++) {
                 const rawOrder = this.safeDict (orders, i);
                 const orderParams = this.safeDict (rawOrder, 'params', {});
                 const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
@@ -2415,7 +2419,7 @@ export default class hyperliquid extends Exchange {
         const nonce = this.incrementingNonce ();
         const orderReq: List = [];
         let grouping = 'na';
-        for (let i = 0; i < orders.length; i++) {
+        for (let i = 0; i < ordersLength; i++) {
             const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             const market = this.market (marketId);
@@ -2835,7 +2839,8 @@ export default class hyperliquid extends Exchange {
     editOrdersRequest (orders: List, params: Dict = {}): Dict {
         this.checkRequiredCredentials ();
         let hasClientOrderId = false;
-        for (let i = 0; i < orders.length; i++) {
+        const ordersLength = orders.length;
+        for (let i = 0; i < ordersLength; i++) {
             const rawOrder = this.safeDict (orders, i);
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
@@ -2844,7 +2849,7 @@ export default class hyperliquid extends Exchange {
             }
         }
         if (hasClientOrderId) {
-            for (let i = 0; i < orders.length; i++) {
+            for (let i = 0; i < ordersLength; i++) {
                 const rawOrder = this.safeDict (orders, i);
                 const orderParams = this.safeDict (rawOrder, 'params', {});
                 const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'client_id');
@@ -2855,7 +2860,7 @@ export default class hyperliquid extends Exchange {
         }
         let params2: Dict = this.omit (params, [ 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce' ]);
         const modifies: List = [];
-        for (let i = 0; i < orders.length; i++) {
+        for (let i = 0; i < ordersLength; i++) {
             const rawOrder = this.safeDict (orders, i);
             const id = this.safeString (rawOrder, 'id');
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -3840,7 +3845,7 @@ export default class hyperliquid extends Exchange {
         if (Array.isArray (response)) {
             const user = this.safeStringLower (request, 'user');
             for (let i = 0; i < response.length; i++) {
-                const fill = response[i];
+                const fill = this.safeDict (response, i, {});
                 const liquidation = this.safeDict (fill, 'liquidation', {});
                 // liquidator fills carry the liquidated counterparty here
                 if (this.safeStringLower (liquidation, 'liquidatedUser') === user) {
@@ -4396,7 +4401,9 @@ export default class hyperliquid extends Exchange {
             const paramsSendAsset = query;
             const sendAssetCurrency = this.currency (code);
             const sendAssetCurrencyInfo = this.safeDict (sendAssetCurrency, 'info', {});
-            const sendAssetToken = this.safeString (sendAssetCurrencyInfo, 'name') + ':' + this.safeString (sendAssetCurrencyInfo, 'tokenId');
+            const sendAssetName = this.safeString (sendAssetCurrencyInfo, 'name', '');
+            const sendAssetTokenId = this.safeString (sendAssetCurrencyInfo, 'tokenId', '');
+            const sendAssetToken = sendAssetName + ':' + sendAssetTokenId;
             // '' addresses the default USDC perp dex and 'spot' the spot balance, a unified account
             // keeps every balance in the spot clearinghouse so spot is the default on both sides
             const defaultDex = ((transferType === 'swap') || (transferType === 'perp')) ? '' : 'spot';
@@ -4467,8 +4474,8 @@ export default class hyperliquid extends Exchange {
             }
             const currency = this.currency (code);
             const currencyInfo = this.safeDict (currency, 'info', {});
-            const tokenName = this.safeString (currencyInfo, 'name');
-            const tokenId = this.safeString (currencyInfo, 'tokenId');
+            const tokenName = this.safeString (currencyInfo, 'name', '');
+            const tokenId = this.safeString (currencyInfo, 'tokenId', '');
             const token = tokenName + ':' + tokenId;
             const action = {
                 'type': 'subAccountSpotTransfer',
@@ -5199,8 +5206,9 @@ export default class hyperliquid extends Exchange {
     extractTypeFromDelta (data: Dict[] = []): Dict[] {
         const records: Dict[] = [];
         for (let i = 0; i < data.length; i++) {
-            const record = data[i];
-            record['type'] = record['delta']['type'];
+            const record = this.safeDict (data, i, {});
+            const delta = this.safeDict (record, 'delta', {});
+            record['type'] = delta['type'];
             records.push (record);
         }
         return records;

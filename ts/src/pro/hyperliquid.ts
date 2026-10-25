@@ -748,7 +748,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
         const keys = Object.keys (symbols);
         for (let i = 0; i < keys.length; i++) {
-            const currentMessageHash = 'myTrades:' + keys[i];
+            const currentMessageHash = 'myTrades:' + this.safeString (keys, i, '');
             client.resolve (trades, currentMessageHash);
         }
         // non-symbol specific
@@ -1066,7 +1066,7 @@ export default class hyperliquid extends hyperliquidRest {
         const base = this.safeString (data, 's');
         const marketId = this.coinToMarketId (base);
         const symbol = this.safeSymbol (marketId);
-        const timeframe = this.safeString (data, 'i');
+        const timeframe = this.safeString (data, 'i', '');
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -1249,7 +1249,7 @@ export default class hyperliquid extends hyperliquidRest {
         const topic = this.safeString (message, 'channel');
         let info: NullableDict = undefined;
         let rawBalances: any[] = [];
-        let account: Str = undefined;
+        let account: string = '';
         let timestamp: Int = undefined;
         const data = this.safeDict (message, 'data', {});
         if (topic === 'spotState') {
@@ -1775,7 +1775,7 @@ export default class hyperliquid extends hyperliquidRest {
         const coin = this.safeString (subscription, 'coin');
         const marketId = this.coinToMarketId (coin);
         const symbol = this.safeSymbol (marketId);
-        const interval = this.safeString (subscription, 'interval');
+        const interval = this.safeString (subscription, 'interval', '');
         const timeframe = this.findTimeframe (interval);
         const subMessageHash = 'candles:' + timeframe + ':' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
