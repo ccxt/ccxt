@@ -249,7 +249,7 @@ class bigone extends bigone$1["default"] {
                     'DOGE': 'Dogecoin',
                     'XEC': 'ECash',
                     'EOS': 'EOS',
-                    'ETH': 'Ethereum',
+                    'ERC20': 'Ethereum',
                     'ETC': 'EthereumClassic',
                     'ETHW': 'EthereumPow',
                     'FTM': 'Fantom',
@@ -1390,18 +1390,18 @@ class bigone extends bigone$1["default"] {
             'period': this.safeString(this.timeframes, timeframe, timeframe),
             'limit': limitResolved,
         };
-        if (sinceIsDefined) {
+        if (since !== undefined) {
             // const start = this.parseToInt (since / 1000);
             const duration = this.parseTimeframe(timeframe);
-            const endByLimit = this.sum(since, limitResolved * duration * 1000);
-            if (untilIsDefined) {
+            const endByLimit = this.parseToInt(this.sum(since, limitResolved * duration * 1000));
+            if (until !== undefined) {
                 request['time'] = this.iso8601(Math.min(endByLimit, until + 1));
             }
             else {
                 request['time'] = this.iso8601(endByLimit);
             }
         }
-        else if (untilIsDefined) {
+        else if (until !== undefined) {
             request['time'] = this.iso8601(until + 1);
         }
         const paramsOmitted = this.omit(params, 'until');
@@ -1628,7 +1628,7 @@ class bigone extends bigone$1["default"] {
         const exchangeSpecificParam = this.safeBool(params, 'post_only', false);
         let postOnly = undefined;
         let query = undefined;
-        [postOnly, query] = this.handlePostOnly(uppercaseType === 'MARKET', exchangeSpecificParam === true, params);
+        [postOnly, query] = this.handlePostOnly(uppercaseType === 'MARKET', exchangeSpecificParam, params);
         const triggerPrice = this.safeStringN(query, ['triggerPrice', 'stopPrice', 'stop_price']);
         const request = {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
@@ -1646,7 +1646,7 @@ class bigone extends bigone$1["default"] {
                 if (timeInForce === 'IOC') {
                     request['immediate_or_cancel'] = true;
                 }
-                if (postOnly === true) {
+                if (postOnly) {
                     request['post_only'] = true;
                 }
             }
@@ -1974,20 +1974,22 @@ class bigone extends bigone$1["default"] {
         return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
     }
     nonce() {
-        const exchangeTimeCorrection = this.safeInteger(this.options, 'exchangeMillisecondsCorrection', 0) * 1000000;
+        const exchangeMillisecondsCorrection = this.safeInteger(this.options, 'exchangeMillisecondsCorrection', 0);
+        const exchangeTimeCorrection = exchangeMillisecondsCorrection * 1000000;
         return this.sum(this.microseconds() * 1000, exchangeTimeCorrection);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let bodySigned = undefined;
         const query = this.omit(params, this.extractParams(path));
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const baseUrl = this.implodeHostname(apiUrl);
         let url = baseUrl + '/' + this.implodeParams(path, params);
         const headersValue = {};
-        if (api === 'public' || api === 'webExchange' || api === 'contractPublic') {
+        if (apiName === 'public' || apiName === 'webExchange' || apiName === 'contractPublic') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
@@ -2014,7 +2016,7 @@ class bigone extends bigone$1["default"] {
             }
         }
         headersValue['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
-        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        const bodyResolved = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
     }
     /**
@@ -2059,7 +2061,7 @@ class bigone extends bigone$1["default"] {
             throw new errors.ExchangeError(this.id + ' fetchDepositAddress() returned empty address response');
         }
         const chainsIndexedById = this.indexBy(data, 'chain');
-        const selectedNetworkId = this.selectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById);
+        const selectedNetworkId = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, false);
         const addressObject = this.safeDict(chainsIndexedById, selectedNetworkId, {});
         const address = this.safeString(addressObject, 'value');
         const tag = this.safeString(addressObject, 'memo');
@@ -2321,7 +2323,7 @@ class bigone extends bigone$1["default"] {
         const transfer = this.parseTransfer(response, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
@@ -2363,12 +2365,13 @@ class bigone extends bigone$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }

@@ -393,35 +393,35 @@ public class Mercado extends MercadoApi
                     continue;
                 }
                 String id = (quote + base);
-                ((List<Object>)result).add(Helpers.newMap(
-                    "id", id,
-                    "symbol", ((base + "/") + quote),
-                    "base", base,
-                    "quote", quote,
-                    "settle", null,
-                    "baseId", baseId,
-                    "quoteId", quoteId,
-                    "settleId", null,
-                    "type", "spot",
-                    "spot", true,
-                    "margin", false,
-                    "swap", false,
-                    "future", false,
-                    "option", false,
-                    "active", null,
-                    "contract", false,
-                    "linear", null,
-                    "inverse", null,
-                    "contractSize", null,
-                    "expiry", null,
-                    "expiryDatetime", null,
-                    "strike", null,
-                    "optionType", null,
-                    "precision", new HashMap<String, Object>() {{
+                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("id", id);
+                    j39v1.put("symbol", ((base + "/") + quote));
+                    j39v1.put("base", base);
+                    j39v1.put("quote", quote);
+                    j39v1.put("settle", null);
+                    j39v1.put("baseId", baseId);
+                    j39v1.put("quoteId", quoteId);
+                    j39v1.put("settleId", null);
+                    j39v1.put("type", "spot");
+                    j39v1.put("spot", true);
+                    j39v1.put("margin", false);
+                    j39v1.put("swap", false);
+                    j39v1.put("future", false);
+                    j39v1.put("option", false);
+                    j39v1.put("active", null);
+                    j39v1.put("contract", false);
+                    j39v1.put("linear", null);
+                    j39v1.put("inverse", null);
+                    j39v1.put("contractSize", null);
+                    j39v1.put("expiry", null);
+                    j39v1.put("expiryDatetime", null);
+                    j39v1.put("strike", null);
+                    j39v1.put("optionType", null);
+                    j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Mercado.this.parseNumber("1e-8") );
                         put( "price", Mercado.this.parseNumber("1e-5") );
-                    }},
-                    "limits", new HashMap<String, Object>() {{
+                    }});
+                    j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -438,10 +438,10 @@ public class Mercado extends MercadoApi
                             put( "min", null );
                             put( "max", null );
                         }} );
-                    }},
-                    "created", null,
-                    "info", coin
-                ));
+                    }});
+                    j39v1.put("created", null);
+                    j39v1.put("info", coin);
+                    yield j39v1; } }));
             }
             return result;
         });
@@ -572,10 +572,12 @@ public class Mercado extends MercadoApi
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", null
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", null);
+                fee = hx4NewMap0;
+            }
         }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", id);
@@ -937,19 +939,19 @@ public class Mercado extends MercadoApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -980,7 +982,7 @@ public class Mercado extends MercadoApi
                     {
                         if (!(((Map<?, ?>)paramsWithdrawTag).containsKey("destination_tag")))
                         {
-                            throw new ArgumentsRequired(((this.id + " withdraw() requires a tag argument or destination_tag parameter to withdraw ") + code)) ;
+                            throw new ArgumentsRequired(((this.id + " withdraw() requires a tag or destination_tag parameter to withdraw ") + code)) ;
                         }
                     } else
                     {
@@ -1095,7 +1097,7 @@ public class Mercado extends MercadoApi
             {
                 Long to = this.seconds();
                 request.put("to", to);
-                request.put("from", Helpers.subtract(to, ((limitResolved * this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "15m"))))));
+                request.put("from", (to - (limitResolved * this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "15m")))));
             }
             Map<String, Object> response = (this.v4PublicNetGetCandles(this.extend(request, parameters))).join();
             // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
@@ -1208,7 +1210,7 @@ public class Mercado extends MercadoApi
             Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
             List<Object> ordersRaw = (List<Object>) this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = this.parseOrders(ordersRaw, market, since, limit, new HashMap<String, Object>() {{}});
-            Object trades = this.ordersToTrades(orders);
+            List<Object> trades = (List<Object>) this.ordersToTrades(orders);
             return this.filterBySymbolSinceLimit(trades, this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1234,16 +1236,17 @@ public class Mercado extends MercadoApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + "/");
         Object query = this.omit(parameters, this.extractParams(path));
-        Boolean isPublic = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v4Public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v4PublicNet"));
+        Boolean isPublic = (java.util.Objects.equals(apiName, "public")) || (java.util.Objects.equals(apiName, "v4Public")) || (java.util.Objects.equals(apiName, "v4PublicNet"));
         String privateBody = null;
         Map<String, Object> privateHeaders = null;
         if (Boolean.TRUE.equals(isPublic))
@@ -1273,12 +1276,12 @@ public class Mercado extends MercadoApi
         String requestBody = privateBody;
         if (Boolean.TRUE.equals(isPublic))
         {
-            requestBody = body;
+            requestBody = null;
         }
-        Object requestHeaders = privateHeaders;
+        Map<String, Object> requestHeaders = privateHeaders;
         if (Boolean.TRUE.equals(isPublic))
         {
-            requestHeaders = headers;
+            requestHeaders = null;
         }
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();

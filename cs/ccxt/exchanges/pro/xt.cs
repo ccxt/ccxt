@@ -97,7 +97,7 @@ public partial class xt : ccxt.xt
                 // a flight is already in progress - wake when the leader
                 // settles it: the token is then in the bucket
                 await client.future(messageHash);
-                return ((string?)((object)(getValue(client.subscriptions, "token"))));
+                return ((string?)((object)((client.subscriptions != null && client.subscriptions.ContainsKey("token") ? client.subscriptions["token"] : null))));
             }
             // client.futures is the same registry Exchange.watch () dedupes on, so registering
             // the flight here, before any suspension point, makes concurrent callers wait
@@ -149,7 +149,7 @@ public partial class xt : ccxt.xt
             }
             await future;
         }
-        return ((string?)((object)(getValue(client.subscriptions, "token"))));
+        return ((string?)((object)((client.subscriptions != null && client.subscriptions.ContainsKey("token") ? client.subscriptions["token"] : null))));
     }
 
     public override object getCacheIndex(object orderbook, IList<object> cache)
@@ -453,12 +453,7 @@ public partial class xt : ccxt.xt
             throw new NotSupported ((this.id + " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")) ;
         }
         string messageHash = ("unsubscribe::" + name);
-        object tickers = await this.unSubscribe(messageHash, name, "public", "unWatchTickers", "ticker", null, symbols, parameters);
-        if (this.newUpdates)
-        {
-            return tickers;
-        }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return await this.unSubscribe(messageHash, name, "public", "unWatchTickers", "ticker", null, symbols, parameters);
     }
 
     /**
@@ -599,7 +594,7 @@ public partial class xt : ccxt.xt
         }
         Dictionary<string, object> market = this.market(symbol);
         string? levels = this.safeString(parameters, "levels");
-        object paramsOmitted = this.omit(parameters, "levels");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "levels"));
         string name = ("depth_update@" + ((market.ContainsKey("id") ? market["id"] : null)));
         if ((levels != null))
         {
@@ -631,7 +626,7 @@ public partial class xt : ccxt.xt
         }
         Dictionary<string, object> market = this.market(symbol);
         string? levels = this.safeString(parameters, "levels");
-        object paramsOmitted = this.omit(parameters, "levels");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "levels"));
         string name = ("depth_update@" + ((market.ContainsKey("id") ? market["id"] : null)));
         if ((levels != null))
         {
@@ -888,7 +883,7 @@ public partial class xt : ccxt.xt
             }
         }
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -1361,7 +1356,7 @@ public partial class xt : ccxt.xt
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             List<object> obAsks = this.safeList(data, "a");
             List<object> obBids = this.safeList(data, "b");
-            string? messageHash = ((string)add(add(eventVar, "::"), tradeType));
+            string? messageHash = ((string)((eventVar + "::") + tradeType));
             if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
             {
                 IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
@@ -1810,11 +1805,10 @@ public partial class xt : ccxt.xt
         //
         string? id = this.safeString(message, "id");
         Dictionary<string, object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-        bool? unsubscribe = false;
         if ((id != null))
         {
             IDictionary<string, object> subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
-            unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+            bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
             if ((unsubscribe == true))
             {
                 this.handleUnSubscription(client, subscription);

@@ -286,7 +286,7 @@ func (this *testMainClass) ExpandSettings(exchange ccxt.ICoreExchange) {
 		for i := 0; i < len(settingKeys); i++ {
 			var key string = settingKeys[i]
 			var settingValue any = GetValue(exchangeSettings, key)
-			var settingIsEmpty bool = (IsEqual(settingValue, nil)) || (IsEqual(settingValue, nil)) || (settingValue == "") || (settingValue == false) || (IsEqual(settingValue, 0))
+			var settingIsEmpty bool = (settingValue == nil) || (settingValue == "") || (settingValue == false) || (IsEqual(settingValue, 0))
 			if !settingIsEmpty {
 				var finalValue any = nil
 				if EvalTruthy(exchange.IsDictionary(GetValue(exchangeSettings, key))) {
@@ -556,7 +556,7 @@ func (this *testMainClass) testSafeBody(ch chan ccxt.AsyncResult[any], methodNam
 									}
 									// output the message
 									var failType string = func() string {
-										if EvalTruthy(shouldFail) {
+										if shouldFail {
 											return "[TEST_FAILURE]"
 										}
 										return "[TEST_WARNING]"
@@ -921,7 +921,7 @@ func (this *testMainClass) GetTickerVolume(exchange ccxt.ICoreExchange, ticker a
 	}
 	var last *float64 = exchange.SafeNumber(ticker, "last")
 	if last != nil {
-		return Multiply(baseVolume, last)
+		return (*baseVolume * *last)
 	}
 	return baseVolume
 }
@@ -1905,8 +1905,8 @@ func (this *testMainClass) testReturnResponseHeadersBody(ch chan ccxt.AsyncResul
 		panic(r.Err)
 	}
 	var ticker any = nil
-	if r.Value != nil {
-		ticker = r.Value
+	if !ccxt.StructAbsent(r.Value) {
+		ticker = ccxt.StructBox(r.Value, ccxt.TickerToMap)
 	}
 	var info map[string]any = MapTyped(GetValue(ticker, "info"))
 	var headers any = info["responseHeaders"]
@@ -2005,10 +2005,10 @@ func (this *testMainClass) TestHasProps(exchange ccxt.ICoreExchange) {
 	var watchOrderBookSkips any = this.GetSkips(exchange, "watchOrderBook")
 	var fetchOrderBookSkips any = this.GetSkips(exchange, "fetchOrderBook")
 	// ensure with hardcoded list of required methods
-	if EvalTruthy(this.WsTests) && (!IsEqual(exchange.SafeBool(exchange.GetHas(), "watchOrderBook", false), true)) && !IsString(watchOrderBookSkips) {
+	if EvalTruthy(this.WsTests) && (!EvalTruthy(exchange.SafeBool(exchange.GetHas(), "watchOrderBook", false))) && !IsString(watchOrderBookSkips) {
 		Dump("[TEST_FAILURE] Method \"watchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange")
 		ExitScript(1)
-	} else if !EvalTruthy(this.WsTests) && (!IsEqual(exchange.SafeBool(exchange.GetHas(), "fetchOrderBook", false), true)) && !IsString(fetchOrderBookSkips) {
+	} else if !EvalTruthy(this.WsTests) && (!EvalTruthy(exchange.SafeBool(exchange.GetHas(), "fetchOrderBook", false))) && !IsString(fetchOrderBookSkips) {
 		Dump("[TEST_FAILURE] Method \"fetchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange")
 		ExitScript(1)
 	}
@@ -2032,7 +2032,7 @@ func (this *testMainClass) AssertStaticError(cond any, message any, calculatedOu
 	var storedString string = JsonStringify(storedOutput)
 	var errorMessage any = message
 	if key != nil {
-		errorMessage = Add(Add("[", key), "]")
+		errorMessage = "[" + *key + "]"
 	}
 	errorMessage = Add(errorMessage, " computed: "+storedString+" stored: "+calculatedString)
 	Assert(cond, errorMessage)
@@ -2064,7 +2064,7 @@ func (this *testMainClass) LoadStaticData(folder any, optionalArgs ...any) any {
 	targetExchange := GetArg(optionalArgs, 0, nil)
 	_ = targetExchange
 	var result map[string]any = map[string]any{}
-	if !IsEqual(targetExchange, nil) && (targetExchange != "") {
+	if (targetExchange != nil) && (targetExchange != "") {
 		// read a single exchange
 		var path any = Add(Add(folder, targetExchange), ".json")
 		if !EvalTruthy(IoFileExists(path)) {
@@ -2479,7 +2479,7 @@ func (this *testMainClass) VarToString(optionalArgs ...any) any {
 	obj := GetArg(optionalArgs, 0, nil)
 	_ = obj
 	var newString string
-	if IsEqual(obj, nil) {
+	if obj == nil {
 		newString = "undefined"
 	} else if EvalTruthy(IsNullValue(obj)) {
 		newString = "null"
@@ -2534,6 +2534,96 @@ func (this *testMainClass) AssertStaticRequestOutput(exchange ccxt.ICoreExchange
 		}
 	}
 	this.AssertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput)
+	return true
+}
+func (this *testMainClass) AssertStaticIsolatedPosition(exchange ccxt.ICoreExchange, entry any) any {
+	if !EvalTruthy(exchange.IsDictionary(entry)) {
+		return true
+	}
+	var marginMode any = ccxt.DerefScalar(exchange.SafeString(entry, "marginMode"))
+	if marginMode != "isolated" {
+		return true
+	}
+	var side any = ccxt.DerefScalar(exchange.SafeString(entry, "side"))
+	var entryPrice *float64 = exchange.SafeNumber(entry, "entryPrice")
+	var liquidationPrice *float64 = exchange.SafeNumber(entry, "liquidationPrice")
+	var contracts *float64 = exchange.SafeNumber(entry, "contracts")
+	var contractSize *float64 = exchange.SafeNumber(entry, "contractSize")
+	var maintenanceMargin *float64 = exchange.SafeNumber(entry, "maintenanceMargin")
+	var collateral *float64 = exchange.SafeNumber(entry, "collateral")
+	var initialMargin *float64 = exchange.SafeNumber(entry, "initialMargin")
+	var unrealizedPnl *float64 = exchange.SafeNumber(entry, "unrealizedPnl")
+	if (entryPrice != nil) && (liquidationPrice != nil) && (*entryPrice > 0) && (*liquidationPrice > 0) {
+		if side == "long" {
+			this.AssertStaticError((liquidationPrice == nil || !(*liquidationPrice >= *entryPrice)), "isolated long liquidationPrice should be less than entryPrice", entryPrice, liquidationPrice)
+		} else if side == "short" {
+			this.AssertStaticError((*liquidationPrice > *entryPrice), "isolated short liquidationPrice should be greater than entryPrice", entryPrice, liquidationPrice)
+		}
+	}
+	var entryMargin any = nil
+	if collateral != nil {
+		if (unrealizedPnl != nil) && (collateral != initialMargin && (collateral == nil || initialMargin == nil || *collateral != *initialMargin)) {
+			entryMargin = Subtract(collateral, unrealizedPnl)
+		} else {
+			entryMargin = collateral
+		}
+	} else if initialMargin != nil {
+		entryMargin = initialMargin
+	}
+	if (!IsEqual(entryMargin, nil)) && (entryPrice != nil) && (liquidationPrice != nil) && (contracts != nil) && (contractSize != nil) && (maintenanceMargin != nil) {
+		if (IsGreaterThan(entryMargin, 0)) && (*entryPrice > 0) && (*liquidationPrice > 0) && (*contracts > 0) && (*contractSize > 0) && (*maintenanceMargin > 0) {
+			var symbol any = ccxt.DerefScalar(exchange.SafeString(entry, "symbol"))
+			var market any = func() any {
+				if !IsEqual(symbol, nil) {
+					return exchange.SafeDict(exchange.GetMarkets(), symbol)
+				}
+				return nil
+			}()
+			var isInverse bool = (!IsEqual(market, nil)) && EvalTruthy(exchange.SafeBool(market, "inverse", false))
+			var priceDiff any = 0
+			if isInverse {
+				var invEntry any = Divide(1, entryPrice)
+				var invLiq any = Divide(1, liquidationPrice)
+				priceDiff = func() any {
+					if IsGreaterThan(invEntry, invLiq) {
+						return (Subtract(invEntry, invLiq))
+					}
+					return (Subtract(invLiq, invEntry))
+				}()
+			} else {
+				priceDiff = func() any {
+					if *entryPrice > *liquidationPrice {
+						return (Subtract(entryPrice, liquidationPrice))
+					}
+					return (Subtract(liquidationPrice, entryPrice))
+				}()
+			}
+			var lossFromEntry any = Multiply(Multiply(priceDiff, contracts), contractSize)
+			var calculatedMm any = Subtract(entryMargin, lossFromEntry)
+			this.AssertStaticError(IsGreaterThan(calculatedMm, 0), "isolated position remaining collateral at liquidationPrice should be greater than 0", maintenanceMargin, calculatedMm)
+			var mmDiff any = func() any {
+				if IsGreaterThan(calculatedMm, maintenanceMargin) {
+					return (Subtract(calculatedMm, maintenanceMargin))
+				}
+				return (Subtract(maintenanceMargin, calculatedMm))
+			}()
+			var maxTolerance any = Multiply(entryMargin, 0.05)
+			this.AssertStaticError(IsLessThanOrEqual(mmDiff, maxTolerance), "isolated position maintenanceMargin does not match remaining collateral at liquidationPrice", maintenanceMargin, calculatedMm)
+		}
+	}
+	return true
+}
+func (this *testMainClass) AssertStaticIsolatedPositions(exchange ccxt.ICoreExchange, method any, output any) any {
+	if (method == "fetchPosition") || (method == "fetchPositions") || (method == "fetchPositionsForSymbol") || (method == "fetchPositionsRisk") {
+		if IsArray(output) {
+			var outputLength int = GetArrayLength(output)
+			for i := 0; i < outputLength; i++ {
+				this.AssertStaticIsolatedPosition(exchange, GetValue(output, i))
+			}
+		} else if EvalTruthy(exchange.IsDictionary(output)) {
+			this.AssertStaticIsolatedPosition(exchange, output)
+		}
+	}
 	return true
 }
 func (this *testMainClass) AssertStaticResponseOutput(exchange ccxt.ICoreExchange, skipKeys any, computedResult any, storedResult any) {
@@ -2697,9 +2787,11 @@ func (this *testMainClass) testResponseStaticallyBody(ch chan ccxt.AsyncResult[a
 				}
 				unifiedResult := r.Value
 				this.AssertStaticResponseOutput(mockedExchange, skipKeys, unifiedResult, expectedResult)
+				this.AssertStaticIsolatedPositions(mockedExchange, method, expectedResult)
 			} else {
 				var unifiedResultSync any = CallExchangeMethodDynamicallySync(exchange, method, this.SanitizeDataInput(GetValue(data, "input")))
 				this.AssertStaticResponseOutput(mockedExchange, skipKeys, unifiedResultSync, expectedResult)
+				this.AssertStaticIsolatedPositions(mockedExchange, method, expectedResult)
 			}
 			return nil
 		}(this)
@@ -2709,6 +2801,15 @@ func (this *testMainClass) testResponseStaticallyBody(ch chan ccxt.AsyncResult[a
 
 	ch <- ccxt.AsyncResult[any]{Value: true}
 	return nil
+}
+func (this *testMainClass) WsRequestWasSent(exchange ccxt.ICoreExchange, url any, id any) any {
+	var sentMessages any = GetWsSentMessages(exchange, url)
+	for i := 0; i < GetArrayLength(sentMessages); i++ {
+		if IsEqual(exchange.SafeString(GetValue(sentMessages, i), "id"), id) {
+			return true
+		}
+	}
+	return false
 }
 func (this *testMainClass) InjectWsMessagesAsync(exchange ccxt.ICoreExchange, url any, messages any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
@@ -2721,6 +2822,8 @@ func (this *testMainClass) injectWsMessagesBody(ch chan ccxt.AsyncResult[any], e
 	// before every frame, wait until the watch flow is actually awaiting
 	// something — a fixed head-start sleep is not enough on slow ci
 	// runners and the frame's resolution would be dropped
+	// a reply frame must not arrive before its request was sent, or it is dropped
+	// a frame given as { "binary": "<base16>" } is replayed as a binary frame (e.g. SBE)
 	// threaded runtimes resolve futures on another thread — wait for
 	// the consumed frame to settle so the pending check above does not
 	// observe a stale future and burn the next frame early; frames
@@ -2730,14 +2833,26 @@ func (this *testMainClass) injectWsMessagesBody(ch chan ccxt.AsyncResult[any], e
 	_ = sequential
 	for i := 0; i < GetArrayLength(messages); i++ {
 		var waited any = 0
-		for !EvalTruthy(WsClientHasPendingFutures(exchange, url)) && (IsLessThan(waited, 5000)) {
+		for !EvalTruthy(WsClientHasPendingFutures(exchange, url)) && (waited.(int) < 5000) {
 
 			<-exchange.Sleep(50)
 			waited = Add(waited, 50)
 		}
-		InjectWsMessage(exchange, url, GetValue(messages, i))
+		var frameId any = ccxt.DerefScalar(exchange.SafeString(GetValue(messages, i), "id"))
+		var waitedSent any = 0
+		for (!IsEqual(frameId, nil)) && !EvalTruthy(this.WsRequestWasSent(exchange, url, frameId)) && (waitedSent.(int) < 5000) {
+
+			<-exchange.Sleep(50)
+			waitedSent = Add(waitedSent, 50)
+		}
+		var frame any = GetValue(messages, i)
+		var binaryFrame any = ccxt.DerefScalar(exchange.SafeString(frame, "binary"))
+		if !IsEqual(binaryFrame, nil) {
+			frame = exchange.Base16ToBinary(binaryFrame)
+		}
+		InjectWsMessage(exchange, url, frame)
 		var settled any = 0
-		for EvalTruthy(WsClientHasPendingFutures(exchange, url)) && (IsLessThan(settled, 500)) {
+		for EvalTruthy(WsClientHasPendingFutures(exchange, url)) && (settled.(int) < 500) {
 
 			<-exchange.Sleep(20)
 			settled = Add(settled, 20)
@@ -2754,7 +2869,7 @@ func (this *testMainClass) injectWsMessagesBody(ch chan ccxt.AsyncResult[any], e
 		// work stealing): give up eventually so the stack unwinds instead
 		// of deadlocking
 		var waitedDone any = 0
-		for !EvalTruthy(IsWsTestCompleted(exchange, url)) && (IsLessThan(waitedDone, 30000)) {
+		for !EvalTruthy(IsWsTestCompleted(exchange, url)) && (waitedDone.(int) < 30000) {
 			RejectPendingWsFutures(exchange, url)
 
 			<-exchange.Sleep(50)
@@ -2949,7 +3064,7 @@ func (this *testMainClass) testExchangeWsStaticallyBody(ch chan ccxt.AsyncResult
 		for j := 0; j < GetArrayLength(results); j++ {
 			var result any = GetValue(results, j)
 			var description any = GetValue(result, "description")
-			if (!IsEqual(testName, nil)) && (!IsEqual(testName, description)) {
+			if (testName != nil) && (!IsEqual(testName, description)) {
 				continue
 			}
 			// a fresh exchange per entry: ws caches (trades, orderbooks,
@@ -2957,7 +3072,7 @@ func (this *testMainClass) testExchangeWsStaticallyBody(ch chan ccxt.AsyncResult
 			// and would leak state across entries otherwise
 			var exchange ccxt.ICoreExchange = this.InitOfflineExchange(exchangeName, true)
 			var isDisabled any = ccxt.DerefScalar(exchange.SafeBool(result, "disabled", false))
-			if isDisabled == true {
+			if EvalTruthy(isDisabled) {
 				continue
 			}
 			var disabledString any = ccxt.DerefScalar(exchange.SafeString(result, "disabled", ""))
@@ -2987,6 +3102,14 @@ func (this *testMainClass) testExchangeWsStaticallyBody(ch chan ccxt.AsyncResult
 			exchange.ExtendExchangeOptions(globalOptions)
 			var testExchangeOptions any = exchange.SafeValue(result, "options", map[string]any{})
 			exchange.ExtendExchangeOptions(testExchangeOptions)
+			var apiKey any = ccxt.DerefScalar(exchange.SafeString(result, "apiKey"))
+			if !EvalTruthy(exchange.IsEmptyString(apiKey)) {
+				exchange.SetApiKey(ToString(apiKey))
+			}
+			var secret any = ccxt.DerefScalar(exchange.SafeString(result, "secret"))
+			if !EvalTruthy(exchange.IsEmptyString(secret)) {
+				exchange.SetSecret(ToString(secret))
+			}
 			var skipKeys any = this.EffectiveSkipKeys(exchange, exchangeData, result)
 
 			r := <-this.TestWsStaticallyAsync(exchange, method, skipKeys, result)
@@ -3088,6 +3211,10 @@ func (this *testMainClass) InitOfflineExchange(exchangeName any, optionalArgs ..
 		options["apiKey"] = ""
 		options["secret"] = ""
 	}
+	if exchangeName == "backpack" {
+		// Ed25519 requires a base64-encoded 32-byte seed, not the generic dummy secret.
+		options["secret"] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+	}
 	var exchange ccxt.ICoreExchange = InitExchange(exchangeName, options, isWs)
 	if !IsEqual(currencies, nil) {
 		exchange.SetCurrencies(currencies)
@@ -3168,11 +3295,11 @@ func (this *testMainClass) testExchangeRequestStaticallyBody(ch chan ccxt.AsyncR
 			// exchange.Setoptions(exchange.GetdeepExtend() (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests)
 			exchange.ExtendExchangeOptions(exchange.DeepExtend(oldExchangeOptions, testExchangeOptions))
 			var description any = exchange.SafeValue(result, "description")
-			if (!IsEqual(testName, nil)) && (!IsEqual(testName, description)) {
+			if (testName != nil) && (!IsEqual(testName, description)) {
 				continue
 			}
 			var isDisabled any = ccxt.DerefScalar(exchange.SafeBool(result, "disabled", false))
-			if isDisabled == true {
+			if EvalTruthy(isDisabled) {
 				continue
 			}
 			var disabledString any = ccxt.DerefScalar(exchange.SafeString(result, "disabled", ""))
@@ -3180,11 +3307,11 @@ func (this *testMainClass) testExchangeRequestStaticallyBody(ch chan ccxt.AsyncR
 				continue
 			}
 			var isDisabledCSharp any = ccxt.DerefScalar(exchange.SafeBool(result, "disabledCS", false))
-			if (isDisabledCSharp == true) && (this.Lang == "C#") {
+			if EvalTruthy((isDisabledCSharp)) && (this.Lang == "C#") {
 				continue
 			}
 			var isDisabledGo any = ccxt.DerefScalar(exchange.SafeBool(result, "disabledGO", false))
-			if (isDisabledGo == true) && (this.Lang == "GO") {
+			if EvalTruthy((isDisabledGo)) && (this.Lang == "GO") {
 				continue
 			}
 			var isDisabledRust any = ccxt.DerefScalar(exchange.SafeBool(result, "disabledRS", false))
@@ -3192,7 +3319,7 @@ func (this *testMainClass) testExchangeRequestStaticallyBody(ch chan ccxt.AsyncR
 				continue
 			}
 			var isDisabledJava any = ccxt.DerefScalar(exchange.SafeBool(result, "disabledJava", false))
-			if (isDisabledJava == true) && (this.Lang == "java") {
+			if EvalTruthy((isDisabledJava)) && (this.Lang == "java") {
 				continue
 			}
 			var typeVar any = ccxt.DerefScalar(exchange.SafeString(exchangeData, "outputType"))
@@ -3262,22 +3389,22 @@ func (this *testMainClass) testExchangeResponseStaticallyBody(ch chan ccxt.Async
 			// exchange.Setoptions(exchange.GetdeepExtend() (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests)
 			exchange.ExtendExchangeOptions(exchange.DeepExtend(oldExchangeOptions, testExchangeOptions))
 			var isDisabled any = ccxt.DerefScalar(exchange.SafeBool(result, "disabled", false))
-			if isDisabled == true {
+			if EvalTruthy(isDisabled) {
 				continue
 			}
 			var isDisabledCSharp any = ccxt.DerefScalar(exchange.SafeBool(result, "disabledCS", false))
-			if (isDisabledCSharp == true) && (this.Lang == "C#") {
+			if EvalTruthy((isDisabledCSharp)) && (this.Lang == "C#") {
 				continue
 			}
 			var isDisabledPHP any = ccxt.DerefScalar(exchange.SafeBool(result, "disabledPHP", false))
-			if (isDisabledPHP == true) && (this.Lang == "PHP") {
+			if EvalTruthy((isDisabledPHP)) && (this.Lang == "PHP") {
 				continue
 			}
-			if (!IsEqual(testName, nil)) && (!IsEqual(testName, description)) {
+			if (testName != nil) && (!IsEqual(testName, description)) {
 				continue
 			}
 			var isDisabledGO any = ccxt.DerefScalar(exchange.SafeBool(result, "disabledGO", false))
-			if (isDisabledGO == true) && (this.Lang == "GO") {
+			if EvalTruthy((isDisabledGO)) && (this.Lang == "GO") {
 				continue
 			}
 			var isDisabledRust any = ccxt.DerefScalar(exchange.SafeBool(result, "disabledRS", false))
@@ -3285,7 +3412,7 @@ func (this *testMainClass) testExchangeResponseStaticallyBody(ch chan ccxt.Async
 				continue
 			}
 			var isDisabledJava any = ccxt.DerefScalar(exchange.SafeBool(result, "disabledJava", false))
-			if (isDisabledJava == true) && (this.Lang == "java") {
+			if EvalTruthy((isDisabledJava)) && (this.Lang == "java") {
 				continue
 			}
 			var skipKeys any = this.EffectiveSkipKeys(exchange, exchangeData, result)
@@ -3329,27 +3456,27 @@ func (this *testMainClass) CheckIfExchangeIsDisabled(exchangeName any, exchangeD
 	// prediction-market exchanges exist only in the async namespaces in python/php,
 	// so their fixtures declare asyncOnly and the sync harness skips them
 	var isAsyncOnly any = ccxt.DerefScalar(exchange.SafeBool(exchangeData, "asyncOnly", false))
-	if (isAsyncOnly == true) && EvalTruthy(IsSync()) {
+	if EvalTruthy((isAsyncOnly)) && EvalTruthy(IsSync()) {
 		Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is async-only, skipped by the sync test harness"))
 		return true
 	}
 	var isDisabledPy any = ccxt.DerefScalar(exchange.SafeBool(exchangeData, "disabledPy", false))
-	if (isDisabledPy == true) && (this.Lang == "PY") {
+	if EvalTruthy((isDisabledPy)) && (this.Lang == "PY") {
 		Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in python"))
 		return true
 	}
 	var isDisabledPHP any = ccxt.DerefScalar(exchange.SafeBool(exchangeData, "disabledPHP", false))
-	if (isDisabledPHP == true) && (this.Lang == "PHP") {
+	if EvalTruthy((isDisabledPHP)) && (this.Lang == "PHP") {
 		Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in php"))
 		return true
 	}
 	var isDisabledCSharp any = ccxt.DerefScalar(exchange.SafeBool(exchangeData, "disabledCS", false))
-	if (isDisabledCSharp == true) && (this.Lang == "C#") {
+	if EvalTruthy((isDisabledCSharp)) && (this.Lang == "C#") {
 		Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in c#"))
 		return true
 	}
 	var isDisabledGO any = ccxt.DerefScalar(exchange.SafeBool(exchangeData, "disabledGO", false))
-	if (isDisabledGO == true) && (this.Lang == "GO") {
+	if EvalTruthy((isDisabledGO)) && (this.Lang == "GO") {
 		Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in go"))
 		return true
 	}
@@ -3359,7 +3486,7 @@ func (this *testMainClass) CheckIfExchangeIsDisabled(exchangeName any, exchangeD
 		return true
 	}
 	var isDisabledJava any = ccxt.DerefScalar(exchange.SafeBool(exchangeData, "disabledJava", false))
-	if (isDisabledJava == true) && (this.Lang == "java") {
+	if EvalTruthy((isDisabledJava)) && (this.Lang == "java") {
 		Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in java"))
 		return true
 	}
@@ -3415,10 +3542,10 @@ func (this *testMainClass) runStaticTestsBody(ch chan ccxt.AsyncResult[any], typ
 	var promises []any = []any{}
 	var sum any = 0
 	if (targetExchange != nil) && (targetExchange == nil || *targetExchange != "") {
-		Dump(Add("[INFO:MAIN] Exchange to test: ", targetExchange))
+		Dump("[INFO:MAIN] Exchange to test: " + *targetExchange)
 	}
 	if (testName != nil) && (testName == nil || *testName != "") {
-		Dump(Add("[INFO:MAIN] Testing only: ", testName))
+		Dump("[INFO:MAIN] Testing only: " + *testName)
 	}
 	for i := 0; i < len(exchanges); i++ {
 		var exchangeName string = exchanges[i]
@@ -3552,7 +3679,7 @@ func (this *testMainClass) runBrokerIdTestsBody(ch chan ccxt.AsyncResult[any]) a
 	//  -----------------------------------------------------------------------------
 	//  --- Init of brokerId tests functions-----------------------------------------
 	//  -----------------------------------------------------------------------------
-	var promises []any = []any{this.TestBinanceAsync(), this.TestOkxAsync(), this.TestCryptocomAsync(), this.TestBybitAsync(), this.TestKucoinAsync(), this.TestKucoinfuturesAsync(), this.TestBitgetAsync(), this.TestMexcAsync(), this.TestHtxAsync(), this.TestWooAsync(), this.TestCoinexAsync(), this.TestBingxAsync(), this.TestPhemexAsync(), this.TestBlofinAsync(), this.TestCoinbaseinternationalAsync(), this.TestCoinbaseAdvancedAsync(), this.TestWoofiProAsync(), this.TestXTAsync(), this.TestParadexAsync(), this.TestHashkeyAsync(), this.TestCryptomusAsync(), this.TestDeriveAsync(), this.TestModeTradeAsync(), this.TestBackpackAsync(), this.TestToobitAsync(), this.TestWeexAsync(), this.TestFoxbitAsync(), this.TestBithumbAsync(), this.TestExtendedAsync()}
+	var promises []any = []any{this.TestBinanceAsync(), this.TestOkxAsync(), this.TestCryptocomAsync(), this.TestBybitAsync(), this.TestKucoinAsync(), this.TestKucoinfuturesAsync(), this.TestBitgetAsync(), this.TestMexcAsync(), this.TestHtxAsync(), this.TestWooAsync(), this.TestBingxAsync(), this.TestPhemexAsync(), this.TestBlofinAsync(), this.TestCoinbaseinternationalAsync(), this.TestCoinbaseAdvancedAsync(), this.TestWoofiProAsync(), this.TestXTAsync(), this.TestParadexAsync(), this.TestHashkeyAsync(), this.TestCryptomusAsync(), this.TestDeriveAsync(), this.TestModeTradeAsync(), this.TestBackpackAsync(), this.TestToobitAsync(), this.TestWeexAsync(), this.TestFoxbitAsync(), this.TestBithumbAsync(), this.TestExtendedAsync()}
 
 	r := <-promiseAll(promises)
 	if r.Err != nil {
@@ -3595,7 +3722,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -3623,7 +3750,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -3649,7 +3776,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r2 := <-exchange.CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000)
+			r2 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000)
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
@@ -3663,6 +3790,106 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 	// inverse swap
 	var clientOrderIdInverse any = GetValue(swapInverseOrderRequest, "newClientOrderId")
 	Assert(IsEqual(StartsWith(clientOrderIdInverse, inverseSwapId), true), Add(Add(Add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), inverseSwapId))
+	// defaultType swap routes spot-style symbols by defaultSubType: unset or linear -> USDⓈ-M, inverse -> COIN-M
+	exchange.ExtendExchangeOptions(map[string]any{
+		"defaultType": "swap",
+	})
+	var swapNoSubTypeRequest any = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						swapNoSubTypeRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			r3 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			if r3.Err != nil {
+				panic(r3.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	var swapNoSubTypeId any = GetValue(swapNoSubTypeRequest, "newClientOrderId")
+	Assert(IsEqual(StartsWith(swapNoSubTypeId, swapId), true), Add(Add(Add("binance - defaultType swap without subType clientOrderId: ", swapNoSubTypeId), " does not start with swapId"), swapId))
+	exchange.ExtendExchangeOptions(map[string]any{
+		"defaultSubType": "linear",
+	})
+	var swapLinearRequest any = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						swapLinearRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			r4 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			if r4.Err != nil {
+				panic(r4.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	var swapLinearId any = GetValue(swapLinearRequest, "newClientOrderId")
+	Assert(IsEqual(StartsWith(swapLinearId, swapId), true), Add(Add(Add("binance - defaultType swap linear clientOrderId: ", swapLinearId), " does not start with swapId"), swapId))
+	exchange.ExtendExchangeOptions(map[string]any{
+		"defaultSubType": "inverse",
+	})
+	var swapInverseRequest any = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						swapInverseRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			r5 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USD", "limit", "buy", 1, 20000)
+			if r5.Err != nil {
+				panic(r5.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	var swapInverseId any = GetValue(swapInverseRequest, "newClientOrderId")
+	Assert(IsEqual(StartsWith(swapInverseId, inverseSwapId), true), Add(Add(Add("binance - defaultType swap inverse clientOrderId: ", swapInverseId), " does not start with inverseSwapId"), inverseSwapId))
+	exchange.ExtendExchangeOptions(map[string]any{
+		"defaultType": "spot",
+	})
+	exchange.ExtendExchangeOptions(map[string]any{
+		"defaultSubType": "linear",
+	})
 	// linear swap conditional order
 	var swapAlgoOrderRequest any = map[string]any{}
 
@@ -3682,18 +3909,18 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r3 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 0.002, 102000, map[string]any{
+			r6 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 0.002, 102000, map[string]any{
 				"triggerPrice": 101000,
 			})
-			if r3.Err != nil {
-				panic(r3.Err)
+			if r6.Err != nil {
+				panic(r6.Err)
 			}
 			return nil
 		}(this)
 
 	}
 	var clientAlgoIdSwap any = GetValue(swapAlgoOrderRequest, "clientAlgoId")
-	Assert(!IsEqual(clientAlgoIdSwap, nil), "binance - swap conditional order must send clientAlgoId")
+	Assert((clientAlgoIdSwap != nil), "binance - swap conditional order must send clientAlgoId")
 	Assert(IsEqual(StartsWith(clientAlgoIdSwap, swapId), true), Add(Add(Add("binance - swap clientAlgoId: ", clientAlgoIdSwap), " does not start with swapId"), swapId))
 	// inverse swap conditional order
 	var inverseAlgoOrderRequest any = map[string]any{}
@@ -3714,18 +3941,18 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r4 := <-exchange.CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000, map[string]any{
+			r7 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000, map[string]any{
 				"triggerPrice": 21000,
 			})
-			if r4.Err != nil {
-				panic(r4.Err)
+			if r7.Err != nil {
+				panic(r7.Err)
 			}
 			return nil
 		}(this)
 
 	}
 	var clientAlgoIdInverse any = GetValue(inverseAlgoOrderRequest, "clientAlgoId")
-	Assert(!IsEqual(clientAlgoIdInverse, nil), "binance - inverse swap conditional order must send clientAlgoId")
+	Assert((clientAlgoIdInverse != nil), "binance - inverse swap conditional order must send clientAlgoId")
 	Assert(IsEqual(StartsWith(clientAlgoIdInverse, inverseSwapId), true), Add(Add(Add("binance - inverse swap clientAlgoId: ", clientAlgoIdInverse), " does not start with inverseSwapId"), inverseSwapId))
 	var createOrdersRequest any = map[string]any{}
 
@@ -3757,9 +3984,9 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				"amount": 1,
 			}}
 
-			r5 := <-exchange.CreateOrdersAsync(orders)
-			if r5.Err != nil {
-				panic(r5.Err)
+			r8 := <-exchange.(ccxt.ICreateOrders).CreateOrdersAsync(orders)
+			if r8.Err != nil {
+				panic(r8.Err)
 			}
 			return nil
 		}(this)
@@ -3800,9 +4027,9 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				},
 			}}
 
-			r6 := <-exchange.CreateOrdersAsync(linearConditionalOrders)
-			if r6.Err != nil {
-				panic(r6.Err)
+			r9 := <-exchange.(ccxt.ICreateOrders).CreateOrdersAsync(linearConditionalOrders)
+			if r9.Err != nil {
+				panic(r9.Err)
 			}
 			return nil
 		}(this)
@@ -3840,9 +4067,9 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				},
 			}}
 
-			r7 := <-exchange.CreateOrdersAsync(inverseConditionalOrders)
-			if r7.Err != nil {
-				panic(r7.Err)
+			r10 := <-exchange.(ccxt.ICreateOrders).CreateOrdersAsync(inverseConditionalOrders)
+			if r10.Err != nil {
+				panic(r10.Err)
 			}
 			return nil
 		}(this)
@@ -3853,7 +4080,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 	var inverseConditionalBatchOrder any = exchange.SafeDict(inverseConditionalBatchOrders, 0, map[string]any{})
 	var inverseConditionalClientOrderId any = ccxt.DerefScalar(exchange.SafeString(inverseConditionalBatchOrder, "newClientOrderId"))
 	Assert(!IsEqual(inverseConditionalClientOrderId, nil), "binance createOrders - inverse conditional order must send newClientOrderId")
-	Assert(IsEqual(StartsWith(inverseConditionalClientOrderId, inverseSwapId), true), Add(Add(Add("binance createOrders - inverse conditional clientOrderId: ", inverseConditionalClientOrderId), " does not start with inverseSwapId"), inverseSwapId))
+	Assert(StartsWith(inverseConditionalClientOrderId, inverseSwapId), Add(Add(Add("binance createOrders - inverse conditional clientOrderId: ", inverseConditionalClientOrderId), " does not start with inverseSwapId"), inverseSwapId))
 	// quarterly futures use the prefix of their fapi/dapi side, not the inverse one
 	var linearFutureOrderRequest any = map[string]any{}
 
@@ -3873,9 +4100,9 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r8 := <-exchange.CreateOrderAsync("ETH/USDT:USDT-261225", "limit", "buy", 1, 2000)
-			if r8.Err != nil {
-				panic(r8.Err)
+			r11 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("ETH/USDT:USDT-261225", "limit", "buy", 1, 2000)
+			if r11.Err != nil {
+				panic(r11.Err)
 			}
 			return nil
 		}(this)
@@ -3901,9 +4128,9 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r9 := <-exchange.CreateOrderAsync("ETH/USD:ETH-261225", "limit", "buy", 1, 2000)
-			if r9.Err != nil {
-				panic(r9.Err)
+			r12 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("ETH/USD:ETH-261225", "limit", "buy", 1, 2000)
+			if r12.Err != nil {
+				panic(r12.Err)
 			}
 			return nil
 		}(this)
@@ -3911,6 +4138,36 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 	}
 	var clientOrderIdInverseFuture any = GetValue(inverseFutureOrderRequest, "newClientOrderId")
 	Assert(IsEqual(StartsWith(clientOrderIdInverseFuture, inverseSwapId), true), Add(Add(Add("binance - inverse future clientOrderId: ", clientOrderIdInverseFuture), " does not start with inverseSwapId"), inverseSwapId))
+	// the option api takes clientOrderId instead of newClientOrderId
+	var optionOrderRequest any = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						optionOrderRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			r13 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("ETH/USDT:USDT-231229-800-C", "limit", "buy", 1, 100)
+			if r13.Err != nil {
+				panic(r13.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	var optionClientOrderId any = ccxt.DerefScalar(exchange.SafeString(optionOrderRequest, "clientOrderId"))
+	Assert(!IsEqual(optionClientOrderId, nil), "binance - option order must send clientOrderId")
+	Assert(StartsWith(optionClientOrderId, inverseSwapId), Add(Add(Add("binance - option clientOrderId: ", optionClientOrderId), " does not start with the option broker id "), inverseSwapId))
 	// the implicit order endpoints inject the broker id of their api section
 	// skipped in the sync flavours: callExchangeMethodDynamically is async-only there
 	if !EvalTruthy(IsSync()) {
@@ -3932,7 +4189,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r10 := <-CallExchangeMethodDynamically(exchange, "dapiPrivatePostOrder", []any{map[string]any{
+				r14 := <-CallExchangeMethodDynamically(exchange, "dapiPrivatePostOrder", []any{map[string]any{
 					"symbol":      "ETHUSD_PERP",
 					"side":        "SELL",
 					"type":        "LIMIT",
@@ -3940,8 +4197,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 					"price":       "4100",
 					"timeInForce": "GTC",
 				}})
-				if r10.Err != nil {
-					panic(r10.Err)
+				if r14.Err != nil {
+					panic(r14.Err)
 				}
 				return nil
 			}(this)
@@ -3967,7 +4224,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r11 := <-CallExchangeMethodDynamically(exchange, "dapiPrivatePostBatchOrders", []any{map[string]any{
+				r15 := <-CallExchangeMethodDynamically(exchange, "dapiPrivatePostBatchOrders", []any{map[string]any{
 					"batchOrders": []any{map[string]any{
 						"symbol":      "ETHUSD_PERP",
 						"side":        "SELL",
@@ -3977,8 +4234,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 						"timeInForce": "GTC",
 					}},
 				}})
-				if r11.Err != nil {
-					panic(r11.Err)
+				if r15.Err != nil {
+					panic(r15.Err)
 				}
 				return nil
 			}(this)
@@ -3988,7 +4245,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		var implicitDapiBatchOrder any = exchange.SafeDict(implicitDapiBatchOrders, 0, map[string]any{})
 		var implicitDapiBatchClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitDapiBatchOrder, "newClientOrderId"))
 		Assert(!IsEqual(implicitDapiBatchClientOrderId, nil), "binance - implicit dapi batch order must inject newClientOrderId")
-		Assert(IsEqual(StartsWith(implicitDapiBatchClientOrderId, inverseSwapId), true), Add(Add(Add("binance - implicit dapi batch clientOrderId: ", implicitDapiBatchClientOrderId), " does not start with inverseSwapId"), inverseSwapId))
+		Assert(StartsWith(implicitDapiBatchClientOrderId, inverseSwapId), Add(Add(Add("binance - implicit dapi batch clientOrderId: ", implicitDapiBatchClientOrderId), " does not start with inverseSwapId"), inverseSwapId))
 		// the implicit algo order endpoints take clientAlgoId instead of newClientOrderId
 		var implicitFapiAlgoOrderRequest any = map[string]any{}
 
@@ -4008,7 +4265,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r12 := <-CallExchangeMethodDynamically(exchange, "fapiPrivatePostAlgoOrder", []any{map[string]any{
+				r16 := <-CallExchangeMethodDynamically(exchange, "fapiPrivatePostAlgoOrder", []any{map[string]any{
 					"symbol":       "ETHUSDT",
 					"side":         "SELL",
 					"type":         "STOP",
@@ -4018,8 +4275,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 					"triggerPrice": "4200",
 					"timeInForce":  "GTC",
 				}})
-				if r12.Err != nil {
-					panic(r12.Err)
+				if r16.Err != nil {
+					panic(r16.Err)
 				}
 				return nil
 			}(this)
@@ -4027,7 +4284,743 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		}
 		var implicitFapiClientAlgoId any = ccxt.DerefScalar(exchange.SafeString(implicitFapiAlgoOrderRequest, "clientAlgoId"))
 		Assert(!IsEqual(implicitFapiClientAlgoId, nil), "binance - implicit fapi algo order must inject clientAlgoId")
-		Assert(IsEqual(StartsWith(implicitFapiClientAlgoId, swapId), true), Add(Add(Add("binance - implicit fapi clientAlgoId: ", implicitFapiClientAlgoId), " does not start with swapId"), swapId))
+		Assert(StartsWith(implicitFapiClientAlgoId, swapId), Add(Add(Add("binance - implicit fapi clientAlgoId: ", implicitFapiClientAlgoId), " does not start with swapId"), swapId))
+		// the papi order endpoints resolve the broker id from the path, not from the api section
+		var implicitPapiUmOrderRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitPapiUmOrderRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r17 := <-CallExchangeMethodDynamically(exchange, "papiPostUmOrder", []any{map[string]any{
+					"symbol":      "ETHUSDT",
+					"side":        "SELL",
+					"type":        "LIMIT",
+					"quantity":    "1",
+					"price":       "4100",
+					"timeInForce": "GTC",
+				}})
+				if r17.Err != nil {
+					panic(r17.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var implicitPapiUmClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitPapiUmOrderRequest, "newClientOrderId"))
+		Assert(!IsEqual(implicitPapiUmClientOrderId, nil), "binance - implicit papi um order must inject newClientOrderId")
+		Assert(StartsWith(implicitPapiUmClientOrderId, swapId), Add(Add(Add("binance - implicit papi um clientOrderId: ", implicitPapiUmClientOrderId), " does not start with swapId"), swapId))
+		var implicitPapiCmOrderRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitPapiCmOrderRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r18 := <-CallExchangeMethodDynamically(exchange, "papiPostCmOrder", []any{map[string]any{
+					"symbol":      "ETHUSD_PERP",
+					"side":        "SELL",
+					"type":        "LIMIT",
+					"quantity":    "1",
+					"price":       "4100",
+					"timeInForce": "GTC",
+				}})
+				if r18.Err != nil {
+					panic(r18.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var implicitPapiCmClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitPapiCmOrderRequest, "newClientOrderId"))
+		Assert(!IsEqual(implicitPapiCmClientOrderId, nil), "binance - implicit papi cm order must inject newClientOrderId")
+		Assert(StartsWith(implicitPapiCmClientOrderId, inverseSwapId), Add(Add(Add("binance - implicit papi cm clientOrderId: ", implicitPapiCmClientOrderId), " does not start with inverseSwapId"), inverseSwapId))
+		var implicitPapiMarginOrderRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitPapiMarginOrderRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r19 := <-CallExchangeMethodDynamically(exchange, "papiPostMarginOrder", []any{map[string]any{
+					"symbol":      "BTCUSDT",
+					"side":        "BUY",
+					"type":        "LIMIT",
+					"quantity":    "0.001",
+					"price":       "20000",
+					"timeInForce": "GTC",
+				}})
+				if r19.Err != nil {
+					panic(r19.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var implicitPapiMarginClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitPapiMarginOrderRequest, "newClientOrderId"))
+		Assert(!IsEqual(implicitPapiMarginClientOrderId, nil), "binance - implicit papi margin order must inject newClientOrderId")
+		Assert(StartsWith(implicitPapiMarginClientOrderId, spotId), Add(Add(Add("binance - implicit papi margin clientOrderId: ", implicitPapiMarginClientOrderId), " does not start with spotId"), spotId))
+		var implicitSapiMarginOrderRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitSapiMarginOrderRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r20 := <-CallExchangeMethodDynamically(exchange, "sapiPostMarginOrder", []any{map[string]any{
+					"symbol":      "BTCUSDT",
+					"side":        "BUY",
+					"type":        "LIMIT",
+					"quantity":    "0.001",
+					"price":       "20000",
+					"timeInForce": "GTC",
+				}})
+				if r20.Err != nil {
+					panic(r20.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var implicitSapiMarginClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitSapiMarginOrderRequest, "newClientOrderId"))
+		Assert(!IsEqual(implicitSapiMarginClientOrderId, nil), "binance - implicit sapi margin order must inject newClientOrderId")
+		Assert(StartsWith(implicitSapiMarginClientOrderId, spotId), Add(Add(Add("binance - implicit sapi margin clientOrderId: ", implicitSapiMarginClientOrderId), " does not start with spotId"), spotId))
+		// the papi um algo order endpoint takes clientAlgoId
+		var implicitPapiUmAlgoOrderRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitPapiUmAlgoOrderRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r21 := <-CallExchangeMethodDynamically(exchange, "papiPostUmAlgoOrder", []any{map[string]any{
+					"symbol":       "ETHUSDT",
+					"side":         "SELL",
+					"algoType":     "CONDITIONAL",
+					"type":         "STOP",
+					"quantity":     "1",
+					"price":        "4100",
+					"triggerPrice": "4200",
+					"timeInForce":  "GTC",
+				}})
+				if r21.Err != nil {
+					panic(r21.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var implicitPapiUmClientAlgoId any = ccxt.DerefScalar(exchange.SafeString(implicitPapiUmAlgoOrderRequest, "clientAlgoId"))
+		Assert(!IsEqual(implicitPapiUmClientAlgoId, nil), "binance - implicit papi um algo order must inject clientAlgoId")
+		Assert(StartsWith(implicitPapiUmClientAlgoId, swapId), Add(Add(Add("binance - implicit papi um clientAlgoId: ", implicitPapiUmClientAlgoId), " does not start with swapId"), swapId))
+		// the papi cm conditional order endpoint takes newClientStrategyId
+		var implicitPapiCmConditionalOrderRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitPapiCmConditionalOrderRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r22 := <-CallExchangeMethodDynamically(exchange, "papiPostCmConditionalOrder", []any{map[string]any{
+					"symbol":       "ETHUSD_PERP",
+					"side":         "SELL",
+					"strategyType": "STOP",
+					"quantity":     "1",
+					"price":        "4100",
+					"stopPrice":    "4200",
+					"timeInForce":  "GTC",
+				}})
+				if r22.Err != nil {
+					panic(r22.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var implicitPapiCmStrategyId any = ccxt.DerefScalar(exchange.SafeString(implicitPapiCmConditionalOrderRequest, "newClientStrategyId"))
+		Assert(!IsEqual(implicitPapiCmStrategyId, nil), "binance - implicit papi cm conditional order must inject newClientStrategyId")
+		Assert(StartsWith(implicitPapiCmStrategyId, inverseSwapId), Add(Add(Add("binance - implicit papi cm newClientStrategyId: ", implicitPapiCmStrategyId), " does not start with inverseSwapId"), inverseSwapId))
+		var implicitPapiUmConditionalOrderRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitPapiUmConditionalOrderRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r23 := <-CallExchangeMethodDynamically(exchange, "papiPostUmConditionalOrder", []any{map[string]any{
+					"symbol":       "ETHUSDT",
+					"side":         "SELL",
+					"strategyType": "STOP",
+					"quantity":     "1",
+					"price":        "4100",
+					"stopPrice":    "4200",
+					"timeInForce":  "GTC",
+				}})
+				if r23.Err != nil {
+					panic(r23.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var implicitPapiUmStrategyId any = ccxt.DerefScalar(exchange.SafeString(implicitPapiUmConditionalOrderRequest, "newClientStrategyId"))
+		Assert(!IsEqual(implicitPapiUmStrategyId, nil), "binance - implicit papi um conditional order must inject newClientStrategyId")
+		Assert(StartsWith(implicitPapiUmStrategyId, swapId), Add(Add(Add("binance - implicit papi um newClientStrategyId: ", implicitPapiUmStrategyId), " does not start with swapId"), swapId))
+		// the eapi order endpoints take clientOrderId
+		var implicitEapiOrderRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitEapiOrderRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r24 := <-CallExchangeMethodDynamically(exchange, "eapiPrivatePostOrder", []any{map[string]any{
+					"symbol":   "ETH-231229-800-C",
+					"side":     "BUY",
+					"type":     "LIMIT",
+					"quantity": "1",
+					"price":    "100",
+				}})
+				if r24.Err != nil {
+					panic(r24.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var implicitEapiClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitEapiOrderRequest, "clientOrderId"))
+		Assert(!IsEqual(implicitEapiClientOrderId, nil), "binance - implicit eapi order must inject clientOrderId")
+		Assert(StartsWith(implicitEapiClientOrderId, inverseSwapId), Add(Add(Add("binance - implicit eapi clientOrderId: ", implicitEapiClientOrderId), " does not start with the option broker id "), inverseSwapId))
+		var implicitEapiBatchRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitEapiBatchRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r25 := <-CallExchangeMethodDynamically(exchange, "eapiPrivatePostBatchOrders", []any{map[string]any{
+					"batchOrders": []any{map[string]any{
+						"symbol":   "ETH-231229-800-C",
+						"side":     "BUY",
+						"type":     "LIMIT",
+						"quantity": "1",
+						"price":    "100",
+					}},
+				}})
+				if r25.Err != nil {
+					panic(r25.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var implicitEapiBatchOrders any = exchange.SafeList(implicitEapiBatchRequest, "batchOrders", []any{})
+		var implicitEapiBatchOrder any = exchange.SafeDict(implicitEapiBatchOrders, 0, map[string]any{})
+		var implicitEapiBatchClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitEapiBatchOrder, "clientOrderId"))
+		Assert(!IsEqual(implicitEapiBatchClientOrderId, nil), "binance - implicit eapi batch order must inject clientOrderId")
+		Assert(StartsWith(implicitEapiBatchClientOrderId, inverseSwapId), Add(Add(Add("binance - implicit eapi batch clientOrderId: ", implicitEapiBatchClientOrderId), " does not start with the option broker id "), inverseSwapId))
+		// the equity order endpoint takes clientOrderId
+		var implicitEquityOrderRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitEquityOrderRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r26 := <-CallExchangeMethodDynamically(exchange, "sapiPostEquityOrderPlace", []any{map[string]any{
+					"symbol":      "AAPLUSDC",
+					"side":        "BUY",
+					"orderType":   "LIMIT",
+					"quantity":    "1",
+					"price":       "100",
+					"timeInForce": "GTC",
+				}})
+				if r26.Err != nil {
+					panic(r26.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var implicitEquityClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitEquityOrderRequest, "clientOrderId"))
+		Assert(!IsEqual(implicitEquityClientOrderId, nil), "binance - implicit equity order must inject clientOrderId")
+		Assert(StartsWith(implicitEquityClientOrderId, spotId), Add(Add(Add("binance - implicit equity clientOrderId: ", implicitEquityClientOrderId), " does not start with spotId"), spotId))
+		// the order list endpoints inject a listClientOrderId and one client order id per leg
+		var implicitOcoListRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitOcoListRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r27 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderListOco", []any{map[string]any{
+					"symbol":         "BTCUSDT",
+					"side":           "SELL",
+					"quantity":       "0.001",
+					"abovePrice":     "110000",
+					"aboveType":      "LIMIT_MAKER",
+					"belowType":      "STOP_LOSS",
+					"belowStopPrice": "95000",
+				}})
+				if r27.Err != nil {
+					panic(r27.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var ocoListClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOcoListRequest, "listClientOrderId"))
+		var ocoAboveClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOcoListRequest, "aboveClientOrderId"))
+		var ocoBelowClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOcoListRequest, "belowClientOrderId"))
+		Assert(!IsEqual(ocoListClientOrderId, nil), "binance - implicit oco list must inject listClientOrderId")
+		Assert(StartsWith(ocoListClientOrderId, spotId), Add(Add(Add("binance - implicit oco listClientOrderId: ", ocoListClientOrderId), " does not start with spotId"), spotId))
+		Assert((!IsEqual(ocoAboveClientOrderId, nil)) && (StartsWith(ocoAboveClientOrderId, spotId)), "binance - implicit oco aboveClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(ocoBelowClientOrderId, nil)) && (StartsWith(ocoBelowClientOrderId, spotId)), "binance - implicit oco belowClientOrderId must inject the spot broker id")
+		var implicitOtocoListRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitOtocoListRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r28 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderListOtoco", []any{map[string]any{
+					"symbol":                "BTCUSDT",
+					"workingType":           "LIMIT",
+					"workingSide":           "BUY",
+					"workingPrice":          "100000",
+					"workingQuantity":       "0.001",
+					"pendingSide":           "SELL",
+					"pendingQuantity":       "0.001",
+					"pendingAboveType":      "LIMIT_MAKER",
+					"pendingAbovePrice":     "110000",
+					"pendingBelowType":      "STOP_LOSS",
+					"pendingBelowStopPrice": "95000",
+				}})
+				if r28.Err != nil {
+					panic(r28.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var otocoWorkingClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOtocoListRequest, "workingClientOrderId"))
+		var otocoPendingAboveClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOtocoListRequest, "pendingAboveClientOrderId"))
+		var otocoPendingBelowClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOtocoListRequest, "pendingBelowClientOrderId"))
+		Assert((!IsEqual(otocoWorkingClientOrderId, nil)) && (StartsWith(otocoWorkingClientOrderId, spotId)), "binance - implicit otoco workingClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(otocoPendingAboveClientOrderId, nil)) && (StartsWith(otocoPendingAboveClientOrderId, spotId)), "binance - implicit otoco pendingAboveClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(otocoPendingBelowClientOrderId, nil)) && (StartsWith(otocoPendingBelowClientOrderId, spotId)), "binance - implicit otoco pendingBelowClientOrderId must inject the spot broker id")
+		var implicitSapiMarginOcoRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitSapiMarginOcoRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r29 := <-CallExchangeMethodDynamically(exchange, "sapiPostMarginOrderOco", []any{map[string]any{
+					"symbol":    "BTCUSDT",
+					"side":      "SELL",
+					"quantity":  "0.001",
+					"price":     "110000",
+					"stopPrice": "95000",
+				}})
+				if r29.Err != nil {
+					panic(r29.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var sapiMarginOcoLimitClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitSapiMarginOcoRequest, "limitClientOrderId"))
+		var sapiMarginOcoStopClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitSapiMarginOcoRequest, "stopClientOrderId"))
+		Assert((!IsEqual(sapiMarginOcoLimitClientOrderId, nil)) && (StartsWith(sapiMarginOcoLimitClientOrderId, spotId)), "binance - implicit sapi margin oco limitClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(sapiMarginOcoStopClientOrderId, nil)) && (StartsWith(sapiMarginOcoStopClientOrderId, spotId)), "binance - implicit sapi margin oco stopClientOrderId must inject the spot broker id")
+		var implicitPapiMarginOcoRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitPapiMarginOcoRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r30 := <-CallExchangeMethodDynamically(exchange, "papiPostMarginOrderOco", []any{map[string]any{
+					"symbol":    "BTCUSDT",
+					"side":      "SELL",
+					"quantity":  "0.001",
+					"price":     "110000",
+					"stopPrice": "95000",
+				}})
+				if r30.Err != nil {
+					panic(r30.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var papiMarginOcoListClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitPapiMarginOcoRequest, "listClientOrderId"))
+		Assert((!IsEqual(papiMarginOcoListClientOrderId, nil)) && (StartsWith(papiMarginOcoListClientOrderId, spotId)), "binance - implicit papi margin oco listClientOrderId must inject the spot broker id")
+		var papiMarginOcoLimitClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitPapiMarginOcoRequest, "limitClientOrderId"))
+		var papiMarginOcoStopClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitPapiMarginOcoRequest, "stopClientOrderId"))
+		Assert((!IsEqual(papiMarginOcoLimitClientOrderId, nil)) && (StartsWith(papiMarginOcoLimitClientOrderId, spotId)), "binance - implicit papi margin oco limitClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(papiMarginOcoStopClientOrderId, nil)) && (StartsWith(papiMarginOcoStopClientOrderId, spotId)), "binance - implicit papi margin oco stopClientOrderId must inject the spot broker id")
+		var implicitLegacyOcoRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitLegacyOcoRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r31 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderOco", []any{map[string]any{
+					"symbol":    "BTCUSDT",
+					"side":      "SELL",
+					"quantity":  "0.001",
+					"price":     "110000",
+					"stopPrice": "95000",
+				}})
+				if r31.Err != nil {
+					panic(r31.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var legacyOcoListClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitLegacyOcoRequest, "listClientOrderId"))
+		var legacyOcoLimitClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitLegacyOcoRequest, "limitClientOrderId"))
+		var legacyOcoStopClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitLegacyOcoRequest, "stopClientOrderId"))
+		Assert((!IsEqual(legacyOcoListClientOrderId, nil)) && (StartsWith(legacyOcoListClientOrderId, spotId)), "binance - implicit legacy oco listClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(legacyOcoLimitClientOrderId, nil)) && (StartsWith(legacyOcoLimitClientOrderId, spotId)), "binance - implicit legacy oco limitClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(legacyOcoStopClientOrderId, nil)) && (StartsWith(legacyOcoStopClientOrderId, spotId)), "binance - implicit legacy oco stopClientOrderId must inject the spot broker id")
+		var implicitOtoListRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitOtoListRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r32 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderListOto", []any{map[string]any{
+					"symbol":          "BTCUSDT",
+					"workingType":     "LIMIT",
+					"workingSide":     "BUY",
+					"workingPrice":    "100000",
+					"workingQuantity": "0.001",
+					"pendingType":     "MARKET",
+					"pendingSide":     "SELL",
+					"pendingQuantity": "0.001",
+				}})
+				if r32.Err != nil {
+					panic(r32.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var otoListClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOtoListRequest, "listClientOrderId"))
+		var otoWorkingClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOtoListRequest, "workingClientOrderId"))
+		var otoPendingClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOtoListRequest, "pendingClientOrderId"))
+		Assert((!IsEqual(otoListClientOrderId, nil)) && (StartsWith(otoListClientOrderId, spotId)), "binance - implicit oto listClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(otoWorkingClientOrderId, nil)) && (StartsWith(otoWorkingClientOrderId, spotId)), "binance - implicit oto workingClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(otoPendingClientOrderId, nil)) && (StartsWith(otoPendingClientOrderId, spotId)), "binance - implicit oto pendingClientOrderId must inject the spot broker id")
+		var implicitOpoListRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitOpoListRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r33 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderListOpo", []any{map[string]any{
+					"symbol":          "BTCUSDT",
+					"workingType":     "LIMIT",
+					"workingSide":     "BUY",
+					"workingPrice":    "100000",
+					"workingQuantity": "0.001",
+					"pendingType":     "MARKET",
+					"pendingSide":     "SELL",
+					"pendingQuantity": "0.001",
+				}})
+				if r33.Err != nil {
+					panic(r33.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var opoListClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOpoListRequest, "listClientOrderId"))
+		var opoWorkingClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOpoListRequest, "workingClientOrderId"))
+		var opoPendingClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOpoListRequest, "pendingClientOrderId"))
+		Assert((!IsEqual(opoListClientOrderId, nil)) && (StartsWith(opoListClientOrderId, spotId)), "binance - implicit opo listClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(opoWorkingClientOrderId, nil)) && (StartsWith(opoWorkingClientOrderId, spotId)), "binance - implicit opo workingClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(opoPendingClientOrderId, nil)) && (StartsWith(opoPendingClientOrderId, spotId)), "binance - implicit opo pendingClientOrderId must inject the spot broker id")
+		var implicitOpocoListRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitOpocoListRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r34 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderListOpoco", []any{map[string]any{
+					"symbol":                "BTCUSDT",
+					"workingType":           "LIMIT",
+					"workingSide":           "BUY",
+					"workingPrice":          "100000",
+					"workingQuantity":       "0.001",
+					"pendingSide":           "SELL",
+					"pendingQuantity":       "0.001",
+					"pendingAboveType":      "LIMIT_MAKER",
+					"pendingAbovePrice":     "110000",
+					"pendingBelowType":      "STOP_LOSS",
+					"pendingBelowStopPrice": "95000",
+				}})
+				if r34.Err != nil {
+					panic(r34.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var opocoListClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOpocoListRequest, "listClientOrderId"))
+		var opocoWorkingClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOpocoListRequest, "workingClientOrderId"))
+		var opocoPendingAboveClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOpocoListRequest, "pendingAboveClientOrderId"))
+		var opocoPendingBelowClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOpocoListRequest, "pendingBelowClientOrderId"))
+		Assert((!IsEqual(opocoListClientOrderId, nil)) && (StartsWith(opocoListClientOrderId, spotId)), "binance - implicit opoco listClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(opocoWorkingClientOrderId, nil)) && (StartsWith(opocoWorkingClientOrderId, spotId)), "binance - implicit opoco workingClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(opocoPendingAboveClientOrderId, nil)) && (StartsWith(opocoPendingAboveClientOrderId, spotId)), "binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(opocoPendingBelowClientOrderId, nil)) && (StartsWith(opocoPendingBelowClientOrderId, spotId)), "binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id")
+		// the cancel-replace endpoint creates a new order and takes newClientOrderId for it
+		var implicitCancelReplaceRequest any = map[string]any{}
+
+		{
+			func(this *testMainClass) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *testMainClass) any {
+							// catch block:
+							implicitCancelReplaceRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				r35 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderCancelReplace", []any{map[string]any{
+					"symbol":            "BTCUSDT",
+					"side":              "BUY",
+					"type":              "LIMIT",
+					"quantity":          "0.001",
+					"price":             "20000",
+					"timeInForce":       "GTC",
+					"cancelReplaceMode": "STOP_ON_FAILURE",
+					"cancelOrderId":     "12345",
+				}})
+				if r35.Err != nil {
+					panic(r35.Err)
+				}
+				return nil
+			}(this)
+
+		}
+		var cancelReplaceClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitCancelReplaceRequest, "newClientOrderId"))
+		Assert(!IsEqual(cancelReplaceClientOrderId, nil), "binance - implicit cancel-replace must inject newClientOrderId")
+		Assert(StartsWith(cancelReplaceClientOrderId, spotId), Add(Add(Add("binance - implicit cancel-replace newClientOrderId: ", cancelReplaceClientOrderId), " does not start with spotId"), spotId))
 	}
 	if !EvalTruthy(IsSync()) {
 
@@ -4065,7 +5058,7 @@ func (this *testMainClass) testOkxBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -4096,7 +5089,7 @@ func (this *testMainClass) testOkxBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -4149,7 +5142,7 @@ func (this *testMainClass) testCryptocomBody(ch chan ccxt.AsyncResult[any]) any 
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -4202,7 +5195,7 @@ func (this *testMainClass) testBybitBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -4254,7 +5247,7 @@ func (this *testMainClass) testBithumbBody(ch chan ccxt.AsyncResult[any]) any {
 			// try block:
 			// default path: generation 2, the versioned (jwt-signed) endpoints
 
-			r := <-exchange.CreateOrderAsync("BTC/KRW", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/KRW", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -4287,7 +5280,7 @@ func (this *testMainClass) testBithumbBody(ch chan ccxt.AsyncResult[any]) any {
 			// try block:
 			// legacy path: generation 1, the hmac-signed endpoints
 
-			r1 := <-exchange.CreateOrderAsync("BTC/KRW", "limit", "buy", 1, 20000, map[string]any{
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/KRW", "limit", "buy", 1, 20000, map[string]any{
 				"generation": 1,
 			})
 			if r1.Err != nil {
@@ -4382,7 +5375,7 @@ func (this *testMainClass) testExtendedBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -4412,7 +5405,7 @@ func (this *testMainClass) testExtendedBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000, map[string]any{
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000, map[string]any{
 				"builderFeeRate": "0.0002",
 			})
 			if r1.Err != nil {
@@ -4445,7 +5438,7 @@ func (this *testMainClass) testExtendedBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r2 := <-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
+			r2 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
@@ -4472,7 +5465,7 @@ func (this *testMainClass) testExtendedBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r3 := <-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000, map[string]any{
+			r3 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000, map[string]any{
 				"builderId":      "999",
 				"builderFeeRate": "0.0003",
 			})
@@ -4535,7 +5528,7 @@ func (this *testMainClass) testKucoinBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -4567,7 +5560,7 @@ func (this *testMainClass) testKucoinBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000, map[string]any{
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000, map[string]any{
 				"uta": true,
 			})
 			if r1.Err != nil {
@@ -4601,7 +5594,7 @@ func (this *testMainClass) testKucoinBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r2 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
+			r2 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
@@ -4632,7 +5625,7 @@ func (this *testMainClass) testKucoinBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r3 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000, map[string]any{
+			r3 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000, map[string]any{
 				"uta": true,
 			})
 			if r3.Err != nil {
@@ -4689,7 +5682,7 @@ func (this *testMainClass) testKucoinfuturesBody(ch chan ccxt.AsyncResult[any]) 
 			// try block:
 			AddElementToObject(exchange.GetOptions(), "uta", false)
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -4721,7 +5714,7 @@ func (this *testMainClass) testKucoinfuturesBody(ch chan ccxt.AsyncResult[any]) 
 			// try block:
 			AddElementToObject(exchange.GetOptions(), "uta", true)
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -4772,7 +5765,7 @@ func (this *testMainClass) testBitgetBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -4828,7 +5821,7 @@ func (this *testMainClass) testMexcBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -4874,7 +5867,7 @@ func (this *testMainClass) testHtxBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -4904,7 +5897,7 @@ func (this *testMainClass) testHtxBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -4930,7 +5923,7 @@ func (this *testMainClass) testHtxBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r2 := <-exchange.CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000)
+			r2 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000)
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
@@ -4979,7 +5972,7 @@ func (this *testMainClass) testWooBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5009,7 +6002,7 @@ func (this *testMainClass) testWooBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000, map[string]any{
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000, map[string]any{
 				"stopPrice": 30000,
 			})
 			if r1.Err != nil {
@@ -5021,54 +6014,6 @@ func (this *testMainClass) testWooBody(ch chan ccxt.AsyncResult[any]) any {
 	}
 	var clientOrderIdStop any = GetValue(stopOrderRequest, "brokerId")
 	Assert(IsEqual(StartsWith(clientOrderIdStop, idString), true), Add(Add(Add("woo - brokerId: ", clientOrderIdStop), " does not start with id: "), idString))
-	if !EvalTruthy(IsSync()) {
-
-		<-Close(exchange)
-	}
-
-	ch <- ccxt.AsyncResult[any]{Value: true}
-	return nil
-}
-func (this *testMainClass) TestCoinexAsync() <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
-	go this.testCoinexBody(ch)
-	return ch
-}
-func (this *testMainClass) testCoinexBody(ch chan ccxt.AsyncResult[any]) any {
-	defer close(ch)
-	defer ReturnPanicError(ch)
-	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("coinex")
-	var id string = "x-167673045"
-	Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), "coinex - id: "+id+" not in options")
-	var spotOrderRequest any = map[string]any{}
-
-	{
-		func(this *testMainClass) (ret_ any) {
-			defer func() {
-				if e := recover(); e != nil {
-					if e == "break" {
-						return
-					}
-					ret_ = func(this *testMainClass) any {
-						// catch block:
-						spotOrderRequest = JsonParse(exchange.GetLast_request_body())
-						return nil
-					}(this)
-				}
-			}()
-			// try block:
-
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
-			if r.Err != nil {
-				panic(r.Err)
-			}
-			return nil
-		}(this)
-
-	}
-	var clientOrderId any = GetValue(spotOrderRequest, "client_id")
-	var idString string = id
-	Assert(IsEqual(StartsWith(clientOrderId, idString), true), Add(Add(Add("coinex - clientOrderId: ", clientOrderId), " does not start with id: "), idString))
 	if !EvalTruthy(IsSync()) {
 
 		<-Close(exchange)
@@ -5112,7 +6057,7 @@ func (this *testMainClass) testBingxBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5157,7 +6102,7 @@ func (this *testMainClass) testPhemexBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5204,7 +6149,7 @@ func (this *testMainClass) testBlofinBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("LTC/USDT:USDT", "market", "buy", 1)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("LTC/USDT:USDT", "market", "buy", 1)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5250,10 +6195,17 @@ func (this *testMainClass) testCoinbaseinternationalBody(ch chan ccxt.AsyncResul
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("coinbaseinternational")
+	// ECDSA (P-256) auth-token signing needs a hex-encoded secret, unlike the generic dummy one
+	exchange.SetSecret("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+	// pre-seed the gateway access token so createOrder signs the order directly instead of
+	// making a prior (offline-unreachable) public/auth network call
+	exchange.SetToken("token")
+	var tokenExpires int64 = exchange.Milliseconds() + 100000
+	AddElementToObject(exchange.GetOptions(), "v2TokenExpires", tokenExpires)
 	AddElementToObject(exchange.GetOptions(), "portfolio", "random")
 	var id string = "nfqkvdjp"
 	Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), "id not in options")
-	var request any = map[string]any{}
+	var clientOrderId any = nil
 
 	{
 		func(this *testMainClass) (ret_ any) {
@@ -5264,14 +6216,24 @@ func (this *testMainClass) testCoinbaseinternationalBody(ch chan ccxt.AsyncResul
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						request = JsonParse(exchange.GetLast_request_body())
+						// buy/sell are GET endpoints, so the label is in the query string, not a JSON body
+						var url any = exchange.GetLast_request_url()
+						var urlParts []string = Split(url, "?")
+						Assert((len(urlParts) > 1), Add("last_request_url has no query string: ", url))
+						var query any = this.UrlencodedToDict(func() any {
+							if 1 >= 0 && 1 < len(urlParts) {
+								return urlParts[1]
+							}
+							return nil
+						}())
+						clientOrderId = GetValue(query, "label")
 						return nil
 					}(this)
 				}
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5279,8 +6241,7 @@ func (this *testMainClass) testCoinbaseinternationalBody(ch chan ccxt.AsyncResul
 		}(this)
 
 	}
-	var clientOrderId any = GetValue(request, "client_order_id")
-	Assert(IsEqual(StartsWith(clientOrderId, id), true), "clientOrderId does not start with id")
+	Assert(!IsEqual(clientOrderId, nil) && IsEqual(StartsWith(clientOrderId, id), true), "clientOrderId does not start with id")
 	if !EvalTruthy(IsSync()) {
 
 		<-Close(exchange)
@@ -5318,7 +6279,7 @@ func (this *testMainClass) testCoinbaseAdvancedBody(ch chan ccxt.AsyncResult[any
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDC", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5375,7 +6336,7 @@ func (this *testMainClass) testWoofiProBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -5421,7 +6382,7 @@ func (this *testMainClass) testXTBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5449,7 +6410,7 @@ func (this *testMainClass) testXTBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -5538,7 +6499,7 @@ func (this *testMainClass) testParadexBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USD:USDC", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USD:USDC", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -5589,7 +6550,7 @@ func (this *testMainClass) testHashkeyBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5633,7 +6594,7 @@ func (this *testMainClass) testCryptomusBody(ch chan ccxt.AsyncResult[any]) any 
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "sell", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "sell", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5692,7 +6653,7 @@ func (this *testMainClass) testDeriveBody(ch chan ccxt.AsyncResult[any]) any {
 			exchange.SetWalletAddress("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749")
 			exchange.SetPrivateKey("0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5")
 
-			r := <-exchange.CreateOrderAsync("LBTC/USDC", "limit", "sell", 0.01, 3000, params)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("LBTC/USDC", "limit", "sell", 0.01, 3000, params)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5748,7 +6709,7 @@ func (this *testMainClass) testModeTradeBody(ch chan ccxt.AsyncResult[any]) any 
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -5802,7 +6763,7 @@ func (this *testMainClass) testBackpackBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("ETH/USDC", "limit", "buy", 1, 5000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("ETH/USDC", "limit", "buy", 1, 5000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5853,7 +6814,7 @@ func (this *testMainClass) testToobitBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5899,7 +6860,7 @@ func (this *testMainClass) testWeexBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -5926,7 +6887,7 @@ func (this *testMainClass) testWeexBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r1 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -5972,7 +6933,7 @@ func (this *testMainClass) testFoxbitBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r := <-exchange.CreateOrderAsync("BTC/BRL", "limit", "buy", 1, 20000)
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/BRL", "limit", "buy", 1, 20000)
 			if r.Err != nil {
 				panic(r.Err)
 			}

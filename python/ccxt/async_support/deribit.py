@@ -1372,7 +1372,8 @@ class deribit(Exchange, ImplicitAPI):
         if symbolsNormalized is not None:
             for i in range(0, len(symbolsNormalized)):
                 market = self.market(symbolsNormalized[i])
-                if code is not None and code != market['base']:
+                marketBase = self.safe_string(market, 'base')
+                if code is not None and code != marketBase:
                     raise BadRequest(self.id + ' fetchTickers the base currency must be the same for all symbols, self endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency')
                 if code is None:
                     code = self.safe_string(market, 'base')
@@ -1461,8 +1462,9 @@ class deribit(Exchange, ImplicitAPI):
         duration = self.parse_timeframe(timeframe)
         now = self.milliseconds()
         # at max, it provides 5000 bars, but we set generous default here
-        windowLimit = 1000 if (limit is None) else limit
-        limitResolved = windowLimit if (since is None) else limit
+        defaultLimit = 1000
+        windowLimit = defaultLimit if (limit is None) else limit
+        limitResolved = defaultLimit if ((since is None) and (limit is None)) else limit
         sinceResolved = None if (since is None) else max(since - 1, 0)
         if since is None:
             request['start_timestamp'] = now - (windowLimit - 1) * duration * 1000
@@ -1831,7 +1833,7 @@ class deribit(Exchange, ImplicitAPI):
         orderbook['nonce'] = nonce
         return orderbook
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'open': 'open',
             'cancelled': 'canceled',
@@ -1841,7 +1843,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'good_til_cancelled': 'GTC',
             'fill_or_kill': 'FOK',
@@ -2038,9 +2040,9 @@ class deribit(Exchange, ImplicitAPI):
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
         # only stop loss sell orders are allowed when price crossed from above
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
         # only take profit buy orders are allowed when price crossed from below
-        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trigger_offset')
         isTrailingAmountOrder = trailingAmount is not None
         isStopLimit = type == 'stop_limit'
@@ -2556,7 +2558,7 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'completed': 'ok',
             'unconfirmed': 'pending',
@@ -3011,7 +3013,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -3020,13 +3022,12 @@ class deribit(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagAndParams = self.handle_withdraw_tag_and_params(tag, params)
-        paramsWithdrawTag = tagAndParams[1]
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
@@ -3042,7 +3043,7 @@ class deribit(Exchange, ImplicitAPI):
         response = await self.privateGetWithdraw(self.extend(request, paramsWithdrawTag))
         return self.parse_transaction(response, currency)
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         #    {
         #      "withdrawal_priorities": [],
@@ -3167,7 +3168,8 @@ class deribit(Exchange, ImplicitAPI):
         duration = self.parse_timeframe(eachItemDuration) * 1000
         now = self.milliseconds()
         month = 30 * 24 * 60 * 60 * 1000
-        sinceResolved = now - month if (since is None) else since
+        defaultSince = now - month
+        sinceResolved = defaultSince if (since is None) else since
         time = now if (since is None) else since + month
         request = {
             'instrument_name': market['id'],
@@ -3175,10 +3177,8 @@ class deribit(Exchange, ImplicitAPI):
         }
         until = self.safe_integer_2(paramsPaginate, 'until', 'end_timestamp')
         paramsUntil = self.omit(paramsPaginate, ['until']) if (until is not None) else paramsPaginate
-        if until is not None:
-            request['end_timestamp'] = until
-        else:
-            request['end_timestamp'] = time
+        endTimestamp = until if (until is not None) else time
+        request['end_timestamp'] = endTimestamp
         isPaginationCall = ('isDeribitPaginationCall' in paramsUntil)
         paramsOmitted = paramsUntil
         if isPaginationCall:
@@ -3186,8 +3186,8 @@ class deribit(Exchange, ImplicitAPI):
         if isPaginationCall:
             if limit is None:
                 raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a limit argument')
-            maxUntil = self.sum(sinceResolved, limit * duration)
-            request['end_timestamp'] = min(request['end_timestamp'], maxUntil)
+            maxUntil = self.parse_to_int(self.sum(sinceResolved, limit * duration))
+            request['end_timestamp'] = endTimestamp if (endTimestamp < maxUntil) else maxUntil
         response = await self.publicGetGetFundingRateHistory(self.extend(request, paramsOmitted))
         #
         #    {
@@ -3751,7 +3751,7 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_dict(result, 0, {})
         return self.parse_open_interest(data, market)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #     {
         #         "high": 93099.5,
@@ -3797,12 +3797,13 @@ class deribit(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        request = '/' + 'api/' + self.version + '/' + api + '/' + path
-        if api == 'public':
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        request = '/' + 'api/' + self.version + '/' + apiName + '/' + path
+        if apiName == 'public':
             if len(params) > 0:
                 request += '?' + self.urlencode(params)
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             timestamp = str(self.milliseconds())
@@ -3819,12 +3820,12 @@ class deribit(Exchange, ImplicitAPI):
             if baseApiUrl is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             signedUrl = baseApiUrl + request
-            return {'url': signedUrl, 'method': method, 'body': body, 'headers': signedHeaders}
+            return {'url': signedUrl, 'method': method, 'body': None, 'headers': signedHeaders}
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + request
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (response is None) or (response is None):

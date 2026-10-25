@@ -51,7 +51,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             },
         })
 
-    def authenticate(self):
+    def authenticate(self) -> dict:
         self.check_required_credentials()
         path = '/users/self/verify'
         nonce = self.nonce()
@@ -803,7 +803,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         amount = self.safe_number(delta, 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -842,13 +842,11 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         subscription = self.safe_dict(client.subscriptions, messageHash, {})
         limit = self.safe_integer(subscription, 'limit')
         if type == 'snapshot':
-            self.orderbooks[symbol] = self.order_book({}, limit)
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book({}, limit)
             orderbook = self.orderbooks[symbol]
-            self.handle_deltas(orderbook['asks'], self.safe_list(message, 'asks', []))
-            self.handle_deltas(orderbook['bids'], self.safe_list(message, 'bids', []))
-            orderbook['timestamp'] = None
-            orderbook['datetime'] = None
-            orderbook['symbol'] = symbol
+            snapshot = self.parse_order_book(message, symbol)
+            orderbook.reset(snapshot)
             client.resolve(orderbook, messageHash)
         elif type == 'l2update':
             orderbook = self.orderbooks[symbol]
@@ -924,8 +922,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             'done': self.handle_order,
             'error': self.handle_error_message,
         }
-        length = len(client.url) - 0
-        authenticated = client.url[length - 1] == '?'
+        authenticated = client.url.endswith('?')
         method = self.safe_value(methods, type)
         if method is None:
             if type == 'match':

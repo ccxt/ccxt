@@ -41,6 +41,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/uta/public/Instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock markets
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
@@ -112,13 +113,13 @@ export default class bitget extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.chain] the blockchain network the withdrawal is taking place on
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name bitget#fetchWithdrawals
@@ -171,10 +172,12 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/spot/market/Get-Orderbook
      * @see https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth
      * @see https://www.bitget.com/api-doc/uta/public/OrderBook
+     * @see https://www.bitget.com/api-doc/uta/reality/market/Reality-OrderBook
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock order books
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
@@ -189,6 +192,7 @@ export default class bitget extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
@@ -212,6 +216,7 @@ export default class bitget extends Exchange {
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock tickers
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -227,11 +232,13 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills
      * @see https://www.bitget.com/api-doc/contract/market/Get-Fills-History
      * @see https://www.bitget.com/api-doc/uta/public/Fills
+     * @see https://www.bitget.com/api-doc/uta/reality/market/Reality-Fills
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock trades
      * @param {int} [params.until] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
      * @param {boolean} [params.paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
@@ -277,15 +284,17 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/contract/market/Get-History-Candle-Data
      * @see https://www.bitget.com/api-doc/contract/market/Get-History-Index-Candle-Data
      * @see https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data
-     * @see https://www.bitget.com/api-doc/uta/public/Get-Candle-Data
+     * @see https://www.bitget.com/docs/catalog/market/market-data#get-kline-candlestick
+     * @see https://www.bitget.com/docs/catalog/market/market-data#get-kline-candlestick-history
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock candlesticks
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-     * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200)
+     * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200, 100 for uta)
      * @param {boolean} [params.useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
@@ -306,6 +315,7 @@ export default class bitget extends Exchange {
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.type] 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock account balances
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
@@ -339,6 +349,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
      * @see https://www.bitget.com/api-doc/uta/trade/Place-Order
      * @see https://www.bitget.com/api-doc/uta/strategy/Place-Strategy-Order
+     * @see https://www.bitget.com/api-doc/uta/reality/trade/Place-Reality-Order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -368,6 +379,7 @@ export default class bitget extends Exchange {
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to place tokenized stock orders
      * @param {string} [params.posSide] *uta only* hedged two-way position side, long or short
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -438,6 +450,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order
      * @see https://www.bitget.com/api-doc/uta/trade/Cancel-Order
      * @see https://www.bitget.com/api-doc/uta/strategy/Cancel-Strategy-Order
+     * @see https://www.bitget.com/api-doc/uta/reality/trade/Cancel-Reality-Order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -446,6 +459,7 @@ export default class bitget extends Exchange {
      * @param {string} [params.planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true if you would like to cancel tokenized stock orders
      * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -709,8 +723,10 @@ export default class bitget extends Exchange {
      * @name bitget#fetchFundingRates
      * @description fetch the current funding rates for all markets
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+     * @see https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
@@ -722,8 +738,10 @@ export default class bitget extends Exchange {
      * @name bitget#fetchFundingIntervals
      * @description fetch the funding rate interval for multiple markets
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+     * @see https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
@@ -743,15 +761,7 @@ export default class bitget extends Exchange {
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseFundingHistory(contract: NullableDict, market?: Market): {
-        info: NullableDict;
-        symbol: string;
-        timestamp: Int;
-        datetime: string | undefined;
-        code: Str;
-        amount: Num;
-        id: Str;
-    };
+    parseFundingHistory(contract: NullableDict, market?: Market): Dict;
     parseFundingHistories(contracts: Dict[], market?: Market, since?: Int, limit?: Int): FundingHistory[];
     modifyMarginHelper(symbol: string, amount: Num, type: Str, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
@@ -840,7 +850,7 @@ export default class bitget extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name bitget#fetchTransfers
@@ -873,7 +883,7 @@ export default class bitget extends Exchange {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method
      * @name bitget#fetchDepositWithdrawFees
@@ -1125,5 +1135,5 @@ export default class bitget extends Exchange {
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     nonce(): number;
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

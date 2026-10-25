@@ -7,7 +7,6 @@ import "strings"
 
 type Krakenfutures struct {
 	Exchange
-	exchangeTyped *ExchangeTyped
 }
 
 func newKrakenfutures() *Krakenfutures {
@@ -108,7 +107,7 @@ func (this *Krakenfutures) Describe() any {
 				"private":      "https://futures.kraken.com/derivatives/api/",
 			},
 			"www":      "https://futures.kraken.com/",
-			"doc":      []any{"https://docs.kraken.com/api/docs/futures-api/trading/market-data/"},
+			"doc":      []any{"https://docs.kraken.com/exchange/guides/futures/rest"},
 			"fees":     "https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures",
 			"referral": nil,
 		},
@@ -490,12 +489,12 @@ func (this *Krakenfutures) Describe() any {
  * @param {object} [params] exchange specific params
  * @returns An array of market structures
  */
-func (this *Krakenfutures) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -701,7 +700,7 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[any], optionalAr
 	}
 	this.Currencies = this.MapToSafeMap(this.DeepExtend(currencies, this.Currencies))
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
 
@@ -715,12 +714,12 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[any], optionalAr
  * @param {object} [params] exchange specific params
  * @returns An [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Krakenfutures) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Krakenfutures) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBook] {
+	ch := make(chan AsyncResult[OrderBook], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Krakenfutures) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -777,7 +776,7 @@ func (this *Krakenfutures) fetchOrderBookBody(ch chan AsyncResult[map[string]any
 	var timestamp *int64 = this.Parse8601(this.SafeString(response, "serverTime"))
 	var orderBook map[string]any = this.SafeDictMap(response, "orderBook", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(orderBook, symbol, timestamp)}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderBook, symbol, timestamp))}
 	return nil
 }
 
@@ -790,12 +789,12 @@ func (this *Krakenfutures) fetchOrderBookBody(ch chan AsyncResult[map[string]any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Krakenfutures) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Krakenfutures) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker] {
+	ch := make(chan AsyncResult[Ticker], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Krakenfutures) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -841,7 +840,7 @@ func (this *Krakenfutures) fetchTickerBody(ch chan AsyncResult[map[string]any], 
 	//
 	var ticker map[string]any = this.SafeDictMap(response, "ticker", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
 }
 
@@ -854,12 +853,12 @@ func (this *Krakenfutures) fetchTickerBody(ch chan AsyncResult[map[string]any], 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Krakenfutures) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {
+	ch := make(chan AsyncResult[map[string]Ticker], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Krakenfutures) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -913,7 +912,7 @@ func (this *Krakenfutures) fetchTickersBody(ch chan AsyncResult[any], optionalAr
 	//
 	var tickers []any = SafeListTyped(response, "tickers")
 
-	ch <- AsyncResult[any]{Value: this.ParseTickers(tickers, symbols)}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbols))}
 	return nil
 }
 func (this *Krakenfutures) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -958,7 +957,7 @@ func (this *Krakenfutures) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var baseVolume *string = nil
 	var quoteVolume *string = nil
 	var isIndex *bool = this.SafeBool(marketResolved, "index", false)
-	if isIndex == nil || *isIndex != true {
+	if !(isIndex != nil && *isIndex) {
 		if marketResolved["linear"] == true {
 			baseVolume = volume
 		} else if marketResolved["inverse"] == true {
@@ -995,17 +994,17 @@ func (this *Krakenfutures) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @method
  * @name krakenfutures#fetchTradingFees
  * @description fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
- * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
- * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+ * @see https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedules
+ * @see https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedule-volumes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *Krakenfutures) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]TradingFeeInterface] {
+	ch := make(chan AsyncResult[map[string]TradingFeeInterface], 1)
 	go this.fetchTradingFeesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Krakenfutures) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFeeInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1077,17 +1076,17 @@ func (this *Krakenfutures) fetchTradingFeesBody(ch chan AsyncResult[any], option
 		var market map[string]any = this.Market(symbol)
 		var uid *string = this.SafeString(market["info"], "feeScheduleUid")
 		var schedule map[string]any = SafeMapTyped(schedulesByUid, uid)
-		if IsEqual(schedule, nil) {
+		if schedule == nil {
 			continue
 		}
 		var volume *string = this.SafeString(volumes, uid, "0")
-		result[symbol] = this.ParseTradingFee(schedule, market, volume)
+		result[symbol] = TradingFeeInterfaceToMap(this.ParseTradingFee(schedule, market, volume))
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
 	return nil
 }
-func (this *Krakenfutures) ParseTradingFee(fee map[string]any, optionalArgs ...any) map[string]any {
+func (this *Krakenfutures) ParseTradingFee(fee map[string]any, optionalArgs ...any) TradingFeeInterface {
 	//
 	//    {
 	//        "uid": "723888f7-0a8e-4183-8648-f920a22339e3",
@@ -1117,20 +1116,20 @@ func (this *Krakenfutures) ParseTradingFee(fee map[string]any, optionalArgs ...a
 			}
 		}
 	}
-	return map[string]any{
+	return TradingFeeInterfaceFromMap(map[string]any{
 		"info":       fee,
 		"symbol":     this.SafeSymbol(nil, market),
 		"maker":      this.ParseNumber(Precise.StringDiv(makerFee, "100")),
 		"taker":      this.ParseNumber(Precise.StringDiv(takerFee, "100")),
 		"percentage": true,
 		"tierBased":  true,
-	}
+	})
 }
 
 /**
  * @method
  * @name krakenfutures#fetchOHLCV
- * @see https://docs.kraken.com/api/docs/futures-api/charts/candles
+ * @see https://docs.kraken.com/api-reference/candles/market-candles
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -1141,12 +1140,12 @@ func (this *Krakenfutures) ParseTradingFee(fee map[string]any, optionalArgs ...a
  * @param {string} [params.price] "mark" for mark-price candles or "index" for index-price candles, defaults to trade-price candles
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Krakenfutures) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV] {
+	ch := make(chan AsyncResult[[]OHLCV], 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1172,11 +1171,11 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[any], symbol strin
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes91719 []any = ListTyped(r1.Value)
+		var retRes91719 []any = r1.Value
 		if retRes91719 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes91719}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes91719)}
 		}
 		return nil
 	}
@@ -1193,25 +1192,33 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[any], symbol strin
 	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, "price")
 	var windowLimit any = func() any {
-		if limit == nil {
+		if (limit == nil) || (limit != nil && *limit > 2000) {
 			return 2000
 		}
-		return mathMin(limit, 2000)
+		return limit
 	}()
+	var windowSize int64 = this.ParseToInt(windowLimit)
 	var limitResolved any = nil
 	if (since != nil) || (limit != nil) {
-		limitResolved = windowLimit
+		limitResolved = windowSize
 	}
 	if since != nil {
 		var duration int64 = this.ParseTimeframe(timeframe)
-		request["from"] = this.ParseToInt(float64(*since) / 1000)
-		var toTimestamp any = this.Sum(request["from"], Subtract(Multiply(windowLimit, duration), 1))
+		var fromTimestamp int64 = this.ParseToInt(float64(*since) / 1000)
+		request["from"] = fromTimestamp
+		var toTimestamp int64 = this.ParseToInt(this.Sum(fromTimestamp, (windowSize*duration)-1))
 		var currentTimestamp int64 = this.Seconds()
-		request["to"] = mathMin(toTimestamp, currentTimestamp)
+		request["to"] = func() int64 {
+			if toTimestamp < currentTimestamp {
+				return toTimestamp
+			}
+			return currentTimestamp
+		}()
 	} else if limitResolved != nil {
 		var duration int64 = this.ParseTimeframe(timeframe)
-		request["to"] = this.Seconds()
-		request["from"] = this.ParseToInt(Subtract(request["to"], (Multiply(duration, limitResolved))))
+		var toTimestamp int64 = this.Seconds()
+		request["to"] = toTimestamp
+		request["from"] = this.ParseToInt(toTimestamp - (duration * windowSize))
 	}
 
 	r2 := <-this.ChartsGetPriceTypeSymbolInterval(this.Extend(request, paramsOmitted))
@@ -1236,7 +1243,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[any], symbol strin
 	//
 	var candles []any = SafeListTyped(response, "candles")
 
-	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(candles, market, timeframe, since, limitResolved)}
+	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(candles, market, timeframe, since, limitResolved))}
 	return nil
 }
 func (this *Krakenfutures) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
@@ -1258,8 +1265,8 @@ func (this *Krakenfutures) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 /**
  * @method
  * @name krakenfutures#fetchTrades
- * @see https://docs.kraken.com/api/docs/futures-api/trading/get-history
- * @see https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
+ * @see https://docs.kraken.com/api-reference/market-data/get-trade-history
+ * @see https://docs.kraken.com/api-reference/market-history/get-public-execution-events
  * @description Fetch a history of filled trades that this account has made
  * @param {string} symbol Unified CCXT market symbol
  * @param {int} [since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
@@ -1270,12 +1277,12 @@ func (this *Krakenfutures) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
  * @param {string} [params.method] The method to use to fetch trades. Can be 'historyGetMarketSymbolExecutions' or 'publicGetHistory' default is 'historyGetMarketSymbolExecutions'
  * @returns An array of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Krakenfutures) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1298,11 +1305,11 @@ func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[any], symbol any,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes100919 []any = ListTyped(r1.Value)
-		if retRes100919 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes101219 []any = r1.Value
+		if retRes101219 == nil {
+			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes100919}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes101219)}
 		}
 		return nil
 	}
@@ -1382,7 +1389,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[any], symbol any,
 		rawTrades = []any{}
 		var length int = len(elements)
 		for i := 0; i < length; i++ {
-			var index any = Subtract(Subtract(length, 1), i)
+			var index any = (int64(length) - 1) - int64(i)
 			var element map[string]any = SafeMapTyped(elements, index)
 			var event map[string]any = SafeMapTyped(element, "event")
 			var executionContainer map[string]any = SafeMapTyped(event, "Execution")
@@ -1418,7 +1425,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[any], symbol any,
 		rawTrades = ArrayTyped(this.SafeList(response, "history", []any{}))
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(rawTrades, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(rawTrades, market, since, limit))}
 	return nil
 }
 func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -1499,7 +1506,7 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var order *string = this.SafeString(trade, "order_id")
 	var marketId *string = this.SafeString(trade, "symbol")
 	var side *string = this.SafeString(trade, "side")
-	var typeVar any = nil
+	var rawType any = nil
 	var priorEdit map[string]any = SafeMapTyped(trade, "orderPriorEdit")
 	var priorExecution map[string]any = SafeMapTyped(trade, "orderPriorExecution")
 	if priorExecution != nil {
@@ -1507,23 +1514,21 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) Trade {
 		marketId = this.SafeString(priorExecution, "symbol")
 		side = this.SafeString(priorExecution, "side")
 		if derefPtr := this.SafeString(priorExecution, "type"); derefPtr != nil {
-			typeVar = *derefPtr
+			rawType = *derefPtr
 		} else {
-			typeVar = nil
+			rawType = nil
 		}
 	} else if priorEdit != nil {
 		order = this.SafeString(priorEdit, "orderId")
 		marketId = this.SafeString(priorEdit, "symbol")
 		side = this.SafeString(priorEdit, "type")
 		if derefPtr := this.SafeString(priorEdit, "type"); derefPtr != nil {
-			typeVar = *derefPtr
+			rawType = *derefPtr
 		} else {
-			typeVar = nil
+			rawType = nil
 		}
 	}
-	if !IsEqual(typeVar, nil) {
-		typeVar = this.ParseOrderType(typeVar)
-	}
+	var typeVar *string = this.ParseOrderType(rawType) // undefined stays undefined
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var cost *string = nil
 	var linear *bool = this.SafeBool(marketResolved, "linear")
@@ -1539,19 +1544,9 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	var fillType *string = this.SafeString(trade, "fillType")
 	if fillType != nil {
-		if func() int {
-			if fillType == nil {
-				return -1
-			}
-			return strings.Index(*fillType, "taker")
-		}() >= 0 {
+		if strings.Index(*fillType, "taker") >= 0 {
 			takerOrMaker = SafeStringPtr("taker")
-		} else if func() int {
-			if fillType == nil {
-				return -1
-			}
-			return strings.Index(*fillType, "maker")
-		}() >= 0 {
+		} else if strings.Index(*fillType, "maker") >= 0 {
 			takerOrMaker = SafeStringPtr("maker")
 		}
 	}
@@ -1600,15 +1595,15 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":  fee,
 	})
 }
-func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
+func (this *Krakenfutures) CreateOrderRequest(symbol *string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if typeVar == nil {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	if IsEqual(side, nil) {
+	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	var market map[string]any = this.Market(symbol)
@@ -1644,7 +1639,8 @@ func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any,
 	var isTakeProfitTriggerOrder bool = (takeProfitTriggerPrice != nil)
 	var isStopLossOrTakeProfitTrigger bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder
 	var triggerSignal *string = this.SafeString(paramsPostOnly, "triggerSignal", "last")
-	var reduceOnly any = this.SafeBool(paramsPostOnly, "reduceOnly")
+	var reduceOnlyParam *bool = this.SafeBool(paramsPostOnly, "reduceOnly")
+	var reduceOnly bool = (reduceOnlyParam != nil && *reduceOnlyParam == true)
 	if isStopLossOrTakeProfitTrigger || isTriggerOrder {
 		request["triggerSignal"] = triggerSignal
 	}
@@ -1661,7 +1657,7 @@ func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any,
 			request["stopPrice"] = this.PriceToPrecision(symbolValue, takeProfitTriggerPrice)
 		}
 	}
-	if IsEqual(reduceOnly, true) {
+	if reduceOnly {
 		request["reduceOnly"] = true
 	}
 	request["orderType"] = typeValue
@@ -1699,12 +1695,12 @@ func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any,
  * @param {string} [params.triggerSignal] for triggerPrice, stopLossPrice and takeProfitPrice orders, the trigger price type, 'last', 'mark' or 'index', default is 'last'
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Krakenfutures) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Krakenfutures) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Krakenfutures) createOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1719,7 +1715,7 @@ func (this *Krakenfutures) createOrderBody(ch chan AsyncResult[map[string]any], 
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
+	var orderRequest map[string]any = this.CreateOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
 
 	r1 := <-this.PrivatePostSendorder(orderRequest)
 	if r1.Err != nil {
@@ -1795,7 +1791,7 @@ func (this *Krakenfutures) createOrderBody(ch chan AsyncResult[map[string]any], 
 	var status *string = this.SafeString(sendStatus, "status")
 	this.VerifyOrderActionSuccess(status, "createOrder", []any{"filled"})
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(sendStatus, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(sendStatus, market)}
 	return nil
 }
 
@@ -1808,12 +1804,12 @@ func (this *Krakenfutures) createOrderBody(ch chan AsyncResult[map[string]any], 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Krakenfutures) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) createOrdersBody(ch chan AsyncResult[any], orders any, optionalArgs ...any) any {
+func (this *Krakenfutures) createOrdersBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1840,7 +1836,7 @@ func (this *Krakenfutures) createOrdersBody(ch chan AsyncResult[any], orders any
 			extendedParams["order_tag"] = ToString(this.Sum(i, 1)) // sequential counter
 		}
 		extendedParams["order"] = "send"
-		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams))
+		var orderRequest map[string]any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var request map[string]any = map[string]any{
@@ -1870,7 +1866,7 @@ func (this *Krakenfutures) createOrdersBody(ch chan AsyncResult[any], orders any
 	//
 	var data []any = SafeListTypedDefault(response, "batchStatus", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(data)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data))}
 	return nil
 }
 
@@ -1888,12 +1884,12 @@ func (this *Krakenfutures) createOrdersBody(ch chan AsyncResult[any], orders any
  * @param {object} [params] Exchange specific params
  * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Krakenfutures) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Krakenfutures) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) editOrderBody(ch chan AsyncResult[map[string]any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Krakenfutures) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1930,7 +1926,7 @@ func (this *Krakenfutures) editOrderBody(ch chan AsyncResult[map[string]any], id
 	var order map[string]any = OrderToMap(this.ParseOrder(editStatus))
 	order["info"] = response
 
-	ch <- AsyncResult[map[string]any]{Value: order}
+	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
 	return nil
 }
 
@@ -1944,12 +1940,12 @@ func (this *Krakenfutures) editOrderBody(ch chan AsyncResult[map[string]any], id
  * @param {object} [params] Exchange specific params
  * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Krakenfutures) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Krakenfutures) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Krakenfutures) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1978,9 +1974,9 @@ func (this *Krakenfutures) cancelOrderBody(ch chan AsyncResult[map[string]any], 
 		order = OrderToMap(this.ParseOrder(GetValue(response, "cancelStatus")))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.Extend(map[string]any{
+	ch <- AsyncResult[Order]{Value: OrderFromMap(this.Extend(map[string]any{
 		"info": response,
-	}, order)}
+	}, order))}
 	return nil
 }
 
@@ -1997,12 +1993,12 @@ func (this *Krakenfutures) cancelOrderBody(ch chan AsyncResult[map[string]any], 
  * @param {string[]} [params.clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Krakenfutures) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalArgs ...any) any {
+func (this *Krakenfutures) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2079,7 +2075,7 @@ func (this *Krakenfutures) cancelOrdersBody(ch chan AsyncResult[any], ids any, o
 	// }
 	var batchStatus []any = SafeListTypedDefault(response, "batchStatus", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(batchStatus)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(batchStatus))}
 	return nil
 }
 
@@ -2092,12 +2088,12 @@ func (this *Krakenfutures) cancelOrdersBody(ch chan AsyncResult[any], ids any, o
  * @param {dict} [params] Exchange specific params
  * @returns Response from exchange api
  */
-func (this *Krakenfutures) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Krakenfutures) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2154,7 +2150,7 @@ func (this *Krakenfutures) cancelAllOrdersBody(ch chan AsyncResult[any], optiona
 		orders = append(orders, order)
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(orders)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders))}
 	return nil
 }
 
@@ -2162,17 +2158,17 @@ func (this *Krakenfutures) cancelAllOrdersBody(ch chan AsyncResult[any], optiona
  * @method
  * @name krakenfutures#cancelAllOrdersAfter
  * @description dead man's switch, cancel all orders after the given timeout
- * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after
+ * @see https://docs.kraken.com/api-reference/order-management/dead-mans-switch
  * @param {number} timeout time in milliseconds, 0 represents cancel the timer
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-func (this *Krakenfutures) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) cancelAllOrdersAfterBody(ch chan AsyncResult[any], timeout int64, optionalArgs ...any) any {
+func (this *Krakenfutures) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any], timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2197,7 +2193,7 @@ func (this *Krakenfutures) cancelAllOrdersAfterBody(ch chan AsyncResult[any], ti
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Raw
+	response := r1.Value
 
 	//
 	//     {
@@ -2209,7 +2205,7 @@ func (this *Krakenfutures) cancelAllOrdersAfterBody(ch chan AsyncResult[any], ti
 	//         }
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: response}
+	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
 }
 
@@ -2224,12 +2220,12 @@ func (this *Krakenfutures) cancelAllOrdersAfterBody(ch chan AsyncResult[any], ti
  * @param {object} [params] Exchange specific parameters
  * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Krakenfutures) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Krakenfutures) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2259,7 +2255,7 @@ func (this *Krakenfutures) fetchOpenOrdersBody(ch chan AsyncResult[any], optiona
 	var response map[string]any = r1.Value
 	var orders []any = SafeListTypedDefault(response, "openOrders", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(orders, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
 }
 
@@ -2274,12 +2270,12 @@ func (this *Krakenfutures) fetchOpenOrdersBody(ch chan AsyncResult[any], optiona
  * @param {object} [params] Exchange specific parameters
  * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Krakenfutures) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Krakenfutures) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2309,7 +2305,7 @@ func (this *Krakenfutures) fetchOrdersBody(ch chan AsyncResult[any], optionalArg
 	var response map[string]any = r1.Value
 	var orders []any = SafeListTypedDefault(response, "orders", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(orders, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
 }
 
@@ -2323,12 +2319,12 @@ func (this *Krakenfutures) fetchOrdersBody(ch chan AsyncResult[any], optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Krakenfutures) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Krakenfutures) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Krakenfutures) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2350,13 +2346,13 @@ func (this *Krakenfutures) fetchOrderBody(ch chan AsyncResult[map[string]any], i
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var orders []any = ListTyped(r1.Value)
+	var orders []any = OrdersToList(r1.Value)
 	var order map[string]any = SafeMapTyped(orders, 0)
 	if order == nil {
 		panic(OrderNotFound(Add(this.Id+" fetchOrder could not find order id ", id)))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: order}
+	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
 	return nil
 }
 
@@ -2373,12 +2369,12 @@ func (this *Krakenfutures) fetchOrderBody(ch chan AsyncResult[map[string]any], i
  * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
  * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Krakenfutures) FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Krakenfutures) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2410,7 +2406,7 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan AsyncResult[any], optio
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 	var response map[string]any = nil
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"trigger", "stop"})
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 
 		r1 := <-this.HistoryGetTriggers(this.Extend(request, paramsOmitted))
 		if r1.Err != nil {
@@ -2449,14 +2445,14 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan AsyncResult[any], optio
 		}
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(closedOrders, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(closedOrders, market, since, limit))}
 	return nil
 }
 
 /**
  * @method
  * @name krakenfutures#fetchCanceledOrders
- * @see https://docs.kraken.com/api/docs/futures-api/history/get-order-events
+ * @see https://docs.kraken.com/api-reference/account-history/get-order-events
  * @description Gets all canceled orders, including trigger orders, for an account from the exchange api
  * @param {string} symbol Unified market symbol
  * @param {int} [since] Timestamp (ms) of earliest order.
@@ -2465,12 +2461,12 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan AsyncResult[any], optio
  * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
  * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Krakenfutures) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
-	ch := make(chan AsyncResult[[]any], 1)
+func (this *Krakenfutures) FetchCanceledOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2497,12 +2493,12 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], o
 		request["count"] = limit
 	}
 	if since != nil {
-		request["from"] = since
+		request["since"] = since
 	}
 	var response map[string]any = nil
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"trigger", "stop"})
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 
 		r1 := <-this.HistoryGetTriggers(this.Extend(request, paramsOmitted))
 		if r1.Err != nil {
@@ -2546,7 +2542,7 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], o
 		}
 	}
 
-	ch <- AsyncResult[[]any]{Value: this.ParseOrders(canceledAndRejected, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(canceledAndRejected, market, since, limit))}
 	return nil
 }
 func (this *Krakenfutures) ParseOrderType(orderType any) *string {
@@ -2558,7 +2554,7 @@ func (this *Krakenfutures) ParseOrderType(orderType any) *string {
 	}
 	return this.SafeString(typesMap, orderType, orderType)
 }
-func (this *Krakenfutures) VerifyOrderActionSuccess(status any, method any, optionalArgs ...any) {
+func (this *Krakenfutures) VerifyOrderActionSuccess(status any, method string, optionalArgs ...any) {
 	omit := GetArg(optionalArgs, 0, []any{})
 	_ = omit
 	var errors map[string]any = map[string]any{
@@ -2584,7 +2580,7 @@ func (this *Krakenfutures) VerifyOrderActionSuccess(status any, method any, opti
 		"notFound":                   OrderNotFound,
 	}
 	if (InOp(errors, status)) && !this.InArray(status, omit) {
-		ThrowDynamicException(GetValue(errors, status), Add(Add(Add(this.Id+": ", method), " failed due to "), status))
+		ThrowDynamicException(GetValue(errors, status), Add(this.Id+": "+method+" failed due to ", status))
 	}
 }
 func (this *Krakenfutures) ParseOrderStatus(status any) *string {
@@ -3100,8 +3096,9 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 		id = this.SafeString2(details, "orderId", "uid")
 	}
 	var typeVar *string = this.SafeStringLower2(details, "type", "orderType")
+	var parsedType *string = this.ParseOrderType(typeVar)
 	var timeInForce string = "gtc"
-	if (typeVar != nil && *typeVar == "ioc") || IsEqual(this.ParseOrderType(typeVar), "market") {
+	if (typeVar != nil && *typeVar == "ioc") || (parsedType != nil && *parsedType == "market") {
 		timeInForce = "ioc"
 	}
 	var ts *int64 = this.SafeInteger(details, "timestamp", timestamp)
@@ -3119,7 +3116,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 		"lastTradeTimestamp":  nil,
 		"lastUpdateTimestamp": this.SafeInteger(details, "lastUpdateTimestamp", lastUpdateTimestamp),
 		"symbol":              symbol,
-		"type":                this.ParseOrderType(typeVar),
+		"type":                parsedType,
 		"timeInForce":         timeInForce,
 		"postOnly":            (typeVar != nil && *typeVar == "post"),
 		"reduceOnly":          this.SafeBool2(details, "reduceOnly", "reduce_only"),
@@ -3151,12 +3148,12 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Krakenfutures) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Krakenfutures) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3174,10 +3171,12 @@ func (this *Krakenfutures) fetchMyTradesBody(ch chan AsyncResult[any], optionalA
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = nil
-	if symbol != nil {
-		market = this.Market(symbol)
-	}
+	var symbolResolved any = func() any {
+		if symbol != nil {
+			return this.Symbol(symbol)
+		}
+		return symbol
+	}()
 	// todo: lastFillTime: this.iso8601(end)
 
 	r1 := <-this.PrivateGetFills(params)
@@ -3206,8 +3205,14 @@ func (this *Krakenfutures) fetchMyTradesBody(ch chan AsyncResult[any], optionalA
 	//    }
 	//
 	var fills []any = SafeListTypedDefault(response, "fills", []any{})
+	// the endpoint returns the fills of every contract, each row resolves its own market
+	var trades any = this.ParseTrades(fills)
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(fills, market, since, limit)}
+	// a fill of a contract that is no longer listed in /instruments has no unified symbol,
+	// so safeMarket keeps the raw id (eg 'PF_XRPUSD') in trade['symbol']: it is filtered out
+	// whenever a symbol is requested and returned as-is when symbol is undefined, on purpose,
+	// because it is still the user's own fill and dropping it would hide real trades
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limit))}
 	return nil
 }
 
@@ -3223,12 +3228,12 @@ func (this *Krakenfutures) fetchMyTradesBody(ch chan AsyncResult[any], optionalA
  * @param {int} [params.until] timestamp in ms of the latest ledger entry
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func (this *Krakenfutures) FetchLedgerAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) FetchLedgerAsync(optionalArgs ...any) <-chan AsyncResult[[]LedgerEntry] {
+	ch := make(chan AsyncResult[[]LedgerEntry], 1)
 	go this.fetchLedgerBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Krakenfutures) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3319,7 +3324,7 @@ func (this *Krakenfutures) fetchLedgerBody(ch chan AsyncResult[any], optionalArg
 		}
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseLedger(rows, currency, since, limit)}
+	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(rows, currency, since, limit))}
 	return nil
 }
 
@@ -3335,12 +3340,12 @@ func (this *Krakenfutures) fetchLedgerBody(ch chan AsyncResult[any], optionalArg
  * @param {int} [params.until] timestamp in ms of the latest funding payment
  * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func (this *Krakenfutures) FetchFundingHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) FetchFundingHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]FundingHistory] {
+	ch := make(chan AsyncResult[[]FundingHistory], 1)
 	go this.fetchFundingHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Krakenfutures) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3423,7 +3428,7 @@ func (this *Krakenfutures) fetchFundingHistoryBody(ch chan AsyncResult[any], opt
 	//
 	var logs []any = SafeListTypedDefault(response, "logs", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseIncomes(logs, market, since, limit)}
+	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(logs, market, since, limit))}
 	return nil
 }
 func (this *Krakenfutures) ParseIncome(income any, optionalArgs ...any) any {
@@ -3483,7 +3488,7 @@ func (this *Krakenfutures) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Krakenfutures) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
+func (this *Krakenfutures) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
 	//
 	//    {
 	//        "asset": "usd",
@@ -3555,19 +3560,19 @@ func (this *Krakenfutures) ParseLedgerEntry(item any, optionalArgs ...any) map[s
 /**
  * @method
  * @name krakenfutures#fetchBalance
- * @see https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
+ * @see https://docs.kraken.com/api-reference/account-information/get-wallets
  * @description Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
  * @param {object} [params] Exchange specific parameters
  * @param {string} [params.type] The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'flex' *
  * @param {string} [params.symbol] A unified market symbol, when assigned the balance for a trading market that matches the symbol is returned
  * @returns A [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Krakenfutures) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances] {
+	ch := make(chan AsyncResult[Balances], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Krakenfutures) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3689,7 +3694,7 @@ func (this *Krakenfutures) fetchBalanceBody(ch chan AsyncResult[any], optionalAr
 			typeVar = symbol
 		}
 	}
-	var accountName any = this.ParseAccount(typeVar)
+	var accountName any = this.ParseKrakenAccountName(typeVar)
 	var accounts map[string]any = SafeMapTyped(response, "accounts")
 	var account map[string]any = SafeMapTyped(accounts, accountName)
 	if account == nil {
@@ -3701,12 +3706,12 @@ func (this *Krakenfutures) fetchBalanceBody(ch chan AsyncResult[any], optionalAr
 		}
 		panic(BadRequest(this.Id + " fetchBalance has no account for " + *typeVar))
 	}
-	var balance any = this.ParseBalance(account)
+	var balance map[string]any = this.ParseBalance(account)
 	AddElementToObject(balance, "info", response)
 	AddElementToObject(balance, "timestamp", this.Parse8601(datetime))
 	AddElementToObject(balance, "datetime", datetime)
 
-	ch <- AsyncResult[any]{Value: balance}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(balance)}
 	return nil
 }
 func (this *Krakenfutures) ParseBalance(response any) map[string]any {
@@ -3824,12 +3829,12 @@ func (this *Krakenfutures) ParseBalance(response any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Krakenfutures) FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]FundingRate] {
+	ch := make(chan AsyncResult[map[string]FundingRate], 1)
 	go this.fetchFundingRatesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Krakenfutures) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRate], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -3861,14 +3866,14 @@ func (this *Krakenfutures) fetchFundingRatesBody(ch chan AsyncResult[any], optio
 			}
 		}
 		var market map[string]any = this.SafeMarket(entry_symbol)
-		var parsed map[string]any = this.ParseFundingRate(entry, market)
+		var parsed map[string]any = FundingRateToMap(this.ParseFundingRate(entry, market))
 		fundingRates = append(fundingRates, parsed)
 	}
 
-	ch <- AsyncResult[any]{Value: this.IndexBy(fundingRates, "symbol")}
+	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.IndexBy(fundingRates, "symbol"))}
 	return nil
 }
-func (this *Krakenfutures) ParseFundingRate(ticker any, optionalArgs ...any) map[string]any {
+func (this *Krakenfutures) ParseFundingRate(ticker any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "symbol": "PF_ENJUSD",
@@ -3916,7 +3921,7 @@ func (this *Krakenfutures) ParseFundingRate(ticker any, optionalArgs ...any) map
 	} else if Precise.StringLt(nextFundingRateResult, "-0.25") {
 		nextFundingRateResult = SafeStringPtr("-0.25")
 	}
-	return map[string]any{
+	return FundingRateFromMap(map[string]any{
 		"info":                     ticker,
 		"symbol":                   symbol,
 		"markPrice":                this.ParseNumber(markPriceString),
@@ -3935,7 +3940,7 @@ func (this *Krakenfutures) ParseFundingRate(ticker any, optionalArgs ...any) map
 		"previousFundingTimestamp": nil,
 		"previousFundingDatetime":  nil,
 		"interval":                 "1h",
-	}
+	})
 }
 
 /**
@@ -3949,12 +3954,12 @@ func (this *Krakenfutures) ParseFundingRate(ticker any, optionalArgs ...any) map
  * @param {object} [params] extra parameters specific to the api endpoint
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func (this *Krakenfutures) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]FundingRateHistory] {
+	ch := make(chan AsyncResult[[]FundingRateHistory], 1)
 	go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Krakenfutures) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHistory], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4000,9 +4005,9 @@ func (this *Krakenfutures) fetchFundingRateHistoryBody(ch chan AsyncResult[any],
 	//        ]
 	//    }
 	//
-	var rates any = this.SafeValue(response, "rates")
+	var rates []any = SafeListTyped(response, "rates")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(rates); i++ {
+	for i := 0; i < len(rates); i++ {
 		var item map[string]any = SafeMapTyped(rates, i)
 		var datetime *string = this.SafeString(item, "timestamp")
 		result = append(result, map[string]any{
@@ -4015,7 +4020,7 @@ func (this *Krakenfutures) fetchFundingRateHistoryBody(ch chan AsyncResult[any],
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
 
-	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)}
+	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(sorted, symbol, since, limit))}
 	return nil
 }
 
@@ -4028,12 +4033,12 @@ func (this *Krakenfutures) fetchFundingRateHistoryBody(ch chan AsyncResult[any],
  * @param {object} [params] Not used by krakenfutures
  * @returns Parsed exchange response for positions
  */
-func (this *Krakenfutures) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]Position] {
+	ch := make(chan AsyncResult[[]Position], 1)
 	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Krakenfutures) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -4080,7 +4085,7 @@ func (this *Krakenfutures) fetchPositionsBody(ch chan AsyncResult[any], optional
 		panic(ExchangeNotAvailable(this.Id + " fetchPositions() returned a response without an \"openPositions\" list"))
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParsePositions(positions, symbols)}
+	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(positions, symbols))}
 	return nil
 }
 
@@ -4107,12 +4112,12 @@ func (this *Krakenfutures) fetchPositionsBody(ch chan AsyncResult[any], optional
  * @param {string} [params.continuation_token] the token of a previous response, to fetch the next page
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Krakenfutures) FetchPositionsHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
-	ch := make(chan AsyncResult[[]any], 1)
+func (this *Krakenfutures) FetchPositionsHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]Position] {
+	ch := make(chan AsyncResult[[]Position], 1)
 	go this.fetchPositionsHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -4210,10 +4215,10 @@ func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan AsyncResult[[]any],
 	}
 	var positions any = this.ParsePositions(updates, symbols)
 
-	ch <- AsyncResult[[]any]{Value: this.FilterBySinceLimit(positions, since, limit)}
+	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}
 	return nil
 }
-func (this *Krakenfutures) ParsePosition(position any, optionalArgs ...any) any {
+func (this *Krakenfutures) ParsePosition(position any, optionalArgs ...any) Position {
 	// cross
 	//    {
 	//        "side": "long",
@@ -4307,7 +4312,7 @@ func (this *Krakenfutures) ParsePosition(position any, optionalArgs ...any) any 
 	}
 	var marketId *string = this.SafeString2(position, "symbol", "tradeable")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	return map[string]any{
+	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "executionUid"),
 		"symbol":                      marketResolved["symbol"],
@@ -4332,7 +4337,7 @@ func (this *Krakenfutures) ParsePosition(position any, optionalArgs ...any) any 
 		"marginMode":                  marginType,
 		"side":                        side,
 		"percentage":                  nil,
-	}
+	})
 }
 
 /**
@@ -4344,12 +4349,12 @@ func (this *Krakenfutures) ParsePosition(position any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
-func (this *Krakenfutures) FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[LeverageTiers] {
+	ch := make(chan AsyncResult[LeverageTiers], 1)
 	go this.fetchLeverageTiersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchLeverageTiersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Krakenfutures) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -4415,10 +4420,10 @@ func (this *Krakenfutures) fetchLeverageTiersBody(ch chan AsyncResult[any], opti
 	//
 	var data []any = SafeListTyped(response, "instruments")
 
-	ch <- AsyncResult[any]{Value: this.ParseLeverageTiers(data, symbols, "symbol")}
+	ch <- AsyncResult[LeverageTiers]{Value: LeverageTiersFromMap(this.ParseLeverageTiers(data, symbols, "symbol"))}
 	return nil
 }
-func (this *Krakenfutures) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
+func (this *Krakenfutures) ParseMarketLeverageTiers(info any, optionalArgs ...any) []any {
 	/**
 	 * @method
 	 * @ignore
@@ -4499,7 +4504,7 @@ func (this *Krakenfutures) ParseMarketLeverageTiers(info any, optionalArgs ...an
 	}
 	return tiers
 }
-func (this *Krakenfutures) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
+func (this *Krakenfutures) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
 	//
 	// transfer
 	//
@@ -4511,7 +4516,7 @@ func (this *Krakenfutures) ParseTransfer(transfer any, optionalArgs ...any) map[
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var datetime *string = this.SafeString(transfer, "serverTime")
-	return map[string]any{
+	return TransferEntryFromMap(map[string]any{
 		"info":        transfer,
 		"id":          nil,
 		"timestamp":   this.Parse8601(datetime),
@@ -4521,9 +4526,9 @@ func (this *Krakenfutures) ParseTransfer(transfer any, optionalArgs ...any) map[
 		"fromAccount": nil,
 		"toAccount":   nil,
 		"status":      this.SafeString(transfer, "result"),
-	}
+	})
 }
-func (this *Krakenfutures) ParseAccount(account any) any {
+func (this *Krakenfutures) ParseKrakenAccountName(account any) any {
 	var accountByType map[string]any = map[string]any{
 		"main":                         "cash",
 		"funding":                      "cash",
@@ -4559,12 +4564,12 @@ func (this *Krakenfutures) ParseAccount(account any) any {
  * @param {dict} [params] Exchange specific parameters
  * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Krakenfutures) TransferOutAsync(code any, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) TransferOutAsync(code any, amount any, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferOutBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) transferOutBody(ch chan AsyncResult[any], code any, amount any, optionalArgs ...any) any {
+func (this *Krakenfutures) transferOutBody(ch chan AsyncResult[TransferEntry], code any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4574,11 +4579,11 @@ func (this *Krakenfutures) transferOutBody(ch chan AsyncResult[any], code any, a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes363815 map[string]any = r.Value
-	if retRes363815 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+	var retRes364415 map[string]any = StructResultMap(r.Value, TransferEntryToMap)
+	if retRes364415 == nil {
+		ch <- AsyncResult[TransferEntry]{}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes363815}
+		ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(retRes364415)}
 	}
 	return nil
 }
@@ -4596,12 +4601,12 @@ func (this *Krakenfutures) transferOutBody(ch chan AsyncResult[any], code any, a
  * @param {object} [params] Exchange specific parameters
  * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Krakenfutures) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Krakenfutures) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) transferBody(ch chan AsyncResult[map[string]any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Krakenfutures) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4622,7 +4627,7 @@ func (this *Krakenfutures) transferBody(ch chan AsyncResult[map[string]any], cod
 	}
 	var response map[string]any = nil
 	if toAccount == "spot" {
-		if !IsEqual(this.ParseAccount(fromAccount), "cash") {
+		if this.ParseKrakenAccountName(fromAccount) != "cash" {
 			panic(BadRequest(Add(Add(Add(this.Id+" transfer cannot transfer from ", fromAccount), " to "), toAccount)))
 		}
 		request["currency"] = currency["id"]
@@ -4633,8 +4638,8 @@ func (this *Krakenfutures) transferBody(ch chan AsyncResult[map[string]any], cod
 		}
 		response = r1.Value
 	} else {
-		request["fromAccount"] = this.ParseAccount(fromAccount)
-		request["toAccount"] = this.ParseAccount(toAccount)
+		request["fromAccount"] = this.ParseKrakenAccountName(fromAccount)
+		request["toAccount"] = this.ParseKrakenAccountName(toAccount)
 		request["unit"] = currency["id"]
 
 		r2 := <-this.PrivatePostTransfer(this.Extend(request, params))
@@ -4649,13 +4654,13 @@ func (this *Krakenfutures) transferBody(ch chan AsyncResult[map[string]any], cod
 	//        "serverTime": "2022-04-12T01:22:53.420Z"
 	//    }
 	//
-	var transfer map[string]any = this.ParseTransfer(response, currency)
+	var transfer map[string]any = TransferEntryToMap(this.ParseTransfer(response, currency))
 
-	ch <- AsyncResult[map[string]any]{Value: this.Extend(transfer, map[string]any{
+	ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(this.Extend(transfer, map[string]any{
 		"amount":      amount,
 		"fromAccount": fromAccount,
 		"toAccount":   toAccount,
-	})}
+	}))}
 	return nil
 }
 
@@ -4669,12 +4674,12 @@ func (this *Krakenfutures) transferBody(ch chan AsyncResult[map[string]any], cod
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Krakenfutures) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) setLeverageBody(ch chan AsyncResult[any], leverage int64, optionalArgs ...any) any {
+func (this *Krakenfutures) setLeverageBody(ch chan AsyncResult[map[string]any], leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4707,7 +4712,7 @@ func (this *Krakenfutures) setLeverageBody(ch chan AsyncResult[any], leverage in
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- AsyncResult[any]{Value: r1.Raw}
+	ch <- AsyncResult[map[string]any]{Value: r1.Value}
 	return nil
 }
 
@@ -4720,12 +4725,12 @@ func (this *Krakenfutures) setLeverageBody(ch chan AsyncResult[any], leverage in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Krakenfutures) FetchLeveragesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Krakenfutures) FetchLeveragesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Leverage] {
+	ch := make(chan AsyncResult[map[string]Leverage], 1)
 	go this.fetchLeveragesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchLeveragesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Krakenfutures) fetchLeveragesBody(ch chan AsyncResult[map[string]Leverage], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -4759,7 +4764,7 @@ func (this *Krakenfutures) fetchLeveragesBody(ch chan AsyncResult[any], optional
 	//
 	var leveragePreferences []any = SafeListTypedDefault(response, "leveragePreferences", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseLeverages(leveragePreferences, symbols, "symbol")}
+	ch <- AsyncResult[map[string]Leverage]{Value: LeverageMapFromMap(this.ParseLeverages(leveragePreferences, symbols, "symbol"))}
 	return nil
 }
 
@@ -4772,12 +4777,12 @@ func (this *Krakenfutures) fetchLeveragesBody(ch chan AsyncResult[any], optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Krakenfutures) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Krakenfutures) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+	ch := make(chan AsyncResult[Leverage], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol any, optionalArgs ...any) any {
+func (this *Krakenfutures) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4816,21 +4821,21 @@ func (this *Krakenfutures) fetchLeverageBody(ch chan AsyncResult[map[string]any]
 	var leveragePreferences []any = SafeListTyped(response, "leveragePreferences")
 	var data map[string]any = this.SafeDictMap(leveragePreferences, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseLeverage(data, market)}
+	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
 	return nil
 }
-func (this *Krakenfutures) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
+func (this *Krakenfutures) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")
 	var leverageValue *int64 = this.SafeInteger(leverage, "maxLeverage")
-	return map[string]any{
+	return LeverageFromMap(map[string]any{
 		"info":          leverage,
 		"symbol":        this.SafeSymbol(marketId, market),
 		"marginMode":    nil,
 		"longLeverage":  leverageValue,
 		"shortLeverage": leverageValue,
-	}
+	})
 }
 func (this *Krakenfutures) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
@@ -4855,22 +4860,19 @@ func (this *Krakenfutures) HandleErrors(code any, reason any, url any, method an
 	panic(ExchangeError(feedback))
 }
 func (this *Krakenfutures) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var apiVersions map[string]any = SafeMapTyped(GetValue(this.Options, "versions"), api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiVersions map[string]any = SafeMapTyped(GetValue(this.Options, "versions"), apiName)
 	var methodVersions map[string]any = SafeMapTyped(apiVersions, method)
 	var defaultVersion *string = this.SafeString(methodVersions, path, this.Version)
 	var version *string = this.SafeString(params, "version", defaultVersion)
 	var paramsOmitted any = this.Omit(params, "version")
-	var apiAccess map[string]any = SafeMapTyped(GetValue(this.Options, "access"), api)
+	var apiAccess map[string]any = SafeMapTyped(GetValue(this.Options, "access"), apiName)
 	var methodAccess map[string]any = SafeMapTyped(apiAccess, method)
 	var access *string = this.SafeString(methodAccess, path, "public")
 	var endpoint any = Add(Add(version, "/"), this.ImplodeParams(path, paramsOmitted))
@@ -4887,7 +4889,7 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) any {
 		}
 		query = Add(query, "?"+postData)
 	}
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -4896,14 +4898,14 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) any {
 		if path == "batchorder" {
 			return SafeStringPtr(postData)
 		}
-		return body
+		return nil
 	}()
 	var privateHeaders any = nil
-	if (api == "private") || (access != nil && *access == "private") {
+	if (apiName != nil && *apiName == "private") || (access != nil && *access == "private") {
 		this.CheckRequiredCredentials()
 		var auth any = postData + "/api/"
-		if api != "private" {
-			auth = Add(auth, Add(api, "/"))
+		if apiName == nil || *apiName != "private" {
+			auth = Add(auth, *apiName+"/")
 		}
 		auth = Add(auth, endpoint)                                       // 1
 		var hash any = this.Hash(this.Encode(auth), sha256, "binary")    // 2
@@ -4916,12 +4918,7 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) any {
 			"Authent":      signature,
 		}
 	}
-	var requestHeaders any = func() any {
-		if privateHeaders != nil {
-			return privateHeaders
-		}
-		return headers
-	}()
+	var requestHeaders any = privateHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -4940,7 +4937,6 @@ func (this *Krakenfutures) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
 	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
-	this.exchangeTyped = NewExchangeTyped(&this.Exchange)
 }
 
 // typed methods
@@ -4958,7 +4954,7 @@ func (this *Krakenfutures) FetchMarkets(params ...any) ([]MarketInterface, error
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
+	var res []MarketInterface = r.Value
 	return res, nil
 }
 
@@ -4983,7 +4979,7 @@ func (this *Krakenfutures) FetchOrderBook(symbol string, options ...FetchOrderBo
 	if r.Err != nil {
 		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Value)
+	var res OrderBook = r.Value
 	return res, nil
 }
 
@@ -5007,7 +5003,7 @@ func (this *Krakenfutures) FetchTicker(symbol string, options ...FetchTickerOpti
 	if r.Err != nil {
 		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(r.Value)
+	var res Ticker = r.Value
 	return res, nil
 }
 
@@ -5031,7 +5027,7 @@ func (this *Krakenfutures) FetchTickers(options ...FetchTickersOptions) (Tickers
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -5039,8 +5035,8 @@ func (this *Krakenfutures) FetchTickers(options ...FetchTickersOptions) (Tickers
  * @method
  * @name krakenfutures#fetchTradingFees
  * @description fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
- * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
- * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+ * @see https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedules
+ * @see https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedule-volumes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
@@ -5049,14 +5045,14 @@ func (this *Krakenfutures) FetchTradingFees(params ...any) (TradingFees, error) 
 	if r.Err != nil {
 		return TradingFees{}, r.Err
 	}
-	var res TradingFees = NewTradingFees(r.Value)
+	var res TradingFees = TradingFees{TradingFees: r.Value}
 	return res, nil
 }
 
 /**
  * @method
  * @name krakenfutures#fetchOHLCV
- * @see https://docs.kraken.com/api/docs/futures-api/charts/candles
+ * @see https://docs.kraken.com/api-reference/candles/market-candles
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -5078,15 +5074,15 @@ func (this *Krakenfutures) FetchOHLCV(symbol string, options ...FetchOHLCVOption
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 
 /**
  * @method
  * @name krakenfutures#fetchTrades
- * @see https://docs.kraken.com/api/docs/futures-api/trading/get-history
- * @see https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
+ * @see https://docs.kraken.com/api-reference/market-data/get-trade-history
+ * @see https://docs.kraken.com/api-reference/market-history/get-public-execution-events
  * @description Fetch a history of filled trades that this account has made
  * @param {string} symbol Unified CCXT market symbol
  * @param {int} [since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
@@ -5108,7 +5104,7 @@ func (this *Krakenfutures) FetchTrades(symbol string, options ...FetchTradesOpti
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -5143,7 +5139,7 @@ func (this *Krakenfutures) CreateOrder(symbol string, typeVar string, side strin
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -5167,7 +5163,7 @@ func (this *Krakenfutures) CreateOrders(orders []OrderRequest, options ...Create
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -5196,7 +5192,7 @@ func (this *Krakenfutures) EditOrder(id string, symbol string, typeVar string, s
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -5221,7 +5217,7 @@ func (this *Krakenfutures) CancelOrder(id string, options ...CancelOrderOptions)
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -5249,7 +5245,7 @@ func (this *Krakenfutures) CancelOrders(ids []string, options ...CancelOrdersOpt
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -5273,7 +5269,7 @@ func (this *Krakenfutures) CancelAllOrders(options ...CancelAllOrdersOptions) ([
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -5281,7 +5277,7 @@ func (this *Krakenfutures) CancelAllOrders(options ...CancelAllOrdersOptions) ([
  * @method
  * @name krakenfutures#cancelAllOrdersAfter
  * @description dead man's switch, cancel all orders after the given timeout
- * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after
+ * @see https://docs.kraken.com/api-reference/order-management/dead-mans-switch
  * @param {number} timeout time in milliseconds, 0 represents cancel the timer
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
@@ -5297,7 +5293,7 @@ func (this *Krakenfutures) CancelAllOrdersAfter(timeout int64, options ...Cancel
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 
@@ -5323,7 +5319,7 @@ func (this *Krakenfutures) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -5349,7 +5345,7 @@ func (this *Krakenfutures) FetchOrders(options ...FetchOrdersOptions) ([]Order, 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -5374,7 +5370,7 @@ func (this *Krakenfutures) FetchOrder(id string, options ...FetchOrderOptions) (
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -5402,14 +5398,14 @@ func (this *Krakenfutures) FetchClosedOrders(options ...FetchClosedOrdersOptions
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
 /**
  * @method
  * @name krakenfutures#fetchCanceledOrders
- * @see https://docs.kraken.com/api/docs/futures-api/history/get-order-events
+ * @see https://docs.kraken.com/api-reference/account-history/get-order-events
  * @description Gets all canceled orders, including trigger orders, for an account from the exchange api
  * @param {string} symbol Unified market symbol
  * @param {int} [since] Timestamp (ms) of earliest order.
@@ -5429,7 +5425,7 @@ func (this *Krakenfutures) FetchCanceledOrders(options ...FetchCanceledOrdersOpt
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -5456,7 +5452,7 @@ func (this *Krakenfutures) FetchMyTrades(options ...FetchMyTradesOptions) ([]Tra
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -5483,7 +5479,7 @@ func (this *Krakenfutures) FetchLedger(options ...FetchLedgerOptions) ([]LedgerE
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []LedgerEntry = NewLedgerEntryArray(r.Value)
+	var res []LedgerEntry = r.Value
 	return res, nil
 }
 
@@ -5510,14 +5506,14 @@ func (this *Krakenfutures) FetchFundingHistory(options ...FetchFundingHistoryOpt
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []FundingHistory = NewFundingHistoryArray(r.Value)
+	var res []FundingHistory = r.Value
 	return res, nil
 }
 
 /**
  * @method
  * @name krakenfutures#fetchBalance
- * @see https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
+ * @see https://docs.kraken.com/api-reference/account-information/get-wallets
  * @description Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
  * @param {object} [params] Exchange specific parameters
  * @param {string} [params.type] The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'flex' *
@@ -5529,7 +5525,7 @@ func (this *Krakenfutures) FetchBalance(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 
@@ -5553,7 +5549,7 @@ func (this *Krakenfutures) FetchFundingRates(options ...FetchFundingRatesOptions
 	if r.Err != nil {
 		return FundingRates{}, r.Err
 	}
-	var res FundingRates = NewFundingRates(r.Value)
+	var res FundingRates = FundingRates{FundingRates: r.Value}
 	return res, nil
 }
 
@@ -5579,7 +5575,7 @@ func (this *Krakenfutures) FetchFundingRateHistory(options ...FetchFundingRateHi
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []FundingRateHistory = NewFundingRateHistoryArray(r.Value)
+	var res []FundingRateHistory = r.Value
 	return res, nil
 }
 
@@ -5603,7 +5599,7 @@ func (this *Krakenfutures) FetchPositions(options ...FetchPositionsOptions) ([]P
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
 	return res, nil
 }
 
@@ -5641,7 +5637,7 @@ func (this *Krakenfutures) FetchPositionsHistory(options ...FetchPositionsHistor
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
 	return res, nil
 }
 
@@ -5665,7 +5661,7 @@ func (this *Krakenfutures) FetchLeverageTiers(options ...FetchLeverageTiersOptio
 	if r.Err != nil {
 		return LeverageTiers{}, r.Err
 	}
-	var res LeverageTiers = NewLeverageTiers(r.Value)
+	var res LeverageTiers = r.Value
 	return res, nil
 }
 
@@ -5689,7 +5685,7 @@ func (this *Krakenfutures) TransferOut(code string, amount float64, options ...T
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Value)
+	var res TransferEntry = r.Value
 	return res, nil
 }
 
@@ -5717,7 +5713,7 @@ func (this *Krakenfutures) Transfer(code string, amount float64, fromAccount str
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Value)
+	var res TransferEntry = r.Value
 	return res, nil
 }
 
@@ -5742,7 +5738,7 @@ func (this *Krakenfutures) SetLeverage(leverage int64, options ...SetLeverageOpt
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 
@@ -5766,7 +5762,7 @@ func (this *Krakenfutures) FetchLeverages(options ...FetchLeveragesOptions) (Lev
 	if r.Err != nil {
 		return Leverages{}, r.Err
 	}
-	var res Leverages = NewLeverages(r.Value)
+	var res Leverages = Leverages{Leverages: r.Value}
 	return res, nil
 }
 
@@ -5790,537 +5786,6 @@ func (this *Krakenfutures) FetchLeverage(symbol string, options ...FetchLeverage
 	if r.Err != nil {
 		return Leverage{}, r.Err
 	}
-	var res Leverage = NewLeverage(r.Value)
+	var res Leverage = r.Value
 	return res, nil
-}
-
-// missing typed methods from base
-// nolint
-func (this *Krakenfutures) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
-	return this.exchangeTyped.LoadMarkets(params...)
-}
-func (this *Krakenfutures) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
-}
-func (this *Krakenfutures) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Krakenfutures) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
-}
-func (this *Krakenfutures) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)
-}
-func (this *Krakenfutures) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
-	return this.exchangeTyped.CreateDepositAddress(code, options...)
-}
-func (this *Krakenfutures) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrder(symbol, amount, price, options...)
-}
-func (this *Krakenfutures) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrder(symbol, side, amount, price, options...)
-}
-func (this *Krakenfutures) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrder(symbol, amount, price, options...)
-}
-func (this *Krakenfutures) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrder(symbol, amount, options...)
-}
-func (this *Krakenfutures) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWithCost(symbol, cost, options...)
-}
-func (this *Krakenfutures) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrder(symbol, side, amount, options...)
-}
-func (this *Krakenfutures) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCost(symbol, side, cost, options...)
-}
-func (this *Krakenfutures) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrder(symbol, amount, options...)
-}
-func (this *Krakenfutures) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWithCost(symbol, cost, options...)
-}
-func (this *Krakenfutures) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrder(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Krakenfutures) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrder(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Krakenfutures) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitBuyOrder(id, symbol, amount, options...)
-}
-func (this *Krakenfutures) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)
-}
-func (this *Krakenfutures) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
-}
-func (this *Krakenfutures) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
-}
-func (this *Krakenfutures) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.EditOrders(orders, options...)
-}
-func (this *Krakenfutures) FetchAccounts(params ...any) ([]Account, error) {
-	return this.exchangeTyped.FetchAccounts(params...)
-}
-func (this *Krakenfutures) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
-	return this.exchangeTyped.FetchAllGreeks(options...)
-}
-func (this *Krakenfutures) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchBidsAsks(options...)
-}
-func (this *Krakenfutures) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
-	return this.exchangeTyped.FetchBorrowInterest(options...)
-}
-func (this *Krakenfutures) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
-}
-func (this *Krakenfutures) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
-}
-func (this *Krakenfutures) FetchConvertCurrencies(params ...any) (Currencies, error) {
-	return this.exchangeTyped.FetchConvertCurrencies(params...)
-}
-func (this *Krakenfutures) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)
-}
-func (this *Krakenfutures) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertTrade(id, options...)
-}
-func (this *Krakenfutures) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
-	return this.exchangeTyped.FetchConvertTradeHistory(options...)
-}
-func (this *Krakenfutures) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
-	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
-}
-func (this *Krakenfutures) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
-	return this.exchangeTyped.FetchCrossBorrowRates(params...)
-}
-func (this *Krakenfutures) FetchCurrencies(params ...any) (Currencies, error) {
-	return this.exchangeTyped.FetchCurrencies(params...)
-}
-func (this *Krakenfutures) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddress(code, options...)
-}
-func (this *Krakenfutures) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddresses(options...)
-}
-func (this *Krakenfutures) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
-	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
-}
-func (this *Krakenfutures) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDeposits(options...)
-}
-func (this *Krakenfutures) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
-}
-func (this *Krakenfutures) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
-}
-func (this *Krakenfutures) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
-}
-func (this *Krakenfutures) FetchFreeBalance(params ...any) (Balance, error) {
-	return this.exchangeTyped.FetchFreeBalance(params...)
-}
-func (this *Krakenfutures) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingInterval(symbol, options...)
-}
-func (this *Krakenfutures) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
-	return this.exchangeTyped.FetchFundingIntervals(options...)
-}
-func (this *Krakenfutures) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingRate(symbol, options...)
-}
-func (this *Krakenfutures) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
-	return this.exchangeTyped.FetchGreeks(symbol, options...)
-}
-func (this *Krakenfutures) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)
-}
-func (this *Krakenfutures) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
-}
-func (this *Krakenfutures) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
-}
-func (this *Krakenfutures) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
-	return this.exchangeTyped.FetchLastPrices(options...)
-}
-func (this *Krakenfutures) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedgerEntry(id, options...)
-}
-func (this *Krakenfutures) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchLiquidations(symbol, options...)
-}
-func (this *Krakenfutures) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatio(symbol, options...)
-}
-func (this *Krakenfutures) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatioHistory(options...)
-}
-func (this *Krakenfutures) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {
-	return this.exchangeTyped.FetchMarginAdjustmentHistory(options...)
-}
-func (this *Krakenfutures) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
-	return this.exchangeTyped.FetchMarginMode(symbol, options...)
-}
-func (this *Krakenfutures) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
-	return this.exchangeTyped.FetchMarginModes(options...)
-}
-func (this *Krakenfutures) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
-	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
-}
-func (this *Krakenfutures) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
-}
-func (this *Krakenfutures) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchMarkPrice(symbol, options...)
-}
-func (this *Krakenfutures) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchMarkPrices(options...)
-}
-func (this *Krakenfutures) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchMyLiquidations(options...)
-}
-func (this *Krakenfutures) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterest(symbol, options...)
-}
-func (this *Krakenfutures) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
-}
-func (this *Krakenfutures) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
-	return this.exchangeTyped.FetchOpenInterests(options...)
-}
-func (this *Krakenfutures) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
-	return this.exchangeTyped.FetchOption(symbol, options...)
-}
-func (this *Krakenfutures) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
-	return this.exchangeTyped.FetchOptionChain(code, options...)
-}
-func (this *Krakenfutures) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Krakenfutures) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
-	return this.exchangeTyped.FetchOrderBooks(options...)
-}
-func (this *Krakenfutures) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
-	return this.exchangeTyped.FetchOrderStatus(id, options...)
-}
-func (this *Krakenfutures) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchOrderTrades(id, options...)
-}
-func (this *Krakenfutures) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
-	return this.exchangeTyped.FetchPaymentMethods(params...)
-}
-func (this *Krakenfutures) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
-	return this.exchangeTyped.FetchPosition(symbol, options...)
-}
-func (this *Krakenfutures) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
-}
-func (this *Krakenfutures) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
-	return this.exchangeTyped.FetchPositionMode(options...)
-}
-func (this *Krakenfutures) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)
-}
-func (this *Krakenfutures) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsRisk(options...)
-}
-func (this *Krakenfutures) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
-}
-func (this *Krakenfutures) FetchStatus(params ...any) (Status, error) {
-	return this.exchangeTyped.FetchStatus(params...)
-}
-func (this *Krakenfutures) FetchTime(params ...any) (int64, error) {
-	return this.exchangeTyped.FetchTime(params...)
-}
-func (this *Krakenfutures) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
-	return this.exchangeTyped.FetchTradingFee(symbol, options...)
-}
-func (this *Krakenfutures) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTradingLimits(options...)
-}
-func (this *Krakenfutures) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFee(code, options...)
-}
-func (this *Krakenfutures) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFees(options...)
-}
-func (this *Krakenfutures) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchTransactions(options...)
-}
-func (this *Krakenfutures) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfer(id, options...)
-}
-func (this *Krakenfutures) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfers(options...)
-}
-func (this *Krakenfutures) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawals(options...)
-}
-func (this *Krakenfutures) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
-	return this.exchangeTyped.SetMargin(symbol, amount, options...)
-}
-func (this *Krakenfutures) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetMarginMode(marginMode, options...)
-}
-func (this *Krakenfutures) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetPositionMode(hedged, options...)
-}
-func (this *Krakenfutures) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
-	return this.exchangeTyped.Withdraw(code, amount, address, options...)
-}
-func (this *Krakenfutures) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelAllOrdersWs(options...)
-}
-func (this *Krakenfutures) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWs(ids, options...)
-}
-func (this *Krakenfutures) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWs(id, options...)
-}
-func (this *Krakenfutures) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)
-}
-func (this *Krakenfutures) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)
-}
-func (this *Krakenfutures) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)
-}
-func (this *Krakenfutures) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)
-}
-func (this *Krakenfutures) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)
-}
-func (this *Krakenfutures) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)
-}
-func (this *Krakenfutures) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)
-}
-func (this *Krakenfutures) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrdersWs(orders, options...)
-}
-func (this *Krakenfutures) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Krakenfutures) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Krakenfutures) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Krakenfutures) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
-}
-func (this *Krakenfutures) FetchBalanceWs(params ...any) (Balances, error) {
-	return this.exchangeTyped.FetchBalanceWs(params...)
-}
-func (this *Krakenfutures) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchClosedOrdersWs(options...)
-}
-func (this *Krakenfutures) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWs(options...)
-}
-func (this *Krakenfutures) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchMyTradesWs(options...)
-}
-func (this *Krakenfutures) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchOHLCVWs(symbol, options...)
-}
-func (this *Krakenfutures) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOpenOrdersWs(options...)
-}
-func (this *Krakenfutures) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
-	return this.exchangeTyped.FetchOrderBookWs(symbol, options...)
-}
-func (this *Krakenfutures) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)
-}
-func (this *Krakenfutures) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersWs(options...)
-}
-func (this *Krakenfutures) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWs(id, options...)
-}
-func (this *Krakenfutures) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)
-}
-func (this *Krakenfutures) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsWs(options...)
-}
-func (this *Krakenfutures) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionWs(symbol, options...)
-}
-func (this *Krakenfutures) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchTickersWs(options...)
-}
-func (this *Krakenfutures) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchTickerWs(symbol, options...)
-}
-func (this *Krakenfutures) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchTradesWs(symbol, options...)
-}
-func (this *Krakenfutures) FetchTradingFeesWs(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFeesWs(params...)
-}
-func (this *Krakenfutures) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawalsWs(options...)
-}
-func (this *Krakenfutures) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
-	return this.exchangeTyped.UnWatchBidsAsks(options...)
-}
-func (this *Krakenfutures) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchMyTrades(options...)
-}
-func (this *Krakenfutures) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
-}
-func (this *Krakenfutures) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Krakenfutures) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
-}
-func (this *Krakenfutures) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Krakenfutures) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrders(options...)
-}
-func (this *Krakenfutures) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTicker(symbol, options...)
-}
-func (this *Krakenfutures) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTickers(options...)
-}
-func (this *Krakenfutures) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTrades(symbol, options...)
-}
-func (this *Krakenfutures) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
-}
-func (this *Krakenfutures) WatchBalance(params ...any) (Balances, error) {
-	return this.exchangeTyped.WatchBalance(params...)
-}
-func (this *Krakenfutures) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchBidsAsks(options...)
-}
-func (this *Krakenfutures) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchLiquidations(symbol, options...)
-}
-func (this *Krakenfutures) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchMarkPrice(symbol, options...)
-}
-func (this *Krakenfutures) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchMarkPrices(options...)
-}
-func (this *Krakenfutures) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidations(symbol, options...)
-}
-func (this *Krakenfutures) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
-}
-func (this *Krakenfutures) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchMyTrades(options...)
-}
-func (this *Krakenfutures) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCV(symbol, options...)
-}
-func (this *Krakenfutures) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Krakenfutures) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBook(symbol, options...)
-}
-func (this *Krakenfutures) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Krakenfutures) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrders(options...)
-}
-func (this *Krakenfutures) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)
-}
-func (this *Krakenfutures) WatchPosition(options ...WatchPositionOptions) (Position, error) {
-	return this.exchangeTyped.WatchPosition(options...)
-}
-func (this *Krakenfutures) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
-	return this.exchangeTyped.WatchPositions(options...)
-}
-func (this *Krakenfutures) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchTicker(symbol, options...)
-}
-func (this *Krakenfutures) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchTickers(options...)
-}
-func (this *Krakenfutures) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTrades(symbol, options...)
-}
-func (this *Krakenfutures) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)
-}
-func (this *Krakenfutures) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
-	return this.exchangeTyped.WithdrawWs(code, amount, address, options...)
 }

@@ -1,5 +1,5 @@
 import Exchange from './abstract/paradex.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRate, FundingRates, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, NullableDict, Status, AllGreeks, OpenInterest } from './base/types.js';
+import type { NullableDict, Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRate, FundingRates, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, Status, AllGreeks, OpenInterest } from './base/types.js';
 /**
  * @class paradex
  * @description Paradex is a decentralized exchange built on the StarkWare layer 2 scaling solution. To access private methods you can either use the ETH public key and private key by setting (exchange.privateKey and exchange.walletAddress)
@@ -150,7 +150,7 @@ export default class paradex extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     hashMessage(message: any): string;
     signHash(hash: string, privateKey: string): string;
     signMessage(message: any, privateKey: string): string;
@@ -161,9 +161,9 @@ export default class paradex extends Exchange {
     authenticateRest(params?: Dict): Promise<Str>;
     parseOrder(order: Dict, market?: Market): Order;
     parseTimeInForce(timeInForce: Str): Str;
-    parseOrderStatus(status: Str): string | undefined;
+    parseOrderStatus(status: Str): Str;
     parseOrderType(type: Str): Str;
-    scaleNumber(num: string): string | undefined;
+    scaleNumber(num: string): Str;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
     signOrderRequest(request: Dict, modify?: boolean): Promise<Dict>;
     /**
@@ -491,6 +491,6 @@ export default class paradex extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

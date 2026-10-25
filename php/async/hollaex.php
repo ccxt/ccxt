@@ -280,12 +280,10 @@ class hollaex extends Exchange {
             ),
             'options' => array(
                 // how many seconds before the authenticated request expires
-                'api-expires' => $this->parse_to_int($this->timeout / 1000),
+                'api-expires' => $this->parse_to_int($this->parse_to_int($this->timeout) / 1000),
                 'networks' => array(
                     'BTC' => 'btc',
-                    'ETH' => 'eth',
                     'ERC20' => 'eth',
-                    'TRX' => 'trx',
                     'TRC20' => 'trx',
                     'XRP' => 'xrp',
                     'XLM' => 'xlm',
@@ -990,17 +988,15 @@ class hollaex extends Exchange {
         if ($paginateOption) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit));
         }
-        $until = $this->safe_integer($paramsPaginate, 'until');
-        $timeDelta = $this->parse_timeframe($timeframe) * $maxLimit * 1000;
-        $start = $since;
         $now = $this->milliseconds();
-        if ($until === null) {
-            $until = $now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        $until = $this->safe_integer($paramsPaginate, 'until', $now);
+        $timeDelta = $this->parse_timeframe($timeframe) * $maxLimit * 1000;
+        if ($since === null) {
+            $request['from'] = $this->parse_to_int(($until - $timeDelta) / 1000); // convert to seconds
+        } else {
+            $request['from'] = $this->parse_to_int($since / 1000); // convert to seconds
         }
-        if ($start === null) {
-            $start = $until - $timeDelta;
-        }
-        $request['from'] = $this->parse_to_int($start / 1000); // convert to seconds
         $request['to'] = $this->parse_to_int($until / 1000); // convert to seconds
         $paramsOmitted = $this->omit($paramsPaginate, 'until');
         $response = Async\await($this->publicGetChart($this->extend($request, $paramsOmitted)));
@@ -1319,7 +1315,7 @@ class hollaex extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'new' => 'open',
             'pfilled' => 'open',
@@ -1630,11 +1626,11 @@ class hollaex extends Exchange {
         $this->check_address($address);
         $currencyId = $this->safe_string($depositAddress, 'currency');
         $currencyResolved = $this->safe_currency($currencyId, $currency);
-        $network = $this->safe_string($depositAddress, 'network');
+        $networkId = $this->safe_string($depositAddress, 'network');
         return array(
             'info' => $depositAddress,
             'currency' => $currencyResolved['code'],
-            'network' => $network,
+            'network' => $this->network_id_to_code($networkId, $currencyResolved['code']),
             'address' => $address,
             'tag' => $tag,
         );
@@ -1710,7 +1706,7 @@ class hollaex extends Exchange {
         if ($network === null) {
             $addresses = $wallet;
         } else {
-            $addresses = $this->filter_by($wallet, 'network', $network);
+            $addresses = $this->filter_by($wallet, 'network', $this->network_code_to_id($network));
         }
         return $this->parse_deposit_addresses($addresses, $codes, false);
     }
@@ -1957,10 +1953,11 @@ class hollaex extends Exchange {
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $currencyResolved = $this->safe_currency($currencyId, $currency);
-        $status = $this->safe_value($transaction, 'status');
+        $completed = $this->safe_bool($transaction, 'status');
         $dismissed = $this->safe_bool($transaction, 'dismissed');
         $rejected = $this->safe_bool($transaction, 'rejected');
-        if ($status === true) {
+        $status = null;
+        if ($completed === true) {
             $status = 'ok';
         } elseif ($dismissed === true) {
             $status = 'canceled';
@@ -2003,11 +2000,11 @@ class hollaex extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -2016,12 +2013,12 @@ class hollaex extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2055,7 +2052,7 @@ class hollaex extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //
         //    "bch":{
         //        "id":4,
@@ -2180,7 +2177,7 @@ class hollaex extends Exchange {
         return $this->parse_deposit_withdraw_fees($coins, $codes, 'symbol');
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $query = $this->omit($params, $this->extract_params($path));
         $requestPath = '/' . $this->version . '/' . $this->implode_params($path, $params);
         if (($method === 'GET') || ($method === 'DELETE')) {
@@ -2195,9 +2192,10 @@ class hollaex extends Exchange {
         $url = $apiUrl . $requestPath;
         $requestBody = null;
         $requestHeaders = null;
-        if ($api === 'private') {
+        if ($api[0] === 'private') {
             $this->check_required_credentials();
-            $defaultExpires = $this->safe_integer_2($this->options, 'api-expires', 'expires', $this->parse_to_int($this->timeout / 1000));
+            $timeoutMs = $this->parse_to_int($this->timeout);
+            $defaultExpires = $this->safe_integer_2($this->options, 'api-expires', 'expires', $this->parse_to_int($timeoutMs / 1000));
             $expires = $this->sum($this->seconds(), $defaultExpires);
             $expiresString = (string) $expires;
             $auth = $method . $requestPath . $expiresString;
@@ -2215,8 +2213,8 @@ class hollaex extends Exchange {
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $requestHeaders['api-signature'] = $signature;
         }
-        $bodyResult = ($requestBody === null) ? $body : $requestBody;
-        $headersResult = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResult = $requestBody;
+        $headersResult = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
@@ -2225,7 +2223,8 @@ class hollaex extends Exchange {
         if ($response === null) {
             return null;
         }
-        if (($code >= 400) && ($code <= 503)) {
+        $statusCode = $this->parse_to_int($code);
+        if (($statusCode >= 400) && ($statusCode <= 503)) {
             //
             //  { "message": "Invalid token" }
             //

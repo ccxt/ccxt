@@ -6,6 +6,44 @@
     ],
     "outputType": "json",
     "methods": {
+        "transfer": [
+            {
+                "description": "transfer with exchange-specific toAccount",
+                "method": "transfer",
+                "url": "https://api.poloniex.com/accounts/transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "FUTURES"
+                ],
+                "output": "{\"amount\":\"1\",\"currency\":\"USDT\",\"fromAccount\":\"spot\",\"toAccount\":\"FUTURES\"}"
+            }
+        ],
+        "fetchTransfer": [
+            {
+                "description": "fetch transfer by id",
+                "method": "fetchTransfer",
+                "url": "https://api.poloniex.com/accounts/transfer/344182843",
+                "input": [
+                    "344182843"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetch usdt transfers since",
+                "method": "fetchTransfers",
+                "url": "https://api.poloniex.com/accounts/transfer?currency=USDT&startTime=1786990000000&limit=2",
+                "input": [
+                    "USDT",
+                    1786990000000,
+                    2
+                ],
+                "output": null
+            }
+        ],
         "withdraw": [
             {
                 "description": "ethereum",
@@ -15,11 +53,10 @@
                     "USDT",
                     5,
                     "0x883b79D31EA07AA200A4a83c50d444470A212eEE",
-                    null,
                     {
-                        "network": "ERC20"
+                      "network": "ERC20"
                     }
-                ],
+                  ],
                 "output": { "coin": "USDT", "amount": "5", "address": "0x883b79D31EA07AA200A4a83c50d444470A212eEE", "network": "ETH" }
             },
             {
@@ -30,11 +67,10 @@
                     "USDT",
                     5,
                     "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD",
-                    null,
                     {
-                        "network": "TRC20"
+                      "network": "TRC20"
                     }
-                ],
+                  ],
                 "output": { "coin": "USDT", "amount": "5", "address": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD", "network": "TRX" }
             }
         ],
@@ -393,6 +429,94 @@
                 "input": []
             }
         ],
+        "createOrders": [
+            {
+                "description": "spot batch of two limit buys",
+                "method": "createOrders",
+                "url": "https://api.poloniex.com/orders/batch",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 1,
+                            "price": 20000,
+                            "params": {
+                                "clientOrderId": "batch-1"
+                            }
+                        },
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 2,
+                            "price": 19000
+                        }
+                    ]
+                ],
+                "output": "[{\"symbol\":\"BTC_USDT\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"quantity\":\"1\",\"price\":\"20000\",\"clientOrderId\":\"batch-1\"},{\"symbol\":\"BTC_USDT\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"quantity\":\"2\",\"price\":\"19000\"}]"
+            },
+            {
+                "description": "swap batch of two limit buys with cross margin",
+                "method": "createOrders",
+                "url": "https://api.poloniex.com/v3/trade/orders",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 1,
+                            "price": 84000,
+                            "params": {
+                                "marginMode": "cross",
+                                "clientOrderId": "batch-swap-1"
+                            }
+                        },
+                        {
+                            "symbol": "BTC/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 1,
+                            "price": 83000,
+                            "params": {
+                                "marginMode": "cross"
+                            }
+                        }
+                    ]
+                ],
+                "output": "[{\"symbol\":\"BTC_USDT_PERP\",\"side\":\"BUY\",\"mgnMode\":\"CROSS\",\"type\":\"LIMIT\",\"sz\":\"1\",\"px\":\"84000\",\"clOrdId\":\"batch-swap-1\",\"posSide\":\"BOTH\"},{\"symbol\":\"BTC_USDT_PERP\",\"side\":\"BUY\",\"mgnMode\":\"CROSS\",\"type\":\"LIMIT\",\"sz\":\"1\",\"px\":\"83000\",\"posSide\":\"BOTH\"}]"
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "spot cancel two orders by ids",
+                "method": "cancelOrders",
+                "url": "https://api.poloniex.com/orders/cancelByIds",
+                "input": [
+                    [
+                        "123456789",
+                        "987654321"
+                    ],
+                    "BTC/USDT"
+                ],
+                "output": "{\"orderIds\":[\"123456789\",\"987654321\"]}"
+            },
+            {
+                "description": "swap cancel two orders by ids, symbol required",
+                "method": "cancelOrders",
+                "url": "https://api.poloniex.com/v3/trade/batchOrders",
+                "input": [
+                    [
+                        "613143856837730304",
+                        "613144005890699264"
+                    ],
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"BTC_USDT_PERP\",\"ordIds\":[\"613143856837730304\",\"613144005890699264\"]}"
+            }
+        ],
         "createOrder": [
             {
                 "description": "linear, limi buy",
@@ -667,6 +791,42 @@
                 "input": [
                     "BTC/USDT:USDT",
                     "1M"
+                ],
+                "output": null
+            },
+            {
+                "description": "spot with since and limit sets endTime",
+                "method": "fetchOHLCV",
+                "url": "https://api.poloniex.com/markets/BTC_USDT/candles?interval=HOUR_1&startTime=1789621200000&limit=3&endTime=1789628400000",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1789621200000,
+                    3
+                ],
+                "output": null
+            },
+            {
+                "description": "linear with since and limit sets eTime",
+                "method": "fetchOHLCV",
+                "url": "https://api.poloniex.com/v3/market/candles?symbol=BTC_USDT_PERP&interval=HOUR_1&sTime=1789621200000&limit=3&eTime=1789628400000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1789621200000,
+                    3
+                ],
+                "output": null
+            },
+            {
+                "description": "spot with mid-candle since and limit ends at the limit-th candle",
+                "method": "fetchOHLCV",
+                "url": "https://api.poloniex.com/markets/BTC_USDT/candles?interval=HOUR_1&startTime=1789623000000&limit=3&endTime=1789632000000",
+                "input": [
+                    "BTC/USDT",
+                    "1h",
+                    1789623000000,
+                    3
                 ],
                 "output": null
             }

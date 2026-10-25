@@ -30,7 +30,9 @@ impl LbankCore {
     pub fn init(&mut self) {
         let described = LbankCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -95,7 +97,6 @@ impl crate::exchange_generated::ExchangeBase for LbankCore {
             match method {
                 "cancel_all_orders" => self.cancel_all_orders(&args[..]).await,
                 "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "convert_secret_to_pem" => self.convert_secret_to_pem(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "create_market_buy_order_with_cost" => self.create_market_buy_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "create_order" => self.create_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "fetch_balance" => self.fetch_balance(&args[..]).await,
@@ -137,7 +138,6 @@ impl crate::exchange_generated::ExchangeBase for LbankCore {
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_public_deposit_withdraw_fees" => self.parse_public_deposit_withdraw_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -703,13 +703,10 @@ impl LbankCore {
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ERC20".to_string(), Value::Str("erc20".into()));
-        m.insert("ETH".to_string(), Value::Str("erc20".into()));
         m.insert("TRC20".to_string(), Value::Str("trc20".into()));
-        m.insert("TRX".to_string(), Value::Str("trc20".into()));
         m.insert("OMNI".to_string(), Value::Str("omni".into()));
         m.insert("ASA".to_string(), Value::Str("asa".into()));
         m.insert("BEP20".to_string(), Value::Str("bep20(bsc)".into()));
-        m.insert("BSC".to_string(), Value::Str("bep20(bsc)".into()));
         m.insert("HT".to_string(), Value::Str("heco".into()));
         m.insert("BNB".to_string(), Value::Str("bep2".into()));
         m.insert("BTC".to_string(), Value::Str("btc".into()));
@@ -919,7 +916,7 @@ impl LbankCore {
         //
         let mut currenciesData: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         let mut grouped: Value = self.group_by(currenciesData, Value::Str("assetCode".into()), &[]);
-        let mut values: Value = object_values(&grouped);
+        let mut values: Value = Value::Array(grouped.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default());
         return self.parse_currencies(values);
 
     Value::Null
@@ -935,8 +932,8 @@ impl LbankCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_909: bool = true;
-            while { if !__for_first_909 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_909 = false; j.as_f64().unwrap_or(f64::NAN) < ((networksRaw.len() as i64) as f64) } {
+            let mut __for_first_912: bool = true;
+            while { if !__for_first_912 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_912 = false; j.as_f64().unwrap_or(f64::NAN) < ((networksRaw.len() as i64) as f64) } {
             let mut networkEntry: Value = self.safe_dict(networksRaw.clone(), j.clone(), &[]);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "chain", &[]);
             if (networkId == Value::Null) {
@@ -1053,14 +1050,14 @@ impl LbankCore {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_910: bool = true;
-            while { if !__for_first_910 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_910 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_913: bool = true;
+            while { if !__for_first_913 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_913 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut market: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
-            let mut parts: Value = split(&marketId, &Value::Str("_".into()));
+            let mut parts: Value = Value::Array(marketId.as_str().map(|__s| __s.split("_").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             let mut baseId: Value = parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut quoteId: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
@@ -1069,7 +1066,7 @@ impl LbankCore {
                 continue;
             }
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-            append_to_array(&mut result, Value::Map({
+            result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), marketId);
                     m.insert("symbol".to_string(), symbol);
@@ -1134,7 +1131,7 @@ impl LbankCore {
             }));
         }
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
@@ -1180,11 +1177,11 @@ impl LbankCore {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_911: bool = true;
-            while { if !__for_first_911 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_911 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_914: bool = true;
+            while { if !__for_first_914 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_914 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut market: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseCurrency", &[]);
@@ -1197,7 +1194,7 @@ impl LbankCore {
             }
             let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
-            append_to_array(&mut result, Value::Map({
+            result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), marketId);
                     m.insert("symbol".to_string(), symbol);
@@ -1262,7 +1259,7 @@ impl LbankCore {
             }));
         }
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
@@ -1656,7 +1653,7 @@ impl LbankCore {
         let mut type_var: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
         if (side != Value::Null) {
-            let mut parts: Value = split(&side, &Value::Str("_".into()));
+            let mut parts: Value = Value::Array(side.as_str().map(|__s| __s.split("_").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             side = self.safe_string(parts.clone(), Value::Int(0), &[]);
             let mut typePart: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
             type_var = Value::Str("limit".into());
@@ -1813,10 +1810,16 @@ impl LbankCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { crate::runtime::Math::min(&limit, &Value::Int(2000)) });
+        let mut limitResolved: Value = self.parse_to_int((if (limit == Value::Null) { Value::Int(100) } else { crate::runtime::Math::min(&limit, &Value::Int(2000)) }));
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
-        let mut sinceResolved: Value = (if (since == Value::Null) { ((match (&(self.milliseconds()), &(((match (&((match (&(duration), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(limitResolved)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) } else { since });
-        let mut parsedSince: Value = self.parse_to_int((match ((sinceResolved).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        let mut now: Value = self.milliseconds();
+        let mut defaultSince: Value = (match (&(now), &(((match (&((match (&(duration), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(limitResolved)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut sinceResolved: Value = defaultSince.clone();
+        let mut parsedSince: Value = self.parse_to_int((match ((defaultSince).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        if (since != Value::Null) {
+            sinceResolved = since.clone();
+            parsedSince = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        }
         let mut parsedLimit: Value = crate::runtime::Math::min(&(match (&(limitResolved), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &Value::Int(2000)); // max 2000;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1922,7 +1925,7 @@ impl LbankCore {
         });
         let mut data: Value = self.safe_dict_k(response, "data", &[]);
         // from spotPrivatePostUserInfo
-        let mut toBtc: Value = self.safe_value_k(data.clone(), "toBtc", &[]);
+        let mut toBtc: Value = self.safe_dict_k(data.clone(), "toBtc", &[]);
         if (toBtc != Value::Null) {
             let mut used: Value = self.safe_dict_k(data.clone(), "freeze", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1932,16 +1935,16 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut currencies: Value = object_keys(&free);
+            let mut currencies: Value = Value::Array(free.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_912: bool = true;
-                while { if !__for_first_912 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_912 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencies.len() as i64) as f64) } {
+                let mut __for_first_915: bool = true;
+                while { if !__for_first_915 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_915 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencies.len() as i64) as f64) } {
                 let mut currencyId: Value = currencies.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut account: Value = self.account();
-                add_element_to_object(&mut account, &Value::Str("used".into()), self.safe_string(used.clone(), currencyId.clone(), &[]));
-                add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string(free.clone(), currencyId.clone(), &[]));
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string(used.clone(), currencyId.clone(), &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string(free.clone(), currencyId.clone(), &[])); }
                 if (code != Value::Null) {
                     if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account.clone()); }
                 }
@@ -1954,14 +1957,14 @@ impl LbankCore {
         if (balances != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_913: bool = true;
-                while { if !__for_first_913 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_913 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
+                let mut __for_first_916: bool = true;
+                while { if !__for_first_916 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_916 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
                 let mut item: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
                 let mut currencyId: Value = self.safe_string_k(item.clone(), "asset", &[]);
                 let mut codeInner: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut account: Value = self.account();
-                add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string_k(item.clone(), "free", &[]));
-                add_element_to_object(&mut account, &Value::Str("used".into()), self.safe_string_k(item.clone(), "locked", &[]));
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(item.clone(), "free", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(item.clone(), "locked", &[])); }
                 if (codeInner != Value::Null) {
                     if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&codeInner), account.clone()); }
                 }
@@ -1971,17 +1974,17 @@ impl LbankCore {
         }
         // from spotPrivatePostSupplementUserInfo
         let mut isArray: bool = matches!(&data, Value::Arr(_));
-        if (isArray) {
+        if isArray {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_914: bool = true;
-                while { if !__for_first_914 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_914 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+                let mut __for_first_917: bool = true;
+                while { if !__for_first_917 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_917 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
                 let mut item: Value = self.safe_dict(data.clone(), i.clone(), &[]);
                 let mut currencyId: Value = self.safe_string_k(item.clone(), "coin", &[]);
                 let mut codeInner: Value = self.safe_currency_code(currencyId, &[]);
                 let mut account: Value = self.account();
-                add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string_k(item.clone(), "usableAmt", &[]));
-                add_element_to_object(&mut account, &Value::Str("used".into()), self.safe_string_k(item, "freezeAmt", &[]));
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(item.clone(), "usableAmt", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(item, "freezeAmt", &[])); }
                 if (codeInner != Value::Null) {
                     if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&codeInner), account); }
                 }
@@ -2021,7 +2024,7 @@ impl LbankCore {
         let mut intervalString: Value = Value::Null;
         if (positionFeeTime != Value::Null) {
             let mut interval: Value = self.parse_to_int((match (((match ((positionFeeTime).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-            intervalString = Value::Str(format!("{}{}", to_string_val(&interval), Value::Str("h".into())).into());
+            intervalString = Value::Str(format!("{}{}", Value::Str(format!("{}", interval).into()), Value::Str("h".into())).into());
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2285,8 +2288,8 @@ impl LbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_915: bool = true;
-            while { if !__for_first_915 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_915 = false; i.as_f64().unwrap_or(f64::NAN) < ((fees.len() as i64) as f64) } {
+            let mut __for_first_918: bool = true;
+            while { if !__for_first_918 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_918 = false; i.as_f64().unwrap_or(f64::NAN) < ((fees.len() as i64) as f64) } {
             let mut fee: Value = self.parse_trading_fee(fees.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             let mut symbol: Value = fee.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fee); }
@@ -2361,7 +2364,7 @@ impl LbankCore {
         });
         let mut ioc: bool = timeInForce.as_deref() == Some("IOC");
         let mut fok: bool = timeInForce.as_deref() == Some("FOK");
-        let mut maker: bool = (postOnly.as_bool() == Some(true)) || (timeInForce.as_deref() == Some("PO"));
+        let mut maker: bool = postOnly.as_bool() == Some(true) || (timeInForce.as_deref() == Some("PO"));
         if (type_var.as_str() == Some("market")) && (ioc || fok || maker) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed".into()))));
         }
@@ -2389,7 +2392,7 @@ impl LbankCore {
                 paramsRequest = self.omit(paramsRequest.clone(), Value::Str("cost".into()), &[]);
                 if (cost != Value::Null) {
                     quoteAmount = self.cost_to_precision(symbol.clone(), cost);
-                }  else if is_true(&createMarketBuyOrderRequiresPrice) {
+                }  else if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".into()))));
                     }  else {
@@ -2448,7 +2451,7 @@ impl LbankCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("-1".to_string(), Value::Str("canceled".into()));
@@ -2459,9 +2462,7 @@ impl LbankCore {
                 m.insert("4".to_string(), Value::Str("closed".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -2563,7 +2564,7 @@ impl LbankCore {
         let mut postOnly: Value = Value::Bool(false);
         let mut type_var: Value = Value::Str("limit".into());
         let mut rawType: Value = self.safe_string2(order.clone(), Value::Str("type".into()), Value::Str("tradeType".into()), &[]); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        let mut parts: Value = split(&rawType, &Value::Str("_".into()));
+        let mut parts: Value = Value::Array(rawType.as_str().map(|__s| __s.split("_").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut side: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
         let mut typePart: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned); // market, maker, ioc, fok or undefined (limit)
         if (typePart.as_deref() == Some("market")) {
@@ -2593,7 +2594,7 @@ impl LbankCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("timestamp".to_string(), timestamp);
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parse_order_status(rawStatus));
+        m.insert("status".to_string(), self.parse_order_status(rawStatus).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce);
@@ -3088,9 +3089,9 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut network: Value = self.safe_string_upper_k(params, "network", &[defaultNetwork]); // this line allows the user to specify either ERC20 or ETH
-        network = self.safe_string(networks, network.clone(), &[network.clone()]); // handle ERC20>ETH alias
-        return network.as_str().map(str::to_owned);
+        let mut networkParam: Value = self.safe_string_upper_k(params, "network", &[defaultNetwork]); // accepts unified codes and aliases
+        let mut networkCode: Value = (if (networkParam != Value::Null) { self.safe_string(self.networkAliases.clone(), networkParam.clone(), &[networkParam.clone()]) } else { Value::Null });
+        return self.safe_string(networks, networkCode.clone(), &[networkCode.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -3196,6 +3197,9 @@ impl LbankCore {
         });
         let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[]);
         let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
+        if (network != Value::Null) {
+            network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
+        }
         network = self.safe_string(networks, network.clone(), &[network.clone()]);
         let mut paramsOmitted: Value = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
         if (network != Value::Null) {
@@ -3239,20 +3243,19 @@ impl LbankCore {
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
-        let mut tag = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tagWithdrawTagparamsWithdrawTagVariable = self.handle_withdraw_tag_and_params(tag, params);
+        let mut tagWithdrawTagparamsWithdrawTagVariable = self.handle_param_string(params, Value::Str("tag".into()), &[]);
         let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        self.check_address(&[address.clone()]);
+        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -3273,6 +3276,9 @@ impl LbankCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("memo".into(), tagWithdrawTag); }
         }
         let mut network: Value = self.safe_string_upper2(paramsOmitted.clone(), Value::Str("network".into()), Value::Str("networkName".into()), &[]);
+        if (network != Value::Null) {
+            network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
+        }
         let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("network".into()), Value::Str("networkName".into())]), &[]);
         let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[]);
         let mut networkId: Value = self.safe_string(networks, network.clone(), &[network.clone()]);
@@ -3585,8 +3591,7 @@ impl LbankCore {
             self.load_markets(&[]).await;
         }
         let mut isAuthorized: Value = self.check_required_credentials(&[Value::Bool(false)]);
-        let mut result: Value = Value::Null;
-        if (isAuthorized.as_bool() == Some(true)) {
+        if isAuthorized.as_bool() == Some(true) {
             let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchTransactionFees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3595,14 +3600,11 @@ impl LbankCore {
             let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[defaultMethod]).as_str().map(str::to_owned);
             let mut paramsOmitted: Value = self.omit(params.clone(), Value::Str("method".into()), &[]);
             if (method.as_deref() == Some("fetchPublicTransactionFees")) {
-                result = self.fetch_public_transaction_fees(&[paramsOmitted.clone()]).await;
-            }  else {
-                result = self.fetch_private_transaction_fees(&[paramsOmitted]).await;
+                return self.fetch_public_transaction_fees(&[paramsOmitted.clone()]).await;
             }
-        }  else {
-            result = self.fetch_public_transaction_fees(&[params]).await;
+            return self.fetch_private_transaction_fees(&[paramsOmitted]).await;
         }
-        return result;
+        return self.fetch_public_transaction_fees(&[params]).await;
 
     Value::Null
 }
@@ -3655,8 +3657,8 @@ impl LbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_917: bool = true;
-            while { if !__for_first_917 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_917 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
+            let mut __for_first_920: bool = true;
+            while { if !__for_first_920 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_920 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(result.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -3669,8 +3671,8 @@ impl LbankCore {
             }
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_916: bool = true;
-                while { if !__for_first_916 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_916 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkList.len() as i64) as f64) } {
+                let mut __for_first_919: bool = true;
+                while { if !__for_first_919 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_919 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkList.len() as i64) as f64) } {
                 let mut networkEntry: Value = self.safe_dict(networkList.clone(), j.clone(), &[]);
                 let mut fee: Value = self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]);
                 if (fee != Value::Null) {
@@ -3749,8 +3751,8 @@ impl LbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_918: bool = true;
-            while { if !__for_first_918 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_918 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
+            let mut __for_first_921: bool = true;
+            while { if !__for_first_921 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_921 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
             let mut item: Value = self.safe_dict(result.clone(), i.clone(), &[]);
             let mut canWithdraw: Option<String> = self.safe_string_k(item.clone(), "canWithDraw", &[]).as_str().map(str::to_owned);
             if (canWithdraw.as_deref() == Some("true")) {
@@ -3809,8 +3811,7 @@ impl LbankCore {
             self.load_markets(&[]).await;
         }
         let mut isAuthorized: Value = self.check_required_credentials(&[Value::Bool(false)]);
-        let mut response: Value = Value::Null;
-        if (isAuthorized.as_bool() == Some(true)) {
+        if isAuthorized.as_bool() == Some(true) {
             let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchDepositWithdrawFees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3819,14 +3820,11 @@ impl LbankCore {
             let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[defaultMethod]).as_str().map(str::to_owned);
             let mut paramsOmitted: Value = self.omit(params.clone(), Value::Str("method".into()), &[]);
             if (method.as_deref() == Some("fetchPublicDepositWithdrawFees")) {
-                response = self.fetch_public_deposit_withdraw_fees(&[codes.clone(), paramsOmitted.clone()]).await;
-            }  else {
-                response = self.fetch_private_deposit_withdraw_fees(&[codes.clone(), paramsOmitted]).await;
+                return self.fetch_public_deposit_withdraw_fees(&[codes.clone(), paramsOmitted.clone()]).await;
             }
-        }  else {
-            response = self.fetch_public_deposit_withdraw_fees(&[codes, params]).await;
+            return self.fetch_private_deposit_withdraw_fees(&[codes.clone(), paramsOmitted]).await;
         }
-        return response;
+        return self.fetch_public_deposit_withdraw_fees(&[codes, params]).await;
 
     Value::Null
 }
@@ -3947,8 +3945,8 @@ impl LbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_919: bool = true;
-            while { if !__for_first_919 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_919 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
+            let mut __for_first_922: bool = true;
+            while { if !__for_first_922 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_922 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
             let mut fee: Value = response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut canWithdraw: Value = self.safe_bool_k(fee.clone(), "canWithDraw", &[]);
             if (canWithdraw.as_bool() == Some(true)) {
@@ -4035,20 +4033,20 @@ impl LbankCore {
         let mut networkList: Value = self.safe_list_k(fee, "networkList", &[Value::from(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_920: bool = true;
-            while { if !__for_first_920 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_920 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkList.len() as i64) as f64) } {
+            let mut __for_first_923: bool = true;
+            while { if !__for_first_923 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_923 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkList.len() as i64) as f64) } {
             let mut networkEntry: Value = self.safe_dict(networkList.clone(), j.clone(), &[]);
             let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(networkEntry.clone(), "name", &[]), code.clone()]);
             let mut withdrawFee: Value = self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]);
             let mut isDefault: Value = self.safe_bool_k(networkEntry, "isDefault", &[]);
             if (withdrawFee != Value::Null) {
                 if (isDefault.as_bool() == Some(true)) {
-                    add_element_to_object(&mut result, &Value::Str("withdraw".into()), Value::Map({
+                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("withdraw".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), withdrawFee.clone());
         m.insert("percentage".to_string(), Value::Null);
     m
-}));
+})); }
                 }
                 if (networkCode != Value::Null) {
                     add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".into())), &networkCode, Value::Map({
@@ -4077,14 +4075,14 @@ impl LbankCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]);
         if (apiUrl == Value::Null) {
@@ -4092,7 +4090,7 @@ impl LbankCore {
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         // Every spot endpoint ends with ".do"
-        if (get_value(&api, &Value::Int(0)).as_str() == Some("spot")) {
+        if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("spot")) {
             url = Value::Str(format!("{}{}", url, Value::Str(".do".into())).into());
         }  else {
             let mut contractUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("contract".into()), &[]);
@@ -4101,13 +4099,13 @@ impl LbankCore {
             }
             url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", contractUrl, Value::Str("/".into())).into()), self.implode_params(path, params)).into());
         }
-        if (get_value(&api, &Value::Int(1)).as_str() == Some("public")) {
-            if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
+        if (api.get(1).cloned().unwrap_or(Value::Null).as_str() == Some("public")) {
+            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(self.keysort(query.clone(), &[]), &[])).into())).into());
             }
         }  else {
             self.check_required_credentials(&[]);
-            let mut timestamp: Value = to_string_val(&self.milliseconds());
+            let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
             let mut echostr: Value = Value::Str(format!("{}{}", self.uuid22(&[]), self.uuid16(&[])).into());
             query = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4131,19 +4129,21 @@ impl LbankCore {
             let mut auth: Value = self.rawencode(__ws_arg_28, &[]);
             let mut encoded: Value = self.encode(auth);
             let mut hash: Value = self.hash(encoded, Value::Str("md5".into()), &[]);
-            let mut uppercaseHash: Value = to_upper(&hash);
+            let mut uppercaseHash: Value = hash.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
             let mut sign: Value = Value::Null;
             if (signatureMethod.as_str() == Some("RSA")) {
                 let mut cacheSecretAsPem: Value = self.safe_bool_k(self.options.clone(), "cacheSecretAsPem", &[Value::Bool(true)]);
                 let mut pem: Value = Value::Null;
-                if (cacheSecretAsPem.as_bool() == Some(true)) {
-                    pem = self.safe_string_k(self.options.clone(), "pem", &[]);
-                    if (pem == Value::Null) {
-                        pem = self.convert_secret_to_pem(self.encode(self.secret.clone()));
+                if cacheSecretAsPem.as_bool() == Some(true) {
+                    let mut cachedPem: Value = self.safe_string_k(self.options.clone(), "pem", &[]);
+                    if (cachedPem == Value::Null) {
+                        pem = self.convert_secret_to_pem(self.encode(self.secret.clone())).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
                         if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("pem".into(), pem.clone()); }
+                    }  else {
+                        pem = cachedPem;
                     }
                 }  else {
-                    pem = self.convert_secret_to_pem(self.encode(self.secret.clone()));
+                    pem = self.convert_secret_to_pem(self.encode(self.secret.clone())).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
                 }
                 sign = rsa(uppercaseHash.clone(), pem, Value::Str("sha256".into()));
             }  else if (signatureMethod.as_str() == Some("HmacSHA256")) {
@@ -4172,32 +4172,28 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), Value::Null);
+        m.insert("headers".to_string(), Value::Null);
     m
 });
 
     Value::Null
 }
 
-    pub fn convert_secret_to_pem(&self, mut secret: Value) -> Value {
-        let mut lineLength: Value = Value::Int(64);
-        let mut secretLength: Value = subtract(&get_array_length(&secret), &Value::Int(0));
-        let mut numLines: Value = self.parse_to_int((match ((secretLength).as_f64(), (lineLength).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-        numLines = self.sum(&[numLines.clone(), Value::Int(1)]);
+    pub fn convert_secret_to_pem(&self, mut secret: Value) -> Option<String> {
+        let mut secretLength: Value = (match (&(get_array_length(&secret)), &(Value::Int(0))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut fullLines: Value = self.parse_to_int((match ((secretLength).as_f64(), (Value::Int(64)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut pem: Value = Value::Str("-----BEGIN PRIVATE KEY-----\n".into()); // eslint-disable-line
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_921: bool = true;
-            while { if !__for_first_921 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_921 = false; i.as_f64().unwrap_or(f64::NAN) < numLines.as_f64().unwrap_or(f64::NAN) } {
-            let mut start: Value = (match (&(i), &(lineLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut end: Value = self.sum(&[start.clone(), lineLength.clone()]);
-            pem = Value::Str(format!("{}{}", pem, Value::Str(format!("{}{}", slice(&self.secret, &start, &end), Value::Str("\n".into())).into())).into()); // eslint-disable-line
+            let mut __for_first_924: bool = true;
+            while { if !__for_first_924 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_924 = false; i.as_f64().unwrap_or(f64::NAN) <= fullLines.as_f64().unwrap_or(f64::NAN) } {
+            let mut start: Value = (match (&(i), &(Value::Int(64))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            let mut end: Value = self.sum(&[start.clone(), Value::Int(64)]);
+            pem = Value::Str(format!("{}{}", pem, Value::Str(format!("{}{}", (match (&(self.secret.clone()), (match &(start) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(end) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }), Value::Str("\n".into())).into())).into()); // eslint-disable-line
         }
         }
-        return Value::Str(format!("{}{}", pem, Value::Str("-----END PRIVATE KEY-----".into())).into());
-
-    Value::Null
+        return Value::Str(format!("{}{}", pem, Value::Str("-----END PRIVATE KEY-----".into())).into()).as_str().map(str::to_owned);
 }
 
     pub fn handle_errors(&self, mut httpCode: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
@@ -4205,7 +4201,7 @@ impl LbankCore {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" parseBalance() returned empty response".into()))));
         }
         let mut success: Value = self.safe_value_k(response.clone(), "result", &[]);
-        if (success.as_str() == Some("false")) || (success == Value::Null) || (success == Value::Null) || (is_equal(&success, &Value::Bool(false))) {
+        if (success.as_str() == Some("false")) || (success == Value::Null) || (success == Value::Null) || ((match &(success) { Value::Bool(__x) => *__x == false, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 0.0) })) {
             let mut errorCode: Value = self.safe_string_k(response.clone(), "error_code", &[]);
             let mut message: Value = self.safe_string(Value::Map({
                 let mut m = indexmap::IndexMap::new();

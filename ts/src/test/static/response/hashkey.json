@@ -198,9 +198,9 @@
                         "fee": 0,
                         "fees": {},
                         "networks": {
-                            "ETH": {
+                            "ERC20": {
                                 "id": "ETH",
-                                "network": "ETH",
+                                "network": "ERC20",
                                 "limits": {
                                     "withdraw": {
                                         "min": 25,
@@ -226,9 +226,9 @@
                                     "allowWithdraw": true
                                 }
                             },
-                            "Tron": {
+                            "TRC20": {
                                 "id": "TRC20",
-                                "network": "Tron",
+                                "network": "TRC20",
                                 "limits": {
                                     "withdraw": {
                                         "min": 1,
@@ -254,9 +254,9 @@
                                     "allowWithdraw": true
                                 }
                             },
-                            "Arbitrum": {
+                            "ARBITRUM": {
                                 "id": "Arbitrum",
-                                "network": "Arbitrum",
+                                "network": "ARBITRUM",
                                 "limits": {
                                     "withdraw": {
                                         "min": 1,
@@ -282,9 +282,9 @@
                                     "allowWithdraw": true
                                 }
                             },
-                            "BSC(BEP20)": {
+                            "BEP20": {
                                 "id": "BSC(BEP20)",
-                                "network": "BSC(BEP20)",
+                                "network": "BEP20",
                                 "limits": {
                                     "withdraw": {
                                         "min": 1,
@@ -338,9 +338,9 @@
                                     "allowWithdraw": false
                                 }
                             },
-                            "Solana": {
+                            "SOL": {
                                 "id": "Solana",
-                                "network": "Solana",
+                                "network": "SOL",
                                 "limits": {
                                     "withdraw": {
                                         "min": 1,
@@ -3607,6 +3607,7 @@
                         "leverage": 4,
                         "unrealizedPnl": 2.9943,
                         "realizedPnl": -0.0089,
+                        "positionMargin": null,
                         "collateral": null,
                         "entryPrice": 2995.99,
                         "markPrice": null,
@@ -3616,7 +3617,7 @@
                         "maintenanceMargin": 0,
                         "maintenanceMarginPercentage": null,
                         "initialMargin": 3.5926,
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 0.23982803623522186,
                         "marginRatio": null,
                         "lastUpdateTimestamp": null,
                         "lastPrice": 2399.67,

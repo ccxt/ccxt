@@ -188,13 +188,13 @@ class mexc extends \ccxt\async\mexc {
         //         "s": "BTCUSDT"
         //     }
         //
-        $this->handle_bid_ask($client, $message);
         $rawTicker = $this->safe_dict_n($message, array( 'd', 'data', 'publicAggreBookTicker' ));
         $marketId = $this->safe_string_2($message, 's', 'symbol');
         $timestamp = $this->safe_integer_2($message, 't', 'sendTime');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         if ($market['spot'] === true) {
+            $this->handle_bid_ask($client, $message); // the bids-asks channel is spot only
             $ticker = $this->parse_ws_ticker($rawTicker, $market);
             $ticker['timestamp'] = $timestamp;
             $ticker['datetime'] = $this->iso8601($timestamp);
@@ -376,10 +376,10 @@ class mexc extends \ccxt\async\mexc {
 
     public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         // protobuf ticker
-        // "bidprice": "93387.28",  // Best bid price
-        // "bidquantity": "3.73485", // Best bid quantity
-        // "askprice": "93387.29", // Best ask price
-        // "askquantity": "7.669875" // Best ask quantity
+        // "bidPrice": "93387.28",  // Best bid price
+        // "bidQuantity": "3.73485", // Best bid quantity
+        // "askPrice": "93387.29", // Best ask price
+        // "askQuantity": "7.669875" // Best ask quantity
         //
         // spot
         //
@@ -489,6 +489,22 @@ class mexc extends \ccxt\async\mexc {
 
     public function handle_bid_ask(Client $client, array $message) {
         //
+        // protobuf
+        //
+        //    {
+        //        "channel": "spot@public.aggre.bookTicker.v3.api.pb@100ms@BTCUSDT",
+        //        "symbol": "BTCUSDT",
+        //        "sendTime": "1792779974344",
+        //        "publicAggreBookTicker": {
+        //            "bidPrice": "81577.79",
+        //            "bidQuantity": "0.11985594",
+        //            "askPrice": "81577.8",
+        //            "askQuantity": "0.12200121"
+        //        }
+        //    }
+        //
+        // retired json channel
+        //
         //    {
         //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
         //        "d": {
@@ -512,19 +528,19 @@ class mexc extends \ccxt\async\mexc {
     }
 
     public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
-        $data = $this->safe_dict($ticker, 'd');
-        $marketId = $this->safe_string($ticker, 's');
+        $data = $this->safe_dict_n($ticker, array( 'd', 'data', 'publicAggreBookTicker' ));
+        $marketId = $this->safe_string_2($ticker, 's', 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
         $symbol = $this->safe_string($marketResolved, 'symbol');
-        $timestamp = $this->safe_integer($ticker, 't');
+        $timestamp = $this->safe_integer_2($ticker, 't', 'sendTime');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'ask' => $this->safe_number($data, 'a'),
-            'askVolume' => $this->safe_number($data, 'A'),
-            'bid' => $this->safe_number($data, 'b'),
-            'bidVolume' => $this->safe_number($data, 'B'),
+            'ask' => $this->safe_number_2($data, 'a', 'askPrice'),
+            'askVolume' => $this->safe_number_2($data, 'A', 'askQuantity'),
+            'bid' => $this->safe_number_2($data, 'b', 'bidPrice'),
+            'bidVolume' => $this->safe_number_2($data, 'B', 'bidQuantity'),
             'info' => $ticker,
         ), $marketResolved);
     }
@@ -538,7 +554,7 @@ class mexc extends \ccxt\async\mexc {
         $paramsOmitted = $this->omit($params, array( 'unsubscribed' ));
         $url = $this->urls['api']['ws']['spot'];
         $method = 'SUBSCRIPTION';
-        if ($unsubscribed === true) {
+        if ($unsubscribed) {
             $method = 'UNSUBSCRIPTION';
         }
         $request = array(
@@ -856,7 +872,12 @@ class mexc extends \ccxt\async\mexc {
         $parts = explode('@', $msg);
         $marketId = $this->safe_string($parts, 2);
         $symbol = $this->safe_symbol($marketId);
-        $this->orderbooks[$symbol] = $this->order_book(array());
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array());
+        }
+        $orderbook = $this->orderbooks[$symbol];
+        $orderbook['nonce'] = null;
+        $orderbook->cache = array();
     }
 
     public function get_cache_index(mixed $orderbook, mixed $cache): float {
@@ -867,7 +888,7 @@ class mexc extends \ccxt\async\mexc {
         if (($nonce === null) || ($firstDeltaNonce === null)) {
             return -1;
         }
-        if ($nonce < $firstDeltaNonce - 1) {
+        if (($nonce !== null) && ($firstDeltaNonce !== null) && ($nonce < $firstDeltaNonce - 1)) {
             return -1;
         }
         for ($i = 0; $i < count($cache); $i++) {
@@ -921,12 +942,13 @@ class mexc extends \ccxt\async\mexc {
         //            ]
         //         ],
         //         "end":4895965272,
-        //         "begin":4895965271
+        //         "begin":4895965271,
+        //         "version":4895965272
         //      },
         //      "symbol":"BTC_USDT",
         //      "ts":1651239652372
         //  }
-        // protofbuf
+        // protobuf
         // {
         //      "channel":"spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT",
         //      "symbol":"BTCUSDT",
@@ -1532,7 +1554,7 @@ class mexc extends \ccxt\async\mexc {
         //        "s":1,
         //        "i":"e03a5c7441e44ed899466a7140b71391",
         //    }
-        // protofbuf spot order
+        // protobuf spot order
         // {
         //     "id":"C02__583905164440776704043",
         //     "price":"0.001053",
@@ -2127,7 +2149,7 @@ class mexc extends \ccxt\async\mexc {
         $client = $this->client($this->urls['api']['ws']['spot']);
         $messageHash = 'authenticate:listenKey';
         $isFetching = $this->safe_bool($this->options, 'listenKeyFetching', false);
-        if ($isFetching === true) {
+        if ($isFetching) {
             Async\await($client->future($messageHash));
             return $this->safe_string($this->options, 'listenKey');
         }

@@ -201,12 +201,11 @@ export default class grvt extends Exchange {
                     'ARBITRUM': '42161',
                     'AVAXC': '43114',
                     'BASE': '8453',
-                    'BSC': '56',
-                    'ETH': '1',
+                    'BEP20': '56',
                     'ERC20': '1',
                     'OP': '10',
                     'SOL': '900',
-                    'TRX': '728126428',
+                    'TRC20': '728126428',
                     'ZKSYNCERA': '324',
                     'KAIA': '8217',
                 },
@@ -575,11 +574,11 @@ export default class grvt extends Exchange {
     }
     async initializeClient(params = {}) {
         const builderFee = this.safeBool(params, 'builderFee', this.safeBool(this.options, 'builderFee', true)); // we shouldn't omit here
-        if (builderFee !== true) {
+        if (!builderFee) {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee === true) {
+        if (approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
         const results = await Promise.all([this.privateTradingPostFullV1GetAuthorizedBuilders(), this.loadAccountInfos()]);
@@ -975,8 +974,11 @@ export default class grvt extends Exchange {
         const request = {
             'instrument': this.marketId(symbol),
         };
-        const limitResolved = (limit === undefined) ? 100 : limit;
-        if (limitResolved <= 500) {
+        let limitResolved = 100;
+        if (limit !== undefined) {
+            limitResolved = limit;
+        }
+        if (limit === undefined || limit <= 500) {
             request['depth'] = this.findNearestCeiling([10, 50, 100, 500], limitResolved);
         }
         const response = await this.publicMarketPostFullV1Book(this.extend(request, params));
@@ -1434,7 +1436,7 @@ export default class grvt extends Exchange {
             requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
         }
         const useTransfersEndpoint = this.safeBool(this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
-        if (useTransfersEndpoint === true) {
+        if (useTransfersEndpoint) {
             const transfers = await this.internalFetchTransfers(this.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit);
             const filteredResults = this.filterTransfersByType(transfers, 'deposit', true);
             const transactions = this.getListFromObjectValues(filteredResults[0], 'info');
@@ -1492,7 +1494,7 @@ export default class grvt extends Exchange {
             requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
         }
         const useTransfersEndpoint = this.safeBool(this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
-        if (useTransfersEndpoint === true) {
+        if (useTransfersEndpoint) {
             const transfers = await this.internalFetchTransfers(this.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit);
             const filteredResults = this.filterTransfersByType(transfers, 'withdrawal', true);
             const transactions = this.getListFromObjectValues(filteredResults[0], 'info');
@@ -1639,19 +1641,17 @@ export default class grvt extends Exchange {
         let addressTo = this.safeString(transaction, 'to_account_id');
         const currencyId = this.safeString(transaction, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
-        if ('transfer_metadata' in transaction) {
-            const metaData = this.omitZero(this.safeString(transaction, 'transfer_metadata'));
-            if (metaData !== undefined) {
-                const parsedMeta = this.parseJson(metaData);
-                direction = this.safeStringLower(parsedMeta, 'direction');
-                txId = this.safeString(parsedMeta, 'provider_tx_id');
-                networkCode = this.networkIdToCode(this.safeString(parsedMeta, 'chainid'), code);
-                if (direction === 'withdrawal') {
-                    addressTo = this.safeString(parsedMeta, 'endpoint');
-                }
-                else if (direction === 'deposit') {
-                    addressFrom = this.safeString(parsedMeta, 'endpoint');
-                }
+        const metaData = this.omitZero(this.safeString(transaction, 'transfer_metadata'));
+        if (metaData !== undefined) {
+            const parsedMeta = this.parseJson(metaData);
+            direction = this.safeStringLower(parsedMeta, 'direction');
+            txId = this.safeString(parsedMeta, 'provider_tx_id');
+            networkCode = this.networkIdToCode(this.safeString(parsedMeta, 'chainid'), code);
+            if (direction === 'withdrawal') {
+                addressTo = this.safeString(parsedMeta, 'endpoint');
+            }
+            else if (direction === 'deposit') {
+                addressFrom = this.safeString(parsedMeta, 'endpoint');
             }
         }
         const timestamp = this.safeIntegerProduct2(transaction, 'event_time', 'initiated_time', 0.000001);
@@ -1741,7 +1741,7 @@ export default class grvt extends Exchange {
         const rows = this.safeList(response, 'result', []);
         const transfers = this.parseTransfers(rows, currency, since, limit);
         const filteredResults = this.filterTransfersByType(transfers, 'internal', false);
-        return filteredResults[1];
+        return this.toArray(filteredResults[1]);
     }
     filterTransfersByType(transfers, transferType, onlyMainAccount = true) {
         const matchedResults = [];
@@ -1940,12 +1940,12 @@ export default class grvt extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         this.checkAddress(address);
         await this.loadMarketsAndSignIn();
         const defaultFromAccountId = this.safeString(this.options, 'userMainAccountId');
@@ -2120,7 +2120,7 @@ export default class grvt extends Exchange {
         }
         let eipType = 'EIP712_ORDER_TYPE';
         const builderFee = this.safeBool(paramsTrigger, 'builderFee', this.safeBool(this.options, 'builderFee', true));
-        if (builderFee === true) {
+        if (builderFee) {
             eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE';
             orderRequest['builder'] = this.safeString(this.options, 'builder');
             orderRequest['builder_fee'] = this.safeString(this.options, 'builderRate');
@@ -2198,36 +2198,38 @@ export default class grvt extends Exchange {
         return parseInt(x);
     }
     eipMessageForOrder(order, structureType) {
-        const priceMultiplier = '1000000000';
+        const priceMultiplier = 1000000000;
         const orderLegs = this.safeList(order, 'legs', []);
         const legs = [];
         for (let i = 0; i < orderLegs.length; i++) {
             const leg = orderLegs[i];
             const market = this.market(leg['instrument']);
-            const bigInt10 = this.convertToBigIntCustom('10');
             const precisionValue = this.precisionFromString(this.safeString(market['precision'], 'base'));
-            const precisionValueStr = precisionValue.toString();
-            const sizeMultiplier = Math.pow(bigInt10, this.convertToBigIntCustom(precisionValueStr));
-            const size = leg['size'];
+            const sizeMultiplier = Math.pow(10, precisionValue);
+            const size = this.safeString(leg, 'size');
+            if (size === undefined) {
+                throw new ArgumentsRequired(this.id + ' order leg requires a size');
+            }
             const sizeParts = size.split('.');
             const sizeDec = this.safeString(sizeParts, 1, '');
             const sizeDecLength = sizeDec.length + 0; // php tr
-            const sizeDecLengthStr = sizeDecLength.toString();
-            const sizeInteger = this.convertToBigIntCustom(size.replace('.', '')) * sizeMultiplier / (Math.pow(bigInt10, this.convertToBigIntCustom(sizeDecLengthStr)));
+            const sizeDigits = parseInt(size.replace('.', ''));
+            let denominator = Math.pow(10, sizeDecLength);
+            const sizeInteger = sizeDigits * sizeMultiplier / denominator;
             const legOrder = {
                 'assetID': market['info']['instrument_hash'],
                 'contractSize': this.parseToInt(sizeInteger),
                 'isBuyingContract': leg['is_buying_asset'],
             };
             const limitPrice = this.safeString(leg, 'limit_price');
-            if (this.omitZero(limitPrice) !== undefined) {
-                const price = leg['limit_price'];
+            if ((limitPrice !== undefined) && (this.omitZero(limitPrice) !== undefined)) {
+                const price = limitPrice;
                 const limitParts = price.split('.');
                 const limitDec = this.safeString(limitParts, 1, '');
                 const limitDecLength = limitDec.length + 0; // php tr
-                const limitDecLengthStr = limitDecLength.toString();
-                const powerNum = (limitDecLengthStr === '0') ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
-                const priceInteger = (this.convertToBigIntCustom(price.replace('.', '')) * this.convertToBigIntCustom(priceMultiplier) / (Math.pow(bigInt10, powerNum)));
+                const priceDigits = parseInt(price.replace('.', ''));
+                denominator = Math.pow(10, limitDecLength);
+                const priceInteger = priceDigits * priceMultiplier / denominator;
                 legOrder['limitPrice'] = this.parseToInt(priceInteger);
             }
             else {
@@ -2410,12 +2412,18 @@ export default class grvt extends Exchange {
         if (isLong) {
             side = 'long';
         }
+        // isolated_balance is the wallet balance reserved for the isolated position
+        const marginMode = this.safeStringLower(position, 'margin_type');
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = this.safeNumber(position, 'isolated_balance');
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': this.safeSymbol(marketId, market),
             'notional': this.parseNumber(Precise.stringAbs(this.safeString(position, 'notional'))),
-            'marginMode': undefined,
+            'marginMode': marginMode,
             'liquidationPrice': this.safeNumber(position, 'est_liquidation_price'),
             'entryPrice': this.safeNumber(position, 'entry_price'),
             'unrealizedPnl': this.safeNumber(position, 'unrealized_pnl'),
@@ -2429,10 +2437,11 @@ export default class grvt extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastUpdateTimestamp': this.safeInteger(position, 'lastUpdateTime'),
-            'maintenanceMargin': this.safeNumber(position, 'maintenanceMargin'),
+            'maintenanceMargin': this.safeNumber2(position, 'isolated_mm', 'maintenanceMargin'),
             'maintenanceMarginPercentage': undefined,
+            'positionMargin': positionMargin,
             'collateral': undefined,
-            'initialMargin': this.safeNumber(position, 'initialMargin'),
+            'initialMargin': this.safeNumber2(position, 'isolated_im', 'initialMargin'),
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber(position, 'leverage'),
             'marginRatio': undefined,
@@ -3245,7 +3254,8 @@ export default class grvt extends Exchange {
         }
     }
     defaultSignature() {
-        const expiration = this.milliseconds() * 1000000 + 1000000 * this.safeInteger(this.options, 'expirationSeconds', 30) * 1000;
+        const expirationSeconds = this.safeInteger(this.options, 'expirationSeconds', 30);
+        const expiration = this.milliseconds() * 1000000 + 1000000 * expirationSeconds * 1000;
         return {
             'signer': '',
             'r': '',
@@ -3269,12 +3279,13 @@ export default class grvt extends Exchange {
         this.options['requestId'] = requestId;
         return requestId;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         let requestPath = path;
         const query = this.omit(params, this.extractParams(requestPath));
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -3303,8 +3314,8 @@ export default class grvt extends Exchange {
                 requestBody = this.json(params);
             }
         }
-        const isPrivate = api.startsWith('private');
-        if (isPrivate === true) {
+        const isPrivate = apiName.startsWith('private');
+        if (isPrivate) {
             this.checkRequiredCredentials();
             if (queryString !== '') {
                 requestPath = requestPath + '?' + queryString;

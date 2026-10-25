@@ -267,8 +267,8 @@ class gemini extends \ccxt\async\gemini {
             $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $storesForSymbols = array();
             for ($i = 0; $i < count($trades); $i++) {
-                $marketId = $trades[$i]['symbol'];
-                $market = $this->safe_market(strtolower($marketId));
+                $marketId = strtolower($this->safe_string($trades[$i], 'symbol', ''));
+                $market = $this->safe_market($marketId);
                 $symbol = $market['symbol'];
                 $trade = $this->parse_ws_trade($trades[$i], $market);
                 $trade['timestamp'] = $timestamp;
@@ -365,9 +365,9 @@ class gemini extends \ccxt\async\gemini {
         //     }
         //
         $type = $this->safe_string($message, 'type', '');
-        $timeframeId = mb_substr($type, 8);
-        $timeframeEndIndex = mb_strpos($timeframeId, '_');
-        $timeframeId = mb_substr($timeframeId, 0, $timeframeEndIndex - 0);
+        $timeframeIdFull = mb_substr($type, 8);
+        $timeframeEndIndex = mb_strpos($timeframeIdFull, '_');
+        $timeframeId = mb_substr($timeframeIdFull, 0, $timeframeEndIndex - 0);
         $marketId = strtolower($this->safe_string($message, 'symbol', ''));
         $market = $this->safe_market($marketId);
         $symbol = $this->safe_symbol($marketId, $market);
@@ -449,17 +449,28 @@ class gemini extends \ccxt\async\gemini {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $messageHash = 'orderbook:' . $symbol;
-        // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
-            $this->orderbooks[$symbol] = $this->order_book();
-        } elseif ($isInitial) {
-            // handle https://github.com/ccxt/ccxt/issues/29210
-            if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
-                unset($this->orderbooks[$symbol]);
-            }
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
+        if ($isInitial) {
+            // the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
+            $bidsSnapshot = array();
+            $asksSnapshot = array();
+            for ($i = 0; $i < count($changes); $i++) {
+                $delta = $changes[$i];
+                $bidAsk = array( $this->safe_number($delta, 1), $this->safe_number($delta, 2) );
+                if ($this->safe_string($delta, 0) === 'buy') {
+                    $bidsSnapshot[] = $bidAsk;
+                } else {
+                    $asksSnapshot[] = $bidAsk;
+                }
+            }
+            $snapshot = $this->parse_order_book(array( 'bids' => $bidsSnapshot, 'asks' => $asksSnapshot ), $symbol);
+            $orderbook->reset($snapshot);
+            $client->resolve($orderbook, $messageHash);
+            return;
+        }
         for ($i = 0; $i < count($changes); $i++) {
             $delta = $changes[$i];
             $price = $this->safe_number($delta, 1);
@@ -534,8 +545,9 @@ class gemini extends \ccxt\async\gemini {
         //     type: 'update'
         // }
         //
-        $marketId = $rawBidAskChanges[0]['symbol'];
-        $market = $this->safe_market(strtolower($marketId));
+        $firstBidAsk = $rawBidAskChanges[0];
+        $marketId = strtolower($this->safe_string($firstBidAsk, 'symbol', ''));
+        $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         if (!(is_array($this->bidsasks) && array_key_exists($symbol ?? '', $this->bidsasks))) {
             $this->bidsasks[$symbol] = $this->parse_ticker(array());
@@ -627,8 +639,9 @@ class gemini extends \ccxt\async\gemini {
         //   },
         //   ...
         //
-        $marketId = $rawOrderBookChanges[0]['symbol'];
-        $market = $this->safe_market(strtolower($marketId));
+        $firstChange = $rawOrderBookChanges[0];
+        $marketId = strtolower($this->safe_string($firstChange, 'symbol', ''));
+        $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $messageHash = 'orderbook:' . $symbol;
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
@@ -976,7 +989,8 @@ class gemini extends \ccxt\async\gemini {
             for ($i = 0; $i < count($events); $i++) {
                 $event = $events[$i];
                 $eventType = $this->safe_string($event, 'type');
-                $isOrderBook = ($eventType === 'change') && (is_array($event) && array_key_exists('side' ?? '', $event)) && $this->in_array($event['side'], array( 'ask', 'bid' ));
+                $side = $this->safe_string($event, 'side');
+                $isOrderBook = ($eventType === 'change') && ($side !== null) && $this->in_array($side, array( 'ask', 'bid' ));
                 $eventReason = $this->safe_string($event, 'reason');
                 $isBidAsk = ($eventReason === 'top-of-book') || ($isOrderBook && ($eventReason === 'initial') && $eventsLength === 2);
                 if ($isBidAsk) {
@@ -1011,7 +1025,8 @@ class gemini extends \ccxt\async\gemini {
             return;
         }
         $this->check_required_credentials();
-        $startIndex = count($this->urls['api']['ws']);
+        $wsBaseUrl = $this->safe_string($this->urls['api'], 'ws', '');
+        $startIndex = count($wsBaseUrl);
         $urlParamsIndex = mb_strpos($url, '?');
         $urlLength = count($url);
         $endIndex = ($urlParamsIndex >= 0) ? $urlParamsIndex : $urlLength;

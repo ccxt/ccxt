@@ -98,7 +98,7 @@ public partial class krakenfutures : Exchange
                     { "private", "https://futures.kraken.com/derivatives/api/" },
                 } },
                 { "www", "https://futures.kraken.com/" },
-                { "doc", new List<object>() {"https://docs.kraken.com/api/docs/futures-api/trading/market-data/"} },
+                { "doc", new List<object>() {"https://docs.kraken.com/exchange/guides/futures/rest"} },
                 { "fees", "https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures" },
                 { "referral", null },
             } },
@@ -860,7 +860,7 @@ public partial class krakenfutures : Exchange
         string? baseVolume = null;
         string? quoteVolume = null;
         bool? isIndex = this.safeBool(marketResolved, "index", false);
-        if ((isIndex != true))
+        if (isIndex != true)
         {
             if ((((marketResolved != null && marketResolved.ContainsKey("linear") ? marketResolved["linear"] : null) as bool?) == true))
             {
@@ -900,8 +900,8 @@ public partial class krakenfutures : Exchange
      * @method
      * @name krakenfutures#fetchTradingFees
      * @description fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+     * @see https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedules
+     * @see https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedule-volumes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
@@ -1013,7 +1013,7 @@ public partial class krakenfutures : Exchange
     /**
      * @method
      * @name krakenfutures#fetchOHLCV
-     * @see https://docs.kraken.com/api/docs/futures-api/charts/candles
+     * @see https://docs.kraken.com/api-reference/candles/market-candles
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1055,24 +1055,27 @@ public partial class krakenfutures : Exchange
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, "price");
-        object windowLimit = ((limit == null)) ? 2000 : mathMin(limit, 2000);
-        object limitResolved = null;
+        Int64? windowLimit = (((limit == null)) || ((limit > 2000))) ? 2000 : limit;
+        Int64? windowSize = this.parseToInt(windowLimit);
+        Int64? limitResolved = null;
         if (((since != null)) || ((limit != null)))
         {
-            limitResolved = windowLimit;
+            limitResolved = windowSize;
         }
         if ((since != null))
         {
             int duration = this.parseTimeframe(timeframeVar);
-            request["from"] = this.parseToInt(((double?)since / 1000));
-            object toTimestamp = this.sum((request != null && request.ContainsKey("from") ? request["from"] : null), subtract(multiply(windowLimit, duration), 1));
+            Int64? fromTimestamp = this.parseToInt(((double?)since / 1000));
+            request["from"] = fromTimestamp;
+            Int64? toTimestamp = this.parseToInt(this.sum(fromTimestamp, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))((windowSize * duration), 1)));
             Int64 currentTimestamp = this.seconds();
-            request["to"] = mathMin(toTimestamp, currentTimestamp);
-        } else if (!(limitResolved == null))
+            request["to"] = (((toTimestamp == null || toTimestamp < currentTimestamp))) ? toTimestamp : currentTimestamp;
+        } else if ((limitResolved != null))
         {
             int duration = this.parseTimeframe(timeframeVar);
-            request["to"] = this.seconds();
-            request["from"] = this.parseToInt(subtract((request != null && request.ContainsKey("to") ? request["to"] : null), (multiply(duration, limitResolved))));
+            Int64 toTimestamp = this.seconds();
+            request["to"] = toTimestamp;
+            request["from"] = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(toTimestamp, ((duration * windowSize))));
         }
         Dictionary<string, object> response = await this.chartsGetPriceTypeSymbolInterval(this.extend(request, paramsOmitted));
         //
@@ -1112,8 +1115,8 @@ public partial class krakenfutures : Exchange
     /**
      * @method
      * @name krakenfutures#fetchTrades
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-history
-     * @see https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
+     * @see https://docs.kraken.com/api-reference/market-data/get-trade-history
+     * @see https://docs.kraken.com/api-reference/market-history/get-public-execution-events
      * @description Fetch a history of filled trades that this account has made
      * @param {string} symbol Unified CCXT market symbol
      * @param {int} [since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
@@ -1331,7 +1334,7 @@ public partial class krakenfutures : Exchange
         string? order = this.safeString(trade, "order_id");
         string? marketId = this.safeString(trade, "symbol");
         string? side = this.safeString(trade, "side");
-        string? type = null;
+        string? rawType = null;
         IDictionary<string, object> priorEdit = this.safeDict(trade, "orderPriorEdit");
         IDictionary<string, object> priorExecution = this.safeDict(trade, "orderPriorExecution");
         if ((priorExecution != null))
@@ -1339,18 +1342,15 @@ public partial class krakenfutures : Exchange
             order = this.safeString(priorExecution, "orderId");
             marketId = this.safeString(priorExecution, "symbol");
             side = this.safeString(priorExecution, "side");
-            type = this.safeString(priorExecution, "type");
+            rawType = this.safeString(priorExecution, "type");
         } else if ((priorEdit != null))
         {
             order = this.safeString(priorEdit, "orderId");
             marketId = this.safeString(priorEdit, "symbol");
             side = this.safeString(priorEdit, "type");
-            type = this.safeString(priorEdit, "type");
+            rawType = this.safeString(priorEdit, "type");
         }
-        if ((type != null))
-        {
-            type = this.parseOrderType(type);
-        }
+        string? type = this.parseOrderType(rawType); // undefined stays undefined
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? cost = null;
         bool? linear = this.safeBool(marketResolved, "linear");
@@ -1472,7 +1472,8 @@ public partial class krakenfutures : Exchange
         bool isTakeProfitTriggerOrder = (takeProfitTriggerPrice != null);
         bool isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         string? triggerSignal = this.safeString(paramsPostOnly, "triggerSignal", "last");
-        bool? reduceOnly = this.safeBool(paramsPostOnly, "reduceOnly");
+        bool? reduceOnlyParam = this.safeBool(paramsPostOnly, "reduceOnly");
+        bool reduceOnly = ((reduceOnlyParam == true));
         if (isStopLossOrTakeProfitTrigger || isTriggerOrder)
         {
             request["triggerSignal"] = triggerSignal;
@@ -1494,7 +1495,7 @@ public partial class krakenfutures : Exchange
                 request["stopPrice"] = this.priceToPrecision(symbolValue, takeProfitTriggerPrice);
             }
         }
-        if ((reduceOnly == true))
+        if (reduceOnly)
         {
             request["reduceOnly"] = true;
         }
@@ -1891,7 +1892,7 @@ public partial class krakenfutures : Exchange
      * @method
      * @name krakenfutures#cancelAllOrdersAfter
      * @description dead man's switch, cancel all orders after the given timeout
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after
+     * @see https://docs.kraken.com/api-reference/order-management/dead-mans-switch
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
@@ -2041,7 +2042,7 @@ public partial class krakenfutures : Exchange
         }
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         Dictionary<string, object> response = null;
-        object paramsOmitted = this.omit(parameters, new List<object>() {"trigger", "stop"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"trigger", "stop"}));
         if ((isTrigger == true))
         {
             response = await this.historyGetTriggers(this.extend(request, paramsOmitted));
@@ -2083,7 +2084,7 @@ public partial class krakenfutures : Exchange
     /**
      * @method
      * @name krakenfutures#fetchCanceledOrders
-     * @see https://docs.kraken.com/api/docs/futures-api/history/get-order-events
+     * @see https://docs.kraken.com/api-reference/account-history/get-order-events
      * @description Gets all canceled orders, including trigger orders, for an account from the exchange api
      * @param {string} symbol Unified market symbol
      * @param {int} [since] Timestamp (ms) of earliest order.
@@ -2111,11 +2112,11 @@ public partial class krakenfutures : Exchange
         }
         if ((since != null))
         {
-            request["from"] = since;
+            request["since"] = since;
         }
         Dictionary<string, object> response = null;
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
-        object paramsOmitted = this.omit(parameters, new List<object>() {"trigger", "stop"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"trigger", "stop"}));
         if ((isTrigger == true))
         {
             response = await this.historyGetTriggers(this.extend(request, paramsOmitted));
@@ -2170,7 +2171,7 @@ public partial class krakenfutures : Exchange
         return this.safeString(typesMap, orderType, orderType);
     }
 
-    public virtual void verifyOrderActionSuccess(object status, object method, object omit = null)
+    public virtual void verifyOrderActionSuccess(object status, string? method, object omit = null)
     {
         omit ??= new List<object>();
         Dictionary<string, object> errors = new Dictionary<string, object>() {
@@ -2197,11 +2198,11 @@ public partial class krakenfutures : Exchange
         };
         if (((status is string inOpKey0 && errors.ContainsKey(inOpKey0))) && !this.inArray(status, omit))
         {
-            throwDynamicException(getValue(errors, status), ((((this.id + ": ") + (method)) + " failed due to ") + (status)));
+            throwDynamicException((errors != null && status != null && errors.ContainsKey((string)status) ? errors[(string)status] : null), ((((this.id + ": ") + method) + " failed due to ") + (status)));
         }
     }
 
-    public virtual string? parseOrderStatus(object status)
+    public virtual string? parseOrderStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "placed", "open" },
@@ -2236,7 +2237,7 @@ public partial class krakenfutures : Exchange
             { "PARTIALLY_FILLED", "open" },
             { "UNTOUCHED", "open" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
@@ -2712,7 +2713,7 @@ public partial class krakenfutures : Exchange
             }
             if ((whichPrice != null))
             {
-                if (((GetValue(marketResolved, "linear") as bool?) == true))
+                if ((((marketResolved != null && marketResolved.ContainsKey("linear") ? marketResolved["linear"] : null) as bool?) == true))
                 {
                     cost = Precise.stringMul(filled, whichPrice); // in quote
                 } else
@@ -2727,8 +2728,9 @@ public partial class krakenfutures : Exchange
             id = this.safeString2(details, "orderId", "uid");
         }
         string? type = this.safeStringLower2(details, "type", "orderType");
+        string? parsedType = this.parseOrderType(type);
         string timeInForce = "gtc";
-        if (type == "ioc" || isEqual(this.parseOrderType(type), "market"))
+        if (type == "ioc" || parsedType == "market")
         {
             timeInForce = "ioc";
         }
@@ -2748,7 +2750,7 @@ public partial class krakenfutures : Exchange
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", this.safeInteger(details, "lastUpdateTimestamp", lastUpdateTimestamp) },
             { "symbol", symbol },
-            { "type", this.parseOrderType(type) },
+            { "type", parsedType },
             { "timeInForce", timeInForce },
             { "postOnly", type == "post" },
             { "reduceOnly", this.safeBool2(details, "reduceOnly", "reduce_only") },
@@ -2787,11 +2789,7 @@ public partial class krakenfutures : Exchange
         {
             await this.loadMarkets();
         }
-        IDictionary<string, object> market = null;
-        if ((symbol != null))
-        {
-            market = this.market(symbol);
-        }
+        object symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
         // todo: lastFillTime: this.iso8601(end)
         Dictionary<string, object> response = await this.privateGetFills(parameters);
         //
@@ -2815,7 +2813,13 @@ public partial class krakenfutures : Exchange
         //    }
         //
         List<object> fills = this.safeList(response, "fills", new List<object>() {});
-        return this.parseTrades(fills, market, since, limit);
+        // the endpoint returns the fills of every contract, each row resolves its own market
+        IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(fills));
+        // a fill of a contract that is no longer listed in /instruments has no unified symbol,
+        // so safeMarket keeps the raw id (eg 'PF_XRPUSD') in trade['symbol']: it is filtered out
+        // whenever a symbol is requested and returned as-is when symbol is undefined, on purpose,
+        // because it is still the user's own fill and dropping it would hide real trades
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limit));
     }
 
     /**
@@ -3115,7 +3119,7 @@ public partial class krakenfutures : Exchange
     /**
      * @method
      * @name krakenfutures#fetchBalance
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
+     * @see https://docs.kraken.com/api-reference/account-information/get-wallets
      * @description Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
      * @param {object} [params] Exchange specific parameters
      * @param {string} [params.type] The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'flex' *
@@ -3131,7 +3135,7 @@ public partial class krakenfutures : Exchange
         }
         string? type = this.safeString2(parameters, "type", "account");
         string? symbol = this.safeString(parameters, "symbol");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"type", "account", "symbol"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"type", "account", "symbol"}));
         Dictionary<string, object> response = await this.privateGetAccounts(paramsOmitted);
         //
         //    {
@@ -3239,7 +3243,7 @@ public partial class krakenfutures : Exchange
                 type = symbol;
             }
         }
-        object accountName = this.parseAccount(type);
+        object accountName = this.parseKrakenAccountName(type);
         IDictionary<string, object> accounts = this.safeDict(response, "accounts");
         IDictionary<string, object> account = this.safeDict(accounts, accountName);
         if ((account == null))
@@ -3523,9 +3527,9 @@ public partial class krakenfutures : Exchange
         //        ]
         //    }
         //
-        object rates = this.safeValue(response, "rates");
+        List<object> rates = this.safeList(response, "rates", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rates); i++)
+        for (int i = 0; i < rates.Count; i++)
         {
             IDictionary<string, object> item = this.safeDict(rates, i);
             string? datetime = this.safeString(item, "timestamp");
@@ -3788,7 +3792,7 @@ public partial class krakenfutures : Exchange
         }
         string? marketId = this.safeString2(position, "symbol", "tradeable");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        return new Dictionary<string, object>() {
+        return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "executionUid") },
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
@@ -3813,7 +3817,7 @@ public partial class krakenfutures : Exchange
             { "marginMode", marginType },
             { "side", side },
             { "percentage", null },
-        };
+        });
     }
 
     /**
@@ -3938,7 +3942,7 @@ public partial class krakenfutures : Exchange
             if ((i != 0))
             {
                 int tiersLength = (tiers?.Count ?? 0);
-                object previousTier = getValue(tiers, (tiersLength - 1));
+                object previousTier = (tiers != null && (tiersLength - 1) < tiers.Count ? tiers[(tiersLength - 1)] : null);
                 ((IDictionary<string,object>)previousTier)["maxNotional"] = minNotional;
             }
             tiers.Add(new Dictionary<string, object>() {
@@ -3979,7 +3983,7 @@ public partial class krakenfutures : Exchange
         };
     }
 
-    public override object parseAccount(object account)
+    public virtual object parseKrakenAccountName(object account)
     {
         Dictionary<string, object> accountByType = new Dictionary<string, object>() {
             { "main", "cash" },
@@ -3993,7 +3997,7 @@ public partial class krakenfutures : Exchange
         };
         if ((account is string inOpKey1 && accountByType.ContainsKey(inOpKey1)))
         {
-            return getValue(accountByType, account);
+            return (accountByType != null && account != null && accountByType.ContainsKey((string)account) ? accountByType[(string)account] : null);
         } else if (((this.markets != null)) && ((this.markets != null && account is string inOpKey2 && this.markets.ContainsKey(inOpKey2))))
         {
             Dictionary<string, object> market = this.market(account);
@@ -4058,7 +4062,7 @@ public partial class krakenfutures : Exchange
         Dictionary<string, object> response = null;
         if ((toAccount == "spot"))
         {
-            if (!isEqual(this.parseAccount(fromAccount), "cash"))
+            if (!(this.parseKrakenAccountName(fromAccount) is "cash"))
             {
                 throw new BadRequest (((((this.id + " transfer cannot transfer from ") + fromAccount) + " to ") + toAccount)) ;
             }
@@ -4066,8 +4070,8 @@ public partial class krakenfutures : Exchange
             response = await this.privatePostWithdrawal(this.extend(request, parameters));
         } else
         {
-            request["fromAccount"] = this.parseAccount(fromAccount);
-            request["toAccount"] = this.parseAccount(toAccount);
+            request["fromAccount"] = this.parseKrakenAccountName(fromAccount);
+            request["toAccount"] = this.parseKrakenAccountName(toAccount);
             request["unit"] = (currency.ContainsKey("id") ? currency["id"] : null);
             response = await this.privatePostTransfer(this.extend(request, parameters));
         }
@@ -4233,17 +4237,18 @@ public partial class krakenfutures : Exchange
         throw new ExchangeError (feedback) ;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        IDictionary<string, object> apiVersions = this.safeDict((this.options.ContainsKey("versions") ? this.options["versions"] : null), api, new Dictionary<string, object>() {});
+        object apiName = getValue(api, 0);
+        IDictionary<string, object> apiVersions = this.safeDict((this.options.ContainsKey("versions") ? this.options["versions"] : null), apiName, new Dictionary<string, object>() {});
         IDictionary<string, object> methodVersions = this.safeDict(apiVersions, method, new Dictionary<string, object>() {});
         string? defaultVersion = this.safeString(methodVersions, path, this.version);
         object version = this.safeString(parameters, "version", defaultVersion);
         object paramsOmitted = this.omit(parameters, "version");
-        IDictionary<string, object> apiAccess = this.safeDict((this.options.ContainsKey("access") ? this.options["access"] : null), api, new Dictionary<string, object>() {});
+        IDictionary<string, object> apiAccess = this.safeDict((this.options.ContainsKey("access") ? this.options["access"] : null), apiName, new Dictionary<string, object>() {});
         IDictionary<string, object> methodAccess = this.safeDict(apiAccess, method, new Dictionary<string, object>() {});
         string? access = this.safeString(methodAccess, path, "public");
         string? endpoint = ((string)add(add(version, "/"), this.implodeParams(path, paramsOmitted)));
@@ -4264,23 +4269,23 @@ public partial class krakenfutures : Exchange
             }
             query = add(query, ("?" + postData));
         }
-        object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string? url = ((string)add(apiUrl, query));
-        object requestBody = ((path == "batchorder")) ? postData : body;
+        string? requestBody = ((path == "batchorder")) ? postData : null;
         Dictionary<string, object> privateHeaders = null;
-        if ((api is "private") || access == "private")
+        if ((apiName is "private") || access == "private")
         {
             this.checkRequiredCredentials();
             object auth = (postData + "/api/");
-            if (!(api is "private"))
+            if (!(apiName is "private"))
             {
-                auth = add(auth, add(api, "/"));
+                auth = add(auth, add(apiName, "/"));
             }
-            auth = add(auth, endpoint); // 1
+            auth = (auth + (endpoint)); // 1
             byte[] hash = ((byte[])this.hash(this.encode(auth), sha256, "binary")); // 2
             byte[] secret = this.base64ToBinary(this.secret); // 3
             string signature = this.hmac(hash, secret, sha512, "base64"); // 4-5
@@ -4291,7 +4296,7 @@ public partial class krakenfutures : Exchange
                 { "Authent", signature },
             };
         }
-        object requestHeaders = ((privateHeaders != null)) ? privateHeaders : headers;
+        Dictionary<string, object> requestHeaders = privateHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

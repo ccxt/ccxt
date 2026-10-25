@@ -101,6 +101,13 @@ public partial class gate : ccxt.gate
                 } },
             } },
             { "options", new Dictionary<string, object>() {
+                { "ws", new Dictionary<string, object>() {
+                    { "options", new Dictionary<string, object>() {
+                        { "headers", new Dictionary<string, object>() {
+                            { "X-Gate-Size-Decimal", "1" },
+                        } },
+                    } },
+                } },
                 { "tradesLimit", 1000 },
                 { "OHLCVLimit", 1000 },
                 { "watchTradesSubscriptions", new Dictionary<string, object>() {} },
@@ -296,7 +303,7 @@ public partial class gate : ccxt.gate
             market = this.market(symbol);
         }
         bool? trigger = this.safeBoolN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
-        object paramsOmitted = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}));
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrder", market, paramsOmitted);
         string? type = (string)typequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
@@ -512,7 +519,7 @@ public partial class gate : ccxt.gate
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
-            object maxSpotLimit = this.handleOption("fetchOrderBook", "maxSpotLimit", 1000);
+            Int64? maxSpotLimit = this.parseToInt(this.handleOption("fetchOrderBook", "maxSpotLimit", 1000));
             limitResolved = mathMin(limitResolved, maxSpotLimit);
         }
         List<object> payload = new List<object>() {};
@@ -618,7 +625,13 @@ public partial class gate : ccxt.gate
         Int64? limit = this.safeInteger(subscription, "limit");
         if ((symbol != null))
         {
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+            if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+            {
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+            }
+            ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+            orderbook["nonce"] = null;
+            (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
         }
     }
 
@@ -659,7 +672,7 @@ public partial class gate : ccxt.gate
         string? marketId = this.safeString(marketIdParts, 1);
         string? symbol = this.safeSymbol(marketId, null, "_", "spot");
         string messageHash = ("orderbook:" + symbol);
-        if (isEqual(this.safeOrderBook(this.orderbooks, symbol), null))
+        if ((this.safeOrderBook(this.orderbooks, symbol) == null))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, 1000);
         }
@@ -762,18 +775,19 @@ public partial class gate : ccxt.gate
         Int64? nonce = this.safeInteger(storedOrderBook, "nonce");
         if ((nonce == null))
         {
-            int cacheLength = 0;
+            Int64? cacheLength = this.parseToInt(0);
             if ((storedOrderBook != null))
             {
-                cacheLength = ((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0);
+                int storedCacheLength = ((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0);
+                cacheLength = this.parseToInt(storedCacheLength);
             }
-            object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 10);
-            object waitAmount = 0;
+            Int64? snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", 10));
+            Int64? waitAmount = this.parseToInt(0);
             if (isSpot)
             {
                 waitAmount = snapshotDelay;
             }
-            if (isEqual(cacheLength, waitAmount))
+            if ((cacheLength == waitAmount))
             {
                 // max limit is 100
                 IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash);
@@ -785,13 +799,14 @@ public partial class gate : ccxt.gate
         } else if (((deltaEnd != null)) && ((deltaEnd == null || nonce >= deltaEnd)))
         {
             return;
-        } else if (((deltaStart != null)) && (isGreaterThanOrEqual(nonce, (deltaStart - 1))))
+        } else if (((deltaStart != null)) && ((nonce != null)) && (((deltaStart - 1) == null || nonce >= (deltaStart - 1))))
         {
             this.handleBookDelta(storedOrderBook, delta);
         } else
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
-            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
+            storedOrderBook["nonce"] = null;
+            (storedOrderBook as ccxt.pro.OrderBook).cache = new List<object>() {};
             bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
             if ((checksum == true))
             {
@@ -816,7 +831,7 @@ public partial class gate : ccxt.gate
             IDictionary<string, object> delta = this.safeDict(cache, i);
             Int64? deltaStart = this.safeInteger(delta, "U");
             Int64? deltaEnd = this.safeInteger(delta, "u");
-            if (((nonce != null)) && ((deltaStart != null)) && ((deltaEnd != null)) && (isGreaterThanOrEqual(nonce, (deltaStart - 1))) && ((nonce < deltaEnd)))
+            if (((nonce != null)) && ((deltaStart != null)) && ((deltaEnd != null)) && (((deltaStart - 1) == null || nonce >= (deltaStart - 1))) && ((nonce < deltaEnd)))
             {
                 return i;
             }
@@ -877,7 +892,7 @@ public partial class gate : ccxt.gate
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchTicker";
         Dictionary<string, object> result = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolValue}, parameters));
-        return ccxt.BaseExchange.ToTicker(this.safeValue(result, symbolValue));
+        return ccxt.BaseExchange.ToTicker(this.safeDict(result, symbolValue));
     }
 
     /**
@@ -1183,10 +1198,14 @@ public partial class gate : ccxt.gate
         //     }]
         // }
         //
-        object result = this.safeValue(message, "result");
-        if (!((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        object rawResult = this.safeValue(message, "result");
+        List<object> result = new List<object>() {};
+        if (((rawResult is IList<object>) || (rawResult.GetType().IsGenericType && rawResult.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            result = new List<object>() {result};
+            result = this.safeList(message, "result", new List<object>() {});
+        } else
+        {
+            result = new List<object>() {rawResult};
         }
         IList<object> parsedTrades = ccxt.BaseExchange.FromTradeList(this.parseTrades(result));
         for (int i = 0; i < (parsedTrades?.Count ?? 0); i++)
@@ -1277,15 +1296,19 @@ public partial class gate : ccxt.gate
         {
             marketType = "spot";
         }
-        object result = this.safeValue(message, "result");
-        if (!((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        object rawResult = this.safeValue(message, "result");
+        List<object> result = new List<object>() {};
+        if (((rawResult is IList<object>) || (rawResult.GetType().IsGenericType && rawResult.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            result = new List<object>() {result};
+            result = this.safeList(message, "result", new List<object>() {});
+        } else
+        {
+            result = new List<object>() {rawResult};
         }
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(result); i++)
+        for (int i = 0; i < (result?.Count ?? 0); i++)
         {
-            object ohlcv = getValue(result, i);
+            object ohlcv = result[i];
             string? subscription = this.safeString(ohlcv, "n", "");
             List<object> parts = subscription.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? timeframeId = this.safeString(parts, 0);
@@ -1664,7 +1687,7 @@ public partial class gate : ccxt.gate
         if ((fetchPositionsSnapshot == true))
         {
             object messageHash = add(type, ":fetchPositionsSnapshot");
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash, type});
@@ -1690,7 +1713,7 @@ public partial class gate : ccxt.gate
             }
         }
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -1750,14 +1773,14 @@ public partial class gate : ccxt.gate
                 IDictionary<string, object> prevLongPosition = this.safeDict(cache, (symbol + "long"));
                 if ((prevLongPosition != null))
                 {
-                    position["side"] = GetValue(prevLongPosition, "side");
+                    position["side"] = (prevLongPosition != null && prevLongPosition.ContainsKey("side") ? prevLongPosition["side"] : null);
                     newPositions.Add(position);
                     cache.append(position);
                 }
                 IDictionary<string, object> prevShortPosition = this.safeDict(cache, (symbol + "short"));
                 if ((prevShortPosition != null))
                 {
-                    position["side"] = GetValue(prevShortPosition, "side");
+                    position["side"] = (prevShortPosition != null && prevShortPosition.ContainsKey("side") ? prevShortPosition["side"] : null);
                     newPositions.Add(position);
                     cache.append(position);
                 }
@@ -1958,14 +1981,14 @@ public partial class gate : ccxt.gate
                 string? status = this.safeString(parsed, "status");
                 if ((status == null))
                 {
-                    Int64? left = this.safeInteger(info, "left");
-                    ((IDictionary<string,object>)parsed)["status"] = ((left == 0)) ? "closed" : "canceled";
+                    string? left = this.safeString(info, "left");
+                    ((IDictionary<string,object>)parsed)["status"] = Precise.stringEquals(left, "0") ? "closed" : "canceled";
                 }
             }
             ccxt.pro.BaseCache.appendTo(stored, parsed);
             object symbol = getValue(parsed, "symbol");
             Dictionary<string, object> market = this.market(symbol);
-            if (!isEqual((market.ContainsKey("id") ? market["id"] : null), null))
+            if (!((market.ContainsKey("id") ? market["id"] : null) == null))
             {
                 marketIds[(string)(market.ContainsKey("id") ? market["id"] : null)] = true;
             }
@@ -2263,7 +2286,7 @@ public partial class gate : ccxt.gate
                     for (int i = 0; i < payload.Count; i++)
                     {
                         object marketType = null;
-                        if (isEqual((parsedChannel != null && 0 < parsedChannel.Count ? parsedChannel[0] : null), "futures"))
+                        if (((parsedChannel != null && 0 < parsedChannel.Count ? parsedChannel[0] : null) is "futures"))
                         {
                             marketType = "swap";
                         } else
@@ -2354,7 +2377,7 @@ public partial class gate : ccxt.gate
             }
             if (messageHash.StartsWith("unsubscribe"))
             {
-                object subscription = getValue(client.subscriptions, messageHash);
+                object subscription = (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash) ? client.subscriptions[messageHash] : null);
                 string? subId = this.safeString(subscription, "id");
                 if ((id != subId))
                 {
@@ -2464,7 +2487,7 @@ public partial class gate : ccxt.gate
         //        ]
         //    }
         //
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }
@@ -2544,10 +2567,10 @@ public partial class gate : ccxt.gate
         {
             return null;
         }
-        if (isEqual((market != null && market.ContainsKey("spot") ? market["spot"] : null), true))
+        if (((market != null && market.ContainsKey("spot") ? market["spot"] : null) is true))
         {
             return "spot";
-        } else if (isEqual((market != null && market.ContainsKey("option") ? market["option"] : null), true))
+        } else if (((market != null && market.ContainsKey("option") ? market["option"] : null) is true))
         {
             return "options";
         } else
@@ -2574,8 +2597,10 @@ public partial class gate : ccxt.gate
     {
         Dictionary<string, object> findBy = new Dictionary<string, object>() {
             { "op-", "option" },
+            { "/ws/options/", "option" },
             { "delivery", "future" },
             { "fx", "swap" },
+            { "/ws/futures/", "swap" },
         };
         List<object> keys = new List<object>(findBy.Keys);
         for (int i = 0; i < keys.Count; i++)

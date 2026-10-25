@@ -30,7 +30,9 @@ impl BitbankCore {
     pub fn init(&mut self) {
         let described = BitbankCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -110,7 +112,6 @@ impl crate::exchange_generated::ExchangeBase for BitbankCore {
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -933,8 +934,8 @@ impl BitbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_312: bool = true;
-            while { if !__for_first_312 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_312 = false; i.as_f64().unwrap_or(f64::NAN) < ((pairs.len() as i64) as f64) } {
+            let mut __for_first_330: bool = true;
+            while { if !__for_first_330 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_330 = false; i.as_f64().unwrap_or(f64::NAN) < ((pairs.len() as i64) as f64) } {
             let mut pair: Value = pairs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(pair.clone(), "name", &[]);
             let mut market: Value = self.safe_market(&[marketId]);
@@ -985,9 +986,13 @@ impl BitbankCore {
 }));
         // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
         let mut windowLimit: Value = (if (limit == Value::Null) { Value::Int(1000) } else { limit.clone() });
-        let mut limitResolved: Value = (if (since == Value::Null) { windowLimit.clone() } else { limit });
+        let mut limitResolved: Value = (if (since == Value::Null) { windowLimit } else { limit.clone() });
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
-        let mut sinceResolved: Value = (if (since == Value::Null) { (match (&(self.milliseconds()), &((match (&((match (&(duration), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(windowLimit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }) } else { since });
+        let mut windowMs: Value = (match (&((match (&(duration), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        if (limit != Value::Null) {
+            windowMs = (match (&((match (&(duration), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        }
+        let mut sinceResolved: Value = (if (since == Value::Null) { (match (&(self.milliseconds()), &(windowMs)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }) } else { since });
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -1049,8 +1054,8 @@ impl BitbankCore {
         let mut assets: Value = self.safe_list_k(data, "assets", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_313: bool = true;
-            while { if !__for_first_313 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_313 = false; i.as_f64().unwrap_or(f64::NAN) < ((assets.len() as i64) as f64) } {
+            let mut __for_first_331: bool = true;
+            while { if !__for_first_331 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_331 = false; i.as_f64().unwrap_or(f64::NAN) < ((assets.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(assets.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -1090,7 +1095,7 @@ impl BitbankCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("UNFILLED".to_string(), Value::Str("open".into()));
@@ -1100,9 +1105,7 @@ impl BitbankCore {
                 m.insert("CANCELED_PARTIALLY_FILLED".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1116,7 +1119,7 @@ impl BitbankCore {
         let mut filled: Value = self.safe_string_k(order.clone(), "executed_amount", &[]);
         let mut remaining: Value = self.safe_string_k(order.clone(), "remaining_amount", &[]);
         let mut average: Value = self.safe_string_k(order.clone(), "average_price", &[]);
-        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
+        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut type_var: Value = self.safe_string_lower_k(order.clone(), "type", &[]);
         let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         return self.safe_order(Value::Map({
@@ -1455,18 +1458,19 @@ impl BitbankCore {
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
-        let mut tag = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tagAndParams: Value = self.handle_withdraw_tag_and_params(tag, params);
+        let mut tagAndParams: Value = self.handle_param_string(params, Value::Str("tag".into()), &[]);
+        let mut tagWithdrawTag: Value = tagAndParams.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsWithdrawTag: Value = tagAndParams.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        self.check_address(&[address, code.clone(), tagWithdrawTag]);
         if !(matches!(&paramsWithdrawTag, Value::Dict(__d) if __d.contains_key("uuid"))) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" uuid is required for withdrawal".into()))));
         }
@@ -1563,25 +1567,26 @@ impl BitbankCore {
 }
 
     pub fn sign(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", self.implode_hostname(apiUrl), Value::Str("/".into())).into());
         let mut requestBody: Value = Value::Null;
         let mut requestHeaders: Value = Value::Null;
-        if (api.as_str() == Some("public")) || (api.as_str() == Some("markets")) {
+        if (apiName.as_str() == Some("public")) || (apiName.as_str() == Some("markets")) {
             url = Value::Str(format!("{}{}", url, self.implode_params(path.clone(), params.clone())).into());
-            if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
+            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
             }
         }  else {
@@ -1592,23 +1597,24 @@ impl BitbankCore {
             // since bitbank offers no server time endpoint to compensate against
             let mut authMethod: Option<String> = self.safe_string_k(self.options.clone(), "authMethod", &[Value::Str("timeWindow".into())]).as_str().map(str::to_owned);
             let mut isTimeWindow: bool = authMethod.as_deref() == Some("timeWindow");
-            let mut requestTime: Value = to_string_val(&self.milliseconds());
+            let mut requestTime: Value = Value::Str(format!("{}", self.milliseconds()).into());
             let mut timeWindow: Value = self.safe_string_k(self.options.clone(), "timeWindow", &[Value::Str("5000".into())]);
-            let mut nonce: Value = to_string_val(&self.incrementing_nonce());
+            let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
             let mut auth: Value = nonce.clone();
             if isTimeWindow {
                 auth = Value::Str(format!("{}{}", requestTime, timeWindow).into());
             }
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.version.clone(), Value::Str("/".into())).into()), self.implode_params(path.clone(), params)).into())).into());
             if (method.as_str() == Some("POST")) {
-                requestBody = json_stringify(&query);
-                auth = Value::Str(format!("{}{}", auth, requestBody).into());
+                let mut jsonBody: Value = json_stringify(&query);
+                requestBody = jsonBody.clone();
+                auth = Value::Str(format!("{}{}", auth, jsonBody).into());
             }  else {
                 auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), path).into())).into());
-                if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
-                    query = self.urlencode(query.clone(), &[]);
-                    url = Value::Str(format!("{}{}", url, add(&Value::Str("?".into()), &query)).into());
-                    auth = Value::Str(format!("{}{}", auth, add(&Value::Str("?".into()), &query)).into());
+                if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
+                    let mut queryString: Value = self.urlencode(query, &[]);
+                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into())).into());
+                    auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into())).into());
                 }
             }
             requestHeaders = Value::Map({
@@ -1619,14 +1625,14 @@ impl BitbankCore {
                 m
             });
             if isTimeWindow {
-                add_element_to_object(&mut requestHeaders, &Value::Str("ACCESS-REQUEST-TIME".into()), requestTime);
-                add_element_to_object(&mut requestHeaders, &Value::Str("ACCESS-TIME-WINDOW".into()), timeWindow);
+                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("ACCESS-REQUEST-TIME".into(), requestTime); }
+                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("ACCESS-TIME-WINDOW".into(), timeWindow); }
             }  else {
-                add_element_to_object(&mut requestHeaders, &Value::Str("ACCESS-NONCE".into()), nonce);
+                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("ACCESS-NONCE".into(), nonce); }
             }
         }
-        let mut bodyResolved: Value = (if (requestBody == Value::Null) { body } else { requestBody });
-        let mut headersResolved: Value = (if (requestHeaders == Value::Null) { headers } else { requestHeaders });
+        let mut bodyResolved: Value = requestBody;
+        let mut headersResolved: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

@@ -30,7 +30,9 @@ impl MudrexCore {
     pub fn init(&mut self) {
         let described = MudrexCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -455,21 +457,22 @@ impl MudrexCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut apiUrls: Value = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut base: Value = self.safe_string(apiUrls, api.clone(), &[]);
+        let mut base: Value = self.safe_string(apiUrls, apiName.clone(), &[]);
         if (base == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unknown API namespace: ".into())).into()), api)));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unknown API namespace: ".into())).into()), apiName)));
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
@@ -477,22 +480,16 @@ impl MudrexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (headers != Value::Null) {
-            requestHeaders = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            }), &[headers]);
-        }
         let mut brokerId: Value = self.safe_string_k(self.options.clone(), "broker", &[]);
         if (brokerId != Value::Null) {
-            add_element_to_object(&mut requestHeaders, &Value::Str("Partner-Id".into()), brokerId);
+            if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Partner-Id".into(), brokerId); }
         }
-        let mut methodUpper: Value = to_upper(&method);
-        if (api.as_str() == Some("private")) {
+        let mut methodUpper: Value = method.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
-            add_element_to_object(&mut requestHeaders, &Value::Str("X-Authentication".into()), self.secret.clone());
+            if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("X-Authentication".into(), self.secret.clone()); }
             if (methodUpper.as_str() == Some("POST")) || (methodUpper.as_str() == Some("PATCH")) || (methodUpper.as_str() == Some("DELETE")) {
-                add_element_to_object(&mut requestHeaders, &Value::Str("Content-Type".into()), Value::Str("application/json".into()));
+                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
                 // is_symbol is a query-string flag even on write requests
                 let mut isSymbol: Value = self.safe_string_k(query.clone(), "is_symbol", &[]);
                 if (isSymbol != Value::Null) {
@@ -524,8 +521,8 @@ impl MudrexCore {
 });
             }
         }
-        if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
-            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+        if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
+            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])).into())).into());
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -544,7 +541,7 @@ impl MudrexCore {
             return Value::Null;
         }
         let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]);
-        if (success.as_bool() != Some(true)) {
+        if !(success.as_bool() == Some(true)) {
             let mut errors: Value = self.safe_list_k(response.clone(), "errors", &[Value::from(vec![])]);
             let mut first: Value = self.safe_dict(errors, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -556,7 +553,7 @@ impl MudrexCore {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errCode, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), text).into()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), text.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), text).into()));
             let mut msg: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), text).into());
-            let mut low: Value = to_lower(&text);
+            let mut low: Value = text.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
             if (code.as_f64() == Some(401.0)) || Value::Int(low.as_str().and_then(|__s| __s.find("auth")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 panic!("{}", crate::exchange_errors::authentication_error(msg));
             }
@@ -620,28 +617,16 @@ impl MudrexCore {
         });
         // the endpoint requires an explicit time window (in seconds)
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
-        let mut requestLimit: Value = limit.clone();
-        if (requestLimit == Value::Null) {
-            requestLimit = Value::Int(500);
-        }
+        let mut requestLimit: Value = (if (limit == Value::Null) { Value::Int(500) } else { limit.clone() });
         let mut now: Value = self.seconds();
-        let mut startTime: Value = Value::Null;
-        if (since != Value::Null) {
-            startTime = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-        }  else {
-            startTime = (match (&(now), &((match (&(duration), &(requestLimit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-        }
-        if (startTime == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing startTime".into()))));
-        }
-        let mut endTime: Value = (match (&(startTime), &((match (&(duration), &(requestLimit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+        let mut windowLength: Value = (match (&(duration), &(requestLimit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+        let mut defaultStart: Value = (match (&(now), &(windowLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut startTime: Value = self.parse_to_int((if (since != Value::Null) { ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { defaultStart }));
+        let mut windowEnd: Value = self.parse_to_int((match (&(startTime), &((match (&(duration), &(requestLimit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("price".into()), Value::Str("until".into())]), &[]);
-        if (until != Value::Null) {
-            endTime = self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-        }  else if endTime.as_f64().unwrap_or(f64::NAN) > now.as_f64().unwrap_or(f64::NAN) {
-            endTime = now;
-        }
+        let mut cappedEnd: Value = (if (windowEnd.as_f64().unwrap_or(f64::NAN) > now.as_f64().unwrap_or(f64::NAN)) { now } else { windowEnd });
+        let mut endTime: Value = self.parse_to_int((if (until != Value::Null) { ((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { cappedEnd }));
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), startTime); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_time".into(), endTime); }
         let mut response: Value = Value::Null;
@@ -670,7 +655,7 @@ impl MudrexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut ohlcvs: Value = self.safe_list(assetTicks, to_lower(&assetPair), &[Value::from(vec![])]);
+        let mut ohlcvs: Value = self.safe_list(assetTicks, assetPair.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null), &[Value::from(vec![])]);
         return self.parse_ohlc_vs(ohlcvs, &[market, timeframe, since, limit]);
 
     Value::Null
@@ -773,8 +758,8 @@ impl MudrexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_959: bool = true;
-            while { if !__for_first_959 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_959 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_964: bool = true;
+            while { if !__for_first_964 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_964 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut t: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut sym: Value = self.safe_string_k(t.clone(), "symbol", &[]);
             if (sym == Value::Null) {
@@ -840,11 +825,11 @@ impl MudrexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut aggregated: Value = Value::from(vec![]);
+        let mut aggregated: Vec<Value> = Vec::new();
         let mut offset: Value = Value::Int(0);
         let mut pageLimit: Value = Value::Int(100);
         let mut paging: bool = true;
-        while (paging) {
+        while paging {
             let mut q: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("limit".to_string(), pageLimit.clone());
@@ -875,9 +860,9 @@ impl MudrexCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_960: bool = true;
-                while { if !__for_first_960 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_960 = false; i.as_f64().unwrap_or(f64::NAN) < numItems } {
-                append_to_array(&mut aggregated, items.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+                let mut __for_first_965: bool = true;
+                while { if !__for_first_965 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_965 = false; i.as_f64().unwrap_or(f64::NAN) < numItems } {
+                aggregated.push(items.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             }
             }
             if numItems < pageLimit.as_f64().unwrap_or(f64::NAN) {
@@ -887,15 +872,15 @@ impl MudrexCore {
                 offset = self.sum(&[offset.clone(), pageLimit.clone()]);
             }
         }
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_961: bool = true;
-            while { if !__for_first_961 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_961 = false; i.as_f64().unwrap_or(f64::NAN) < ((aggregated.len() as i64) as f64) } {
-            append_to_array(&mut result, self.parse_market(aggregated.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)));
+            let mut __for_first_966: bool = true;
+            while { if !__for_first_966 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_966 = false; i.as_f64().unwrap_or(f64::NAN) < ((aggregated.len() as i64) as f64) } {
+            result.push(self.parse_market(aggregated.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null)));
         }
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
@@ -903,7 +888,7 @@ impl MudrexCore {
     pub fn parse_market(&self, mut asset: Value) -> Value {
         let mut ms: Value = self.safe_string_k(asset.clone(), "symbol", &[]);
         let mut base: Value = ms.clone();
-        if (ms != Value::Null) && (ends_with(&ms, &Value::Str("USDT".into()))) {
+        if (ms != Value::Null) && (ms.as_str().is_some_and(|__s| __s.ends_with("USDT"))) {
             base = ms.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 4).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         }
         let mut quote: Value = Value::Str("USDT".into());
@@ -1503,15 +1488,15 @@ impl MudrexCore {
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut orders: Value = Value::from(vec![]);
+        let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_962: bool = true;
-            while { if !__for_first_962 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_962 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
-            append_to_array(&mut orders, self.parse_order(rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]));
+            let mut __for_first_967: bool = true;
+            while { if !__for_first_967 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_967 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            orders.push(self.parse_order(rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]));
         }
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbol, since, limit]);
+        return self.filter_by_symbol_since_limit(Value::from(orders), &[symbol, since, limit]);
 
     Value::Null
 }
@@ -1618,19 +1603,19 @@ impl MudrexCore {
             return Value::from(vec![]);
         }
         let mut rows: Value = self.to_array(data);
-        let mut outPos: Value = Value::from(vec![]);
+        let mut outPos: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_963: bool = true;
-            while { if !__for_first_963 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_963 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_968: bool = true;
+            while { if !__for_first_968 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_968 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut p: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut symRaw: Value = self.safe_string_k(p.clone(), "symbol", &[]);
             let mut m: Value = self.safe_market(&[symRaw]);
             let mut pos: Value = self.parse_position(p, &[m]);
-            append_to_array(&mut outPos, pos);
+            outPos.push(pos);
         }
         }
-        return self.filter_by_array_positions(outPos, Value::Str("symbol".into()), &[symbols]);
+        return self.filter_by_array_positions(Value::from(outPos), Value::Str("symbol".into()), &[symbols]);
 
     Value::Null
 }
@@ -1738,6 +1723,7 @@ impl MudrexCore {
         m.insert("lastPrice".to_string(), self.safe_number_k(position.clone(), "closed_price", &[]));
         m.insert("notional".to_string(), notional);
         m.insert("leverage".to_string(), self.safe_integer_k(position.clone(), "leverage", &[]));
+        m.insert("positionMargin".to_string(), self.parse_number(initialMargin.clone(), &[]));
         m.insert("collateral".to_string(), self.parse_number(initialMargin.clone(), &[]));
         m.insert("initialMargin".to_string(), self.parse_number(initialMargin, &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
@@ -1775,15 +1761,15 @@ impl MudrexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
+        let mut market: Value = self.market(symbol.clone());
         let mut positionId: Value = self.safe_string_k(params.clone(), "position_id", &[]);
         let mut amount: Value = self.safe_value_k(params.clone(), "amount", &[]);
         if (positionId == Value::Null) {
-            let mut market: Value = self.market(symbol.clone());
             let mut positions: Value = self.fetch_positions(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_964: bool = true;
-                while { if !__for_first_964 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_964 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
+                let mut __for_first_969: bool = true;
+                while { if !__for_first_969 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_969 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
                 let mut p: Value = positions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if (side != Value::Null) && (p.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null).as_str() != side.as_str()) {
                     continue;
@@ -1814,12 +1800,14 @@ impl MudrexCore {
             let mut partialParams: Value = self.omit(params.clone(), Value::from(vec![Value::Str("order_type".into()), Value::Str("limit_price".into()), Value::Str("amount".into()), Value::Str("position_id".into())]), &[]);
             let __ws_arg_16 = self.extend(request.clone(), &[partialParams]);
             let mut partialResponse: Value = self.private_post_futures_positions_position_id_close_partial(&[__ws_arg_16]).await;
-            return partialResponse;
+            let mut partialData: Value = self.safe_dict_k(partialResponse.clone(), "data", &[partialResponse.clone()]);
+            return self.parse_order(partialData, &[market.clone()]);
         }
         let mut closeParams: Value = self.omit(params, Value::from(vec![Value::Str("position_id".into())]), &[]);
         let __ws_arg_17 = self.extend(request, &[closeParams]);
         let mut response: Value = self.private_post_futures_positions_position_id_close(&[__ws_arg_17]).await;
-        return response;
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
+        return self.parse_order(data, &[market]);
 
     Value::Null
 }
@@ -1848,8 +1836,8 @@ impl MudrexCore {
             let mut positions: Value = self.fetch_positions(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_965: bool = true;
-                while { if !__for_first_965 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_965 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
+                let mut __for_first_970: bool = true;
+                while { if !__for_first_970 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_970 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
                 let mut p: Value = positions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if (p.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null).as_str() == symbol.as_str()) {
                     positionId = self.safe_string_k(p, "id", &[]);
@@ -1893,7 +1881,7 @@ impl MudrexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.add_margin(symbol, negate(&amount), &[params]).await;
+        return self.add_margin(symbol, (match &(amount) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }), &[params]).await;
 
     Value::Null
 }
@@ -1929,22 +1917,19 @@ impl MudrexCore {
         let mut maxCallsparamsPaginationCallsVariable = self.handle_option_integer_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginationCalls".into()), &[Value::Int(10)]);
         let mut maxCalls: Value = maxCallsparamsPaginationCallsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginationCalls: Value = maxCallsparamsPaginationCallsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut pageSize: Value = Value::Int(0);
-        if (limit != Value::Null) {
-            // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
-            pageSize = (match (&(limit), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-        }
-        let mut allRows: Value = Value::from(vec![]);
+        // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
+        let mut pageSize: Value = (if (limit == Value::Null) { Value::Int(0) } else { (match (&(limit), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }) });
+        let mut allRows: Vec<Value> = Vec::new();
         let mut transactionsCount: Value = Value::Int(0);
         let mut calls: Value = Value::Int(0);
         let mut offset: Value = Value::Int(0);
         let mut paging: bool = true;
-        while (paging) {
+        while paging {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            if pageSize.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+            if (limit != Value::Null) && (limit.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), pageSize.clone()); }
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("offset".into(), offset.clone()); }
             }
@@ -1954,59 +1939,61 @@ impl MudrexCore {
             let mut dataLength: Value = Value::Int(data.len() as i64);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_966: bool = true;
-                while { if !__for_first_966 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_966 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_971: bool = true;
+                while { if !__for_first_971 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_971 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
                 let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                append_to_array(&mut allRows, entry.clone());
+                allRows.push(entry.clone());
                 if (self.safe_string_k(entry.clone(), "fee_type", &[]).as_str() == Some("TRANSACTION")) {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
                     if (market == Value::Null) || (self.safe_string_k(entry.clone(), "symbol", &[]).as_str() == market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).as_str()) {
-                        transactionsCount = self.sum(&[transactionsCount.clone(), Value::Int(1)]);
+                        transactionsCount = (match (&(transactionsCount), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
                     }
                 }
             }
             }
-            calls = self.sum(&[calls.clone(), Value::Int(1)]);
+            calls = (match (&(calls), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             paging = false;
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
-            if (limit != Value::Null) && (dataLength.as_f64() == pageSize.as_f64()) && (transactionsCount.as_f64().unwrap_or(f64::NAN) < limit.as_f64().unwrap_or(f64::NAN)) && (calls.as_f64().unwrap_or(f64::NAN) < maxCalls.as_f64().unwrap_or(f64::NAN)) {
-                // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
-                offset = self.sum(&[offset.clone(), pageSize.clone()]);
-                paging = true;
+            if (limit != Value::Null) && (dataLength.as_f64() == pageSize.as_f64()) {
+                if (transactionsCount.as_f64().unwrap_or(f64::NAN) < limit.as_f64().unwrap_or(f64::NAN)) && (calls.as_f64().unwrap_or(f64::NAN) < maxCalls.as_f64().unwrap_or(f64::NAN)) {
+                    // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                    offset = self.sum(&[offset.clone(), pageSize.clone()]);
+                    paging = true;
+                }
             }
         }
         // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
         let mut rebateKeys: Value = Value::from(vec![]);
         let mut rebateAmounts: Value = Value::from(vec![]);
-        let mut transactions: Value = Value::from(vec![]);
-        let mut transactionKeys: Value = Value::from(vec![]);
+        let mut transactions: Vec<Value> = Vec::new();
+        let mut transactionKeys: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_967: bool = true;
-            while { if !__for_first_967 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_967 = false; i.as_f64().unwrap_or(f64::NAN) < ((allRows.len() as i64) as f64) } {
-            let mut entry: Value = allRows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut __for_first_972: bool = true;
+            while { if !__for_first_972 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_972 = false; i.as_f64().unwrap_or(f64::NAN) < ((allRows.len() as i64) as f64) } {
+            let mut entry: Value = allRows.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
             let mut feeType: Option<String> = self.safe_string_k(entry.clone(), "fee_type", &[]).as_str().map(str::to_owned);
             let mut pairKey: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(entry.clone(), "symbol", &[Value::Str("".into())]), Value::Str(":".into())).into()), self.safe_string_k(entry.clone(), "created_at", &[Value::Str("".into())])).into()), Value::Str(":".into())).into()), self.safe_string_k(entry.clone(), "transaction_amount", &[Value::Str("".into())])).into());
             if (feeType.as_deref() == Some("TRANSACTION")) {
-                append_to_array(&mut transactions, entry.clone());
-                append_to_array(&mut transactionKeys, pairKey.clone());
+                transactions.push(entry.clone());
+                transactionKeys.push(pairKey.clone());
             }  else if (feeType.as_deref() == Some("REBATE")) {
-                append_to_array(&mut rebateKeys, pairKey);
-                append_to_array(&mut rebateAmounts, self.safe_string_k(entry, "fee_amount", &[Value::Str("0".into())]));
+                if let Value::Arr(__a) = &mut rebateKeys { std::sync::Arc::make_mut(__a).push(pairKey); }
+                if let Value::Arr(__a) = &mut rebateAmounts { std::sync::Arc::make_mut(__a).push(self.safe_string_k(entry, "fee_amount", &[Value::Str("0".into())])); }
             }
         }
         }
-        let mut rows: Value = Value::from(vec![]);
+        let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_969: bool = true;
-            while { if !__for_first_969 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_969 = false; i.as_f64().unwrap_or(f64::NAN) < ((transactions.len() as i64) as f64) } {
+            let mut __for_first_974: bool = true;
+            while { if !__for_first_974 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_974 = false; i.as_f64().unwrap_or(f64::NAN) < ((transactions.len() as i64) as f64) } {
             let mut rebate: Value = Value::Null;
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_968: bool = true;
-                while { if !__for_first_968 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_968 = false; j.as_f64().unwrap_or(f64::NAN) < ((rebateKeys.len() as i64) as f64) } {
-                if (rebateKeys.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_str() == transactionKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_str()) {
+                let mut __for_first_973: bool = true;
+                while { if !__for_first_973 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_973 = false; j.as_f64().unwrap_or(f64::NAN) < ((rebateKeys.len() as i64) as f64) } {
+                if (rebateKeys.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_str() == transactionKeys.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null).as_str()) {
                     rebate = self.safe_string(rebateAmounts.clone(), j.clone(), &[]);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
                     add_element_to_object(&mut rebateKeys, &j, Value::Null);
@@ -2015,9 +2002,9 @@ impl MudrexCore {
             }
             }
             if (rebate == Value::Null) {
-                append_to_array(&mut rows, transactions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+                rows.push(transactions.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
             }  else {
-                append_to_array(&mut rows, self.extend(transactions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[Value::Map({
+                rows.push(self.extend(transactions.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("rebate_amount".to_string(), rebate);
                     m
@@ -2025,7 +2012,7 @@ impl MudrexCore {
             }
         }
         }
-        return self.parse_trades(rows, &[market, since, limit]);
+        return self.parse_trades(Value::from(rows), &[market, since, limit]);
 
     Value::Null
 }
@@ -2127,8 +2114,8 @@ impl MudrexCore {
                 m.insert("FUTURES".to_string(), Value::Str("FUTURES".into()));
             m
         });
-        let mut fw: Value = self.safe_string(mp.clone(), fromAccount.clone(), &[to_upper(&fromAccount)]);
-        let mut tw: Value = self.safe_string(mp, toAccount.clone(), &[to_upper(&toAccount)]);
+        let mut fw: Value = self.safe_string(mp.clone(), fromAccount.clone(), &[fromAccount.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)]);
+        let mut tw: Value = self.safe_string(mp, toAccount.clone(), &[toAccount.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)]);
         let mut body: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("from_wallet_type".to_string(), fw.clone());

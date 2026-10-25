@@ -532,6 +532,7 @@ export default class bitget extends bitgetRest {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
@@ -544,15 +545,18 @@ export default class bitget extends bitgetRest {
         const interval = this.safeString (timeframes, timeframe);
         let messageHash: Str = undefined;
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (params, 'watchOHLCV', 'uta', false);
-        const [ instType, paramsInstType ] = this.getInstType ('watchOHLCV', market, uta, paramsUta);
+        const stockDefault = this.safeBool (market, 'stock', false);
+        const [ stock, paramsStock ] = this.handleOptionBoolAndParams (paramsUta, 'watchOHLCV', 'stock', stockDefault);
+        const isStockOrUta = ((stock === true) || (uta === true));
+        const [ instType, paramsInstType ] = this.getInstType ('watchOHLCV', market, isStockOrUta, paramsStock);
         let paramsRequest = paramsInstType;
-        if (uta) {
+        if (isStockOrUta) {
             paramsRequest = this.extend (paramsInstType, { 'uta': true });
         }
         const args: Dict = {
             'instType': instType,
         };
-        if (uta) {
+        if (isStockOrUta) {
             args['topic'] = 'kline';
             args['symbol'] = market['id'];
             args['interval'] = interval;
@@ -562,7 +566,7 @@ export default class bitget extends bitgetRest {
             args['instId'] = market['id'];
             messageHash = 'candles:' + timeframe + ':' + symbolValue;
         }
-        const ohlcv = await this.watchPublic (uta, messageHash, args, paramsRequest);
+        const ohlcv = await this.watchPublic (isStockOrUta, messageHash, args, paramsRequest);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbolValue, limit);
@@ -581,6 +585,7 @@ export default class bitget extends bitgetRest {
      * @param {string} [timeframe] the period for the ratio, default is 1 minute
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
@@ -594,15 +599,18 @@ export default class bitget extends bitgetRest {
         let messageHash: Str = undefined;
         const values = this.handleOptionBoolAndParams (params, 'watchOHLCV', 'uta', false);
         const uta: Bool = values[0];
-        const [ instType, paramsInstType ] = this.getInstType ('watchOHLCV', market, uta, params);
+        const stockDefault = this.safeBool (market, 'stock', false);
+        const [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'watchOHLCV', 'stock', stockDefault);
+        const isStockOrUta = ((stock === true) || (uta === true));
+        const [ instType, paramsInstType ] = this.getInstType ('watchOHLCV', market, isStockOrUta, paramsStock);
         let paramsRequest = paramsInstType;
-        if (uta) {
+        if (isStockOrUta) {
             paramsRequest = this.extend (paramsInstType, { 'uta': true, 'interval': interval });
         }
         const args: Dict = {
             'instType': instType,
         };
-        if (uta) {
+        if (isStockOrUta) {
             channel = 'kline';
             args['topic'] = channel;
             args['symbol'] = market['id'];
@@ -745,7 +753,8 @@ export default class bitget extends bitgetRest {
         //     }
         //
         let volumeIndex = 5;
-        if ((market !== undefined) && (market['inverse'] === true)) {
+        const isInverse = this.safeBool (market, 'inverse', false);
+        if (isInverse === true) {
             volumeIndex = 6;
         }
         return [
@@ -769,6 +778,7 @@ export default class bitget extends bitgetRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
@@ -786,18 +796,28 @@ export default class bitget extends bitgetRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        const market = this.market (symbol);
+        const stockDefault = this.safeBool (market, 'stock', false);
+        const [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'unWatchOrderBook', 'stock', stockDefault);
+        const [ uta, paramsUta ] = this.handleOptionBoolAndParams (paramsStock, 'unWatchOrderBook', 'uta', false);
+        const isStockOrUta = ((stock === true) || (uta === true));
+        let paramsRequest = paramsUta;
+        if (isStockOrUta) {
+            paramsRequest = this.extend (paramsUta, { 'uta': true });
+        }
         let channel = 'books';
-        const limit = this.safeInteger (params, 'limit');
+        const limit = this.safeInteger (paramsRequest, 'limit');
         const isFixedDepth = (limit === 1) || (limit === 5) || (limit === 15) || (limit === 50);
-        let paramsOmitted = params;
+        let paramsOmitted = paramsRequest;
         if (isFixedDepth) {
-            paramsOmitted = this.omit (params, 'limit');
+            paramsOmitted = this.omit (paramsRequest, 'limit');
         }
         if (isFixedDepth) {
             channel += limit.toString ();
@@ -812,7 +832,8 @@ export default class bitget extends bitgetRest {
         const market = this.market (symbol);
         const messageHash = 'unsubscribe:' + messageHashTopic + ':' + market['symbol'];
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (params, methodName, 'uta', false);
-        const [ instType, paramsInstType ] = this.getInstType (methodName, market, uta, paramsUta);
+        const [ privateChannel, paramsPrivateChannel ] = this.handleOptionBoolAndParams (paramsUta, methodName, 'privateChannel', false);
+        const [ instType, paramsInstType ] = this.getInstType (methodName, market, uta, paramsPrivateChannel);
         let paramsRequest = paramsInstType;
         if (uta) {
             paramsRequest = this.omit (this.extend (paramsInstType, { 'uta': true }), 'interval');
@@ -823,10 +844,15 @@ export default class bitget extends bitgetRest {
         if (uta) {
             args['topic'] = channel;
             args['symbol'] = market['id'];
-            args['interval'] = this.safeString (paramsInstType, 'interval', '1m');
+            if (channel === 'kline') {
+                args['interval'] = this.safeString (paramsInstType, 'interval', '1m');
+            }
         } else {
             args['channel'] = channel;
             args['instId'] = market['id'];
+        }
+        if (privateChannel) {
+            return await this.unWatchPrivate (uta, messageHash, args, paramsRequest);
         }
         return await this.unWatchPublic (uta, messageHash, args, paramsRequest);
     }
@@ -842,6 +868,7 @@ export default class bitget extends bitgetRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
@@ -849,6 +876,15 @@ export default class bitget extends bitgetRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols);
+        const symbolsLength = symbolsNormalized.length;
+        let firstMarket = undefined;
+        if (symbolsLength > 0) {
+            firstMarket = this.market (symbolsNormalized[0]);
+        }
+        const stockDefault = this.safeBool (firstMarket, 'stock', false);
+        const [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'watchOrderBookForSymbols', 'stock', stockDefault);
+        const [ uta, paramsUta ] = this.handleOptionBoolAndParams (paramsStock, 'watchOrderBookForSymbols', 'uta', false);
+        const isStockOrUta = ((stock === true) || (uta === true));
         let channel = 'books';
         let incrementalFeed = true;
         if ((limit === 1) || (limit === 5) || (limit === 15) || (limit === 50)) {
@@ -857,22 +893,21 @@ export default class bitget extends bitgetRest {
         }
         const topics: Dict[] = [];
         const messageHashes: string[] = [];
-        const [ uta, paramsUta ] = this.handleOptionBoolAndParams (params, 'watchOrderBookForSymbols', 'uta', false);
         let paramsCursor: Dict = paramsUta;
-        for (let i = 0; i < symbolsNormalized.length; i++) {
+        for (let i = 0; i < symbolsLength; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const [ instType, paramsInstType ] = this.getInstType ('watchOrderBookForSymbols', market, uta, paramsCursor);
+            const [ instType, paramsInstType ] = this.getInstType ('watchOrderBookForSymbols', market, isStockOrUta, paramsCursor);
             paramsCursor = paramsInstType;
             const args: Dict = {
                 'instType': instType,
             };
             let topicOrChannel: Str = 'channel';
-            if (uta) {
+            if (isStockOrUta) {
                 topicOrChannel = 'topic';
             }
             let symbolOrInstId: Str = 'instId';
-            if (uta) {
+            if (isStockOrUta) {
                 symbolOrInstId = 'symbol';
             }
             args[topicOrChannel] = channel;
@@ -880,10 +915,10 @@ export default class bitget extends bitgetRest {
             topics.push (args);
             messageHashes.push ('orderbook:' + symbol);
         }
-        if (uta) {
+        if (isStockOrUta) {
             paramsCursor['uta'] = true;
         }
-        const orderbook: WsOrderBook = await this.watchPublicMultiple (uta, messageHashes, topics, paramsCursor);
+        const orderbook: WsOrderBook = await this.watchPublicMultiple (isStockOrUta, messageHashes, topics, paramsCursor);
         if (incrementalFeed) {
             return orderbook.limit ();
         } else {
@@ -949,10 +984,17 @@ export default class bitget extends bitgetRest {
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        const data = this.safeList (message, 'data');
-        const rawOrderBook = this.safeDict (data, 0, {});
+        const data = this.safeValue (message, 'data');
+        let rawOrderBook = this.safeDict (data, 0);
+        if (rawOrderBook === undefined) {
+            // tokenized stock snapshots arrive as a plain dict instead of a list
+            rawOrderBook = this.safeDict (message, 'data');
+        }
+        if (rawOrderBook === undefined) {
+            return;
+        }
         const timestamp = this.safeInteger (rawOrderBook, 'ts');
-        const incrementalBook = channel === 'books';
+        const incrementalBook = (channel === 'books');
         if (incrementalBook) {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
             if (!(symbol in this.orderbooks)) {
@@ -962,6 +1004,11 @@ export default class bitget extends bitgetRest {
                 this.orderbooks[symbol] = ob;
             }
             const storedOrderBook = this.orderbooks[symbol];
+            const isSnapshot = this.safeString (message, 'action') === 'snapshot'; // snapshot does not have a checksum
+            if (isSnapshot) {
+                // a snapshot replaces the book, e.g. after a reconnect, levels absent from it must not survive
+                storedOrderBook.reset ({ 'symbol': symbol });
+            }
             const asks = this.safeList2 (rawOrderBook, 'asks', 'a', []);
             const bids = this.safeList2 (rawOrderBook, 'bids', 'b', []);
             this.handleDeltas (storedOrderBook['asks'], asks);
@@ -969,7 +1016,6 @@ export default class bitget extends bitgetRest {
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
             const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
-            const isSnapshot = this.safeString (message, 'action') === 'snapshot'; // snapshot does not have a checksum
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
             const responseChecksum = this.safeInteger (rawOrderBook, 'checksum');
@@ -997,7 +1043,14 @@ export default class bitget extends bitgetRest {
                 }
             }
         } else {
-            const orderbook = this.orderBook ({});
+            // reset the existing orderbook instead of replacing it: a consumer
+            // holds a reference to the old object and would never see updates
+            // after this snapshot (every frame of the non-incremental channels
+            // is a full snapshot)
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook ({});
+            }
+            const orderbook = this.orderbooks[symbol];
             let bidsKey = 'bids';
             let asksKey = 'asks';
             // bitget UTA has `a` and `b` instead of `asks` and `bids`
@@ -1013,7 +1066,6 @@ export default class bitget extends bitgetRest {
             }
             const parsedOrderbook = this.parseOrderBook (rawOrderBook, symbol, timestamp, bidsKey, asksKey);
             orderbook.reset (parsedOrderbook);
-            this.orderbooks[symbol] = orderbook;
         }
         client.resolve (this.orderbooks[symbol], messageHash);
     }
@@ -1032,7 +1084,7 @@ export default class bitget extends bitgetRest {
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -1336,8 +1388,8 @@ export default class bitget extends bitgetRest {
             'type': this.safeString (trade, 'orderType'),
             'side': this.safeString2 (trade, 'side', 'S'),
             'takerOrMaker': this.safeString (trade, 'tradeScope'),
-            'price': this.safeStringN (trade, [ 'priceAvg', 'price', 'execPrice', 'P' ]),
-            'amount': this.safeStringN (trade, [ 'size', 'baseVolume', 'execQty', 'v' ]),
+            'price': this.safeStringN (trade, [ 'priceAvg', 'price', 'execPrice', 'P', 'p' ]),
+            'amount': this.safeStringN (trade, [ 'size', 'baseVolume', 'execQty', 'v', 'qty' ]),
             'cost': this.safeStringN (trade, [ 'amount', 'quoteVolume', 'execValue' ]),
             'fee': fee,
         }, marketResolved);
@@ -2378,11 +2430,14 @@ export default class bitget extends bitgetRest {
      * @param {string} [params.instType] one of 'SPOT', 'MARGIN', 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin balances
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock balances, defaults to false
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     override async watchBalance (params: Dict = {}): Promise<Balances> {
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (params, 'watchBalance', 'uta', false);
-        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, paramsUta);
+        const [ stock, paramsStock ] = this.handleOptionBoolAndParams (paramsUta, 'watchBalance', 'stock', false);
+        const isStockOrUta = ((stock === true) || (uta === true));
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, paramsStock);
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('watchBalance', paramsMarketType);
         let instTypeDefault: Str = undefined;
         let channel = 'account';
@@ -2390,39 +2445,39 @@ export default class bitget extends bitgetRest {
             instTypeDefault = 'USDT-FUTURES';
         } else if (marginMode !== undefined) {
             instTypeDefault = 'MARGIN';
-            if (!uta) {
+            if (!isStockOrUta) {
                 if (marginMode === 'isolated') {
                     channel = 'account-isolated';
                 } else {
                     channel = 'account-crossed';
                 }
             }
-        } else if (!uta) {
+        } else if (!isStockOrUta) {
             instTypeDefault = 'SPOT';
         }
         const [ instTypeOption, paramsInstType ] = this.handleOptionStringAndParams (paramsMarginMode, 'watchBalance', 'instType', instTypeDefault);
         let instType: Str = instTypeOption;
-        if (uta) {
+        if (isStockOrUta) {
             instType = 'UTA';
         }
         const args: Dict = {
             'instType': instType,
         };
         let topicOrChannel: Str = 'channel';
-        if (uta) {
+        if (isStockOrUta) {
             topicOrChannel = 'topic';
         }
         args[topicOrChannel] = channel;
         let paramsRequest = paramsInstType;
-        if (uta) {
+        if (isStockOrUta) {
             paramsRequest = this.extend (paramsInstType, { 'uta': true });
         }
-        if (!uta) {
+        if (!isStockOrUta) {
             args['coin'] = 'default';
         }
-        const instTypeLower = (instType === undefined) ? '' : instType.toLowerCase ();
+        const instTypeLower = this.safeStringLower (args, 'instType', '');
         const messageHash = 'balance:' + instTypeLower;
-        return await this.watchPrivate (uta, messageHash, messageHash, args, paramsRequest);
+        return await this.watchPrivate (isStockOrUta, messageHash, messageHash, args, paramsRequest);
     }
 
     handleBalance (client: Client, message: Dict) {
@@ -2574,12 +2629,12 @@ export default class bitget extends bitgetRest {
     }
 
     async watchPublic (uta: boolean, messageHash: string, args: Dict, params: Dict = {}) {
-        let url = (uta === true) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
+        let url = (uta) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             const instType = this.safeString (args, 'instType');
             if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
-                if (uta === true) {
+                if (uta) {
                     url = this.urls['api']['demo']['utaPublic'];
                 } else {
                     url = this.urls['api']['demo']['public'];
@@ -2595,12 +2650,12 @@ export default class bitget extends bitgetRest {
     }
 
     async unWatchPublic (uta: boolean, messageHash: string, args: Dict, params: Dict = {}) {
-        let url = (uta === true) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
+        let url = (uta) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             const instType = this.safeString (args, 'instType');
             if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
-                if (uta === true) {
+                if (uta) {
                     url = this.urls['api']['demo']['utaPublic'];
                 } else {
                     url = this.urls['api']['demo']['public'];
@@ -2615,14 +2670,37 @@ export default class bitget extends bitgetRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPublicMultiple (uta: boolean, messageHashes: string[], argsArray: any[], params: Dict = {}) {
-        let url = (uta === true) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
+    async unWatchPrivate (uta: any, messageHash: any, args: any, params: Dict = {}) {
+        const isUta = (uta === true);
+        let url = isUta ? this.urls['api']['ws']['utaPrivate'] : this.urls['api']['ws']['private'];
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
-        if (sandboxMode === true) {
+        if (sandboxMode) {
+            const instType = this.safeString (args, 'instType');
+            if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
+                if (isUta) {
+                    url = this.urls['api']['demo']['utaPrivate'];
+                } else {
+                    url = this.urls['api']['demo']['private'];
+                }
+            }
+        }
+        await this.authenticate ({ 'url': url });
+        const request: Dict = {
+            'op': 'unsubscribe',
+            'args': [ args ],
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    async watchPublicMultiple (uta: boolean, messageHashes: string[], argsArray: any[], params: Dict = {}) {
+        let url = (uta) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
+        const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
+        if (sandboxMode) {
             const argsArrayFirst = this.safeDict (argsArray, 0, {});
             const instType = this.safeString (argsArrayFirst, 'instType');
             if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
-                url = (uta === true) ? this.urls['api']['demo']['utaPublic'] : this.urls['api']['demo']['public'];
+                url = (uta) ? this.urls['api']['demo']['utaPublic'] : this.urls['api']['demo']['public'];
             }
         }
         const request: Dict = {
@@ -2663,12 +2741,12 @@ export default class bitget extends bitgetRest {
     }
 
     async watchPrivate (uta: boolean, messageHash: string, subscriptionHash: string, args: Dict, params: Dict = {}) {
-        let url = (uta === true) ? this.urls['api']['ws']['utaPrivate'] : this.urls['api']['ws']['private'];
+        let url = (uta) ? this.urls['api']['ws']['utaPrivate'] : this.urls['api']['ws']['private'];
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             const instType = this.safeString (args, 'instType');
             if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
-                if (uta === true) {
+                if (uta) {
                     url = this.urls['api']['demo']['utaPrivate'];
                 } else {
                     url = this.urls['api']['demo']['private'];

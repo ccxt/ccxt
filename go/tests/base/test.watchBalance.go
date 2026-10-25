@@ -46,8 +46,8 @@ func testWatchBalanceBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExch
 					panic(r.Err)
 				}
 				var rValueBox any = nil
-				if r.Value != nil {
-					rValueBox = r.Value
+				if !ccxt.StructAbsent(r.Value) {
+					rValueBox = ccxt.StructBox(r.Value, ccxt.BalancesToMap)
 				}
 				response = (UnWrapType(rValueBox))
 				PanicOnError(response)
@@ -55,7 +55,7 @@ func testWatchBalanceBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExch
 			}()
 
 		}
-		if success == false {
+		if !success {
 			continue
 		}
 		TestBalance(exchange, skippedProperties, method, response)

@@ -1128,7 +1128,7 @@ public partial class coinone : Exchange
         return this.parseOrder(response, market);
     }
 
-    public virtual string? parseOrderStatus(object status)
+    public virtual string? parseOrderStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "live", "open" },
@@ -1137,7 +1137,7 @@ public partial class coinone : Exchange
             { "filled", "closed" },
             { "canceled", "canceled" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
@@ -1491,14 +1491,15 @@ public partial class coinone : Exchange
                 result[(string)code] = depositAddress;
             }
         }
-        return ccxt.BaseExchange.ToDepositAddressList(result);
+        return ccxt.BaseExchange.ToDepositAddressList(this.toArray(result));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         string? request = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
         string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
@@ -1507,8 +1508,8 @@ public partial class coinone : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (apiUrl + "/");
-        bool isPublic = ((api is "public")) || (isEqual(api, "v2Public"));
-        if (isEqual(api, "v2Public"))
+        bool isPublic = ((apiName is "public")) || ((apiName is "v2Public"));
+        if ((apiName is "v2Public"))
         {
             string? apiUrl2 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2Public");
             if ((apiUrl2 == null))
@@ -1516,7 +1517,7 @@ public partial class coinone : Exchange
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
             }
             url = (apiUrl2 + "/");
-        } else if (isEqual(api, "v2Private"))
+        } else if ((apiName is "v2Private"))
         {
             string? apiUrl3 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2Private");
             if ((apiUrl3 == null))
@@ -1524,7 +1525,7 @@ public partial class coinone : Exchange
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
             }
             url = (apiUrl3 + "/");
-        } else if (isEqual(api, "v2_1Private"))
+        } else if ((apiName is "v2_1Private"))
         {
             string? apiUrl4 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2_1Private");
             if ((apiUrl4 == null))
@@ -1548,7 +1549,7 @@ public partial class coinone : Exchange
             url = url + request;
             // the v2.1 api requires a uuid nonce, the older apis use a numeric one
             string? nonce = null;
-            if (isEqual(api, "v2_1Private"))
+            if ((apiName is "v2_1Private"))
             {
                 nonce = this.uuid();
             } else
@@ -1569,8 +1570,8 @@ public partial class coinone : Exchange
                 { "X-COINONE-SIGNATURE", signature },
             };
         }
-        object bodyResolved = ((requestBody == null)) ? body : requestBody;
-        object headersResolved = ((requestHeaders == null)) ? headers : requestHeaders;
+        string? bodyResolved = requestBody;
+        Dictionary<string, object> headersResolved = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

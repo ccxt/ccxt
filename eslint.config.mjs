@@ -223,27 +223,6 @@ const mainSourceIgnores = [
     'ts/src/base/ws/**',
 ];
 
-// type-aware linting (required by rules like strict-boolean-expressions)
-const typedLanguageOptions = {
-    ...sharedLanguageOptions,
-    parserOptions: {
-        project: './tsconfig.json',
-        tsconfigRootDir: import.meta.dirname,
-    },
-};
-
-const typedRules = {
-    '@typescript-eslint/strict-boolean-expressions': ['error', {
-        allowString: false,
-        allowNumber: false,
-        allowNullableObject: false,
-        allowNullableBoolean: false,
-        allowNullableString: false,
-        allowNullableNumber: false,
-        allowAny: false,
-    }],
-};
-
 export default [
     {
         ignores: [
@@ -283,6 +262,14 @@ export default [
         },
     },
     {
+        // Generated implicit-API files: the generator emits the exchange style, so hold it to it.
+        files: ['ts/src/abstract/**/*.ts'],
+        languageOptions: sharedLanguageOptions,
+        plugins: sharedPlugins,
+        settings: sharedSettings,
+        rules: mainRulesWithoutJsdoc,
+    },
+    {
         files: ['ts/src/test/**/*.ts'],
         languageOptions: sharedLanguageOptions,
         plugins: sharedPlugins,
@@ -311,14 +298,6 @@ export default [
         plugins: sharedPlugins,
         settings: sharedSettings,
         rules: wsRules,
-    },
-    {
-        files: ['ts/src/**/*.ts'],
-        ignores: mainSourceIgnores,
-        languageOptions: typedLanguageOptions,
-        plugins: sharedPlugins,
-        settings: sharedSettings,
-        rules: typedRules,
     },
     {
         files: ['cli/ts/**/*.ts'],

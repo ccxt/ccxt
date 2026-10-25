@@ -108,9 +108,17 @@ public partial class blockchaincom : ccxt.blockchaincom
         {
             return;
         }
-        Dictionary<string, object> result = new Dictionary<string, object>() {
-            { "info", message },
-        };
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773)
+        if ((this.balance == null))
+        {
+            this.balance = new Dictionary<string, object>() {};
+        }
+        this.balance["info"] = message;
         List<object> balances = this.safeList(message, "balances", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
@@ -122,11 +130,11 @@ public partial class blockchaincom : ccxt.blockchaincom
             account["total"] = this.safeString(entry, "balance");
             if ((code != null))
             {
-                result[(string)code] = account;
+                this.balance[(string)code] = account;
             }
         }
         string messageHash = "balance";
-        this.balance = this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, messageHash);
     }
 
@@ -710,7 +718,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         Dictionary<string, object> market = this.market(symbol);
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string? type = this.safeString(parameters, "type", "l2");
-        object paramsOmitted = this.omit(parameters, "type");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "type"));
         string messageHash = ((("orderbook:" + symbol) + ":") + type);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
@@ -769,7 +777,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         string messageHash = ((("orderbook:" + symbol) + ":") + type);
         string? datetime = this.safeString(message, "timestamp");
         Int64? timestamp = this.parse8601(datetime);
-        if (isEqual(this.safeOrderBook(this.orderbooks, symbol), null))
+        if ((this.safeOrderBook(this.orderbooks, symbol) == null))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook();
         }
@@ -867,7 +875,7 @@ public partial class blockchaincom : ccxt.blockchaincom
                 { "channel", "auth" },
                 { "token", this.secret },
             };
-            return this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+            return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         }
         return await (future as Exchange.Future);
     }

@@ -9,112 +9,112 @@ package ccxt
 
 // PublicGetMarketAll returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetMarketAll(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "market/all", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "market/all", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetCandlesTimeframe returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetCandlesTimeframe(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "candles/{timeframe}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "candles/{timeframe}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetCandlesTimeframeUnit returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetCandlesTimeframeUnit(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "candles/{timeframe}/{unit}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "candles/{timeframe}/{unit}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetCandlesSeconds returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetCandlesSeconds(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "candles/seconds", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "candles/seconds", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetCandlesMinutesUnit returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetCandlesMinutesUnit(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "candles/minutes/{unit}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "candles/minutes/{unit}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetCandlesMinutes1 returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetCandlesMinutes1(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "candles/minutes/1", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "candles/minutes/1", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetCandlesMinutes3 returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetCandlesMinutes3(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "candles/minutes/3", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "candles/minutes/3", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetCandlesMinutes5 returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetCandlesMinutes5(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "candles/minutes/5", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "candles/minutes/5", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetCandlesMinutes10 returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetCandlesMinutes10(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "candles/minutes/10", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "candles/minutes/10", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetCandlesMinutes15 returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetCandlesMinutes15(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "candles/minutes/15", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "candles/minutes/15", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetCandlesMinutes30 returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetCandlesMinutes30(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "candles/minutes/30", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "candles/minutes/30", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetCandlesMinutes60 returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetCandlesMinutes60(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "candles/minutes/60", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "candles/minutes/60", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetCandlesMinutes240 returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetCandlesMinutes240(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "candles/minutes/240", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "candles/minutes/240", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetCandlesDays returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetCandlesDays(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "candles/days", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "candles/days", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetCandlesWeeks returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetCandlesWeeks(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "candles/weeks", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "candles/weeks", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetCandlesMonths returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetCandlesMonths(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "candles/months", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "candles/months", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetCandlesYears returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetCandlesYears(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "candles/years", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "candles/years", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetTradesTicks returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetTradesTicks(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "trades/ticks", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "trades/ticks", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetTicker returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetTicker(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "ticker", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "ticker", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetTickerAll returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetTickerAll(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "ticker/all", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "ticker/all", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetOrderbook returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetOrderbook(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "orderbook", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "orderbook", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PublicGetOrderbookInstruments returns a channel that yields a JSON array.
 func (this *Upbit) PublicGetOrderbookInstruments(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "orderbook/instruments", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+	return Fetch2Result[[]any](this, "orderbook/instruments", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PrivateGetAccounts returns a channel that yields a JSON object.
@@ -294,7 +294,7 @@ func (this *Upbit) PrivateDeleteOrder(args ...any) <-chan AsyncResult[any] {
 
 // PrivateDeleteOrdersOpen returns a channel that yields a JSON object.
 func (this *Upbit) PrivateDeleteOrdersOpen(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "orders/open", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
+	return Fetch2Result[map[string]any](this, "orders/open", []string{"private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(40)})
 }
 
 // PrivateDeleteOrdersUuids returns a channel that yields a JSON object.

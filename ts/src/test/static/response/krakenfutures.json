@@ -171,6 +171,7 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.08105,
+                        "positionMargin": null,
                         "collateral": null,
                         "marginMode": "cross",
                         "side": "long",
@@ -217,6 +218,7 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.08085,
+                        "positionMargin": null,
                         "collateral": null,
                         "marginMode": "cross",
                         "side": "long",
@@ -263,6 +265,7 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.070914,
+                        "positionMargin": null,
                         "collateral": null,
                         "marginMode": "cross",
                         "side": "long",
@@ -309,6 +312,7 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.070956,
+                        "positionMargin": null,
                         "collateral": null,
                         "marginMode": "cross",
                         "side": "long",
@@ -422,6 +426,7 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.08105,
+                        "positionMargin": null,
                         "collateral": null,
                         "marginMode": "cross",
                         "side": "long",
@@ -468,6 +473,7 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.070914,
+                        "positionMargin": null,
                         "collateral": null,
                         "marginMode": "cross",
                         "side": "long",
@@ -488,6 +494,7 @@
                             "asset": "usd",
                             "contract": "pf_dogeusd",
                             "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+                            "positionMargin": null,
                             "collateral": null,
                             "date": "2026-09-17T12:00:00.000Z",
                             "execution": null,
@@ -516,6 +523,7 @@
                             "asset": "usd",
                             "contract": "pf_dogeusd",
                             "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+                            "positionMargin": null,
                             "collateral": null,
                             "date": "2026-09-17T12:00:00.000Z",
                             "execution": null,
@@ -1359,6 +1367,85 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "fills of other contracts are filtered out",
+                "method": "fetchMyTrades",
+                "input": [
+                    "DOGE/USD:USD"
+                ],
+                "httpResponse": {
+                    "result": "success",
+                    "fills": [
+                        {
+                            "fill_id": "d832e3ea-7006-4b74-bd64-36b8eb69515e",
+                            "symbol": "PF_XRPUSD",
+                            "side": "sell",
+                            "order_id": "a2cce3f5-423c-408a-9cd2-69d9070772bd",
+                            "size": 5,
+                            "price": 1.4812,
+                            "fillTime": "2026-09-21T16:40:15.294Z",
+                            "fillType": "taker",
+                            "realized_pnl": -0.0035,
+                            "realized_funding": -3.945e-08,
+                            "sequence_id": "38493173"
+                        },
+                        {
+                            "fill_id": "7bfe252a-ab7b-480b-8c52-0ce55e6cba75",
+                            "symbol": "PF_DOGEUSD",
+                            "side": "sell",
+                            "order_id": "a2c47458-8685-41db-8bf7-b5e3eac571b0",
+                            "size": 250,
+                            "price": 0.08105,
+                            "fillTime": "2026-09-17T12:01:32.483Z",
+                            "fillType": "taker",
+                            "realized_pnl": 0.05,
+                            "realized_funding": -7.64284e-06,
+                            "sequence_id": "26114695"
+                        }
+                    ],
+                    "serverTime": "2026-09-21T16:40:31.108Z"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "fill_id": "7bfe252a-ab7b-480b-8c52-0ce55e6cba75",
+                            "symbol": "PF_DOGEUSD",
+                            "side": "sell",
+                            "order_id": "a2c47458-8685-41db-8bf7-b5e3eac571b0",
+                            "size": 250,
+                            "price": 0.08105,
+                            "fillTime": "2026-09-17T12:01:32.483Z",
+                            "fillType": "taker",
+                            "realized_pnl": 0.05,
+                            "realized_funding": -7.64284e-06,
+                            "sequence_id": "26114695"
+                        },
+                        "id": "7bfe252a-ab7b-480b-8c52-0ce55e6cba75",
+                        "symbol": "DOGE/USD:USD",
+                        "timestamp": 1789646492483,
+                        "datetime": "2026-09-17T12:01:32.483Z",
+                        "order": "a2c47458-8685-41db-8bf7-b5e3eac571b0",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 0.08105,
+                        "amount": 250,
+                        "cost": 20.2625,
+                        "fee": {
+                            "currency": "USD",
+                            "cost": 0.01013125,
+                            "rate": 0.0005
+                        },
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0.01013125,
+                                "rate": 0.0005
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
                 "description": "user trades",
                 "method": "fetchMyTrades",
                 "input": [
@@ -1516,6 +1603,7 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": null,
+                        "positionMargin": null,
                         "collateral": null,
                         "marginMode": "cross",
                         "side": "long",
@@ -1562,7 +1650,7 @@
                         "timestamp": 1707258274849,
                         "datetime": "2024-02-06T22:24:34.849Z",
                         "initialMargin": null,
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 1,
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "entryPrice": 68.54,
@@ -1576,6 +1664,7 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": null,
+                        "positionMargin": null,
                         "collateral": null,
                         "marginMode": "isolated",
                         "side": "long",

@@ -230,7 +230,7 @@ class hollaex(ccxt.async_support.hollaex):
         # }
         #
         channel = self.safe_string(message, 'topic')
-        rawTrades = self.safe_value(message, 'data')
+        rawTrades = self.safe_list(message, 'data', [])
         # usually the first message is an empty array
         # when the user does not have any trades yet
         dataLength = len(rawTrades)
@@ -408,7 +408,7 @@ class hollaex(ccxt.async_support.hollaex):
         #     }
         #
         messageHash = self.safe_string(message, 'topic')
-        data = self.safe_value(message, 'data')
+        data = self.safe_dict(message, 'data', {})
         keys = list(data.keys())
         timestamp = self.safe_timestamp(message, 'time')
         self.balance['info'] = data
@@ -443,7 +443,8 @@ class hollaex(ccxt.async_support.hollaex):
         self.check_required_credentials()
         expires = self.safe_string(self.options, 'ws-expires')
         if expires is None:
-            timeout = int((self.timeout / str(1000)))
+            timeoutMs = self.parse_to_int(self.timeout)
+            timeout = self.parse_to_int(timeoutMs / 1000)
             expires = self.sum(self.seconds(), timeout)
             if expires is None:
                 raise ArgumentsRequired(self.id + ' watchPrivate() expires is required')

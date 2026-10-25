@@ -84,12 +84,12 @@ export default class binance extends binanceRest {
                     'ws': {
                         'spot': 'wss://stream.testnet.binance.vision/ws',
                         'margin': 'wss://stream.testnet.binance.vision/ws',
-                        'future': 'wss://fstream.binancefuture.com/ws',
-                        'delivery': 'wss://dstream.binancefuture.com/ws',
+                        'linear': 'wss://fstream.binancefuture.com/ws',
+                        'inverse': 'wss://dstream.binancefuture.com/ws',
                         'ws-api': {
                             'spot': 'wss://ws-api.testnet.binance.vision/ws-api/v3',
-                            'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
-                            'delivery': 'wss://testnet.binancefuture.com/ws-dapi/v1',
+                            'linear': 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'inverse': 'wss://testnet.binancefuture.com/ws-dapi/v1',
                         },
                     },
                 },
@@ -97,12 +97,12 @@ export default class binance extends binanceRest {
                     'ws': {
                         'spot': 'wss://demo-stream.binance.com/ws',
                         'margin': 'wss://demo-stream.binance.com/ws',
-                        'future': 'wss://fstream.binancefuture.com/ws',
-                        'delivery': 'wss://dstream.binancefuture.com/ws',
+                        'linear': 'wss://fstream.binancefuture.com/ws',
+                        'inverse': 'wss://dstream.binancefuture.com/ws',
                         'ws-api': {
                             'spot': 'wss://demo-ws-api.binance.com/ws-api/v3',
-                            'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
-                            'delivery': 'wss://testnet.binancefuture.com/ws-dapi/v1',
+                            'linear': 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'inverse': 'wss://testnet.binancefuture.com/ws-dapi/v1',
                         },
                     },
                 },
@@ -110,16 +110,16 @@ export default class binance extends binanceRest {
                     'ws': {
                         'spot': 'wss://stream.binance.com:9443/ws',
                         'margin': 'wss://stream.binance.com:9443/ws',
-                        'future': 'wss://fstream.binance.com/ws',
-                        'delivery': 'wss://dstream.binance.com/ws',
+                        'linear': 'wss://fstream.binance.com/ws',
+                        'inverse': 'wss://dstream.binance.com/ws',
                         'stock': 'wss://nbstream.binance.com/equity/ws',
                         'option': 'wss://fstream.binance.com/public/ws',
                         'optionMarket': 'wss://fstream.binance.com/market/ws',
                         'optionPrivate': 'wss://fstream.binance.com/private/ws',
                         'ws-api': {
                             'spot': 'wss://ws-api.binance.com:443/ws-api/v3',
-                            'future': 'wss://ws-fapi.binance.com/ws-fapi/v1',
-                            'delivery': 'wss://ws-dapi.binance.com/ws-dapi/v1',
+                            'linear': 'wss://ws-fapi.binance.com/ws-fapi/v1',
+                            'inverse': 'wss://ws-dapi.binance.com/ws-dapi/v1',
                         },
                         'papi': 'wss://fstream.binance.com/pm/ws',
                     },
@@ -134,8 +134,8 @@ export default class binance extends binanceRest {
                 'streamLimits': {
                     'spot': 50, // max 1024
                     'margin': 50, // max 1024
-                    'future': 50, // max 200
-                    'delivery': 50, // max 200
+                    'linear': 50, // max 200
+                    'inverse': 50, // max 200
                     'stock': 50,
                     'option': 50, // max 200
                     'optionMarket': 50, // max 200
@@ -143,8 +143,8 @@ export default class binance extends binanceRest {
                 'subscriptionLimitByStream': {
                     'spot': 200,
                     'margin': 200,
-                    'future': 200,
-                    'delivery': 200,
+                    'linear': 200,
+                    'inverse': 200,
                     'stock': 200,
                     'option': 200,
                     'optionMarket': 200,
@@ -228,10 +228,10 @@ export default class binance extends binanceRest {
         const streamBySubscriptionsHash = this.safeDict(this.options, 'streamBySubscriptionsHash', this.createSafeDictionary());
         let stream = this.safeString(streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
-            let streamIndex = this.safeInteger(this.options, 'streamIndex', -1);
+            const previousStreamIndex = this.safeInteger(this.options, 'streamIndex', -1);
             const streamLimits = this.safeDict(this.options, 'streamLimits');
             const streamLimit = this.safeInteger(streamLimits, type);
-            streamIndex = streamIndex + 1;
+            const streamIndex = previousStreamIndex + 1;
             const normalizedIndex = streamIndex % streamLimit;
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString(normalizedIndex);
@@ -248,7 +248,7 @@ export default class binance extends binanceRest {
             if (newNumSubscriptions > subscriptionLimitByStream) {
                 throw new BadRequest(this.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.');
             }
-            this.options['numSubscriptionsByStream'][stream] = subscriptionsByStream + numSubscriptions;
+            this.options['numSubscriptionsByStream'][stream] = newNumSubscriptions;
         }
         return stream;
     }
@@ -259,7 +259,7 @@ export default class binance extends binanceRest {
             return this.urls['api']['ws'][type];
         }
         const baseUrl = this.urls['api']['ws'][type];
-        if (type === 'future') {
+        if (type === 'linear') {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
             // const firstProtocol = baseUrl.indexOf ('://');
             // if (firstProtocol !== -1 && baseUrl.indexOf ('://', firstProtocol + 3) !== -1) {
@@ -290,7 +290,7 @@ export default class binance extends binanceRest {
         if (listenKey === undefined) {
             throw new AuthenticationError(this.id + ' getPrivateWsUrl() requires a listenKey from authenticate()');
         }
-        if (type === 'future') {
+        if (type === 'linear') {
             return this.getWsUrl(type, 'private') + '?listenKey=' + listenKey;
         }
         const wsUrl = this.safeString(this.urls['api']['ws'], type);
@@ -761,7 +761,7 @@ export default class binance extends binanceRest {
             type = 'option';
         }
         else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'future' : 'delivery';
+            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
         }
         let name = 'depth';
         let streamHash = 'multipleOrderbook';
@@ -775,7 +775,7 @@ export default class binance extends binanceRest {
         const [watchOrderBookRateOption, paramsRate] = this.handleOptionStringAndParams(params, 'watchOrderBookForSymbols', 'watchOrderBookRate', '100');
         let watchOrderBookRate = watchOrderBookRateOption;
         const [rpi, paramsRpi] = this.handleOptionBoolAndParams(paramsRate, 'watchOrderBookForSymbols', 'rpi', false);
-        if (rpi && type === 'future') {
+        if (rpi && type === 'linear') {
             name = 'rpiDepth';
             watchOrderBookRate = '500';
         }
@@ -841,7 +841,7 @@ export default class binance extends binanceRest {
             type = 'option';
         }
         else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'future' : 'delivery';
+            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
         }
         const name = 'depth';
         let streamHash = 'multipleOrderbook';
@@ -924,7 +924,7 @@ export default class binance extends binanceRest {
             payload['limit'] = limit;
         }
         const marketType = this.getMarketType('fetchOrderBookWs', market, params);
-        if (marketType !== 'future') {
+        if (marketType !== 'linear') {
             throw new BadRequest(this.id + ' fetchOrderBookWs only supports swap markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], marketType);
@@ -944,8 +944,9 @@ export default class binance extends binanceRest {
         const subscription = {
             'method': this.handleFetchOrderBook,
         };
-        const orderbook = await this.watch(url, messageHash, message, messageHash, subscription);
-        orderbook['symbol'] = market['symbol'];
+        const snapshot = await this.watch(url, messageHash, message, messageHash, subscription);
+        snapshot['symbol'] = market['symbol'];
+        const orderbook = this.orderBook(snapshot);
         return orderbook;
     }
     handleFetchOrderBook(client, message) {
@@ -1008,23 +1009,31 @@ export default class binance extends binanceRest {
                     continue;
                 }
                 const pu = this.safeInteger(messageItem, 'pu');
-                if (type === 'future') {
+                const snapshotNonce = this.safeInteger(orderbook, 'nonce');
+                if (snapshotNonce === undefined) {
+                    // every comparison against an undefined nonce is false, only pu === undefined matches
+                    if ((type === 'linear') && (pu === undefined)) {
+                        this.handleOrderBookMessage(client, messageItem, orderbook);
+                    }
+                    continue;
+                }
+                if (type === 'linear') {
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if (u < orderbook['nonce']) {
+                    if (u < snapshotNonce) {
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-                    if ((U <= orderbook['nonce']) && (u >= orderbook['nonce']) || (pu === orderbook['nonce'])) {
+                    if ((U <= snapshotNonce) && (u >= snapshotNonce) || (pu === snapshotNonce)) {
                         this.handleOrderBookMessage(client, messageItem, orderbook);
                     }
                 }
                 else {
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if (u <= orderbook['nonce']) {
+                    if (u <= snapshotNonce) {
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                    if (((U - 1) <= orderbook['nonce']) && ((u - 1) >= orderbook['nonce'])) {
+                    if (((U - 1) <= snapshotNonce) && ((u - 1) >= snapshotNonce)) {
                         this.handleOrderBookMessage(client, messageItem, orderbook);
                     }
                 }
@@ -1136,7 +1145,8 @@ export default class binance extends binanceRest {
                         }
                         if (conditional) {
                             this.handleOrderBookMessage(client, message, orderbook);
-                            if (nonce < this.safeInteger(orderbook, 'nonce', 0)) {
+                            const newNonce = this.safeInteger(orderbook, 'nonce', 0);
+                            if (nonce < newNonce) {
                                 client.resolve(orderbook, messageHash);
                             }
                         }
@@ -1157,7 +1167,8 @@ export default class binance extends binanceRest {
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
                         if ((U <= nonce) || (pu === nonce)) {
                             this.handleOrderBookMessage(client, message, orderbook);
-                            if (nonce <= this.safeInteger(orderbook, 'nonce', 0)) {
+                            const newNonce = this.safeInteger(orderbook, 'nonce', 0);
+                            if (nonce <= newNonce) {
                                 client.resolve(orderbook, messageHash);
                             }
                         }
@@ -1191,10 +1202,12 @@ export default class binance extends binanceRest {
         // handle list of symbols
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            if (symbol in this.orderbooks) {
-                delete this.orderbooks[symbol];
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook({}, limit);
             }
-            this.orderbooks[symbol] = this.orderBook({}, limit);
+            const orderbook = this.orderbooks[symbol];
+            orderbook['nonce'] = undefined;
+            orderbook.cache = [];
             const symbolSubscription = this.extend(subscription, { 'symbol': symbol });
             // fetch the snapshot in a separate async call
             this.spawn(this.fetchOrderBookSnapshot, client, message, symbolSubscription);
@@ -1215,7 +1228,7 @@ export default class binance extends binanceRest {
             method.call(this, client, message, subscription);
         }
         const isUnSubMessage = this.safeBool(subscription, 'unsubscribe', false);
-        if (isUnSubMessage === true) {
+        if (isUnSubMessage) {
             this.handleUnSubscription(client, subscription);
         }
         return message;
@@ -1269,7 +1282,7 @@ export default class binance extends binanceRest {
             type = 'option';
         }
         else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'future' : 'delivery';
+            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
         }
         const messageHashes = [];
         const subParams = [];
@@ -1357,7 +1370,7 @@ export default class binance extends binanceRest {
             type = 'option';
         }
         else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'future' : 'delivery';
+            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
         }
         const subMessageHashes = [];
         const subParams = [];
@@ -1517,7 +1530,7 @@ export default class binance extends binanceRest {
         //         "Q": "0.00000000"
         //     }
         //
-        // private watchMyTrades future/delivery
+        // private watchMyTrades linear/inverse
         //
         //     {
         //         "s": "BTCUSDT",
@@ -1737,7 +1750,7 @@ export default class binance extends binanceRest {
             wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
         }
         else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'future' : 'delivery';
+            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
             wsUrlType = type;
         }
         const isSpot = (type === 'spot');
@@ -1817,7 +1830,7 @@ export default class binance extends binanceRest {
             wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
         }
         else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'future' : 'delivery';
+            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
             wsUrlType = type;
         }
         const isSpot = (type === 'spot');
@@ -1984,7 +1997,7 @@ export default class binance extends binanceRest {
             'symbol': market['id'],
         };
         const type = this.getMarketType('fetchTickerWs', market, params);
-        if (type !== 'future') {
+        if (type !== 'linear') {
             throw new BadRequest(this.id + ' fetchTickerWs only supports swap markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], type);
@@ -2030,7 +2043,7 @@ export default class binance extends binanceRest {
         }
         const market = this.market(symbol);
         const marketType = this.getMarketType('fetchOHLCVWs', market, params);
-        if (marketType !== 'spot' && marketType !== 'future') {
+        if (marketType !== 'spot' && marketType !== 'linear') {
             throw new BadRequest(this.id + ' fetchOHLCVWs only supports spot or swap markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], marketType);
@@ -2372,10 +2385,10 @@ export default class binance extends binanceRest {
             rawMarketType = (isOptionMarkPrice) ? 'optionMarket' : 'option';
         }
         else if (this.isLinear(marketType, subType)) {
-            rawMarketType = 'future';
+            rawMarketType = 'linear';
         }
         else if (this.isInverse(marketType, subType)) {
-            rawMarketType = 'delivery';
+            rawMarketType = 'inverse';
         }
         else if (marketType === 'spot') {
             rawMarketType = marketType;
@@ -2394,7 +2407,7 @@ export default class binance extends binanceRest {
         const unsubscribeMessageHashes = [];
         let suffix = '';
         if (isMarkPrice && !isOptionMarkPrice) {
-            suffix = (use1sFreq === true) ? '@1s' : '';
+            suffix = (use1sFreq) ? '@1s' : '';
         }
         let unifiedPrefix = undefined;
         if (isBidAsk) {
@@ -2704,7 +2717,7 @@ export default class binance extends binanceRest {
         //
         const messageHash = this.safeString(message, 'id');
         const result = this.safeDict(message, 'result', {});
-        const ticker = this.parseWsTicker(result, 'future');
+        const ticker = this.parseWsTicker(result, 'contract');
         client.resolve(ticker, messageHash);
     }
     handleBidsAsks(client, message) {
@@ -2887,8 +2900,6 @@ export default class binance extends binanceRest {
             await client.future(messageHash);
             return;
         }
-        client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
-        client.subscriptions[marketType] = true;
         const requestId = this.requestId(url);
         const requestHash = requestId.toString();
         const message = {
@@ -2901,6 +2912,10 @@ export default class binance extends binanceRest {
             'method': this.handleUserDataStreamSubscribe,
             'subscription': marketType,
         };
+        // created right before the request, after the signing above: concurrent callers find it, and in
+        // the threaded ports the ack can not arrive between this future and the request one watch () adds
+        client.future(messageHash);
+        client.subscriptions[marketType] = true;
         try {
             await this.watch(url, requestHash, message, requestHash, subscription);
             client.resolve(marketType, messageHash);
@@ -2976,7 +2991,7 @@ export default class binance extends binanceRest {
                 const isIsolated = this.safeBool(params, 'isIsolated', false);
                 const validity = this.safeInteger(params, 'validity');
                 const request = {};
-                if (isIsolated === true) {
+                if (isIsolated) {
                     if (symbol === undefined) {
                         throw new ArgumentsRequired(this.id + ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode');
                     }
@@ -3046,7 +3061,7 @@ export default class binance extends binanceRest {
         if (symbol !== undefined) {
             renewParams['symbol'] = symbol;
         }
-        if (isIsolated === true) {
+        if (isIsolated) {
             renewParams['isIsolated'] = isIsolated;
         }
         if (validity !== undefined) {
@@ -3119,10 +3134,10 @@ export default class binance extends binanceRest {
                 else if (isPortfolioMargin) {
                     response = await this.papiPostListenKey(paramsOmitted);
                 }
-                else if (type === 'future') {
+                else if (type === 'linear') {
                     response = await this.fapiPrivatePostListenKey(paramsOmitted);
                 }
-                else if (type === 'delivery') {
+                else if (type === 'inverse') {
                     response = await this.dapiPrivatePostListenKey(paramsOmitted);
                 }
                 else if (type === 'option') {
@@ -3176,17 +3191,17 @@ export default class binance extends binanceRest {
         const subType = this.handleSubTypeAndParams('keepAliveListenKey', undefined, paramsPortfolioMargin)[0];
         if (type !== 'option' && type !== 'stock') {
             // guard options first: isLinear returns true for linear-settled options (subType='linear')
-            // which would incorrectly convert type='option' to 'future'.
+            // which would incorrectly convert type='option' to 'linear'.
             // stock needs the same exemption: with a defaultSubType of 'linear' -
             // always on binanceusdm, common on mixed instances - isLinear keys off
-            // subType alone and would flip 'stock' to 'future' - the stock branch
+            // subType alone and would flip 'stock' to 'linear' - the stock branch
             // below would never run, and the bucket lookup would renew the
             // FUTURES listen key while the stock key silently expires
             if (this.isLinear(type, subType)) {
-                type = 'future';
+                type = 'linear';
             }
             else if (this.isInverse(type, subType)) {
-                type = 'delivery';
+                type = 'inverse';
             }
         }
         // For margin, token renewal is handled by renewListenToken method
@@ -3216,10 +3231,10 @@ export default class binance extends binanceRest {
             else if (isPortfolioMargin) {
                 await this.papiPutListenKey(this.extend(request, paramsOmitted));
             }
-            else if (type === 'future') {
+            else if (type === 'linear') {
                 await this.fapiPrivatePutListenKey(this.extend(request, paramsOmitted));
             }
-            else if (type === 'delivery') {
+            else if (type === 'inverse') {
                 await this.dapiPrivatePutListenKey(this.extend(request, paramsOmitted));
             }
             else if (type === 'option') {
@@ -3298,7 +3313,7 @@ export default class binance extends binanceRest {
         }
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot === true) {
+        if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -3313,7 +3328,7 @@ export default class binance extends binanceRest {
         const params = {
             'type': type,
         };
-        if (isPortfolioMargin === true) {
+        if (isPortfolioMargin) {
             params['portfolioMargin'] = true;
         }
         const response = await this.fetchBalance(params);
@@ -3333,7 +3348,7 @@ export default class binance extends binanceRest {
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/account-requests#account-information-user_data
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+     * @param {string|undefined} [params.type] 'spot', 'margin', 'swap', 'future', 'savings' or 'funding', use params.subType 'inverse' for COIN-M
      * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @param {string|undefined} [params.method] method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
@@ -3344,7 +3359,7 @@ export default class binance extends binanceRest {
             await this.loadMarkets();
         }
         const type = this.getMarketType('fetchBalanceWs', undefined, params);
-        if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
+        if (type !== 'spot' && type !== 'linear' && type !== 'inverse') {
             throw new BadRequest(this.id + ' fetchBalanceWs only supports spot or swap markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], type);
@@ -3479,9 +3494,9 @@ export default class binance extends binanceRest {
         if (symbolsNormalized === undefined && (type === 'spot')) {
             // when symbols aren't provide
             // we shouldn't rely on the defaultType
-            type = 'future';
+            type = 'linear';
         }
-        if (type !== 'future' && type !== 'delivery') {
+        if (type !== 'linear' && type !== 'inverse') {
             throw new BadRequest(this.id + ' fetchPositionsWs only supports swap markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], type);
@@ -3578,7 +3593,7 @@ export default class binance extends binanceRest {
             }
             else if (type === 'option') {
                 const demoMode = this.safeBool(this.options, 'enableDemoTrading', false);
-                if ((demoMode === true) || this.isSandboxModeEnabled) {
+                if ((demoMode) || this.isSandboxModeEnabled) {
                     throw new NotSupported(this.id + ' watchBalance() does not support option markets in demo/testnet mode');
                 }
                 urlType = 'optionPrivate';
@@ -3591,7 +3606,7 @@ export default class binance extends binanceRest {
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool(options, 'awaitBalanceSnapshot', true);
-        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
+        if ((fetchBalanceSnapshot) && (awaitBalanceSnapshot)) {
             await client.future(type + ':fetchBalanceSnapshot');
         }
         const messageHash = type + ':balance';
@@ -3625,7 +3640,7 @@ export default class binance extends binanceRest {
         //         ]
         //     }
         //
-        // future/delivery
+        // linear/inverse
         //
         //     {
         //         "e": "ACCOUNT_UPDATE",            // Event Type
@@ -3724,7 +3739,7 @@ export default class binance extends binanceRest {
         let accountType = '';
         for (let i = 0; i < subscriptions.length; i++) {
             const subscription = subscriptions[i];
-            if ((subscription === 'spot') || (subscription === 'margin') || (subscription === 'future') || (subscription === 'delivery') || (subscription === 'option')) {
+            if ((subscription === 'spot') || (subscription === 'margin') || (subscription === 'linear') || (subscription === 'inverse') || (subscription === 'option')) {
                 accountType = subscription;
                 break;
             }
@@ -3744,10 +3759,10 @@ export default class binance extends binanceRest {
         let type = marketType;
         if (type !== 'option' && type !== 'stock') {
             if (this.isLinear(type, subType)) {
-                type = 'future';
+                type = 'linear';
             }
             else if (this.isInverse(type, subType)) {
-                type = 'delivery';
+                type = 'inverse';
             }
         }
         // sites consuming every element unpack this; the two that skip subType
@@ -3760,10 +3775,10 @@ export default class binance extends binanceRest {
         [type, paramsMarketType] = this.handleMarketTypeAndParams(method, market, params);
         const subType = this.handleSubTypeAndParams(method, market, paramsMarketType)[0];
         if (this.isLinear(type, subType)) {
-            type = 'future';
+            type = 'linear';
         }
         else if (this.isInverse(type, subType)) {
-            type = 'delivery';
+            type = 'inverse';
         }
         return type;
     }
@@ -3791,7 +3806,7 @@ export default class binance extends binanceRest {
         }
         const market = this.market(symbol);
         const marketType = this.getMarketType('createOrderWs', market, params);
-        if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
+        if (marketType !== 'spot' && marketType !== 'linear' && marketType !== 'inverse') {
             throw new BadRequest(this.id + ' createOrderWs only supports spot or swap markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], marketType);
@@ -3820,8 +3835,8 @@ export default class binance extends binanceRest {
             'method': 'order.place',
             'params': this.signParams(this.extend(payload, paramsOmitted2)),
         };
-        if (test === true) {
-            if (sor === true) {
+        if (test) {
+            if (sor) {
                 message['method'] = 'sor.order.test';
             }
             else {
@@ -3954,7 +3969,7 @@ export default class binance extends binanceRest {
         }
         const market = this.market(symbol);
         const marketType = this.getMarketType('editOrderWs', market, params);
-        if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
+        if (marketType !== 'spot' && marketType !== 'linear' && marketType !== 'inverse') {
             throw new BadRequest(this.id + ' editOrderWs only supports spot or swap markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], marketType);
@@ -3963,7 +3978,7 @@ export default class binance extends binanceRest {
         }
         const requestId = this.requestId(url);
         const messageHash = requestId.toString();
-        const isSwap = (marketType === 'future' || marketType === 'delivery');
+        const isSwap = (marketType === 'linear' || marketType === 'inverse');
         let payload = {};
         if (marketType === 'spot') {
             payload = this.editSpotOrderRequest(id, symbol, type, side, amount, price, params);
@@ -4131,9 +4146,9 @@ export default class binance extends binanceRest {
         };
         const isConditional = this.safeBoolN(paramsReturnRateLimits, ['stop', 'trigger', 'conditional']);
         const clientOrderId = this.safeStringN(paramsReturnRateLimits, ['clientAlgoId', 'origClientOrderId', 'clientOrderId']);
-        const shouldUseAlgoOrder = (market['linear'] === true) && (market['swap'] === true) && (isConditional === true);
+        const shouldUseAlgoOrder = (market['linear'] === true) && ((market['swap'] === true) || (market['future'] === true)) && (isConditional === true);
         if (clientOrderId !== undefined) {
-            if (shouldUseAlgoOrder === true) {
+            if (shouldUseAlgoOrder) {
                 payload['clientAlgoId'] = clientOrderId;
             }
             else {
@@ -4141,7 +4156,7 @@ export default class binance extends binanceRest {
             }
         }
         else {
-            if (shouldUseAlgoOrder === true) {
+            if (shouldUseAlgoOrder) {
                 payload['algoId'] = this.numberToString(id);
             }
             else {
@@ -4154,7 +4169,7 @@ export default class binance extends binanceRest {
             'method': 'order.cancel',
             'params': this.signParams(this.extend(payload, paramsOmitted)),
         };
-        if (shouldUseAlgoOrder === true) {
+        if (shouldUseAlgoOrder) {
             message['method'] = 'algoOrder.cancel';
         }
         const subscription = {
@@ -4225,7 +4240,7 @@ export default class binance extends binanceRest {
         }
         const market = this.market(symbol);
         const type = this.getMarketType('fetchOrderWs', market, params);
-        if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
+        if (type !== 'spot' && type !== 'linear' && type !== 'inverse') {
             throw new BadRequest(this.id + ' fetchOrderWs only supports spot or swap markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], type);
@@ -4455,7 +4470,7 @@ export default class binance extends binanceRest {
             }
             else if (type === 'option') {
                 const demoMode = this.safeBool(this.options, 'enableDemoTrading', false);
-                if ((demoMode === true) || this.isSandboxModeEnabled) {
+                if ((demoMode) || this.isSandboxModeEnabled) {
                     throw new NotSupported(this.id + ' watchOrders() does not support option markets in demo/testnet mode');
                 }
                 urlType = 'optionPrivate';
@@ -4714,6 +4729,7 @@ export default class binance extends binanceRest {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = 'PO';
         }
+        const postOnly = (orderType === 'limit_maker') || (timeInForce === 'PO');
         return this.safeOrder({
             'info': order,
             'symbol': symbol,
@@ -4725,7 +4741,7 @@ export default class binance extends binanceRest {
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'type': this.parseOrderTypeByMarket(orderType, marketType),
             'timeInForce': timeInForce,
-            'postOnly': undefined,
+            'postOnly': postOnly,
             'reduceOnly': this.safeBool(order, 'R'),
             'side': this.safeStringLower(order, 'S'),
             'price': this.safeString(order, 'p'),
@@ -5066,12 +5082,12 @@ export default class binance extends binanceRest {
         // spot and margin have no positions - whatever still RESOLVES to spot
         // or margin after the helper falls through to the derivatives stream
         // matching the subType. requests a defaultSubType already rewrote
-        // arrive here as future or delivery and pass untouched, which lands on
+        // arrive here as future or inverse and pass untouched, which lands on
         // the same stream the old raw-type ordering produced in every case
         if (type === 'spot' || type === 'margin') {
-            type = (subType === 'inverse') ? 'delivery' : 'future';
+            type = (subType === 'inverse') ? 'inverse' : 'linear';
         }
-        // 'option' stays as 'option', don't redirect to 'future' - the helper's
+        // 'option' stays as 'option', don't redirect to 'linear' - the helper's
         // guard finally makes this comment true
         const marketTypeObject = {};
         marketTypeObject['type'] = type;
@@ -5086,7 +5102,7 @@ export default class binance extends binanceRest {
         }
         else if (type === 'option') {
             const demoMode = this.safeBool(this.options, 'enableDemoTrading', false);
-            if ((demoMode === true) || this.isSandboxModeEnabled) {
+            if ((demoMode) || this.isSandboxModeEnabled) {
                 throw new NotSupported(this.id + ' watchPositions() does not support option markets in demo/testnet mode');
             }
             urlType = 'optionPrivate';
@@ -5134,7 +5150,7 @@ export default class binance extends binanceRest {
         const params = {
             'type': type,
         };
-        if (isPortfolioMargin === true) {
+        if (isPortfolioMargin) {
             params['portfolioMargin'] = true;
         }
         const positions = await this.fetchPositions(undefined, params);
@@ -5344,7 +5360,7 @@ export default class binance extends binanceRest {
         }
         const market = this.market(symbol);
         const type = this.getMarketType('fetchMyTradesWs', market, params);
-        if (type !== 'spot' && type !== 'future') {
+        if (type !== 'spot' && type !== 'linear') {
             throw new BadRequest(this.id + ' fetchMyTradesWs does not support ' + type + ' markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], type);
@@ -5399,7 +5415,7 @@ export default class binance extends binanceRest {
         }
         const market = this.market(symbol);
         const type = this.getMarketType('fetchTradesWs', market, params);
-        if (type !== 'spot' && type !== 'future') {
+        if (type !== 'spot' && type !== 'linear') {
             throw new BadRequest(this.id + ' fetchTradesWs does not support ' + type + ' markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], type);
@@ -5523,7 +5539,7 @@ export default class binance extends binanceRest {
             }
             else if (type === 'option') {
                 const demoMode = this.safeBool(this.options, 'enableDemoTrading', false);
-                if ((demoMode === true) || this.isSandboxModeEnabled) {
+                if ((demoMode) || this.isSandboxModeEnabled) {
                     throw new NotSupported(this.id + ' watchMyTrades() does not support option markets in demo/testnet mode');
                 }
                 urlType = 'optionPrivate';
@@ -5547,8 +5563,7 @@ export default class binance extends binanceRest {
         if (executionType === 'TRADE') {
             const trade = this.parseWsTrade(message);
             const orderId = this.safeString(trade, 'order');
-            let tradeFee = this.safeDict(trade, 'fee', {});
-            tradeFee = this.extend({}, tradeFee);
+            const tradeFee = this.extend({}, this.safeDict(trade, 'fee', {}));
             const symbol = this.safeString(trade, 'symbol');
             if (orderId !== undefined && tradeFee !== undefined && symbol !== undefined) {
                 const cachedOrders = this.orders;
@@ -5557,9 +5572,9 @@ export default class binance extends binanceRest {
                     const order = this.safeDict(orders, orderId);
                     if (order !== undefined) {
                         // accumulate order fees
-                        const fees = this.safeValue(order, 'fees');
+                        const fees = this.safeList(order, 'fees');
                         const fee = this.safeDict(order, 'fee');
-                        if (!this.isEmpty(fees)) {
+                        if ((fees !== undefined) && !this.isEmpty(fees)) {
                             let insertNewFeeCurrency = true;
                             for (let i = 0; i < fees.length; i++) {
                                 const orderFee = fees[i];

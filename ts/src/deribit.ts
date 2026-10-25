@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { totp } from './base/functions/totp.js';
-import type { Balances, Bool, Currency, CurrencyInterface, Fee, FeeString, FundingRateHistory, Greeks, Int, Liquidation, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, OpenInterest, Account, Option, OptionChain, Currencies, TradingFees, Dict, NullableDict, int, FundingRate, DepositAddress, Position, DepositWithdrawFees, Status, Endpoint } from './base/types.js';
+import type { NullableDict, Balances, Bool, Currency, CurrencyInterface, Fee, FeeString, FundingRateHistory, Greeks, Int, Liquidation, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, OpenInterest, Account, Option, OptionChain, Currencies, TradingFees, Dict, int, FundingRate, DepositAddress, Position, DepositWithdrawFees, Status, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1409,7 +1409,8 @@ export default class deribit extends Exchange {
         if (symbolsNormalized !== undefined) {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const market = this.market (symbolsNormalized[i]);
-                if (code !== undefined && code !== market['base']) {
+                const marketBase = this.safeString (market, 'base');
+                if (code !== undefined && code !== marketBase) {
                     throw new BadRequest (this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency');
                 }
                 if (code === undefined) {
@@ -1511,8 +1512,9 @@ export default class deribit extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         const now = this.milliseconds ();
         // at max, it provides 5000 bars, but we set generous default here
-        const windowLimit = (limit === undefined) ? 1000 : limit;
-        const limitResolved = (since === undefined) ? windowLimit : limit;
+        const defaultLimit = 1000;
+        const windowLimit: int = (limit === undefined) ? defaultLimit : limit;
+        const limitResolved = ((since === undefined) && (limit === undefined)) ? defaultLimit : limit;
         const sinceResolved: Int = (since === undefined) ? undefined : Math.max (since - 1, 0);
         if (since === undefined) {
             request['start_timestamp'] = now - (windowLimit - 1) * duration * 1000;
@@ -1904,7 +1906,7 @@ export default class deribit extends Exchange {
         return orderbook;
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'open': 'open',
             'cancelled': 'canceled',
@@ -1915,7 +1917,7 @@ export default class deribit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'good_til_cancelled': 'GTC',
             'fill_or_kill': 'FOK',
@@ -2125,9 +2127,9 @@ export default class deribit extends Exchange {
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         // only stop loss sell orders are allowed when price crossed from above
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
         // only take profit buy orders are allowed when price crossed from below
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const trailingAmount = this.safeString2 (params, 'trailingAmount', 'trigger_offset');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isStopLimit = type === 'stop_limit';
@@ -2691,7 +2693,7 @@ export default class deribit extends Exchange {
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'completed': 'ok',
             'unconfirmed': 'pending',
@@ -3177,14 +3179,13 @@ export default class deribit extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const tagAndParams = this.handleWithdrawTagAndParams (tag, params);
-        const paramsWithdrawTag: Dict = tagAndParams[1];
-        this.checkAddress (address);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3203,7 +3204,7 @@ export default class deribit extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         //
         //    {
         //      "withdrawal_priorities": [],
@@ -3335,19 +3336,17 @@ export default class deribit extends Exchange {
         const duration = this.parseTimeframe (eachItemDuration) * 1000;
         const now = this.milliseconds ();
         const month = 30 * 24 * 60 * 60 * 1000;
-        const sinceResolved: Int = (since === undefined) ? now - month : since;
-        const time = (since === undefined) ? now : since + month;
+        const defaultSince = now - month;
+        const sinceResolved: int = (since === undefined) ? defaultSince : since;
+        const time: int = (since === undefined) ? now : since + month;
         const request: Dict = {
             'instrument_name': market['id'],
             'start_timestamp': sinceResolved - 1,
         };
         const until = this.safeInteger2 (paramsPaginate, 'until', 'end_timestamp');
         const paramsUntil: Dict = (until !== undefined) ? this.omit (paramsPaginate, [ 'until' ]) : paramsPaginate;
-        if (until !== undefined) {
-            request['end_timestamp'] = until;
-        } else {
-            request['end_timestamp'] = time;
-        }
+        const endTimestamp: int = (until !== undefined) ? until : time;
+        request['end_timestamp'] = endTimestamp;
         const isPaginationCall = ('isDeribitPaginationCall' in paramsUntil);
         let paramsOmitted: Dict = paramsUntil;
         if (isPaginationCall) {
@@ -3357,8 +3356,8 @@ export default class deribit extends Exchange {
             if (limit === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a limit argument');
             }
-            const maxUntil = this.sum (sinceResolved, limit * duration);
-            request['end_timestamp'] = Math.min (request['end_timestamp'], maxUntil);
+            const maxUntil: int = this.parseToInt (this.sum (sinceResolved, limit * duration));
+            request['end_timestamp'] = (endTimestamp < maxUntil) ? endTimestamp : maxUntil;
         }
         const response = await this.publicGetGetFundingRateHistory (this.extend (request, paramsOmitted));
         //
@@ -3953,7 +3952,7 @@ export default class deribit extends Exchange {
         return this.parseOpenInterest (data, market);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "high": 93099.5,
@@ -4002,14 +4001,15 @@ export default class deribit extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let request = '/' + 'api/' + this.version + '/' + api + '/' + path;
-        if (api === 'public') {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        let request = '/' + 'api/' + this.version + '/' + apiName + '/' + path;
+        if (apiName === 'public') {
             if (Object.keys (params).length > 0) {
                 request += '?' + this.urlencode (params);
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const timestamp = this.milliseconds ().toString ();
@@ -4028,14 +4028,14 @@ export default class deribit extends Exchange {
                 throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
             }
             const signedUrl = baseApiUrl + request;
-            return { 'url': signedUrl, 'method': method, 'body': body, 'headers': signedHeaders };
+            return { 'url': signedUrl, 'method': method, 'body': undefined, 'headers': signedHeaders };
         }
         const apiUrl = this.safeString (this.urls['api'], 'rest');
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         const url = apiUrl + request;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

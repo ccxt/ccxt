@@ -1425,7 +1425,7 @@ public partial class deribit : Exchange
             await this.loadMarkets();
         }
         string? code = this.safeString(parameters, "code");
-        object paramsOmitted = this.omit(parameters, "code");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "code"));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((code != null))
         {
@@ -1720,13 +1720,14 @@ public partial class deribit : Exchange
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? code = this.safeString2(parameters, "code", "currency");
         string? type = null;
-        object paramsOmitted = this.omit(parameters, new List<object>() {"code"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"code"}));
         if ((symbolsNormalized != null))
         {
             for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
             {
                 Dictionary<string, object> market = this.market(symbolsNormalized[i]);
-                if ((code != null) && !isEqual(code, (market.ContainsKey("base") ? market["base"] : null)))
+                string? marketBase = this.safeString(market, "base");
+                if ((code != null) && (code != marketBase))
                 {
                     throw new BadRequest ((this.id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency")) ;
                 }
@@ -1846,12 +1847,13 @@ public partial class deribit : Exchange
         int duration = this.parseTimeframe(timeframeVar);
         Int64 now = this.milliseconds();
         // at max, it provides 5000 bars, but we set generous default here
-        Int64? windowLimit = ((limit == null)) ? 1000 : limit;
-        Int64? limitResolved = ((since == null)) ? windowLimit : limit;
-        object sinceResolved = ((since == null)) ? null : mathMax(subtract(since, 1), 0);
+        int defaultLimit = 1000;
+        Int64? windowLimit = ((limit == null)) ? defaultLimit : limit;
+        Int64? limitResolved = (((since == null)) && ((limit == null))) ? defaultLimit : limit;
+        object sinceResolved = ((since == null)) ? null : mathMax(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(since, 1), 0);
         if ((since == null))
         {
-            request["start_timestamp"] = subtract(now, multiply(multiply(((windowLimit - 1)), duration), 1000));
+            request["start_timestamp"] = (now - ((((windowLimit - 1)) * duration) * 1000));
             request["end_timestamp"] = now;
         } else
         {
@@ -2499,9 +2501,9 @@ public partial class deribit : Exchange
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         // only stop loss sell orders are allowed when price crossed from above
-        object stopLossPrice = this.safeValue(parameters, "stopLossPrice");
+        string? stopLossPrice = this.safeString(parameters, "stopLossPrice");
         // only take profit buy orders are allowed when price crossed from below
-        object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
+        string? takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         string? trailingAmount = this.safeString2(parameters, "trailingAmount", "trigger_offset");
         bool isTrailingAmountOrder = (trailingAmount != null);
         bool isStopLimit = (type == "stop_limit");
@@ -2534,7 +2536,7 @@ public partial class deribit : Exchange
             request["trigger_offset"] = this.parseToNumeric(trailingAmount);
         } else if (isStopOrder)
         {
-            object triggerPrice = ((stopLossPrice != null)) ? stopLossPrice : takeProfitPrice;
+            string? triggerPrice = ((stopLossPrice != null)) ? stopLossPrice : takeProfitPrice;
             request["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
             request["trigger"] = trigger;
             if (isStopLossOrder)
@@ -2585,7 +2587,7 @@ public partial class deribit : Exchange
                 request["time_in_force"] = "fill_or_kill";
             }
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "reduceOnly", "trailingAmount"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "reduceOnly", "trailingAmount"}));
         Dictionary<string, object> response = null;
         if ((this.capitalize(side) == "Buy"))
         {
@@ -3553,7 +3555,7 @@ public partial class deribit : Exchange
             { "destination", toAccount },
         };
         string? method = this.safeString(parameters, "method");
-        object paramsOmitted = this.omit(parameters, "method");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "method"));
         if ((method == null))
         {
             IDictionary<string, object> transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
@@ -3640,16 +3642,17 @@ public partial class deribit : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> tagAndParams = this.handleWithdrawTagAndParams(tag, parameters);
-        object paramsWithdrawTag = (tagAndParams != null && 1 < tagAndParams.Count ? tagAndParams[1] : null);
-        this.checkAddress(address);
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
+        this.checkAddress(address, code, tagWithdrawTag);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -3815,7 +3818,8 @@ public partial class deribit : Exchange
         Int64 duration = (this.parseTimeframe(eachItemDuration) * 1000L);
         Int64 now = this.milliseconds();
         Int64 month = ((((30L * 24L) * 60) * 60) * 1000);
-        Int64? sinceResolved = ((since == null)) ? (now - month) : since;
+        Int64 defaultSince = (now - month);
+        Int64? sinceResolved = ((since == null)) ? defaultSince : since;
         Int64? time = ((since == null)) ? now : (since + month);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
@@ -3823,14 +3827,9 @@ public partial class deribit : Exchange
         };
         Int64? until = this.safeInteger2(paramsPaginate, "until", "end_timestamp");
         object paramsUntil = ((until != null)) ? this.omit(paramsPaginate, new List<object>() {"until"}) : paramsPaginate;
-        if ((until != null))
-        {
-            request["end_timestamp"] = until;
-        } else
-        {
-            request["end_timestamp"] = time;
-        }
-        bool isPaginationCall = (inOp(paramsUntil, "isDeribitPaginationCall"));
+        Int64? endTimestamp = ((until != null)) ? until : time;
+        request["end_timestamp"] = endTimestamp;
+        bool isPaginationCall = ((paramsUntil is IDictionary<string, object> inOpDict0 && inOpDict0.ContainsKey("isDeribitPaginationCall")));
         object paramsOmitted = paramsUntil;
         if (isPaginationCall)
         {
@@ -3842,8 +3841,8 @@ public partial class deribit : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a limit argument")) ;
             }
-            Int64 maxUntil = this.sum(sinceResolved, (limit * duration));
-            request["end_timestamp"] = mathMin((request != null && request.ContainsKey("end_timestamp") ? request["end_timestamp"] : null), maxUntil);
+            Int64? maxUntil = this.parseToInt(this.sum(sinceResolved, (limit * duration)));
+            request["end_timestamp"] = ((maxUntil != null && (endTimestamp == null || endTimestamp < maxUntil))) ? endTimestamp : maxUntil;
         }
         Dictionary<string, object> response = await this.publicGetGetFundingRateHistory(this.extend(request, paramsOmitted));
         //
@@ -3992,15 +3991,15 @@ public partial class deribit : Exchange
         return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(settlementsWithCursor, market, since, limit));
     }
 
-    public virtual object addPaginationCursorToResult(object cursor, object data)
+    public virtual object addPaginationCursorToResult(object cursor, IList<object> data)
     {
         if ((cursor != null))
         {
-            int dataLength = getArrayLength(data);
+            int dataLength = data?.Count ?? 0;
             if (dataLength > 0)
             {
-                object first = getValue(data, 0);
-                object last = getValue(data, (dataLength - 1));
+                object first = (data != null && 0 < data.Count ? data[0] : null);
+                object last = (data != null && (dataLength - 1) < data.Count ? data[(dataLength - 1)] : null);
                 ((IDictionary<string,object>)first)["continuation"] = cursor;
                 ((IDictionary<string,object>)last)["continuation"] = cursor;
                 ((List<object>)data)[Convert.ToInt32(0)] = first;
@@ -4528,20 +4527,21 @@ public partial class deribit : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string request = (((((("/" + "api/") + this.version) + "/") + (api)) + "/") + path);
-        if ((api is "public"))
+        object apiName = getValue(api, 0);
+        string request = (((((("/" + "api/") + this.version) + "/") + (apiName)) + "/") + path);
+        if ((apiName is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
                 request = request + ("?" + this.urlencode(parameters));
             }
         }
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
@@ -4566,7 +4566,7 @@ public partial class deribit : Exchange
             return new Dictionary<string, object>() {
                 { "url", signedUrl },
                 { "method", method },
-                { "body", body },
+                { "body", null },
                 { "headers", signedHeaders },
             };
         }
@@ -4579,8 +4579,8 @@ public partial class deribit : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

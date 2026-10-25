@@ -74,12 +74,6 @@ class blofin(ccxt.async_support.blofin):
     def ping(self, client: Client):
         return 'ping'
 
-    def handle_pong(self, client: Client, message: object):
-        #
-        #   'pong'
-        #
-        client.lastPong = self.milliseconds()
-
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
@@ -468,9 +462,25 @@ class blofin(ccxt.async_support.blofin):
         #     }
         #
         marketType = 'swap'  # for now
-        if not (marketType in self.balance):
-            self.balance[marketType] = {}
-        self.balance[marketType] = self.parse_ws_balance(message)
+        # merge the parsed update into the existing balance object instead of
+        # replacing it: a consumer awakened by an earlier message holds a
+        # reference to this.balance[marketType], and Client.resolve is a no-op
+        # while nobody is awaiting, so a replaced object would make updates
+        # landing in that window invisible to the consumer forever (same class
+        # as issue #26773); the free/used/total aggregates are rebuilt from
+        # the merged currencies by safeBalance
+        if self.balance is None:
+            self.balance = {}
+        self.balance[marketType] = self.safe_dict(self.balance, marketType, {})
+        parsed = self.parse_ws_balance(message)
+        reserved = ['free', 'used', 'total']
+        keys = list(parsed.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if self.in_array(key, reserved):
+                continue
+            self.balance[marketType][key] = parsed[key]
+        self.balance[marketType] = self.safe_balance(self.balance[marketType])
         messageHash = marketType + ':balance'
         client.resolve(self.balance[marketType], messageHash)
 
@@ -701,7 +711,7 @@ class blofin(ccxt.async_support.blofin):
         url = (self.urls['api'])['ws'][marketType][privateOrPublic]
         return await self.watch_multiple(url, messageHashes, self.deep_extend(request, paramsMarketType), messageHashes)
 
-    def get_subscription_request(self, args: object):
+    def get_subscription_request(self, args: list) -> dict:
         return {
             'op': 'subscribe',
             'args': args,
@@ -723,7 +733,6 @@ class blofin(ccxt.async_support.blofin):
         #
         methods = {
             # public
-            'pong': self.handle_pong,
             'trades': self.handle_trades,
             'books': self.handle_order_book,
             'tickers': self.handle_ticker,
@@ -737,7 +746,8 @@ class blofin(ccxt.async_support.blofin):
         }
         method = None
         if message == 'pong':
-            method = self.safe_value(methods, 'pong')
+            client.lastPong = self.milliseconds()
+            return
         else:
             event = self.safe_string(message, 'event')
             if event == 'subscribe':

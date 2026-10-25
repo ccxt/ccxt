@@ -222,7 +222,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $bookside->storeArray(array( $price, $amount, $count ));
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -287,8 +287,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $marketId = $this->safe_string($message, 'instrument_name');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $data = $this->safe_value($message, 'data');
-        $data = $this->safe_dict($data, 0);
+        $data = $this->safe_dict($this->safe_list($message, 'data'), 0);
         $timestamp = $this->safe_integer($data, 't');
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $limit = $this->safe_integer($message, 'depth');
@@ -874,7 +873,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
         }
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $tick = $this->safe_dict($data, $i);
             $parsed = $this->parse_ohlcv($tick, $market);
@@ -1446,7 +1445,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //    {
         //        "id": 0,
@@ -1544,7 +1543,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         // handle unsubscribe
         // {"id":1725448572836,"method":"unsubscribe","code":0}
         //
-        if ($this->handle_error_message($client, $message) === true) {
+        if ($this->handle_error_message($client, $message)) {
             return;
         }
         $method = $this->safe_string($message, 'method');

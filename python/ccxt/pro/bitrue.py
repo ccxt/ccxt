@@ -430,13 +430,15 @@ class bitrue(ccxt.async_support.bitrue):
             result.append([price, amount])
         return result
 
-    def convert_from_raw_quantity(self, symbol: str, rawQuantity: Num):
+    def convert_from_raw_quantity(self, symbol: str, rawQuantity: Num) -> Num:
         if rawQuantity is None:
             return None
         market = self.market(symbol)
         if market['contract'] is not True:
             return rawQuantity
         contractSize = self.safe_number(market, 'contractSize', 1)
+        if contractSize is None:
+            return rawQuantity
         return rawQuantity * contractSize
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:

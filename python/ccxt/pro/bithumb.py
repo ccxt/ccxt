@@ -312,9 +312,10 @@ class bithumb(ccxt.async_support.bithumb):
         time = self.safe_string(ticker, 'time', '')
         kstDatetime = date[0:4] + '-' + date[4:6] + '-' + date[6:8] + 'T' + time[0:2] + ':' + time[2:4] + ':' + time[4:6]
         # date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
-        timestamp = self.parse8601(kstDatetime)
-        if timestamp is not None:
-            timestamp = (timestamp - 32400000)
+        timestamp = None
+        kstTimestamp = self.parse8601(kstDatetime)
+        if kstTimestamp is not None:
+            timestamp = kstTimestamp - 32400000
         marketId = self.safe_string(ticker, 'symbol')
         return self.safe_ticker({
             'symbol': self.safe_symbol(marketId, market, '_'),
@@ -331,8 +332,9 @@ class bithumb(ccxt.async_support.bithumb):
             'close': self.safe_string(ticker, 'closePrice'),
             'last': None,
             'previousClose': self.safe_string(ticker, 'prevClosePrice'),
-            'change': self.safe_string(ticker, 'chgAmt'),
-            'percentage': self.safe_string(ticker, 'chgRate'),
+            # safeTicker derives change/percentage from open, matching the REST parser
+            'change': None,
+            'percentage': None,
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': self.safe_string(ticker, 'value'),
@@ -451,17 +453,20 @@ class bithumb(ccxt.async_support.bithumb):
         symbol = self.safe_symbol(marketId, None, '-')
         if symbol is None:
             return
-        streamType = self.safe_string(message, 'stream_type')
         options = self.safe_dict(self.options, 'watchOrderBook', {})
         obLimit = self.safe_integer(options, 'limit', 1000)
-        if not (symbol in self.orderbooks) or (streamType == 'SNAPSHOT'):
+        if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book({}, obLimit)
         orderbook = self.orderbooks[symbol]
-        orderbook.reset({})
-        orderbook['symbol'] = symbol
-        bids = orderbook['bids']
-        asks = orderbook['asks']
         units = self.safe_list(message, 'orderbook_units', [])
+        gen2TimestampStr = self.safe_string_2(message, 'timestamp', 'datetime')
+        timestamp = None
+        if gen2TimestampStr is not None:
+            timestamp = self.parse_to_int(gen2TimestampStr[0:13])
+        if timestamp is None:
+            timestamp = self.milliseconds()
+        bidsSnapshot = []
+        asksSnapshot = []
         for i in range(0, len(units)):
             entry = self.safe_dict(units, i)
             bidPrice = self.safe_number(entry, 'bid_price')
@@ -469,17 +474,11 @@ class bithumb(ccxt.async_support.bithumb):
             askPrice = self.safe_number(entry, 'ask_price')
             askSize = self.safe_number(entry, 'ask_size')
             if (bidPrice is not None) and (bidSize is not None):
-                bids.store(bidPrice, bidSize)
+                bidsSnapshot.append([bidPrice, bidSize])
             if (askPrice is not None) and (askSize is not None):
-                asks.store(askPrice, askSize)
-        gen2TimestampStr = self.safe_string_2(message, 'timestamp', 'datetime')
-        timestamp = None
-        if gen2TimestampStr is not None:
-            timestamp = self.parse_to_int(gen2TimestampStr[0:13])
-        if timestamp is None:
-            timestamp = self.milliseconds()
-        orderbook['timestamp'] = timestamp
-        orderbook['datetime'] = self.iso8601(timestamp)
+                asksSnapshot.append([askPrice, askSize])
+        snapshot = self.parse_order_book({'bids': bidsSnapshot, 'asks': asksSnapshot}, symbol, timestamp)
+        orderbook.reset(snapshot)
         messageHash = 'orderbook' + ':' + symbol
         client.resolve(orderbook, messageHash)
 
@@ -659,7 +658,10 @@ class bithumb(ccxt.async_support.bithumb):
         marketId = self.safe_string(trade, 'symbol')
         datetime = self.safe_string(trade, 'contDtm')
         # that date is not UTC iso8601, but exchange's local time, -9hr difference
-        timestamp = self.parse_to_int(self.parse8601(datetime)) - 32400000
+        timestamp = None
+        kstTimestamp = self.parse8601(datetime)
+        if kstTimestamp is not None:
+            timestamp = kstTimestamp - 32400000
         sideId = self.safe_string(trade, 'buySellGb')
         return self.safe_trade({
             'id': None,

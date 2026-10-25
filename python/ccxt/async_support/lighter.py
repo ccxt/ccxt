@@ -115,7 +115,7 @@ class lighter(Exchange, ImplicitAPI):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
-                'fetchTrades': False,
+                'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTransfer': False,
@@ -435,15 +435,10 @@ class lighter(Exchange, ImplicitAPI):
             }
 
     def get_lighter_private_key(self, strAccountIndex: str, strApiKeyIndex: str):
-        if not ('auths' in self.options):
-            return None
-        if not (strAccountIndex in self.options['auths']):
-            return None
-        if not (strApiKeyIndex in self.options['auths'][strAccountIndex]):
-            return None
-        if not ('lighterPrivateKey' in self.options['auths'][strAccountIndex][strApiKeyIndex]):
-            return None
-        return self.options['auths'][strAccountIndex][strApiKeyIndex]['lighterPrivateKey']
+        auths = self.safe_dict(self.options, 'auths')
+        accountAuths = self.safe_dict(auths, strAccountIndex)
+        apiKeyAuths = self.safe_dict(accountAuths, strApiKeyIndex)
+        return self.safe_string(apiKeyAuths, 'lighterPrivateKey')
 
     async def pre_load_lighter_library(self, params: dict = {}) -> bool:
         """
@@ -464,16 +459,18 @@ class lighter(Exchange, ImplicitAPI):
             return True
         signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex)
         await self.handle_builder_fee_approval(accountIndex, apiKeyIndex)
-        return(signer is not None)
+        loaded = (signer is not None)
+        return loaded
 
     def handle_api_key_index(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue: object = None) -> list:
         apiKeyIndexOption, paramsApiKeyIndex = self.handle_option_and_params_2(params, methodName1, optionName1, optionName2, defaultValue)
-        apiKeyIndex = apiKeyIndexOption
-        if (apiKeyIndex is None) or (apiKeyIndex < 4) or (apiKeyIndex > 254):
-            # apiKeyIndex = this.randNumber (2);
-            apiKeyIndex = 254
-            self.options['apiKeyIndex'] = apiKeyIndex  # default to a value to avoid overriding other keys
-        return [self.parse_to_int(apiKeyIndex), paramsApiKeyIndex]
+        apiKeyIndex = self.safe_integer([apiKeyIndexOption], 0)
+        if (apiKeyIndex is not None) and (apiKeyIndex >= 4) and (apiKeyIndex <= 254):
+            return [self.parse_to_int(apiKeyIndex), paramsApiKeyIndex]
+        # apiKeyIndex = this.randNumber (2);
+        defaultApiKeyIndex = 254
+        self.options['apiKeyIndex'] = defaultApiKeyIndex  # default to a value to avoid overriding other keys
+        return [defaultApiKeyIndex, paramsApiKeyIndex]
 
     async def handle_account_index(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue: object = None) -> list:
         accountIndexOption, paramsAccountIndex = self.handle_option_and_params_2(params, methodName1, optionName1, optionName2, defaultValue)
@@ -552,10 +549,9 @@ class lighter(Exchange, ImplicitAPI):
         accountAuths = self.safe_dict(auths, accountIndex)
         cachedAuth = self.safe_dict(accountAuths, apiKeyIndex)
         cachedDeadline = self.safe_integer(cachedAuth, 'deadline')
-        if cachedDeadline is not None:
-            minimumDeadline = self.seconds() + self.safe_integer(self.options, 'authDeadlineMinimumRemaining', 60)
-            if cachedDeadline >= minimumDeadline:
-                return self.safe_string(cachedAuth, 'token')
+        minimumRemaining = self.safe_integer(self.options, 'authDeadlineMinimumRemaining', 60)
+        if (cachedDeadline is not None) and (minimumRemaining is not None) and (cachedDeadline - minimumRemaining >= self.seconds()):
+            return self.safe_string(cachedAuth, 'token')
         deadline = self.seconds() + self.safe_integer(self.options, 'authDeadlineExpiry', 28800)
         request = {
             'deadline': deadline,
@@ -567,7 +563,7 @@ class lighter(Exchange, ImplicitAPI):
         self.options['auths'][accountIndex][apiKeyIndex]['token'] = token
         return token
 
-    def pow(self, n: str, m: str):
+    def pow(self, n: str, m: str) -> Str:
         r = Precise.string_mul(n, '1')
         c = self.parse_to_int(m)
         if c < 0:
@@ -588,7 +584,7 @@ class lighter(Exchange, ImplicitAPI):
         prefix = self.binary_concat(x19, self.encode('Ethereum Signed Message:'), newline, self.encode(self.number_to_string(binaryMessageLength)))
         return '0x' + self.hash(self.binary_concat(prefix, binaryMessage), 'keccak', 'hex')
 
-    def sign_hash(self, hash: object, privateKey: object) -> str:
+    def sign_hash(self, hash: str, privateKey: str) -> str:
         self.check_required_credentials()
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
@@ -596,7 +592,7 @@ class lighter(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_l1_and_prepare_tx_info(self, txInfo: object, message: object, privateKey: object) -> str:
+    def sign_l1_and_prepare_tx_info(self, txInfo: object, message: object, privateKey: str) -> str:
         hashMessage = self.hash_message(message)
         signature = self.sign_hash(hashMessage, privateKey)
         decTxInfo = self.parse_json(txInfo)
@@ -605,10 +601,10 @@ class lighter(Exchange, ImplicitAPI):
 
     async def handle_builder_fee_approval(self, accountIndex: float, apiKeyIndex: float) -> bool:
         buildFee = self.safe_bool(self.options, 'builderFee', True)
-        if buildFee is not True:
+        if not buildFee:
             return False
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
-        if approvedBuilderFee is True:
+        if approvedBuilderFee:
             return True
         standardTier = False
         try:
@@ -628,12 +624,13 @@ class lighter(Exchange, ImplicitAPI):
             return False
         return True
 
-    async def check_if_standard_tier(self, accountIndex: float):
+    async def check_if_standard_tier(self, accountIndex: float) -> bool:
         tiersForAccountIndexes = self.safe_dict(self.options, 'tiersForAccountIndexes', {})
         accountIndexStr = str(accountIndex)
         isStandardTier = self.safe_bool(tiersForAccountIndexes, accountIndexStr)
         if isStandardTier is not None:
-            return isStandardTier
+            cachedIsStandard = (isStandardTier is True)
+            return cachedIsStandard
         accountLimits = await self.privateGetAccountLimits({'account_index': accountIndex})
         #
         #    {
@@ -752,8 +749,8 @@ class lighter(Exchange, ImplicitAPI):
         request['api_key_index'] = apiKeyIndex
         request['account_index'] = self.parse_to_int(accountIndex)
         triggerPrice = self.safe_string_2(paramsOrderExpiry, 'triggerPrice', 'stopPrice')
-        stopLossPrice = self.safe_value(paramsOrderExpiry, 'stopLossPrice', triggerPrice)
-        takeProfitPrice = self.safe_value(paramsOrderExpiry, 'takeProfitPrice')
+        stopLossPrice = self.safe_string(paramsOrderExpiry, 'stopLossPrice', triggerPrice)
+        takeProfitPrice = self.safe_string(paramsOrderExpiry, 'takeProfitPrice')
         stopLoss = self.safe_dict(paramsOrderExpiry, 'stopLoss')
         takeProfit = self.safe_dict(paramsOrderExpiry, 'takeProfit')
         hasStopLoss = (stopLoss is not None)
@@ -813,7 +810,7 @@ class lighter(Exchange, ImplicitAPI):
         request['order_expiry'] = orderExpiry
         request['order_type'] = orderTypeNum
         request['time_in_force'] = timeInForceNum
-        request['reduce_only'] = 1 if (reduceOnly is True) else 0
+        request['reduce_only'] = 1 if (reduceOnly) else 0
         request['client_order_index'] = clientOrderId
         request['base_amount'] = self.parse_to_int(Precise.string_mul(amountStr, amountScale))
         request['avg_execution_price'] = self.parse_to_int(Precise.string_mul(priceStr, priceScale))
@@ -859,16 +856,16 @@ class lighter(Exchange, ImplicitAPI):
         if (accountIndex is None) or (apiKeyIndex is None):
             raise ArgumentsRequired(self.id + ' fetchNonce() requires accountIndex and apiKeyIndex.')
         if 'nonce' in params:
-            return self.safe_integer(params, 'nonce')
+            return self.parse_to_int(self.safe_integer(params, 'nonce'))
         nonceInOptions = self.safe_integer(self.options, 'nonce')
         if nonceInOptions is not None:
-            return nonceInOptions
+            return self.parse_to_int(nonceInOptions)
         # avoid skipNonce for l1 operations
         skipNonce = self.handle_option_bool_and_params(params, 'fetchNonce', 'skipNonce', True)[0]
         if skipNonce:
             return self.milliseconds()
         response = await self.publicGetNextNonce({'account_index': accountIndex, 'api_key_index': apiKeyIndex})
-        return self.safe_integer(response, 'nonce')
+        return self.parse_to_int(self.safe_integer(response, 'nonce'))
 
     async def sign_and_create_order(self, method: str, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> list[object]:
         if self.markets is None:
@@ -891,6 +888,13 @@ class lighter(Exchange, ImplicitAPI):
         groupingType, paramsGroupingType = self.handle_option_integer_and_params(params, method, 'groupingType', 3)  # default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         orderRequests = self.create_order_request(symbol, type, side, amount, price, paramsGroupingType)
         totalOrderRequests = len(orderRequests)
+        if totalOrderRequests > 1:
+            # the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
+            # a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
+            groupOrderExpiry = self.sum(self.milliseconds(), 2419200000)  # 28 days
+            for i in range(0, totalOrderRequests):
+                if self.safe_integer(orderRequests[i], 'order_expiry') == -1:
+                    orderRequests[i]['order_expiry'] = groupOrderExpiry
         order = None
         if totalOrderRequests > 0:
             order = orderRequests[0]
@@ -1155,9 +1159,10 @@ class lighter(Exchange, ImplicitAPI):
             type = self.safe_string(market, 'market_type')
             if type == 'perp':
                 type = 'swap'
-            baseId = self.safe_string(market, 'symbol')
-            if baseId is not None and baseId.find('/') != -1:
-                baseId = baseId.split('/')[0]
+            marketSymbol = self.safe_string(market, 'symbol')
+            baseId = marketSymbol
+            if marketSymbol is not None and marketSymbol.find('/') != -1:
+                baseId = marketSymbol.split('/')[0]
             quoteId = 'USDC'
             settleId = 'USDC' if (type == 'swap') else None
             base = self.safe_currency_code(baseId)
@@ -1314,7 +1319,7 @@ class lighter(Exchange, ImplicitAPI):
             'limit': 100,
         }
         if limit is not None:
-            request['limit'] = min(limit, 100)
+            request['limit'] = min(limit, 250)
         response = await self.publicGetOrderBookOrders(self.extend(request, params))
         #
         #     {
@@ -1591,12 +1596,15 @@ class lighter(Exchange, ImplicitAPI):
             else:
                 endTs = now
         else:
-            endTs = until if (until is not None) else now
-            defaultLimit = 100
-            if limit is not None:
-                startTs = endTs - self.parse_timeframe(timeframe) * 1000 * limit
+            count = self.safe_integer({'limit': limit}, 'limit', 100)
+            timeframeMs = self.parse_timeframe(timeframe) * 1000
+            span = timeframeMs * count
+            if until is not None:
+                endTs = until
+                startTs = until - span
             else:
-                startTs = endTs - self.parse_timeframe(timeframe) * 1000 * defaultLimit
+                endTs = now
+                startTs = now - span
         request = {
             'market_id': market['id'],
             'count_back': 0,
@@ -1916,6 +1924,13 @@ class lighter(Exchange, ImplicitAPI):
             imf = self.parse_to_int(imfStr)
             if imf > 0:
                 leverage = 100 / imf
+        contractsString = self.safe_string(position, 'position')
+        positionValueString = self.safe_string(position, 'position_value')
+        markPriceString = Precise.string_div(positionValueString, contractsString)
+        # allocated_margin is the isolated collateral balance (0 for cross)
+        positionMargin = None
+        if marginMode == 'isolated':
+            positionMargin = self.safe_number(position, 'allocated_margin')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -1925,13 +1940,14 @@ class lighter(Exchange, ImplicitAPI):
             'isolated': (marginMode == 'isolated'),
             'hedged': None,
             'side': side,
-            'contracts': self.safe_number(position, 'position'),
+            'contracts': self.parse_number(contractsString),
             'contractSize': None,
             'entryPrice': self.safe_number(position, 'avg_entry_price'),
-            'markPrice': None,
-            'notional': self.safe_number(position, 'position_value'),
+            'markPrice': self.parse_number(markPriceString),
+            'notional': self.parse_number(positionValueString),
             'leverage': leverage,
-            'collateral': self.safe_number(position, 'allocated_margin'),
+            'positionMargin': positionMargin,
+            'collateral': None,
             'initialMargin': None,
             'maintenanceMargin': None,
             'initialMarginPercentage': None,
@@ -2220,13 +2236,12 @@ class lighter(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market)
         timestamp = self.safe_timestamp(order, 'timestamp')
         isAsk = self.safe_bool(order, 'is_ask')
-        if isAsk is None:
-            isAskAsInteger = self.safe_integer(order, 'is_ask')
-            if isAskAsInteger is not None:
-                isAsk = isAskAsInteger == 1
+        isAskAsInteger = self.safe_integer(order, 'is_ask')
         side = None
         if isAsk is not None:
-            side = 'sell' if isAsk else 'buy'
+            side = 'sell' if (isAsk is True) else 'buy'
+        elif isAskAsInteger is not None:
+            side = 'sell' if (isAskAsInteger == 1) else 'buy'
         type = self.safe_string(order, 'type')
         if type is None:
             typeAsInteger = self.safe_integer(order, 'order_type')
@@ -2240,17 +2255,13 @@ class lighter(Exchange, ImplicitAPI):
             if type.find('take-profit') >= 0:
                 takeProfitPrice = triggerPrice
         # Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
-        tif = None
         tifAsInteger = self.safe_integer(order, 'time_in_force')
-        if tifAsInteger is not None:
-            tif = self.parse_order_time_in_force_integer(tifAsInteger)
-        else:
-            tif = self.safe_string(order, 'time_in_force')
-        reduceOnly = self.safe_bool(order, 'reduce_only')
-        if reduceOnly is None:
-            reduceOnlyAsInteger = self.safe_integer(order, 'reduce_only')
-            if reduceOnlyAsInteger is not None:
-                reduceOnly = reduceOnlyAsInteger == 1
+        tif = self.parse_order_time_in_force_integer(tifAsInteger) if (tifAsInteger is not None) else self.safe_string(order, 'time_in_force')
+        reduceOnlyAsBool = self.safe_bool(order, 'reduce_only')
+        reduceOnlyAsInteger = self.safe_integer(order, 'reduce_only')
+        reduceOnly = reduceOnlyAsBool
+        if (reduceOnlyAsBool is None) and (reduceOnlyAsInteger is not None):
+            reduceOnly = (reduceOnlyAsInteger == 1)
         status = self.safe_string(order, 'status')
         return self.safe_order({
             'info': order,
@@ -2280,7 +2291,7 @@ class lighter(Exchange, ImplicitAPI):
             'trades': None,
         }, marketResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'in-progress': 'open',
             'pending': 'open',
@@ -2340,7 +2351,7 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, tif, tif)
 
-    def parse_order_time_in_force_integer(self, tifInteger: object):
+    def parse_order_time_in_force_integer(self, tifInteger: float) -> Str:
         timeInForces = {
             '0': 'immediate-or-cancel',
             '1': 'good-till-time',
@@ -2665,7 +2676,7 @@ class lighter(Exchange, ImplicitAPI):
             'internal': None,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'failed': 'failed',
             'pending': 'pending',
@@ -2674,14 +2685,14 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str [tag]:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :param str [params.accountIndex]: account index
         :param str [params.apiKeyIndex]: api key index
         :param int [params.routeType]: wallet type, 0: perp, 1: spot, default is 0
@@ -2718,6 +2729,52 @@ class lighter(Exchange, ImplicitAPI):
         }
         response = await self.publicPostSendTx(request)
         return self.parse_transaction(response)
+
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+        """
+        get the list of most recent trades for a particular symbol
+
+        https://apidocs.lighter.xyz/reference/recenttrades
+
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch, default 100, max 100
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market_id': market['id'],
+            'limit': 100,
+        }
+        if limit is not None:
+            request['limit'] = min(limit, 100)
+        response = await self.publicGetRecentTrades(self.extend(request, params))
+        #
+        #     {
+        #         "code": 200,
+        #         "trades": [
+        #             {
+        #                 "trade_id": 35564491385,
+        #                 "type": "trade",
+        #                 "market_id": 0,
+        #                 "size": "0.0003",
+        #                 "price": "2385.57",
+        #                 "usd_amount": "0.715671",
+        #                 "ask_id": 281478054267183,
+        #                 "bid_id": 562946767299880,
+        #                 "ask_account_id": 723632,
+        #                 "bid_account_id": 317087,
+        #                 "is_maker_ask": false,
+        #                 "timestamp": 1792497687525
+        #             }
+        #         ]
+        #     }
+        #
+        trades = self.safe_list(response, 'trades', [])
+        return self.parse_trades(trades, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -2842,9 +2899,12 @@ class lighter(Exchange, ImplicitAPI):
             elif accountIndex == bidAccountId:
                 side = 'buy'
                 orderId = self.safe_string(trade, 'bid_id')
+        # public trades use Lighter's taker-side convention
+        if (side is None) and (isMakerAsk is not None):
+            side = 'buy' if (isMakerAsk) else 'sell'
         takerOrMaker = None
         if side is not None and isMakerAsk is not None:
-            isMaker = isMakerAsk if (side == 'sell') else not isMakerAsk
+            isMaker = (isMakerAsk is True) if (side == 'sell') else (isMakerAsk is False)
             takerOrMaker = 'maker' if isMaker else 'taker'
         return self.safe_trade({
             'info': trade,
@@ -3023,17 +3083,25 @@ class lighter(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        if (timeout < 300000) or (timeout > 1296000000):
-            raise BadRequest(self.id + ' timeout should be between 5 minutes and 15 days.')
+        if timeout is None:
+            raise ArgumentsRequired(self.id + ' cancelAllOrdersAfter() requires a timeout argument')
+        isScheduled = (timeout != 0)
+        if isScheduled and ((timeout < 300000) or (timeout > 1296000000)):
+            raise BadRequest(self.id + ' timeout should be between 5 minutes and 15 days, or 0 to cancel the timer.')
         apiKeyIndex, paramsApiKeyIndex = self.handle_api_key_index(params, 'cancelOrder', 'apiKeyIndex', 'api_key_index')
         accountIndex, paramsAccountIndex = await self.handle_account_index(paramsApiKeyIndex, 'cancelAllOrdersAfter', 'accountIndex', 'account_index')
         strAccountIndex = self.number_to_string(accountIndex)
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         signer = await self.load_account(self.options['chainId'], self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
         nonce = await self.fetch_nonce(accountIndex, apiKeyIndex, paramsAccountIndex)
+        timeInForce = 2  # 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+        cancelTime = 0
+        if isScheduled:
+            timeInForce = 1
+            cancelTime = self.sum(self.milliseconds(), timeout)
         signRaw = {
-            'time_in_force': 1,  # 0: IMMEDIATE 1: SCHEDULED 2: ABORT
-            'time': self.milliseconds() + timeout,  # if time_in_force is not IMMEDIATE, set the timestamp_ms here
+            'time_in_force': timeInForce,
+            'time': cancelTime,
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
@@ -3129,20 +3197,21 @@ class lighter(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def sign(self, path: str, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params={}):
+        apiName = api[0]
         url = None
-        if api == 'root':
+        if apiName == 'root':
             baseApiUrl = self.safe_string(self.urls['api'], 'public')
             if baseApiUrl is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             url = self.implode_hostname(baseApiUrl)
         else:
-            baseApiUrl2 = self.safe_string(self.urls['api'], api)
+            baseApiUrl2 = self.safe_string(self.urls['api'], apiName)
             if baseApiUrl2 is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             url = self.implode_hostname(baseApiUrl2) + '/api/' + self.version + '/' + path
         authHeaders = None
-        if api == 'private':
+        if apiName == 'private':
             authHeaders = {
                 'Authorization': self.create_auth(params),
             }
@@ -3153,9 +3222,9 @@ class lighter(Exchange, ImplicitAPI):
                 }
                 return {'url': url, 'method': method, 'body': params, 'headers': multipartHeaders}
             url += '?' + self.rawencode(params)
-        if api == 'private':
-            return {'url': url, 'method': method, 'body': body, 'headers': authHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        if apiName == 'private':
+            return {'url': url, 'method': method, 'body': None, 'headers': authHeaders}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (response is None) or (response is None):

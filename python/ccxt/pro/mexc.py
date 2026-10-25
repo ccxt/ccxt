@@ -179,7 +179,6 @@ class mexc(ccxt.async_support.mexc):
         #         "s": "BTCUSDT"
         #     }
         #
-        self.handle_bid_ask(client, message)
         rawTicker = self.safe_dict_n(message, ['d', 'data', 'publicAggreBookTicker'])
         marketId = self.safe_string_2(message, 's', 'symbol')
         timestamp = self.safe_integer_2(message, 't', 'sendTime')
@@ -187,6 +186,7 @@ class mexc(ccxt.async_support.mexc):
         symbol = market['symbol']
         ticker: Ticker
         if market['spot'] is True:
+            self.handle_bid_ask(client, message)  # the bids-asks channel is spot only
             ticker = self.parse_ws_ticker(rawTicker, market)
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)
@@ -352,10 +352,10 @@ class mexc(ccxt.async_support.mexc):
 
     def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         # protobuf ticker
-        # "bidprice": "93387.28",  // Best bid price
-        # "bidquantity": "3.73485", // Best bid quantity
-        # "askprice": "93387.29", // Best ask price
-        # "askquantity": "7.669875" // Best ask quantity
+        # "bidPrice": "93387.28",  // Best bid price
+        # "bidQuantity": "3.73485", // Best bid quantity
+        # "askPrice": "93387.29", // Best ask price
+        # "askQuantity": "7.669875" // Best ask quantity
         #
         # spot
         #
@@ -452,6 +452,22 @@ class mexc(ccxt.async_support.mexc):
 
     def handle_bid_ask(self, client: Client, message: dict):
         #
+        # protobuf
+        #
+        #    {
+        #        "channel": "spot@public.aggre.bookTicker.v3.api.pb@100ms@BTCUSDT",
+        #        "symbol": "BTCUSDT",
+        #        "sendTime": "1792779974344",
+        #        "publicAggreBookTicker": {
+        #            "bidPrice": "81577.79",
+        #            "bidQuantity": "0.11985594",
+        #            "askPrice": "81577.8",
+        #            "askQuantity": "0.12200121"
+        #        }
+        #    }
+        #
+        # retired json channel
+        #
         #    {
         #        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
         #        "d": {
@@ -473,19 +489,19 @@ class mexc(ccxt.async_support.mexc):
         client.resolve(parsedTicker, messageHash)
 
     def parse_ws_bid_ask(self, ticker: dict, market: Market = None) -> Ticker:
-        data = self.safe_dict(ticker, 'd')
-        marketId = self.safe_string(ticker, 's')
+        data = self.safe_dict_n(ticker, ['d', 'data', 'publicAggreBookTicker'])
+        marketId = self.safe_string_2(ticker, 's', 'symbol')
         marketResolved = self.safe_market(marketId, market)
         symbol = self.safe_string(marketResolved, 'symbol')
-        timestamp = self.safe_integer(ticker, 't')
+        timestamp = self.safe_integer_2(ticker, 't', 'sendTime')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'ask': self.safe_number(data, 'a'),
-            'askVolume': self.safe_number(data, 'A'),
-            'bid': self.safe_number(data, 'b'),
-            'bidVolume': self.safe_number(data, 'B'),
+            'ask': self.safe_number_2(data, 'a', 'askPrice'),
+            'askVolume': self.safe_number_2(data, 'A', 'askQuantity'),
+            'bid': self.safe_number_2(data, 'b', 'bidPrice'),
+            'bidVolume': self.safe_number_2(data, 'B', 'bidQuantity'),
             'info': ticker,
         }, marketResolved)
 
@@ -494,7 +510,7 @@ class mexc(ccxt.async_support.mexc):
         paramsOmitted = self.omit(params, ['unsubscribed'])
         url = self.urls['api']['ws']['spot']
         method = 'SUBSCRIPTION'
-        if unsubscribed is True:
+        if unsubscribed:
             method = 'UNSUBSCRIPTION'
         request = {
             'method': method,
@@ -774,7 +790,11 @@ class mexc(ccxt.async_support.mexc):
         parts = msg.split('@')
         marketId = self.safe_string(parts, 2)
         symbol = self.safe_symbol(marketId)
-        self.orderbooks[symbol] = self.order_book({})
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({})
+        orderbook = self.orderbooks[symbol]
+        orderbook['nonce'] = None
+        orderbook.cache = []
 
     def get_cache_index(self, orderbook: object, cache: object) -> float:
         # return the first index of the cache that can be applied to the orderbook or -1 if not possible
@@ -783,7 +803,7 @@ class mexc(ccxt.async_support.mexc):
         firstDeltaNonce = self.safe_integer_n(firstDelta, ['r', 'version', 'fromVersion'])
         if (nonce is None) or (firstDeltaNonce is None):
             return -1
-        if nonce < firstDeltaNonce - 1:
+        if (nonce is not None) and (firstDeltaNonce is not None) and (nonce < firstDeltaNonce - 1):
             return -1
         for i in range(0, len(cache)):
             delta = self.safe_dict(cache, i)
@@ -832,12 +852,13 @@ class mexc(ccxt.async_support.mexc):
         #            ]
         #         ],
         #         "end":4895965272,
-        #         "begin":4895965271
+        #         "begin":4895965271,
+        #         "version":4895965272
         #      },
         #      "symbol":"BTC_USDT",
         #      "ts":1651239652372
         #  }
-        # protofbuf
+        # protobuf
         # {
         #      "channel":"spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT",
         #      "symbol":"BTCUSDT",
@@ -1392,7 +1413,7 @@ class mexc(ccxt.async_support.mexc):
         #        "s":1,
         #        "i":"e03a5c7441e44ed899466a7140b71391",
         #    }
-        # protofbuf spot order
+        # protobuf spot order
         # {
         #     "id":"C02__583905164440776704043",
         #     "price":"0.001053",
@@ -1895,7 +1916,7 @@ class mexc(ccxt.async_support.mexc):
         client = self.client(self.urls['api']['ws']['spot'])
         messageHash = 'authenticate:listenKey'
         isFetching = self.safe_bool(self.options, 'listenKeyFetching', False)
-        if isFetching is True:
+        if isFetching:
             await client.future(messageHash)
             return self.safe_string(self.options, 'listenKey')
         self.options['listenKeyFetching'] = True

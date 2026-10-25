@@ -686,7 +686,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         amount = self.safe_float(delta, 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -705,7 +705,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         #     }
         #
         nonce = self.safe_integer(message, 'nonce')
-        if nonce > orderbook['nonce']:
+        currentNonce = self.safe_integer(orderbook, 'nonce')
+        if (nonce is not None) and (currentNonce is not None) and (nonce > currentNonce):
             self.handle_deltas(orderbook['asks'], self.safe_list(message, 'asks', []))
             self.handle_deltas(orderbook['bids'], self.safe_list(message, 'bids', []))
             orderbook['nonce'] = nonce
@@ -822,9 +823,15 @@ class bitvavo(ccxt.async_support.bitvavo):
     def handle_order_book_subscription(self, client: Client, message: dict, subscription: dict):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
-        if symbol in self.orderbooks:
-            del self.orderbooks[symbol]
-        self.orderbooks[symbol] = self.order_book({}, limit)
+        limits = self.safe_dict(self.options, 'orderBookLimits', {})
+        storedLimit = self.safe_integer(limits, symbol)
+        if not (symbol in self.orderbooks) or (storedLimit != limit):
+            self.orderbooks[symbol] = self.order_book({}, limit)
+            limits[symbol] = limit
+            self.options['orderBookLimits'] = limits
+        orderbook = self.orderbooks[symbol]
+        orderbook['nonce'] = None
+        orderbook.cache = []
 
     def handle_order_book_subscriptions(self, client: Client, message: dict, marketIds: list[object]):
         name = 'book'
@@ -843,7 +850,7 @@ class bitvavo(ccxt.async_support.bitvavo):
                     limit = self.safe_integer(subscription, 'limit')
                     self.orderbooks[symbol] = self.order_book({}, limit)
 
-    async def un_watch_channels(self, topic: str, channels: list[object], subMessageHashes: list[str], subscriptionArgs: dict, params={}) -> object:
+    async def un_watch_channels(self, topic: str, channels: list[object], subMessageHashes: list[str], subscriptionArgs: dict, params: dict = {}) -> object:
         url = self.urls['api']['ws']
         request = {
             'action': 'unsubscribe',
@@ -1203,18 +1210,18 @@ class bitvavo(ccxt.async_support.bitvavo):
         messageHash = self.safe_string(message, 'requestId')
         client.resolve(trades, messageHash)
 
-    async def withdraw_ws(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw_ws(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
@@ -1653,7 +1660,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #
         messageHash = 'authenticated'
         authenticated = self.safe_bool(message, 'authenticated', False)
-        if authenticated is True:
+        if authenticated:
             # we resolve the future here permanently so authentication only happens once
             client.resolve(message, messageHash)
         else:

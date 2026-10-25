@@ -55,9 +55,13 @@ func (this *Poloniex) Describe() any {
 		},
 		"options": map[string]any{
 			"createMarketBuyOrderRequiresPrice": true,
-			"tradesLimit":                       1000,
-			"ordersLimit":                       1000,
-			"OHLCVLimit":                        1000,
+			"watchBalance": map[string]any{
+				"fetchBalanceSnapshot": true,
+				"awaitBalanceSnapshot": true,
+			},
+			"tradesLimit": 1000,
+			"ordersLimit": 1000,
+			"OHLCVLimit":  1000,
 			"watchOrderBook": map[string]any{
 				"name": "book_lv2",
 			},
@@ -94,12 +98,12 @@ func (this *Poloniex) Describe() any {
  * @see https://api-docs.poloniex.com/spot/websocket/authentication
  * @returns {object} response from exchange
  */
-func (this *Poloniex) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Poloniex) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
+	ch := make(chan ccxt.AsyncResult[*string], 1)
 	go this.authenticateBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) authenticateBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Poloniex) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -155,7 +159,16 @@ func (this *Poloniex) authenticateBody(ch chan ccxt.AsyncResult[any], optionalAr
 		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, future)
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: future}
+	var resolved *string
+	switch resolvedBox := future.(type) {
+	case *string:
+		resolved = resolvedBox
+	case string:
+		resolved = &resolvedBox
+	default:
+		_ = resolvedBox
+	}
+	ch <- ccxt.AsyncResult[*string]{Value: resolved}
 	return nil
 }
 
@@ -201,13 +214,7 @@ func (this *Poloniex) subscribeBody(ch chan ccxt.AsyncResult[any], name any, mes
 		if symbols == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " subscribe() symbols is required"))
 		}
-		var ids any = this.MarketIds(symbols)
-		marketIds = func() any {
-			if ccxt.IsEqual(ids, nil) {
-				return []any{}
-			}
-			return ids
-		}()
+		marketIds = this.MarketIds(symbols)
 	}
 	var symbolsSuffix any = func() any {
 		if symbols == nil {
@@ -242,12 +249,12 @@ func (this *Poloniex) subscribeBody(ch chan ccxt.AsyncResult[any], name any, mes
  * @param {object} [params] extra parameters specific to the poloniex api
  * @returns {object} data from the websocket stream
  */
-func (this *Poloniex) TradeRequestAsync(name string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Poloniex) TradeRequestAsync(name string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.tradeRequestBody(ch, name, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) tradeRequestBody(ch chan ccxt.AsyncResult[any], name string, optionalArgs ...any) any {
+func (this *Poloniex) tradeRequestBody(ch chan ccxt.AsyncResult[[]any], name string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -264,7 +271,17 @@ func (this *Poloniex) tradeRequestBody(ch chan ccxt.AsyncResult[any], name strin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	var resolved []any
+	switch resolvedBox := r.Value.(type) {
+	case []any:
+		resolved = resolvedBox
+	case ccxt.IArrayCache:
+		resolved = resolvedBox.ToArray()
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not []any"))
+	}
+	ch <- ccxt.AsyncResult[[]any]{Value: resolved}
 	return nil
 }
 
@@ -290,12 +307,12 @@ func (this *Poloniex) tradeRequestBody(ch chan ccxt.AsyncResult[any], name strin
  * @param {string} [params.slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
  * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
-func (this *Poloniex) CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Poloniex) CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Order], 1)
 	go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Poloniex) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -362,20 +379,13 @@ func (this *Poloniex) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]any]
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	orders := r2.Value
-	var order any = this.SafeDict(orders, 0)
-
-	var resolved map[string]any
-	switch resolvedBox := order.(type) {
-	case map[string]any:
-		resolved = resolvedBox
-	case *sync.Map:
-		resolved = ccxt.SafeMapToMap(resolvedBox)
-	case nil:
-	default:
-		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
+	var orders any = nil
+	if r2.Value != nil {
+		orders = r2.Value
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	var order map[string]any = this.SafeDictMap(orders, 0)
+
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(order)}
 	return nil
 }
 
@@ -390,12 +400,12 @@ func (this *Poloniex) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]any]
  * @param {string} [params.clientOrderId] client order id
  * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
-func (this *Poloniex) CancelOrderWsAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Poloniex) CancelOrderWsAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Order], 1)
 	go this.cancelOrderWsBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) cancelOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], id string, optionalArgs ...any) any {
+func (this *Poloniex) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -412,20 +422,10 @@ func (this *Poloniex) cancelOrderWsBody(ch chan ccxt.AsyncResult[map[string]any]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var orders []any = ccxt.ListTyped(r.Value)
-	var order any = this.SafeDict(orders, 0)
+	var orders []any = ccxt.OrdersToList(r.Value)
+	var order map[string]any = this.SafeDictMap(orders, 0)
 
-	var resolved map[string]any
-	switch resolvedBox := order.(type) {
-	case map[string]any:
-		resolved = resolvedBox
-	case *sync.Map:
-		resolved = ccxt.SafeMapToMap(resolvedBox)
-	case nil:
-	default:
-		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
-	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(order)}
 	return nil
 }
 
@@ -440,12 +440,12 @@ func (this *Poloniex) cancelOrderWsBody(ch chan ccxt.AsyncResult[map[string]any]
  * @param {string[]} [params.clientOrderIds] client order ids
  * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
-func (this *Poloniex) CancelOrdersWsAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Poloniex) CancelOrdersWsAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.cancelOrdersWsBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) cancelOrdersWsBody(ch chan ccxt.AsyncResult[any], ids any, optionalArgs ...any) any {
+func (this *Poloniex) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -472,7 +472,7 @@ func (this *Poloniex) cancelOrdersWsBody(ch chan ccxt.AsyncResult[any], ids any,
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(r2.Value)}
 	return nil
 }
 
@@ -485,12 +485,12 @@ func (this *Poloniex) cancelOrdersWsBody(ch chan ccxt.AsyncResult[any], ids any,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
-func (this *Poloniex) CancelAllOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Poloniex) CancelAllOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.cancelAllOrdersWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Poloniex) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -514,17 +514,7 @@ func (this *Poloniex) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]any], opt
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var resolved []any
-	switch resolvedBox := r2.Value.(type) {
-	case []any:
-		resolved = resolvedBox
-	case ccxt.IArrayCache:
-		resolved = resolvedBox.ToArray()
-	case nil:
-	default:
-		panic(ccxt.ExchangeError("resolved value is not []any"))
-	}
-	ch <- ccxt.AsyncResult[[]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(r2.Value)}
 	return nil
 }
 func (this *Poloniex) HandleOrderRequest(client any, message any) {
@@ -567,12 +557,12 @@ func (this *Poloniex) HandleOrderRequest(client any, message any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Poloniex) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Poloniex) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.OHLCV] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.OHLCV], 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]any], symbol string, optionalArgs ...any) any {
+func (this *Poloniex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -606,7 +596,7 @@ func (this *Poloniex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]any], symbol str
 		limitResolved = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true)}
+	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
 
@@ -619,12 +609,12 @@ func (this *Poloniex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]any], symbol str
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Poloniex) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Poloniex) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Ticker], 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Poloniex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -642,7 +632,7 @@ func (this *Poloniex) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers map[string]any = r1.Value
+	var tickers map[string]any = ccxt.StructResultMap(r1.Value, ccxt.TickerMapToMap)
 
 	var resolved map[string]any
 	switch resolvedBox := this.SafeValue(tickers, symbolValue).(type) {
@@ -654,7 +644,7 @@ func (this *Poloniex) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], 
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(resolved)}
 	return nil
 }
 
@@ -667,12 +657,12 @@ func (this *Poloniex) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Poloniex) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Poloniex) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[map[string]ccxt.Ticker], 1)
 	go this.watchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], optionalArgs ...any) any {
+func (this *Poloniex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -706,7 +696,7 @@ func (this *Poloniex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any],
 		default:
 			panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 		}
-		ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(resolved)}
 		return nil
 	}
 
@@ -720,7 +710,7 @@ func (this *Poloniex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any],
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved1}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(resolved1)}
 	return nil
 }
 
@@ -735,12 +725,12 @@ func (this *Poloniex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any],
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Poloniex) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Poloniex) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol any, optionalArgs ...any) any {
+func (this *Poloniex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -754,7 +744,7 @@ func (this *Poloniex) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[[]any]{Value: r.Value}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: r.Value}
 	return nil
 }
 
@@ -769,12 +759,12 @@ func (this *Poloniex) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Poloniex) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Poloniex) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]any], symbols any, optionalArgs ...any) any {
+func (this *Poloniex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -819,7 +809,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]any],
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
 
@@ -877,12 +867,12 @@ func (this *Poloniex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Poloniex) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Poloniex) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Poloniex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -929,7 +919,7 @@ func (this *Poloniex) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalA
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(orders, since, limitResolved, "timestamp", true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySinceLimit(orders, since, limitResolved, "timestamp", true))}
 	return nil
 }
 
@@ -944,12 +934,12 @@ func (this *Poloniex) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalA
  * @param {object} [params] extra parameters specific to the poloniex strean
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Poloniex) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Poloniex) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Poloniex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -997,7 +987,7 @@ func (this *Poloniex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optiona
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
 
@@ -1009,12 +999,12 @@ func (this *Poloniex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optiona
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Poloniex) WatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Poloniex) WatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Balances] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Balances], 1)
 	go this.watchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], optionalArgs ...any) any {
+func (this *Poloniex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1032,13 +1022,30 @@ func (this *Poloniex) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
+	// the balances channel only streams per-event deltas, so seed the
+	// balance from a rest snapshot once per subscription - otherwise the
+	// first resolves would only list the currencies that changed since
+	// subscribing
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
+	var client ccxt.ClientInterface = this.Client(url)
+	this.SetBalanceCache(client, name)
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
+	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
+	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
+	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot) {
 
-	r2 := <-this.SubscribeAsync(name, name, true, nil, params)
-	if r2.Err != nil {
-		panic(r2.Err)
+		r2 := <-client.(ccxt.ClientInterface).Future(name + ":fetchBalanceSnapshot")
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+	}
+
+	r3 := <-this.SubscribeAsync(name, name, true, nil, params)
+	if r3.Err != nil {
+		panic(r3.Err)
 	}
 	var resolved map[string]any
-	switch resolvedBox := r2.Value.(type) {
+	switch resolvedBox := r3.Value.(type) {
 	case map[string]any:
 		resolved = resolvedBox
 	case *sync.Map:
@@ -1047,7 +1054,67 @@ func (this *Poloniex) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any],
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(resolved)}
+	return nil
+}
+func (this *Poloniex) SetBalanceCache(client any, typeVar string) {
+	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), typeVar) {
+		return
+	}
+	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
+	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
+	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot {
+		var messageHash string = typeVar + ":fetchBalanceSnapshot"
+		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
+			client.(ccxt.ClientInterface).Future(messageHash)
+			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, typeVar)
+		}
+	}
+}
+func (this *Poloniex) LoadBalanceSnapshotAsync(client any, messageHash any, typeVar any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar)
+	return ch
+}
+func (this *Poloniex) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash any, typeVar any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+
+	r := <-this.FetchBalanceAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var response any = nil
+	if !ccxt.StructAbsent(r.Value) {
+		response = ccxt.StructBox(r.Value, ccxt.BalancesToMap)
+	}
+	// merge the snapshot into the existing balance object per currency so
+	// the object keeps its identity and deltas that arrived while the
+	// snapshot was in flight are not overwritten; the free/used/total
+	// aggregates are rebuilt from the merged currencies by safeBalance
+	var reserved []any = []any{"info", "timestamp", "datetime", "free", "used", "total"}
+	var keys []string = ccxt.ObjectKeys(response)
+	for i := 0; i < len(keys); i++ {
+		var key string = keys[i]
+		if this.InArray(key, reserved) {
+			continue
+		}
+		if !(ccxt.InOp(this.Balance, key)) {
+			ccxt.AddElementToObject(this.Balance, key, ccxt.GetValue(response, key))
+		}
+	}
+	if !(ccxt.InOp(this.Balance, "info")) {
+		ccxt.AddElementToObject(this.Balance, "info", ccxt.GetValue(response, "info"))
+		ccxt.AddElementToObject(this.Balance, "timestamp", ccxt.GetValue(response, "timestamp"))
+		ccxt.AddElementToObject(this.Balance, "datetime", ccxt.GetValue(response, "datetime"))
+	}
+	this.Balance = this.SafeBalance(this.Balance)
+	// don't remove the future from the .futures cache
+	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
+		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+		future.(*ccxt.Future).Resolve()
+		client.(ccxt.ClientInterface).Resolve(this.Balance, typeVar)
+	}
 	return nil
 }
 func (this *Poloniex) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -1091,8 +1158,8 @@ func (this *Poloniex) HandleOHLCV(client any, message map[string]any) any {
 	//        ]
 	//    }
 	//
-	var data any = this.SafeValue(message, "data")
-	data = this.SafeValue(data, 0)
+	var dataList []any = ccxt.SafeListTyped(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(dataList, 0)
 	var channel *string = this.SafeString(message, "channel")
 	var marketId *string = this.SafeString(data, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
@@ -1108,7 +1175,7 @@ func (this *Poloniex) HandleOHLCV(client any, message map[string]any) any {
 		return this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 	}()
 	if symbol != nil {
-		if ccxt.IsEqual(stored, nil) {
+		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
 			if (symbol != nil) && (timeframe != nil) {
@@ -1156,7 +1223,7 @@ func (this *Poloniex) HandleTrade(client any, message map[string]any) any {
 				}
 				return this.SafeValue(this.Trades, symbol)
 			}()
-			if ccxt.IsEqual(tradesArray, nil) {
+			if tradesArray == nil {
 				var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 				tradesArray = ccxt.NewArrayCache(tradesLimit)
 				if symbol != nil {
@@ -1372,8 +1439,9 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 				if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
 					ccxt.AddElementToObject(previousOrder, "trades", []any{})
 				}
-				retRes90420 := ccxt.GetValue(previousOrder, "trades")
-				ccxt.AppendToArray(&retRes90420, trade)
+				retRes96620 := ccxt.GetValue(previousOrder, "trades")
+				ccxt.AppendToArray(&retRes96620, trade)
+				ccxt.AddElementToObject(previousOrder, "trades", retRes96620)
 				ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
 				var totalCost any = "0"
 				var totalAmount any = "0"
@@ -1640,19 +1708,27 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 		var asks []any = ccxt.SafeListTyped(item, "asks")
 		var bids []any = ccxt.SafeListTyped(item, "bids")
 		if snapshot || update {
-			if snapshot {
-				ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+			var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+			if snapshot && (ccxt.IsEqual(orderbook, nil)) {
+				orderbook = this.OrderBook(map[string]any{}, limit)
+				ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 			}
-			if !(ccxt.InOp(this.Orderbooks, symbol)) {
+			if ccxt.IsEqual(orderbook, nil) {
 				continue
 			}
-			var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
+			if snapshot {
+				// reset the existing orderbook in place instead of
+				// replacing it: a consumer awakened earlier keeps a
+				// reference to the old object and would be orphaned
+				// from later updates on a resync/reconnect otherwise
+				orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{})
+			}
 			if bids != nil {
 				for j := 0; j < len(bids); j++ {
 					var bid []any = ccxt.SafeListTyped(bids, j)
 					var price *float64 = this.SafeNumber(bid, 0)
 					var amount *float64 = this.SafeNumber(bid, 1)
-					var bidsSide ccxt.IOrderBookSide = orderbook.GetBids()
+					var bidsSide any = ccxt.GetValue(orderbook, "bids")
 					bidsSide.(ccxt.IOrderBookSide).Store(price, amount)
 				}
 			}
@@ -1661,7 +1737,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 					var ask []any = ccxt.SafeListTyped(asks, j)
 					var price *float64 = this.SafeNumber(ask, 0)
 					var amount *float64 = this.SafeNumber(ask, 1)
-					var asksSide ccxt.IOrderBookSide = orderbook.GetAsks()
+					var asksSide any = ccxt.GetValue(orderbook, "asks")
 					asksSide.(ccxt.IOrderBookSide).Store(price, amount)
 				}
 			}
@@ -1692,47 +1768,36 @@ func (this *Poloniex) HandleBalance(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
+	// the balances channel only sends per-event deltas for the currencies
+	// that changed, so merge them into the existing balance object instead
+	// of rebuilding it from the current message: a rebuilt object would
+	// drop every other currency, and a consumer awakened by an earlier
+	// message keeps a reference to the old object while ccxt.Client.resolve is
+	// a no-op with no waiter, so updates landing in that window would
+	// never reach that consumer (same class as kraken issue #26773)
+	var data any = this.SafeList(message, "data", []any{})
 	var messageHash string = "balances"
-	this.Balance = this.ParseWsBalance(data)
-	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
-}
-func (this *Poloniex) ParseWsBalance(response []any) any {
-	//
-	//    [
-	//        {
-	//            "changeTime": 1657312008411,
-	//            "accountId": "1234",
-	//            "accountType": "SPOT",
-	//            "eventType": "place_order",
-	//            "available": "9999999983.668",
-	//            "currency": "BTC",
-	//            "id": 60018450912695040,
-	//            "userId": 12345,
-	//            "hold": "16.332",
-	//            "ts": 1657312008443
-	//        }
-	//    ]
-	//
-	var firstBalance map[string]any = ccxt.SafeMapTyped(response, 0)
-	var timestamp *int64 = this.SafeInteger(firstBalance, "ts")
-	var result map[string]any = map[string]any{
-		"info":      response,
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
+	if ccxt.IsEqual(this.Balance, nil) {
+		this.Balance = map[string]any{}
 	}
-	for i := 0; i < len(response); i++ {
-		var balance map[string]any = ccxt.SafeMapTyped(response, i)
+	ccxt.AddElementToObject(this.Balance, "info", data)
+	var firstBalance map[string]any = ccxt.SafeMapTyped(data, 0)
+	var timestamp *int64 = this.SafeInteger(firstBalance, "ts")
+	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
+	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(timestamp))
+	for i := 0; i < ccxt.GetArrayLength(data); i++ {
+		var balance map[string]any = ccxt.SafeMapTyped(data, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var newAccount map[string]any = this.Account()
 		newAccount["free"] = this.SafeString(balance, "available")
 		newAccount["used"] = this.SafeString(balance, "hold")
 		if code != nil {
-			result[*code] = newAccount
+			ccxt.AddElementToObject(this.Balance, code, newAccount)
 		}
 	}
-	return this.SafeBalance(result)
+	this.Balance = this.SafeBalance(this.Balance)
+	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 func (this *Poloniex) HandleMyTrades(client any, parsedTrade map[string]any) {
 	// emulated using the orders' stream
@@ -1957,7 +2022,7 @@ func (this *Poloniex) CreateOrderWs(symbol string, typeVar string, side string, 
 	if r.Err != nil {
 		return ccxt.Order{}, r.Err
 	}
-	var res ccxt.Order = ccxt.NewOrder(r.Value)
+	var res ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -1983,7 +2048,7 @@ func (this *Poloniex) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOpti
 	if r.Err != nil {
 		return ccxt.Order{}, r.Err
 	}
-	var res ccxt.Order = ccxt.NewOrder(r.Value)
+	var res ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -2009,7 +2074,7 @@ func (this *Poloniex) CancelOrdersWs(ids []string, options ...ccxt.CancelOrdersW
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
+	var res []ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -2033,7 +2098,7 @@ func (this *Poloniex) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
+	var res []ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -2060,7 +2125,7 @@ func (this *Poloniex) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOption
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(r.Value)
+	var res []ccxt.OHLCV = r.Value
 	return res, nil
 }
 
@@ -2084,7 +2149,7 @@ func (this *Poloniex) WatchTicker(symbol string, options ...ccxt.WatchTickerOpti
 	if r.Err != nil {
 		return ccxt.Ticker{}, r.Err
 	}
-	var res ccxt.Ticker = ccxt.NewTicker(r.Value)
+	var res ccxt.Ticker = r.Value
 	return res, nil
 }
 
@@ -2108,7 +2173,7 @@ func (this *Poloniex) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Ti
 	if r.Err != nil {
 		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
+	var res ccxt.Tickers = ccxt.Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -2134,7 +2199,7 @@ func (this *Poloniex) WatchTrades(symbol string, options ...ccxt.WatchTradesOpti
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	var res []ccxt.Trade = r.Value
 	return res, nil
 }
 
@@ -2160,7 +2225,7 @@ func (this *Poloniex) WatchTradesForSymbols(symbols []string, options ...ccxt.Wa
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	var res []ccxt.Trade = r.Value
 	return res, nil
 }
 
@@ -2211,7 +2276,7 @@ func (this *Poloniex) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Or
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
+	var res []ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -2237,7 +2302,7 @@ func (this *Poloniex) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccx
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	var res []ccxt.Trade = r.Value
 	return res, nil
 }
 
@@ -2254,6 +2319,6 @@ func (this *Poloniex) WatchBalance(params ...any) (ccxt.Balances, error) {
 	if r.Err != nil {
 		return ccxt.Balances{}, r.Err
 	}
-	var res ccxt.Balances = ccxt.NewBalances(r.Value)
+	var res ccxt.Balances = r.Value
 	return res, nil
 }

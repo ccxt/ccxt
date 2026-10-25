@@ -218,7 +218,7 @@ class independentreserve(ccxt.async_support.independentreserve):
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
         checksum = self.handle_option('watchOrderBook', 'checksum', True)
-        if (checksum is True) and (receivedSnapshot is True):
+        if (checksum) and (receivedSnapshot):
             storedAsks = orderbook['asks']
             storedBids = orderbook['bids']
             asksLength = len(storedAsks)
@@ -238,7 +238,7 @@ class independentreserve(ccxt.async_support.independentreserve):
                 del self.orderbooks[symbol]
                 client.reject(error, messageHash)
                 return
-        if receivedSnapshot is True:
+        if receivedSnapshot:
             client.resolve(orderbook, messageHash)
 
     def value_to_checksum(self, value: Num) -> str:
@@ -256,7 +256,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         bidAsk = self.parse_order_book_bid_ask(delta, 'Price', 'Volume')
         bookside.storeArray(bidAsk)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 

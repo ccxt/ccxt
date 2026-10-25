@@ -31,7 +31,9 @@ impl DydxCore {
     pub fn init(&mut self) {
         let described = DydxCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -158,6 +160,9 @@ impl crate::exchange::DerivedExchange for DydxCore {
     }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
+    }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::market(&self.parent, symbol)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
@@ -303,7 +308,7 @@ impl DydxCore {
         let __ws_arg_0 = self.extend(request, &[params]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -383,8 +388,8 @@ impl DydxCore {
         let mut parsedTrades: Value = self.parse_trades(rawTrades, &[market]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_306: bool = true;
-            while { if !__for_first_306 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_306 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsedTrades.len() as i64) as f64) } {
+            let mut __for_first_319: bool = true;
+            while { if !__for_first_319 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_319 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsedTrades.len() as i64) as f64) } {
             let mut parsed: Value = parsedTrades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             stored.append(parsed);
         }
@@ -590,7 +595,7 @@ impl DydxCore {
         let __ws_arg_4 = self.extend(request, &[params]);
         let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[__ws_arg_4, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol, limit);
         }
         return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
@@ -690,7 +695,7 @@ impl DydxCore {
         // }
         //
         let mut id: Value = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut part: Value = split(&id, &Value::Str("/".into()));
+        let mut part: Value = Value::Array(id.as_str().map(|__s| __s.split("/").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut interval: Value = self.safe_string(part.clone(), Value::Int(1), &[]);
         let mut timeframe: Value = self.find_timeframe(interval, &[]);
         let mut marketId: Value = self.safe_string(part, Value::Int(0), &[]);
@@ -705,7 +710,7 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-        let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
+        let mut stored: Value = self.safe_value(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), timeframe.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit);

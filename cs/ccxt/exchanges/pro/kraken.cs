@@ -128,7 +128,7 @@ public partial class kraken : ccxt.kraken
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly(isMarket, false, parameters);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        if ((postOnly == true))
+        if (postOnly)
         {
             ((IDictionary<string,object>)(request != null && request.ContainsKey("params") ? request["params"] : null))["post_only"] = true;
         }
@@ -1097,9 +1097,27 @@ public partial class kraken : ccxt.kraken
         } else
         {
             // snapshot
-            int depth = a.Count;
-            ((IDictionary<string,object>)this.orderbooks)[symbol] = this.orderBook(new Dictionary<string, object>() {}, depth);
+            IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
+            // size the book from the subscribed depth (10 by default), not from
+            // the level count of this snapshot: a thin market's snapshot can
+            // carry fewer levels than the subscription and must not cap the book
+            Int64? limit = this.safeInteger(subscription, "limit", 10);
+            int asksLength = a.Count;
+            Int64? depth = (((limit == null || asksLength > limit))) ? asksLength : limit;
+            IDictionary<string, object> depths = this.safeDict(this.options, "wsOrderBookDepths", new Dictionary<string, object>() {});
+            Int64? storedDepth = this.safeInteger(depths, symbol);
+            if (!((this.orderbooks != null && this.orderbooks.ContainsKey(symbol))) || ((storedDepth != depth)))
+            {
+                // rebuild only on the first snapshot or when the depth changes,
+                // e.g. a re-subscription with a different limit
+                ((IDictionary<string,object>)this.orderbooks)[symbol] = this.orderBook(new Dictionary<string, object>() {}, depth);
+                depths[(string)symbol] = depth;
+                this.options["wsOrderBookDepths"] = depths;
+            }
+            // reset in place so that references held by users keep receiving
+            // updates after a reconnect snapshot (a new object would orphan them)
             orderbook = this.getOrderBook(this.orderbooks, symbol);
+            (orderbook as IOrderBook).reset(new Dictionary<string, object>() {});
             List<object> keys = new List<object>() {"asks", "bids"};
             for (int i = 0; i < (keys?.Count ?? 0); i++)
             {
@@ -1168,17 +1186,12 @@ public partial class kraken : ccxt.kraken
     public virtual string? formatNumber(object data)
     {
         List<object> parts = ((string)data).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
-        object integer = this.safeString(parts, 0);
+        string integer = this.safeString(parts, 0, "");
         string? decimals = this.safeString(parts, 1, "");
-        string? joinedResult = ((string)add(integer, decimals));
-        object i = 0;
-        while (isEqual(getValue(joinedResult, i), "0"))
+        string? joinedResult = (integer + decimals);
+        while (joinedResult.StartsWith("0"))
         {
-            i = add(i, 1);
-        }
-        if (isGreaterThan(i, 0))
-        {
-            joinedResult = slice(joinedResult, i, null);
+            joinedResult = ((joinedResult == null) ? null : joinedResult.Substring(Math.Min(1, joinedResult.Length)));
         }
         return ((string?)((object)(joinedResult)));
     }
@@ -1223,8 +1236,9 @@ public partial class kraken : ccxt.kraken
         object subscription = this.safeValue(client.subscriptions, authenticated);
         Int64 now = this.seconds();
         Int64? start = this.safeInteger(subscription, "start");
-        Int64? expires = this.safeInteger(subscription, "expires");
-        if (((subscription == null)) || (((subscription != null)) && isLessThanOrEqual((add(start, expires)), now)))
+        Int64? expires = this.safeInteger(subscription, "expires", -1);
+        bool expired = ((start != null)) && ((expires >= 0)) && ((start == null || start <= ((now - expires))));
+        if (((subscription == null)) || expired)
         {
             // single-flight leader election, see
             // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
@@ -1533,17 +1547,18 @@ public partial class kraken : ccxt.kraken
                 Dictionary<string, object> newOrder = ccxt.BaseExchange.FromOrder(parsed);
                 if ((previousOrder != null))
                 {
-                    Dictionary<string, object> newRawOrder = this.extend(GetValue(previousOrder, "info"), GetValue(newOrder, "info"));
+                    Dictionary<string, object> newRawOrder = this.extend((previousOrder != null && previousOrder.ContainsKey("info") ? previousOrder["info"] : null), (newOrder != null && newOrder.ContainsKey("info") ? newOrder["info"] : null));
                     newOrder = ccxt.BaseExchange.FromOrder(this.parseWsOrder(newRawOrder));
                 }
                 int length = (stored?.Count ?? 0);
                 if ((length == limit) && ((previousOrder == null)))
                 {
-                    object first = getValue(stored, 0);
+                    object first = (stored != null && 0 < stored.Count ? stored[0] : null);
                     IDictionary<string, object> symbolsByOrderId = this.safeDict(this.options, "symbolsByOrderId", new Dictionary<string, object>() {});
-                    if (inOp(symbolsByOrderId, getValue(first, "id")))
+                    string? firstId = this.safeString(first, "id");
+                    if (((firstId != null)) && (((firstId != null) && symbolsByOrderId.ContainsKey(firstId))))
                     {
-                        symbolsByOrderId.Remove((string)getValue(first, "id"));
+                        symbolsByOrderId.Remove(firstId);
                     }
                 }
                 stored.append(newOrder);
@@ -1722,10 +1737,19 @@ public partial class kraken : ccxt.kraken
         //         "sequence": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance[type], and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        string type = "spot";
+        if ((this.balance == null))
+        {
+            this.balance = new Dictionary<string, object>() {};
+        }
+        this.balance[type] = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = message;
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        Dictionary<string, object> result = new Dictionary<string, object>() {
-            { "info", message },
-        };
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             string? currencyId = this.safeString(data[i], "asset");
@@ -1733,13 +1757,9 @@ public partial class kraken : ccxt.kraken
             Dictionary<string, object> account = this.account();
             string? eq = this.safeString(data[i], "balance");
             account["total"] = eq;
-            result[(string)code] = account;
+            ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[code] = account;
         }
-        string type = "spot";
-        Dictionary<string, object> balance = this.safeBalance(result);
-        IDictionary<string, object> oldBalance = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
-        Dictionary<string, object> newBalance = this.deepExtend(oldBalance, balance);
-        this.balance[type] = this.safeBalance(newBalance);
+        this.balance[type] = this.safeBalance((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
         string? channel = this.safeString(message, "channel");
         client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), channel);
     }
@@ -1867,7 +1887,7 @@ public partial class kraken : ccxt.kraken
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
             }
         }
-        if (isEqual(this.handleErrorMessage(client, (Dictionary<string, object>)message), true))
+        if ((this.handleErrorMessage(client, (Dictionary<string, object>)message) == true))
         {
             string? eventVar = this.safeString2(message, "event", "method");
             Dictionary<string, object> methods = new Dictionary<string, object>() {

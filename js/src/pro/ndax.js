@@ -224,7 +224,7 @@ export default class ndax extends ndaxRest {
         const payload = {
             'OMSId': omsId,
             'InstrumentId': this.safeInteger(market, 'id'), // conditionally optional
-            'Interval': parseInt(this.safeString(this.timeframes, timeframe, timeframe)),
+            'Interval': this.parseToInt(this.safeString(this.timeframes, timeframe, timeframe)),
             'IncludeLastCount': 100, // the number of previous candles to retrieve in the immediate snapshot, 100 by default
         };
         const request = {
@@ -281,13 +281,14 @@ export default class ndax extends ndaxRest {
             for (let j = 0; j < keys.length; j++) {
                 const timeframe = keys[j];
                 const interval = this.safeString(this.timeframes, timeframe, timeframe);
-                const duration = parseInt(interval) * 1000;
+                const duration = this.parseToInt(interval) * 1000;
                 const timestamp = this.safeInteger(ohlcv, 0);
                 if (timestamp === undefined) {
                     continue;
                 }
+                const candleTimestamp = this.parseToInt((timestamp / duration) * duration);
                 const parsed = [
-                    this.parseToInt((timestamp / duration) * duration),
+                    candleTimestamp,
                     this.safeFloat(ohlcv, 3),
                     this.safeFloat(ohlcv, 1),
                     this.safeFloat(ohlcv, 2),
@@ -296,21 +297,25 @@ export default class ndax extends ndaxRest {
                 ];
                 const stored = this.safeValue(this.ohlcvs[symbol], timeframe, []);
                 const length = stored.length;
-                if ((length > 0) && (parsed[0] === stored[length - 1][0])) {
+                if ((length > 0) && (candleTimestamp === this.safeInteger(stored[length - 1], 0))) {
                     const previous = stored[length - 1];
-                    let high = parsed[1];
-                    if (parsed[1] === undefined) {
-                        high = previous[1];
+                    const parsedHigh = this.safeFloat(ohlcv, 1);
+                    const previousHigh = this.safeFloat(previous, 1);
+                    let high = previousHigh;
+                    if (parsedHigh !== undefined) {
+                        high = parsedHigh;
+                        if ((previousHigh !== undefined) && (previousHigh > parsedHigh)) {
+                            high = previousHigh;
+                        }
                     }
-                    else if (previous[1] !== undefined) {
-                        high = Math.max(parsed[1], previous[1]);
-                    }
-                    let low = parsed[2];
-                    if (parsed[2] === undefined) {
-                        low = previous[2];
-                    }
-                    else if (previous[2] !== undefined) {
-                        low = Math.min(parsed[2], previous[2]);
+                    const parsedLow = this.safeFloat(ohlcv, 2);
+                    const previousLow = this.safeFloat(previous, 2);
+                    let low = previousLow;
+                    if (parsedLow !== undefined) {
+                        low = parsedLow;
+                        if ((previousLow !== undefined) && (parsedLow > previousLow)) {
+                            low = previousLow;
+                        }
                     }
                     stored[length - 1] = [
                         parsed[0],
@@ -325,18 +330,19 @@ export default class ndax extends ndaxRest {
                     }
                 }
                 else {
-                    if ((length > 0) && (this.parseToInt(parsed[0]) < this.parseToInt(stored[length - 1][0]))) {
-                        continue;
+                    if (length > 0) {
+                        const lastTimestamp = this.safeInteger(stored[length - 1], 0);
+                        if ((lastTimestamp !== undefined) && (lastTimestamp > candleTimestamp)) {
+                            continue;
+                        }
                     }
-                    else {
-                        stored.push(parsed);
-                        const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
-                        if (length >= limit) {
-                            stored.shift();
-                        }
-                        if (marketId !== undefined) {
-                            updates[marketId][timeframe] = true;
-                        }
+                    stored.push(parsed);
+                    const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
+                    if (length >= limit) {
+                        stored.shift();
+                    }
+                    if (marketId !== undefined) {
+                        updates[marketId][timeframe] = true;
                     }
                 }
                 this.ohlcvs[symbol][timeframe] = stored;
@@ -440,8 +446,9 @@ export default class ndax extends ndaxRest {
         if (orderbook === undefined) {
             return;
         }
-        let timestamp = undefined;
-        let nonce = undefined;
+        // seeded from the first entry so the locals keep a typed initializer (the loop re-reads it as a no-op)
+        let timestamp = this.safeInteger(firstBidAsk, 2);
+        let nonce = this.safeInteger(firstBidAsk, 0);
         for (let i = 0; i < payload.length; i++) {
             const bidask = this.safeList(payload, i);
             if (timestamp === undefined) {
@@ -449,18 +456,18 @@ export default class ndax extends ndaxRest {
             }
             else {
                 const newTimestamp = this.safeInteger(bidask, 2);
-                const currentTimestampValue = (timestamp === undefined) ? 0 : timestamp;
-                const newTimestampValue = (newTimestamp === undefined) ? 0 : newTimestamp;
-                timestamp = Math.max(currentTimestampValue, newTimestampValue);
+                if ((newTimestamp !== undefined) && (newTimestamp > timestamp)) {
+                    timestamp = newTimestamp;
+                }
             }
             if (nonce === undefined) {
                 nonce = this.safeInteger(bidask, 0);
             }
             else {
                 const newNonce = this.safeInteger(bidask, 0);
-                const currentNonceValue = (nonce === undefined) ? 0 : nonce;
-                const newNonceValue = (newNonce === undefined) ? 0 : newNonce;
-                nonce = Math.max(currentNonceValue, newNonceValue);
+                if ((newNonce !== undefined) && (newNonce > nonce)) {
+                    nonce = newNonce;
+                }
             }
             // 0 new, 1 update, 2 remove
             const type = this.safeInteger(bidask, 3);
@@ -515,12 +522,19 @@ export default class ndax extends ndaxRest {
         //     ]
         //
         const symbol = this.safeString(subscription, 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
         const snapshot = this.parseOrderBook(payload, symbol);
         const limit = this.safeInteger(subscription, 'limit');
-        const orderbook = this.orderBook(snapshot, limit);
-        if (symbol !== undefined) {
-            this.orderbooks[symbol] = orderbook;
+        // reset the existing orderbook instead of replacing it: a consumer
+        // holds a reference to the old object and would never see updates
+        // after a re-subscription snapshot
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({}, limit);
         }
+        const orderbook = this.orderbooks[symbol];
+        orderbook.reset(snapshot);
         const messageHash = this.safeString(subscription, 'messageHash');
         client.resolve(orderbook, messageHash);
     }

@@ -17,7 +17,7 @@ export default class extended extends extendedRest {
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     watchPrivate(messageHash: string, subscription?: NullableDict): Promise<any>;
     /**
      * @method
@@ -120,7 +120,7 @@ export default class extended extends extendedRest {
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: Dict): void;
-    findSubscription(client: Client, name: string): import("../base/types.js").Dictionary<any> | undefined;
+    findSubscription(client: Client, name: string): NullableDict;
     handleErrorMessage(client: Client, message: Dict): Bool;
     handleMessage(client: Client, message: Dict): void;
 }

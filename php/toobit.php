@@ -444,7 +444,6 @@ class toobit extends Exchange {
                 'networks' => array(
                     'BTC' => 'BTC',
                     'ERC20' => 'ETH',
-                    'ETH' => 'ETH',
                     'BEP20' => 'BSC',
                     'TRC20' => 'TRX',
                     'SOL' => 'SOL',
@@ -808,8 +807,9 @@ class toobit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $response = $this->safe_dict($this->options, 'exchangeInfo');
-        if ($response !== null) {
+        $cachedInfo = $this->safe_dict($this->options, 'exchangeInfo');
+        $response = $cachedInfo;
+        if ($cachedInfo !== null) {
             $this->options['exchangeInfo'] = null; // reset it to avoid using old cached data
         } else {
             $response = $this->commonGetApiV1ExchangeInfo($params);
@@ -1172,18 +1172,11 @@ class toobit extends Exchange {
         $isBuyer = $this->safe_bool($trade, 'isBuyer');
         $side = null;
         $isBuyerMaker = $this->safe_bool($trade, 'ibm');
-        if ($isBuyerMaker === null) {
-            $isBuyerTaker = $this->safe_bool($trade, 'm');
-            if ($isBuyerTaker !== null) {
-                $isBuyerMaker = !$isBuyerTaker;
-            }
-        }
+        $isBuyerTaker = $this->safe_bool($trade, 'm');
         if ($isBuyerMaker !== null) {
-            if ($isBuyerMaker) {
-                $side = 'sell';
-            } else {
-                $side = 'buy';
-            }
+            $side = ($isBuyerMaker === true) ? 'sell' : 'buy';
+        } elseif ($isBuyerTaker !== null) {
+            $side = ($isBuyerTaker === true) ? 'buy' : 'sell';
         } else {
             if ($isBuyer === true) {
                 $side = 'buy';
@@ -1238,6 +1231,8 @@ class toobit extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API $endpoint
+         * @param {string} [$params->price] "mark" or "index" for mark price and index price $candles
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
@@ -1248,20 +1243,36 @@ class toobit extends Exchange {
             'symbol' => $market['id'],
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        if ($since !== null) {
-            $request['startTime'] = $since;
-        }
         $until = $this->safe_integer($params, 'until');
-        if ($until !== null) {
-            $request['endTime'] = $until;
-        }
         $paramsOmitted = ($until !== null) ? $this->omit($params, 'until') : $params;
+        list($endpoint, $paramsPrice) = $this->handle_option_string_and_params($paramsOmitted, 'fetchOHLCV', 'price');
+        $isPriceKlines = ($endpoint === 'index') || ($endpoint === 'mark');
+        $startKey = 'startTime';
+        $endKey = 'endTime';
+        if ($isPriceKlines) {
+            $startKey = 'from';
+            $endKey = 'to';
+        }
+        if ($since !== null) {
+            $request[$startKey] = $since;
+        }
+        if ($until !== null) {
+            $request[$endKey] = $until;
+        } elseif ($isPriceKlines && ($since !== null)) {
+            // mark and index klines walk backwards from `to` and ignore a lone `from`
+            $duration = $this->parse_timeframe($timeframe);
+            if ($limit === null) {
+                $request['to'] = $this->sum($since, $duration * 2000 * 1000); // exchange default limit
+            } else {
+                $request['to'] = $this->sum($since, $duration * $limit * 1000);
+            }
+        }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
         $response = array();
-        list($endpoint, $paramsPrice) = $this->handle_option_string_and_params($paramsOmitted, 'fetchOHLCV', 'price');
         if ($endpoint === 'index') {
+            $request['symbol'] = $this->safe_string($market['info'], 'indexToken'); // index klines take the index id instead of the market id
             $response = $this->commonGetQuoteV1IndexKlines($this->extend($request, $paramsPrice));
             //
             //     {
@@ -1332,6 +1343,8 @@ class toobit extends Exchange {
         $candles = array();
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             $candles = $response;
+        } else {
+            $candles = $this->safe_list($response, 'data', array());
         }
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
@@ -1351,12 +1364,12 @@ class toobit extends Exchange {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          *
-         * @see https://api-docs.toobit.com/api/spot-$market-data.html#_24hr-ticker-price-change-statistics
-         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#_24hr-ticker-price-change-statistics
+         * @see https://api-docs.toobit.com/api/spot-$market-data.html#_24hr-$ticker-price-change-statistics
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#_24hr-$ticker-price-change-statistics
          *
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1397,7 +1410,15 @@ class toobit extends Exchange {
         //        },
         //        ...
         //
-        return $this->parse_tickers($response, $symbolsNormalized, $paramsMarketType);
+        $rows = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $ticker = $response[$i];
+            $marketId = $this->safe_string($ticker, 's');
+            if (($marketId !== null) && ($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
+                $rows[] = $ticker;
+            }
+        }
+        return $this->parse_tickers($rows, $symbolsNormalized, $paramsMarketType);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1406,9 +1427,10 @@ class toobit extends Exchange {
         $timestamp = $this->safe_integer($ticker, 't');
         $last = $this->safe_string($ticker, 'c');
         $baseVolume = $this->safe_string($ticker, 'v');
-        if (($marketResolved['contract'] === true) && ($marketResolved['contractSize'] !== null)) {
+        $contractSize = $this->safe_number($marketResolved, 'contractSize');
+        if (($marketResolved['contract'] === true) && ($contractSize !== null)) {
             // 'v' counts contracts, and a ticker reports base volume
-            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($marketResolved['contractSize']));
+            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($contractSize));
         }
         return $this->safe_ticker(array(
             'symbol' => $marketResolved['symbol'],
@@ -1416,9 +1438,9 @@ class toobit extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($ticker, 'h'),
             'low' => $this->safe_string($ticker, 'l'),
-            'bid' => null,
+            'bid' => $this->safe_string($ticker, 'b'),
             'bidVolume' => null,
-            'ask' => null,
+            'ask' => $this->safe_string($ticker, 'a'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $this->safe_string($ticker, 'o'),
@@ -1477,7 +1499,7 @@ class toobit extends Exchange {
             'symbol' => $marketResolved['symbol'],
             'timestamp' => null,
             'datetime' => null,
-            'price' => $this->safe_number_omit_zero($entry, 'price'),
+            'price' => $this->safe_number_omit_zero($entry, 'p'),
             'side' => null,
             'info' => $entry,
         );
@@ -1529,7 +1551,7 @@ class toobit extends Exchange {
             $results[] = $ticker;
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array($results, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array_tickers($results, 'symbol', $symbolsNormalized);
     }
 
     public function parse_bid_ask_custom(array $ticker): array {
@@ -1818,7 +1840,7 @@ class toobit extends Exchange {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
         list($isPostOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', false, $paramsCost);
-        if ($isPostOnly === true) {
+        if ($isPostOnly) {
             $request['type'] = 'LIMIT_MAKER';
         } else {
             $request['type'] = strtoupper($type);
@@ -1857,7 +1879,7 @@ class toobit extends Exchange {
             $request['priceType'] = 'MARKET';
         }
         list($isPostOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', false, $paramsReduceOnly);
-        if ($isPostOnly === true) {
+        if ($isPostOnly) {
             $request['timeInForce'] = 'LIMIT_MAKER';
         }
         $values = $this->handle_trigger_prices_and_params($symbol, $paramsPostOnly);
@@ -1876,7 +1898,7 @@ class toobit extends Exchange {
         );
         if ($hasStopLoss) {
             $request['stopLoss'] = $this->safe_value($stopLoss, 'triggerPrice');
-            $limitPrice = $this->safe_value($stopLoss, 'price');
+            $limitPrice = $this->safe_string($stopLoss, 'price');
             if ($limitPrice !== null) {
                 $request['slOrderType'] = 'LIMIT';
                 $request['slLimitPrice'] = $this->price_to_precision($symbol, $limitPrice);
@@ -1888,7 +1910,7 @@ class toobit extends Exchange {
         }
         if ($hasTakeProfit) {
             $request['takeProfit'] = $this->safe_value($takeProfit, 'triggerPrice');
-            $limitPrice = $this->safe_value($takeProfit, 'price');
+            $limitPrice = $this->safe_string($takeProfit, 'price');
             if ($limitPrice !== null) {
                 $request['tpOrderType'] = 'LIMIT';
                 $request['tpLimitPrice'] = $this->price_to_precision($symbol, $limitPrice);
@@ -1981,10 +2003,8 @@ class toobit extends Exchange {
             }
             $rawSideLower = $this->safe_string($sideParts, 0);
         }
+        // omitZero already maps '0.0' to undefined
         $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
-        if ($triggerPrice === '0.0') {
-            $triggerPrice = null;
-        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'orderId'),
@@ -2015,7 +2035,7 @@ class toobit extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'PENDING_NEW' => 'open',
             'NEW' => 'open',
@@ -2031,7 +2051,7 @@ class toobit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $status) {
+    public function parse_order_type(?string $status): ?string {
         $statuses = array(
             'MARKET' => 'market',
             'LIMIT' => 'limit',
@@ -2832,7 +2852,23 @@ class toobit extends Exchange {
             // ]
             //
         }
-        return $this->parse_transactions($response, $currency, $since, $limit, $paramsUntil);
+        $transactType = ($type === 'deposits') ? 'deposit' : 'withdrawal';
+        $results = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $results[] = $this->extend($this->parse_transaction_with_type($response[$i], $currency, $transactType), $paramsUntil);
+        }
+        $sorted = $this->sort_by($results, 'timestamp');
+        $currencyCode = ($currency !== null) ? $currency['code'] : null;
+        return $this->filter_by_currency_since_limit($sorted, $currencyCode, $since, $limit);
+    }
+
+    public function parse_transaction_with_type(array $transaction, ?array $currency = null, ?string $transactType = null): array {
+        $result = $this->parse_transaction($transaction, $currency);
+        if ($transactType !== null) {
+            $result['type'] = $transactType;
+            $result['status'] = $this->parse_transaction_status($this->safe_string($transaction, 'status'), $transactType);
+        }
+        return $result;
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2892,7 +2928,7 @@ class toobit extends Exchange {
         $tagFrom = $this->safe_string($transaction, 'fromAddressTag');
         $addressTo = $this->safe_string($transaction, 'address');
         $addressFrom = $this->safe_string($transaction, 'fromAddress');
-        $isWithdraw = (is_array($transaction) && array_key_exists('arriveQuantity' ?? '', $transaction));
+        $isWithdraw = (is_array($transaction) && array_key_exists('arriveQuantity' ?? '', $transaction)) || (is_array($transaction) && array_key_exists('success' ?? '', $transaction));
         $type = $isWithdraw ? 'withdrawal' : 'deposit';
         return array(
             'info' => $transaction,
@@ -2910,7 +2946,7 @@ class toobit extends Exchange {
             'type' => $type,
             'amount' => $this->safe_number($transaction, 'quantity'),
             'currency' => $code,
-            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status'), $type),
             'updated' => null,
             'fee' => $fee,
             'comment' => null,
@@ -2918,16 +2954,29 @@ class toobit extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
-        $statuses = array(
-            '2' => 'pending',
-            '12' => 'pending',
-            '11' => 'failed',
-            '3' => 'ok',
+    public function parse_transaction_status(?string $status, ?string $type = null): ?string {
+        $statusesByType = array(
+            'deposit' => array(
+                '2' => 'ok', // DEPOSIT_CAN_WITHDRAW
+                '11' => 'failed', // REJECT
+                '12' => 'pending', // AUDIT
+            ),
+            'withdrawal' => array(
+                '0' => 'pending', // WITHDRAWAL_STATUS_UNKNOWN
+                '1' => 'pending', // BROKER_AUDITING_STATUS
+                '2' => 'failed', // BROKER_REJECT_STATUS
+                '3' => 'pending', // AUDITING_STATUS
+                '6' => 'ok', // WITHDRAWAL_SUCCESS_STATUS
+                '7' => 'failed', // WITHDRAWAL_FAILURE_STATUS
+                '9' => 'canceled', // WITHDRAWAL_CANCELLED_STATUS
+                '10' => 'pending', // WAIT_MERCHANT_PASS
+                '11' => 'pending', // APPLY_CANCEL, cancellation requested but not final yet
+            ),
         );
         if ($status === null) {
             return null;
         }
+        $statuses = $this->safe_dict($statusesByType, $type, array());
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -2980,7 +3029,7 @@ class toobit extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -2989,13 +3038,14 @@ class toobit extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag a memo for the transaction
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination $tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {string} [$params->addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
+        list($tag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         $this->check_address($address);
-        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' withdraw() : param["network"] is required');
         }
@@ -3204,7 +3254,7 @@ class toobit extends Exchange {
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedPnL'),
             'side' => $side,
             'contracts' => $this->parse_number($quantity),
-            'contractSize' => null,
+            'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'timestamp' => null,
             'datetime' => null,
             'hedged' => null,
@@ -3220,8 +3270,9 @@ class toobit extends Exchange {
         ));
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -3231,7 +3282,7 @@ class toobit extends Exchange {
         $isDelete = $method === 'DELETE';
         $extraQuery = array();
         $query = $this->omit($params, $this->extract_params($path));
-        if ($api !== 'private') {
+        if ($apiName !== 'private') {
             // Public endpoints
             if (!$isPost) {
                 if (count($query) > 0) {
@@ -3258,7 +3309,7 @@ class toobit extends Exchange {
             } else {
                 $queryString = $this->urlencode($queryExtended);
             }
-            $payloadBody = $body;
+            $payloadBody = null;
             if ($isPost || $isDelete) {
                 $payloadBody = $privateBody;
             }
@@ -3279,13 +3330,13 @@ class toobit extends Exchange {
                 'X-BB-API-PLATFORM' => $this->safe_string($this->options, 'brokerId', '177321641268789'),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
-            $requestBody = $body;
+            $requestBody = null;
             if ($isPost || $isDelete) {
                 $requestBody = $privateBody;
             }
             return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $privateHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

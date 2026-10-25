@@ -1,5 +1,6 @@
 import Exchange from '../abstract/prediction/polymarket.js';
 import type { OrderSide, OrderType, Int, Str, Num, Dict, Market, PredictionTickers, PredictionOrderBook, OHLCV, PredictionOrderRequest, Balances, Strings, PredictionOpenInterest, PredictionTradingFee, PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition, fetchEventsParams } from '../base/types.js';
+import type Client from '../base/ws/Client.js';
 /**
  * @class polymarket
  * @augments Exchange
@@ -432,7 +433,7 @@ export default class polymarket extends Exchange {
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     fetchEvent(id: string, params?: Dict): Promise<PredictionEvent>;
-    parseEvent(rawEvent: Dict): Dict;
+    parseEvent(rawEvent: Dict): PredictionEvent;
     /**
      * @ignore
      * @method
@@ -441,7 +442,7 @@ export default class polymarket extends Exchange {
      * @param {object[]} rawEvents the raw gamma event objects
      * @returns {object[]} a list of event structures
      */
-    parseEvents(rawEvents: any[]): any[];
+    parseEvents(rawEvents: any[]): Dict[];
     handleErrors(code: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     nonce(): number;
     /**
@@ -450,14 +451,12 @@ export default class polymarket extends Exchange {
      * @name polymarket#sign
      * @description builds the request url and attaches HMAC-SHA256 authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: Dict): {
         url: string;
         method: string;
         body: any;
@@ -507,9 +506,9 @@ export default class polymarket extends Exchange {
     loadApiCredentials(): Promise<void>;
     ping(client: any): string;
     handleMessage(client: any, message: any): void;
-    handleOrderBookSnapshot(client: any, event: Dict): void;
-    handleOrderBookDelta(client: any, event: Dict): void;
-    handleTrade(client: any, event: Dict): void;
+    handleOrderBookSnapshot(client: Client, event: Dict): void;
+    handleOrderBookDelta(client: Client, event: Dict): void;
+    handleTrade(client: Client, event: Dict): void;
     /**
      * @method
      * @name polymarket#watchOrderBook
@@ -565,8 +564,8 @@ export default class polymarket extends Exchange {
      */
     watchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
     subscribeUserChannel(messageHash: string, params?: Dict): Promise<any>;
-    handleOrder(client: any, event: Dict): void;
-    handleMyTrade(client: any, event: Dict): void;
+    handleOrder(client: Client, event: Dict): void;
+    handleMyTrade(client: Client, event: Dict): void;
     tokenIdToSymbol(tokenId: Str): Str;
     parsePolyTimestamp(raw: Str): Int;
 }

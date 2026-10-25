@@ -830,7 +830,8 @@ public partial class bitvavo : ccxt.bitvavo
         //     }
         //
         Int64? nonce = this.safeInteger(message, "nonce");
-        if (isGreaterThan(nonce, getValue(orderbook, "nonce")))
+        Int64? currentNonce = this.safeInteger(orderbook, "nonce");
+        if (((nonce != null)) && ((currentNonce != null)) && ((nonce != null && (currentNonce == null || nonce > currentNonce))))
         {
             this.handleDeltas(getValue(orderbook, "asks"), this.safeList(message, "asks", new List<object>() {}));
             this.handleDeltas(getValue(orderbook, "bids"), this.safeList(message, "bids", new List<object>() {}));
@@ -864,7 +865,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             return;
         }
-        if (isEqual(getValue(orderbook, "nonce"), null))
+        if ((((object)((orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null))) == null))
         {
             object subscription = this.safeValue(client.subscriptions, messageHash, new Dictionary<string, object>() {});
             // multi-symbol watches share one subscription object, so the
@@ -974,11 +975,17 @@ public partial class bitvavo : ccxt.bitvavo
     {
         string? symbol = this.safeString(subscription, "symbol");
         Int64? limit = this.safeInteger(subscription, "limit");
-        if (((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol)))
+        IDictionary<string, object> limits = this.safeDict(this.options, "orderBookLimits", new Dictionary<string, object>() {});
+        Int64? storedLimit = this.safeInteger(limits, symbol);
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))) || ((storedLimit != limit)))
         {
-            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+            limits[(string)symbol] = limit;
+            this.options["orderBookLimits"] = limits;
         }
-        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+        orderbook["nonce"] = null;
+        (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
     }
 
     public virtual void handleOrderBookSubscriptions(WebSocketClient client, Dictionary<string, object> message, IList<object> marketIds)
@@ -1051,7 +1058,7 @@ public partial class bitvavo : ccxt.bitvavo
             {
                 continue;
             }
-            object subscription = getValue(client.subscriptions, key);
+            object subscription = (client.subscriptions != null && key != null && client.subscriptions.ContainsKey(key) ? client.subscriptions[key] : null);
             string subHash = key.Replace("unsubscribe:", (string)"");
             this.cleanCache(subscription);
             this.cleanUnsubscription(client, subHash, key);
@@ -1470,23 +1477,23 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> WithdrawWs(string code, object amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> WithdrawWs(string code, object amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         await this.authenticate();
-        Dictionary<string, object> request = this.withdrawRequest(code, amount, address,((string)tagWithdrawTag), paramsWithdrawTag);
+        Dictionary<string, object> request = this.withdrawRequest(code, amount, address,tagWithdrawTag, paramsWithdrawTag);
         return ccxt.BaseExchange.ToTransaction(await this.watchRequest("privateWithdrawAssets", request));
     }
 

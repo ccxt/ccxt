@@ -30,7 +30,9 @@ impl LunoCore {
     pub fn init(&mut self) {
         let described = LunoCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -120,7 +122,6 @@ impl crate::exchange_generated::ExchangeBase for LunoCore {
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -801,7 +802,7 @@ impl LunoCore {
         //
         let mut currenciesData: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         let mut grouped: Value = self.group_by(currenciesData, Value::Str("native_currency".into()), &[]);
-        let mut values: Value = object_values(&grouped);
+        let mut values: Value = Value::Array(grouped.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default());
         return self.parse_currencies(values);
 
     Value::Null
@@ -816,8 +817,8 @@ impl LunoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_930: bool = true;
-            while { if !__for_first_930 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_930 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawCurrency.len() as i64) as f64) } {
+            let mut __for_first_934: bool = true;
+            while { if !__for_first_934 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_934 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawCurrency.len() as i64) as f64) } {
             let mut networkEntry: Value = self.safe_dict(rawCurrency.clone(), i.clone(), &[]);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "name", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
@@ -921,12 +922,12 @@ impl LunoCore {
         //         ]
         //     }
         //
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         let mut markets: Value = self.safe_list_k(response, "markets", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_931: bool = true;
-            while { if !__for_first_931 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_931 = false; i.as_f64().unwrap_or(f64::NAN) < ((markets.len() as i64) as f64) } {
+            let mut __for_first_935: bool = true;
+            while { if !__for_first_935 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_935 = false; i.as_f64().unwrap_or(f64::NAN) < ((markets.len() as i64) as f64) } {
             let mut market: Value = markets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut id: Value = self.safe_string_k(market.clone(), "market_id", &[]);
             let mut baseId: Value = self.safe_string_k(market.clone(), "base_currency", &[]);
@@ -963,7 +964,7 @@ impl LunoCore {
                 taker = self.parse_number(Value::Str("0.001".into()), &[]);
                 maker = self.parse_number(Value::Str("0.0008".into()), &[]);
             }
-            append_to_array(&mut result, Value::Map({
+            result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id);
                     m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
@@ -1030,7 +1031,7 @@ impl LunoCore {
             }));
         }
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
@@ -1050,16 +1051,16 @@ impl LunoCore {
 }));
         let mut response: Value = self.private_get_balance(&[params]).await;
         let mut wallets: Value = self.safe_list_k(response, "balance", &[Value::from(vec![])]);
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_932: bool = true;
-            while { if !__for_first_932 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_932 = false; i.as_f64().unwrap_or(f64::NAN) < ((wallets.len() as i64) as f64) } {
+            let mut __for_first_936: bool = true;
+            while { if !__for_first_936 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_936 = false; i.as_f64().unwrap_or(f64::NAN) < ((wallets.len() as i64) as f64) } {
             let mut account: Value = wallets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut accountId: Value = self.safe_string_k(account.clone(), "account_id", &[]);
             let mut currencyId: Value = self.safe_string_k(account.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
-            append_to_array(&mut result, Value::Map({
+            result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), accountId);
                     m.insert("type".to_string(), Value::Null);
@@ -1069,7 +1070,7 @@ impl LunoCore {
             }));
         }
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
@@ -1085,8 +1086,8 @@ impl LunoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_933: bool = true;
-            while { if !__for_first_933 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_933 = false; i.as_f64().unwrap_or(f64::NAN) < ((wallets.len() as i64) as f64) } {
+            let mut __for_first_937: bool = true;
+            while { if !__for_first_937 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_937 = false; i.as_f64().unwrap_or(f64::NAN) < ((wallets.len() as i64) as f64) } {
             let mut wallet: Value = self.safe_dict(wallets.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(wallet.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -1095,7 +1096,7 @@ impl LunoCore {
             let mut balance: Value = self.safe_string_k(wallet, "balance", &[]);
             let mut reservedUnconfirmed: Value = crate::precise::Precise::stringAdd(&reserved, &unconfirmed);
             let mut balanceUnconfirmed: Value = crate::precise::Precise::stringAdd(&balance, &unconfirmed);
-            if (code != Value::Null) && (in_op(&result, &code)) {
+            if (code != Value::Null) && (matches!((&result, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&get_value(&result, &code), "used"), &reservedUnconfirmed); add_element_to_object(get_value_mut(&mut result, &code), &Value::Str("used".into()), __be_tmp); };
                 { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&get_value(&result, &code), "total"), &balanceUnconfirmed); add_element_to_object(get_value_mut(&mut result, &code), &Value::Str("total".into()), __be_tmp); };
             }  else if (code != Value::Null) {
@@ -1173,15 +1174,13 @@ impl LunoCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("PENDING".to_string(), Value::Str("open".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1204,7 +1203,7 @@ impl LunoCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "creation_timestamp", &[]);
-        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[]));
+        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         status = (if (status.as_str() == Some("open")) { status.clone() } else { status.clone() });
         let mut side: Value = Value::Null;
         let mut orderType: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
@@ -1466,15 +1465,15 @@ impl LunoCore {
         let mut response: Value = self.public_get_tickers(&[params]).await;
         let mut rawTickers: Value = self.safe_list_k(response, "tickers", &[Value::from(vec![])]);
         let mut tickers: Value = self.index_by(rawTickers, Value::Str("pair".into()));
-        let mut ids: Value = object_keys(&tickers);
+        let mut ids: Value = Value::Array(tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_934: bool = true;
-            while { if !__for_first_934 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_934 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
+            let mut __for_first_938: bool = true;
+            while { if !__for_first_938 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_938 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
             let mut id: Value = ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[id.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1577,12 +1576,12 @@ impl LunoCore {
         let mut feeCurrency: Value = Value::Null;
         let mut feeCost: Value = Value::Null;
         if (feeBaseString != Value::Null) {
-            if !is_true(&crate::precise::Precise::stringEquals(&feeBaseString, &Value::Str("0.0".into()))) {
+            if !(crate::precise::Precise::stringEquals(&feeBaseString, &Value::Str("0.0".into())).as_bool() == Some(true)) {
                 feeCurrency = self.safe_string_k(market.clone(), "base", &[]);
                 feeCost = feeBaseString.clone();
             }
         }  else if (feeCounterString != Value::Null) {
-            if !is_true(&crate::precise::Precise::stringEquals(&feeCounterString, &Value::Str("0.0".into()))) {
+            if !(crate::precise::Precise::stringEquals(&feeCounterString, &Value::Str("0.0".into())).as_bool() == Some(true)) {
                 feeCurrency = self.safe_string_k(market.clone(), "quote", &[]);
                 feeCost = feeCounterString.clone();
             }
@@ -1869,7 +1868,7 @@ impl LunoCore {
         let mut response: Value = Value::Null;
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         if (type_var.as_str() == Some("market")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), to_upper(&side)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)); }
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (side.as_str() == Some("buy")) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("counter_volume".into(), self.amount_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), amount.clone())); }
@@ -1982,8 +1981,8 @@ impl LunoCore {
         self.load_accounts(&[]).await;
         let mut currency: Value = Value::Null;
         let mut id: Value = self.safe_string_k(params.clone(), "id", &[]); // account id
-        let mut min_row: Value = self.safe_value_k(params.clone(), "min_row", &[]);
-        let mut max_row: Value = self.safe_value_k(params.clone(), "max_row", &[]);
+        let mut minRowParam: Value = self.safe_integer_k(params.clone(), "min_row", &[]);
+        let mut maxRowParam: Value = self.safe_integer_k(params.clone(), "max_row", &[]);
         if (id == Value::Null) {
             if (code == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() requires a currency code argument if no account id specified in params".into()))));
@@ -1996,20 +1995,16 @@ impl LunoCore {
             }
             id = self.safe_string_k(account, "id", &[]);
         }
-        if (min_row == Value::Null) && (max_row == Value::Null) {
-            max_row = Value::Int(0); // Default to most recent transactions
-            min_row = Value::Int(-1000); // Maximum number of records supported
-        }  else if (min_row == Value::Null) || (max_row == Value::Null) {
+        if ((minRowParam == Value::Null) || (maxRowParam == Value::Null)) && ((minRowParam != Value::Null) || (maxRowParam != Value::Null)) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined".into()))));
         }
-        if (limit != Value::Null) && subtract(&max_row, &min_row).as_f64().unwrap_or(f64::NAN) > limit.as_f64().unwrap_or(f64::NAN) {
-            if max_row.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64) {
-                min_row = subtract(&max_row, &limit);
-            }  else if min_row.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-                max_row = add(&min_row, &limit);
-            }
-        }
-        if subtract(&max_row, &min_row).as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64) {
+        let mut maxRowBase: Value = self.safe_integer_k(params.clone(), "max_row", &[Value::Int(0)]); // Default to most recent transactions
+        let mut minRowBase: Value = self.safe_integer_k(params.clone(), "min_row", &[Value::Int(-1000)]); // Maximum number of records supported
+        let mut limitApplies: bool = (limit != Value::Null) && ((match (&(maxRowBase), &(minRowBase)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) > limit.as_f64().unwrap_or(f64::NAN));
+        let mut min_row: Value = (if (limitApplies && (limit != Value::Null) && maxRowBase.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64)) { (match (&(maxRowBase), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }) } else { minRowBase.clone() });
+        let mut max_row: Value = (if (limitApplies && maxRowBase.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) && minRowBase.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { (match (&(minRowBase), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) } else { maxRowBase.clone() });
+        let mut limitAdjusts: bool = limitApplies && (maxRowBase.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64) || minRowBase.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)); // max_row - min_row becomes limit
+        if (limitAdjusts && limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64)) || (!limitAdjusts && (match (&(maxRowBase), &(minRowBase)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64)) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() requires the params 'max_row' - 'min_row' <= 1000".into()))));
         }
         let mut request: Value = Value::Map({
@@ -2085,20 +2080,20 @@ impl LunoCore {
         let mut referenceId: Value = result.as_map().and_then(|__m| __m.get("referenceId")).cloned().unwrap_or(Value::Null);
         let mut direction: Value = Value::Null;
         let mut status: Value = Value::Null;
-        if !is_true(&crate::precise::Precise::stringEquals(&balance_delta, &Value::Str("0.0".into()))) {
+        if !(crate::precise::Precise::stringEquals(&balance_delta, &Value::Str("0.0".into())).as_bool() == Some(true)) {
             before = crate::precise::Precise::stringSub(&after, &balance_delta);
             status = Value::Str("ok".into());
             amount = crate::precise::Precise::stringAbs(&balance_delta);
-        }  else if is_true(&crate::precise::Precise::stringLt(&available_delta, &Value::Str("0.0".into()))) {
+        }  else if crate::precise::Precise::stringLt(&available_delta, &Value::Str("0.0".into())).as_bool() == Some(true) {
             status = Value::Str("pending".into());
             amount = crate::precise::Precise::stringAbs(&available_delta);
-        }  else if is_true(&crate::precise::Precise::stringGt(&available_delta, &Value::Str("0.0".into()))) {
+        }  else if crate::precise::Precise::stringGt(&available_delta, &Value::Str("0.0".into())).as_bool() == Some(true) {
             status = Value::Str("canceled".into());
             amount = crate::precise::Precise::stringAbs(&available_delta);
         }
-        if is_true(&crate::precise::Precise::stringGt(&balance_delta, &Value::Str("0".into()))) || is_true(&crate::precise::Precise::stringGt(&available_delta, &Value::Str("0".into()))) {
+        if crate::precise::Precise::stringGt(&balance_delta, &Value::Str("0".into())).as_bool() == Some(true) || crate::precise::Precise::stringGt(&available_delta, &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Value::Str("in".into());
-        }  else if is_true(&crate::precise::Precise::stringLt(&balance_delta, &Value::Str("0".into()))) || is_true(&crate::precise::Precise::stringLt(&available_delta, &Value::Str("0".into()))) {
+        }  else if crate::precise::Precise::stringLt(&balance_delta, &Value::Str("0".into())).as_bool() == Some(true) || crate::precise::Precise::stringLt(&available_delta, &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Value::Str("out".into());
         }
         return self.safe_ledger_entry(Value::Map({
@@ -2269,25 +2264,26 @@ impl LunoCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut requestHeaders: Value = Value::Null;
-        if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
-            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+        if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
+            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])).into())).into());
         }
-        if (api.as_str() == Some("private")) || (api.as_str() == Some("exchangePrivate")) {
+        if (apiName.as_str() == Some("private")) || (apiName.as_str() == Some("exchangePrivate")) {
             self.check_required_credentials(&[]);
             let mut auth: Value = self.string_to_base64(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(":".into())).into()), self.secret.clone()).into()), &[]);
             requestHeaders = Value::Map({
@@ -2296,12 +2292,12 @@ impl LunoCore {
                 m
             });
         }
-        let mut headersResolved: Value = (if (requestHeaders == Value::Null) { headers } else { requestHeaders });
+        let mut headersResolved: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
+        m.insert("body".to_string(), Value::Null);
         m.insert("headers".to_string(), headersResolved);
     m
 });

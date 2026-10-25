@@ -211,7 +211,7 @@ class foxbit extends Exchange {
                     'cardano' => 'ADA',
                     'cosmos' => 'ATOM',
                     'dogecoin' => 'DOGE',
-                    'erc20' => 'ETH',
+                    'erc20' => 'ERC20',
                     'hedera' => 'HBAR',
                     'litecoin' => 'LTC',
                     'near' => 'NEAR',
@@ -235,7 +235,7 @@ class foxbit extends Exchange {
                     'ADA' => 'cardano',
                     'ATOM' => 'cosmos',
                     'DOGE' => 'dogecoin',
-                    'ETH' => 'erc20',
+                    'ERC20' => 'erc20',
                     'HBAR' => 'hedera',
                     'LTC' => 'litecoin',
                     'NEAR' => 'near',
@@ -1036,7 +1036,7 @@ class foxbit extends Exchange {
                 $request['time_in_force'] = $timeInForce;
             }
         }
-        if ($postOnly === true) {
+        if ($postOnly) {
             $request['post_only'] = true;
         }
         if ($triggerPrice !== null) {
@@ -1112,7 +1112,7 @@ class foxbit extends Exchange {
                 }
                 unset($orderParams['timeInForce']);
             }
-            if ($postOnly === true) {
+            if ($postOnly) {
                 $request['post_only'] = true;
                 unset($orderParams['postOnly']);
             }
@@ -1687,11 +1687,11 @@ class foxbit extends Exchange {
         return $this->parse_order($created, $market);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * Make a withdrawal.
          *
@@ -1700,11 +1700,12 @@ class foxbit extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -1859,6 +1860,14 @@ class foxbit extends Exchange {
         $bestBid = $this->safe_dict($best, 'bid');
         $lastTrade = $this->safe_dict($ticker, 'last_trade');
         $lastPrice = $this->safe_string($lastTrade, 'price');
+        $change = $this->safe_string($rolling_24h, 'price_change');
+        $percentage = $this->safe_string($rolling_24h, 'price_change_percent');
+        // never-traded markets report all-zero placeholders instead of omitting the values
+        if (Precise::string_eq($lastPrice, '0')) {
+            $lastPrice = null;
+            $change = null;
+            $percentage = null;
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $this->parse_date($this->safe_string($lastTrade, 'date')),
@@ -1874,8 +1883,8 @@ class foxbit extends Exchange {
             'close' => $lastPrice,
             'last' => $lastPrice,
             'previousClose' => null,
-            'change' => $this->safe_string($rolling_24h, 'price_change'),
-            'percentage' => $this->safe_string($rolling_24h, 'price_change_percent'),
+            'change' => $change,
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $this->safe_string($rolling_24h, 'volume'),
             'quoteVolume' => $this->safe_string($rolling_24h, 'quote_volume'),
@@ -1923,7 +1932,7 @@ class foxbit extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'PARTIALLY_CANCELED' => 'open',
             'ACTIVE' => 'open',
@@ -2009,7 +2018,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             // BOTH
             'SUBMITTING' => 'pending',
@@ -2063,7 +2072,7 @@ class foxbit extends Exchange {
             'txid' => $this->safe_string($cryptoDetails, 'transaction_id'),
             'timestamp' => $timestamp,
             'datetime' => $datetime,
-            'network' => $this->safe_string($transaction, 'network_code'),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network_code'), $currencyCode),
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
@@ -2122,18 +2131,16 @@ class foxbit extends Exchange {
         if ($amount === null) {
             throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a amount argument');
         }
-        if ($amount < 0) {
-            $direction = 'out';
-            if ($amount === null) {
-                throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a amount argument');
-            }
-            $realAmount = $amount * -1;
-        }
         if ($balance === null) {
             throw new ExchangeError($this->id . ' parseLedgerEntry() missing balance');
         }
-        if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a amount argument');
+        $before = null;
+        if ($amount !== null && $balance !== null) {
+            $before = $balance - $amount;
+            if (0 > $amount) {
+                $direction = 'out';
+                $realAmount = -$amount;
+            }
         }
         return array(
             'id' => $id,
@@ -2147,14 +2154,14 @@ class foxbit extends Exchange {
             'type' => $type,
             'currency' => $currencySymbol,
             'amount' => $realAmount,
-            'before' => $balance - $amount,
+            'before' => $before,
             'after' => $balance,
             'status' => 'ok',
             'fee' => $fee,
         );
     }
 
-    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array(), string $method = 'GET', $params = array()): array {
         $version = $api[0];
         $urlPath = $api[1];
         $fullPath = '/rest/' . $version . '/' . $this->implode_params($path, $params);
@@ -2174,6 +2181,7 @@ class foxbit extends Exchange {
         if ($method === 'GET') {
             $paramKeys = is_array($paramsOmitted) ? array_keys($paramsOmitted) : array();
             $paramKeysLength = count($paramKeys);
+            $lastKeyIndex = $paramKeysLength - 1;
             if ($paramKeysLength > 0) {
                 $query = $this->urlencode($paramsOmitted);
                 $url .= '?' . $query;
@@ -2184,12 +2192,12 @@ class foxbit extends Exchange {
                 if ($value !== null) {
                     $signatureQuery .= $key . '=' . $value;
                 }
-                if ($i < $paramKeysLength - 1) {
+                if ($i < $lastKeyIndex) {
                     $signatureQuery .= '&';
                 }
             }
         }
-        $requestBody = $body;
+        $requestBody = null;
         if ($method === 'POST' || $method === 'PUT') {
             $requestBody = $this->json($paramsOmitted);
         }

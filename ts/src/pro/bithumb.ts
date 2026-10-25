@@ -332,9 +332,10 @@ export default class bithumb extends bithumbRest {
         const time = this.safeString (ticker, 'time', '') as string;
         const kstDatetime = date.slice (0, 4) + '-' + date.slice (4, 6) + '-' + date.slice (6, 8) + 'T' + time.slice (0, 2) + ':' + time.slice (2, 4) + ':' + time.slice (4, 6);
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
-        let timestamp = this.parse8601 (kstDatetime);
-        if (timestamp !== undefined) {
-            timestamp = (timestamp - 32400000);
+        let timestamp: Int = undefined;
+        const kstTimestamp = this.parse8601 (kstDatetime);
+        if (kstTimestamp !== undefined) {
+            timestamp = kstTimestamp - 32400000;
         }
         const marketId = this.safeString (ticker, 'symbol');
         return this.safeTicker ({
@@ -352,8 +353,9 @@ export default class bithumb extends bithumbRest {
             'close': this.safeString (ticker, 'closePrice'),
             'last': undefined,
             'previousClose': this.safeString (ticker, 'prevClosePrice'),
-            'change': this.safeString (ticker, 'chgAmt'),
-            'percentage': this.safeString (ticker, 'chgRate'),
+            // safeTicker derives change/percentage from open, matching the REST parser
+            'change': undefined,
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': this.safeString (ticker, 'value'),
@@ -481,31 +483,13 @@ export default class bithumb extends bithumbRest {
         if (symbol === undefined) {
             return;
         }
-        const streamType = this.safeString (message, 'stream_type');
         const options = this.safeDict (this.options, 'watchOrderBook', {});
         const obLimit = this.safeInteger (options, 'limit', 1000);
-        if (!(symbol in this.orderbooks) || (streamType === 'SNAPSHOT')) {
+        if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ({}, obLimit);
         }
         const orderbook = this.orderbooks[symbol];
-        orderbook.reset ({});
-        orderbook['symbol'] = symbol;
-        const bids = orderbook['bids'];
-        const asks = orderbook['asks'];
         const units: Dict[] = this.safeList (message, 'orderbook_units', []);
-        for (let i = 0; i < units.length; i++) {
-            const entry = this.safeDict (units, i);
-            const bidPrice = this.safeNumber (entry, 'bid_price');
-            const bidSize = this.safeNumber (entry, 'bid_size');
-            const askPrice = this.safeNumber (entry, 'ask_price');
-            const askSize = this.safeNumber (entry, 'ask_size');
-            if ((bidPrice !== undefined) && (bidSize !== undefined)) {
-                bids.store (bidPrice, bidSize);
-            }
-            if ((askPrice !== undefined) && (askSize !== undefined)) {
-                asks.store (askPrice, askSize);
-            }
-        }
         const gen2TimestampStr = this.safeString2 (message, 'timestamp', 'datetime') as string;
         let timestamp: Int = undefined;
         if (gen2TimestampStr !== undefined) {
@@ -514,8 +498,23 @@ export default class bithumb extends bithumbRest {
         if (timestamp === undefined) {
             timestamp = this.milliseconds ();
         }
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = this.iso8601 (timestamp);
+        const bidsSnapshot: any[] = [];
+        const asksSnapshot: any[] = [];
+        for (let i = 0; i < units.length; i++) {
+            const entry = this.safeDict (units, i);
+            const bidPrice = this.safeNumber (entry, 'bid_price');
+            const bidSize = this.safeNumber (entry, 'bid_size');
+            const askPrice = this.safeNumber (entry, 'ask_price');
+            const askSize = this.safeNumber (entry, 'ask_size');
+            if ((bidPrice !== undefined) && (bidSize !== undefined)) {
+                bidsSnapshot.push ([ bidPrice, bidSize ]);
+            }
+            if ((askPrice !== undefined) && (askSize !== undefined)) {
+                asksSnapshot.push ([ askPrice, askSize ]);
+            }
+        }
+        const snapshot = this.parseOrderBook ({ 'bids': bidsSnapshot, 'asks': asksSnapshot }, symbol, timestamp);
+        orderbook.reset (snapshot);
         const messageHash = 'orderbook' + ':' + symbol;
         client.resolve (orderbook, messageHash);
     }
@@ -711,7 +710,11 @@ export default class bithumb extends bithumbRest {
         const marketId = this.safeString (trade, 'symbol');
         const datetime = this.safeString (trade, 'contDtm');
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        const timestamp = this.parseToInt (this.parse8601 (datetime)) - 32400000;
+        let timestamp: Int = undefined;
+        const kstTimestamp = this.parse8601 (datetime);
+        if (kstTimestamp !== undefined) {
+            timestamp = kstTimestamp - 32400000;
+        }
         const sideId = this.safeString (trade, 'buySellGb');
         return this.safeTrade ({
             'id': undefined,

@@ -103,6 +103,13 @@ export default class gate extends gateRest {
                 },
             },
             'options': {
+                'ws': {
+                    'options': {
+                        'headers': {
+                            'X-Gate-Size-Decimal': '1', // contract sizes are pushed as decimal strings instead of rounded-down integers
+                        },
+                    },
+                },
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'watchTradesSubscriptions': {},
@@ -450,7 +457,7 @@ export default class gate extends gateRest {
         let limitResolved = (limit === undefined) ? defaultLimit : limit;
         if (market['spot'] === true) {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
-            const maxSpotLimit = this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000);
+            const maxSpotLimit = this.parseToInt(this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000));
             limitResolved = Math.min(limitResolved, maxSpotLimit);
         }
         let payload = [];
@@ -540,7 +547,12 @@ export default class gate extends gateRest {
         const symbol = this.safeString(subscription, 'symbol');
         const limit = this.safeInteger(subscription, 'limit');
         if (symbol !== undefined) {
-            this.orderbooks[symbol] = this.orderBook({}, limit);
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook({}, limit);
+            }
+            const orderbook = this.orderbooks[symbol];
+            orderbook['nonce'] = undefined;
+            orderbook.cache = [];
         }
     }
     handleNewSpotOrderBook(client, message) {
@@ -582,7 +594,7 @@ export default class gate extends gateRest {
             this.orderbooks[symbol] = this.orderBook({}, 1000);
         }
         const orderbook = this.orderbooks[symbol];
-        if (full === true) {
+        if (full) {
             const snapshopt = this.parseOrderBook(result, symbol, undefined, 'b', 'a');
             snapshopt['nonce'] = this.safeInteger(result, 'u');
             snapshopt['timestamp'] = this.safeInteger(result, 't');
@@ -673,12 +685,13 @@ export default class gate extends gateRest {
         const storedOrderBook = this.safeValue(this.orderbooks, symbol, this.orderBook({}));
         const nonce = this.safeInteger(storedOrderBook, 'nonce');
         if (nonce === undefined) {
-            let cacheLength = 0;
+            let cacheLength = this.parseToInt(0);
             if (storedOrderBook !== undefined) {
-                cacheLength = storedOrderBook.cache.length;
+                const storedCacheLength = storedOrderBook.cache.length;
+                cacheLength = this.parseToInt(storedCacheLength);
             }
-            const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 10);
-            let waitAmount = 0;
+            const snapshotDelay = this.parseToInt(this.handleOption('watchOrderBook', 'snapshotDelay', 10));
+            let waitAmount = this.parseToInt(0);
             if (isSpot) {
                 waitAmount = snapshotDelay;
             }
@@ -694,12 +707,13 @@ export default class gate extends gateRest {
         else if ((deltaEnd !== undefined) && (nonce >= deltaEnd)) {
             return;
         }
-        else if ((deltaStart !== undefined) && (nonce >= deltaStart - 1)) {
+        else if ((deltaStart !== undefined) && (nonce !== undefined) && (nonce >= deltaStart - 1)) {
             this.handleBookDelta(storedOrderBook, delta);
         }
         else {
             delete client.subscriptions[messageHash];
-            delete this.orderbooks[symbol];
+            storedOrderBook['nonce'] = undefined;
+            storedOrderBook.cache = [];
             const checksum = this.handleOption('watchOrderBook', 'checksum', true);
             if (checksum === true) {
                 const error = new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
@@ -769,7 +783,7 @@ export default class gate extends gateRest {
         const symbolValue = market['symbol'];
         params['callerMethodName'] = 'watchTicker';
         const result = await this.watchTickers([symbolValue], params);
-        return this.safeValue(result, symbolValue);
+        return this.safeDict(result, symbolValue);
     }
     /**
      * @method
@@ -1025,9 +1039,13 @@ export default class gate extends gateRest {
         //     }]
         // }
         //
-        let result = this.safeValue(message, 'result');
-        if (!Array.isArray(result)) {
-            result = [result];
+        const rawResult = this.safeValue(message, 'result');
+        let result = [];
+        if (Array.isArray(rawResult)) {
+            result = this.safeList(message, 'result', []);
+        }
+        else {
+            result = [rawResult];
         }
         const parsedTrades = this.parseTrades(result);
         for (let i = 0; i < parsedTrades.length; i++) {
@@ -1105,9 +1123,13 @@ export default class gate extends gateRest {
         if (rawMarketType === 'spot') {
             marketType = 'spot';
         }
-        let result = this.safeValue(message, 'result');
-        if (!Array.isArray(result)) {
-            result = [result];
+        const rawResult = this.safeValue(message, 'result');
+        let result = [];
+        if (Array.isArray(rawResult)) {
+            result = this.safeList(message, 'result', []);
+        }
+        else {
+            result = [rawResult];
         }
         const marketIds = {};
         for (let i = 0; i < result.length; i++) {
@@ -1692,8 +1714,8 @@ export default class gate extends gateRest {
             else if (event === 'finish') {
                 const status = this.safeString(parsed, 'status');
                 if (status === undefined) {
-                    const left = this.safeInteger(info, 'left');
-                    parsed['status'] = (left === 0) ? 'closed' : 'canceled';
+                    const left = this.safeString(info, 'left');
+                    parsed['status'] = Precise.stringEquals(left, '0') ? 'closed' : 'canceled';
                 }
             }
             stored.append(parsed);
@@ -2238,8 +2260,10 @@ export default class gate extends gateRest {
     getMarketTypeByUrl(url) {
         const findBy = {
             'op-': 'option',
+            '/ws/options/': 'option',
             'delivery': 'future',
             'fx': 'swap',
+            '/ws/futures/': 'swap',
         };
         const keys = Object.keys(findBy);
         for (let i = 0; i < keys.length; i++) {

@@ -1400,7 +1400,8 @@ class deribit extends deribit$1["default"] {
         if (symbolsNormalized !== undefined) {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const market = this.market(symbolsNormalized[i]);
-                if (code !== undefined && code !== market['base']) {
+                const marketBase = this.safeString(market, 'base');
+                if (code !== undefined && code !== marketBase) {
                     throw new errors.BadRequest(this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency');
                 }
                 if (code === undefined) {
@@ -1503,8 +1504,9 @@ class deribit extends deribit$1["default"] {
         const duration = this.parseTimeframe(timeframe);
         const now = this.milliseconds();
         // at max, it provides 5000 bars, but we set generous default here
-        const windowLimit = (limit === undefined) ? 1000 : limit;
-        const limitResolved = (since === undefined) ? windowLimit : limit;
+        const defaultLimit = 1000;
+        const windowLimit = (limit === undefined) ? defaultLimit : limit;
+        const limitResolved = ((since === undefined) && (limit === undefined)) ? defaultLimit : limit;
         const sinceResolved = (since === undefined) ? undefined : Math.max(since - 1, 0);
         if (since === undefined) {
             request['start_timestamp'] = now - (windowLimit - 1) * duration * 1000;
@@ -2114,9 +2116,9 @@ class deribit extends deribit$1["default"] {
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
         // only stop loss sell orders are allowed when price crossed from above
-        const stopLossPrice = this.safeValue(params, 'stopLossPrice');
+        const stopLossPrice = this.safeString(params, 'stopLossPrice');
         // only take profit buy orders are allowed when price crossed from below
-        const takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
+        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'trigger_offset');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isStopLimit = type === 'stop_limit';
@@ -3159,14 +3161,13 @@ class deribit extends deribit$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const tagAndParams = this.handleWithdrawTagAndParams(tag, params);
-        const paramsWithdrawTag = tagAndParams[1];
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -3313,7 +3314,8 @@ class deribit extends deribit$1["default"] {
         const duration = this.parseTimeframe(eachItemDuration) * 1000;
         const now = this.milliseconds();
         const month = 30 * 24 * 60 * 60 * 1000;
-        const sinceResolved = (since === undefined) ? now - month : since;
+        const defaultSince = now - month;
+        const sinceResolved = (since === undefined) ? defaultSince : since;
         const time = (since === undefined) ? now : since + month;
         const request = {
             'instrument_name': market['id'],
@@ -3321,12 +3323,8 @@ class deribit extends deribit$1["default"] {
         };
         const until = this.safeInteger2(paramsPaginate, 'until', 'end_timestamp');
         const paramsUntil = (until !== undefined) ? this.omit(paramsPaginate, ['until']) : paramsPaginate;
-        if (until !== undefined) {
-            request['end_timestamp'] = until;
-        }
-        else {
-            request['end_timestamp'] = time;
-        }
+        const endTimestamp = (until !== undefined) ? until : time;
+        request['end_timestamp'] = endTimestamp;
         const isPaginationCall = ('isDeribitPaginationCall' in paramsUntil);
         let paramsOmitted = paramsUntil;
         if (isPaginationCall) {
@@ -3336,8 +3334,8 @@ class deribit extends deribit$1["default"] {
             if (limit === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a limit argument');
             }
-            const maxUntil = this.sum(sinceResolved, limit * duration);
-            request['end_timestamp'] = Math.min(request['end_timestamp'], maxUntil);
+            const maxUntil = this.parseToInt(this.sum(sinceResolved, limit * duration));
+            request['end_timestamp'] = (endTimestamp < maxUntil) ? endTimestamp : maxUntil;
         }
         const response = await this.publicGetGetFundingRateHistory(this.extend(request, paramsOmitted));
         //
@@ -3968,14 +3966,15 @@ class deribit extends deribit$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + 'api/' + this.version + '/' + api + '/' + path;
-        if (api === 'public') {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        let request = '/' + 'api/' + this.version + '/' + apiName + '/' + path;
+        if (apiName === 'public') {
             if (Object.keys(params).length > 0) {
                 request += '?' + this.urlencode(params);
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             const timestamp = this.milliseconds().toString();
@@ -3994,14 +3993,14 @@ class deribit extends deribit$1["default"] {
                 throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
             }
             const signedUrl = baseApiUrl + request;
-            return { 'url': signedUrl, 'method': method, 'body': body, 'headers': signedHeaders };
+            return { 'url': signedUrl, 'method': method, 'body': undefined, 'headers': signedHeaders };
         }
         const apiUrl = this.safeString(this.urls['api'], 'rest');
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const url = apiUrl + request;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((response === undefined) || (response === null)) {

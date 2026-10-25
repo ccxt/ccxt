@@ -12,7 +12,7 @@ public partial class hibachi : Exchange
             { "name", "Hibachi" },
             { "countries", new List<object>() {"US"} },
             { "rateLimit", 100 },
-            { "userAgent", getValue(this.userAgents, "chrome") },
+            { "userAgent", (this.userAgents != null && this.userAgents.ContainsKey("chrome") ? this.userAgents["chrome"] : null) },
             { "certified", false },
             { "pro", false },
             { "dex", true },
@@ -123,6 +123,7 @@ public partial class hibachi : Exchange
                     { "private", "https://api.hibachi.xyz" },
                 } },
                 { "www", "https://www.hibachi.xyz/" },
+                { "doc", "https://api-doc.hibachi.xyz/" },
                 { "referral", new Dictionary<string, object>() {
                     { "url", "https://hibachi.xyz/r/ZBL2YFWIHU" },
                 } },
@@ -372,7 +373,7 @@ public partial class hibachi : Exchange
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
                 { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "underlyingDecimals"))) },
-                { "price", (this.parseNumber(this.safeValue(this.safeList(market, "orderbookGranularities", new List<object>() {}), 0)) / 10000) },
+                { "price", this.parseNumber(Precise.stringDiv(this.safeString(this.safeList(market, "orderbookGranularities", new List<object>() {}), 0), "10000")) },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
@@ -994,7 +995,7 @@ public partial class hibachi : Exchange
         double? makerFee = this.safeNumber(market, "maker", this.safeNumber(this.options, "defaultMakerFee", 0.00015));
         double? takerFeeValue = ((takerFee == null)) ? 0 : takerFee;
         double? makerFeeValue = ((makerFee == null)) ? 0 : makerFee;
-        double? feeRate = ((double?)mathMax(takerFeeValue, makerFeeValue));
+        double? feeRate = this.parseNumber(Precise.stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
         string sideInternal = "";
         if ((side == "sell"))
         {
@@ -1038,7 +1039,7 @@ public partial class hibachi : Exchange
         {
             request["triggerPrice"] = triggerPrice;
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice"}));
         return this.extend(request, paramsOmitted);
     }
 
@@ -1143,7 +1144,7 @@ public partial class hibachi : Exchange
         double? makerFee = this.safeNumber(market, "maker", 0);
         double? takerFeeValue = ((takerFee == null)) ? 0 : takerFee;
         double? makerFeeValue = ((makerFee == null)) ? 0 : makerFee;
-        double? feeRate = ((double?)mathMax(takerFeeValue, makerFeeValue));
+        double? feeRate = this.parseNumber(Precise.stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
         object message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         string signature = this.signMessage(message, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1396,11 +1397,11 @@ public partial class hibachi : Exchange
      * @param {string} code unified currency code, only support USDT
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? withdrawAddress = ((address == null) ? null : address.Substring(Math.Max(address.Length - 40, 0)));
@@ -1457,7 +1458,7 @@ public partial class hibachi : Exchange
             string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
             string? s = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
             string v = this.intToBase16((signature != null && signature.ContainsKey("v") ? signature["v"] : null));
-            return add(add((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (v as String).PadLeft(Convert.ToInt32(2), Convert.ToChar("0")));
+            return ((((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((v as String).PadLeft(Convert.ToInt32(2), Convert.ToChar("0"))));
         }
     }
 
@@ -1951,13 +1952,14 @@ public partial class hibachi : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         string endpoint = ("/" + this.implodeParams(path, parameters));
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1980,12 +1982,12 @@ public partial class hibachi : Exchange
         {
             headersValue["Content-Type"] = "application/json";
         }
-        object bodyResult = body;
+        string? bodyResult = null;
         if (hasJsonBody)
         {
             bodyResult = this.json(parameters);
         }
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             headersValue["Authorization"] = this.apiKey;

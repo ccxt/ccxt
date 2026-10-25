@@ -1,0 +1,160 @@
+{
+    "exchange": "blockchaincom",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchBalance": [
+            {
+                "description": "balances snapshot followed by an update - pushes arriving while no consumer is awaiting must still reach the object handed to the consumer (same class as issue 26773); frame shape from the documented balances channel payload",
+                "disabledPHP": "php arrays are value types - the consumer holds a copy, so updates resolved with no waiter can only be delivered by a client-level queue (see issue 30220)",
+                "disabledCS": "the typed WatchBalance wrapper copies the dict into a Balances struct at resolve time, freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledGO": "since the go typed-returns campaign the WatchBalance wrapper copies the map into a Balances struct at resolve time (NewBalances), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledRS": "the rust Value runtime is copy-on-write (Arc-backed dicts) - the in-place merge detaches from the clone the consumer received at resolve time, and the typed watch_balance wrapper additionally copies into a Balances struct (Balances::from_value), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "input": [],
+                "url": "wss://ws.blockchain.info/mercury-gateway/v1/ws",
+                "messages": [
+                    {
+                        "seqnum": 0,
+                        "event": "subscribed",
+                        "channel": "auth",
+                        "readOnly": false
+                    },
+                    {
+                        "seqnum": 1,
+                        "event": "subscribed",
+                        "channel": "balances",
+                        "local_currency": "USD",
+                        "batching": false
+                    },
+                    {
+                        "seqnum": 1,
+                        "event": "subscribed",
+                        "channel": "balances",
+                        "local_currency": "USD",
+                        "batching": false
+                    },
+                    {
+                        "seqnum": 1,
+                        "event": "subscribed",
+                        "channel": "balances",
+                        "local_currency": "USD",
+                        "batching": false
+                    },
+                    {
+                        "seqnum": 2,
+                        "event": "snapshot",
+                        "channel": "balances",
+                        "balances": [
+                            {
+                                "currency": "BTC",
+                                "balance": 0.00366963,
+                                "available": 0.00266963,
+                                "balance_local": 38.746779155,
+                                "available_local": 28.188009155,
+                                "rate": 10558.77
+                            },
+                            {
+                                "currency": "USDT",
+                                "balance": 500,
+                                "available": 450,
+                                "balance_local": 500,
+                                "available_local": 450,
+                                "rate": 1
+                            }
+                        ],
+                        "total_available_local": 65.477864168,
+                        "total_balance_local": 87.696634168
+                    },
+                    {
+                        "seqnum": 3,
+                        "event": "updated",
+                        "channel": "balances",
+                        "balances": [
+                            {
+                                "currency": "BTC",
+                                "balance": 0.00466963,
+                                "available": 0.00466963,
+                                "balance_local": 49.3,
+                                "available_local": 49.3,
+                                "rate": 10558.77
+                            },
+                            {
+                                "currency": "USDT",
+                                "balance": 500,
+                                "available": 450,
+                                "balance_local": 500,
+                                "available_local": 450,
+                                "rate": 1
+                            }
+                        ],
+                        "total_available_local": 70,
+                        "total_balance_local": 92
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "action": "subscribe",
+                        "channel": "auth",
+                        "token": "TOKEN"
+                    },
+                    {
+                        "action": "subscribe",
+                        "channel": "balances"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "token"
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "seqnum": 3,
+                        "event": "updated",
+                        "channel": "balances",
+                        "balances": [
+                            {
+                                "currency": "BTC",
+                                "balance": 0.00466963,
+                                "available": 0.00466963,
+                                "balance_local": 49.3,
+                                "available_local": 49.3,
+                                "rate": 10558.77
+                            },
+                            {
+                                "currency": "USDT",
+                                "balance": 500,
+                                "available": 450,
+                                "balance_local": 500,
+                                "available_local": 450,
+                                "rate": 1
+                            }
+                        ],
+                        "total_available_local": 70,
+                        "total_balance_local": 92
+                    },
+                    "BTC": {
+                        "free": 0.00466963,
+                        "used": 0,
+                        "total": 0.00466963
+                    },
+                    "USDT": {
+                        "free": 450,
+                        "used": 50,
+                        "total": 500
+                    },
+                    "free": {
+                        "BTC": 0.00466963,
+                        "USDT": 450
+                    },
+                    "used": {
+                        "BTC": 0,
+                        "USDT": 50
+                    },
+                    "total": {
+                        "BTC": 0.00466963,
+                        "USDT": 500
+                    }
+                }
+            }
+        ]
+    }
+}

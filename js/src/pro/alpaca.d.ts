@@ -42,7 +42,7 @@ export default class alpaca extends alpacaRest {
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     /**
      * @method
      * @name alpaca#watchTrades

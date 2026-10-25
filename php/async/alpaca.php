@@ -823,8 +823,8 @@ class alpaca extends Exchange {
         $paginate = false;
         $query = null;
         list($paginate, $query) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
-        $paginationCalls = 10;
-        list($paginationCalls, $query) = $this->handle_option_integer_and_params($query, 'fetchOHLCV', 'paginationCalls', 10);
+        list($paginationCalls, $queryPagination) = $this->handle_option_integer_and_params($query, 'fetchOHLCV', 'paginationCalls', 10);
+        $query = $queryPagination;
         $request = array(
             'symbols' => $marketId,
             'loc' => $loc,
@@ -1091,7 +1091,7 @@ class alpaca extends Exchange {
             ), $market);
             $results[] = $ticker;
         }
-        return $this->filter_by_array($results, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array_tickers($results, 'symbol', $symbolsNormalized);
     }
 
     public function generate_client_order_id(array $params): ?string {
@@ -1634,7 +1634,7 @@ class alpaca extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'pending_new' => 'open',
             'accepted' => 'open',
@@ -1658,7 +1658,7 @@ class alpaca extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'day' => 'Day', // equities-only value kept as-is deliberately: crypto orders reject it with 42210000, verified live 2026-09-13, and the unified set has no day spelling either way
             'gtc' => 'GTC',
@@ -1845,11 +1845,11 @@ class alpaca extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -1858,12 +1858,12 @@ class alpaca extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag a memo for the transaction
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -1903,11 +1903,11 @@ class alpaca extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function fetch_transactions_helper(string $type, ?string $code, mixed $since, mixed $limit, mixed $params): PromiseInterface {
+    public function fetch_transactions_helper(string $type, ?string $code, ?int $since, ?int $limit, mixed $params): PromiseInterface {
         return Async\async(self::do_fetch_transactions_helper(...))($type, $code, $since, $limit, $params);
     }
 
-    private function do_fetch_transactions_helper(string $type, ?string $code, mixed $since, mixed $limit, mixed $params) {
+    private function do_fetch_transactions_helper(string $type, ?string $code, ?int $since, ?int $limit, mixed $params) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -1916,7 +1916,7 @@ class alpaca extends Exchange {
             $currency = $this->currency($code);
         }
         $sandboxMode = $this->isSandboxModeEnabled || $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($sandboxMode === true) {
+        if ($sandboxMode) {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
             // through the account activities ledger instead, filtered to transfer-like
             // entries, see https://github.com/ccxt/ccxt/issues/24847
@@ -2006,7 +2006,8 @@ class alpaca extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        return Async\await($this->fetch_transactions_helper('BOTH', $code, $since, $limit, $params));
+        $transactions = Async\await($this->fetch_transactions_helper('BOTH', $code, $since, $limit, $params));
+        return $this->to_array($transactions);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2025,7 +2026,8 @@ class alpaca extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        return Async\await($this->fetch_transactions_helper('INCOMING', $code, $since, $limit, $params));
+        $transactions = Async\await($this->fetch_transactions_helper('INCOMING', $code, $since, $limit, $params));
+        return $this->to_array($transactions);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2044,7 +2046,8 @@ class alpaca extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        return Async\await($this->fetch_transactions_helper('OUTGOING', $code, $since, $limit, $params));
+        $transactions = Async\await($this->fetch_transactions_helper('OUTGOING', $code, $since, $limit, $params));
+        return $this->to_array($transactions);
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2117,7 +2120,6 @@ class alpaca extends Exchange {
             $txid = $this->safe_string($transaction, 'tx_hash');
             $datetime = $this->safe_string($transaction, 'created_at');
             $timestamp = $this->parse8601($datetime);
-            $network = $this->safe_string($transaction, 'chain');
             $address = $this->safe_string($transaction, 'to_address');
             $addressTo = $this->safe_string($transaction, 'to_address');
             $addressFrom = $this->safe_string($transaction, 'from_address');
@@ -2125,6 +2127,7 @@ class alpaca extends Exchange {
             $amount = $this->safe_number($transaction, 'amount');
             $currencyId = $this->safe_string($transaction, 'asset');
             $code = $this->safe_currency_code($currencyId, $currency);
+            $network = $this->network_id_to_code($this->safe_string($transaction, 'chain'), $code);
             $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
             $fees = $this->safe_string($transaction, 'fees');
             $networkFee = $this->safe_string($transaction, 'network_fee');
@@ -2158,7 +2161,7 @@ class alpaca extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             // crypto wallets api
             'PROCESSING' => 'pending',
@@ -2325,16 +2328,13 @@ class alpaca extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $endpoint = '/' . $this->implode_params($path, $params);
         $baseApiUrl = $this->safe_string($this->urls['api'], $api[0]);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $headersValue = array();
-        if ($headers !== null) {
-            $headersValue = $headers;
-        }
         if ($api[1] === 'private') {
             $this->check_required_credentials();
             $headersValue['APCA-API-KEY-ID'] = $this->apiKey;
@@ -2351,7 +2351,7 @@ class alpaca extends Exchange {
             }
         }
         $url = $this->implode_hostname($baseApiUrl) . $endpoint;
-        $bodyResolved = ($bodyJson === null) ? $body : $bodyJson;
+        $bodyResolved = $bodyJson;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersValue );
     }
 
@@ -2373,7 +2373,8 @@ class alpaca extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             $codeAsString = (string) $code;
-            if (($code < 400) || !(is_array($this->httpExceptions) && array_key_exists($codeAsString ?? '', $this->httpExceptions))) {
+            $statusCode = $this->parse_to_int($code);
+            if (($statusCode < 400) || !(is_array($this->httpExceptions) && array_key_exists($codeAsString ?? '', $this->httpExceptions))) {
                 // an error envelope must always throw — also for statuses the http-status handler has no entry for
                 throw new ExchangeError($feedback);
             }

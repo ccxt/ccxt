@@ -135,6 +135,7 @@ class hibachi(Exchange, ImplicitAPI):
                     'private': 'https://api.hibachi.xyz',
                 },
                 'www': 'https://www.hibachi.xyz/',
+                'doc': 'https://api-doc.hibachi.xyz/',
                 'referral': {
                     'url': 'https://hibachi.xyz/r/ZBL2YFWIHU',
                 },
@@ -278,7 +279,7 @@ class hibachi(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def get_account_id(self):
+    def get_account_id(self) -> float:
         self.check_required_credentials()
         id = self.parse_to_int(self.accountId)
         return id
@@ -324,7 +325,7 @@ class hibachi(Exchange, ImplicitAPI):
             'optionType': None,
             'precision': {
                 'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'underlyingDecimals'))),
-                'price': self.parse_number(self.safe_value(self.safe_list(market, 'orderbookGranularities', []), 0)) / 10000.0,
+                'price': self.parse_number(Precise.string_div(self.safe_string(self.safe_list(market, 'orderbookGranularities', []), 0), '10000')),
             },
             'limits': {
                 'leverage': {
@@ -861,7 +862,7 @@ class hibachi(Exchange, ImplicitAPI):
         makerFee = self.safe_number(market, 'maker', self.safe_number(self.options, 'defaultMakerFee', 0.00015))
         takerFeeValue = 0 if (takerFee is None) else takerFee
         makerFeeValue = 0 if (makerFee is None) else makerFee
-        feeRate = max(takerFeeValue, makerFeeValue)
+        feeRate = self.parse_number(Precise.string_max(self.number_to_string(takerFeeValue), self.number_to_string(makerFeeValue)))
         sideInternal = ''
         if side == 'sell':
             sideInternal = 'ASK'
@@ -981,7 +982,7 @@ class hibachi(Exchange, ImplicitAPI):
         makerFee = self.safe_number(market, 'maker', 0)
         takerFeeValue = 0 if (takerFee is None) else takerFee
         makerFeeValue = 0 if (makerFee is None) else makerFee
-        feeRate = max(takerFeeValue, makerFeeValue)
+        feeRate = self.parse_number(Precise.string_max(self.number_to_string(takerFeeValue), self.number_to_string(makerFeeValue)))
         message = self.order_message(market, nonce, feeRate, type, side, amount, price)
         signature = self.sign_message(message, self.privateKey)
         request = {
@@ -1069,7 +1070,7 @@ class hibachi(Exchange, ImplicitAPI):
             }))
         return ret
 
-    def cancel_order_request(self, id: str):
+    def cancel_order_request(self, id: str) -> dict:
         bigid = self.convert_to_big_int(id)
         idbase16 = self.int_to_base16(bigid)
         idPadded = idbase16.rjust(16, '0')
@@ -1201,7 +1202,7 @@ class hibachi(Exchange, ImplicitAPI):
         message = self.binary_concat(encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress)
         return message
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1210,8 +1211,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param str code: unified currency code, only support USDT
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         withdrawAddress = address[-40:]
@@ -1716,9 +1717,10 @@ class hibachi(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path: str, api='public', method: object = 'GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         endpoint = '/' + self.implode_params(path, params)
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + endpoint
@@ -1731,10 +1733,10 @@ class hibachi(Exchange, ImplicitAPI):
         hasJsonBody = (method == 'POST' or method == 'PUT' or method == 'DELETE')
         if hasJsonBody:
             headersValue['Content-Type'] = 'application/json'
-        bodyResult = body
+        bodyResult = None
         if hasJsonBody:
             bodyResult = self.json(params)
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             headersValue['Authorization'] = self.apiKey
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue}
@@ -1766,7 +1768,7 @@ class hibachi(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'pending': 'pending',
             'claimable': 'pending',

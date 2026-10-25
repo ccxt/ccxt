@@ -128,7 +128,7 @@ class kraken extends kraken$1["default"] {
         }
         const isMarket = (type === 'market');
         const [postOnly, paramsPostOnly] = this.handlePostOnly(isMarket, false, params);
-        if (postOnly === true) {
+        if (postOnly) {
             request['params']['post_only'] = true;
         }
         const clientOrderId = this.safeString(paramsPostOnly, 'clientOrderId');
@@ -975,9 +975,26 @@ class kraken extends kraken$1["default"] {
         }
         else {
             // snapshot
-            const depth = a.length;
-            this.orderbooks[symbol] = this.orderBook({}, depth);
+            const subscription = this.safeDict(client.subscriptions, messageHash, {});
+            // size the book from the subscribed depth (10 by default), not from
+            // the level count of this snapshot: a thin market's snapshot can
+            // carry fewer levels than the subscription and must not cap the book
+            const limit = this.safeInteger(subscription, 'limit', 10);
+            const asksLength = a.length;
+            const depth = (asksLength > limit) ? asksLength : limit;
+            const depths = this.safeDict(this.options, 'wsOrderBookDepths', {});
+            const storedDepth = this.safeInteger(depths, symbol);
+            if (!(symbol in this.orderbooks) || (storedDepth !== depth)) {
+                // rebuild only on the first snapshot or when the depth changes,
+                // e.g. a re-subscription with a different limit
+                this.orderbooks[symbol] = this.orderBook({}, depth);
+                depths[symbol] = depth;
+                this.options['wsOrderBookDepths'] = depths;
+            }
+            // reset in place so that references held by users keep receiving
+            // updates after a reconnect snapshot (a new object would orphan them)
             orderbook = this.orderbooks[symbol];
+            orderbook.reset({});
             const keys = ['asks', 'bids'];
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
@@ -1042,15 +1059,11 @@ class kraken extends kraken$1["default"] {
     }
     formatNumber(data) {
         const parts = data.split('.');
-        const integer = this.safeString(parts, 0);
+        const integer = this.safeString(parts, 0, '');
         const decimals = this.safeString(parts, 1, '');
         let joinedResult = integer + decimals;
-        let i = 0;
-        while (joinedResult[i] === '0') {
-            i += 1;
-        }
-        if (i > 0) {
-            joinedResult = joinedResult.slice(i);
+        while (joinedResult.startsWith('0')) {
+            joinedResult = joinedResult.slice(1);
         }
         return joinedResult;
     }
@@ -1090,8 +1103,9 @@ class kraken extends kraken$1["default"] {
         let subscription = this.safeValue(client.subscriptions, authenticated);
         const now = this.seconds();
         const start = this.safeInteger(subscription, 'start');
-        const expires = this.safeInteger(subscription, 'expires');
-        if ((subscription === undefined) || ((subscription !== undefined) && (start + expires) <= now)) {
+        const expires = this.safeInteger(subscription, 'expires', -1);
+        const expired = (start !== undefined) && (expires >= 0) && (start <= (now - expires));
+        if ((subscription === undefined) || expired) {
             // single-flight leader election, see
             // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
             // above is followed by an awaited privatePostGetWebSocketsToken (),
@@ -1376,8 +1390,9 @@ class kraken extends kraken$1["default"] {
                 if (length === limit && (previousOrder === undefined)) {
                     const first = stored[0];
                     const symbolsByOrderId = this.safeDict(this.options, 'symbolsByOrderId', {});
-                    if (first['id'] in symbolsByOrderId) {
-                        delete symbolsByOrderId[first['id']];
+                    const firstId = this.safeString(first, 'id');
+                    if ((firstId !== undefined) && (firstId in symbolsByOrderId)) {
+                        delete symbolsByOrderId[firstId];
                     }
                 }
                 stored.append(newOrder);
@@ -1541,21 +1556,27 @@ class kraken extends kraken$1["default"] {
         //         "sequence": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance[type], and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        const type = 'spot';
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance[type] = this.safeDict(this.balance, type, {});
+        this.balance[type]['info'] = message;
         const data = this.safeList(message, 'data', []);
-        const result = { 'info': message };
         for (let i = 0; i < data.length; i++) {
             const currencyId = this.safeString(data[i], 'asset');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             const eq = this.safeString(data[i], 'balance');
             account['total'] = eq;
-            result[code] = account;
+            this.balance[type][code] = account;
         }
-        const type = 'spot';
-        const balance = this.safeBalance(result);
-        const oldBalance = this.safeDict(this.balance, type, {});
-        const newBalance = this.deepExtend(oldBalance, balance);
-        this.balance[type] = this.safeBalance(newBalance);
+        this.balance[type] = this.safeBalance(this.balance[type]);
         const channel = this.safeString(message, 'channel');
         client.resolve(this.balance[type], channel);
     }

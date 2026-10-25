@@ -396,6 +396,7 @@ create a trade order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code> | No | only 'isolated' is supported for spot-margin trading |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
+| params.triggerDirection | <code>string</code> | No | *swap only* 'ascending' triggers when the price rises to triggerPrice, 'descending' when it falls to it, default is 'ascending' |
 | params.postOnly | <code>bool</code> | No | if true, the order will only be posted if it will be a maker order |
 | params.reduceOnly | <code>bool</code> | No | *contract only* indicates if this order is to reduce the size of a position |
 | params.hedged | <code>bool</code> | No | *swap only* true for hedged mode, false for one way mode, default is false |
@@ -511,6 +512,7 @@ fetch all unfilled currently open orders
 | since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
 | limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>boolean</code> | No | set to true for fetching trigger orders |
 | params.marginMode | <code>string</code> | No | only 'isolated' is supported, for spot-margin trading |
 
 
@@ -595,6 +597,7 @@ cancels an open order
 | id | <code>string</code> | Yes | order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>boolean</code> | No | set to true for canceling trigger orders |
 | params.marginMode | <code>string</code> | No | only 'isolated' is supported for spot-margin trading |
 
 
@@ -1222,14 +1225,14 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.internal | <code>object</code> | No | false by default, set to true for an "internal transfer" |
 | params.toAccountType | <code>object</code> | No | skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer" |
 
 
 ```javascript
-mexc.withdraw (code, amount, address, tag, params?)
+mexc.withdraw (code, amount, address, params?)
 ```
 
 

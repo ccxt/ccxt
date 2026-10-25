@@ -90,8 +90,8 @@ class modetrade extends Exchange {
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
-                'fetchTicker' => false,
-                'fetchTickers' => false,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
@@ -520,6 +520,7 @@ class modetrade extends Exchange {
         //
         //   {
         //     "symbol": "PERP_BTC_USDC",
+        //     "status": "ACTIVE",
         //     "quote_min": 123,
         //     "quote_max": 100000,
         //     "quote_tick": 0.1,
@@ -545,6 +546,11 @@ class modetrade extends Exchange {
         //   }
         //
         $marketId = $this->safe_string($market, 'symbol', '');
+        $status = $this->safe_string($market, 'status');
+        $active = null;
+        if ($status !== null) {
+            $active = ($status === 'ACTIVE');
+        }
         $parts = explode('_', $marketId);
         $marketType = 'swap';
         $baseId = $this->safe_string($parts, 1);
@@ -572,7 +578,7 @@ class modetrade extends Exchange {
             'swap' => true,
             'future' => false,
             'option' => false,
-            'active' => null,
+            'active' => $active,
             'contract' => true,
             'linear' => true,
             'inverse' => false,
@@ -626,6 +632,7 @@ class modetrade extends Exchange {
         //       "rows": [
         //         {
         //           "symbol": "PERP_BTC_USDC",
+        //           "status": "ACTIVE",
         //           "quote_min": 123,
         //           "quote_max": 100000,
         //           "quote_tick": 0.1,
@@ -805,10 +812,6 @@ class modetrade extends Exchange {
         $amount = $this->safe_string($trade, 'executed_quantity');
         $order_id = $this->safe_string($trade, 'order_id');
         $fee = $this->parse_token_and_fee_temp($trade, 'fee_asset', 'fee');
-        $feeCost = $this->safe_string($fee, 'cost');
-        if (($feeCost !== null) && ($fee !== null)) {
-            $fee['cost'] = $feeCost;
-        }
         $cost = Precise::string_mul($price, $amount);
         $side = $this->safe_string_lower($trade, 'side');
         $id = $this->safe_string($trade, 'id');
@@ -897,7 +900,7 @@ class modetrade extends Exchange {
         $fundingTimeString = $this->safe_string($fundingRate, 'last_funding_rate_timestamp');
         $nextFundingTimeString = $this->safe_string($fundingRate, 'next_funding_time');
         $millisecondsInterval = Precise::string_sub($nextFundingTimeString, $fundingTimeString);
-        $fundingSymbol = ($marketValue !== null) ? $marketValue['symbol'] : null;
+        $fundingSymbol = $this->safe_string($marketValue, 'symbol');
         return array(
             'info' => $fundingRate,
             'symbol' => $fundingSymbol,
@@ -1087,6 +1090,137 @@ class modetrade extends Exchange {
         }
         $sorted = $this->sort_by($rates, 'timestamp');
         return $this->filter_by_symbol_since_limit($sorted, $symbolResolved, $since, $limit);
+    }
+
+    public function parse_ticker(array $ticker, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "display_symbol_name": "BTC",
+        //         "broker_id": null,
+        //         "status": "ACTIVE",
+        //         "index_price": 81559.8,
+        //         "mark_price": 81542.2,
+        //         "sum_unitary_funding": 27744.3,
+        //         "est_funding_rate": 0.00008318,
+        //         "last_funding_rate": 0.0000394,
+        //         "next_funding_time": 1792281600000,
+        //         "open_interest": 42.65602,
+        //         "is_pretge": false,
+        //         "24h_open": 81606.8,
+        //         "24h_close": 81518.1,
+        //         "24h_high": 81706.7,
+        //         "24h_low": 81069.9,
+        //         "24h_volume": 65.48965,
+        //         "24h_amount": 5333323.390584
+        //     }
+        //
+        $marketId = $this->safe_string($ticker, 'symbol');
+        $marketResolved = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        return $this->safe_ticker(array(
+            'symbol' => $marketResolved['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'high' => $this->safe_string($ticker, '24h_high'),
+            'low' => $this->safe_string($ticker, '24h_low'),
+            'bid' => null,
+            'bidVolume' => null,
+            'ask' => null,
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => $this->safe_string($ticker, '24h_open'),
+            'close' => $this->safe_string($ticker, '24h_close'),
+            'last' => $this->safe_string($ticker, '24h_close'),
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $this->safe_string($ticker, '24h_volume'),
+            'quoteVolume' => $this->safe_string($ticker, '24h_amount'),
+            'indexPrice' => $this->safe_string($ticker, 'index_price'),
+            'markPrice' => $this->safe_string($ticker, 'mark_price'),
+            'info' => $ticker,
+        ), $marketResolved);
+    }
+
+    public function fetch_ticker(string $symbol, $params = array()): array {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-$market-info-for-one-$symbol
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->v1PublicGetPublicFuturesSymbol($this->extend($request, $params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDC",
+        //             "24h_close": 81518.1
+        //         },
+        //         "timestamp": 1792270455082
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $timestamp = $this->safe_integer($response, 'timestamp');
+        $ticker = $this->extend(array( 'timestamp' => $timestamp ), $data);
+        return $this->parse_ticker($ticker, $market);
+    }
+
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
+        /**
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-$symbols
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $response = $this->v1PublicGetPublicFutures($params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "PERP_BTC_USDC",
+        //                     "24h_close": 81518.1
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp": 1792270455518
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $rows = $this->safe_list($data, 'rows', array());
+        $timestamp = $this->safe_integer($response, 'timestamp');
+        $result = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $row = $rows[$i];
+            $marketId = $this->safe_string($row, 'symbol', '');
+            if (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            }
+            $ticker = $this->extend(array( 'timestamp' => $timestamp ), $row);
+            $result[] = $this->parse_ticker($ticker);
+        }
+        return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
 
     public function parse_income(array $income, ?array $market = null): array {
@@ -1470,7 +1604,7 @@ class modetrade extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'ioc' => 'IOC',
             'fok' => 'FOK',
@@ -1482,7 +1616,7 @@ class modetrade extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         if ($status !== null) {
             $statuses = array(
                 'NEW' => 'open',
@@ -1503,7 +1637,7 @@ class modetrade extends Exchange {
         return null;
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             'LIMIT' => 'limit',
             'MARKET' => 'market',
@@ -1550,7 +1684,8 @@ class modetrade extends Exchange {
         $hasStopLoss = $stopLoss !== null;
         $hasTakeProfit = $takeProfit !== null;
         $algoType = $this->safe_string($params, 'algoType');
-        $isConditional = $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($this->safe_value($params, 'childOrders') !== null);
+        $paramsChildOrders = $this->safe_value($params, 'childOrders');
+        $isConditional = $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($paramsChildOrders !== null);
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
@@ -1669,7 +1804,8 @@ class modetrade extends Exchange {
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
-        $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
+        $childOrders = $this->safe_value($params, 'childOrders');
+        $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($childOrders !== null);
         if ($isConditional) {
             $response = $this->v1PrivatePostAlgoOrder($request);
             //
@@ -1737,7 +1873,8 @@ class modetrade extends Exchange {
             $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
             $stopLoss = $this->safe_dict($orderParams, 'stopLoss');
             $takeProfit = $this->safe_dict($orderParams, 'takeProfit');
-            $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($orderParams, 'childOrders') !== null);
+            $childOrders = $this->safe_value($orderParams, 'childOrders');
+            $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($childOrders !== null);
             if ($isConditional) {
                 throw new NotSupported($this->id . ' createOrders() only support non-stop order');
             }
@@ -1800,7 +1937,8 @@ class modetrade extends Exchange {
         if ($triggerPrice !== null) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
-        $isConditional = ($triggerPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
+        $childOrders = $this->safe_value($params, 'childOrders');
+        $isConditional = ($triggerPrice !== null) || ($childOrders !== null);
         $orderQtyKey = 'order_quantity';
         if ($isConditional) {
             $orderQtyKey = 'quantity';
@@ -1877,7 +2015,7 @@ class modetrade extends Exchange {
          */
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
-        if (($trigger !== true) && ($symbol === null)) {
+        if ((!$trigger) && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
@@ -1894,7 +2032,7 @@ class modetrade extends Exchange {
         $clientOrderIdExchangeSpecific = $this->safe_string($paramsOmitted, 'client_order_id', $clientOrderIdUnified);
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
         $paramsClientOrder = $this->omit($paramsOmitted, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-        if ($trigger === true) {
+        if ($trigger) {
             if ($isByClientOrder) {
                 $request['client_order_id'] = $clientOrderIdExchangeSpecific;
                 $response = $this->v1PrivateDeleteAlgoClientOrder($this->extend($request, $paramsClientOrder));
@@ -1932,7 +2070,7 @@ class modetrade extends Exchange {
         } else {
             $extendParams['id'] = $id;
         }
-        if ($trigger === true) {
+        if ($trigger) {
             return $this->extend($this->parse_order($response), $extendParams);
         }
         $data = $this->safe_dict($response, 'data', array());
@@ -2056,7 +2194,7 @@ class modetrade extends Exchange {
         $request = array();
         $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ));
-        if ($trigger === true) {
+        if ($trigger) {
             if ($clientOrderId !== null && $clientOrderId !== '') {
                 $request['client_order_id'] = $clientOrderId;
                 $response = $this->v1PrivateGetAlgoClientOrderClientOrderId($this->extend($request, $paramsOmitted));
@@ -2126,7 +2264,7 @@ class modetrade extends Exchange {
             $this->load_markets();
         }
         $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $maxLimit = ($isTrigger === true) ? 100 : 500;
+        $maxLimit = ($isTrigger) ? 100 : 500;
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
             return $this->fetch_paginated_call_incremental('fetchOrders', $symbol, $since, $limit, $paramsPaginate, 'page', $maxLimit);
@@ -2146,11 +2284,11 @@ class modetrade extends Exchange {
         } else {
             $request['size'] = $maxLimit;
         }
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $request['algo_type'] = 'STOP';
         }
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end_t', $request, $paramsOmitted);
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $response = $this->v1PrivateGetAlgoOrders($this->extend($requestUntil, $paramsUntil));
         } else {
             $response = $this->v1PrivateGetOrders($this->extend($requestUntil, $paramsUntil));
@@ -2597,7 +2735,7 @@ class modetrade extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'pending',
             'CONFIRMING' => 'pending',
@@ -2712,7 +2850,7 @@ class modetrade extends Exchange {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -2721,8 +2859,8 @@ class modetrade extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         if ($this->markets === null) {
@@ -3057,7 +3195,7 @@ class modetrade extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $section = array('public'), string $method = 'GET', $params = array()): array {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
@@ -3078,7 +3216,7 @@ class modetrade extends Exchange {
             $isOrder = $path === 'algo/order' || $path === 'order' || $path === 'batch-order';
             if ($isPostOrPut && $isOrder) {
                 $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-                if ($isSandboxMode !== true) {
+                if (!$isSandboxMode) {
                     $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXTMODE');
                     if ($path === 'batch-order') {
                         $ordersList = $this->safe_list($paramsSorted, 'orders', array());
@@ -3118,7 +3256,7 @@ class modetrade extends Exchange {
                     $auth .= '?' . $this->rawencode($paramsSigned);
                 }
                 $signedHeaders['content-type'] = 'application/x-www-form-urlencoded';
-                $signedBody = ($method === 'DELETE') ? '' : $body;
+                $signedBody = ($method === 'DELETE') ? '' : null;
             }
             $secret = $this->secret;
             if (mb_strpos($secret, 'ed25519:') !== false) {
@@ -3129,7 +3267,7 @@ class modetrade extends Exchange {
             $signedHeaders['orderly-signature'] = $this->urlencode_base64(base64_decode($signature));
             return array( 'url' => $url, 'method' => $method, 'body' => $signedBody, 'headers' => $signedHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

@@ -30,7 +30,9 @@ impl DeepcoinCore {
     pub fn init(&mut self) {
         let described = DeepcoinCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -153,7 +155,6 @@ impl crate::exchange_generated::ExchangeBase for DeepcoinCore {
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_taker_or_maker" => self.parse_taker_or_maker(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -264,12 +265,12 @@ impl DeepcoinCore {
         m.insert("fetchOrderBook".to_string(), Value::Bool(true));
         m.insert("fetchOrders".to_string(), Value::Bool(false));
         m.insert("fetchOrderTrades".to_string(), Value::Bool(true));
-        m.insert("fetchPosition".to_string(), Value::Bool(true));
+        m.insert("fetchPosition".to_string(), Value::Bool(false));
         m.insert("fetchPositionHistory".to_string(), Value::Bool(false));
         m.insert("fetchPositionMode".to_string(), Value::Bool(false));
         m.insert("fetchPositions".to_string(), Value::Bool(true));
         m.insert("fetchPositionsForSymbol".to_string(), Value::Bool(true));
-        m.insert("fetchPositionsHistory".to_string(), Value::Bool(true));
+        m.insert("fetchPositionsHistory".to_string(), Value::Bool(false));
         m.insert("fetchPremiumIndexOHLCV".to_string(), Value::Bool(false));
         m.insert("fetchStatus".to_string(), Value::Bool(false));
         m.insert("fetchTicker".to_string(), Value::Bool(false));
@@ -827,7 +828,7 @@ impl DeepcoinCore {
         m.insert("ERC20".to_string(), Value::Str("ERC20".into()));
         m.insert("TRC20".to_string(), Value::Str("TRC20".into()));
         m.insert("ARBITRUM".to_string(), Value::Str("ARBITRUM".into()));
-        m.insert("BSC".to_string(), Value::Str("BSC(BEP20)".into()));
+        m.insert("BEP20".to_string(), Value::Str("BSC(BEP20)".into()));
         m.insert("SOL".to_string(), Value::Str("SOL".into()));
         m.insert("BTC".to_string(), Value::Str("Bitcoin".into()));
         m.insert("ADA".to_string(), Value::Str("Cardano".into()));
@@ -958,21 +959,21 @@ impl DeepcoinCore {
         }  else {
             types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[types.clone()]); // backward-support
         }
-        let mut promises: Value = Value::from(vec![]);
+        let mut promises: Vec<Value> = Vec::new();
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_610: bool = true;
-            while { if !__for_first_610 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_610 = false; i.as_f64().unwrap_or(f64::NAN) < ((types.len() as i64) as f64) } {
-            append_to_array(&mut promises, self.fetch_markets_by_type(types.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[params.clone()]).await);
+            let mut __for_first_604: bool = true;
+            while { if !__for_first_604 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_604 = false; i.as_f64().unwrap_or(f64::NAN) < ((types.len() as i64) as f64) } {
+            promises.push(self.fetch_markets_by_type(types.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[params.clone()]).await);
         }
         }
-        promises = promise_all(&promises).await;
+        let mut responses: Value = promise_all(&Value::from(promises)).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_611: bool = true;
-            while { if !__for_first_611 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_611 = false; i.as_f64().unwrap_or(f64::NAN) < ((promises.len() as i64) as f64) } {
-            result = self.array_concat(result.clone(), promises.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+            let mut __for_first_605: bool = true;
+            while { if !__for_first_605 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_605 = false; i.as_f64().unwrap_or(f64::NAN) < ((responses.len() as i64) as f64) } {
+            result = self.array_concat(result.clone(), responses.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
         return result;
@@ -1104,7 +1105,7 @@ impl DeepcoinCore {
         let mut maxLimitSize: Value = self.safe_string_k(market.clone(), "maxLmtSz", &[]);
         let mut maxAmount: Value = self.parse_number(crate::precise::Precise::stringMax(&maxMarketSize, &maxLimitSize), &[]);
         let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
-        let mut isMargin: Value = Value::Bool(matches!(&spot, Value::Bool(true)) && is_true(&(crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".into())))));
+        let mut isMargin: Value = Value::Bool(matches!(&spot, Value::Bool(true)) && crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".into())).as_bool() == Some(true));
         let mut isInverse: Value = (if matches!(&swap, Value::Bool(true)) { (Value::Bool(isLinear.as_bool() != Some(true))) } else { Value::Null });
         let __ws_arg_1 = self.safe_number_k(market.clone(), "ctVal", &[]);
         let __ws_arg_2 = self.safe_number_k(market.clone(), "lotSz", &[]);
@@ -1182,11 +1183,11 @@ impl DeepcoinCore {
     pub fn set_markets(&mut self, mut markets: Value, optional_args: &[Value]) -> Value {
         let mut currencies = get_arg(optional_args, 0, Value::Null);
         let mut result: Value = self.super_set_markets(markets, currencies);
-        let mut symbols: Value = object_keys(&result);
+        let mut symbols: Value = Value::Array(result.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_612: bool = true;
-            while { if !__for_first_612 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_612 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_606: bool = true;
+            while { if !__for_first_606 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_606 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = get_value(&result, &symbol);
             let mut market: Value = get_value(&result, &symbol);
@@ -1294,7 +1295,7 @@ impl DeepcoinCore {
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (price.is_none()) {
             maxLimit = Value::Int(1000);
         }
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             let mut paramsExtended: Value = self.extend(paramsPaginate.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("calculateUntil".to_string(), Value::Bool(true));
@@ -1317,9 +1318,9 @@ impl DeepcoinCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("after".into(), until.clone()); }
         }
         let mut calculateUntil: Value = self.safe_bool_k(paramsPaginate.clone(), "calculateUntil", &[Value::Bool(false)]);
-        let mut keysToOmit: Value = (if (calculateUntil.as_bool() == Some(true)) { Value::from(vec![Value::Str("price".into()), Value::Str("until".into()), Value::Str("calculateUntil".into())]) } else { Value::from(vec![Value::Str("price".into()), Value::Str("until".into())]) });
+        let mut keysToOmit: Value = (if calculateUntil.as_bool() == Some(true) { Value::from(vec![Value::Str("price".into()), Value::Str("until".into()), Value::Str("calculateUntil".into())]) } else { Value::from(vec![Value::Str("price".into()), Value::Str("until".into())]) });
         let mut paramsOmitted: Value = self.omit(paramsPaginate, keysToOmit, &[]);
-        if (calculateUntil.as_bool() == Some(true)) {
+        if calculateUntil.as_bool() == Some(true) {
             if (since != Value::Null) {
                 // the exchange do not have a since param for this endpoint
                 // we calculate until (after) for correct pagination
@@ -1592,7 +1593,7 @@ impl DeepcoinCore {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "tradeId", &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "ordId", &[]));
         m.insert("type".to_string(), Value::Null);
-        m.insert("takerOrMaker".to_string(), self.parse_taker_or_maker(execType));
+        m.insert("takerOrMaker".to_string(), self.parse_taker_or_maker(execType).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), self.safe_string2(trade.clone(), Value::Str("fillPx".into()), Value::Str("px".into()), &[]));
         m.insert("amount".to_string(), self.safe_string2(trade, Value::Str("fillSz".into()), Value::Str("sz".into()), &[]));
@@ -1604,16 +1605,14 @@ impl DeepcoinCore {
     Value::Null
 }
 
-    pub fn parse_taker_or_maker(&self, mut execType: Value) -> Value {
+    pub fn parse_taker_or_maker(&self, mut execType: Value) -> Option<String> {
         let mut types: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("T".to_string(), Value::Str("taker".into()));
                 m.insert("M".to_string(), Value::Str("maker".into()));
             m
         });
-        return self.safe_string(types, execType.clone(), &[execType.clone()]);
-
-    Value::Null
+        return self.safe_string(types, execType.clone(), &[execType.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -1674,8 +1673,8 @@ impl DeepcoinCore {
         let mut balances: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_613: bool = true;
-            while { if !__for_first_613 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_613 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
+            let mut __for_first_607: bool = true;
+            while { if !__for_first_607 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_607 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(balance.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(symbol, &[]);
@@ -1718,7 +1717,7 @@ impl DeepcoinCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchDeposits".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_cursor(Value::Str("fetchDeposits".into()), &[code.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("code".into()), Value::Null, Value::Int(1), Value::Int(50)]).await;
         }
         let mut request: Value = Value::Map({
@@ -1785,7 +1784,7 @@ impl DeepcoinCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchWithdrawals".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".into()), &[code.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("code".into()), Value::Null, Value::Int(1), Value::Int(50)]).await;
         }
         let mut request: Value = Value::Map({
@@ -1992,26 +1991,32 @@ impl DeepcoinCore {
         if (network == Value::Null) || (network.as_str() == Some("")) {
             network = defaultNetwork;
         }
+        if (network != Value::Null) {
+            network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
+        }
         let mut paramsOmitted: Value = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
         let mut addressess: Value = self.fetch_deposit_addresses(&[Value::from(vec![code]), paramsOmitted]).await;
         let mut length: f64 = ((addressess.len() as i64) as f64);
-        let mut address: Value = self.safe_dict(addressess.clone(), Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+        let mut index: Value = Value::Int(0);
         if (network != Value::Null) && (length > ((1i64) as f64)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_614: bool = true;
-                while { if !__for_first_614 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_614 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
-                let mut entry: Value = addressess.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                if (entry.as_map().and_then(|__m| __m.get("network")).cloned().unwrap_or(Value::Null).as_str() == network.as_str()) {
-                    address = entry;
+                let mut __for_first_608: bool = true;
+                while { if !__for_first_608 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_608 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
+                let mut entryNetwork: Value = self.safe_string(self.safe_dict(addressess.clone(), i.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]), Value::Str("network".into()), &[]);
+                if (entryNetwork.as_str() == network.as_str()) {
+                    index = i.clone();
                 }
             }
             }
         }
-        return address;
+        return self.safe_dict(addressess, index, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
 
     Value::Null
 }
@@ -2154,7 +2159,7 @@ impl DeepcoinCore {
         let mut change: Value = self.safe_string_k(item.clone(), "balChg", &[]);
         let mut amount: Value = crate::precise::Precise::stringAbs(&change);
         let mut direction: Value = Value::Str("in".into());
-        if is_true(&crate::precise::Precise::stringLt(&change, &Value::Str("0".into()))) {
+        if crate::precise::Precise::stringLt(&change, &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Value::Str("out".into());
         }
         let mut currencyId: Value = self.safe_string_k(item.clone(), "ccy", &[]);
@@ -2268,10 +2273,10 @@ impl DeepcoinCore {
     m
 })]);
         let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
-        if (fillResponseFromRequest.as_bool() == Some(true)) {
-            add_element_to_object(&mut transfer, &Value::Str("fromAccount".into()), fromAccount);
-            add_element_to_object(&mut transfer, &Value::Str("toAccount".into()), toAccount);
-            add_element_to_object(&mut transfer, &Value::Str("amount".into()), amount);
+        if fillResponseFromRequest.as_bool() == Some(true) {
+            if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("fromAccount".into(), fromAccount); }
+            if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("toAccount".into(), toAccount); }
+            if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("amount".into(), amount); }
         }
         return transfer;
 
@@ -2460,11 +2465,11 @@ impl DeepcoinCore {
                 m.insert("ordType".to_string(), orderType);
             m
         });
-        let mut keysToOmit: Value = Value::from(vec![]);
+        let mut keysToOmit: Vec<Value> = Vec::new();
         let mut clientOrderId: Value = self.safe_string_k(paramsOrderType.clone(), "clientOrderId", &[]);
         if (clientOrderId != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clOrdId".into(), clientOrderId); }
-            append_to_array(&mut keysToOmit, Value::Str("clientOrderId".into()));
+            keysToOmit.push(Value::Str("clientOrderId".into()));
         }
         let mut stopLoss: Value = self.safe_dict_k(paramsOrderType.clone(), "stopLoss", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2472,7 +2477,7 @@ impl DeepcoinCore {
 })]);
         let mut stopLossPrice: Value = self.safe_string_k(stopLoss, "triggerPrice", &[]);
         if (stopLossPrice != Value::Null) {
-            append_to_array(&mut keysToOmit, Value::Str("stopLoss".into()));
+            keysToOmit.push(Value::Str("stopLoss".into()));
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("slTriggerPx".into(), self.price_to_precision(symbol.clone(), stopLossPrice)); }
         }
         let mut takeProfit: Value = self.safe_dict_k(paramsOrderType.clone(), "takeProfit", &[Value::Map({
@@ -2481,7 +2486,7 @@ impl DeepcoinCore {
 })]);
         let mut takeProfitPrice: Value = self.safe_string_k(takeProfit, "triggerPrice", &[]);
         if (takeProfitPrice != Value::Null) {
-            append_to_array(&mut keysToOmit, Value::Str("takeProfit".into()));
+            keysToOmit.push(Value::Str("takeProfit".into()));
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tpTriggerPx".into(), self.price_to_precision(symbol.clone(), takeProfitPrice)); }
         }
         let mut isMarketOrder: bool = type_var.as_str() == Some("market");
@@ -2500,7 +2505,7 @@ impl DeepcoinCore {
                 if !isMarketOrder {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() accepts a cost parameter for spot market orders only".into()))));
                 }
-                append_to_array(&mut keysToOmit, Value::Str("cost".into()));
+                keysToOmit.push(Value::Str("cost".into()));
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("sz".into(), self.cost_to_precision(symbol.clone(), cost)); }
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tgtCcy".into(), Value::Str("quote_ccy".into())); }
             }  else {
@@ -2509,10 +2514,10 @@ impl DeepcoinCore {
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("side".into(), side.clone()); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tdMode".into(), Value::Str("cash".into())); }
-            paramsRequest = self.omit(paramsOrderType.clone(), keysToOmit.clone(), &[]);
+            paramsRequest = self.omit(paramsOrderType.clone(), Value::from(keysToOmit.clone()), &[]);
         }  else {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("sz".into(), self.amount_to_precision(symbol, amount)); }
-            let mut paramsOmitted: Value = self.omit(paramsOrderType, keysToOmit, &[]);
+            let mut paramsOmitted: Value = self.omit(paramsOrderType, Value::from(keysToOmit), &[]);
             let mut marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsOmitted, Value::Str("cross".into())]);
             let mut marginMode: Value = marginModeparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -2524,7 +2529,7 @@ impl DeepcoinCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("mrgPosition".into(), mrgPosition); }
             let mut posSide: Value = Value::Null;
             let mut reduceOnly: Value = self.safe_bool_k(paramsMrgPosition, "reduceOnly", &[Value::Bool(false)]);
-            if (reduceOnly.as_bool() == Some(true)) {
+            if reduceOnly.as_bool() == Some(true) {
                 if (side.as_str() == Some("buy")) {
                     posSide = Value::Str("short".into());
                 }  else if (side.as_str() == Some("sell")) {
@@ -2611,7 +2616,7 @@ impl DeepcoinCore {
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("isCrossMargin".into(), isCrossMargin); }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tdMode".into(), marginModeOption); }
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            if (reduceOnly.as_bool() == Some(true)) {
+            if reduceOnly.as_bool() == Some(true) {
                 if (side.as_str() == Some("buy")) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("posSide".into(), Value::Str("short".into())); }
                 }  else if (side.as_str() == Some("sell")) {
@@ -2640,7 +2645,7 @@ impl DeepcoinCore {
         let mut postOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut typePostOnly: Value = type_var;
-        if is_true(&postOnly) {
+        if postOnly.as_bool() == Some(true) {
             typePostOnly = Value::Str("post_only".into());
         }
         let mut timeInForce: Value = self.handle_time_in_force(&[paramsPostOnly.clone()]);
@@ -2890,7 +2895,7 @@ impl DeepcoinCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchCanceledAndClosedOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchCanceledAndClosedOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone()]).await;
         }
         let mut trigger: Value = self.safe_bool_k(paramsPaginate.clone(), "trigger", &[Value::Bool(false)]);
@@ -2914,7 +2919,7 @@ impl DeepcoinCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }; // default 100
         }
         let mut response: Value = Value::Null;
-        if (trigger.as_bool() == Some(true)) {
+        if trigger.as_bool() == Some(true) {
             if (methodName.as_str() != Some("fetchCanceledAndClosedOrders")) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() does not support trigger orders".into()))));
             }
@@ -3122,7 +3127,7 @@ impl DeepcoinCore {
         let mut trigger: Value = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]);
         let mut paramsOmitted: Value = self.omit(params.clone(), Value::Str("trigger".into()), &[]);
         let mut response: Value = Value::Null;
-        if (trigger.as_bool() == Some(true)) {
+        if trigger.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instType".into(), self.convert_to_instrument_type(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
             //
             //     {
@@ -3250,7 +3255,7 @@ impl DeepcoinCore {
         });
         let mut response: Value = Value::Null;
         let mut trigger: Value = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]);
-        if (trigger.as_bool() == Some(true)) {
+        if trigger.as_bool() == Some(true) {
             let mut paramsOmitted: Value = self.omit(params.clone(), Value::Str("trigger".into()), &[]);
             let __ws_arg_25 = self.extend(request.clone(), &[paramsOmitted]);
             response = self.private_post_deepcoin_trade_cancel_trigger_order(&[__ws_arg_25]).await;
@@ -3301,7 +3306,7 @@ impl DeepcoinCore {
         let mut mergedparamsMergedVariable = self.handle_option_bool_and_params(paramsOmitted, Value::Str("cancelAllOrders".into()), Value::Str("merged".into()), &[Value::Bool(true)]);
         let mut merged: Value = mergedparamsMergedVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsMerged: Value = mergedparamsMergedVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut isMergedMode: Value = (if is_true(&merged) { Value::Int(1) } else { Value::Int(0) });
+        let mut isMergedMode: Value = (if merged.as_bool() == Some(true) { Value::Int(1) } else { Value::Int(0) });
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("InstrumentID".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -3726,6 +3731,13 @@ impl DeepcoinCore {
         let mut marketId: Value = self.safe_string_k(position.clone(), "instId", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId, market]);
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "cTime", &[]);
+        let mut marginMode: Value = self.safe_string_k(position.clone(), "mgnMode", &[]);
+        let mut useMargin: Value = self.safe_number_k(position.clone(), "useMargin", &[]);
+        // useMargin is the margin held in the position (excludes unrealized pnl)
+        let mut positionMargin: Value = Value::Null;
+        if (marginMode.as_str() == Some("isolated")) {
+            positionMargin = useMargin.clone();
+        }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
@@ -3737,17 +3749,18 @@ impl DeepcoinCore {
         m.insert("side".to_string(), self.safe_string_k(position.clone(), "posSide", &[]));
         m.insert("notional".to_string(), Value::Null);
         m.insert("leverage".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "lever", &[])), &[]));
-        m.insert("unrealizedPnl".to_string(), Value::Null);
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealizedProfit", &[]));
         m.insert("realizedPnl".to_string(), Value::Null);
+        m.insert("positionMargin".to_string(), positionMargin);
         m.insert("collateral".to_string(), Value::Null);
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "avgPx", &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liqPx", &[]));
-        m.insert("marginMode".to_string(), self.safe_string_k(position.clone(), "mgnMode", &[]));
+        m.insert("marginMode".to_string(), marginMode);
         m.insert("hedged".to_string(), Value::Bool(true));
-        m.insert("maintenanceMargin".to_string(), self.safe_number_k(position.clone(), "useMargin", &[]));
+        m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), Value::Null);
+        m.insert("initialMargin".to_string(), useMargin);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(position.clone(), "uTime", &[]));
@@ -4107,7 +4120,7 @@ impl DeepcoinCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone()]).await;
         }
         let mut market: Value = Value::Null;
@@ -4258,14 +4271,15 @@ impl DeepcoinCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut requestPath: Value = path;
         if (method.as_str() == Some("GET")) {
             let mut query: Value = self.urlencode(params.clone(), &[]);
@@ -4273,12 +4287,12 @@ impl DeepcoinCore {
                 requestPath = Value::Str(format!("{}{}", requestPath, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
             }
         }
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), requestPath).into());
-        if (api.as_str() == Some("private")) {
+        if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = self.milliseconds();
             let mut dateTime: Value = self.iso8601(timestamp);
@@ -4291,7 +4305,7 @@ impl DeepcoinCore {
                     m.insert("appid".to_string(), Value::Str("200103".into()));
                 m
             });
-            let mut requestBody: Value = (if (method.as_str() != Some("GET")) { json_stringify(&params) } else { body.clone() });
+            let mut requestBody: Value = (if (method.as_str() != Some("GET")) { json_stringify(&params) } else { Value::Null });
             if (method.as_str() != Some("GET")) {
                 if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
                 payload = Value::Str(format!("{}{}", payload, requestBody).into());
@@ -4311,8 +4325,8 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), Value::Null);
+        m.insert("headers".to_string(), Value::Null);
     m
 });
 
@@ -4336,8 +4350,8 @@ impl DeepcoinCore {
         if (errorList != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_615: bool = true;
-                while { if !__for_first_615 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_615 = false; i.as_f64().unwrap_or(f64::NAN) < ((errorList.len() as i64) as f64) } {
+                let mut __for_first_609: bool = true;
+                while { if !__for_first_609 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_609 = false; i.as_f64().unwrap_or(f64::NAN) < ((errorList.len() as i64) as f64) } {
                 let mut entry: Value = self.safe_dict(errorList.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

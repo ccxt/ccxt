@@ -54,7 +54,7 @@ public partial class testMainClass : BaseTest
             {
                 return false;
             }
-            if ((success == true))
+            if (success)
             {
                 assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
                 List<object> values = new List<object>(((IDictionary<string,object>)response).Values);

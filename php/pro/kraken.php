@@ -138,7 +138,7 @@ class kraken extends \ccxt\async\kraken {
         }
         $isMarket = ($type === 'market');
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($isMarket, false, $params);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $request['params']['post_only'] = true;
         }
         $clientOrderId = $this->safe_string($paramsPostOnly, 'clientOrderId');
@@ -1044,9 +1044,26 @@ class kraken extends \ccxt\async\kraken {
             $orderbook['datetime'] = $datetime;
         } else {
             // snapshot
-            $depth = count($a);
-            $this->orderbooks[$symbol] = $this->order_book(array(), $depth);
+            $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
+            // size the book from the subscribed depth (10 by default), not from
+            // the level count of this snapshot: a thin market's snapshot can
+            // carry fewer levels than the subscription and must not cap the book
+            $limit = $this->safe_integer($subscription, 'limit', 10);
+            $asksLength = count($a);
+            $depth = ($asksLength > $limit) ? $asksLength : $limit;
+            $depths = $this->safe_dict($this->options, 'wsOrderBookDepths', array());
+            $storedDepth = $this->safe_integer($depths, $symbol);
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) || ($storedDepth !== $depth)) {
+                // rebuild only on the first snapshot or when the depth changes,
+                // e.g. a re-subscription with a different limit
+                $this->orderbooks[$symbol] = $this->order_book(array(), $depth);
+                $depths[$symbol] = $depth;
+                $this->options['wsOrderBookDepths'] = $depths;
+            }
+            // reset in place so that references held by users keep receiving
+            // updates after a reconnect snapshot (a new object would orphan them)
             $orderbook = $this->orderbooks[$symbol];
+            $orderbook->reset(array());
             $keys = array( 'asks', 'bids' );
             for ($i = 0; $i < count($keys); $i++) {
                 $key = $keys[$i];
@@ -1113,15 +1130,11 @@ class kraken extends \ccxt\async\kraken {
 
     public function format_number(string $data): string {
         $parts = explode('.', $data);
-        $integer = $this->safe_string($parts, 0);
+        $integer = $this->safe_string($parts, 0, '');
         $decimals = $this->safe_string($parts, 1, '');
         $joinedResult = $integer . $decimals;
-        $i = 0;
-        while ($joinedResult[$i] === '0') {
-            $i += 1;
-        }
-        if ($i > 0) {
-            $joinedResult = mb_substr($joinedResult, $i);
+        while (str_starts_with($joinedResult, '0')) {
+            $joinedResult = mb_substr($joinedResult, 1);
         }
         return $joinedResult;
     }
@@ -1167,8 +1180,9 @@ class kraken extends \ccxt\async\kraken {
         $subscription = $this->safe_value($client->subscriptions, $authenticated);
         $now = $this->seconds();
         $start = $this->safe_integer($subscription, 'start');
-        $expires = $this->safe_integer($subscription, 'expires');
-        if (($subscription === null) || (($subscription !== null) && ($start . $expires) <= $now)) {
+        $expires = $this->safe_integer($subscription, 'expires', -1);
+        $expired = ($start !== null) && ($expires >= 0) && ($start <= ($now - $expires));
+        if (($subscription === null) || $expired) {
             // single-flight leader election, see
             // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
             // above is followed by an awaited privatePostGetWebSocketsToken (),
@@ -1466,8 +1480,9 @@ class kraken extends \ccxt\async\kraken {
                 if ($length === $limit && ($previousOrder === null)) {
                     $first = $stored[0];
                     $symbolsByOrderId = $this->safe_dict($this->options, 'symbolsByOrderId', array());
-                    if (is_array($symbolsByOrderId) && array_key_exists($first['id'] ?? '', $symbolsByOrderId)) {
-                        unset($symbolsByOrderId[$first['id']]);
+                    $firstId = $this->safe_string($first, 'id');
+                    if (($firstId !== null) && (is_array($symbolsByOrderId) && array_key_exists($firstId ?? '', $symbolsByOrderId))) {
+                        unset($symbolsByOrderId[$firstId]);
                     }
                 }
                 $stored->append($newOrder);
@@ -1642,21 +1657,27 @@ class kraken extends \ccxt\async\kraken {
         //         "sequence": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance[type], and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        $type = 'spot';
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        $this->balance[$type] = $this->safe_dict($this->balance, $type, array());
+        $this->balance[$type]['info'] = $message;
         $data = $this->safe_list($message, 'data', array());
-        $result = array( 'info' => $message );
         for ($i = 0; $i < count($data); $i++) {
             $currencyId = $this->safe_string($data[$i], 'asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $eq = $this->safe_string($data[$i], 'balance');
             $account['total'] = $eq;
-            $result[$code] = $account;
+            $this->balance[$type][$code] = $account;
         }
-        $type = 'spot';
-        $balance = $this->safe_balance($result);
-        $oldBalance = $this->safe_dict($this->balance, $type, array());
-        $newBalance = $this->deep_extend($oldBalance, $balance);
-        $this->balance[$type] = $this->safe_balance($newBalance);
+        $this->balance[$type] = $this->safe_balance($this->balance[$type]);
         $channel = $this->safe_string($message, 'channel');
         $client->resolve($this->balance[$type], $channel);
     }

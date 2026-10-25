@@ -415,7 +415,7 @@ public partial class lighter : ccxt.lighter
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        if (((firstMarket != null)) && (((GetValue(firstMarket, "swap") as bool?) != true)))
+        if (((firstMarket != null)) && ((((firstMarket != null && firstMarket.ContainsKey("swap") ? firstMarket["swap"] : null) as bool?) != true)))
         {
             throw new NotSupported ((this.id + " watchTickers() is only supported for swap markets")) ;
         }
@@ -471,7 +471,7 @@ public partial class lighter : ccxt.lighter
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        if (((firstMarket != null)) && (((GetValue(firstMarket, "swap") as bool?) != true)))
+        if (((firstMarket != null)) && ((((firstMarket != null && firstMarket.ContainsKey("swap") ? firstMarket["swap"] : null) as bool?) != true)))
         {
             throw new NotSupported ((this.id + " unWatchTickers() is only supported for swap markets")) ;
         }
@@ -661,7 +661,7 @@ public partial class lighter : ccxt.lighter
         for (Int64 i = 0; i < dataLength; i++)
         {
             Int64 iReversed = ((dataLength - 1) - i);
-            ccxt.Trade trade = this.parseWsTrade(getValue(data, iReversed), market);
+            ccxt.Trade trade = this.parseWsTrade((data != null && iReversed < data.Count ? data[(int)iReversed] : null), market);
             stored.append(ccxt.BaseExchange.FromTrade(trade));
         }
         string? messageHash = this.getMessageHash("trade", symbol);
@@ -880,7 +880,7 @@ public partial class lighter : ccxt.lighter
             for (Int64 j = 0; j < tradesLength; j++)
             {
                 Int64 jReversed = ((tradesLength - 1) - j);
-                object tradeRaw = getValue(trades, jReversed);
+                object tradeRaw = (trades != null && jReversed < trades.Count ? trades[(int)jReversed] : null);
                 ((IDictionary<string,object>)tradeRaw)["accountIndex"] = accountIndex;
                 Dictionary<string, object> trade = this.parseWsOrderTrade(tradeRaw, market);
                 stored.append(trade);
@@ -1080,7 +1080,7 @@ public partial class lighter : ccxt.lighter
         for (Int64 i = 0; i < dataLength; i++)
         {
             Int64 iReversed = ((dataLength - 1) - i);
-            Dictionary<string, object> liquidation = this.parseWsLiquidation(getValue(data, iReversed), market);
+            Dictionary<string, object> liquidation = this.parseWsLiquidation((data != null && iReversed < data.Count ? data[(int)iReversed] : null), market);
             ccxt.pro.BaseCache.appendTo(stored, liquidation);
         }
         string? messageHash = this.getMessageHash("liquidations", symbol);
@@ -1593,8 +1593,8 @@ public partial class lighter : ccxt.lighter
                 for (int i = 0; i < subscriptionKeys.Count; i++)
                 {
                     string? subscriptionHash = ((string)subscriptionKeys[i]);
-                    string? subscriptionId = this.safeString(getValue(client.subscriptions, subscriptionHash), "id");
-                    string? subscription = this.safeString(getValue(client.subscriptions, subscriptionHash), "subscription");
+                    string? subscriptionId = this.safeString((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash) ? client.subscriptions[subscriptionHash] : null), "id");
+                    string? subscription = this.safeString((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash) ? client.subscriptions[subscriptionHash] : null), "subscription");
                     if ((id == subscriptionId))
                     {
                         client.reject(e, subscriptionHash);

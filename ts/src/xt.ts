@@ -618,10 +618,8 @@ export default class xt extends Exchange {
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
-                    'TRX': 'Tron',
                     'BEP20': 'BNB Smart Chain',
                     'BEP2': 'BNB-BEP2',
-                    'ETH': 'Ethereum',
                     'AVAX': 'AVAX C-Chain',
                     'GAL': 'GAL(FT)',
                     'ALEO': 'ALEO(IOU)',
@@ -1075,7 +1073,7 @@ export default class xt extends Exchange {
         return this.arrayConcat (spotMarkets, swapAndFutureMarkets);
     }
 
-    async fetchSpotMarkets (params: any = {}): Promise<Market[]> {
+    async fetchSpotMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicSpotGetSymbol (params);
         //
         //     {
@@ -1505,7 +1503,7 @@ export default class xt extends Exchange {
             // window start return one pre-since candle, shifting paginated windows and
             // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
             const duration = this.parseTimeframe (timeframe) * 1000;
-            request['startTime'] = Math.ceil (since / duration) * duration;
+            request['startTime'] = this.parseToInt (Math.ceil (since / duration)) * duration;
         }
         let limitResolved: Int = limit;
         if (limit !== undefined) {
@@ -1877,7 +1875,7 @@ export default class xt extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return this.filterByArray (result, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -1968,7 +1966,7 @@ export default class xt extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return this.filterByArray (result, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -2018,7 +2016,7 @@ export default class xt extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 's');
-        let marketType: Str = (market !== undefined) ? this.safeString (market, 'type') : undefined;
+        let marketType = this.safeString (market, 'type');
         const hasSpotKeys = ('cv' in ticker) || ('aq' in ticker);
         if (marketType === undefined) {
             marketType = hasSpotKeys ? 'spot' : 'contract';
@@ -2026,9 +2024,27 @@ export default class xt extends Exchange {
         const marketResolved: Market = this.safeMarket (marketId, market, '_', marketType);
         const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger (ticker, 't');
-        let percentage = this.safeString2 (ticker, 'cr', 'r');
+        const open = this.safeString (ticker, 'o');
+        // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
+        let percentage = this.safeString (ticker, 'r');
+        if (open === undefined) {
+            percentage = this.safeString2 (ticker, 'cr', 'r');
+        }
         if (percentage !== undefined) {
             percentage = Precise.stringMul (percentage, '100');
+        }
+        let baseVolume = this.safeString2 (ticker, 'a', 'q');
+        let quoteVolume = this.safeString (ticker, 'v');
+        const contractSize = this.safeString (marketResolved, 'contractSize');
+        if ((marketResolved['contract'] === true) && (contractSize !== undefined)) {
+            // 'a' counts contracts, 'v' is in the settle currency
+            const contractVolume = Precise.stringMul (baseVolume, contractSize);
+            if (marketResolved['inverse'] === true) {
+                baseVolume = quoteVolume;
+                quoteVolume = contractVolume;
+            } else {
+                baseVolume = contractVolume;
+            }
         }
         return this.safeTicker ({
             'symbol': symbol,
@@ -2041,15 +2057,15 @@ export default class xt extends Exchange {
             'ask': this.safeNumber (ticker, 'ap'),
             'askVolume': this.safeNumber (ticker, 'aq'),
             'vwap': undefined,
-            'open': this.safeString (ticker, 'o'),
+            'open': open,
             'close': this.safeString (ticker, 'c'),
             'last': this.safeString (ticker, 'c'),
             'previousClose': undefined,
-            'change': this.safeNumber (ticker, 'cv'),
+            'change': undefined,
             'percentage': this.parseNumber (percentage),
             'average': undefined,
-            'baseVolume': this.safeNumber2 (ticker, 'a', 'q'),
-            'quoteVolume': this.safeNumber (ticker, 'v'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }, marketResolved);
     }
@@ -2351,7 +2367,7 @@ export default class xt extends Exchange {
         //    }
         //
         const marketId = this.safeString2 (trade, 's', 'symbol');
-        let marketType: Str = (market !== undefined) ? this.safeString (market, 'type') : undefined;
+        let marketType = this.safeString (market, 'type');
         const hasSpotKeys = ('b' in trade) || ('bizType' in trade) || ('oi' in trade);
         if (marketType === undefined) {
             marketType = hasSpotKeys ? 'spot' : 'contract';
@@ -2636,7 +2652,7 @@ export default class xt extends Exchange {
             if (side === 'buy') {
                 const cost = this.safeString (paramsMarginMode, 'cost');
                 const createMarketBuyOrderRequiresPrice = this.safeBool (this.options, 'createMarketBuyOrderRequiresPrice', true);
-                if (createMarketBuyOrderRequiresPrice === true) {
+                if (createMarketBuyOrderRequiresPrice) {
                     if (price === undefined && (cost === undefined)) {
                         throw new InvalidOrder (this.id + ' createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
                     } else {
@@ -2665,7 +2681,7 @@ export default class xt extends Exchange {
             paramsWithoutCost = this.omit (paramsMarginMode, 'cost');
         }
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', timeInForce === 'GTX', paramsWithoutCost);
-        if (postOnly === true) {
+        if (postOnly) {
             timeInForce = 'GTX';
         }
         const paramsOmitted: Dict = this.omit (paramsPostOnly, [ 'timeInForce', 'postOnly' ]);
@@ -2688,7 +2704,7 @@ export default class xt extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async createContractOrder (symbol: string, type: OrderType, side: any, amount: any, price: Num = undefined, params: Dict = {}): Promise<Order> {
+    async createContractOrder (symbol: string, type: OrderType, side: OrderSide, amount: any, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2699,7 +2715,7 @@ export default class xt extends Exchange {
         };
         let timeInForce = this.safeStringUpper (params, 'timeInForce');
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', timeInForce === 'GTX', params);
-        if (postOnly === true) {
+        if (postOnly) {
             timeInForce = 'GTX';
         }
         const paramsOmitted4: Dict = this.omit (paramsPostOnly, [ 'timeInForce', 'postOnly' ]);
@@ -2709,13 +2725,13 @@ export default class xt extends Exchange {
         const reduceOnly = this.safeBool (paramsOmitted4, 'reduceOnly', false);
         if (side === 'buy') {
             let requestType: Str = 'LONG';
-            if (reduceOnly === true) {
+            if (reduceOnly) {
                 requestType = 'SHORT';
             }
             request['positionSide'] = requestType;
         } else {
             let requestType: Str = 'SHORT';
-            if (reduceOnly === true) {
+            if (reduceOnly) {
                 requestType = 'LONG';
             }
             request['positionSide'] = requestType;
@@ -4000,7 +4016,7 @@ export default class xt extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -4128,7 +4144,7 @@ export default class xt extends Exchange {
         }, currencyResolved) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: Str) {
+    parseLedgerEntryType (type: Str): Str {
         const ledgerType = {
             'EXCHANGE': 'transfer',
             'CLOSE_POSITION': 'trade',
@@ -4324,17 +4340,16 @@ export default class xt extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag]
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        this.checkAddress (address);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
         const networkId = this.safeString2 (networkIdsByCodes, networkCode, code, code);
@@ -4438,7 +4453,7 @@ export default class xt extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses = {
             'SUBMIT': 'pending',
             'REVIEW': 'pending',
@@ -4739,7 +4754,7 @@ export default class xt extends Exchange {
             const tier = this.safeDict (brackets, i);
             const marketId = this.safeString (info, 'symbol');
             const marketResolved: Market = this.safeMarket (marketId, market, '_', 'contract');
-            const minNotional = this.safeNumber (brackets[i - 1], 'maxNominalValue', 0);
+            const minNotional = this.safeNumber (this.safeDict (brackets, i - 1), 'maxNominalValue', 0);
             tiers.push ({
                 'tier': this.safeInteger (tier, 'bracket'),
                 'symbol': this.safeSymbol (marketId, marketResolved, '_', 'contract'),
@@ -4843,6 +4858,7 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     override async fetchFundingInterval (symbol: string, params: Dict = {}): Promise<FundingRate> {
@@ -4905,10 +4921,8 @@ export default class xt extends Exchange {
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_', 'swap');
         const timestamp = this.safeInteger (contract, 'nextCollectionTime');
-        let interval = this.safeString (contract, 'collectionInternal');
-        if (interval !== undefined) {
-            interval = interval + 'h';
-        }
+        const collectionInterval = this.safeString (contract, 'collectionInternal');
+        const interval = (collectionInterval !== undefined) ? (collectionInterval + 'h') : undefined;
         return {
             'info': contract,
             'symbol': symbol,
@@ -4973,7 +4987,7 @@ export default class xt extends Exchange {
         return this.parseOpenInterest (result, market);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -5843,7 +5857,7 @@ export default class xt extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: string, api: string[] = [], method: string = 'GET', params = {}) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const request = '/' + this.implodeParams (path, params);
@@ -5875,14 +5889,8 @@ export default class xt extends Exchange {
             const timestamp = this.numberToString (this.nonce ());
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
                 const id = 'CCXT';
-                if (query === undefined) {
-                    throw new NullResponse (this.id + ' sign() returned empty body');
-                }
                 if (payload.indexOf ('future') > -1) {
                     query['clientMedia'] = id;
-                    if (query === undefined) {
-                        throw new NullResponse (this.id + ' sign() returned empty body');
-                    }
                 } else {
                     query['media'] = id;
                 }
@@ -5929,7 +5937,7 @@ export default class xt extends Exchange {
                 url += '?' + urlencoded;
             }
         }
-        let bodyValue = body;
+        let bodyValue = undefined;
         if (signed) {
             bodyValue = signedBody;
         }

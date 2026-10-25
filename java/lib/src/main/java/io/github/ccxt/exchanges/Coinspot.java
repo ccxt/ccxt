@@ -553,7 +553,7 @@ public class Coinspot extends CoinspotApi
                 put( "DRK", "DASH" );
             }} );
             put( "options", new HashMap<String, Object>() {{
-                put( "fetchBalance", "private_post_my_balances" );
+                put( "fetchBalance", "privatePostMyBalances" );
             }} );
             put( "features", new HashMap<String, Object>() {{
                 put( "spot", new HashMap<String, Object>() {{
@@ -618,7 +618,7 @@ public class Coinspot extends CoinspotApi
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
                 Object currencies = (balances == null || i < 0 || i >= ((List<?>)balances).size() ? null : ((List<?>)balances).get(i));
-                List<Object> currencyIds = Helpers.objectKeys(currencies);
+                List<Object> currencyIds = ((List<Object>) switch ((Object)(currencies)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                 {
                     Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
@@ -634,7 +634,7 @@ public class Coinspot extends CoinspotApi
             }
         } else
         {
-            List<Object> currencyIds = Helpers.objectKeys(balances);
+            List<Object> currencyIds = ((List<Object>) switch ((Object)(balances)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
             {
                 Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
@@ -667,7 +667,7 @@ public class Coinspot extends CoinspotApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
+            String method = this.safeString(this.options, "fetchBalance", "privatePostMyBalances");
             Map<String, Object> response = null;
             if ((java.util.Objects.equals(method, "private_post_ro_my_balances")) || (java.util.Objects.equals(method, "privatePostRoMyBalances")))
             {
@@ -1163,13 +1163,14 @@ public class Coinspot extends CoinspotApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
-        Boolean isVersionedApi = false;
-        Object version = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 0) : null;
-        Object accessType = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 1) : java.util.Objects.requireNonNullElse(api, "public");
+        Map<String, Object> requestHeaders = null;
+        String requestBody = null;
+        Integer apiLength = ((List<?>)api).size();
+        Boolean isVersionedApi = (apiLength != null && apiLength > 1);
+        Object version = ((Boolean.TRUE.equals(isVersionedApi))) ? (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)) : null;
+        Object accessType = ((Boolean.TRUE.equals(isVersionedApi))) ? (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)) : (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String endpoint = ("/" + this.implodeParams(path, parameters));
         String fullPath = endpoint;
         if (!java.util.Objects.equals(version, null))
@@ -1190,11 +1191,13 @@ public class Coinspot extends CoinspotApi
             requestBody = this.json(this.extend(new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }}, parameters));
-            requestHeaders = Helpers.newMap(
-                "Content-Type", "application/json",
-                "key", this.apiKey,
-                "sign", this.hmac(this.encode(requestBody), this.encode(this.secret), sha512())
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("Content-Type", "application/json");
+                hx4NewMap0.put("key", this.apiKey);
+                hx4NewMap0.put("sign", this.hmac(this.encode(requestBody), this.encode(this.secret), sha512()));
+                requestHeaders = hx4NewMap0;
+            }
         }
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();

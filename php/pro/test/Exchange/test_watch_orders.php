@@ -32,7 +32,7 @@ function test_watch_orders($exchange, $skipped_properties, $symbol) {
                 // continue;
                 $success = false;
             }
-            if ($success === true) {
+            if ($success) {
                 if ($response === null) {
                     throw new Exception($exchange->id . ' watch returned undefined response');
                 }

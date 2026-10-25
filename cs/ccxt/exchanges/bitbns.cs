@@ -664,7 +664,7 @@ public partial class bitbns : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
-    public virtual string? parseStatus(object status)
+    public virtual string? parseStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "-1", "cancelled" },
@@ -788,7 +788,7 @@ public partial class bitbns : Exchange
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "t_rate"});
         string? targetRate = this.safeString(parameters, "target_rate");
         string? trailRate = this.safeString(parameters, "trail_rate");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate"}));
         this.checkRequiredArgument("createOrder", side, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "side", side.ToUpper() },
@@ -860,7 +860,7 @@ public partial class bitbns : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"trigger", "stop"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"trigger", "stop"}));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "entry_id", id },
             { "symbol", (market.ContainsKey("uppercaseId") ? market["uppercaseId"] : null) },
@@ -963,7 +963,7 @@ public partial class bitbns : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"trigger", "stop"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"trigger", "stop"}));
         string quoteSide = "listOpen";
         if ((((market.ContainsKey("quoteId") ? market["quoteId"] : null) as string) == "USDT"))
         {
@@ -1288,7 +1288,7 @@ public partial class bitbns : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit));
     }
 
-    public virtual object parseTransactionStatusByType(string? status, string? type = null)
+    public virtual string? parseTransactionStatusByType(string? status, string? type = null)
     {
         Dictionary<string, object> statusesByType = new Dictionary<string, object>() {
             { "deposit", new Dictionary<string, object>() {
@@ -1306,7 +1306,7 @@ public partial class bitbns : Exchange
             } },
         };
         IDictionary<string, object> statuses = this.safeDict(statusesByType, type, new Dictionary<string, object>() {});
-        return this.safeString(statuses, status, status);
+        return ((string?)((object)(this.safeString(statuses, status, status))));
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
@@ -1427,25 +1427,26 @@ public partial class bitbns : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "www";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object urls = this.urls;
-        if (!(inOp(getValue(urls, "api"), api)))
+        object apiName = getValue(api, 0);
+        if (!(inOp(getValue(urls, "api"), apiName)))
         {
-            throw new ExchangeError ((((this.id + " does not have a testnet/sandbox URL for ") + (api)) + " endpoints")) ;
+            throw new ExchangeError ((((this.id + " does not have a testnet/sandbox URL for ") + (apiName)) + " endpoints")) ;
         }
-        if (!(api is "www"))
+        if (!(apiName is "www"))
         {
             this.checkRequiredCredentials();
         }
         Dictionary<string, object> apiKeyHeaders = new Dictionary<string, object>() {
             { "X-BITBNS-APIKEY", this.apiKey },
         };
-        object requestHeaders = (!(api is "www")) ? apiKeyHeaders : headers;
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        Dictionary<string, object> requestHeaders = (!(apiName is "www")) ? apiKeyHeaders : null;
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1460,7 +1461,7 @@ public partial class bitbns : Exchange
         {
             postBody = this.json(query);
         }
-        object requestBody = ((method == "POST")) ? postBody : body;
+        string? requestBody = ((method == "POST")) ? postBody : null;
         if ((method == "GET"))
         {
             if (queryLength > 0)
@@ -1476,9 +1477,9 @@ public partial class bitbns : Exchange
             string payload = this.stringToBase64(this.json(auth));
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
             requestHeaders = ((requestHeaders == null)) ? new Dictionary<string, object>() {} : requestHeaders;
-            ((IDictionary<string,object>)requestHeaders)["X-BITBNS-PAYLOAD"] = payload;
-            ((IDictionary<string,object>)requestHeaders)["X-BITBNS-SIGNATURE"] = signature;
-            ((IDictionary<string,object>)requestHeaders)["Content-Type"] = "application/x-www-form-urlencoded";
+            requestHeaders["X-BITBNS-PAYLOAD"] = payload;
+            requestHeaders["X-BITBNS-SIGNATURE"] = signature;
+            requestHeaders["Content-Type"] = "application/x-www-form-urlencoded";
         }
         return new Dictionary<string, object>() {
             { "url", url },

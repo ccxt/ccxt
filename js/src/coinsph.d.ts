@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinsph.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, NullableDict, Status } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, Status } from './base/types.js';
 /**
  * @class coinsph
  * @augments Exchange
@@ -16,7 +16,7 @@ export default class coinsph extends Exchange {
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): CurrencyInterface;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
+    calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: Dict): any;
     /**
      * @method
      * @name coinsph#fetchStatus
@@ -216,12 +216,12 @@ export default class coinsph extends Exchange {
      */
     cancelAllOrders(symbol?: Str, params?: Dict): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderSide(status: Str): string | undefined;
-    encodeOrderSide(status: Str): string | undefined;
-    parseOrderType(status: Str): string | undefined;
-    encodeOrderType(status: Str): string | undefined;
-    parseOrderStatus(status: Str): string | undefined;
-    parseOrderTimeInForce(status: Str): string | undefined;
+    parseOrderSide(status: Str): Str;
+    encodeOrderSide(status: Str): Str;
+    parseOrderType(status: Str): Str;
+    encodeOrderType(status: Str): Str;
+    parseOrderStatus(status: Str): Str;
+    parseOrderTimeInForce(status: Str): Str;
     /**
      * @method
      * @name coinsph#fetchTradingFee
@@ -250,11 +250,11 @@ export default class coinsph extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address not used by withdraw ()
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name coinsph#fetchDeposits
@@ -280,7 +280,7 @@ export default class coinsph extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): string | undefined;
+    parseTransactionStatus(status: Str): Str;
     /**
      * @method
      * @name coinsph#fetchDepositAddress
@@ -295,6 +295,6 @@ export default class coinsph extends Exchange {
     parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
     urlEncodeQuery(query?: Dict): string;
     parseArrayParam(array: any, key: string): string;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

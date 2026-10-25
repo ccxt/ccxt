@@ -25,7 +25,7 @@ async function testDeepcoinPublicKeepAliveFitsTheHeartbeatWindow() {
         assert(client.keepAlive < heartbeatWindow, marketType + ': keepAlive ' + String(client.keepAlive) + ' ms must be shorter than the venue heartbeat window of ' + String(heartbeatWindow) + ' ms, otherwise the first ping is sent after the server has already closed the socket');
         assert(client.ping !== undefined, marketType + ': the client must carry the text ping the venue expects');
         assert(exchange.ping(client) === 'ping', marketType + ': the heartbeat must be the text frame \'ping\'');
-        assert(client.startedConnecting === false, 'the test must never dial a socket');
+        assert(!client.startedConnecting, 'the test must never dial a socket');
     }
     await exchange.close();
 }

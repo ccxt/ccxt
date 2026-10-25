@@ -150,7 +150,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             orderbook = this.orderBook();
         } else
         {
-            Helpers.callDynamically(orderbook, "reset", new Object[]{});
+            orderbook.reset(null);
         }
         orderbook.put("symbol", symbol);
         List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
@@ -245,7 +245,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         }
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         String messageHash = ("ticker:" + symbol);
-        client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
+        client.resolve((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), messageHash);
     }
 
     public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
@@ -413,7 +413,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String side = null;
         if (!java.util.Objects.equals(isSellerMaker, null))
         {
-            side = (((java.util.Objects.equals(isSellerMaker, true)))) ? "sell" : "buy";
+            side = ((Boolean.TRUE.equals(isSellerMaker))) ? "sell" : "buy";
         }
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "qty");

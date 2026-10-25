@@ -927,7 +927,7 @@ export default class bitvavo extends Exchange {
         const taker = this.safeBool (trade, 'taker');
         let takerOrMaker: Str = undefined;
         if (taker !== undefined) {
-            takerOrMaker = (taker === true) ? 'taker' : 'maker';
+            takerOrMaker = (taker) ? 'taker' : 'maker';
         }
         const feeCostString = this.safeString (trade, 'fee');
         let fee: FeeString = undefined;
@@ -1131,12 +1131,10 @@ export default class bitvavo extends Exchange {
             request['end'] = this.sum (since, sinceLimit * duration * 1000);
         }
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, params);
-        let limitResolved: Int = limit;
-        if ((since !== undefined) && (limit === undefined)) {
-            limitResolved = 1440;
-        }
-        if (limitResolved !== undefined) {
-            requestUntil['limit'] = Math.min (limitResolved, 1440); // default 1440, max 1440
+        if (limit !== undefined) {
+            requestUntil['limit'] = Math.min (limit, 1440); // default 1440, max 1440
+        } else if (since !== undefined) {
+            requestUntil['limit'] = 1440;
         }
         return this.extend (requestUntil, paramsUntil);
     }
@@ -1784,7 +1782,7 @@ export default class bitvavo extends Exchange {
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
         } else {
-            throw new ArgumentsRequired (this.id + ' canceAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
         const response = await this.privateDeleteOrders (this.extend (request, paramsOperatorId));
         //
@@ -2044,7 +2042,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'new': 'open',
             'canceled': 'canceled',
@@ -2290,7 +2288,7 @@ export default class bitvavo extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
-    parseLedgerEntryType (type: Str) {
+    parseLedgerEntryType (type: Str): Str {
         const types: Dict = {
             'buy': 'trade',
             'sell': 'trade',
@@ -2369,13 +2367,13 @@ export default class bitvavo extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2508,7 +2506,7 @@ export default class bitvavo extends Exchange {
         return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'awaiting_processing': 'pending',
             'awaiting_email_confirmation': 'pending',
@@ -2604,7 +2602,7 @@ export default class bitvavo extends Exchange {
         } as Transaction;
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         //
         //   {
         //       "symbol": "1INCH",
@@ -2686,9 +2684,10 @@ export default class bitvavo extends Exchange {
         return this.parseDepositWithdrawFees (response, codes, 'symbol');
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let requestHeaders: NullableDict = headers;
-        let requestBody: Str = body;
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         const query = this.omit (params, this.extractParams (path));
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');
@@ -2697,7 +2696,7 @@ export default class bitvavo extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             let payload = '';
             if (!getOrDelete) {
@@ -2720,7 +2719,7 @@ export default class bitvavo extends Exchange {
                 requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2748,7 +2747,7 @@ export default class bitvavo extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
         if (('noMarket' in config) && !('market' in params)) {
             return config['noMarket'];
         }

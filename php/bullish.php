@@ -1369,17 +1369,22 @@ class bullish extends Exchange {
             '_pageSize' => $maxLimit,
         );
         list($requestUntil, $paramsUntil) = $this->handle_until_option('createdAtDatetime[lte]', $request, $paramsPaginate);
-        $until = $this->safe_integer($requestUntil, 'createdAtDatetime[lte]');
+        $untilParam = $this->safe_integer($requestUntil, 'createdAtDatetime[lte]');
+        $until = null;
+        if ($untilParam !== null) {
+            $until = $untilParam;
+        }
         $duration = $this->parse_timeframe($timeframe);
-        $maxDelta = 1000 * $duration * $maxLimit;
+        $maxDelta = $duration * $maxLimit * 1000;
         $startTime = $since;
         // both of since and until are required
-        if ($startTime === null && $until === null) {
-            $until = $this->milliseconds();
-            $startTime = $until - $maxDelta;
-        } elseif ($startTime === null) {
-            $startTime = $until - $maxDelta;
-        } elseif ($until === null) {
+        if ($since === null && $untilParam === null) {
+            $now = $this->milliseconds();
+            $until = $now;
+            $startTime = $now - $maxDelta;
+        } elseif (($since === null) && ($untilParam !== null)) {
+            $startTime = $untilParam - $maxDelta;
+        } elseif ($untilParam === null) {
             $until = $this->sum($startTime, $maxDelta);
         }
         $requestUntil['createdAtDatetime[gte]'] = $this->iso8601($startTime);
@@ -1501,7 +1506,7 @@ class bullish extends Exchange {
         array( $this->load_markets(), $this->handle_token() );
         $tradingAccountId = $this->load_account($params);
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate === true) {
+        if ($paginate) {
             $paramsPagination = $this->handle_pagination_params('fetchOrders', $since, $params);
             return $this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $paramsPagination, 100);
         }
@@ -1577,23 +1582,29 @@ class bullish extends Exchange {
     }
 
     public function handle_since_and_until(?int $since = null, $params = array(), ?string $sinceKey = 'createdAtDatetime[gte]', ?string $untilKey = 'createdAtDatetime[lte]'): array {
-        $until = $this->safe_integer($params, 'until');
-        $sinceFromUntil = ($since === null) && ($until !== null);
+        $untilParam = $this->safe_integer($params, 'until');
+        $until = null;
+        if ($untilParam !== null) {
+            $until = $untilParam;
+        }
+        $sinceFromUntil = ($since === null) && ($untilParam !== null);
         $paramsResult = $params;
         if ($sinceFromUntil) {
             $paramsResult = $this->omit($params, 'until');
         }
-        if (($since !== null) || ($until !== null)) {
+        if (($since !== null) || ($untilParam !== null)) {
             $timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
             $sinceResolved = $since;
-            if ($since === null) {
-                $sinceResolved = $until - $timeDelta;
+            if (($since === null) && ($untilParam !== null)) {
+                $sinceResolved = $untilParam - $timeDelta;
             }
-            if (($since !== null) && ($until === null)) {
-                $until = $this->sum($since, $timeDelta);
+            if (($since !== null) && ($untilParam === null)) {
                 $now = $this->milliseconds();
-                if ($until > $now) {
+                $latestSince = $now - $timeDelta;
+                if ($since > $latestSince) {
                     $until = $now;
+                } else {
+                    $until = $this->sum($since, $timeDelta);
                 }
             }
             $sinceDate = $this->iso8601($sinceResolved);
@@ -1606,6 +1617,9 @@ class bullish extends Exchange {
 
     public function get_closest_limit(?int $limit): ?int {
         $pageSize = 5;
+        if ($limit === null) {
+            return $pageSize;
+        }
         if (($limit > 5) && ($limit < 26)) {
             $pageSize = 25;
         } elseif (($limit > 25) && ($limit < 51)) {
@@ -1845,7 +1859,7 @@ class bullish extends Exchange {
             $request['type'] = strtoupper($type);
         }
         $postOnly = $this->safe_bool($params, 'postOnly', false);
-        if ($postOnly === true) {
+        if ($postOnly) {
             $request['type'] = 'POST_ONLY';
         }
         if ($amount !== null) {
@@ -1854,7 +1868,7 @@ class bullish extends Exchange {
         if ($price !== null) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $paramsOmitted = ($postOnly === true) ? $this->omit($params, 'postOnly') : $params;
+        $paramsOmitted = ($postOnly) ? $this->omit($params, 'postOnly') : $params;
         $response = $this->privatePostV2Command($this->extend($request, $paramsOmitted));
         return $this->parse_order($response, $market);
     }
@@ -2033,7 +2047,7 @@ class bullish extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'OPEN' => 'open',
             'CLOSED' => 'closed',
@@ -2043,7 +2057,7 @@ class bullish extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             'LMT' => 'limit',
             'MKT' => 'market',
@@ -2118,7 +2132,7 @@ class bullish extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -2127,8 +2141,8 @@ class bullish extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} [$tag]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {string} $params->timestamp the timestamp of the withdrawal $request (mandatory)
          * @param {string} $params->nonce the nonce of the withdrawal $request (mandatory)
          * @param {string} $params->network network for withdraw (mandatory)
@@ -2240,7 +2254,7 @@ class bullish extends Exchange {
         );
     }
 
-    public function parse_transaction_type(?string $type) {
+    public function parse_transaction_type(?string $type): ?string {
         $types = array(
             'DEPOSIT' => 'deposit',
             'WITHDRAW' => 'withdrawal',
@@ -2248,7 +2262,7 @@ class bullish extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'COMPLETE' => 'ok',
             'FAILED' => 'failed',
@@ -2258,10 +2272,9 @@ class bullish extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function load_account($params = array()): string {
-        $tradingAccountId = null;
-        $paramsTradingAccountId = null;
-        list($tradingAccountId, $paramsTradingAccountId) = $this->handle_option_string_and_params($params, 'loadAccount', 'tradingAccountId');
+    public function load_account($params = array()): ?string {
+        list($tradingAccountIdOption, $paramsTradingAccountId) = $this->handle_option_string_and_params($params, 'loadAccount', 'tradingAccountId');
+        $tradingAccountId = $tradingAccountIdOption;
         if ($tradingAccountId === null) {
             $response = $this->privateGetV1AccountsTradingAccounts($paramsTradingAccountId);
             $accounts = $this->to_array($response);
@@ -2278,7 +2291,7 @@ class bullish extends Exchange {
             throw new ArgumentsRequired($this->id . ' loadAccount() requires a tradingAccountId parameter in options["tradingAccountId"] or params["tradingAccountId"], fetchAccounts() was not able to find the Primary account');
         }
         $this->options['tradingAccountId'] = $tradingAccountId;
-        return $tradingAccountId;
+        return $this->safe_string($this->options, 'tradingAccountId');
     }
 
     public function fetch_accounts($params = array()): array {
@@ -2412,14 +2425,15 @@ class bullish extends Exchange {
         $safeResponse = $this->to_array($response);
         $length = count($safeResponse);
         $data = $this->safe_dict($safeResponse, 0, array());
-        $network = null;
-        $network = $this->handle_network_code_and_params($params)[0];
-        $networkDefinedByUser = $network !== null;
+        $networkAndParams = $this->handle_network_code_and_params($params);
+        $networkParam = $networkAndParams[0];
+        $networkDefinedByUser = $networkParam !== null;
+        $network = $networkParam;
         if (($length > 1) || ($networkDefinedByUser)) {
             // some currencies have multiple networks
             if ($network === null) {
                 // use default network if not specified and multiple are available
-                $network = $this->default_network_code($code);
+                $network = $this->safe_string($this->safe_dict($this->options, 'defaultNetworks', array()), $code, $this->safe_string($this->options, 'defaultNetwork'));
             }
             if ($network !== null) {
                 // find the entry that matches the network or return first entry if not found and user did not specify a network
@@ -2624,7 +2638,7 @@ class bullish extends Exchange {
         ));
     }
 
-    public function parse_position_side(?string $side) {
+    public function parse_position_side(?string $side): ?string {
         $sides = array(
             'BUY' => 'long',
             'SELL' => 'short',
@@ -2726,7 +2740,7 @@ class bullish extends Exchange {
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
         $transfer = $this->parse_transfer($response, $currency);
-        if ($fillResponseFromRequest === true) {
+        if ($fillResponseFromRequest) {
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
             $transfer['amount'] = $amount;
@@ -2776,7 +2790,7 @@ class bullish extends Exchange {
         );
     }
 
-    public function parse_transfer_status(?string $status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'CLOSED' => 'ok',
             'OPEN' => 'pending',
@@ -2812,7 +2826,7 @@ class bullish extends Exchange {
         list($requestUntil, $paramsUntil) = $this->handle_until_option('createdAtDatetime[lte]', $request, $params);
         $until = $this->safe_integer($requestUntil, 'createdAtDatetime[lte]');
         // current endpoint requires both since and until parameters
-        if ($startTimestamp === null) {
+        if ($since === null) {
             $startTimestamp = $now - 1000 * 60 * 60 * 24 * 90; // Only the last 90 days of data is available for querying
         }
         if ($until === null) {
@@ -2859,7 +2873,7 @@ class bullish extends Exchange {
         );
     }
 
-    public function get_timestamp() {
+    public function get_timestamp(): float {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
@@ -2922,7 +2936,7 @@ class bullish extends Exchange {
         return $this->parse_open_interest($response, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //     {
         //         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
@@ -2974,17 +2988,18 @@ class bullish extends Exchange {
         ), $market);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $requestHeaders = null;
+        $requestBody = null;
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . $endpoint;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->microseconds();
             $timestamp = (string) $this->get_timestamp();

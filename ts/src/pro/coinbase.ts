@@ -276,7 +276,8 @@ export default class coinbase extends coinbaseRest {
             const currentToken = this.safeString (this.options, 'wsToken');
             const tokenTimestamp = this.safeInteger (this.options, 'wsTokenTimestamp', 0);
             const seconds = this.seconds ();
-            if (currentToken === undefined || tokenTimestamp + 120 < seconds) {
+            const tokenExpiry = tokenTimestamp + 120;
+            if (currentToken === undefined || tokenExpiry < seconds) {
                 // we should generate new token
                 const token = this.createAuthToken (seconds);
                 this.options['wsToken'] = token;
@@ -719,7 +720,7 @@ export default class coinbase extends coinbaseRest {
         return orderbook.limit ();
     }
 
-    handleTrade (client: any, message: Dict) {
+    handleTrade (client: Client, message: Dict) {
         //
         //    {
         //        "channel": "market_trades",
@@ -776,7 +777,7 @@ export default class coinbase extends coinbaseRest {
         this.tryResolveUsdc (client, messageHash, tradesArray);
     }
 
-    handleOrder (client: any, message: Dict) {
+    handleOrder (client: Client, message: Dict) {
         //
         //    {
         //        "channel": "user",
@@ -894,7 +895,7 @@ export default class coinbase extends coinbaseRest {
         });
     }
 
-    handleOrderBookHelper (orderbook: any, updates: any) {
+    handleOrderBookHelper (orderbook: any, updates: any[]) {
         for (let i = 0; i < updates.length; i++) {
             const trade = this.safeDict (updates, i);
             const sideId = this.safeString (trade, 'side');
@@ -906,7 +907,7 @@ export default class coinbase extends coinbaseRest {
         }
     }
 
-    handleOrderBook (client: any, message: Dict) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //    {
         //        "channel": "l2_data",
@@ -952,13 +953,18 @@ export default class coinbase extends coinbaseRest {
             const limit = this.safeInteger (subscription, 'limit');
             const type = this.safeString (event, 'type');
             if (type === 'snapshot') {
-                this.orderbooks[symbol] = this.orderBook ({}, limit);
-            }
-            // unknown bug, can't reproduce, but sometimes orderbook is undefined
-            if (!(symbol in this.orderbooks) && this.orderbooks[symbol] === undefined) {
+                if (!(symbol in this.orderbooks)) {
+                    this.orderbooks[symbol] = this.orderBook ({}, limit);
+                }
+            } else if (!(symbol in this.orderbooks)) {
+                // an update can arrive after unWatchOrderBook deleted the orderbook (or before any snapshot)
                 continue;
             }
             const orderbook = this.orderbooks[symbol];
+            if (type === 'snapshot') {
+                // reset in place so consumers holding a reference keep receiving updates after a resync
+                orderbook.reset ({});
+            }
             this.handleOrderBookHelper (orderbook, updates);
             orderbook['timestamp'] = this.parse8601 (datetime);
             orderbook['datetime'] = datetime;

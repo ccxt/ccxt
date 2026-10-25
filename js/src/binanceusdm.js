@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import binance from './binance.js';
+import binance from './abstract/binanceusdm.js';
 import { InvalidOrder } from './base/errors.js';
 //  ---------------------------------------------------------------------------
 export default class binanceusdm extends binance {

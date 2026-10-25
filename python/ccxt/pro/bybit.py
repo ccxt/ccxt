@@ -211,7 +211,7 @@ class bybit(ccxt.async_support.bybit):
             unified = await self.isUnifiedEnabled()
             isUnifiedMargin = self.safe_bool(unified, 0, False)
             isUnifiedAccount = self.safe_bool(unified, 1, False)
-            if isUsdcSettled and (isUnifiedMargin is not True) and (isUnifiedAccount is not True):
+            if isUsdcSettled and (not isUnifiedMargin) and (not isUnifiedAccount):
                 url = url[accessibility]['usdc']
             else:
                 url = url[accessibility]['contract']
@@ -784,7 +784,7 @@ class bybit(ccxt.async_support.bybit):
         #         "type": "snapshot"
         #     }
         #
-        data = self.safe_value(message, 'data', {})
+        data = self.safe_list(message, 'data', [])
         topic = self.safe_string(message, 'topic', '')
         topicParts = topic.split('.')
         topicLength = len(topicParts)
@@ -913,11 +913,13 @@ class bybit(ccxt.async_support.bybit):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, False)
         channel = 'orderbook.'
-        limit = self.safe_integer(params, 'limit')
-        paramsOmitted = self.omit(params, 'limit') if (limit is not None) else params
-        if limit is None:
+        limitParam = self.safe_integer(params, 'limit')
+        paramsOmitted = self.omit(params, 'limit') if (limitParam is not None) else params
+        defaultLimit = 500
+        if limitParam is None:
             firstMarket = self.market(symbolsNormalized[0])
-            limit = 50 if (firstMarket['spot'] is True) else 500
+            defaultLimit = 50 if (firstMarket['spot'] is True) else 500
+        limit = defaultLimit if (limitParam is None) else limitParam
         channel += str(limit)
         subMessageHashes = []
         messageHashes = []
@@ -981,7 +983,7 @@ class bybit(ccxt.async_support.bybit):
         #     }
         #
         topic = self.safe_string(message, 'topic', '')
-        limit = topic.split('.')[1]
+        limit = self.safe_string(topic.split('.'), 1)
         isSpot = client.url.find('spot') >= 0
         type = self.safe_string(message, 'type')
         isSnapshot = (type == 'snapshot')
@@ -1021,7 +1023,7 @@ class bybit(ccxt.async_support.bybit):
         bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         bookside.storeArray(bidAsk)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -1135,7 +1137,7 @@ class bybit(ccxt.async_support.bybit):
         #         ]
         #     }
         #
-        data = self.safe_value(message, 'data', {})
+        data = self.safe_list(message, 'data', [])
         topic = self.safe_string(message, 'topic', '')
         trades = data
         parts = topic.split('.')
@@ -1954,19 +1956,19 @@ class bybit(ccxt.async_support.bybit):
             'spot': 'outboundAccountInfo',
             'unified': 'wallet',
         }
-        if isUnifiedAccount is True:
+        if isUnifiedAccount:
             # unified account
             if subType == 'inverse':
                 messageHash += ':contract'
             else:
                 messageHash += ':unified'
-        if (isUnifiedMargin is not True) and (isUnifiedAccount is not True):
+        if (not isUnifiedMargin) and (not isUnifiedAccount):
             # normal account using v5
             if type == 'spot':
                 messageHash += ':spot'
             else:
                 messageHash += ':contract'
-        if isUnifiedMargin is True:
+        if isUnifiedMargin:
             # unified margin account using v5
             if type == 'spot':
                 messageHash += ':spot'
@@ -2351,7 +2353,7 @@ class bybit(ccxt.async_support.bybit):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], msg, feedback)
                 raise ExchangeError(feedback)
             success = self.safe_bool(message, 'success')
-            if (success is not None) and (success is not True):
+            if (success is not None) and (not success):
                 ret_msg = self.safe_string(message, 'ret_msg')
                 request = self.safe_dict(message, 'request', {})
                 op = self.safe_string(request, 'op')

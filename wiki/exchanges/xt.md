@@ -737,17 +737,16 @@ make a withdrawal
 
 **See**: https://doc.xt.com/docs/spot/Deposit&Withdrawal/Withdraw  
 
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| amount | <code>float</code> | Yes | the amount to withdraw |
-| address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | No |  |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
+| Param | Type | Description |
+| --- | --- | --- |
+| code | <code>string</code> | unified currency code |
+| amount | <code>float</code> | the amount to withdraw |
+| address | <code>string</code> | the address to withdraw to |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-xt.withdraw (code, amount, address, tag?, params)
+xt.withdraw (code, amount, address, params)
 ```
 
 
@@ -900,6 +899,7 @@ fetch the current funding rate interval
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript

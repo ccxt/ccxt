@@ -206,21 +206,22 @@ class revolutx extends Exchange {
         ));
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $requestHeaders = null;
         $requestBody = null;
         $implodedPath = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $queryKeys = is_array($query) ? array_keys($query) : array();
         $queryLength = count($queryKeys);
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiName = $api[0];
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $baseUrl = $baseApiUrl;
         $url = $baseUrl . '/' . $implodedPath;
         $queryString = '';
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
             if ($method === 'GET') {
@@ -237,7 +238,7 @@ class revolutx extends Exchange {
                 $requestBody = $this->json($query);
             }
             $requestPath = '/api/' . $implodedPath;
-            $bodyValue = ($requestBody !== null) ? $requestBody : $body;
+            $bodyValue = $requestBody;
             $bodyString = ($bodyValue !== null) ? $bodyValue : '';
             $message = $timestamp . strtoupper($method) . $requestPath . $queryString . $bodyString;
             $signature = $this->eddsa($this->encode($message), $this->privateKey, 'ed25519');
@@ -260,8 +261,8 @@ class revolutx extends Exchange {
                 $requestHeaders = array( 'Content-Type' => 'application/json' );
             }
         }
-        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
-        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        $headersResult = $requestHeaders;
+        $bodyResult = $requestBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
@@ -729,13 +730,15 @@ class revolutx extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $tradeSymbol = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($tradeSymbol, $market, '/');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'quantity');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'quantity');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $side = $this->safe_string_lower($trade, 'side');
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $cost = null;
-        if ($price !== null && $amount !== null) {
-            $cost = $price * $amount;
+        if ($priceString !== null && $amountString !== null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         return array(
             'info' => $trade,
@@ -858,7 +861,7 @@ class revolutx extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         /**
          * parses the order $status from the exchange's $status to the unified ccxt $status
          * @ignore
@@ -1200,7 +1203,7 @@ class revolutx extends Exchange {
             $market = $this->market($symbol);
             $request['symbols'] = $market['id'];
         }
-        $thirtyDays = 2592000000;
+        $thirtyDays = 30 * 24 * 60 * 60 * 1000;
         $until = $this->safe_integer_2($params, 'until', 'until');
         if ($since !== null) {
             $request['start_date'] = $since;
@@ -1211,8 +1214,8 @@ class revolutx extends Exchange {
             $request['end_date'] = $until;
         } elseif ($since !== null) {
             $now = $this->milliseconds();
-            $defaultEnd = $since . $thirtyDays;
-            $request['end_date'] = ($defaultEnd < $now) ? $defaultEnd : $now;
+            $thirtyDaysAgo = $now - $thirtyDays;
+            $request['end_date'] = ($since < $thirtyDaysAgo) ? $since . $thirtyDays : $now;
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1268,15 +1271,17 @@ class revolutx extends Exchange {
          */
         $id = $this->safe_string($trade, 'tid');
         $orderId = $this->safe_string($trade, 'oid');
-        $price = $this->safe_number($trade, 'p');
-        $amount = $this->safe_number($trade, 'q');
+        $priceString = $this->safe_string($trade, 'p');
+        $amountString = $this->safe_string($trade, 'q');
+        $price = $this->parse_number($priceString);
+        $amount = $this->parse_number($amountString);
         $side = $this->safe_string_lower($trade, 's');
         $timestamp = $this->safe_integer_2($trade, 'tdt', 'pdt');
         $isMaker = $this->safe_bool($trade, 'im', false);
         $takerOrMaker = ($isMaker) ? 'maker' : 'taker';
         $cost = null;
-        if ($price !== null && $amount !== null) {
-            $cost = $price * $amount;
+        if ($priceString !== null && $amountString !== null) {
+            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         }
         $symbol = $this->safe_symbol(null, $market);
         return array(
@@ -1321,7 +1326,7 @@ class revolutx extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $thirtyDays = 2592000000;
+        $thirtyDays = 30 * 24 * 60 * 60 * 1000;
         $until = $this->safe_integer_2($params, 'until', 'until');
         if ($since !== null) {
             $request['start_date'] = $since;
@@ -1332,8 +1337,8 @@ class revolutx extends Exchange {
             $request['end_date'] = $until;
         } elseif ($since !== null) {
             $now = $this->milliseconds();
-            $defaultEnd = $since . $thirtyDays;
-            $request['end_date'] = ($defaultEnd < $now) ? $defaultEnd : $now;
+            $thirtyDaysAgo = $now - $thirtyDays;
+            $request['end_date'] = ($since < $thirtyDaysAgo) ? $since . $thirtyDays : $now;
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1431,7 +1436,8 @@ class revolutx extends Exchange {
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if ($code >= 400) {
+        $statusCode = $this->parse_to_int($code);
+        if ($statusCode >= 400) {
             if ($response === null) {
                 return null;
             }

@@ -53,7 +53,7 @@ class apex extends apex$1["default"] {
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': false,
-                'fetchAccounts': true,
+                'fetchAccounts': false,
                 'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
@@ -113,8 +113,8 @@ class apex extends apex$1["default"] {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
-                'fetchTransfer': true,
-                'fetchTransfers': true,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
@@ -830,7 +830,7 @@ class apex extends apex$1["default"] {
             'symbol': this.safeString(market, 'id2'),
         };
         // default is 200 when requested with `since`, max 200
-        const limitResolved = (limit === undefined) ? 200 : Math.min(limit, 200);
+        const limitResolved = (limit === undefined || limit > 200) ? 200 : limit;
         request['limit'] = limitResolved;
         const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, params, 0.001);
         if (since !== undefined) {
@@ -1259,12 +1259,11 @@ class apex extends apex$1["default"] {
         return this.safeString(types, type, type);
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
-        let marketResolved = undefined;
+        let marketResolved = market;
         if (market === undefined && marketId !== undefined) {
-            const marketsMap = this.markets;
             const marketsById = this.markets_by_id;
-            if ((marketsMap !== undefined) && (marketId in marketsMap)) {
-                marketResolved = marketsMap[marketId];
+            if ((this.markets !== undefined) && (marketId in this.markets)) {
+                marketResolved = this.markets[marketId];
             }
             else if ((marketsById !== undefined) && (marketId in marketsById)) {
                 marketResolved = marketsById[marketId];
@@ -1275,15 +1274,14 @@ class apex extends apex$1["default"] {
                     const markets = marketsById[newMarketId];
                     const numMarkets = markets.length;
                     if (numMarkets > 0) {
-                        if (marketsById[newMarketId][0]['id2'] === marketId) {
-                            marketResolved = marketsById[newMarketId][0];
+                        if (markets[0]['id2'] === marketId) {
+                            marketResolved = markets[0];
                         }
                     }
                 }
             }
         }
-        const marketValue = (marketResolved === undefined) ? market : marketResolved;
-        return super.safeMarket(marketId, marketValue, delimiter, marketType);
+        return super.safeMarket(marketId, marketResolved, delimiter, marketType);
     }
     generateRandomClientIdOmni(_accountId) {
         const hasAccountId = (_accountId !== undefined) && (_accountId !== '');
@@ -1318,7 +1316,7 @@ class apex extends apex$1["default"] {
             const accountData = await this.fetchAccount();
             this.options['accountId'] = this.safeString(accountData, 'id', '0');
         }
-        return this.options['accountId'];
+        return this.safeString(this.options, 'accountId');
     }
     /**
      * @method
@@ -1388,12 +1386,9 @@ class apex extends apex$1["default"] {
         }
         const paramsOmitted = this.omit(params, 'timeInForce');
         const paramsOmitted2 = this.omit(paramsOmitted, 'postOnly');
-        let clientOrderId = this.safeStringN(paramsOmitted2, ['clientId', 'clientOrderId', 'client_order_id']);
+        const clientOrderId = this.safeStringN(paramsOmitted2, ['clientId', 'clientOrderId', 'client_order_id']);
         const accountId = await this.getAccountId();
-        if (clientOrderId === undefined) {
-            clientOrderId = this.generateRandomClientIdOmni(accountId);
-        }
-        const finalClientOrderId = clientOrderId; // java req
+        const finalClientOrderId = (clientOrderId !== undefined) ? clientOrderId : this.generateRandomClientIdOmni(accountId);
         const paramsOmitted3 = this.omit(paramsOmitted2, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice']);
         const finalOrderPrice = orderPrice; // java req
         const orderToSign = {
@@ -1418,7 +1413,7 @@ class apex extends apex$1["default"] {
             'size': orderSize,
             'price': finalOrderPrice,
             'limitFee': limitFee,
-            'expiration': Math.floor(timeNow / 1000 + 30 * 24 * 60 * 60),
+            'expiration': this.parseToInt(timeNow / 1000) + 30 * 24 * 60 * 60,
             'timeInForce': timeInForce,
             'clientId': finalClientOrderId,
             'brokerId': this.safeString(this.options, 'brokerId', '6956'),
@@ -1473,7 +1468,8 @@ class apex extends apex$1["default"] {
         const accountId = this.safeString(accountData, 'id', '');
         let currency = {};
         let assets = [];
-        if (fromAccount.toLowerCase() === 'contract') {
+        const isContract = fromAccount.toLowerCase() === 'contract';
+        if (isContract) {
             assets = contractAssets;
         }
         else {
@@ -1488,15 +1484,14 @@ class apex extends apex$1["default"] {
         const decimalsNum = this.safeNumber(currency, 'decimals', 0);
         const decimalsNumber = (decimalsNum === undefined) ? 0 : decimalsNum;
         const mathPowResult = (Math.pow(10, decimalsNumber));
-        const amountNumber = this.parseToInt(amount * mathPowResult);
+        const amountNum = this.parseNumber(amount);
+        const amountValue = (amountNum === undefined) ? 0 : amountNum;
+        const amountNumber = this.parseToInt(amountValue * mathPowResult);
         const timestampSeconds = this.parseToInt(this.milliseconds() / 1000);
-        let clientOrderId = this.safeStringN(params, ['clientId', 'clientOrderId', 'client_order_id']);
-        if (clientOrderId === undefined) {
-            clientOrderId = this.generateRandomClientIdOmni(this.safeString(this.options, 'accountId'));
-        }
-        const finalClientOrderId = clientOrderId; // java req
+        const clientOrderId = this.safeStringN(params, ['clientId', 'clientOrderId', 'client_order_id']);
+        const finalClientOrderId = (clientOrderId !== undefined) ? clientOrderId : this.generateRandomClientIdOmni(this.safeString(this.options, 'accountId'));
         const paramsOmitted = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id']);
-        if (fromAccount.toLowerCase() === 'contract') {
+        if (isContract) {
             const formattedUint32 = '4294967295';
             const zkSignAccountId = Precise["default"].stringMod(accountId, formattedUint32);
             const expireTime = timestampSeconds + 3600 * 24 * 28;
@@ -1973,8 +1968,9 @@ class apex extends apex$1["default"] {
             'percentage': undefined,
         });
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -1985,7 +1981,7 @@ class apex extends apex$1["default"] {
             'Content-Type': 'application/x-www-form-urlencoded',
         };
         let signPath = '/api/' + path;
-        let signBody = body;
+        let signBody = undefined;
         if (method.toUpperCase() !== 'POST') {
             if (Object.keys(params).length > 0) {
                 signPath += '?' + this.rawencode(params);
@@ -1996,7 +1992,7 @@ class apex extends apex$1["default"] {
             const sortedQuery = this.keysort(params);
             signBody = this.rawencode(sortedQuery);
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
             let messageString = timestamp + method.toUpperCase() + signPath;

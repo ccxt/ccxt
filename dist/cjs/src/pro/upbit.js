@@ -6,6 +6,7 @@ var sha2_js = require('@noble/hashes/sha2.js');
 var upbit$1 = require('../upbit.js');
 var Cache = require('../base/ws/Cache.js');
 var rsa = require('../base/functions/rsa.js');
+var Precise = require('../base/Precise.js');
 var errors = require('../base/errors.js');
 
 // ----------------------------------------------------------------------------
@@ -252,7 +253,7 @@ class upbit extends upbit$1["default"] {
         const type = this.safeString(message, 'stream_type');
         const options = this.safeDict(this.options, 'watchOrderBook', {});
         const limit = this.safeInteger(options, 'limit', 15);
-        if (type === 'SNAPSHOT') {
+        if ((type === 'SNAPSHOT') && !(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook({}, limit);
         }
         const orderbook = this.orderbooks[symbol];
@@ -260,24 +261,25 @@ class upbit extends upbit$1["default"] {
         // the "REALTIME" deltas are not incremental
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
-        orderbook.reset({});
-        orderbook['symbol'] = symbol;
-        const bids = orderbook['bids'];
-        const asks = orderbook['asks'];
         const data = this.safeList(message, 'orderbook_units', []);
+        const timestamp = this.safeInteger(message, 'timestamp');
+        const bidsSnapshot = [];
+        const asksSnapshot = [];
         for (let i = 0; i < data.length; i++) {
             const entry = this.safeDict(data, i);
-            const ask_price = this.safeFloat(entry, 'ask_price');
-            const ask_size = this.safeFloat(entry, 'ask_size');
-            const bid_price = this.safeFloat(entry, 'bid_price');
-            const bid_size = this.safeFloat(entry, 'bid_size');
-            asks.store(ask_price, ask_size);
-            bids.store(bid_price, bid_size);
+            const bidPrice = this.safeNumber(entry, 'bid_price');
+            const bidSize = this.safeNumber(entry, 'bid_size');
+            const askPrice = this.safeNumber(entry, 'ask_price');
+            const askSize = this.safeNumber(entry, 'ask_size');
+            if ((bidPrice !== undefined) && (bidSize !== undefined)) {
+                bidsSnapshot.push([bidPrice, bidSize]);
+            }
+            if ((askPrice !== undefined) && (askSize !== undefined)) {
+                asksSnapshot.push([askPrice, askSize]);
+            }
         }
-        const timestamp = this.safeInteger(message, 'timestamp');
-        const datetime = this.iso8601(timestamp);
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = datetime;
+        const snapshot = this.parseOrderBook({ 'bids': bidsSnapshot, 'asks': asksSnapshot }, symbol, timestamp);
+        orderbook.reset(snapshot);
         const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
     }
@@ -332,7 +334,7 @@ class upbit extends upbit$1["default"] {
         const ohlcv = this.parseOHLCV(message);
         client.resolve(ohlcv, messageHash);
     }
-    async authenticate(params = {}) {
+    authenticate(params = {}) {
         this.checkRequiredCredentials();
         const wsOptions = this.safeDict(this.options, 'ws', {});
         const authenticated = this.safeString(wsOptions, 'token');
@@ -350,12 +352,9 @@ class upbit extends upbit$1["default"] {
             };
             this.options['ws'] = wsOptions;
         }
-        const url = this.safeString(this.urls['api'], 'ws') + '/private';
-        const client = this.client(url);
-        return client;
     }
     async watchPrivate(symbol, channel, messageHash, params = {}) {
-        await this.authenticate();
+        this.authenticate();
         const request = {
             'type': channel,
         };
@@ -478,17 +477,26 @@ class upbit extends upbit$1["default"] {
         //     "ask_bid": "BID",
         //     "order_type": "limit",
         //     "state": "trade",
-        //     "price": 0.001453,
+        //     "trade_uuid": "68315169-fba4-4175-ade3-aff14a616657",
+        //     "price": 0.001453,                 // order price, or the fill price when state is trade
         //     "avg_price": 0.00145372,
-        //     "volume": 30925891.29839369,
+        //     "volume": 30925891.29839369,       // order volume, or the fill volume when state is trade
         //     "remaining_volume": 29968038.09235948,
         //     "executed_volume": 30925891.29839369,
         //     "trades_count": 1,
         //     "reserved_fee": 44.23943970238218,
         //     "remaining_fee": 21.77177967409916,
-        //     "paid_fee": 22.467660028283017,
+        //     "paid_fee": 22.467660028283017,    // cumulative
         //     "locked": 43565.33112787242,
         //     "executed_funds": 44935.32005656603,
+        //     "time_in_force": null,
+        //     "trade_fee": 22.467660028283017,   // fee of the fill, null unless state is trade
+        //     "is_maker": true,                  // null unless state is trade
+        //     "identifier": "test-1",
+        //     "smp_type": "cancel_maker",
+        //     "prevented_volume": 1.174291929,
+        //     "prevented_locked": 0.001706246173,
+        //     "trade_timestamp": 1710751590421,
         //     "order_timestamp": 1710751590000,
         //     "timestamp": 1710751597500,
         //     "stream_type": "REALTIME"
@@ -499,11 +507,12 @@ class upbit extends upbit$1["default"] {
         if (side === 'bid') {
             side = 'buy';
         }
-        else {
+        else if (side === 'ask') {
             side = 'sell';
         }
-        const timestamp = this.parse8601(this.safeString(order, 'order_timestamp'));
-        const status = this.parseWsOrderStatus(this.safeString(order, 'state'));
+        const timestamp = this.safeInteger(order, 'order_timestamp');
+        const rawStatus = this.safeString(order, 'state');
+        const status = this.parseWsOrderStatus(rawStatus);
         const marketId = this.safeString(order, 'code');
         const marketResolved = this.safeMarket(marketId, market);
         let fee = undefined;
@@ -514,24 +523,30 @@ class upbit extends upbit$1["default"] {
                 'cost': feeCost,
             };
         }
+        // when state is trade the price and volume fields describe the fill, not the order:
+        // fall back to the average fill price and let the order volume derive from filled + remaining
+        const isTrade = (rawStatus === 'trade');
+        const price = isTrade ? this.safeString(order, 'avg_price') : this.safeString(order, 'price');
+        const amount = isTrade ? undefined : this.safeString(order, 'volume');
         return this.safeOrder({
             'info': order,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString(order, 'identifier'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastTradeTimestamp': this.safeString(order, 'trade_timestamp'),
+            'lastTradeTimestamp': this.safeInteger(order, 'trade_timestamp'),
+            'lastUpdateTimestamp': this.safeInteger(order, 'timestamp'),
             'symbol': marketResolved['symbol'],
             'type': this.safeString(order, 'order_type'),
             'timeInForce': this.safeString(order, 'time_in_force'),
             'postOnly': undefined,
             'side': side,
-            'price': this.safeString(order, 'price'),
+            'price': price,
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'cost': this.safeString(order, 'executed_funds'),
             'average': this.safeString(order, 'avg_price'),
-            'amount': this.safeString(order, 'volume'),
+            'amount': amount,
             'filled': this.safeString(order, 'executed_volume'),
             'remaining': this.safeString(order, 'remaining_volume'),
             'status': status,
@@ -545,14 +560,26 @@ class upbit extends upbit$1["default"] {
         if (side === 'bid') {
             side = 'buy';
         }
-        else {
+        else if (side === 'ask') {
             side = 'sell';
         }
-        const timestamp = this.parse8601(this.safeString(trade, 'trade_timestamp'));
+        const timestamp = this.safeInteger(trade, 'trade_timestamp');
         const marketId = this.safeString(trade, 'code');
         const marketResolved = this.safeMarket(marketId, market);
+        // price and volume describe the fill when state is trade
+        const price = this.safeString(trade, 'price');
+        const amount = this.safeString(trade, 'volume');
+        let cost = undefined;
+        if ((price !== undefined) && (amount !== undefined)) {
+            cost = Precise["default"].stringMul(price, amount);
+        }
+        let takerOrMaker = undefined;
+        const isMaker = this.safeBool(trade, 'is_maker');
+        if (isMaker !== undefined) {
+            takerOrMaker = isMaker ? 'maker' : 'taker';
+        }
         let fee = undefined;
-        const feeCost = this.safeString(trade, 'paid_fee');
+        const feeCost = this.safeString(trade, 'trade_fee');
         if (feeCost !== undefined) {
             fee = {
                 'currency': marketResolved['quote'],
@@ -565,11 +592,11 @@ class upbit extends upbit$1["default"] {
             'datetime': this.iso8601(timestamp),
             'symbol': marketResolved['symbol'],
             'side': side,
-            'price': this.safeString(trade, 'price'),
-            'amount': this.safeString(trade, 'volume'),
-            'cost': this.safeString(trade, 'executed_funds'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'order': this.safeString(trade, 'uuid'),
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'type': this.safeString(trade, 'order_type'),
             'fee': fee,
             'info': trade,
@@ -585,11 +612,11 @@ class upbit extends upbit$1["default"] {
     }
     handleMyTrade(client, message) {
         // see: parseWsOrder
-        let myTrades = this.myTrades;
-        if (myTrades === undefined) {
+        if (this.myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
-            myTrades = new Cache.ArrayCacheBySymbolById(limit);
+            this.myTrades = new Cache.ArrayCacheBySymbolById(limit);
         }
+        const myTrades = this.myTrades;
         const trade = this.parseWsTrade(message);
         myTrades.append(trade);
         let messageHash = 'myTrades';
@@ -609,17 +636,40 @@ class upbit extends upbit$1["default"] {
         const orders = (symbol === undefined) ? {} : this.safeDict(cachedOrders.hashmap, symbol, {});
         const order = (orderId === undefined) ? undefined : this.safeDict(orders, orderId);
         if (order !== undefined) {
-            const fee = this.safeValue(order, 'fee');
-            if (fee !== undefined) {
-                parsed['fee'] = fee;
-            }
-            const fees = this.safeList(order, 'fees');
-            if (fees !== undefined) {
-                parsed['fees'] = fees;
+            // paid_fee is cumulative, so the cached fee is only a fallback
+            const parsedFee = this.safeDict(parsed, 'fee');
+            if (parsedFee === undefined) {
+                const fee = this.safeValue(order, 'fee');
+                if (fee !== undefined) {
+                    parsed['fee'] = fee;
+                }
+                const fees = this.safeList(order, 'fees');
+                if (fees !== undefined) {
+                    parsed['fees'] = fees;
+                }
             }
             parsed['trades'] = this.safeValue(order, 'trades');
-            parsed['timestamp'] = this.safeInteger(order, 'timestamp');
-            parsed['datetime'] = this.safeString(order, 'datetime');
+            const lastTradeTimestamp = this.safeInteger(parsed, 'lastTradeTimestamp');
+            if (lastTradeTimestamp === undefined) {
+                parsed['lastTradeTimestamp'] = this.safeInteger(order, 'lastTradeTimestamp');
+            }
+            const timestamp = this.safeInteger(parsed, 'timestamp');
+            if (timestamp === undefined) {
+                parsed['timestamp'] = this.safeInteger(order, 'timestamp');
+                parsed['datetime'] = this.safeString(order, 'datetime');
+            }
+            // fill updates carry the fill price and volume instead of the order's
+            const rawStatus = this.safeString(message, 'state');
+            if (rawStatus === 'trade') {
+                const cachedPrice = this.safeNumber(order, 'price');
+                if (cachedPrice !== undefined) {
+                    parsed['price'] = cachedPrice;
+                }
+                const cachedAmount = this.safeNumber(order, 'amount');
+                if (cachedAmount !== undefined) {
+                    parsed['amount'] = cachedAmount;
+                }
+            }
         }
         cachedOrders.append(parsed);
         let messageHash = 'myOrder';

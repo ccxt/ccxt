@@ -757,7 +757,7 @@ class bitstamp(Exchange, ImplicitAPI):
             })
         return result
 
-    def construct_currency_object(self, id: object, code: object, name: object, precision: object, minCost: object, originalPayload: object):
+    def construct_currency_object(self, id: Str, code: Str, name: Str, precision: Int, minCost: Num, originalPayload: dict) -> dict:
         currencyType = 'crypto'
         description = self.describe()
         if self.is_fiat(code):
@@ -802,7 +802,7 @@ class bitstamp(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(options, 'timestamp')
         expires = self.safe_integer(options, 'expires', 1000)
         now = self.milliseconds()
-        if (timestamp is None) or ((now - timestamp) > expires):
+        if (timestamp is None) or ((expires is not None) and ((now - timestamp) > expires)):
             response = self.publicGetMarkets(params)
             #
             #    [
@@ -825,7 +825,9 @@ class bitstamp(Exchange, ImplicitAPI):
                 'response': response,
                 'timestamp': now,
             })
-        return self.safe_value(self.options['fetchMarkets'], 'response')
+        cache = self.safe_dict(self.options, 'fetchMarkets', {})
+        markets = self.safe_list(cache, 'response', [])
+        return markets
 
     def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
@@ -1036,7 +1038,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    def get_currency_id_from_transaction(self, transaction: dict):
+    def get_currency_id_from_transaction(self, transaction: dict) -> Str:
         #
         #     {
         #         "fee": "0.00000000",
@@ -1184,8 +1186,8 @@ class bitstamp(Exchange, ImplicitAPI):
                 timestamp = self.parse8601(datetimeString)
             else:
                 # string unix epoch in seconds
-                timestamp = int(datetimeString)
-                timestamp = timestamp * 1000
+                seconds = self.parse_to_int(datetimeString)
+                timestamp = seconds * 1000
         # if it is a private trade
         if 'id' in trade:
             if amountString is not None:
@@ -1312,34 +1314,36 @@ class bitstamp(Exchange, ImplicitAPI):
         until = self.safe_integer(params, 'until')
         untilIsDefined = (until is not None)
         limitResolved = 1000 if (limit is None) else limit
-        if limit is None:
-            if since is None:
-                request['limit'] = limitResolved
-                if untilIsDefined:
-                    end = self.parse_to_int(until / 1000)
-                    request['start'] = end - (duration * limitResolved) - 1
-                    request['end'] = end
-            else:
-                start = self.parse_to_int(since / 1000)
-                request['start'] = start
-                if untilIsDefined:
-                    request['end'] = self.parse_to_int(until / 1000)
-                else:
-                    request['end'] = self.sum(start, duration * limitResolved - 1)
-                request['limit'] = limitResolved
-        else:
+        if limit is not None:
             if since is not None:
                 start = self.parse_to_int(since / 1000)
                 request['start'] = start
-                end = self.sum(start, duration * limitResolved - 1)
                 if untilIsDefined:
-                    end = min(end, self.parse_to_int(until / 1000))
-                request['end'] = end
+                    # Math.min (start + duration * limit - 1, untilSeconds) on integers
+                    untilSeconds = self.parse_to_int(until / 1000)
+                    request['end'] = untilSeconds if ((untilSeconds - start) < duration * limit - 1) else self.sum(start, duration * limit - 1)
+                else:
+                    request['end'] = self.sum(start, duration * limit - 1)
             elif untilIsDefined:
-                end = self.parse_to_int(until / 1000)
-                request['end'] = end
-                request['start'] = end - (duration * limitResolved) - 1
-            request['limit'] = min(limitResolved, 1000)  # min 1, max 1000
+                untilEnd = self.parse_to_int(until / 1000)
+                request['end'] = untilEnd
+                request['start'] = untilEnd - (duration * limit) - 1
+            request['limit'] = min(limit, 1000)  # min 1, max 1000
+        else:
+            if since is None:
+                request['limit'] = 1000
+                if untilIsDefined:
+                    untilEndDefault = self.parse_to_int(until / 1000)
+                    request['start'] = untilEndDefault - (duration * 1000) - 1
+                    request['end'] = untilEndDefault
+            else:
+                startDefault = self.parse_to_int(since / 1000)
+                request['start'] = startDefault
+                if untilIsDefined:
+                    request['end'] = self.parse_to_int(until / 1000)
+                else:
+                    request['end'] = self.sum(startDefault, duration * 1000 - 1)
+                request['limit'] = 1000
         paramsOmitted = self.omit(params, 'until')
         response = self.publicGetOhlcPair(self.extend(request, paramsOmitted))
         #
@@ -1743,7 +1747,7 @@ class bitstamp(Exchange, ImplicitAPI):
         canceled = self.safe_list(response, 'canceled')
         return self.parse_orders(canceled)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'In Queue': 'open',
             'Open': 'open',
@@ -2046,10 +2050,10 @@ class bitstamp(Exchange, ImplicitAPI):
         if 'amount' in transaction:
             amount = self.safe_string(transaction, 'amount')
         elif currency is not None:
-            amount = self.safe_string(transaction, currency['id'], amount)
+            amount = self.safe_string(transaction, currency['id'])
             feeCurrency = currency['code']
         elif (code is not None) and (currencyId is not None):
-            amount = self.safe_string(transaction, currencyId, amount)
+            amount = self.safe_string(transaction, currencyId)
             feeCurrency = code
         if amount is not None:
             # withdrawals have a negative amount
@@ -2111,7 +2115,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         #
         #   withdrawals:
         #   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
@@ -2296,14 +2300,15 @@ class bitstamp(Exchange, ImplicitAPI):
         else:
             parsedTransaction = self.parse_transaction(item, currency)
             direction = None
-            hasTransactionCurrency = not ('amount' in item) and ('currency' in parsedTransaction) and (parsedTransaction['currency'] is not None)
+            transactionCurrency = self.safe_string(parsedTransaction, 'currency')
+            hasTransactionCurrency = not ('amount' in item) and (transactionCurrency is not None)
             currencyResolved = currency
             if hasTransactionCurrency:
                 currencyResolved = self.currency(self.safe_string(parsedTransaction, 'currency'))
             if 'amount' in item:
                 amount = self.safe_string(item, 'amount')
                 direction = 'in' if Precise.string_gt(amount, '0') else 'out'
-            elif ('currency' in parsedTransaction) and parsedTransaction['currency'] is not None:
+            elif transactionCurrency is not None:
                 amount = self.safe_string(item, self.safe_string(currencyResolved, 'id'))
                 direction = 'in' if Precise.string_gt(amount, '0') else 'out'
             return self.safe_ledger_entry({
@@ -2472,7 +2477,7 @@ class bitstamp(Exchange, ImplicitAPI):
         name = self.get_currency_name(code)
         # the per-currency implicit methods (privatePostBtcAddress etc.) all route
         # through request(), called here directly to avoid dynamic dispatch
-        response = self.request(name + '_address/', 'private', 'POST', params)
+        response = self.request(name + '_address/', ['private'], 'POST', params)
         address = self.safe_string(response, 'address')
         tag = self.safe_string_2(response, 'memo_id', 'destination_tag')
         self.check_address(address)
@@ -2484,7 +2489,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2494,16 +2499,16 @@ class bitstamp(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         # For fiat withdrawals please provide all required additional parameters in the 'params'
         # Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             self.load_markets()
-        self.check_address(address)
+        self.check_address(address, code, tagWithdrawTag)
         request = {
             'amount': amount,
         }
@@ -2520,7 +2525,7 @@ class bitstamp(Exchange, ImplicitAPI):
             request['address'] = address
             # the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
             # route through request(), called here directly to avoid dynamic dispatch
-            response = self.request(name + '_withdrawal/', 'private', 'POST', self.extend(request, paramsWithdrawTag))
+            response = self.request(name + '_withdrawal/', ['private'], 'POST', self.extend(request, paramsWithdrawTag))
         else:
             currency = self.currency(code)
             request['iban'] = address
@@ -2597,26 +2602,27 @@ class bitstamp(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method: object = 'GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/'
         url += self.version + '/'
         url += self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        isPrivatePost = (api != 'public') and (method == 'POST')
+        isPrivatePost = (apiName != 'public') and (method == 'POST')
         # an empty POST triggers an API0020 error, so empty requests send a dummy object
         # https://github.com/ccxt/ccxt/issues/6846
         emptyPostBody = self.urlencode({'foo': 'bar'})
         postBody = emptyPostBody
         if len(query) > 0:
             postBody = self.urlencode(query)
-        requestBody = body
+        requestBody = None
         if isPrivatePost:
             requestBody = postBody
         privateHeaders = None
-        if api == 'public':
+        if apiName == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
@@ -2641,7 +2647,7 @@ class bitstamp(Exchange, ImplicitAPI):
             auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             privateHeaders['X-Auth-Signature'] = signature
-        requestHeaders = headers if (api == 'public') else privateHeaders
+        requestHeaders = None if (apiName == 'public') else privateHeaders
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

@@ -7,7 +7,7 @@ import Exchange from './abstract/btcbox.js';
 import { ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError, PermissionDenied, InvalidNonce, OrderNotFound, DDoSProtection } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Dict, Int, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, Endpoint, List } from './base/types.js';
+import type { Balances, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, Endpoint, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -638,7 +638,7 @@ export default class btcbox extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             // TODO: complete list
             'part': 'open', // partially or not at all executed
@@ -772,15 +772,13 @@ export default class btcbox extends Exchange {
         //      },
         // ]
         //
-        const orders = this.parseOrders (response, market, since, limit);
         // status (open/closed/canceled) is undefined
         // btcbox does not return status, but we know it's 'open' as we queried for open orders
+        const extra: Dict = {};
         if (type === 'open') {
-            for (let i = 0; i < orders.length; i++) {
-                orders[i]['status'] = 'open';
-            }
+            extra['status'] = 'open';
         }
-        return orders;
+        return this.parseOrders (response, market, since, limit, extra);
     }
 
     /**
@@ -817,17 +815,18 @@ export default class btcbox extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         const apiUrl = this.safeString (this.urls['api'], 'rest');
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + this.version + '/' + path;
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
-        } else if (api === 'webApi') {
+        } else if (apiName === 'webApi') {
             url = this.urls['www'] + '/' + path;
         } else {
             this.checkRequiredCredentials ();
@@ -845,7 +844,7 @@ export default class btcbox extends Exchange {
             };
             return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
@@ -857,7 +856,7 @@ export default class btcbox extends Exchange {
             return undefined; // resort to defaultErrorHandler
         }
         const result = this.safeBool (response, 'result');
-        if (result === undefined || result === true) {
+        if (result === undefined || result) {
             return undefined; // either public API (no error codes expected) or success
         }
         const code = this.safeString (response, 'code');
@@ -866,8 +865,8 @@ export default class btcbox extends Exchange {
         throw new ExchangeError (feedback); // unknown message
     }
 
-    override async request (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: Dict = {}) {
-        let response = await this.fetch2 (path, api, method, params, headers, body, config);
+    override async request (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, config: Dict = {}) {
+        let response = await this.fetch2 (path, api, method, params, config);
         if (typeof response === 'string') {
             // sometimes the exchange returns whitespace prepended to json
             response = this.strip (response);

@@ -159,7 +159,7 @@ public partial class BaseTest
                 cacheSymbolId5.append(new Dictionary<string, object>() {
                     { "symbol", "BTC/USDT" },
                     { "id", ((object)i).ToString() },
-                    { "i", add(i, 10) },
+                    { "i", (i + 10L) },
                 });
             }
             Assert(equals(cacheSymbolId5, new List<object>() {new Dictionary<string, object>() {
@@ -242,7 +242,7 @@ public partial class BaseTest
                 cacheSymbolId5.append(new Dictionary<string, object>() {
                     { "symbol", "BTC/USDT" },
                     { "id", ((object)i).ToString() },
-                    { "i", add(i, 10) },
+                    { "i", (i + 10L) },
                 });
             }
             Assert(equals(cacheSymbolId5, new List<object>() {new Dictionary<string, object>() {

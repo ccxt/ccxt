@@ -16,6 +16,7 @@ import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Trade;
@@ -1016,12 +1017,12 @@ public class Bullish extends BullishApi
         Double contractSize = null;
         String optionType = null;
         Object strike = null;
-        Object margin = false;
+        Boolean margin = false;
         if (java.util.Objects.equals(type, "spot"))
         {
             spot = true;
             contract = false;
-            margin = this.safeBool(market, "marginTradingEnabled", (Object) null);
+            margin = (Boolean) this.safeBool(market, "marginTradingEnabled", (Object) null);
         } else
         {
             contractSize = this.safeNumber(market, "contractMultiplier", (Object) null);
@@ -1068,8 +1069,8 @@ public class Bullish extends BullishApi
         mapLiteral1.put("contract", contract);
         mapLiteral1.put("linear", linear);
         mapLiteral1.put("inverse", inverse);
-        mapLiteral1.put("taker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker"));
-        mapLiteral1.put("maker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker"));
+        mapLiteral1.put("taker", Helpers.GetValue((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker"));
+        mapLiteral1.put("maker", Helpers.GetValue((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker"));
         mapLiteral1.put("contractSize", contractSize);
         mapLiteral1.put("expiry", this.parse8601(expiryDatetime));
         mapLiteral1.put("expiryDatetime", expiryDatetime);
@@ -1190,13 +1191,13 @@ public class Bullish extends BullishApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Long maxLimit = 100L;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                Object paramsPagination = this.handlePaginationParams("fetchTrades", since, paramsPaginate);
-                return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, Helpers.toMapArg(paramsPagination), maxLimit, true)).join();
+                Map<String, Object> paramsPagination = (Map<String, Object>) this.handlePaginationParams("fetchTrades", since, paramsPaginate);
+                return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, paramsPagination, maxLimit, true)).join();
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1266,13 +1267,13 @@ public class Bullish extends BullishApi
                 response = (this.privateGetV1TradesClientOrderIdClientOrderId(this.extend(request, parameters))).join();
             } else
             {
-                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+                Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
                 Boolean paginate = paginateparamsPaginateVariable.first();
                 Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
                 if (Boolean.TRUE.equals(paginate))
                 {
-                    Object paramsPagination = this.handlePaginationParams("fetchMyTrades", since, paramsPaginate);
-                    return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, Helpers.toMapArg(paramsPagination), 100L, true)).join();
+                    Map<String, Object> paramsPagination = (Map<String, Object>) this.handlePaginationParams("fetchMyTrades", since, paramsPaginate);
+                    return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPagination, 100L, true)).join();
                 }
                 Object paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate, "createdAtDatetime[gte]", "createdAtDatetime[lte]");
                 if (!java.util.Objects.equals(limit, null))
@@ -1406,10 +1407,12 @@ public class Bullish extends BullishApi
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "currency", code,
-                "cost", feeCost
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("currency", code);
+                hx4NewMap0.put("cost", feeCost);
+                fee = hx4NewMap0;
+            }
         }
         String takerOrMaker = null;
         if (java.util.Objects.equals(isTaker, true))
@@ -1583,11 +1586,11 @@ public class Bullish extends BullishApi
             {
                 throw new NotSupported((((this.id + " safeDeterministicCall() does not support the ") + method) + " method")) ;
             }
-            Object errors = 0;
+            long errors = 0;
             Map<String, Object> paramsOmitted = this.omit(paramsMaxRetries, "until");
             // the exchange returns the most recent data, so we do not need to pass until into paginated calls
             // the correct util value will be calculated inside of the method
-            while (Helpers.isLessThanOrEqual(errors, maxRetries))
+            while (((maxRetries != null && errors <= maxRetries)))
             {
                 try
                 {
@@ -1607,8 +1610,8 @@ public class Bullish extends BullishApi
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
-                    errors = Helpers.add(errors, 1);
-                    if (Helpers.isGreaterThan(errors, maxRetries))
+                    errors = (errors + 1L);
+                    if (((maxRetries == null || errors > maxRetries)))
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
@@ -1644,7 +1647,7 @@ public class Bullish extends BullishApi
             }
             Map<String, Object> market = this.market(symbol);
             Long maxLimit = 100L;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -1656,22 +1659,28 @@ public class Bullish extends BullishApi
                 put( "timeBucket", Bullish.this.safeString(Bullish.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
                 put( "_pageSize", maxLimit );
             }};
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
-            Object until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
+            Long untilParam = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
+            Object until = null;
+            if (!java.util.Objects.equals(untilParam, null))
+            {
+                until = untilParam;
+            }
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Long maxDelta = ((1000L * ((long) duration)) * ((long) maxLimit));
+            Long maxDelta = ((((long) duration) * ((long) maxLimit)) * 1000L);
             Object startTime = since;
             // both of since and until are required
-            if (java.util.Objects.equals(startTime, null) && java.util.Objects.equals(until, null))
+            if (java.util.Objects.equals(since, null) && java.util.Objects.equals(untilParam, null))
             {
-                until = this.milliseconds();
-                startTime = Helpers.subtract(until, maxDelta);
-            } else if (java.util.Objects.equals(startTime, null))
+                Long now = this.milliseconds();
+                until = now;
+                startTime = (now - maxDelta);
+            } else if ((java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(untilParam, null)))
             {
-                startTime = Helpers.subtract(until, maxDelta);
-            } else if (java.util.Objects.equals(until, null))
+                startTime = (untilParam - maxDelta);
+            } else if (java.util.Objects.equals(untilParam, null))
             {
                 until = this.sum(startTime, maxDelta);
             }
@@ -1728,13 +1737,13 @@ public class Bullish extends BullishApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Long maxLimit = 100L;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                Object paramsPagination = this.handlePaginationParams("fetchFundingRateHistory", since, paramsPaginate);
-                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, Helpers.toMapArg(paramsPagination), maxLimit, true)).join();
+                Map<String, Object> paramsPagination = (Map<String, Object>) this.handlePaginationParams("fetchFundingRateHistory", since, paramsPaginate);
+                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPagination, maxLimit, true)).join();
             }
             Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(market.get("swap"), true))
@@ -1768,13 +1777,13 @@ public class Bullish extends BullishApi
             {
                 Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 String datetime = this.safeString(entry, "updatedAtDatetime");
-                ((List<Object>)rates).add(Helpers.newMap(
-                    "info", entry,
-                    "symbol", symbol,
-                    "fundingRate", this.safeNumber(entry, "fundingRate", (Object) null),
-                    "timestamp", this.parse8601(datetime),
-                    "datetime", datetime
-                ));
+                ((List<Object>)rates).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("info", entry);
+                    j39v1.put("symbol", symbol);
+                    j39v1.put("fundingRate", this.safeNumber(entry, "fundingRate", (Object) null));
+                    j39v1.put("timestamp", this.parse8601(datetime));
+                    j39v1.put("datetime", datetime);
+                    yield j39v1; } }));
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
@@ -1808,10 +1817,10 @@ public class Bullish extends BullishApi
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
-            if (java.util.Objects.equals(paginate, true))
+            if (Boolean.TRUE.equals(paginate))
             {
-                Object paramsPagination = this.handlePaginationParams("fetchOrders", since, parameters);
-                return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, Helpers.toMapArg(paramsPagination), 100L, true)).join();
+                Map<String, Object> paramsPagination = (Map<String, Object>) this.handlePaginationParams("fetchOrders", since, parameters);
+                return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, paramsPagination, 100L, true)).join();
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1829,7 +1838,7 @@ public class Bullish extends BullishApi
             }
             String method = "privateGetV2HistoryOrders";
             Map<String, Object> paramsMethod = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSinceAndUntil), "fetchOrders", "method", method);
+            Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSinceAndUntil), "fetchOrders", "method", method);
             method = methodparamsMethodVariable.first();
             paramsMethod = methodparamsMethodVariable.second();
             List<Object> response = new ArrayList<Object>(Arrays.asList());
@@ -1877,7 +1886,7 @@ public class Bullish extends BullishApi
 
     }
 
-    public Object handlePaginationParams(Object method, Long since, Map<String, Object> parameters)
+    public Object handlePaginationParams(String method, Long since, Map<String, Object> parameters)
     {
         Long ninetyDays = ((((90L * 24L) * 60L) * 60L) * 1000L);
         Long now = this.milliseconds();
@@ -1902,28 +1911,36 @@ public class Bullish extends BullishApi
 
     public Object handleSinceAndUntil(Long since, Map<String, Object> parameters, String sinceKey, String untilKey)
     {
-        Object until = this.safeInteger(parameters, "until");
-        Boolean sinceFromUntil = (java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(until, null));
+        Long untilParam = this.safeInteger(parameters, "until");
+        Object until = null;
+        if (!java.util.Objects.equals(untilParam, null))
+        {
+            until = untilParam;
+        }
+        Boolean sinceFromUntil = (java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(untilParam, null));
         Map<String, Object> paramsResult = parameters;
         if (Boolean.TRUE.equals(sinceFromUntil))
         {
             paramsResult = this.omit(parameters, "until");
         }
-        if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null)))
+        if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(untilParam, null)))
         {
             Long timeDelta = ((((7L * 24L) * 60L) * 60L) * 1000L); // 7 days
             Object sinceResolved = since;
-            if (java.util.Objects.equals(since, null))
+            if ((java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(untilParam, null)))
             {
-                sinceResolved = Helpers.subtract(until, timeDelta);
+                sinceResolved = (untilParam - timeDelta);
             }
-            if ((!java.util.Objects.equals(since, null)) && (java.util.Objects.equals(until, null)))
+            if ((!java.util.Objects.equals(since, null)) && (java.util.Objects.equals(untilParam, null)))
             {
-                until = this.sum(since, timeDelta);
                 Long now = this.milliseconds();
-                if (Helpers.isGreaterThan(until, now))
+                Long latestSince = (now - timeDelta);
+                if (((latestSince == null || since > latestSince)))
                 {
                     until = now;
+                } else
+                {
+                    until = this.sum(since, timeDelta);
                 }
             }
             String sinceDate = this.iso8601(sinceResolved);
@@ -1937,6 +1954,10 @@ public class Bullish extends BullishApi
     public Object getClosestLimit(Long limit)
     {
         Integer pageSize = 5;
+        if (java.util.Objects.equals(limit, null))
+        {
+            return pageSize;
+        }
         if (((limit != null && limit > 5)) && (((limit == null || limit < 26))))
         {
             pageSize = 25;
@@ -2156,7 +2177,7 @@ public class Bullish extends BullishApi
             {
                 orderType = "POST_ONLY";
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPostOnly), "createOrder", "timeInForce", "GTC");
+            Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPostOnly), "createOrder", "timeInForce", "GTC");
             String timeInForce = timeInForceparamsTimeInForceVariable.first();
             Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second(); // is mandatory
             ((Map<String, Object>)paramsTimeInForce).put("timeInForce", ((String)timeInForce).toUpperCase());
@@ -2230,7 +2251,7 @@ public class Bullish extends BullishApi
                 request.put("type", ((String)type).toUpperCase());
             }
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
-            if (java.util.Objects.equals(postOnly, true))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("type", "POST_ONLY");
             }
@@ -2242,7 +2263,7 @@ public class Bullish extends BullishApi
             {
                 request.put("price", this.priceToPrecision(symbol, price));
             }
-            Map<String, Object> paramsOmitted = (((java.util.Objects.equals(postOnly, true)))) ? this.omit(parameters, "postOnly") : parameters;
+            Map<String, Object> paramsOmitted = ((Boolean.TRUE.equals(postOnly))) ? this.omit(parameters, "postOnly") : parameters;
             Map<String, Object> response = (this.privatePostV2Command(this.extend(request, paramsOmitted))).join();
             return this.parseOrder(response, market);
         }).thenApply(Order::new);
@@ -2482,7 +2503,7 @@ public class Bullish extends BullishApi
 
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Long until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
@@ -2548,14 +2569,14 @@ public class Bullish extends BullishApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} params.timestamp the timestamp of the withdrawal request (mandatory)
      * @param {string} params.nonce the nonce of the withdrawal request (mandatory)
      * @param {string} params.network network for withdraw (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2699,11 +2720,10 @@ public class Bullish extends BullishApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            String tradingAccountId = null;
-            Map<String, Object> paramsTradingAccountId = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> tradingAccountIdparamsTradingAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "loadAccount", "tradingAccountId", (String) null);
-            tradingAccountId = tradingAccountIdparamsTradingAccountIdVariable.first();
-            paramsTradingAccountId = tradingAccountIdparamsTradingAccountIdVariable.second();
+            Pair<String, Map<String, Object>> tradingAccountIdOptionparamsTradingAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "loadAccount", "tradingAccountId", (String) null);
+            String tradingAccountIdOption = tradingAccountIdOptionparamsTradingAccountIdVariable.first();
+            Map<String, Object> paramsTradingAccountId = tradingAccountIdOptionparamsTradingAccountIdVariable.second();
+            String tradingAccountId = tradingAccountIdOption;
             if (java.util.Objects.equals(tradingAccountId, null))
             {
                 List<Object> response = (this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId)).join();
@@ -2724,7 +2744,7 @@ public class Bullish extends BullishApi
                 throw new ArgumentsRequired((this.id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")) ;
             }
             Helpers.addElementToObject(this.options, "tradingAccountId", tradingAccountId);
-            return tradingAccountId;
+            return this.safeString(this.options, "tradingAccountId");
         });
 
     }
@@ -2871,16 +2891,17 @@ public class Bullish extends BullishApi
             List<Object> safeResponse = this.toArray(response);
             Integer length = ((List<?>)safeResponse).size();
             Object data = this.safeDict(safeResponse, 0, new HashMap<String, Object>() {{}});
-            Object network = null;
-            network = ((List<Object>)this.handleNetworkCodeAndParams((Map<String, Object>) (parameters))).get(0);
-            Boolean networkDefinedByUser = !java.util.Objects.equals(network, null);
+            List<Object> networkAndParams = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
+            String networkParam = (String) ((List<Object>)networkAndParams).get(0);
+            Boolean networkDefinedByUser = !java.util.Objects.equals(networkParam, null);
+            String network = networkParam;
             if (((length != null && length > 1)) || Boolean.TRUE.equals(networkDefinedByUser))
             {
                 // some currencies have multiple networks
                 if (java.util.Objects.equals(network, null))
                 {
                     // use default network if not specified and multiple are available
-                    network = this.defaultNetworkCode(code);
+                    network = this.safeString(this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}}), code, this.safeString(this.options, "defaultNetwork"));
                 }
                 if (!java.util.Objects.equals(network, null))
                 {
@@ -2991,7 +3012,7 @@ public class Bullish extends BullishApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String symbol = this.safeString(balance, "assetSymbol");
@@ -3113,7 +3134,7 @@ public class Bullish extends BullishApi
         }});
     }
 
-    public Object parsePositionSide(String side)
+    public String parsePositionSide(String side)
     {
         Map<String, Object> sides = new HashMap<String, Object>() {{
             put( "BUY", "long" );
@@ -3143,13 +3164,13 @@ public class Bullish extends BullishApi
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets(false, new HashMap<String, Object>() {{}})), ((CompletableFuture<?>) this.handleToken(new HashMap<String, Object>() {{}})))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Long maxLimit = 100L;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                Object paramsPagination = this.handlePaginationParams("fetchTransfers", since, paramsPaginate);
-                return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, Helpers.toMapArg(paramsPagination), maxLimit, true)).join();
+                Map<String, Object> paramsPagination = (Map<String, Object>) this.handlePaginationParams("fetchTransfers", since, paramsPaginate);
+                return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, paramsPagination, maxLimit, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tradingAccountId", tradingAccountId );
@@ -3233,13 +3254,13 @@ public class Bullish extends BullishApi
             //
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            Object transfer = this.parseTransfer(response, currency);
-            if (java.util.Objects.equals(fillResponseFromRequest, true))
+            Map<String, Object> transfer = (Map<String, Object>) this.parseTransfer(response, currency);
+            if (Boolean.TRUE.equals(fillResponseFromRequest))
             {
-                ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
-                ((Map<String, Object>)transfer).put("toAccount", toAccount);
-                ((Map<String, Object>)transfer).put("amount", amount);
-                ((Map<String, Object>)transfer).put("currency", code);
+                transfer.put("fromAccount", fromAccount);
+                transfer.put("toAccount", toAccount);
+                transfer.put("amount", amount);
+                transfer.put("currency", code);
             }
             return transfer;
         }).thenApply(TransferEntry::new);
@@ -3329,12 +3350,12 @@ public class Bullish extends BullishApi
             }};
             Long now = this.milliseconds();
             Object startTimestamp = since;
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Long until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
             // current endpoint requires both since and until parameters
-            if (java.util.Objects.equals(startTimestamp, null))
+            if (java.util.Objects.equals(since, null))
             {
                 startTimestamp = (now - ((((1000L * 60L) * 60L) * 24L) * 90L)); // Only the last 90 days of data is available for querying
             }
@@ -3510,19 +3531,20 @@ public class Bullish extends BullishApi
         }}, market);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Object requestHeaders = null;
+        String requestBody = null;
         Object request = this.omit(parameters, this.extractParams(path));
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + endpoint);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String nonce = String.valueOf(this.microseconds());
@@ -3531,23 +3553,27 @@ public class Bullish extends BullishApi
             {
                 String payload = ((((timestamp + nonce) + java.util.Objects.requireNonNullElse(method, "GET")) + "/trading-api/") + path);
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
-                requestHeaders = Helpers.newMap(
-                    "BX-TIMESTAMP", timestamp,
-                    "BX-NONCE", nonce,
-                    "BX-SIGNATURE", signature
-                );
+                {
+                    HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                    hx4NewMap1.put("BX-TIMESTAMP", timestamp);
+                    hx4NewMap1.put("BX-NONCE", nonce);
+                    hx4NewMap1.put("BX-SIGNATURE", signature);
+                    requestHeaders = hx4NewMap1;
+                }
             } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
                 requestBody = this.json(parameters);
                 String payload = (((((timestamp + nonce) + java.util.Objects.requireNonNullElse(method, "GET")) + "/trading-api/") + path) + requestBody);
                 Object digest = this.hash(this.encode(payload), sha256(), "hex");
                 String signature = (String) this.hmac(this.encode(digest), this.encode(this.secret), sha256(), "hex");
-                requestHeaders = Helpers.newMap(
-                    "BX-TIMESTAMP", timestamp,
-                    "BX-NONCE", nonce,
-                    "BX-SIGNATURE", signature,
-                    "Content-Type", "application/json"
-                );
+                {
+                    HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
+                    hx4NewMap2.put("BX-TIMESTAMP", timestamp);
+                    hx4NewMap2.put("BX-NONCE", nonce);
+                    hx4NewMap2.put("BX-SIGNATURE", signature);
+                    hx4NewMap2.put("Content-Type", "application/json");
+                    requestHeaders = hx4NewMap2;
+                }
                 ((Map<String, Object>)requestHeaders).put("Content-Type", "application/json");
                 String rateLimitToken = this.safeString(request, "rateLimitToken");
                 if (!java.util.Objects.equals(rateLimitToken, null))

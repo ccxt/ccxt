@@ -8,6 +8,7 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
+import io.github.ccxt.types.Conversion;
 import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.FundingHistory;
 import io.github.ccxt.types.FundingRate;
@@ -17,6 +18,7 @@ import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Status;
 import io.github.ccxt.types.Ticker;
@@ -65,7 +67,7 @@ public class Backpack extends BackpackApi
                 put( "cancelOrders", false );
                 put( "cancelWithdraw", false );
                 put( "closePosition", false );
-                put( "createConvertTrade", false );
+                put( "createConvertTrade", true );
                 put( "createDepositAddress", false );
                 put( "createLimitBuyOrder", true );
                 put( "createLimitOrder", true );
@@ -94,7 +96,7 @@ public class Backpack extends BackpackApi
                 put( "fetchClosedOrder", false );
                 put( "fetchClosedOrders", false );
                 put( "fetchConvertCurrencies", false );
-                put( "fetchConvertQuote", false );
+                put( "fetchConvertQuote", true );
                 put( "fetchConvertTrade", false );
                 put( "fetchConvertTradeHistory", false );
                 put( "fetchCurrencies", true );
@@ -123,7 +125,7 @@ public class Backpack extends BackpackApi
                 put( "fetchOpenOrders", true );
                 put( "fetchOption", false );
                 put( "fetchOptionChain", false );
-                put( "fetchOrder", false );
+                put( "fetchOrder", "emulated" );
                 put( "fetchOrderBook", true );
                 put( "fetchOrders", true );
                 put( "fetchOrderTrades", false );
@@ -224,6 +226,15 @@ public class Backpack extends BackpackApi
                             put( "cost", 1 );
                         }} );
                         put( "api/v1/market-holidays", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/stockSessions", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/stockHolidays", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/stockIndicativeQuote", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "api/v1/securities", new HashMap<String, Object>() {{
@@ -377,9 +388,6 @@ public class Backpack extends BackpackApi
                             put( "cost", 1 );
                         }} );
                         put( "api/v1/rfq/accept", new HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "api/v1/rfq/refresh", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "api/v1/rfq/cancel", new HashMap<String, Object>() {{
@@ -564,6 +572,24 @@ public class Backpack extends BackpackApi
                     put( "wapi/v1/history/rfq", new HashMap<String, Object>() {{
                         put( "GET", "rfqHistoryQueryAll" );
                     }} );
+                    put( "api/v1/rfq", new HashMap<String, Object>() {{
+                        put( "POST", "rfqSubmit" );
+                    }} );
+                    put( "api/v1/rfqs", new HashMap<String, Object>() {{
+                        put( "GET", "rfqQuery" );
+                    }} );
+                    put( "api/v1/rfq/accept", new HashMap<String, Object>() {{
+                        put( "POST", "quoteAccept" );
+                    }} );
+                    put( "api/v1/rfq/cancel", new HashMap<String, Object>() {{
+                        put( "POST", "rfqCancel" );
+                    }} );
+                    put( "wapi/v1/history/rfq/fill", new HashMap<String, Object>() {{
+                        put( "GET", "rfqFillHistoryQueryAll" );
+                    }} );
+                    put( "wapi/v1/history/quote/fill", new HashMap<String, Object>() {{
+                        put( "GET", "quoteFillHistoryQueryAll" );
+                    }} );
                     put( "wapi/v1/history/quote", new HashMap<String, Object>() {{
                         put( "GET", "quoteHistoryQueryAll" );
                     }} );
@@ -598,7 +624,7 @@ public class Backpack extends BackpackApi
                     put( "BERA", "Berachain" );
                     put( "BTC", "Bitcoin" );
                     put( "BCH", "BitcoinCash" );
-                    put( "BSC", "Bsc" );
+                    put( "BEP20", "Bsc" );
                     put( "ADA", "Cardano" );
                     put( "DOGE", "Dogecoin" );
                     put( "ECLIPSE", "Eclipse" );
@@ -623,7 +649,7 @@ public class Backpack extends BackpackApi
                     put( "berachain", "BERA" );
                     put( "bitcoin", "BTC" );
                     put( "bitcoincash", "BCH" );
-                    put( "bsc", "BSC" );
+                    put( "bsc", "BEP20" );
                     put( "cardano", "ADA" );
                     put( "dogecoin", "DOGE" );
                     put( "eclipse", "ECLIPSE" );
@@ -686,9 +712,10 @@ public class Backpack extends BackpackApi
     /**
      * @method
      * @name backpack#fetchCurrencies
-     * @description fetches all available currencies on an exchange
+     * @description fetches available crypto and tokenized stock currencies from the assets endpoint
      * @see https://docs.backpack.exchange/#tag/Assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] return tokenized stock assets only
      * @returns {object} an associative dictionary of currencies
      */
     public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
@@ -696,7 +723,10 @@ public class Backpack extends BackpackApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> response = (this.publicGetApiV1Assets(parameters)).join();
+            List<Object> selection = (List<Object>) this.handleStockParams("fetchCurrencies", (Map<String, Object>) (parameters), (Map<String, Object>) null);
+            Boolean stock = (Boolean) this.safeBool(selection, 0, false);
+            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            List<Object> response = (this.publicGetApiV1Assets(query)).join();
             //
             //     [
             //         {
@@ -720,7 +750,16 @@ public class Backpack extends BackpackApi
             //         ...
             //     ]
             //
-            return this.parseCurrencies(response);
+            Map<String, Object> currencies = new HashMap<String, Object>() {{}};
+            for (var i = 0; i < ((List<?>)response).size(); i++)
+            {
+                Map<String, Object> currency = (Map<String, Object>) this.parseCurrency((response == null || i < 0 || i >= response.size() ? null : response.get(i)));
+                if ((!java.util.Objects.equals(stock, true)) || (java.util.Objects.equals(this.safeString(currency, "type"), "stock")))
+                {
+                    currencies.put((String)currency.get("code"), currency);
+                }
+            }
+            return currencies;
         });
 
     }
@@ -728,6 +767,8 @@ public class Backpack extends BackpackApi
     public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "symbol");
+        String symbol = this.safeString(rawCurrency, "symbol", "");
+        Boolean stock = (symbol.endsWith(((String)".US"))) || (symbol.endsWith(((String)".HK")));
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         List<Object> networks = (List<Object>) this.safeList(rawCurrency, "tokens", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> parsedNetworks = new HashMap<String, Object>() {{}};
@@ -766,7 +807,7 @@ public class Backpack extends BackpackApi
         Boolean withdraw = null;
         if (this.isEmpty(parsedNetworks))
         {
-            active = false;
+            active = ((Boolean.TRUE.equals(stock))) ? null : false;
             deposit = false;
             withdraw = false;
         }
@@ -774,7 +815,7 @@ public class Backpack extends BackpackApi
         mapLiteral2.put("id", currencyId);
         mapLiteral2.put("code", code);
         mapLiteral2.put("precision", null);
-        mapLiteral2.put("type", "crypto");
+        mapLiteral2.put("type", ((Boolean.TRUE.equals(stock))) ? "stock" : "crypto");
         mapLiteral2.put("name", this.safeString(rawCurrency, "displayName"));
         mapLiteral2.put("active", active);
         mapLiteral2.put("deposit", deposit);
@@ -798,9 +839,12 @@ public class Backpack extends BackpackApi
     /**
      * @method
      * @name backpack#fetchMarkets
-     * @description retrieves data on all markets for bitbank
+     * @description retrieves venue markets and tokenized stock RFQ markets discovered from securities
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_markets
+     * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_securities
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] return tokenized stock markets only
+     * @param {string|string[]} [params.marketType] market types to discover: spot, swap or stock
      * @returns {object[]} an array of objects representing market data
      */
     public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
@@ -812,8 +856,102 @@ public class Backpack extends BackpackApi
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> response = (this.publicGetApiV1Markets(parameters)).join();
-            return this.parseMarkets(response);
+            List<Object> selection = (List<Object>) this.handleStockParams("fetchMarkets", (Map<String, Object>) (parameters), (Map<String, Object>) null);
+            Boolean stock = (Boolean) this.safeBool(selection, 0, false);
+            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            String marketType = this.safeString(query, "marketType");
+            List<String> defaultTypes = (((java.util.Objects.equals(marketType, null)))) ? new ArrayList<String>(Arrays.asList("SPOT", "PERP", "RFQ")) : new ArrayList<String>(Arrays.asList(marketType));
+            Object requestedTypes = this.safeList(query, "marketType", defaultTypes);
+            Map<String, Object> aliases = new HashMap<String, Object>() {{
+                put( "spot", "SPOT" );
+                put( "swap", "PERP" );
+                put( "stock", "RFQ" );
+            }};
+            List<String> supportedTypes = new ArrayList<String>(Arrays.asList("SPOT", "PERP", "RFQ"));
+            List<String> marketTypes = new ArrayList<String>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)requestedTypes).size(); i++)
+            {
+                Object requestedType = (requestedTypes == null || i < 0 || i >= ((List<?>)requestedTypes).size() ? null : ((List<?>)requestedTypes).get(i));
+                String normalizedType = this.safeString(aliases, requestedType, requestedType);
+                if (!this.inArray(normalizedType, supportedTypes))
+                {
+                    throw new BadRequest(((this.id + " fetchMarkets() unsupported marketType ") + requestedType)) ;
+                }
+                if (!this.inArray(normalizedType, marketTypes))
+                {
+                    marketTypes.add(normalizedType);
+                }
+            }
+            boolean includeRfq = this.inArray("RFQ", marketTypes);
+            Map<String, Object> marketQuery = this.omit(query, "marketType");
+            if (query.containsKey("marketType"))
+            {
+                marketQuery.put("marketType", marketTypes);
+            }
+            List<Object> response = (this.publicGetApiV1Markets(marketQuery)).join();
+            Object securities = new ArrayList<Object>(Arrays.asList());
+            if (includeRfq)
+            {
+                securities = (this.fetchSecurities(new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String,Object> securityById = this.indexBy(securities, "asset");
+            List<Object> markets = new ArrayList<Object>(Arrays.asList());
+            Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
+            for (var i = 0; i < ((List<?>)response).size(); i++)
+            {
+                Object rawMarket = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
+                String rawType = this.safeString(rawMarket, "marketType", "");
+                if (!this.inArray(rawType, marketTypes))
+                {
+                    continue;
+                }
+                String baseId = this.safeString(rawMarket, "baseSymbol");
+                Map<String, Object> security = (Map<String, Object>) this.safeDict(securityById, baseId, (Object) null);
+                MarketInterface market = this.parseMarket((((java.util.Objects.equals(security, null)))) ? rawMarket : this.extend(rawMarket, (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>(); j39v1.put("security", security); yield j39v1; } })));
+                if (!java.util.Objects.equals(market, null))
+                {
+                    String marketId = this.safeString(market, "id");
+                    if ((java.util.Objects.equals(marketId, null)) || (marketIds.containsKey(marketId)))
+                    {
+                        continue;
+                    }
+                    marketIds.put(marketId, true);
+                    if ((!java.util.Objects.equals(stock, true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("stock"), true)))
+                    {
+                        ((List<Object>)markets).add(market);
+                    }
+                }
+            }
+            if (includeRfq)
+            {
+                for (var i = 0; i < ((List<?>)securities).size(); i++)
+                {
+                    Object security = (securities == null || i < 0 || i >= ((List<?>)securities).size() ? null : ((List<?>)securities).get(i));
+                    String assetId = this.safeString(security, "asset");
+                    if (java.util.Objects.equals(assetId, null))
+                    {
+                        continue;
+                    }
+                    String marketId = (assetId + "_USDC_RFQ");
+                    if (!(marketIds.containsKey(marketId)))
+                    {
+                        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                        mapLiteral3.put("symbol", marketId);
+                        mapLiteral3.put("baseSymbol", assetId);
+                        mapLiteral3.put("quoteSymbol", "USDC");
+                        mapLiteral3.put("marketType", "RFQ");
+                        mapLiteral3.put("rwaMarketType", "STOCK");
+                        mapLiteral3.put("security", security);
+                        MarketInterface market = this.parseMarket(mapLiteral3);
+                        if (!java.util.Objects.equals(market, null))
+                        {
+                            marketIds.put(marketId, true);
+                            ((List<Object>)markets).add(market);
+                        }
+                    }
+                }
+            }
+            return markets;
         });
 
     }
@@ -908,6 +1046,38 @@ public class Backpack extends BackpackApi
         //         }
         //     ]
         //
+        // fetchMarkets stock
+        //
+        //     [
+        //         {
+        //             {
+        //                 "asset": "QNDX.US",
+        //                 "cusip": null,
+        //                 "name": "State Street SPDR Portfolio Nasdaq 100 ETF",
+        //                 "sessions": [
+        //                     {
+        //                         "maxQuantity": "1000",
+        //                         "minQuantity": "1",
+        //                         "name": "US_EQUITIES_PRE_MARKET",
+        //                         "stepSize": "1"
+        //                     },
+        //                     {
+        //                         "maxQuantity": "10000",
+        //                         "minQuantity": "0.01",
+        //                         "name": "US_EQUITIES_REGULAR",
+        //                         "stepSize": "0.01"
+        //                     },
+        //                     {
+        //                         "maxQuantity": "1000",
+        //                         "minQuantity": "1",
+        //                         "name": "US_EQUITIES_POST_MARKET",
+        //                         "stepSize": "1"
+        //                     }
+        //                 ]
+        //             },
+        //         }
+        //     ]
+        //
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseSymbol");
         String quoteId = this.safeString(market, "quoteSymbol");
@@ -928,15 +1098,57 @@ public class Backpack extends BackpackApi
         Double minQuantity = this.safeNumber(quantityFilter, "minQuantity", (Object) null);
         Double amountPrecision = this.safeNumber(quantityFilter, "stepSize", (Object) null);
         String type = null;
-        String typeOfMarket = this.parseMarketType(this.safeString(market, "marketType"));
+        String rawType = this.safeString(market, "marketType");
+        Boolean rfq = java.util.Objects.equals(rawType, "RFQ");
+        Map<String, Object> security = (Map<String, Object>) this.safeDict(market, "security", (Object) null);
+        String baseSymbol = this.safeString(market, "baseSymbol", "");
+        Boolean stock = (java.util.Objects.equals(this.safeString(market, "rwaMarketType"), "STOCK")) || (!java.util.Objects.equals(security, null)) || (baseSymbol.endsWith(((String)".US"))) || (baseSymbol.endsWith(((String)".HK")));
+        String typeOfMarket = this.parseMarketType(rawType);
         Boolean linear = null;
         Boolean inverse = null;
         String settle = null;
         String settleId = null;
         Object contractSize = null;
-        if (java.util.Objects.equals(typeOfMarket, "spot"))
+        if ((java.util.Objects.equals(typeOfMarket, "spot")) || Boolean.TRUE.equals(rfq))
         {
             type = "spot";
+            if (Boolean.TRUE.equals(rfq))
+            {
+                symbol = ((base + ".RFQ/") + quote);
+                List<Object> sessions = (List<Object>) this.safeList(security, "sessions", new ArrayList<Object>(Arrays.asList()));
+                String stepSize = null;
+                String minimum = null;
+                String maximum = null;
+                Boolean unbounded = false;
+                for (var i = 0; i < ((List<?>)sessions).size(); i++)
+                {
+                    String sessionStep = this.safeString((sessions == null || i < 0 || i >= sessions.size() ? null : sessions.get(i)), "stepSize");
+                    if ((!java.util.Objects.equals(sessionStep, null)) && ((java.util.Objects.equals(stepSize, null)) || Precise.stringLt(sessionStep, stepSize)))
+                    {
+                        stepSize = sessionStep;
+                    }
+                    String sessionMin = this.safeString((sessions == null || i < 0 || i >= sessions.size() ? null : sessions.get(i)), "minQuantity");
+                    String sessionMax = this.safeString((sessions == null || i < 0 || i >= sessions.size() ? null : sessions.get(i)), "maxQuantity");
+                    if ((!java.util.Objects.equals(sessionMin, null)) && ((java.util.Objects.equals(minimum, null)) || Precise.stringLt(sessionMin, minimum)))
+                    {
+                        minimum = sessionMin;
+                    }
+                    if (java.util.Objects.equals(sessionMax, null))
+                    {
+                        unbounded = true;
+                    } else if ((java.util.Objects.equals(maximum, null)) || Precise.stringGt(sessionMax, maximum))
+                    {
+                        maximum = sessionMax;
+                    }
+                }
+                Integer sessionsLength = ((List<?>)sessions).size();
+                if ((sessionsLength != null && sessionsLength > 0))
+                {
+                    amountPrecision = this.parseNumber(stepSize);
+                    minQuantity = this.parseNumber(minimum);
+                    maxQuantity = ((Boolean.TRUE.equals(unbounded))) ? null : this.parseNumber(maximum);
+                }
+            }
         } else if (java.util.Objects.equals(typeOfMarket, "swap"))
         {
             type = "swap";
@@ -946,59 +1158,556 @@ public class Backpack extends BackpackApi
             settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
             symbol = (symbol + (":" + settle));
             contractSize = 1;
+        } else
+        {
+            return null;
         }
         String orderBookState = this.safeString(market, "orderBookState");
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("id", id);
-        mapLiteral3.put("symbol", symbol);
-        mapLiteral3.put("base", base);
-        mapLiteral3.put("quote", quote);
-        mapLiteral3.put("settle", settle);
-        mapLiteral3.put("baseId", baseId);
-        mapLiteral3.put("quoteId", quoteId);
-        mapLiteral3.put("settleId", settleId);
-        mapLiteral3.put("type", type);
-        mapLiteral3.put("spot", java.util.Objects.equals(type, "spot"));
-        mapLiteral3.put("margin", java.util.Objects.equals(type, "spot"));
-        mapLiteral3.put("swap", java.util.Objects.equals(type, "swap"));
-        mapLiteral3.put("future", false);
-        mapLiteral3.put("option", false);
-        mapLiteral3.put("active", java.util.Objects.equals(orderBookState, "Open"));
-        mapLiteral3.put("contract", !java.util.Objects.equals(type, "spot"));
-        mapLiteral3.put("linear", linear);
-        mapLiteral3.put("inverse", inverse);
-        mapLiteral3.put("taker", null);
-        mapLiteral3.put("maker", null);
-        mapLiteral3.put("contractSize", contractSize);
-        mapLiteral3.put("expiry", null);
-        mapLiteral3.put("expiryDatetime", null);
-        mapLiteral3.put("strike", null);
-        mapLiteral3.put("optionType", null);
-        mapLiteral3.put("precision", new HashMap<String, Object>() {{
-                put( "amount", amountPrecision );
-                put( "price", pricePrecision );
-            }});
-        mapLiteral3.put("limits", new HashMap<String, Object>() {{
-                put( "leverage", new HashMap<String, Object>() {{
+        // RFQ active means listed, not currently in session; an explicit order book state takes precedence.
+        Boolean active = (((Boolean.TRUE.equals(rfq) && (java.util.Objects.equals(orderBookState, null))))) ? ((!java.util.Objects.equals(id, null)) || (!java.util.Objects.equals(this.safeString(security, "asset"), null))) : (java.util.Objects.equals(orderBookState, "Open"));
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("base", base);
+        mapLiteral4.put("quote", quote);
+        mapLiteral4.put("settle", settle);
+        mapLiteral4.put("baseId", baseId);
+        mapLiteral4.put("quoteId", quoteId);
+        mapLiteral4.put("settleId", settleId);
+        mapLiteral4.put("type", type);
+        mapLiteral4.put("spot", java.util.Objects.equals(type, "spot"));
+        mapLiteral4.put("margin", (java.util.Objects.equals(type, "spot")) && !Boolean.TRUE.equals(stock) && !Boolean.TRUE.equals(rfq));
+        mapLiteral4.put("stock", stock);
+        mapLiteral4.put("executionModel", ((Boolean.TRUE.equals(rfq))) ? "rfq" : null);
+        mapLiteral4.put("swap", java.util.Objects.equals(type, "swap"));
+        mapLiteral4.put("future", false);
+        mapLiteral4.put("option", false);
+        mapLiteral4.put("active", active);
+        mapLiteral4.put("contract", !java.util.Objects.equals(type, "spot"));
+        mapLiteral4.put("linear", linear);
+        mapLiteral4.put("inverse", inverse);
+        mapLiteral4.put("taker", null);
+        mapLiteral4.put("maker", null);
+        mapLiteral4.put("contractSize", contractSize);
+        mapLiteral4.put("expiry", null);
+        mapLiteral4.put("expiryDatetime", null);
+        mapLiteral4.put("strike", null);
+        mapLiteral4.put("optionType", null);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("amount", amountPrecision);
+        mapLiteral5.put("price", pricePrecision);
+        mapLiteral4.put("precision", mapLiteral5);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }} );
-                put( "amount", new HashMap<String, Object>() {{
-                    put( "min", minQuantity );
-                    put( "max", maxQuantity );
-                }} );
-                put( "price", new HashMap<String, Object>() {{
+                }});
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("min", minQuantity);
+        mapLiteral7.put("max", maxQuantity);
+        mapLiteral6.put("amount", mapLiteral7);
+        mapLiteral6.put("price", new HashMap<String, Object>() {{
                     put( "min", minPrice );
                     put( "max", maxPrice );
-                }} );
-                put( "cost", new HashMap<String, Object>() {{
+                }});
+        mapLiteral6.put("cost", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }} );
-            }});
-        mapLiteral3.put("created", this.parse8601(this.safeString(market, "createdAt")));
-        mapLiteral3.put("info", market);
-        return this.safeMarketStructure(mapLiteral3);
+                }});
+        mapLiteral4.put("limits", mapLiteral6);
+        mapLiteral4.put("created", this.parse8601(this.safeString(market, "createdAt")));
+        mapLiteral4.put("info", market);
+        return this.safeMarketStructure(mapLiteral4);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#handleStockParams
+     * @description resolves the stock market filter
+     * @param {string} methodName calling method
+     * @param {object} params exchange-specific parameters
+     * @param {object} [market] resolved market
+     * @returns {Array} stock flag and remaining parameters
+     */
+    public Object handleStockParams(String methodName, Map<String, Object> parameters, Map<String, Object> market)
+    {
+        Boolean defaultStock = (Boolean) this.safeBool(market, "stock", false);
+        Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), (String) (methodName), "stock", defaultStock);
+        Boolean stock = stockqueryVariable.first();
+        Map<String, Object> query = stockqueryVariable.second();
+        if ((!java.util.Objects.equals(market, null)) && Boolean.TRUE.equals(stock) && !Boolean.TRUE.equals(this.safeBool(market, "stock", false)))
+        {
+            throw new BadSymbol((((this.id + " ") + methodName) + "() requires a stock market")) ;
+        }
+        return new ArrayList<Object>(Arrays.asList(stock, query));
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#fetchSecurities
+     * @description fetches stock security metadata and session-specific share quantity constraints
+     * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_securities
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} security metadata, not account holdings or proof of equity ownership
+     */
+    public CompletableFuture<Object> fetchSecurities(Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            List<Object> response = (this.publicGetApiV1Securities(parameters)).join();
+            Helpers.addElementToObject(this.options, "securities", response);
+            return response;
+        });
+
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#fetchStockIndicativeQuote
+     * @description fetches a size-specific indicative stock quote without submitting or accepting an RFQ
+     * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_stock_indicative_quote
+     * @param {string} symbol unified stock market symbol
+     * @param {string} side buy or sell
+     * @param {float} amount number of base shares
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
+     * @returns {object} indicative quote with availability, session constraints and non-guaranteed prices
+     */
+    public CompletableFuture<Map<String, Object>> fetchStockIndicativeQuote(Object symbol, String side, Object amount, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> market = this.market(symbol);
+            List<Object> selection = (List<Object>) this.handleStockParams("fetchStockIndicativeQuote", (Map<String, Object>) (parameters), market);
+            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            if (!java.util.Objects.equals(market.get("stock"), true))
+            {
+                throw new BadSymbol((this.id + " fetchStockIndicativeQuote() requires a stock market")) ;
+            }
+            if ((!java.util.Objects.equals(side, "buy")) && (!java.util.Objects.equals(side, "sell")))
+            {
+                throw new BadRequest((this.id + " fetchStockIndicativeQuote() requires buy or sell")) ;
+            }
+            if ((java.util.Objects.equals(amount, null)) || !Precise.stringGt(this.numberToString(amount), "0"))
+            {
+                throw new InvalidOrder((this.id + " fetchStockIndicativeQuote() requires a positive base share quantity")) ;
+            }
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", market.get("baseId"));
+            request.put("side", this.encodeOrderSide((String) (side)));
+            request.put("quantity", this.numberToString(amount));
+            String requestMethod = "publicGetApiV1StockIndicativeQuote";
+            return ((CompletableFuture<Object>)Helpers.callDynamically(this, requestMethod, new Object[] { this.extend(query, request) })).join();
+        }).thenApply(res -> (Map<String, Object>) res);
+
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#rfqConversionMarket
+     * @description resolves a stock RFQ market for a currency conversion pair
+     * @param {string} fromCode source currency code
+     * @param {string} toCode destination currency code
+     * @returns {object} resolved stock RFQ market
+     */
+    public Object rfqConversionMarket(Object fromCode, Object toCode)
+    {
+        Boolean fromIsStock = ((String)fromCode).endsWith(".US") || ((String)fromCode).endsWith(".HK");
+        Boolean toIsStock = ((String)toCode).endsWith(".US") || ((String)toCode).endsWith(".HK");
+        if (java.util.Objects.equals(fromIsStock, toIsStock))
+        {
+            throw new NotSupported((this.id + " conversion requires exactly one stock currency")) ;
+        }
+        Object stockCode = ((Boolean.TRUE.equals(fromIsStock))) ? fromCode : toCode;
+        Object quoteCode = ((Boolean.TRUE.equals(fromIsStock))) ? toCode : fromCode;
+        String symbol = ((stockCode + ".RFQ/") + quoteCode);
+        Map<String, Object> market = (Map<String, Object>) this.safeDict(this.markets, symbol, (Object) null);
+        if ((java.util.Objects.equals(market, null)) || (!java.util.Objects.equals(this.safeString(market, "executionModel"), "rfq")) || !Boolean.TRUE.equals(this.safeBool(market, "stock", false)))
+        {
+            throw new BadSymbol(((this.id + " conversion requires a listed stock RFQ market: ") + symbol)) ;
+        }
+        return market;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#parseConversion
+     * @description converts a submitted or accepted RFQ order into a conversion structure
+     * @param {object} order parsed RFQ order
+     * @param {object} [fromCurrency] source currency
+     * @param {object} [toCurrency] destination currency
+     * @returns {object} unified conversion structure
+     */
+    public Object parseConversion(Map<String, Object> order, Map<String, Object> fromCurrency, Map<String, Object> toCurrency)
+    {
+        String fromCode = this.safeString(fromCurrency, "code");
+        String toCode = this.safeString(toCurrency, "code");
+        if ((java.util.Objects.equals(fromCode, null)) || (java.util.Objects.equals(toCode, null)))
+        {
+            throw new ArgumentsRequired((this.id + " parseConversion() requires source and destination currencies")) ;
+        }
+        Object market = this.rfqConversionMarket(fromCode, toCode);
+        Boolean fromIsBase = java.util.Objects.equals(fromCode, this.safeString(market, "base"));
+        Double filled = this.safeNumber(order, "filled", (Object) null);
+        Double cost = this.safeNumber(order, "cost", (Object) null);
+        Map<String, Object> fee = (Map<String, Object>) this.safeDict(order, "fee", (Object) null);
+        Long timestamp = this.safeInteger(order, "timestamp");
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", order.get("info"));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("id", this.safeString(order, "id"));
+            h2kMap0.put("fromCurrency", this.safeCurrencyCode(fromCode, (Map<String, Object>) null));
+            h2kMap0.put("fromAmount", ((Boolean.TRUE.equals(fromIsBase))) ? filled : cost);
+            h2kMap0.put("toCurrency", this.safeCurrencyCode(toCode, (Map<String, Object>) null));
+            h2kMap0.put("toAmount", ((Boolean.TRUE.equals(fromIsBase))) ? cost : filled);
+            h2kMap0.put("price", this.safeNumber2(order, "average", "price", (Object) null));
+            h2kMap0.put("fee", this.safeNumber(fee, "cost", (Object) null));
+            return h2kMap0;
+        }
+    }
+
+    /**
+     * @method
+     * @name backpack#fetchConvertQuote
+     * @description fetches an indicative quote for converting between a tokenized stock and its quote currency
+     * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_stock_indicative_quote
+     * @param {string} fromCode the currency to convert from
+     * @param {string} toCode the currency to convert to
+     * @param {float} amount amount in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.price] optional limit price when converting quote currency to stock
+     * @returns {object} indicative conversion estimate; the price is a bound and is not guaranteed
+     */
+    public CompletableFuture<Conversion> fetchConvertQuote(Object fromCode, Object toCode, Object amount, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            String amountString = this.numberToString(amount);
+            if ((java.util.Objects.equals(amountString, null)) || !Precise.stringGt(amountString, "0"))
+            {
+                throw new ArgumentsRequired((this.id + " fetchConvertQuote() requires a positive amount")) ;
+            }
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Object market = this.rfqConversionMarket(fromCode, toCode);
+            Boolean fromIsBase = java.util.Objects.equals(fromCode, ((Map<String, Object>)market).get("base"));
+            String side = ((Boolean.TRUE.equals(fromIsBase))) ? "sell" : "buy";
+            if (!Boolean.TRUE.equals(fromIsBase))
+            {
+                Map<String, Object> initialQuote = (this.fetchStockIndicativeQuote(((Map<String, Object>)market).get("symbol"), side, 1, new HashMap<String, Object>() {{
+                    put( "stock", true );
+                }})).join();
+                String initialPrice = this.safeString(initialQuote, "price");
+                if (!Boolean.TRUE.equals(this.safeBool(initialQuote, "available", false)) || (java.util.Objects.equals(initialPrice, null)))
+                {
+                    throw new InvalidOrder(((this.id + " fetchConvertQuote() stock indicative quote unavailable: ") + this.safeString(initialQuote, "reason", "priceUnavailable"))) ;
+                }
+                String priceParam = this.safeString(parameters, "price");
+                if (java.util.Objects.equals(priceParam, null))
+                {
+                    priceParam = initialPrice;
+                }
+                if (!Precise.stringGt(priceParam, "0"))
+                {
+                    throw new InvalidOrder((this.id + " fetchConvertQuote() price must be positive")) ;
+                }
+                String rawQuantity = Precise.stringDiv(amountString, priceParam, 18);
+                String preciseQuantity = this.amountToPrecision(((Map<String, Object>)market).get("symbol"), this.parseNumber(rawQuantity));
+                if (java.util.Objects.equals(preciseQuantity, null))
+                {
+                    throw new InvalidOrder((this.id + " fetchConvertQuote() could not determine a stock quantity")) ;
+                }
+                amountString = preciseQuantity;
+                if (!Precise.stringGt(amountString, "0"))
+                {
+                    throw new InvalidOrder((this.id + " fetchConvertQuote() amount is too small for one stock increment")) ;
+                }
+            }
+            Map<String, Object> quote = (this.fetchStockIndicativeQuote(((Map<String, Object>)market).get("symbol"), side, this.parseNumber(amountString), new HashMap<String, Object>() {{
+                put( "stock", true );
+            }})).join();
+            if (!Boolean.TRUE.equals(this.safeBool(quote, "available", false)) || (java.util.Objects.equals(this.safeString(quote, "price"), null)))
+            {
+                throw new InvalidOrder(((this.id + " fetchConvertQuote() stock indicative quote unavailable: ") + this.safeString(quote, "reason", "priceUnavailable"))) ;
+            }
+            if (!Boolean.TRUE.equals(fromIsBase))
+            {
+                String quoteQuantity = this.safeString(quote, "quoteQuantity");
+                Map<String, Object> quantityFilter = (Map<String, Object>) this.safeDict(quote, "quantityFilter", new HashMap<String, Object>() {{}});
+                String stepSize = this.safeString(quantityFilter, "stepSize");
+                if ((!java.util.Objects.equals(quoteQuantity, null)) && (!java.util.Objects.equals(stepSize, null)) && Precise.stringGt(quoteQuantity, this.numberToString(amount)))
+                {
+                    String reducedQuantity = Precise.stringSub(amountString, stepSize);
+                    if ((java.util.Objects.equals(reducedQuantity, null)) || !Precise.stringGt(reducedQuantity, "0"))
+                    {
+                        throw new InvalidOrder((this.id + " fetchConvertQuote() amount is too small for one stock increment")) ;
+                    }
+                    amountString = reducedQuantity;
+                    quote = (this.fetchStockIndicativeQuote(((Map<String, Object>)market).get("symbol"), side, this.parseNumber(amountString), new HashMap<String, Object>() {{
+                        put( "stock", true );
+                    }})).join();
+                    if (!Boolean.TRUE.equals(this.safeBool(quote, "available", false)) || (java.util.Objects.equals(this.safeString(quote, "price"), null)))
+                    {
+                        throw new InvalidOrder(((this.id + " fetchConvertQuote() stock indicative quote unavailable: ") + this.safeString(quote, "reason", "priceUnavailable"))) ;
+                    }
+                }
+                String finalQuoteQuantity = this.safeString(quote, "quoteQuantity");
+                if ((!java.util.Objects.equals(finalQuoteQuantity, null)) && Precise.stringGt(finalQuoteQuantity, this.numberToString(amount)))
+                {
+                    throw new InvalidOrder((this.id + " fetchConvertQuote() rounded stock quantity exceeds the requested quote-currency amount")) ;
+                }
+            }
+            Double quoteAmount = this.safeNumber(quote, "quoteQuantity", (Object) null);
+            Double baseAmount = this.parseNumber(amountString);
+            String fromCurrency = this.safeCurrencyCode((String) (fromCode), (Map<String, Object>) null);
+            String toCurrency = this.safeCurrencyCode((String) (toCode), (Map<String, Object>) null);
+            {
+                HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+                h2kMap1.put("info", quote);
+                h2kMap1.put("timestamp", this.safeInteger(quote, "publishedAt"));
+                h2kMap1.put("datetime", this.iso8601(this.safeInteger(quote, "publishedAt")));
+                h2kMap1.put("id", null);
+                h2kMap1.put("fromCurrency", fromCurrency);
+                h2kMap1.put("fromAmount", ((Boolean.TRUE.equals(fromIsBase))) ? baseAmount : quoteAmount);
+                h2kMap1.put("toCurrency", toCurrency);
+                h2kMap1.put("toAmount", ((Boolean.TRUE.equals(fromIsBase))) ? quoteAmount : baseAmount);
+                h2kMap1.put("price", this.safeNumber(quote, "price", (Object) null));
+                h2kMap1.put("fee", null);
+                return h2kMap1;
+            }
+        }).thenApply(Conversion::new);
+
+    }
+
+    /**
+     * @method
+     * @name backpack#createConvertTrade
+     * @description converts between a tokenized stock and its quote currency through a bounded RFQ
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/submit_rfq
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/accept_quote
+     * @param {string} id RFQ identifier when accepting a quote, or a numeric client identifier for a new RFQ
+     * @param {string} fromCode the currency to convert from
+     * @param {string} toCode the currency to convert to
+     * @param {float} [amount] amount in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.quoteId] accept this quote for RFQ id supplied as id
+     * @param {float} [params.price] price bound from fetchConvertQuote; required when buying stock
+     * @param {float} [params.baseAmount] stock quantity when converting quote currency to stock
+     * @param {int} [params.clientOrderId] requester client identifier for a newly submitted RFQ
+     * @returns {object} conversion result; RFQ submission may remain open and is not necessarily a fill
+     */
+    public CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Object market = this.rfqConversionMarket(fromCode, toCode);
+            List<Object> selection = (List<Object>) this.handleStockParams("createConvertTrade", (Map<String, Object>) (parameters), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            String quoteId = this.safeString(query, "quoteId");
+            if (!java.util.Objects.equals(quoteId, null))
+            {
+                Map<String, Object> acceptParams = this.omit(query, new ArrayList<Object>(Arrays.asList("quoteId", "price", "baseAmount", "clientOrderId")));
+                Object accepted = (this.acceptRfqQuote(id, quoteId, ((Map<String, Object>)market).get("symbol"), acceptParams)).join();
+                return this.parseConversion((Map<String, Object>) (accepted), this.currency((String) (fromCode)), this.currency((String) (toCode)));
+            }
+            if ((java.util.Objects.equals(amount, null)) || !Precise.stringGt(this.numberToString(amount), "0"))
+            {
+                throw new ArgumentsRequired((this.id + " createConvertTrade() requires a positive amount")) ;
+            }
+            Boolean fromIsBase = java.util.Objects.equals(fromCode, ((Map<String, Object>)market).get("base"));
+            String side = ((Boolean.TRUE.equals(fromIsBase))) ? "sell" : "buy";
+            String quantity = this.numberToString(amount);
+            Double price = this.safeNumber(query, "price", (Object) null);
+            if (!Boolean.TRUE.equals(fromIsBase))
+            {
+                Double baseAmount = this.safeNumber(query, "baseAmount", (Object) null);
+                if (!java.util.Objects.equals(baseAmount, null))
+                {
+                    quantity = this.numberToString(baseAmount);
+                } else
+                {
+                    if ((java.util.Objects.equals(price, null)) || !Precise.stringGt(this.numberToString(price), "0"))
+                    {
+                        Map<String, Object> indicative = (this.fetchStockIndicativeQuote(((Map<String, Object>)market).get("symbol"), side, 1, new HashMap<String, Object>() {{
+                            put( "stock", true );
+                        }})).join();
+                        if (!Boolean.TRUE.equals(this.safeBool(indicative, "available", false)))
+                        {
+                            throw new InvalidOrder(((this.id + " createConvertTrade() stock indicative quote unavailable: ") + this.safeString(indicative, "reason", "priceUnavailable"))) ;
+                        }
+                        price = this.safeNumber(indicative, "price", (Object) null);
+                    }
+                    if ((java.util.Objects.equals(price, null)) || !Precise.stringGt(this.numberToString(price), "0"))
+                    {
+                        throw new InvalidOrder((this.id + " createConvertTrade() buying stock requires a positive price bound")) ;
+                    }
+                    String rawQuantity = Precise.stringDiv(this.numberToString(amount), this.numberToString(price), 18);
+                    String preciseQuantity = this.amountToPrecision(((Map<String, Object>)market).get("symbol"), this.parseNumber(rawQuantity));
+                    if (java.util.Objects.equals(preciseQuantity, null))
+                    {
+                        throw new InvalidOrder((this.id + " createConvertTrade() could not determine a stock quantity")) ;
+                    }
+                    quantity = preciseQuantity;
+                }
+                if ((java.util.Objects.equals(price, null)) || !Precise.stringGt(this.numberToString(price), "0"))
+                {
+                    Map<String, Object> indicative = (this.fetchStockIndicativeQuote(((Map<String, Object>)market).get("symbol"), side, this.parseNumber(quantity), new HashMap<String, Object>() {{
+                        put( "stock", true );
+                    }})).join();
+                    if (!Boolean.TRUE.equals(this.safeBool(indicative, "available", false)))
+                    {
+                        throw new InvalidOrder(((this.id + " createConvertTrade() stock indicative quote unavailable: ") + this.safeString(indicative, "reason", "priceUnavailable"))) ;
+                    }
+                    price = this.safeNumber(indicative, "price", (Object) null);
+                }
+                if ((java.util.Objects.equals(price, null)) || !Precise.stringGt(this.numberToString(price), "0"))
+                {
+                    throw new InvalidOrder((this.id + " createConvertTrade() buying stock requires a positive price bound")) ;
+                }
+                String quoteCost = Precise.stringMul(quantity, this.numberToString(price));
+                if (Precise.stringGt(quoteCost, this.numberToString(amount)))
+                {
+                    Map<String, Object> precision = (Map<String, Object>) this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
+                    String stepSize = this.numberToString(this.safeNumber(precision, "amount", (Object) null));
+                    if (!Precise.stringGt(stepSize, "0"))
+                    {
+                        throw new InvalidOrder((this.id + " createConvertTrade() cannot safely round stock quantity to the quote-currency budget")) ;
+                    }
+                    String reducedQuantity = Precise.stringSub(quantity, stepSize);
+                    if ((java.util.Objects.equals(reducedQuantity, null)) || !Precise.stringGt(reducedQuantity, "0"))
+                    {
+                        throw new InvalidOrder((this.id + " createConvertTrade() stock quantity is too small for one increment")) ;
+                    }
+                    quantity = reducedQuantity;
+                    quoteCost = Precise.stringMul(quantity, this.numberToString(price));
+                    if (!Precise.stringGt(quantity, "0") || Precise.stringGt(quoteCost, this.numberToString(amount)))
+                    {
+                        throw new InvalidOrder((this.id + " createConvertTrade() stock quantity exceeds the quote-currency amount")) ;
+                    }
+                }
+            }
+            Long clientOrderId = this.safeInteger(query, "clientOrderId");
+            if (java.util.Objects.equals(clientOrderId, null))
+            {
+                clientOrderId = (Long) this.safeInteger(new HashMap<String, Object>() {{
+                    put( "id", id );
+                }}, "id");
+            }
+            Map<String, Object> orderParams = this.omit(query, new ArrayList<Object>(Arrays.asList("price", "baseAmount", "quoteId", "clientOrderId")));
+            if (!java.util.Objects.equals(clientOrderId, null))
+            {
+                orderParams.put("clientOrderId", clientOrderId);
+            }
+            Object order = (this.createRfqOrder(((Map<String, Object>)market).get("symbol"), "market", side, this.parseNumber(quantity), price, this.extend(orderParams, new HashMap<String, Object>() {{
+                put( "stock", true );
+            }}))).join();
+            return this.parseConversion((Map<String, Object>) (order), this.currency((String) (fromCode)), this.currency((String) (toCode)));
+        }).thenApply(Conversion::new);
+
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#stockDataRequest
+     * @description resolves venue or external stock statistics without treating RFQs as an order book
+     * @param {string} methodName calling method
+     * @param {object} params exchange-specific parameters
+     * @param {object} [market] resolved market
+     * @returns {object} market data parameters
+     */
+    public Object stockDataRequest(String methodName, Map<String, Object> parameters, Map<String, Object> market)
+    {
+        List<Object> selection = (List<Object>) this.handleStockParams(methodName, (Map<String, Object>) (parameters), market);
+        Boolean stock = (Boolean) this.safeBool(selection, 0, false);
+        Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+        Map<String, Object> request = this.extend(new HashMap<String, Object>() {{}}, query);
+        String source = this.safeString(query, "source");
+        Boolean isRfq = (!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"));
+        if (java.util.Objects.equals(source, null))
+        {
+            source = ((Boolean.TRUE.equals(isRfq))) ? "External" : "Venue";
+        }
+        if ((!java.util.Objects.equals(source, "Venue")) && (!java.util.Objects.equals(source, "External")))
+        {
+            throw new BadRequest((((this.id + " ") + methodName) + "() source must be Venue or External")) ;
+        }
+        if (java.util.Objects.equals(source, "External"))
+        {
+            if (!Boolean.TRUE.equals(stock))
+            {
+                throw new BadRequest((((this.id + " ") + methodName) + "() External provider data requires a stock market symbol or params.stock=true when no symbol is provided")) ;
+            }
+            if ((!java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(market.get("stock"), true)))
+            {
+                throw new BadSymbol((((this.id + " ") + methodName) + "() External data requires a stock market")) ;
+            }
+            request.put("source", source);
+            if (java.util.Objects.equals(methodName, "fetchOHLCV"))
+            {
+                String priceType = this.safeString(query, "priceType", "Last");
+                String price = this.safeString(query, "price");
+                if ((!java.util.Objects.equals(priceType, "Last")) || ((!java.util.Objects.equals(price, null)) && (!java.util.Objects.equals(price, "last"))))
+                {
+                    throw new BadRequest((this.id + " fetchOHLCV() External data requires Last prices")) ;
+                }
+                request.put("priceType", "Last");
+            } else
+            {
+                String interval = this.safeString(query, "interval", "1d");
+                if (!java.util.Objects.equals(interval, "1d"))
+                {
+                    throw new BadRequest((((this.id + " ") + methodName) + "() External tickers require interval=1d")) ;
+                }
+                request.put("interval", interval);
+            }
+        }
+        if (!java.util.Objects.equals(market, null))
+        {
+            Object marketId = market.get("id");
+            if (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
+            {
+                marketId = ((market.get("baseId") + "_") + market.get("quoteId"));
+            }
+            request.put("symbol", marketId);
+        }
+        return request;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#filterStockStructures
+     * @description filters parsed account structures by securities metadata, never by RFQ execution alone
+     * @param {Array} entries parsed trades or orders
+     * @returns {Array} tokenized stock structures
+     */
+    public Object filterStockStructures(Object entries)
+    {
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < ((List<?>)entries).size(); i++)
+        {
+            Object entry = (entries == null || i < 0 || i >= ((List<?>)entries).size() ? null : ((List<?>)entries).get(i));
+            String symbol = this.safeString(entry, "symbol");
+            Map<String, Object> market = (Map<String, Object>) this.safeDict(this.markets, symbol, (Object) null);
+            if (Boolean.TRUE.equals(this.safeBool(market, "stock", false)))
+            {
+                ((List<Object>)result).add(entry);
+            }
+        }
+        return result;
     }
 
     public String parseMarketType(String type)
@@ -1013,10 +1722,13 @@ public class Backpack extends BackpackApi
     /**
      * @method
      * @name backpack#fetchTickers
+     * @description fetches venue or external provider statistics, not executable RFQ prices
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_tickers
-     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] return tokenized stock tickers only; inferred from requested symbols when omitted
+     * @param {string} [params.source] Venue or External; RFQ symbols default to External, other symbols default to Venue
+     * @param {string} [params.interval] ticker interval, External requires 1d
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
@@ -1028,10 +1740,85 @@ public class Backpack extends BackpackApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
-            List<Object> response = (this.publicGetApiV1Tickers(this.extend(request, parameters))).join();
+            List<Object> selection = (List<Object>) this.handleStockParams("fetchTickers", (Map<String, Object>) (parameters), (Map<String, Object>) null);
+            Boolean stockOnly = (Boolean) this.safeBool(selection, 0, false);
+            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            String source = this.safeString(query, "source", "Venue");
+            Integer symbolsLength = 0;
+            if (!java.util.Objects.equals(symbols, null))
+            {
+                symbolsLength = ((List<?>)symbols).size();
+            }
+            Object symbolsNormalized = (((java.util.Objects.equals(symbolsLength, 0)))) ? null : this.marketSymbols(symbols, (Object) null, false, false, false);
+            Object symbolsResolved = (((java.util.Objects.equals(symbolsNormalized, null)))) ? new ArrayList<Object>(((Map<String, Object>)this.markets).keySet()) : symbolsNormalized;
+            Boolean hasRfqSymbol = false;
+            Boolean hasStockSymbol = false;
+            if (!java.util.Objects.equals(symbols, null))
+            {
+                for (var i = 0; i < ((List<?>)symbolsResolved).size(); i++)
+                {
+                    Map<String, Object> market = this.market((symbolsResolved == null || i < 0 || i >= ((List<?>)symbolsResolved).size() ? null : ((List<?>)symbolsResolved).get(i)));
+                    if (java.util.Objects.equals(market.get("stock"), true))
+                    {
+                        hasStockSymbol = true;
+                    }
+                    if (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
+                    {
+                        hasRfqSymbol = true;
+                    }
+                }
+            }
+            Boolean stockExplicitlyDisabled = java.util.Objects.equals(this.safeValue2(parameters, "stock", "defaultStock"), false);
+            Boolean needsExternalRfqTickers = (java.util.Objects.equals(source, "Venue")) && (java.util.Objects.equals(this.safeString(query, "source"), null)) && Boolean.TRUE.equals(hasRfqSymbol) && !Boolean.TRUE.equals(stockExplicitlyDisabled);
+            Map<String, Object> requestParams = query;
+            if ((java.util.Objects.equals(source, "External")) && (Boolean.TRUE.equals(stockOnly) || Boolean.TRUE.equals(hasStockSymbol)) && !Boolean.TRUE.equals(stockExplicitlyDisabled))
+            {
+                requestParams = this.extend(query, new HashMap<String, Object>() {{
+                    put( "stock", true );
+                }});
+            }
+            Map<String, Object> request = (Map<String, Object>) this.stockDataRequest("fetchTickers", (Map<String, Object>) (requestParams), (Map<String, Object>) null);
+            Object response = (this.publicGetApiV1Tickers(request)).join();
             Object tickers = this.parseTickers(response, (List<String>) null, new HashMap<String, Object>() {{}});
-            return this.filterByArrayTickers(tickers, "symbol", symbols);
+            Map<String,Object> responseById = this.indexBy(response, "symbol");
+            List<Object> externalResponse = new ArrayList<Object>(Arrays.asList());
+            Map<String, Object> externalResponseById = new HashMap<String, Object>() {{}};
+            if (Boolean.TRUE.equals(needsExternalRfqTickers) || (java.util.Objects.equals(source, "External")))
+            {
+                Map<String, Object> externalParams = this.extend(query, new HashMap<String, Object>() {{
+                    put( "stock", true );
+                    put( "source", "External" );
+                }});
+                externalResponse = (this.publicGetApiV1Tickers(this.stockDataRequest("fetchTickers", (Map<String, Object>) (externalParams), (Map<String, Object>) null))).join();
+                externalResponseById = this.indexBy(externalResponse, "symbol");
+            }
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
+            for (var i = 0; i < ((List<?>)symbolsResolved).size(); i++)
+            {
+                Object marketSymbol = (symbolsResolved == null || i < 0 || i >= ((List<?>)symbolsResolved).size() ? null : ((List<?>)symbolsResolved).get(i));
+                Map<String, Object> market = this.market(marketSymbol);
+                if (Boolean.TRUE.equals(stockOnly) && (!java.util.Objects.equals(market.get("stock"), true)))
+                {
+                    continue;
+                }
+                Boolean marketIsRfq = java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ");
+                Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, marketSymbol, (Object) null);
+                if ((!java.util.Objects.equals(ticker, null)) && ((!java.util.Objects.equals(source, "External")) || (java.util.Objects.equals(market.get("stock"), true))))
+                {
+                    result.put((String)marketSymbol, ticker);
+                } else if (Boolean.TRUE.equals(marketIsRfq))
+                {
+                    String underlyingId = ((market.get("baseId") + "_") + market.get("quoteId"));
+                    Boolean useExternal = (java.util.Objects.equals(source, "External")) || Boolean.TRUE.equals(needsExternalRfqTickers);
+                    Object tickerSource = ((Boolean.TRUE.equals(useExternal))) ? externalResponseById : responseById;
+                    Map<String, Object> underlyingTicker = (Map<String, Object>) this.safeDict(tickerSource, underlyingId, (Object) null);
+                    if (!java.util.Objects.equals(underlyingTicker, null))
+                    {
+                        result.put((String)marketSymbol, this.parseTicker(underlyingTicker, market));
+                    }
+                }
+            }
+            return this.filterByArrayTickers(result, "symbol", symbols);
         }).thenApply(Tickers::new);
 
     }
@@ -1039,10 +1826,13 @@ public class Backpack extends BackpackApi
     /**
      * @method
      * @name backpack#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @description fetches underlying venue or external stock statistics, not an executable RFQ quote
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
+     * @param {string} [params.source] Venue or External; RFQ symbols default to External
+     * @param {string} [params.interval] ticker interval, External requires 1d
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
@@ -1055,10 +1845,8 @@ public class Backpack extends BackpackApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", market.get("id") );
-            }};
-            Map<String, Object> response = (this.publicGetApiV1Ticker(this.extend(request, parameters))).join();
+            Map<String, Object> request = (Map<String, Object>) this.stockDataRequest("fetchTicker", (Map<String, Object>) (parameters), market);
+            Map<String, Object> response = (this.publicGetApiV1Ticker(request)).join();
             return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
@@ -1083,8 +1871,8 @@ public class Backpack extends BackpackApi
         //     }, ...
         //
         String marketId = this.safeString(ticker, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = this.safeSymbol(marketId, marketResolved, (String) null, (String) null);
+        Map<String, Object> marketResolved = (((java.util.Objects.equals(market, null)))) ? this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null) : market;
+        String symbol = (String) ((Map<String, Object>)marketResolved).get("symbol");
         String open = this.safeString(ticker, "firstPrice");
         String last = this.safeString(ticker, "lastPrice");
         String high = this.safeString(ticker, "high");
@@ -1099,41 +1887,43 @@ public class Backpack extends BackpackApi
             percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
         }
         String change = this.safeString(ticker, "priceChange");
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("symbol", symbol);
-        mapLiteral4.put("timestamp", null);
-        mapLiteral4.put("datetime", null);
-        mapLiteral4.put("high", high);
-        mapLiteral4.put("low", low);
-        mapLiteral4.put("bid", null);
-        mapLiteral4.put("bidVolume", null);
-        mapLiteral4.put("ask", null);
-        mapLiteral4.put("askVolume", null);
-        mapLiteral4.put("vwap", null);
-        mapLiteral4.put("open", open);
-        mapLiteral4.put("close", last);
-        mapLiteral4.put("last", last);
-        mapLiteral4.put("previousClose", null);
-        mapLiteral4.put("change", change);
-        mapLiteral4.put("percentage", percentage);
-        mapLiteral4.put("average", null);
-        mapLiteral4.put("baseVolume", baseVolume);
-        mapLiteral4.put("quoteVolume", quoteVolume);
-        mapLiteral4.put("markPrice", null);
-        mapLiteral4.put("indexPrice", null);
-        mapLiteral4.put("info", ticker);
-        Ticker parsedTicker = this.safeTicker(mapLiteral4, marketResolved);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("symbol", symbol);
+        mapLiteral8.put("timestamp", null);
+        mapLiteral8.put("datetime", null);
+        mapLiteral8.put("high", high);
+        mapLiteral8.put("low", low);
+        mapLiteral8.put("bid", null);
+        mapLiteral8.put("bidVolume", null);
+        mapLiteral8.put("ask", null);
+        mapLiteral8.put("askVolume", null);
+        mapLiteral8.put("vwap", null);
+        mapLiteral8.put("open", open);
+        mapLiteral8.put("close", last);
+        mapLiteral8.put("last", last);
+        mapLiteral8.put("previousClose", null);
+        mapLiteral8.put("change", change);
+        mapLiteral8.put("percentage", percentage);
+        mapLiteral8.put("average", null);
+        mapLiteral8.put("baseVolume", baseVolume);
+        mapLiteral8.put("quoteVolume", quoteVolume);
+        mapLiteral8.put("markPrice", null);
+        mapLiteral8.put("indexPrice", null);
+        mapLiteral8.put("info", ticker);
+        Ticker parsedTicker = this.safeTicker(mapLiteral8, marketResolved);
         return (Ticker) parsedTicker;
     }
 
     /**
      * @method
      * @name backpack#fetchOrderBook
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @description fetches venue order-book depth, RFQ and external provider depth are not supported
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_depth
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
+     * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects a tokenized stock spot order book; inferred from symbol when omitted
+     * @param {string} [params.source] Venue, External provider depth is not supported
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
@@ -1146,24 +1936,33 @@ public class Backpack extends BackpackApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
+            List<Object> selection = (List<Object>) this.handleStockParams("fetchOrderBook", (Map<String, Object>) (parameters), market);
+            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            String source = this.safeString(query, "source", "Venue");
+            if ((!java.util.Objects.equals(source, "Venue")) || (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ")))
+            {
+                throw new NotSupported((this.id + " fetchOrderBook() requires a venue order-book market; use fetchStockIndicativeQuote() for size-specific RFQ prices")) ;
+            }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            Map<String, Object> response = (this.publicGetApiV1Depth(this.extend(request, parameters))).join();
-            //
-            //     {
-            //         "asks": [
-            //             ["118318.3","0.00633"],
-            //             ["118567.2","0.08450"]
-            //         ],
-            //         "bids": [
-            //             ["1.0","0.38647"],
-            //             ["12.9","1.00000"]
-            //         ],
-            //         "lastUpdateId":"1504999670",
-            //         "timestamp":1753102447307501
-            //     }
-            //
+            Object requestLimit = null;
+            if (!java.util.Objects.equals(limit, null))
+            {
+                List<Object> supportedLimits = new ArrayList<Object>(Arrays.asList(5, 10, 20, 50, 100, 500));
+                requestLimit = 500;
+                for (var i = 0; i < ((List<?>)supportedLimits).size(); i++)
+                {
+                    Long supportedLimit = this.safeInteger(supportedLimits, i, 0);
+                    if (((supportedLimit != null && limit <= supportedLimit)))
+                    {
+                        requestLimit = supportedLimit;
+                        break;
+                    }
+                }
+                request.put("limit", requestLimit);
+            }
+            Map<String, Object> response = (this.publicGetApiV1Depth(this.extend(request, this.omit(query, "source")))).join();
             Long microseconds = this.safeInteger(response, "timestamp");
             if (java.util.Objects.equals(microseconds, null))
             {
@@ -1172,6 +1971,11 @@ public class Backpack extends BackpackApi
             Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
             Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp, "bids", "asks", 0, 1, 2);
             orderbook.put("nonce", this.safeInteger(response, "lastUpdateId"));
+            if (!java.util.Objects.equals(limit, null))
+            {
+                orderbook.put("bids", this.arraySlice(orderbook.get("bids"), 0, limit));
+                orderbook.put("asks", this.arraySlice(orderbook.get("asks"), 0, limit));
+            }
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -1180,14 +1984,19 @@ public class Backpack extends BackpackApi
     /**
      * @method
      * @name backpack#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @description fetches venue or external stock candlestick data for the underlying market
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_klines
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in seconds of the earliest candle to fetch
+     * @param {int} [since] timestamp in milliseconds of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (default 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
+     * @param {string} [params.source] Venue or External; RFQ symbols default to External
+     * @param {string} [params.price] last, mark or index, External requires last
+     * @param {string} [params.priceType] Last, Mark or Index, External requires Last
+     * @param {int} [params.until] latest candle timestamp in milliseconds
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
@@ -1201,50 +2010,55 @@ public class Backpack extends BackpackApi
             Map<String, Object> market = this.market(symbol);
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            Map<String, Object> dataRequest = (Map<String, Object>) this.stockDataRequest("fetchOHLCV", (Map<String, Object>) (parameters), market);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", market.get("id") );
+                put( "symbol", dataRequest.get("symbol") );
                 put( "interval", interval );
             }};
-            List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until", (Long) null);
+            List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(this.omit(dataRequest, "symbol"), "fetchOHLCV", "until", (Long) null);
             Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
-            Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
+            var paramsUntil = ((List<Object>) untilparamsUntilVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", this.parseToInt((((double) until) / ((double) 1000)))); // convert milliseconds to seconds
             }
-            Integer defaultLimit = 100;
-            Object limitResolved = limit;
+            Long defaultLimit = 100L;
+            Long limitResolved = limit;
             if ((java.util.Objects.equals(since, null)) && (java.util.Objects.equals(limit, null)))
             {
                 limitResolved = defaultLimit;
             }
+            Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
+            Object startTime = null;
             if (java.util.Objects.equals(since, null))
             {
-                Long endTime = (((!java.util.Objects.equals(until, null) && !java.util.Objects.equals(until, null) && (until != 0)))) ? this.parseToInt(Helpers.divide(until, 1000)) : this.seconds();
-                Object windowLimit = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
-                Object startTime = Helpers.subtract(endTime, (Helpers.multiply(windowLimit, duration)));
-                request.put("startTime", startTime);
+                Long endTime = this.seconds();
+                if (!java.util.Objects.equals(until, null) && !java.util.Objects.equals(until, null) && (until != 0))
+                {
+                    endTime = this.parseToInt((((double) until) / ((double) 1000)));
+                }
+                startTime = (endTime - (windowLimit * duration));
             } else
             {
-                request.put("startTime", this.parseToInt((((double) since) / ((double) 1000)))); // convert milliseconds to seconds
+                startTime = this.parseToInt((((double) since) / ((double) 1000))); // convert milliseconds to seconds
             }
+            request.put("startTime", startTime);
             if (java.util.Objects.equals(until, null))
             {
                 Long currentMs = this.seconds(); // default to current time in seconds
-                Object windowLimit = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
-                Object windowEnd = this.sum(request.get("startTime"), Helpers.multiply(windowLimit, duration)); // sum (): `+` on a dict value is string concatenation in php
-                Object minTimestamp = Helpers.mathMin(currentMs, windowEnd);
+                Object windowEnd = this.sum(startTime, (windowLimit * duration));
+                Object minTimestamp = (currentMs == null ? null : (((Number) currentMs).doubleValue() < ((Number) windowEnd).doubleValue() ? (Object) (currentMs) : (Object) (windowEnd)));
                 request.put("endTime", this.parseToInt(minTimestamp)); // default to current time in seconds if until is not specified
             }
             String price = this.safeString(paramsUntil, "price");
-            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(price, null)))) ? this.omit(paramsUntil, "price") : paramsUntil;
+            Object paramsOmitted = (((!java.util.Objects.equals(price, null)))) ? this.omit(paramsUntil, "price") : paramsUntil;
             if (!java.util.Objects.equals(price, null))
             {
                 request.put("priceType", this.capitalize(price));
             }
             List<Object> response = (this.publicGetApiV1Klines(this.extend(request, paramsOmitted))).join();
             List<Object> ohlcvs = this.toArray(response);
-            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1462,7 +2276,7 @@ public class Backpack extends BackpackApi
     /**
      * @method
      * @name backpack#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
+     * @description gets recent venue order-book trades, not public RFQ or external provider fills
      * @see https://docs.backpack.exchange/#tag/Trades/operation/get_recent_trades
      * @see https://docs.backpack.exchange/#tag/Trades/operation/get_historical_trades
      * @param {string} symbol unified symbol of the market to fetch trades for
@@ -1470,6 +2284,7 @@ public class Backpack extends BackpackApi
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.offset] the number of trades to skip, default is 0
+     * @param {boolean} [params.stock] selects tokenized stock spot trades; inferred from symbol when omitted
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -1482,6 +2297,12 @@ public class Backpack extends BackpackApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
+            List<Object> selection = (List<Object>) this.handleStockParams("fetchTrades", (Map<String, Object>) (parameters), market);
+            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            if ((!java.util.Objects.equals(this.safeString(query, "source", "Venue"), "Venue")) || (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ")))
+            {
+                throw new NotSupported((this.id + " fetchTrades() only supports venue order-book trades; use fetchMyTrades() for RFQ fills")) ;
+            }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
@@ -1490,13 +2311,13 @@ public class Backpack extends BackpackApi
                 request.put("limit", Math.min(limit, 1000)); // api maximum 1000
             }
             List<Object> response = null;
-            Long offset = this.safeInteger(parameters, "offset");
+            Long offset = this.safeInteger(query, "offset");
             if (!java.util.Objects.equals(offset, null))
             {
-                response = (this.publicGetApiV1TradesHistory(this.extend(request, parameters))).join();
+                response = (this.publicGetApiV1TradesHistory(this.extend(request, query))).join();
             } else
             {
-                response = (this.publicGetApiV1Trades(this.extend(request, parameters))).join();
+                response = (this.publicGetApiV1Trades(this.extend(request, query))).join();
             }
             List<Object> responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit, new HashMap<String, Object>() {{}});
@@ -1507,14 +2328,20 @@ public class Backpack extends BackpackApi
     /**
      * @method
      * @name backpack#fetchMyTrades
-     * @description fetch all trades made by the user
+     * @description fetches venue fills or requester RFQ fills, combining stock records when no symbol is supplied
      * @see https://docs.backpack.exchange/#tag/History/operation/get_fills
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_rfq_fill_history
      * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [since] the earliest time in ms to fetch trades for, locally filtered for RFQ history pages
      * @param {int} [limit] the maximum number of trades structures to retrieve (default 100, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @param {string} [params.fillType] 'User' (default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
+     * @param {int} [params.until] the latest time in ms to fetch trades for, locally filtered for RFQ history pages
+     * @param {boolean} [params.stock] selects tokenized stock fills; inferred from symbol when omitted
+     * @param {boolean} [params.rfq] selects requester RFQ fills only, inferred from RFQ symbols
+     * @param {int} [params.offset] exchange history pagination offset
+     * @param {string} [params.sortDirection] Asc or Desc
+     * @param {boolean} [params.deferredSettlement] selects deferred or immediate RFQ settlement records
+     * @param {string} [params.fillType] User or CollateralConversion for RFQs, additional exchange-specific types for venue fills
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -1533,6 +2360,57 @@ public class Backpack extends BackpackApi
                 market = this.market(symbol);
                 request.put("symbol", market.get("id"));
             }
+            List<Object> selection = (List<Object>) this.handleStockParams("fetchMyTrades", (Map<String, Object>) (parameters), market);
+            Boolean stock = (Boolean) this.safeBool(selection, 0, false);
+            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Boolean rfq = Boolean.TRUE.equals(this.safeBool(query, "rfq", false)) || (java.util.Objects.equals(this.safeString(this.safeDict(market, "info", (Object) null), "marketType"), "RFQ"));
+            Boolean aggregate = Boolean.TRUE.equals(stock) && (java.util.Objects.equals(market, null)) && !Boolean.TRUE.equals(rfq);
+            if (Boolean.TRUE.equals(rfq) && (!java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ")))
+            {
+                throw new BadSymbol((this.id + " fetchMyTrades() rfq requires an RFQ market symbol")) ;
+            }
+            Map<String, Object> accountParams = this.omit(query, new ArrayList<Object>(Arrays.asList("rfq", "until")));
+            Long until = this.safeInteger(query, "until");
+            if (Boolean.TRUE.equals(rfq) || Boolean.TRUE.equals(aggregate))
+            {
+                Map<String, Object> rfqRequest = new HashMap<String, Object>() {{}};
+                if (!java.util.Objects.equals(market, null))
+                {
+                    rfqRequest.put("symbol", market.get("id"));
+                }
+                if (!java.util.Objects.equals(limit, null))
+                {
+                    rfqRequest.put("limit", Math.min(limit, 1000));
+                }
+                Map<String, Object> rfqParams = this.omit(accountParams, new ArrayList<Object>(Arrays.asList("assetClass", "marketType", "from", "to")));
+                List<Object> rfqResponse = (this.privateGetWapiV1HistoryRfqFill(this.extend(rfqRequest, rfqParams))).join();
+                List<Object> rfqTrades = this.parseTrades(rfqResponse, market, since, (Long) null, new HashMap<String, Object>() {{}});
+                if (Boolean.TRUE.equals(aggregate))
+                {
+                    Map<String, Object> venueParams = this.extend(this.omit(accountParams, new ArrayList<Object>(Arrays.asList("rfqId", "quoteId", "deferredSettlement"))), new HashMap<String, Object>() {{
+                        put( "assetClass", "STOCK" );
+                        put( "stock", false );
+                    }});
+                    List<Trade> venueTrades = (this.fetchMyTrades((String) null, since, limit, venueParams)).join();
+                    rfqTrades = (List<Object>) this.arrayConcat(rfqTrades, venueTrades);
+                }
+                if (Boolean.TRUE.equals(stock))
+                {
+                    rfqTrades = (List<Object>) this.filterStockStructures(rfqTrades);
+                }
+                List<Object> filtered = new ArrayList<Object>(Arrays.asList());
+                for (var i = 0; i < ((List<?>)rfqTrades).size(); i++)
+                {
+                    Object trade = (rfqTrades == null || i < 0 || i >= rfqTrades.size() ? null : rfqTrades.get(i));
+                    Long timestamp = this.safeInteger(trade, "timestamp");
+                    if ((java.util.Objects.equals(until, null)) || ((!java.util.Objects.equals(timestamp, null)) && ((timestamp == null || (until != null && timestamp <= until)))))
+                    {
+                        ((List<Object>)filtered).add(trade);
+                    }
+                }
+                List<Object> sorted = this.sortBy(filtered, "timestamp");
+                return this.filterBySinceLimit(sorted, since, limit, "timestamp", false);
+            }
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("from", since);
@@ -1541,8 +2419,11 @@ public class Backpack extends BackpackApi
             {
                 request.put("limit", limit);
             }
-            Long until = this.safeInteger(parameters, "until");
-            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("until"))) : parameters;
+            Map<String, Object> paramsOmitted = accountParams;
+            if (Boolean.TRUE.equals(stock))
+            {
+                request.put("assetClass", "STOCK");
+            }
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("to", until);
@@ -1552,7 +2433,7 @@ public class Backpack extends BackpackApi
             {
                 request.put("fillType", "User"); // default
             }
-            List<Object> response = (this.privateGetWapiV1HistoryFills(this.extend(request, paramsOmitted))).join();
+            List<Object> response = (this.privateGetWapiV1HistoryFills(this.extend(paramsOmitted, request))).join();
             List<Object> responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -1591,8 +2472,8 @@ public class Backpack extends BackpackApi
         String id = this.safeString2(trade, "id", "tradeId");
         String marketId = this.safeString(trade, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String price = this.safeString(trade, "price");
-        String amount = this.safeString(trade, "quantity");
+        String price = this.safeString2(trade, "fillPrice", "price");
+        String amount = this.safeString2(trade, "fillQuantity", "quantity");
         Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "isBuyerMaker", (Object) null);
         String side = this.parseOrderSide(this.safeString(trade, "side"));
         Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
@@ -1605,7 +2486,7 @@ public class Backpack extends BackpackApi
             takerOrMaker = "taker";
             side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
         }
-        String orderId = this.safeString(trade, "orderId");
+        String orderId = this.safeString2(trade, "orderId", "rfqId");
         Map<String, Object> fee = null;
         String feeAmount = this.safeString(trade, "fee");
         Long timestamp = this.safeInteger(trade, "timestamp");
@@ -1615,30 +2496,37 @@ public class Backpack extends BackpackApi
             String datetime = this.safeString(trade, "timestamp");
             timestamp = this.parse8601(datetime);
         }
+        String filledAt = this.safeString(trade, "filledAt");
+        if (!java.util.Objects.equals(filledAt, null))
+        {
+            timestamp = this.parse8601(filledAt);
+        }
         String feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeSymbol"), (Map<String, Object>) null);
         if (!java.util.Objects.equals(feeAmount, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeAmount,
-                "currency", feeSymbol,
-                "rate", null
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeAmount);
+                hx4NewMap0.put("currency", feeSymbol);
+                hx4NewMap0.put("rate", null);
+                fee = hx4NewMap0;
+            }
         }
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("info", trade);
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("symbol", marketResolved.get("symbol"));
-        mapLiteral5.put("id", id);
-        mapLiteral5.put("order", orderId);
-        mapLiteral5.put("type", null);
-        mapLiteral5.put("side", side);
-        mapLiteral5.put("takerOrMaker", takerOrMaker);
-        mapLiteral5.put("price", price);
-        mapLiteral5.put("amount", amount);
-        mapLiteral5.put("cost", null);
-        mapLiteral5.put("fee", fee);
-        return this.safeTrade(mapLiteral5, marketResolved);
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("info", trade);
+        mapLiteral9.put("timestamp", timestamp);
+        mapLiteral9.put("datetime", this.iso8601(timestamp));
+        mapLiteral9.put("symbol", marketResolved.get("symbol"));
+        mapLiteral9.put("id", id);
+        mapLiteral9.put("order", orderId);
+        mapLiteral9.put("type", null);
+        mapLiteral9.put("side", side);
+        mapLiteral9.put("takerOrMaker", takerOrMaker);
+        mapLiteral9.put("price", price);
+        mapLiteral9.put("amount", amount);
+        mapLiteral9.put("cost", this.safeString2(trade, "fillQuoteQuantity", "quoteQuantity"));
+        mapLiteral9.put("fee", fee);
+        return this.safeTrade(mapLiteral9, marketResolved);
     }
 
     /**
@@ -1667,13 +2555,13 @@ public class Backpack extends BackpackApi
                 throw new ExchangeError((this.id + " fetchStatus() missing status")) ;
             }
             {
-                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
-                h2kMap0.put("status", status.toLowerCase());
-                h2kMap0.put("updated", null);
-                h2kMap0.put("eta", null);
-                h2kMap0.put("url", null);
-                h2kMap0.put("info", response);
-                return h2kMap0;
+                HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+                h2kMap2.put("status", status.toLowerCase());
+                h2kMap2.put("updated", null);
+                h2kMap2.put("eta", null);
+                h2kMap2.put("url", null);
+                h2kMap2.put("info", response);
+                return h2kMap2;
             }
         }).thenApply(Status::new);
 
@@ -1704,9 +2592,10 @@ public class Backpack extends BackpackApi
     /**
      * @method
      * @name backpack#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @description queries the capital account, optionally filtering tokenized stock assets locally
      * @see https://docs.backpack.exchange/#tag/Capital/operation/get_balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] return tokenized stock holdings only, without quote-currency cash
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
@@ -1718,7 +2607,30 @@ public class Backpack extends BackpackApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> response = (this.privateGetApiV1Capital(parameters)).join();
+            List<Object> selection = (List<Object>) this.handleStockParams("fetchBalance", (Map<String, Object>) (parameters), (Map<String, Object>) null);
+            Boolean stock = (Boolean) this.safeBool(selection, 0, false);
+            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> response = (this.privateGetApiV1Capital(query)).join();
+            if (Boolean.TRUE.equals(stock))
+            {
+                Object securities = this.safeList(this.options, "securities", (Object) null);
+                if (java.util.Objects.equals(securities, null))
+                {
+                    securities = (this.fetchSecurities(new HashMap<String, Object>() {{}})).join();
+                }
+                Map<String,Object> securityIds = this.indexBy(securities, "asset");
+                Map<String, Object> balances = new HashMap<String, Object>() {{}};
+                List<String> assetIds = new ArrayList<String>(response.keySet());
+                for (var i = 0; i < ((List<?>)assetIds).size(); i++)
+                {
+                    String assetId = (assetIds == null || i < 0 || i >= assetIds.size() ? null : assetIds.get(i));
+                    if (securityIds.containsKey(assetId))
+                    {
+                        balances.put(assetId, (response == null || assetId == null ? null : response.get(assetId)));
+                    }
+                }
+                return this.parseBalance(balances);
+            }
             return this.parseBalance(response);
         }).thenApply(Balances::new);
 
@@ -1735,7 +2647,7 @@ public class Backpack extends BackpackApi
         //         }
         //     }
         //
-        List<Object> balanceKeys = Helpers.objectKeys(response);
+        List<Object> balanceKeys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)balanceKeys).size(); i++)
         {
@@ -1860,16 +2772,19 @@ public class Backpack extends BackpackApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            List<Object> tagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tag = (String) ((List<Object>) tagparamsWithdrawTagVariable).get(0);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagparamsWithdrawTagVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1884,7 +2799,7 @@ public class Backpack extends BackpackApi
             {
                 request.put("clientId", tag); // memo or tag
             }
-            List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
+            List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (paramsWithdrawTag));
             String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
             Object networkId = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
@@ -1990,34 +2905,36 @@ public class Backpack extends BackpackApi
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", code
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("cost", feeCost);
+                hx4NewMap1.put("currency", code);
+                fee = hx4NewMap1;
+            }
         }
         {
-            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
-            h2kMap1.put("info", transaction);
-            h2kMap1.put("id", id);
-            h2kMap1.put("txid", txid);
-            h2kMap1.put("timestamp", timestamp);
-            h2kMap1.put("datetime", this.iso8601(timestamp));
-            h2kMap1.put("network", network);
-            h2kMap1.put("address", null);
-            h2kMap1.put("addressTo", addressTo);
-            h2kMap1.put("addressFrom", addressFrom);
-            h2kMap1.put("tag", tag);
-            h2kMap1.put("tagTo", null);
-            h2kMap1.put("tagFrom", null);
-            h2kMap1.put("type", null);
-            h2kMap1.put("amount", amount);
-            h2kMap1.put("currency", code);
-            h2kMap1.put("status", status);
-            h2kMap1.put("updated", null);
-            h2kMap1.put("internal", intern);
-            h2kMap1.put("comment", null);
-            h2kMap1.put("fee", fee);
-            return h2kMap1;
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("info", transaction);
+            h2kMap3.put("id", id);
+            h2kMap3.put("txid", txid);
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            h2kMap3.put("network", network);
+            h2kMap3.put("address", null);
+            h2kMap3.put("addressTo", addressTo);
+            h2kMap3.put("addressFrom", addressFrom);
+            h2kMap3.put("tag", tag);
+            h2kMap3.put("tagTo", null);
+            h2kMap3.put("tagFrom", null);
+            h2kMap3.put("type", null);
+            h2kMap3.put("amount", amount);
+            h2kMap3.put("currency", code);
+            h2kMap3.put("status", status);
+            h2kMap3.put("updated", null);
+            h2kMap3.put("internal", intern);
+            h2kMap3.put("comment", null);
+            h2kMap3.put("fee", fee);
+            return h2kMap3;
         }
     }
 
@@ -2093,31 +3010,35 @@ public class Backpack extends BackpackApi
     /**
      * @method
      * @name backpack#createOrder
-     * @description create a trade order
+     * @description creates a venue order or bounded requester RFQ for a tokenized stock
      * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/submit_rfq
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+     * @param {float} amount quantity in base currency, RFQs require base quantity
+     * @param {float} [price] limit price, ignored for venue market orders but an optional execution bound for market RFQs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency (could be used instead of amount)
+     * @param {float} [params.cost] venue market orders only, quote-currency cost instead of amount
+     * @param {boolean} [params.stock] selects tokenized stock spot or RFQ execution; inferred from symbol when omitted
+     * @param {string} [params.executionMode] RFQ only, Immediate (default) or AwaitAccept for manually accepted limit RFQs
+     * @param {int} [params.orderExpiryTime] RFQ only, resting Immediate RFQ expiry in milliseconds
      * @param {int} [params.clientOrderId] a unique id for the order
-     * @param {boolean} [params.postOnly] true to place a post only order
-     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
-     * @param {bool} [params.reduceOnly] *contract only* Indicates if this order is to reduce the size of a position
-     * @param {string} [params.selfTradePrevention] one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
-     * @param {bool} [params.autoLend] *spot margin only* if true then the order can lend
-     * @param {bool} [params.autoLendRedeem] *spot margin only* if true then the order can redeem a lend if required
-     * @param {bool} [params.autoBorrow] *spot margin only* if true then the order can borrow
-     * @param {bool} [params.autoBorrowRepay] *spot margin only* if true then the order can repay a borrow
-     * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
-     * @param {object} [params.takeProfit] *swap markets only - takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+     * @param {boolean} [params.postOnly] venue orders only, true to place a post only order
+     * @param {string} [params.timeInForce] venue orders only, GTC, IOC, FOK or PO
+     * @param {bool} [params.reduceOnly] contracts only, reduces a position
+     * @param {string} [params.selfTradePrevention] venue orders only, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
+     * @param {bool} [params.autoLend] lend if required
+     * @param {bool} [params.autoLendRedeem] redeem a lend if required
+     * @param {bool} [params.autoBorrow] borrow if required
+     * @param {bool} [params.autoBorrowRepay] repay a borrow if required
+     * @param {float} [params.triggerPrice] venue orders only, trigger price
+     * @param {object} [params.takeProfit] swap markets only, attached take profit order
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-     * @param {float} [params.takeProfit.price] take profit order price (if not provided the order will be a market order)
-     * @param {object} [params.stopLoss] *swap markets only - stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+     * @param {float} [params.takeProfit.price] take profit limit price, omitted for a market order
+     * @param {object} [params.stopLoss] swap markets only, attached stop loss order
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-     * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
+     * @param {float} [params.stopLoss.price] stop loss limit price, omitted for a market order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -2130,7 +3051,20 @@ public class Backpack extends BackpackApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            List<Object> selection = (List<Object>) this.handleStockParams("createOrder", (Map<String, Object>) (parameters), market);
+            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> orderParams = this.extend(query, new HashMap<String, Object>() {{
+                put( "stock", Backpack.this.safeBool(selection, 0, false) );
+            }});
+            if (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
+            {
+                Object rfqResponse = (this.createRfqOrder(symbol, (String) (type), (String) (side), amount, price, orderParams)).join();
+                Map<String, Object> rfqOrder = (Map<String, Object>) this.safeDict(new HashMap<String, Object>() {{
+                    put( "order", rfqResponse );
+                }}, "order", (Object) null);
+                return rfqOrder;
+            }
+            Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, orderParams);
             Map<String, Object> response = (this.privatePostApiV1Order(orderRequest)).join();
             return this.parseOrder(response, market);
         }).thenApply(Order::new);
@@ -2138,24 +3072,196 @@ public class Backpack extends BackpackApi
     }
 
     /**
+     * @ignore
+     * @method
+     * @name backpack#createRfqOrder
+     * @description submits a base-quantity RFQ, with explicit market orders using an indicative execution bound
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/submit_rfq
+     * @param {string} symbol unified RFQ market symbol
+     * @param {string} type market or limit
+     * @param {string} side buy or sell
+     * @param {float} amount base quantity
+     * @param {float} [price] required limit price, or optional market execution bound
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {string} [params.executionMode] Immediate (default and required) to enforce the execution price bound
+     * @param {int} [params.orderExpiryTime] exchange-specific resting RFQ expiry in milliseconds
+     * @param {int} [params.clientOrderId] requester client identifier
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public CompletableFuture<Object> createRfqOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> market = this.market(symbol);
+            List<Object> selection = (List<Object>) this.handleStockParams("createRfqOrder", (Map<String, Object>) (parameters), market);
+            Map<String, Object> paramsResolved = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            if (!java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
+            {
+                throw new BadSymbol((this.id + " createRfqOrder() requires an RFQ market")) ;
+            }
+            if ((!java.util.Objects.equals(type, "market")) && (!java.util.Objects.equals(type, "limit")))
+            {
+                throw new InvalidOrder((this.id + " createOrder() RFQs support market or limit orders only")) ;
+            }
+            if ((!java.util.Objects.equals(side, "buy")) && (!java.util.Objects.equals(side, "sell")))
+            {
+                throw new InvalidOrder((this.id + " createOrder() requires buy or sell")) ;
+            }
+            if ((java.util.Objects.equals(amount, null)) || !Precise.stringGt(this.numberToString(amount), "0"))
+            {
+                throw new InvalidOrder((this.id + " createOrder() RFQs require a positive base quantity")) ;
+            }
+            List<String> unsupported = new ArrayList<String>(Arrays.asList("cost", "quoteQuantity", "postOnly", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "reduceOnly", "timeInForce", "selfTradePrevention"));
+            for (var i = 0; i < ((List<?>)unsupported).size(); i++)
+            {
+                String key = (String) (unsupported == null || i < 0 || i >= unsupported.size() ? null : unsupported.get(i));
+                if (paramsResolved.containsKey(key))
+                {
+                    throw new NotSupported(((this.id + " createOrder() RFQs do not support ") + key)) ;
+                }
+            }
+            String executionMode = this.safeString(paramsResolved, "executionMode", "Immediate");
+            if (!java.util.Objects.equals(executionMode, "Immediate"))
+            {
+                throw new NotSupported((this.id + " createOrder() requires Immediate RFQs to enforce the price bound; AwaitAccept has no engine-enforced limit price")) ;
+            }
+            String quantity = this.numberToString(amount);
+            Map<String, Object> precision = (Map<String, Object>) this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
+            if (!java.util.Objects.equals(this.safeNumber(precision, "amount", (Object) null), null))
+            {
+                String preciseQuantity = this.amountToPrecision(symbol, amount);
+                if (!Precise.stringEq(quantity, preciseQuantity))
+                {
+                    throw new InvalidOrder((this.id + " createOrder() RFQ quantity must match the share increment without rounding")) ;
+                }
+            }
+            String limitPrice = this.numberToString(price);
+            if (java.util.Objects.equals(type, "limit"))
+            {
+                if ((java.util.Objects.equals(limitPrice, null)) || !Precise.stringGt(limitPrice, "0"))
+                {
+                    throw new InvalidOrder((this.id + " createOrder() limit RFQs require a positive price")) ;
+                }
+            }
+            if (java.util.Objects.equals(market.get("stock"), true))
+            {
+                Map<String, Object> indicative = (this.fetchStockIndicativeQuote(symbol, (String) (side), amount, new HashMap<String, Object>() {{
+                    put( "stock", false );
+                }})).join();
+                String indicativePrice = this.safeString(indicative, "price");
+                if (!Boolean.TRUE.equals(this.safeBool(indicative, "available", false)) || (java.util.Objects.equals(indicativePrice, null)))
+                {
+                    throw new InvalidOrder(((this.id + " createOrder() stock indicative quote unavailable: ") + this.safeString(indicative, "reason", "priceUnavailable"))) ;
+                }
+                if ((java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(limitPrice, null)))
+                {
+                    limitPrice = indicativePrice;
+                }
+                Map<String, Object> quantityFilter = (Map<String, Object>) this.safeDict(indicative, "quantityFilter", new HashMap<String, Object>() {{}});
+                String stepSize = this.safeString(quantityFilter, "stepSize");
+                String minimum = this.safeString(quantityFilter, "minQuantity");
+                String maximum = this.safeString(quantityFilter, "maxQuantity");
+                if ((java.util.Objects.equals(minimum, null)) || (java.util.Objects.equals(stepSize, null)) || !Precise.stringGt(stepSize, "0"))
+                {
+                    throw new InvalidOrder((this.id + " createOrder() stock indicative quote is missing valid session quantity constraints")) ;
+                }
+                if (((!java.util.Objects.equals(minimum, null)) && Precise.stringLt(quantity, minimum)) || ((!java.util.Objects.equals(maximum, null)) && Precise.stringGt(quantity, maximum)) || ((!java.util.Objects.equals(stepSize, null)) && !Precise.stringEq(Precise.stringMod(quantity, stepSize), "0")))
+                {
+                    throw new InvalidOrder((this.id + " createOrder() quantity does not match the current stock session constraints")) ;
+                }
+            } else if (java.util.Objects.equals(limitPrice, null))
+            {
+                throw new ArgumentsRequired((this.id + " createOrder() crypto market RFQs require an explicit price bound")) ;
+            }
+            if ((!java.util.Objects.equals(limitPrice, null)) && !Precise.stringGt(limitPrice, "0"))
+            {
+                throw new InvalidOrder((this.id + " createOrder() RFQ price must be positive")) ;
+            }
+            if ((!java.util.Objects.equals(this.safeInteger(parameters, "orderExpiryTime"), null)) && (!java.util.Objects.equals(executionMode, "Immediate")))
+            {
+                throw new InvalidOrder((this.id + " createOrder() resting RFQs require Immediate execution")) ;
+            }
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("side", this.encodeOrderSide((String) (side)));
+            request.put("quantity", quantity);
+            request.put("price", limitPrice);
+            request.put("executionMode", executionMode);
+            Long clientOrderId = this.safeInteger(parameters, "clientOrderId");
+            if (!java.util.Objects.equals(clientOrderId, null))
+            {
+                request.put("clientId", clientOrderId);
+            }
+            Map<String, Object> query = this.omit(paramsResolved, "clientOrderId");
+            Map<String, Object> response = (this.privatePostApiV1Rfq(this.extend(query, request))).join();
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
+            Helpers.addElementToObject(order, "type", type);
+            return order;
+        });
+
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#acceptRfqQuote
+     * @description explicitly accepts a selected current best quote, which may bind funds before settlement
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/accept_quote
+     * @param {string} id requester RFQ identifier
+     * @param {string} quoteId selected quote identifier
+     * @param {string} symbol unified RFQ market symbol
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public CompletableFuture<Object> acceptRfqQuote(Object id, Object quoteId, Object symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> market = this.market(symbol);
+            List<Object> selection = (List<Object>) this.handleStockParams("acceptRfqQuote", (Map<String, Object>) (parameters), market);
+            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            if (!java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
+            {
+                throw new BadSymbol((this.id + " acceptRfqQuote() requires an RFQ market")) ;
+            }
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "rfqId", id );
+                put( "quoteId", quoteId );
+            }};
+            Map<String, Object> response = (this.privatePostApiV1RfqAccept(this.extend(query, request))).join();
+            return this.parseOrder(response, market);
+        });
+
+    }
+
+    /**
      * @method
      * @name backpack#createOrders
-     * @description create a list of trade orders
+     * @description creates venue order-book orders, RFQ batches are not supported
      * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order_batch
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     * @param {boolean} [params.stock] selects tokenized stock spot execution for all orders, otherwise inferred per symbol
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            List<Object> selection = (List<Object>) this.handleStockParams("createOrders", (Map<String, Object>) (parameters), (Map<String, Object>) null);
+            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
+            Object stockOption = this.safeValue2(parameters, "stock", "defaultStock");
+            Boolean stock = (Boolean) this.safeBool(selection, 0, false);
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
@@ -2165,7 +3271,13 @@ public class Backpack extends BackpackApi
                 Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+                Map<String, Object> baseParams = new HashMap<String, Object>() {{}};
+                if (Boolean.TRUE.equals(stock) || (java.util.Objects.equals(stockOption, false)))
+                {
+                    baseParams.put("stock", stock);
+                }
+                Map<String, Object> baseQuery = this.extend(baseParams, query);
+                Map<String, Object> extendedParams = this.extend(baseQuery, orderParams);
                 Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
@@ -2175,6 +3287,19 @@ public class Backpack extends BackpackApi
 
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name backpack#createOrderRequest
+     * @description builds a venue order-book request and rejects RFQ batch execution
+     * @param {string} symbol unified market symbol
+     * @param {string} type order type
+     * @param {string} side order side
+     * @param {float} amount base quantity
+     * @param {float} [price] limit price
+     * @param {object} [params] exchange-specific order parameters
+     * @returns {object} venue order payload
+     */
     public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
@@ -2186,11 +3311,17 @@ public class Backpack extends BackpackApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
+        List<Object> selection = (List<Object>) this.handleStockParams("createOrder", (Map<String, Object>) (parameters), market);
+        Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+        if (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
+        {
+            throw new NotSupported((this.id + " createOrders() does not support RFQ batches; use createOrder()")) ;
+        }
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("symbol", market.get("id"));
         request.put("side", this.encodeOrderSide((String) (side)));
         request.put("orderType", this.capitalize(type));
-        String triggerPrice = this.safeString(parameters, "triggerPrice");
+        String triggerPrice = this.safeString(query, "triggerPrice");
         Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
         String quantityKey = "quantity";
         if (Boolean.TRUE.equals(isTriggerOrder))
@@ -2198,14 +3329,13 @@ public class Backpack extends BackpackApi
             quantityKey = "triggerQuantity";
         }
         List<Object> omitKeys = new ArrayList<Object>(Arrays.asList());
-        // handle basic limit/market order types
         if (java.util.Objects.equals(type, "limit"))
         {
             request.put("price", this.priceToPrecision(symbol, price));
             request.put(quantityKey, this.amountToPrecision(symbol, amount));
         } else if (java.util.Objects.equals(type, "market"))
         {
-            String cost = this.safeString2(parameters, "cost", "quoteQuantity");
+            String cost = this.safeString2(query, "cost", "quoteQuantity");
             if (!java.util.Objects.equals(cost, null))
             {
                 request.put("quoteQuantity", this.costToPrecision(symbol, cost));
@@ -2216,19 +3346,18 @@ public class Backpack extends BackpackApi
                 request.put(quantityKey, this.amountToPrecision(symbol, amount));
             }
         }
-        // trigger orders
         if (Boolean.TRUE.equals(isTriggerOrder))
         {
             request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             ((List<Object>)omitKeys).add("triggerPrice");
         }
-        Long clientOrderId = this.safeInteger(parameters, "clientOrderId"); // the exchange requires uint
+        Long clientOrderId = this.safeInteger(query, "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
             request.put("clientId", clientOrderId);
             ((List<Object>)omitKeys).add("clientOrderId");
         }
-        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, Helpers.toMapArg(this.omit(parameters, omitKeys)));
+        List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, this.omit(query, omitKeys));
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         var paramsPostOnly = ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
         if (Boolean.TRUE.equals(postOnly))
@@ -2266,7 +3395,7 @@ public class Backpack extends BackpackApi
             }
             ((List<Object>)bracketKeys).add("stopLoss");
         }
-        io.github.ccxt.base.Pair<String, Map<String, Object>> selfTradePreventionparamsSelfTradePreventionVariable = this.handleOptionStringAndParams((Map<String, Object>) (this.omit(paramsPostOnly, bracketKeys)), "createOrder", "selfTradePrevention", (String) null);
+        Pair<String, Map<String, Object>> selfTradePreventionparamsSelfTradePreventionVariable = this.handleOptionStringAndParams((Map<String, Object>) (this.omit(paramsPostOnly, bracketKeys)), "createOrder", "selfTradePrevention", (String) null);
         String selfTradePrevention = selfTradePreventionparamsSelfTradePreventionVariable.first();
         Map<String, Object> paramsSelfTradePrevention = selfTradePreventionparamsSelfTradePreventionVariable.second();
         if (!java.util.Objects.equals(selfTradePrevention, null))
@@ -2297,12 +3426,16 @@ public class Backpack extends BackpackApi
     /**
      * @method
      * @name backpack#fetchOpenOrders
-     * @description fetch all unfilled currently open orders
+     * @description fetches open venue orders or RFQs with their candidate quotes
      * @see https://docs.backpack.exchange/#tag/Order/operation/get_open_orders
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_open_rfqs
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when provided, otherwise selects both venue/RFQ records
+     * @param {boolean} [params.rfq] selects requester RFQs only, inferred from RFQ symbols
+     * @param {boolean} [params.deferredSettlement] selects deferred or immediate RFQ records
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -2321,8 +3454,32 @@ public class Backpack extends BackpackApi
                 market = this.market(symbol);
                 request.put("symbol", market.get("id"));
             }
-            List<Object> response = (this.privateGetApiV1Orders(this.extend(request, parameters))).join();
-            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
+            List<Object> selection = (List<Object>) this.handleStockParams("fetchOpenOrders", (Map<String, Object>) (parameters), market);
+            Boolean stock = (Boolean) this.safeBool(selection, 0, false);
+            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Boolean rfq = Boolean.TRUE.equals(this.safeBool(query, "rfq", false)) || (java.util.Objects.equals(this.safeString(this.safeDict(market, "info", (Object) null), "marketType"), "RFQ"));
+            if (Boolean.TRUE.equals(rfq) && (!java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ")))
+            {
+                throw new BadSymbol((this.id + " fetchOpenOrders() rfq requires an RFQ market symbol")) ;
+            }
+            Map<String, Object> accountParams = this.omit(query, "rfq");
+            List<Object> response = new ArrayList<Object>(Arrays.asList());
+            if (!Boolean.TRUE.equals(rfq))
+            {
+                Map<String, Object> venueParams = this.omit(accountParams, new ArrayList<Object>(Arrays.asList("rfqId", "deferredSettlement")));
+                response = (this.privateGetApiV1Orders(this.extend(request, venueParams))).join();
+            }
+            if (Boolean.TRUE.equals(rfq) || (Boolean.TRUE.equals(stock) && (java.util.Objects.equals(market, null))))
+            {
+                List<Object> rfqResponse = (this.privateGetApiV1Rfqs(this.extend(request, this.omit(accountParams, "marketType")))).join();
+                response = (List<Object>) this.arrayConcat(response, rfqResponse);
+            }
+            List<Object> orders = this.parseOrders(response, market, since, (Long) null, new HashMap<String, Object>() {{}});
+            if (Boolean.TRUE.equals(stock))
+            {
+                orders = (List<Object>) this.filterStockStructures(orders);
+            }
+            return this.filterBySinceLimit(this.sortBy(orders, "timestamp"), since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2330,11 +3487,13 @@ public class Backpack extends BackpackApi
     /**
      * @method
      * @name backpack#fetchOpenOrder
-     * @description fetch an open order by it's id
+     * @description fetches an open venue order or requester RFQ by identifier
      * @see https://docs.backpack.exchange/#tag/Order/operation/get_order
-     * @param {string} id order id
-     * @param {string} symbol not used by fetchOpenOrder ()
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_open_rfqs
+     * @param {string} id order or requester RFQ identifier
+     * @param {string} symbol unified market symbol, required
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<Object> fetchOpenOrder(String id, String symbol, Map<String, Object> parameters)
@@ -2351,25 +3510,107 @@ public class Backpack extends BackpackApi
                 throw new ArgumentsRequired((this.id + " fetchOpenOrder() requires a symbol argument")) ;
             }
             Map<String, Object> market = this.market(symbol);
+            List<Object> selection = (List<Object>) this.handleStockParams("fetchOpenOrder", (Map<String, Object>) (parameters), market);
+            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            if (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
+            {
+                List<Object> rfqResponse = (this.privateGetApiV1Rfqs(this.extend(query, new HashMap<String, Object>() {{
+                    put( "symbol", market.get("id") );
+                    put( "rfqId", id );
+                }}))).join();
+                for (var i = 0; i < ((List<?>)rfqResponse).size(); i++)
+                {
+                    Map<String, Object> order = (Map<String, Object>) this.parseOrder((rfqResponse == null || i < 0 || i >= rfqResponse.size() ? null : rfqResponse.get(i)), market);
+                    if (java.util.Objects.equals(order.get("id"), id))
+                    {
+                        return order;
+                    }
+                }
+                throw new OrderNotFound((((this.id + " fetchOpenOrder() RFQ ") + id) + " not found")) ;
+            }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
                 put( "orderId", id );
             }};
-            Map<String, Object> response = (this.privateGetApiV1Order(this.extend(request, parameters))).join();
-            return this.parseOrder(response, (Map<String, Object>) null);
+            Map<String, Object> response = (this.privateGetApiV1Order(this.extend(request, query))).join();
+            return this.parseOrder(response, market);
         });
 
     }
 
     /**
      * @method
+     * @name backpack#fetchOrder
+     * @description fetches an order from filtered history with an open-order fallback
+     * @see https://docs.backpack.exchange/#tag/History
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_rfq_history
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_open_rfqs
+     * @param {string} id order or requester RFQ identifier
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(symbol, null))
+            {
+                throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
+            }
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> market = this.market(symbol);
+            List<Object> selection = (List<Object>) this.handleStockParams("fetchOrder", (Map<String, Object>) (parameters), market);
+            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Boolean rfq = java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ");
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "symbol", market.get("id") );
+            }};
+            if (Boolean.TRUE.equals(rfq))
+            {
+                request.put("rfqId", id);
+            } else
+            {
+                request.put("orderId", id);
+            }
+            List<Object> response = new ArrayList<Object>(Arrays.asList());
+            if (Boolean.TRUE.equals(rfq))
+            {
+                response = (this.privateGetWapiV1HistoryRfq(this.extend(query, request))).join();
+            } else
+            {
+                response = (this.privateGetWapiV1HistoryOrders(this.extend(query, request))).join();
+            }
+            for (var i = 0; i < ((List<?>)response).size(); i++)
+            {
+                Map<String, Object> order = (Map<String, Object>) this.parseOrder((response == null || i < 0 || i >= response.size() ? null : response.get(i)), market);
+                if (java.util.Objects.equals(order.get("id"), id))
+                {
+                    return order;
+                }
+            }
+            Map<String, Object> openOrderParams = this.extend(query, new HashMap<String, Object>() {{
+                put( "stock", Backpack.this.safeBool(selection, 0, false) );
+            }});
+            return (this.fetchOpenOrder(((String)id), symbol, openOrderParams)).join();
+        }).thenApply(Order::new);
+
+    }
+
+    /**
+     * @method
      * @name backpack#cancelOrder
-     * @description cancels an open order
+     * @description cancels a venue order or requests RFQ cancellation without assuming immediate cancellation
      * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_order
-     * @param {string} id order id
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/cancel_rfq
+     * @param {string} id order or requester RFQ identifier
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
+     * @param {int} [params.clientOrderId] RFQ client identifier instead of id
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
@@ -2385,12 +3626,28 @@ public class Backpack extends BackpackApi
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
             Map<String, Object> market = this.market(symbol);
+            List<Object> selection = (List<Object>) this.handleStockParams("cancelOrder", (Map<String, Object>) (parameters), market);
+            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            if (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
+            {
+                Long clientOrderId = this.safeInteger(query, "clientOrderId");
+                Map<String, Object> rfqRequest = new HashMap<String, Object>() {{}};
+                if (java.util.Objects.equals(clientOrderId, null))
+                {
+                    rfqRequest.put("rfqId", id);
+                } else
+                {
+                    rfqRequest.put("clientId", clientOrderId);
+                }
+                Map<String, Object> rfqResponse = (this.privatePostApiV1RfqCancel(this.extend(this.omit(query, "clientOrderId"), rfqRequest))).join();
+                return this.parseOrder(rfqResponse, market);
+            }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
                 put( "symbol", market.get("id") );
             }};
-            Map<String, Object> response = (this.privateDeleteApiV1Order(this.extend(request, parameters))).join();
-            return this.parseOrder(response, (Map<String, Object>) null);
+            Map<String, Object> response = (this.privateDeleteApiV1Order(this.extend(request, query))).join();
+            return this.parseOrder(response, market);
         }).thenApply(Order::new);
 
     }
@@ -2398,10 +3655,12 @@ public class Backpack extends BackpackApi
     /**
      * @method
      * @name backpack#cancelAllOrders
-     * @description cancel all open orders
+     * @description cancels venue orders, bulk RFQ cancellation is not supported
      * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_open_orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @see https://docs.backpack.exchange/#tag/RFQ
+     * @param {string} symbol unified market symbol, required
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
@@ -2415,13 +3674,19 @@ public class Backpack extends BackpackApi
             }
             if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
             }
             Map<String, Object> market = this.market(symbol);
+            List<Object> selection = (List<Object>) this.handleStockParams("cancelAllOrders", (Map<String, Object>) (parameters), market);
+            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            if (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
+            {
+                throw new NotSupported((this.id + " cancelAllOrders() does not support RFQs; cancel each RFQ explicitly with cancelOrder()")) ;
+            }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            List<Object> response = (this.privateDeleteApiV1Orders(this.extend(request, parameters))).join();
+            List<Object> response = (this.privateDeleteApiV1Orders(this.extend(request, query))).join();
             return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2430,12 +3695,18 @@ public class Backpack extends BackpackApi
     /**
      * @method
      * @name backpack#fetchOrders
-     * @description fetches information on multiple orders made by the user
+     * @description fetches venue or requester RFQ order history
      * @see https://docs.backpack.exchange/#tag/History/operation/get_order_history
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_rfq_history
      * @param {string} [symbol] unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [since] the earliest time in ms to fetch orders for, locally filtered on retrieved pages
      * @param {int} [limit] the maximum number of order structures to retrieve (default 100, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when provided, otherwise selects both venue/RFQ records
+     * @param {boolean} [params.rfq] selects requester RFQ history only, inferred from RFQ symbols
+     * @param {int} [params.offset] exchange history pagination offset
+     * @param {string} [params.sortDirection] Asc or Desc
+     * @param {boolean} [params.deferredSettlement] selects deferred or immediate RFQ history
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -2458,14 +3729,45 @@ public class Backpack extends BackpackApi
             {
                 request.put("limit", limit);
             }
-            List<Object> response = (this.privateGetWapiV1HistoryOrders(this.extend(request, parameters))).join();
-            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
+            List<Object> selection = (List<Object>) this.handleStockParams("fetchOrders", (Map<String, Object>) (parameters), market);
+            Boolean stock = (Boolean) this.safeBool(selection, 0, false);
+            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Boolean rfq = Boolean.TRUE.equals(this.safeBool(query, "rfq", false)) || (java.util.Objects.equals(this.safeString(this.safeDict(market, "info", (Object) null), "marketType"), "RFQ"));
+            if (Boolean.TRUE.equals(rfq) && (!java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ")))
+            {
+                throw new BadSymbol((this.id + " fetchOrders() rfq requires an RFQ market symbol")) ;
+            }
+            Map<String, Object> accountParams = this.omit(query, "rfq");
+            List<Object> response = new ArrayList<Object>(Arrays.asList());
+            if (!Boolean.TRUE.equals(rfq))
+            {
+                Map<String, Object> venueParams = this.omit(accountParams, new ArrayList<Object>(Arrays.asList("rfqId", "status", "side", "deferredSettlement")));
+                response = (this.privateGetWapiV1HistoryOrders(this.extend(request, venueParams))).join();
+            }
+            if (Boolean.TRUE.equals(rfq) || (Boolean.TRUE.equals(stock) && (java.util.Objects.equals(market, null))))
+            {
+                List<Object> rfqResponse = (this.privateGetWapiV1HistoryRfq(this.extend(request, this.omit(accountParams, "marketType")))).join();
+                response = (List<Object>) this.arrayConcat(response, rfqResponse);
+            }
+            List<Object> orders = this.parseOrders(response, market, since, (Long) null, new HashMap<String, Object>() {{}});
+            if (Boolean.TRUE.equals(stock))
+            {
+                orders = (List<Object>) this.filterStockStructures(orders);
+            }
+            return this.filterBySinceLimit(this.sortBy(orders, "timestamp"), since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
     public Order parseOrder(Object order, Map<String, Object> market)
     {
+        Map<String, Object> rfq = (Map<String, Object>) this.safeDict(order, "rfq", (Object) null);
+        if (!java.util.Objects.equals(rfq, null))
+        {
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(rfq, market);
+            Helpers.addElementToObject(parsed, "info", order);
+            return (Order) parsed;
+        }
         //
         //     {
         //         "clientId": null,
@@ -2517,6 +3819,7 @@ public class Backpack extends BackpackApi
         //         "stopLossTriggerPrice": null,
         //         "strategyId": null,
         //         "symbol": "ETH_USDC",
+        //         "systemOrderType": null,
         //         "takeProfitLimitPrice": null,
         //         "takeProfitTriggerBy": null,
         //         "takeProfitTriggerPrice": null,
@@ -2564,10 +3867,16 @@ public class Backpack extends BackpackApi
         {
             timestamp = timestamp2;
         }
-        String id = this.safeString(order, "id");
+        String id = this.safeString2(order, "id", "rfqId");
         String clientOrderId = this.safeString(order, "clientId");
-        String symbol = this.safeSymbol(this.safeString(order, "symbol"), market, (String) null, (String) null);
+        String marketId = this.safeString(order, "symbol");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        String symbol = this.safeSymbol(marketId, marketResolved, (String) null, (String) null);
         String type = this.safeStringLower(order, "orderType");
+        if ((java.util.Objects.equals(type, null)) && (!java.util.Objects.equals(this.safeString(order, "rfqId"), null)) && (!java.util.Objects.equals(this.safeString(order, "price"), null)))
+        {
+            type = "limit";
+        }
         String timeInForce = this.safeString(order, "timeInForce");
         String side = this.parseOrderSide(this.safeString(order, "side"));
         String amount = this.safeString2(order, "quantity", "triggerQuantity");
@@ -2580,32 +3889,32 @@ public class Backpack extends BackpackApi
         Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", (Object) null);
         String stopLossPrice = this.safeString2(order, "stopLossLimitPrice", "stopLossTriggerPrice");
         String takeProfitPrice = this.safeString2(order, "takeProfitLimitPrice", "takeProfitTriggerPrice");
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("info", order);
-        mapLiteral6.put("id", id);
-        mapLiteral6.put("clientOrderId", clientOrderId);
-        mapLiteral6.put("timestamp", timestamp);
-        mapLiteral6.put("datetime", this.iso8601(timestamp));
-        mapLiteral6.put("lastTradeTimestamp", null);
-        mapLiteral6.put("symbol", symbol);
-        mapLiteral6.put("type", type);
-        mapLiteral6.put("timeInForce", timeInForce);
-        mapLiteral6.put("postOnly", postOnly);
-        mapLiteral6.put("reduceOnly", reduceOnly);
-        mapLiteral6.put("side", side);
-        mapLiteral6.put("price", price);
-        mapLiteral6.put("triggerPrice", triggerPrice);
-        mapLiteral6.put("stopLossPrice", stopLossPrice);
-        mapLiteral6.put("takeProfitPrice", takeProfitPrice);
-        mapLiteral6.put("amount", amount);
-        mapLiteral6.put("cost", cost);
-        mapLiteral6.put("average", null);
-        mapLiteral6.put("filled", filled);
-        mapLiteral6.put("remaining", null);
-        mapLiteral6.put("status", status);
-        mapLiteral6.put("fee", null);
-        mapLiteral6.put("trades", null);
-        return this.safeOrder(mapLiteral6, market);
+        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+        mapLiteral10.put("info", order);
+        mapLiteral10.put("id", id);
+        mapLiteral10.put("clientOrderId", clientOrderId);
+        mapLiteral10.put("timestamp", timestamp);
+        mapLiteral10.put("datetime", this.iso8601(timestamp));
+        mapLiteral10.put("lastTradeTimestamp", null);
+        mapLiteral10.put("symbol", symbol);
+        mapLiteral10.put("type", type);
+        mapLiteral10.put("timeInForce", timeInForce);
+        mapLiteral10.put("postOnly", postOnly);
+        mapLiteral10.put("reduceOnly", reduceOnly);
+        mapLiteral10.put("side", side);
+        mapLiteral10.put("price", price);
+        mapLiteral10.put("triggerPrice", triggerPrice);
+        mapLiteral10.put("stopLossPrice", stopLossPrice);
+        mapLiteral10.put("takeProfitPrice", takeProfitPrice);
+        mapLiteral10.put("amount", amount);
+        mapLiteral10.put("cost", cost);
+        mapLiteral10.put("average", null);
+        mapLiteral10.put("filled", filled);
+        mapLiteral10.put("remaining", null);
+        mapLiteral10.put("status", status);
+        mapLiteral10.put("fee", null);
+        mapLiteral10.put("trades", null);
+        return this.safeOrder(mapLiteral10, marketResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -2634,7 +3943,7 @@ public class Backpack extends BackpackApi
     /**
      * @method
      * @name backpack#fetchPositions
-     * @description fetch all open positions
+     * @description fetches derivative positions
      * @see https://docs.backpack.exchange/#tag/Futures/operation/get_positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2650,13 +3959,12 @@ public class Backpack extends BackpackApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<Object> response = (this.privateGetApiV1Position(parameters)).join();
-            Object positions = this.parsePositions(response, (List<String>) null, new HashMap<String, Object>() {{}});
             if (this.isEmpty(symbols))
             {
-                return positions;
+                return this.parsePositions(response, (List<String>) null, new HashMap<String, Object>() {{}});
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            return this.filterByArrayPositions(positions, "symbol", symbolsNormalized);
+            return this.parsePositions(response, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -2696,7 +4004,6 @@ public class Backpack extends BackpackApi
         //         "userId":1813870
         //     }
         //
-        //
         String id = this.safeString(position, "positionId");
         String marketId = this.safeString(position, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -2718,36 +4025,36 @@ public class Backpack extends BackpackApi
         String unrealizedPnl = this.safeString(position, "pnlUnrealized");
         String realizedPnl = this.safeString(position, "pnlRealized");
         String liquidationPrice = this.safeString(position, "estLiquidationPrice");
-        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-        mapLiteral7.put("info", position);
-        mapLiteral7.put("id", id);
-        mapLiteral7.put("symbol", symbol);
-        mapLiteral7.put("timestamp", this.parse8601(this.safeString(position, "timestamp")));
-        mapLiteral7.put("datetime", this.iso8601(this.parse8601(this.safeString(position, "timestamp"))));
-        mapLiteral7.put("lastUpdateTimestamp", null);
-        mapLiteral7.put("hedged", hedged);
-        mapLiteral7.put("side", side);
-        mapLiteral7.put("contracts", this.safeString(position, "netExposureQuantity"));
-        mapLiteral7.put("contractSize", null);
-        mapLiteral7.put("entryPrice", entryPrice);
-        mapLiteral7.put("markPrice", markPrice);
-        mapLiteral7.put("lastPrice", null);
-        mapLiteral7.put("notional", Precise.stringAbs(netCost));
-        mapLiteral7.put("leverage", null);
-        mapLiteral7.put("collateral", null);
-        mapLiteral7.put("initialMargin", null);
-        mapLiteral7.put("initialMarginPercentage", this.safeString(position, "imf"));
-        mapLiteral7.put("maintenanceMargin", null);
-        mapLiteral7.put("maintenanceMarginPercentage", this.safeString(position, "mmf"));
-        mapLiteral7.put("realizedPnl", realizedPnl);
-        mapLiteral7.put("unrealizedPnl", unrealizedPnl);
-        mapLiteral7.put("liquidationPrice", liquidationPrice);
-        mapLiteral7.put("marginMode", null);
-        mapLiteral7.put("marginRatio", null);
-        mapLiteral7.put("percentage", null);
-        mapLiteral7.put("stopLossPrice", null);
-        mapLiteral7.put("takeProfitPrice", null);
-        return this.safePosition(mapLiteral7);
+        HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+        mapLiteral11.put("info", position);
+        mapLiteral11.put("id", id);
+        mapLiteral11.put("symbol", symbol);
+        mapLiteral11.put("timestamp", this.parse8601(this.safeString(position, "timestamp")));
+        mapLiteral11.put("datetime", this.iso8601(this.parse8601(this.safeString(position, "timestamp"))));
+        mapLiteral11.put("lastUpdateTimestamp", null);
+        mapLiteral11.put("hedged", hedged);
+        mapLiteral11.put("side", side);
+        mapLiteral11.put("contracts", this.safeString(position, "netExposureQuantity"));
+        mapLiteral11.put("contractSize", null);
+        mapLiteral11.put("entryPrice", entryPrice);
+        mapLiteral11.put("markPrice", markPrice);
+        mapLiteral11.put("lastPrice", null);
+        mapLiteral11.put("notional", Precise.stringAbs(netCost));
+        mapLiteral11.put("leverage", null);
+        mapLiteral11.put("collateral", null);
+        mapLiteral11.put("initialMargin", null);
+        mapLiteral11.put("initialMarginPercentage", this.safeString(position, "imf"));
+        mapLiteral11.put("maintenanceMargin", null);
+        mapLiteral11.put("maintenanceMarginPercentage", this.safeString(position, "mmf"));
+        mapLiteral11.put("realizedPnl", realizedPnl);
+        mapLiteral11.put("unrealizedPnl", unrealizedPnl);
+        mapLiteral11.put("liquidationPrice", liquidationPrice);
+        mapLiteral11.put("marginMode", null);
+        mapLiteral11.put("marginRatio", null);
+        mapLiteral11.put("percentage", null);
+        mapLiteral11.put("stopLossPrice", null);
+        mapLiteral11.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral11);
     }
 
     /**
@@ -2828,19 +4135,20 @@ public class Backpack extends BackpackApi
         return (this.milliseconds() - timeDifference);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String endpoint = ("/" + path);
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object url = apiUrl;
-        Object sortedParams = (((parameters instanceof List))) ? parameters : this.keysort(parameters);
+        Object requestParams = (((parameters instanceof List))) ? parameters : this.omit(parameters, new ArrayList<Object>(Arrays.asList("stock", "defaultStock", "rfq", "callerMethodName")));
+        Object sortedParams = (((requestParams instanceof List))) ? requestParams : this.keysort(requestParams);
         Map<String, Object> headersSigned = null;
         String bodySigned = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String ts = String.valueOf(this.nonce());
@@ -2879,39 +4187,39 @@ public class Backpack extends BackpackApi
         }
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            String query = this.urlencode(sortedParams);
+            String query = this.urlencodeWithArrayRepeat(sortedParams);
             if ((query.length() != 0))
             {
                 endpoint = (endpoint + ("?" + query));
             }
         }
-        url = (url + endpoint);
-        Object headersResolved = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))) ? headersSigned : headers;
-        String bodyResolved = body;
-        if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))
+        String url = (apiUrl + endpoint);
+        Map<String, Object> headersResolved = (((java.util.Objects.equals(apiName, "private")))) ? headersSigned : null;
+        String bodyResolved = null;
+        if ((java.util.Objects.equals(apiName, "private")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))
         {
             bodyResolved = bodySigned;
         }
         {
-            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
-            h2kMap2.put("url", url);
-            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap2.put("body", bodyResolved);
-            h2kMap2.put("headers", headersResolved);
-            return h2kMap2;
+            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+            h2kMap4.put("url", url);
+            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap4.put("body", bodyResolved);
+            h2kMap4.put("headers", headersResolved);
+            return h2kMap4;
         }
     }
 
     public String generateBatchPayload(Object parameters, Object ts, Object recvWindow, Object instruction)
     {
         String payload = "";
-        for (var i = 0; i < Helpers.getArrayLength(parameters); i++)
+        for (var i = 0; i < (switch ((Object)(parameters)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
         {
             Map<String, Object> order = (Map<String, Object>) this.safeDict(parameters, i, new HashMap<String, Object>() {{}});
             Map<String,Object> sortedOrder = this.keysort(order);
             String orderQuery = this.urlencode(sortedOrder);
             payload = (payload + (((("instruction=" + instruction) + "&") + orderQuery) + "&"));
-            if (Helpers.isEqual(i, (Helpers.subtract(Helpers.getArrayLength(parameters), 1))))
+            if (Helpers.isEqual(i, ((((switch ((Object)(parameters)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; })) - 1L))))
             {
                 payload = (payload + ((("timestamp=" + ts) + "&window=") + recvWindow));
             }

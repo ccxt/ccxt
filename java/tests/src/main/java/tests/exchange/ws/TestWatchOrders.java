@@ -43,7 +43,7 @@ public class TestWatchOrders extends BaseTest {
                 // continue;
                 success = false;
             }
-            if (java.util.Objects.equals(success, true))
+            if (Boolean.TRUE.equals(success))
             {
                 if (java.util.Objects.equals(response, null))
                 {

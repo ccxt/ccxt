@@ -18,25 +18,11 @@ public partial class derive : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetGetAllCurrencies",parameters);
     }
 
-    /// <summary>Calls the publicPostBuildRegisterSessionKeyTx endpoint.</summary>
+    /// <summary>Calls the publicPostDecodeAction endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostBuildRegisterSessionKeyTx (object parameters = null)
+    public async Task<Dictionary<string, object>> publicPostDecodeAction (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostBuildRegisterSessionKeyTx",parameters);
-    }
-
-    /// <summary>Calls the publicPostRegisterSessionKey endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostRegisterSessionKey (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostRegisterSessionKey",parameters);
-    }
-
-    /// <summary>Calls the publicPostDeregisterSessionKey endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostDeregisterSessionKey (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostDeregisterSessionKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicPostDecodeAction",parameters);
     }
 
     /// <summary>Calls the publicPostGetWalletsFromSessionKey endpoint.</summary>
@@ -44,41 +30,6 @@ public partial class derive : Exchange
     public async Task<Dictionary<string, object>> publicPostGetWalletsFromSessionKey (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("publicPostGetWalletsFromSessionKey",parameters);
-    }
-
-    /// <summary>Calls the publicPostLogin endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostLogin (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostLogin",parameters);
-    }
-
-    /// <summary>Calls the publicPostStatistics endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostStatistics (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostStatistics",parameters);
-    }
-
-    /// <summary>Calls the publicPostAllStatistics endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostAllStatistics (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostAllStatistics",parameters);
-    }
-
-    /// <summary>Calls the publicPostUserStatistics endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostUserStatistics (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostUserStatistics",parameters);
-    }
-
-    /// <summary>Calls the publicPostAllUserStatistics endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostAllUserStatistics (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostAllUserStatistics",parameters);
     }
 
     /// <summary>Calls the publicPostGetAllCurrencies endpoint.</summary>
@@ -95,18 +46,11 @@ public partial class derive : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicPostGetCurrency",parameters);
     }
 
-    /// <summary>Calls the publicPostGetAsset endpoint.</summary>
+    /// <summary>Calls the publicPostGetRiskUniverses endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetAsset (object parameters = null)
+    public async Task<Dictionary<string, object>> publicPostGetRiskUniverses (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetAsset",parameters);
-    }
-
-    /// <summary>Calls the publicPostGetAssets endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetAssets (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetAssets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicPostGetRiskUniverses",parameters);
     }
 
     /// <summary>Calls the publicPostGetInstrument endpoint.</summary>
@@ -123,11 +67,11 @@ public partial class derive : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicPostGetAllInstruments",parameters);
     }
 
-    /// <summary>Calls the publicPostGetInstruments endpoint.</summary>
+    /// <summary>Calls the publicPostGetAllLiveInstruments endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetInstruments (object parameters = null)
+    public async Task<Dictionary<string, object>> publicPostGetAllLiveInstruments (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetInstruments",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicPostGetAllLiveInstruments",parameters);
     }
 
     /// <summary>Calls the publicPostGetTicker endpoint.</summary>
@@ -158,20 +102,6 @@ public partial class derive : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicPostGetOptionSettlementPrices",parameters);
     }
 
-    /// <summary>Calls the publicPostGetSpotFeedHistory endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetSpotFeedHistory (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetSpotFeedHistory",parameters);
-    }
-
-    /// <summary>Calls the publicPostGetSpotFeedHistoryCandles endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetSpotFeedHistoryCandles (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetSpotFeedHistoryCandles",parameters);
-    }
-
     /// <summary>Calls the publicPostGetIndexChartData endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicPostGetIndexChartData (object parameters = null)
@@ -200,13 +130,6 @@ public partial class derive : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicPostGetTradeHistory",parameters);
     }
 
-    /// <summary>Calls the publicPostGetOptionSettlementHistory endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetOptionSettlementHistory (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetOptionSettlementHistory",parameters);
-    }
-
     /// <summary>Calls the publicPostGetLiquidationHistory endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicPostGetLiquidationHistory (object parameters = null)
@@ -221,18 +144,32 @@ public partial class derive : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicPostGetInterestRateHistory",parameters);
     }
 
-    /// <summary>Calls the publicPostGetPerpImpactTwap endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetPerpImpactTwap (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetPerpImpactTwap",parameters);
-    }
-
     /// <summary>Calls the publicPostGetTransaction endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicPostGetTransaction (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("publicPostGetTransaction",parameters);
+    }
+
+    /// <summary>Calls the publicPostGetOnchainActionHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicPostGetOnchainActionHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicPostGetOnchainActionHistory",parameters);
+    }
+
+    /// <summary>Calls the publicPostGetPendingDeposits endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicPostGetPendingDeposits (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicPostGetPendingDeposits",parameters);
+    }
+
+    /// <summary>Calls the publicPostRegisterDepositAddress endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicPostRegisterDepositAddress (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicPostRegisterDepositAddress",parameters);
     }
 
     /// <summary>Calls the publicPostGetMargin endpoint.</summary>
@@ -256,158 +193,53 @@ public partial class derive : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicPostOrderQuote",parameters);
     }
 
-    /// <summary>Calls the publicPostValidateInviteCode endpoint.</summary>
+    /// <summary>Calls the publicPostGetLiveAuctions endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostValidateInviteCode (object parameters = null)
+    public async Task<Dictionary<string, object>> publicPostGetLiveAuctions (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostValidateInviteCode",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicPostGetLiveAuctions",parameters);
     }
 
-    /// <summary>Calls the publicPostGetPoints endpoint.</summary>
+    /// <summary>Calls the publicPostStartAuction endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetPoints (object parameters = null)
+    public async Task<Dictionary<string, object>> publicPostStartAuction (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetPoints",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicPostStartAuction",parameters);
     }
 
-    /// <summary>Calls the publicPostGetAllPoints endpoint.</summary>
+    /// <summary>Calls the publicPostGetVault endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetAllPoints (object parameters = null)
+    public async Task<Dictionary<string, object>> publicPostGetVault (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetAllPoints",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicPostGetVault",parameters);
     }
 
-    /// <summary>Calls the publicPostGetPointsLeaderboard endpoint.</summary>
+    /// <summary>Calls the publicPostGetVaults endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetPointsLeaderboard (object parameters = null)
+    public async Task<Dictionary<string, object>> publicPostGetVaults (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetPointsLeaderboard",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicPostGetVaults",parameters);
     }
 
-    /// <summary>Calls the publicPostGetDescendantTree endpoint.</summary>
+    /// <summary>Calls the publicPostGetVaultActionHistory endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetDescendantTree (object parameters = null)
+    public async Task<Dictionary<string, object>> publicPostGetVaultActionHistory (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetDescendantTree",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicPostGetVaultActionHistory",parameters);
     }
 
-    /// <summary>Calls the publicPostGetTreeRoots endpoint.</summary>
+    /// <summary>Calls the publicPostGetVaultPerformanceHistory endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetTreeRoots (object parameters = null)
+    public async Task<Dictionary<string, object>> publicPostGetVaultPerformanceHistory (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetTreeRoots",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicPostGetVaultPerformanceHistory",parameters);
     }
 
-    /// <summary>Calls the publicPostGetSwellPercentPoints endpoint.</summary>
+    /// <summary>Calls the publicPostSetSocializationFeedData endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetSwellPercentPoints (object parameters = null)
+    public async Task<Dictionary<string, object>> publicPostSetSocializationFeedData (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetSwellPercentPoints",parameters);
-    }
-
-    /// <summary>Calls the publicPostGetStdrvSnapshots endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetStdrvSnapshots (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetStdrvSnapshots",parameters);
-    }
-
-    /// <summary>Calls the publicPostGetVaultAssets endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetVaultAssets (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetVaultAssets",parameters);
-    }
-
-    /// <summary>Calls the publicPostGetEtherfiEffectiveBalances endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetEtherfiEffectiveBalances (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetEtherfiEffectiveBalances",parameters);
-    }
-
-    /// <summary>Calls the publicPostGetKelpEffectiveBalances endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetKelpEffectiveBalances (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetKelpEffectiveBalances",parameters);
-    }
-
-    /// <summary>Calls the publicPostGetBridgeBalances endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetBridgeBalances (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetBridgeBalances",parameters);
-    }
-
-    /// <summary>Calls the publicPostGetEthenaParticipants endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetEthenaParticipants (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetEthenaParticipants",parameters);
-    }
-
-    /// <summary>Calls the publicPostGetVaultShare endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetVaultShare (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetVaultShare",parameters);
-    }
-
-    /// <summary>Calls the publicPostGetVaultStatistics endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetVaultStatistics (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetVaultStatistics",parameters);
-    }
-
-    /// <summary>Calls the publicPostGetVaultBalances endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetVaultBalances (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetVaultBalances",parameters);
-    }
-
-    /// <summary>Calls the publicPostGetVaultPools endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetVaultPools (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetVaultPools",parameters);
-    }
-
-    /// <summary>Calls the publicPostGetVaultRates endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetVaultRates (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetVaultRates",parameters);
-    }
-
-    /// <summary>Calls the publicPostEstimateIntegratorPoints endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostEstimateIntegratorPoints (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostEstimateIntegratorPoints",parameters);
-    }
-
-    /// <summary>Calls the publicPostCreateSubaccountDebug endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostCreateSubaccountDebug (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostCreateSubaccountDebug",parameters);
-    }
-
-    /// <summary>Calls the publicPostCreateAccountWithSecret endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostCreateAccountWithSecret (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostCreateAccountWithSecret",parameters);
-    }
-
-    /// <summary>Calls the publicPostDepositDebug endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostDepositDebug (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostDepositDebug",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicPostSetSocializationFeedData",parameters);
     }
 
     /// <summary>Calls the publicPostWithdrawDebug endpoint.</summary>
@@ -429,20 +261,6 @@ public partial class derive : Exchange
     public async Task<Dictionary<string, object>> publicPostExecuteQuoteDebug (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("publicPostExecuteQuoteDebug",parameters);
-    }
-
-    /// <summary>Calls the publicPostGetInviteCode endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetInviteCode (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetInviteCode",parameters);
-    }
-
-    /// <summary>Calls the publicPostRegisterInvite endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostRegisterInvite (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostRegisterInvite",parameters);
     }
 
     /// <summary>Calls the publicPostGetAllReferralCodes endpoint.</summary>
@@ -487,32 +305,11 @@ public partial class derive : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicPostGetMakerProgramScores",parameters);
     }
 
-    /// <summary>Calls the publicPostGetDetailedMakerSnapshotHistory endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetDetailedMakerSnapshotHistory (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetDetailedMakerSnapshotHistory",parameters);
-    }
-
-    /// <summary>Calls the publicPostGetRateLimits endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> publicPostGetRateLimits (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("publicPostGetRateLimits",parameters);
-    }
-
     /// <summary>Calls the privatePostGetAccount endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostGetAccount (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostGetAccount",parameters);
-    }
-
-    /// <summary>Calls the privatePostCreateSubaccount endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostCreateSubaccount (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostCreateSubaccount",parameters);
     }
 
     /// <summary>Calls the privatePostGetSubaccount endpoint.</summary>
@@ -529,6 +326,13 @@ public partial class derive : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostGetSubaccounts",parameters);
     }
 
+    /// <summary>Calls the privatePostDeleteSubaccount endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostDeleteSubaccount (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostDeleteSubaccount",parameters);
+    }
+
     /// <summary>Calls the privatePostGetAllPortfolios endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostGetAllPortfolios (object parameters = null)
@@ -543,34 +347,6 @@ public partial class derive : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostChangeSubaccountLabel",parameters);
     }
 
-    /// <summary>Calls the privatePostGetNotificationsv endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostGetNotificationsv (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostGetNotificationsv",parameters);
-    }
-
-    /// <summary>Calls the privatePostGetNotifications endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostGetNotifications (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostGetNotifications",parameters);
-    }
-
-    /// <summary>Calls the privatePostUpdateNotifications endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostUpdateNotifications (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostUpdateNotifications",parameters);
-    }
-
-    /// <summary>Calls the privatePostDeposit endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostDeposit (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostDeposit",parameters);
-    }
-
     /// <summary>Calls the privatePostWithdraw endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostWithdraw (object parameters = null)
@@ -578,18 +354,18 @@ public partial class derive : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostWithdraw",parameters);
     }
 
-    /// <summary>Calls the privatePostTransferErc20 endpoint.</summary>
+    /// <summary>Calls the privatePostTransferSpot endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostTransferErc20 (object parameters = null)
+    public async Task<Dictionary<string, object>> privatePostTransferSpot (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostTransferErc20",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTransferSpot",parameters);
     }
 
-    /// <summary>Calls the privatePostTransferPosition endpoint.</summary>
+    /// <summary>Calls the privatePostTransferSpotExternal endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostTransferPosition (object parameters = null)
+    public async Task<Dictionary<string, object>> privatePostTransferSpotExternal (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostTransferPosition",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTransferSpotExternal",parameters);
     }
 
     /// <summary>Calls the privatePostTransferPositions endpoint.</summary>
@@ -597,6 +373,20 @@ public partial class derive : Exchange
     public async Task<Dictionary<string, object>> privatePostTransferPositions (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostTransferPositions",parameters);
+    }
+
+    /// <summary>Calls the privatePostRejectDepositRequest endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRejectDepositRequest (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRejectDepositRequest",parameters);
+    }
+
+    /// <summary>Calls the privatePostUpdateWhitelistedRecipients endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostUpdateWhitelistedRecipients (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostUpdateWhitelistedRecipients",parameters);
     }
 
     /// <summary>Calls the privatePostOrder endpoint.</summary>
@@ -625,13 +415,6 @@ public partial class derive : Exchange
     public async Task<Dictionary<string, object>> privatePostGetOrder (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostGetOrder",parameters);
-    }
-
-    /// <summary>Calls the privatePostGetOrders endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostGetOrders (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostGetOrders",parameters);
     }
 
     /// <summary>Calls the privatePostGetOpenOrders endpoint.</summary>
@@ -879,13 +662,6 @@ public partial class derive : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostGetSubaccountValueHistory",parameters);
     }
 
-    /// <summary>Calls the privatePostExpiredAndCancelledHistory endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostExpiredAndCancelledHistory (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostExpiredAndCancelledHistory",parameters);
-    }
-
     /// <summary>Calls the privatePostGetFundingHistory endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostGetFundingHistory (object parameters = null)
@@ -921,13 +697,6 @@ public partial class derive : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostLiquidate",parameters);
     }
 
-    /// <summary>Calls the privatePostGetLiquidatorHistory endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostGetLiquidatorHistory (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostGetLiquidatorHistory",parameters);
-    }
-
     /// <summary>Calls the privatePostSessionKeys endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostSessionKeys (object parameters = null)
@@ -935,25 +704,18 @@ public partial class derive : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostSessionKeys",parameters);
     }
 
+    /// <summary>Calls the privatePostSetSessionKey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostSetSessionKey (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostSetSessionKey",parameters);
+    }
+
     /// <summary>Calls the privatePostEditSessionKey endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostEditSessionKey (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostEditSessionKey",parameters);
-    }
-
-    /// <summary>Calls the privatePostChangeSessionKeyLabel endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostChangeSessionKeyLabel (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostChangeSessionKeyLabel",parameters);
-    }
-
-    /// <summary>Calls the privatePostRegisterScopedSessionKey endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostRegisterScopedSessionKey (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostRegisterScopedSessionKey",parameters);
     }
 
     /// <summary>Calls the privatePostGetMmpConfig endpoint.</summary>
@@ -977,53 +739,109 @@ public partial class derive : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostResetMmp",parameters);
     }
 
-    /// <summary>Calls the privatePostSetCancelOnDisconnect endpoint.</summary>
+    /// <summary>Calls the privatePostCreateVault endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostSetCancelOnDisconnect (object parameters = null)
+    public async Task<Dictionary<string, object>> privatePostCreateVault (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostSetCancelOnDisconnect",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostCreateVault",parameters);
     }
 
-    /// <summary>Calls the privatePostGetInviteCode endpoint.</summary>
+    /// <summary>Calls the privatePostUpdateVaultInfo endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostGetInviteCode (object parameters = null)
+    public async Task<Dictionary<string, object>> privatePostUpdateVaultInfo (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostGetInviteCode",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostUpdateVaultInfo",parameters);
     }
 
-    /// <summary>Calls the privatePostRegisterInvite endpoint.</summary>
+    /// <summary>Calls the privatePostMintVaultShares endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostRegisterInvite (object parameters = null)
+    public async Task<Dictionary<string, object>> privatePostMintVaultShares (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostRegisterInvite",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostMintVaultShares",parameters);
     }
 
-    /// <summary>Calls the privatePostGetContactInfo endpoint.</summary>
+    /// <summary>Calls the privatePostBurnVaultShares endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostGetContactInfo (object parameters = null)
+    public async Task<Dictionary<string, object>> privatePostBurnVaultShares (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostGetContactInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostBurnVaultShares",parameters);
     }
 
-    /// <summary>Calls the privatePostCreateContactInfo endpoint.</summary>
+    /// <summary>Calls the privatePostForceBurn endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostCreateContactInfo (object parameters = null)
+    public async Task<Dictionary<string, object>> privatePostForceBurn (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostCreateContactInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostForceBurn",parameters);
     }
 
-    /// <summary>Calls the privatePostUpdateContactInfo endpoint.</summary>
+    /// <summary>Calls the privatePostRequestVaultDeposit endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostUpdateContactInfo (object parameters = null)
+    public async Task<Dictionary<string, object>> privatePostRequestVaultDeposit (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostUpdateContactInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRequestVaultDeposit",parameters);
     }
 
-    /// <summary>Calls the privatePostDeleteContactInfo endpoint.</summary>
+    /// <summary>Calls the privatePostRequestVaultWithdraw endpoint.</summary>
     /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostDeleteContactInfo (object parameters = null)
+    public async Task<Dictionary<string, object>> privatePostRequestVaultWithdraw (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostDeleteContactInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRequestVaultWithdraw",parameters);
+    }
+
+    /// <summary>Calls the privatePostCancelAllVaultRequests endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostCancelAllVaultRequests (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostCancelAllVaultRequests",parameters);
+    }
+
+    /// <summary>Calls the privatePostGetVaultShares endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostGetVaultShares (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostGetVaultShares",parameters);
+    }
+
+    /// <summary>Calls the privatePostGetCuratedVaults endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostGetCuratedVaults (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostGetCuratedVaults",parameters);
+    }
+
+    /// <summary>Calls the privatePostGetShareholderVaults endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostGetShareholderVaults (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostGetShareholderVaults",parameters);
+    }
+
+    /// <summary>Calls the privatePostGetLiveMintRequests endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostGetLiveMintRequests (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostGetLiveMintRequests",parameters);
+    }
+
+    /// <summary>Calls the privatePostGetLiveBurnRequests endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostGetLiveBurnRequests (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostGetLiveBurnRequests",parameters);
+    }
+
+    /// <summary>Calls the privatePostGetLiveVaultRequests endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostGetLiveVaultRequests (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostGetLiveVaultRequests",parameters);
+    }
+
+    /// <summary>Calls the privatePostGetVaultRequestHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostGetVaultRequestHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostGetVaultRequestHistory",parameters);
     }
 
 }

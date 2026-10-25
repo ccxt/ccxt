@@ -1403,7 +1403,8 @@ class deribit extends Exchange {
         if ($symbolsNormalized !== null) {
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
                 $market = $this->market($symbolsNormalized[$i]);
-                if ($code !== null && $code !== $market['base']) {
+                $marketBase = $this->safe_string($market, 'base');
+                if ($code !== null && $code !== $marketBase) {
                     throw new BadRequest($this->id . ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here => https://docs.deribit.com/#public-get_book_summary_by_currency');
                 }
                 if ($code === null) {
@@ -1505,8 +1506,9 @@ class deribit extends Exchange {
         $duration = $this->parse_timeframe($timeframe);
         $now = $this->milliseconds();
         // at max, it provides 5000 bars, but we set generous default here
-        $windowLimit = ($limit === null) ? 1000 : $limit;
-        $limitResolved = ($since === null) ? $windowLimit : $limit;
+        $defaultLimit = 1000;
+        $windowLimit = ($limit === null) ? $defaultLimit : $limit;
+        $limitResolved = (($since === null) && ($limit === null)) ? $defaultLimit : $limit;
         $sinceResolved = ($since === null) ? null : max($since - 1, 0);
         if ($since === null) {
             $request['start_timestamp'] = $now - ($windowLimit - 1) * $duration * 1000;
@@ -1898,7 +1900,7 @@ class deribit extends Exchange {
         return $orderbook;
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'open' => 'open',
             'cancelled' => 'canceled',
@@ -1909,7 +1911,7 @@ class deribit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'good_til_cancelled' => 'GTC',
             'fill_or_kill' => 'FOK',
@@ -2119,9 +2121,9 @@ class deribit extends Exchange {
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         // only stop loss sell orders are allowed when price crossed from above
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         // only take profit buy orders are allowed when price crossed from below
-        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'trigger_offset');
         $isTrailingAmountOrder = $trailingAmount !== null;
         $isStopLimit = $type === 'stop_limit';
@@ -2685,7 +2687,7 @@ class deribit extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'completed' => 'ok',
             'unconfirmed' => 'pending',
@@ -3163,7 +3165,7 @@ class deribit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -3172,13 +3174,12 @@ class deribit extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        $tagAndParams = $this->handle_withdraw_tag_and_params($tag, $params);
-        $paramsWithdrawTag = $tagAndParams[1];
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3197,7 +3198,7 @@ class deribit extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //
         //    {
         //      "withdrawal_priorities": [],
@@ -3329,7 +3330,8 @@ class deribit extends Exchange {
         $duration = $this->parse_timeframe($eachItemDuration) * 1000;
         $now = $this->milliseconds();
         $month = 30 * 24 * 60 * 60 * 1000;
-        $sinceResolved = ($since === null) ? $now - $month : $since;
+        $defaultSince = $now - $month;
+        $sinceResolved = ($since === null) ? $defaultSince : $since;
         $time = ($since === null) ? $now : $since . $month;
         $request = array(
             'instrument_name' => $market['id'],
@@ -3337,11 +3339,8 @@ class deribit extends Exchange {
         );
         $until = $this->safe_integer_2($paramsPaginate, 'until', 'end_timestamp');
         $paramsUntil = ($until !== null) ? $this->omit($paramsPaginate, array( 'until' )) : $paramsPaginate;
-        if ($until !== null) {
-            $request['end_timestamp'] = $until;
-        } else {
-            $request['end_timestamp'] = $time;
-        }
+        $endTimestamp = ($until !== null) ? $until : $time;
+        $request['end_timestamp'] = $endTimestamp;
         $isPaginationCall = (is_array($paramsUntil) && array_key_exists('isDeribitPaginationCall' ?? '', $paramsUntil));
         $paramsOmitted = $paramsUntil;
         if ($isPaginationCall) {
@@ -3351,8 +3350,8 @@ class deribit extends Exchange {
             if ($limit === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a limit argument');
             }
-            $maxUntil = $this->sum($sinceResolved, $limit * $duration);
-            $request['end_timestamp'] = min($request['end_timestamp'], $maxUntil);
+            $maxUntil = $this->parse_to_int($this->sum($sinceResolved, $limit * $duration));
+            $request['end_timestamp'] = ($endTimestamp < $maxUntil) ? $endTimestamp : $maxUntil;
         }
         $response = $this->publicGetGetFundingRateHistory($this->extend($request, $paramsOmitted));
         //
@@ -3947,7 +3946,7 @@ class deribit extends Exchange {
         return $this->parse_open_interest($data, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //     {
         //         "high": 93099.5,
@@ -3996,14 +3995,15 @@ class deribit extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $request = '/' . 'api/' . $this->version . '/' . $api . '/' . $path;
-        if ($api === 'public') {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $request = '/' . 'api/' . $this->version . '/' . $apiName . '/' . $path;
+        if ($apiName === 'public') {
             if (count($params) > 0) {
                 $request .= '?' . $this->urlencode($params);
             }
         }
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             $timestamp = (string) $this->milliseconds();
@@ -4022,14 +4022,14 @@ class deribit extends Exchange {
                 throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
             }
             $signedUrl = $baseApiUrl . $request;
-            return array( 'url' => $signedUrl, 'method' => $method, 'body' => $body, 'headers' => $signedHeaders );
+            return array( 'url' => $signedUrl, 'method' => $method, 'body' => null, 'headers' => $signedHeaders );
         }
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . $request;
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

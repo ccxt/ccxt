@@ -805,8 +805,8 @@ class cryptocom(Exchange, ImplicitAPI):
             strike = self.safe_string(market, 'strike')
             marginBuyEnabled = self.safe_bool(market, 'margin_buy_enabled')
             marginSellEnabled = self.safe_bool(market, 'margin_sell_enabled')
-            expiryString = self.omit_zero(self.safe_string(market, 'expiry_timestamp_ms'))
-            expiry = int(expiryString) if (expiryString is not None) else None
+            expiryRaw = self.safe_integer(market, 'expiry_timestamp_ms')
+            expiry = None if (expiryRaw == 0) else expiryRaw
             symbol = base + '/' + quote
             type = None
             contract = None
@@ -1119,8 +1119,9 @@ class cryptocom(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsPaginate, ['until'])
         if since is not None:
             request['start_ts'] = since - duration * 1000
-            if limitResolved is not None:
-                request['end_ts'] = self.sum(since, duration * limitResolved * 1000)
+            if limit is not None:
+                countLimit = self.parse_to_int(min(limit, 300))
+                request['end_ts'] = self.sum(since, duration * countLimit * 1000)
             else:
                 request['end_ts'] = until
         else:
@@ -1357,7 +1358,7 @@ class cryptocom(Exchange, ImplicitAPI):
             else:
                 request['time_in_force'] = timeInForce
         postOnly = self.safe_bool(paramsValue, 'postOnly', False)
-        if (postOnly is True) or (timeInForce == 'PO'):
+        if (postOnly) or (timeInForce == 'PO'):
             request['exec_inst'] = ['POST_ONLY']
             request['time_in_force'] = 'GOOD_TILL_CANCEL'
         triggerPrice = self.safe_string_n(paramsValue, ['stopPrice', 'triggerPrice', 'ref_price'])
@@ -1554,7 +1555,7 @@ class cryptocom(Exchange, ImplicitAPI):
             else:
                 request['time_in_force'] = timeInForce
         postOnly = self.safe_bool(params, 'postOnly', False)
-        if (postOnly is True) or (timeInForce == 'PO'):
+        if (postOnly) or (timeInForce == 'PO'):
             request['exec_inst'] = ['POST_ONLY']
             request['time_in_force'] = 'GOOD_TILL_CANCEL'
         triggerPrice = self.safe_string_n(params, ['stopPrice', 'triggerPrice', 'ref_price'])
@@ -1910,19 +1911,14 @@ class cryptocom(Exchange, ImplicitAPI):
         trades = self.safe_list(result, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_address(self, addressString: object):
-        address = None
-        tag = None
-        rawTag = None
-        if addressString.find('?') > 0:
+    def parse_address(self, addressString: Str) -> list:
+        if addressString is not None and addressString.find('?') > 0:
             address, rawTag = addressString.split('?')
             splitted = rawTag.split('=')
-            tag = splitted[1]
-        else:
-            address = addressString
-        return [address, tag]
+            return [address, splitted[1]]
+        return [addressString, None]
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1931,11 +1927,12 @@ class cryptocom(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             await self.load_markets()
         currency = self.safe_currency(code)  # for instance, USDC is not inferred from markets but it's still available
@@ -2041,14 +2038,16 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        network = self.safe_string_upper(params, 'network')
+        networkParam = self.safe_string_upper(params, 'network')
         paramsOmitted = self.omit(params, ['network'])
         depositAddressesRaw = await self.fetch_deposit_addresses_by_network(code, paramsOmitted)
         depositAddresses = depositAddressesRaw
-        if network in depositAddresses:
-            return depositAddresses[network]
+        if networkParam is not None:
+            network = self.safe_string(self.networkAliases, networkParam, networkParam)
+            if network in depositAddresses:
+                return self.safe_dict(depositAddresses, network)
         keys = list(depositAddresses.keys())
-        return depositAddresses[keys[0]]
+        return self.safe_dict(depositAddresses, self.safe_string(keys, 0))
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -2303,7 +2302,7 @@ class cryptocom(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
@@ -2313,7 +2312,7 @@ class cryptocom(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'GOOD_TILL_CANCEL': 'GTC',
             'IMMEDIATE_OR_CANCEL': 'IOC',
@@ -2538,11 +2537,11 @@ class cryptocom(Exchange, ImplicitAPI):
             if marginMode != 'cross':
                 raise NotSupported(self.id + ' only cross margin is supported')
         else:
-            if (defaultType == 'margin') or (isMargin is True):
+            if (defaultType == 'margin') or (isMargin):
                 marginMode = 'cross'
         return [marginMode, paramsMarginMode]
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         #    {
         #        "full_name": "Alchemix",
@@ -2966,7 +2965,7 @@ class cryptocom(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(contract, 't')
         fundingTimestamp = None
         if timestamp is not None:
-            fundingTimestamp = int(math.ceil(timestamp / 3600000)) * 3600000  # end of the next hour
+            fundingTimestamp = self.parse_to_int(int(math.ceil(timestamp / 3600000))) * 3600000  # end of the next hour
         return {
             'info': contract,
             'symbol': self.safe_symbol(None, market),
@@ -3212,7 +3211,8 @@ class cryptocom(Exchange, ImplicitAPI):
 
     def params_to_string(self, object: object, level: float) -> str:
         maxLevel = 3
-        if level >= maxLevel:
+        depth = self.parse_to_int(level)
+        if depth >= maxLevel:
             return str(object)
         if isinstance(object, str):
             return object
@@ -3397,9 +3397,9 @@ class cryptocom(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestHeaders = headers
-        requestBody = body
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        requestHeaders = None
+        requestBody = None
         type = self.safe_string(api, 0)
         access = self.safe_string(api, 1)
         apiUrl = self.safe_string(self.urls['api'], type)

@@ -978,11 +978,14 @@ public partial class bitso : Exchange
                 int duration = this.parseTimeframe(timeframeVar);
                 request["end"] = this.sum(since, ((duration * limit) * 1000));
             }
-        } else if ((limit != null))
+        } else
         {
-            Int64 now = this.milliseconds();
-            request["end"] = now;
-            request["start"] = subtract(now, ((this.parseTimeframe(timeframeVar) * 1000L) * limit));
+            if ((limit != null))
+            {
+                Int64 now = this.milliseconds();
+                request["end"] = now;
+                request["start"] = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(now, ((this.parseTimeframe(timeframeVar) * 1000L) * limit));
+            }
         }
         Dictionary<string, object> response = await this.publicGetOhlc(this.extend(request, parameters));
         //
@@ -1285,7 +1288,7 @@ public partial class bitso : Exchange
         if (markerInParams)
         {
             paramsMarker = this.extend(parameters, new Dictionary<string, object>() {
-                { "marker", parseInt(getValue(parameters, "marker")) },
+                { "marker", parseInt((((IDictionary<string, object>)parameters).ContainsKey("marker") ? ((IDictionary<string, object>)parameters)["marker"] : null)) },
             });
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1539,7 +1542,7 @@ public partial class bitso : Exchange
         if (markerInParams)
         {
             paramsMarker = this.extend(parameters, new Dictionary<string, object>() {
-                { "marker", parseInt(getValue(parameters, "marker")) },
+                { "marker", parseInt((((IDictionary<string, object>)parameters).ContainsKey("marker") ? ((IDictionary<string, object>)parameters)["marker"] : null)) },
             });
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1548,8 +1551,7 @@ public partial class bitso : Exchange
         };
         Dictionary<string, object> response = await this.privateGetOpenOrders(this.extend(request, paramsMarker));
         List<object> payload = this.safeList(response, "payload", new List<object>() {});
-        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(payload, market, since, limitVar));
-        return ccxt.BaseExchange.ToOrderList(orders);
+        return this.parseOrders(payload, market, since, limitVar);
     }
 
     /**
@@ -1843,7 +1845,7 @@ public partial class bitso : Exchange
             if ((code != null))
             {
                 result[(string)code] = new Dictionary<string, object>() {
-                    { "deposit", this.safeValue(this.safeDict(result, code), "deposit") },
+                    { "deposit", this.safeNumber(this.safeDict(result, code), "deposit") },
                     { "withdraw", this.safeNumber(withdrawalFees, currencyId) },
                     { "info", new Dictionary<string, object>() {
                         { "deposit", this.safeValue(this.safeDict(this.safeDict(result, code), "info"), "deposit") },
@@ -2015,17 +2017,17 @@ public partial class bitso : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -2163,13 +2165,13 @@ public partial class bitso : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object requestHeaders = headers;
-        object requestBody = body;
+        Dictionary<string, object> requestHeaders = null;
+        string? requestBody = null;
         string endpoint = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if ((method == "GET") || (method == "DELETE"))
@@ -2185,20 +2187,21 @@ public partial class bitso : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (apiUrl + endpoint);
-        if ((api is "private"))
+        if ((getValue(api, 0) is "private"))
         {
             this.checkRequiredCredentials();
             // bitso rejects a nonce that is not higher than the previous one (error 104)
             string nonce = ((object)this.incrementingNonce()).ToString();
             endpoint = ("/api" + endpoint);
             List<object> content = new List<object>() {nonce, method, endpoint};
-            object request = String.Join("", content.ToArray());
+            string request = String.Join("", content.ToArray());
             if ((method != "GET") && (method != "DELETE"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    requestBody = this.json(query);
-                    request = add(request, requestBody);
+                    string jsonBody = this.json(query);
+                    requestBody = jsonBody;
+                    request = request + jsonBody;
                 }
             }
             string signature = this.hmac(this.encode(request), this.encode(this.secret), sha256);
@@ -2229,7 +2232,7 @@ public partial class bitso : Exchange
             bool? success = this.safeBool(response, "success", false);
             if ((success is string))
             {
-                if ((isEqual(success, "true")) || (isEqual(success, "1")))
+                if (((((object)(success)) is "true")) || (isEqual(success, "1")))
                 {
                     success = true;
                 } else
@@ -2237,7 +2240,7 @@ public partial class bitso : Exchange
                     success = false;
                 }
             }
-            if ((success != true))
+            if (success != true)
             {
                 string feedback = ((this.id + " ") + this.json(response));
                 IDictionary<string, object> error = this.safeDict(response, "error");

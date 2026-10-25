@@ -96,7 +96,7 @@ func (this *Phemex) RequestId() int64 {
 	this.UnlockId()
 	return requestId
 }
-func (this *Phemex) ParseSwapTicker(ticker any, optionalArgs ...any) any {
+func (this *Phemex) ParseSwapTicker(ticker map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "close": 442800,
@@ -345,10 +345,10 @@ func (this *Phemex) HandleTicker(client any, message any) {
 	//
 	var tickers []any = []any{}
 	if ccxt.InOp(message, "market24h") {
-		var ticker any = this.SafeValue(message, "market24h")
+		var ticker map[string]any = this.SafeDictMap(message, "market24h", map[string]any{})
 		tickers = append(tickers, this.ParseSwapTicker(ticker))
 	} else if ccxt.InOp(message, "spot_market24h") {
-		var ticker any = this.SafeValue(message, "spot_market24h")
+		var ticker map[string]any = this.SafeDictMap(message, "spot_market24h", map[string]any{})
 		tickers = append(tickers, ccxt.TickerToMap(this.ParseTicker(ticker)))
 	} else if ccxt.InOp(message, "data") {
 		var data []any = ccxt.SafeListTyped(message, "data")
@@ -389,12 +389,12 @@ func (this *Phemex) HandleTicker(client any, message any) {
  * @param {string} [params.settle] set to USDT to use hedged perpetual api
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Phemex) WatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Phemex) WatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Balances] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Balances], 1)
 	go this.watchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Phemex) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], optionalArgs ...any) any {
+func (this *Phemex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -430,7 +430,7 @@ func (this *Phemex) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], o
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(resolved)}
 	return nil
 }
 func (this *Phemex) HandleBalance(typeVar any, client any, message any) {
@@ -548,7 +548,7 @@ func (this *Phemex) HandleTrades(client any, message any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = name + ":" + *symbol
 	var stored any = this.SafeValue(this.Trades, symbol)
-	if ccxt.IsEqual(stored, nil) {
+	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
@@ -604,7 +604,7 @@ func (this *Phemex) HandleOHLCV(client any, message any) {
 		var ohlcvs any = this.ParseOHLCVs(candles, market)
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
-		if ccxt.IsEqual(stored, nil) {
+		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
 			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
@@ -628,12 +628,12 @@ func (this *Phemex) HandleOHLCV(client any, message any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Phemex) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Phemex) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Ticker], 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Phemex) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Phemex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -683,7 +683,7 @@ func (this *Phemex) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], sy
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(resolved)}
 	return nil
 }
 
@@ -699,12 +699,12 @@ func (this *Phemex) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], sy
  * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Phemex) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Phemex) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[map[string]ccxt.Ticker], 1)
 	go this.watchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Phemex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], optionalArgs ...any) any {
+func (this *Phemex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -763,7 +763,7 @@ func (this *Phemex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], o
 			ccxt.AddElementToObject(result, tickerSymbol, ticker)
 		}
 
-		ch <- ccxt.AsyncResult[map[string]any]{Value: result}
+		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
 		return nil
 	}
 
@@ -777,7 +777,7 @@ func (this *Phemex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], o
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(resolved)}
 	return nil
 }
 
@@ -794,12 +794,12 @@ func (this *Phemex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Phemex) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Phemex) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Phemex) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol any, optionalArgs ...any) any {
+func (this *Phemex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -845,7 +845,7 @@ func (this *Phemex) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol any,
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolValue, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
 
@@ -925,12 +925,12 @@ func (this *Phemex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Phemex) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Phemex) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.OHLCV] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.OHLCV], 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Phemex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]any], symbol string, optionalArgs ...any) any {
+func (this *Phemex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -978,7 +978,7 @@ func (this *Phemex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]any], symbol strin
 		limitResolved = ccxt.ToGetsLimit(ohlcv).GetLimit(symbolValue, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true)}
+	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
 func (this *Phemex) CustomHandleDelta(bookside any, delta any, optionalArgs ...any) {
@@ -987,11 +987,16 @@ func (this *Phemex) CustomHandleDelta(bookside any, delta any, optionalArgs ...a
 	var bidAsk any = this.CustomParseBidAsk(delta, 0, 1, market)
 	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
-func (this *Phemex) CustomHandleDeltas(bookside any, deltas any, optionalArgs ...any) {
+func (this *Phemex) CustomHandleDeltas(bookside any, deltas []any, optionalArgs ...any) {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
-		this.CustomHandleDelta(bookside, ccxt.GetValue(deltas, i), market)
+	for i := 0; i < len(deltas); i++ {
+		this.CustomHandleDelta(bookside, func() any {
+			if i >= 0 && i < len(deltas) {
+				return ccxt.DerefScalar(deltas[i])
+			}
+			return nil
+		}(), market)
 	}
 }
 func (this *Phemex) HandleOrderBook(client any, message any) {
@@ -1051,8 +1056,14 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 		var book map[string]any = ccxt.SafeDict2Typed(message, "book", "orderbook_p", map[string]any{})
 		var snapshot any = this.CustomParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market)
 		ccxt.AddElementToObject(snapshot, "nonce", nonce)
-		var orderbook ccxt.OrderBookInterface = this.OrderBook(snapshot, depth)
-		ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+		// reset the existing orderbook instead of replacing it: a consumer
+		// holds a reference to the old object and would never see updates
+		// after a re-subscription snapshot
+		if !(ccxt.InOp(this.Orderbooks, symbol)) {
+			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, depth))
+		}
+		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
 		if ccxt.InOp(this.Orderbooks, symbol) {
@@ -1081,12 +1092,12 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Phemex) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Phemex) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Phemex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Phemex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1144,7 +1155,7 @@ func (this *Phemex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optionalA
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true))}
 	return nil
 }
 func (this *Phemex) HandleMyTrades(client any, message []any) {
@@ -1262,12 +1273,13 @@ func (this *Phemex) HandleMyTrades(client any, message []any) {
 		}()
 		var marketId *string = this.SafeString(rawTrade, "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
-		var parsed map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(rawTrade)))
+		var parsed map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrade))
 		cachedTrades.(ccxt.Appender).Append(parsed)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if typeVar == nil {
+			var marketSettle *string = this.SafeString(market, "settle")
 			typeVar = func() any {
-				if ccxt.IsEqual(market["settle"], "USDT") {
+				if marketSettle != nil && *marketSettle == "USDT" {
 					return "perpetual"
 				}
 				return market["type"]
@@ -1304,12 +1316,12 @@ func (this *Phemex) HandleMyTrades(client any, message []any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Phemex) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Phemex) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Phemex) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Phemex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1367,7 +1379,7 @@ func (this *Phemex) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalArg
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true)}
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
 func (this *Phemex) HandleOrders(client any, message any) {
@@ -1891,12 +1903,7 @@ func (this *Phemex) HandleMessage(client any, message any) {
 		}
 	}
 	var methodName *string = this.SafeString(message, "method", "")
-	if (ccxt.InOp(message, "market24h")) || (ccxt.InOp(message, "spot_market24h")) || (func() int {
-		if methodName == nil {
-			return -1
-		}
-		return strings.Index(*methodName, "perp_market24h_pack_p")
-	}() >= 0) {
+	if (ccxt.InOp(message, "market24h")) || (ccxt.InOp(message, "spot_market24h")) || (strings.Index(*methodName, "perp_market24h_pack_p") >= 0) {
 		this.HandleTicker(client, message)
 		return
 	} else if (ccxt.InOp(message, "trades")) || (ccxt.InOp(message, "trades_p")) {
@@ -1995,12 +2002,12 @@ func (this *Phemex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], typeVar 
 	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
 	return nil
 }
-func (this *Phemex) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Phemex) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
+	ch := make(chan ccxt.AsyncResult[*string], 1)
 	go this.authenticateBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Phemex) authenticateBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Phemex) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2012,7 +2019,7 @@ func (this *Phemex) authenticateBody(ch chan ccxt.AsyncResult[any], optionalArgs
 	var messageHash string = "authenticated"
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(future, nil) {
-		var expiryDelta *int64 = this.SafeInteger(this.Options, "expires", 120)
+		var expiryDelta int64 = *this.SafeInteger(this.Options, "expires", 120)
 		var expiration any = ccxt.Add(this.Seconds(), expiryDelta)
 		var payload any = ccxt.Add(this.ApiKey, ccxt.ToString(expiration))
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256)
@@ -2036,7 +2043,16 @@ func (this *Phemex) authenticateBody(ch chan ccxt.AsyncResult[any], optionalArgs
 		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, future)
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: future}
+	var resolved *string
+	switch resolvedBox := future.(type) {
+	case *string:
+		resolved = resolvedBox
+	case string:
+		resolved = &resolvedBox
+	default:
+		_ = resolvedBox
+	}
+	ch <- ccxt.AsyncResult[*string]{Value: resolved}
 	return nil
 }
 
@@ -2070,7 +2086,7 @@ func (this *Phemex) WatchBalance(params ...any) (ccxt.Balances, error) {
 	if r.Err != nil {
 		return ccxt.Balances{}, r.Err
 	}
-	var res ccxt.Balances = ccxt.NewBalances(r.Value)
+	var res ccxt.Balances = r.Value
 	return res, nil
 }
 
@@ -2096,7 +2112,7 @@ func (this *Phemex) WatchTicker(symbol string, options ...ccxt.WatchTickerOption
 	if r.Err != nil {
 		return ccxt.Ticker{}, r.Err
 	}
-	var res ccxt.Ticker = ccxt.NewTicker(r.Value)
+	var res ccxt.Ticker = r.Value
 	return res, nil
 }
 
@@ -2123,7 +2139,7 @@ func (this *Phemex) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tick
 	if r.Err != nil {
 		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
+	var res ccxt.Tickers = ccxt.Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -2151,7 +2167,7 @@ func (this *Phemex) WatchTrades(symbol string, options ...ccxt.WatchTradesOption
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	var res []ccxt.Trade = r.Value
 	return res, nil
 }
 
@@ -2208,7 +2224,7 @@ func (this *Phemex) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions)
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(r.Value)
+	var res []ccxt.OHLCV = r.Value
 	return res, nil
 }
 
@@ -2233,7 +2249,7 @@ func (this *Phemex) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	var res []ccxt.Trade = r.Value
 	return res, nil
 }
 
@@ -2258,6 +2274,6 @@ func (this *Phemex) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Orde
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
+	var res []ccxt.Order = r.Value
 	return res, nil
 }

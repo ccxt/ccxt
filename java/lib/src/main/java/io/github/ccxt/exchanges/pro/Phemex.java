@@ -12,6 +12,7 @@ import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -110,12 +111,12 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
     public Long requestId()
     {
-        Object requestId;
+        Long requestId;
         synchronized (this) {
-        requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", requestId);
         }
-        return Helpers.toLongOrNull(requestId);
+        return requestId;
     }
 
     public Object parseSwapTicker(Map<String, Object> ticker, Map<String, Object> market)
@@ -323,11 +324,11 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         List<Object> tickers = new ArrayList<Object>(Arrays.asList());
         if (message.containsKey("market24h"))
         {
-            Object ticker = this.safeValue(message, "market24h");
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(message, "market24h", new HashMap<String, Object>() {{}});
             ((List<Object>)tickers).add(this.parseSwapTicker((Map<String, Object>) (ticker), (Map<String, Object>) null));
         } else if (message.containsKey("spot_market24h"))
         {
-            Object ticker = this.safeValue(message, "spot_market24h");
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(message, "spot_market24h", new HashMap<String, Object>() {{}});
             ((List<Object>)tickers).add(this.parseTicker(ticker, (Map<String, Object>) null));
         } else if (message.containsKey("data"))
         {
@@ -370,7 +371,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
             var type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Boolean usePerpetualApi = java.util.Objects.equals(this.safeString(paramsMarketType, "settle"), "USDT");
@@ -836,7 +837,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
     public void customHandleDelta(Object bookside, Object delta, Map<String, Object> market)
     {
-        Object bidAsk = this.customParseBidAsk(delta, 0, 1, market);
+        List<Object> bidAsk = (List<Object>) this.customParseBidAsk(delta, 0, 1, market);
         ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
     }
 
@@ -905,10 +906,17 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         if (java.util.Objects.equals(type, "snapshot"))
         {
             Map<String, Object> book = (Map<String, Object>) this.safeDict2(message, "book", "orderbook_p", new HashMap<String, Object>() {{}});
-            Object snapshot = this.customParseOrderBook((Map<String, Object>) (book), symbol, timestamp, "bids", "asks", 0, 1, market);
+            Map<String, Object> snapshot = (Map<String, Object>) this.customParseOrderBook((Map<String, Object>) (book), symbol, timestamp, "bids", "asks", 0, 1, market);
             Helpers.addElementToObject(snapshot, "nonce", nonce);
-            io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(snapshot, depth);
-            Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+            // reset the existing orderbook instead of replacing it: a consumer
+            // holds a reference to the old object and would never see updates
+            // after a re-subscription snapshot
+            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            {
+                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, depth));
+            }
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+            orderbook.reset(snapshot);
             client.resolve(orderbook, messageHash);
         } else
         {
@@ -964,7 +972,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                     put( "settle", "USDT" );
                 }};
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, this.extend(parameters, settleRequest), (String) null);
+            Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, this.extend(parameters, settleRequest), (String) null);
             var type = ((List<Object>) typeparamsTypeVariable).get(0);
             Map<String, Object> paramsType = typeparamsTypeVariable.second();
             if (java.util.Objects.equals(symbolResolved, null))
@@ -1102,7 +1110,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             String symbol = (String) parsed.get("symbol");
             if (java.util.Objects.equals(type, null))
             {
-                type = (((java.util.Objects.equals(market.get("settle"), "USDT")))) ? "perpetual" : market.get("type");
+                String marketSettle = this.safeString(market, "settle");
+                type = (((java.util.Objects.equals(marketSettle, "USDT")))) ? "perpetual" : market.get("type");
             }
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1156,7 +1165,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                     put( "settle", "USDT" );
                 }};
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, this.extend(parameters, settleRequest), (String) null);
+            Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, this.extend(parameters, settleRequest), (String) null);
             var type = ((List<Object>) typeparamsTypeVariable).get(0);
             Map<String, Object> paramsType = typeparamsTypeVariable.second();
             Boolean isUSDTSettled = java.util.Objects.equals(this.safeString(paramsType, "settle"), "USDT");
@@ -1337,7 +1346,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //
         List<Object> trades = new ArrayList<Object>(Arrays.asList());
         List<Object> parsedOrders = new ArrayList<Object>(Arrays.asList());
-        if ((Helpers.inOp(message, "closed")) || (Helpers.inOp(message, "fills")) || (Helpers.inOp(message, "open")))
+        if (((switch ((Object)(message)) { case List<?> j39v12 -> j39v12.contains("closed"); case Map<?, ?> j39v11 -> j39v11.containsKey("closed"); case null, default -> false; })) || ((switch ((Object)(message)) { case List<?> j39v10 -> j39v10.contains("fills"); case Map<?, ?> j39v9 -> j39v9.containsKey("fills"); case null, default -> false; })) || ((switch ((Object)(message)) { case List<?> j39v8 -> j39v8.contains("open"); case Map<?, ?> j39v7 -> j39v7.containsKey("open"); case null, default -> false; })))
         {
             List<Object> closed = (List<Object>) this.safeList(message, "closed", new ArrayList<Object>(Arrays.asList()));
             List<Object> open = (List<Object>) this.safeList(message, "open", new ArrayList<Object>(Arrays.asList()));
@@ -1356,12 +1365,12 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
         } else
         {
-            Integer messageLength = Helpers.getArrayLength(message);
+            Integer messageLength = (switch ((Object)(message)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; });
             if ((messageLength != null && messageLength == 0))
             {
                 return;
             }
-            for (var i = 0; i < Helpers.getArrayLength(message); i++)
+            for (var i = 0; i < (switch ((Object)(message)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
             {
                 Object update = Helpers.GetValue(message, i);
                 String action = this.safeString(update, "action");
@@ -1394,7 +1403,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 Boolean isUsdt = java.util.Objects.equals(market.get("settle"), "USDT");
                 type = ((Boolean.TRUE.equals(isUsdt))) ? "perpetual" : market.get("type");
             }
-            Helpers.addElementToObject(marketIds, symbol, true);
+            ((Map<Object, Object>) (Map<?, ?>) marketIds).put(symbol, true);
         }
         List<Object> keys = new ArrayList<Object>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
@@ -1806,7 +1815,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             if (java.util.Objects.equals(future, null))
             {
                 Long expiryDelta = this.safeInteger(this.options, "expires", 120);
-                Object expiration = (this.seconds() + expiryDelta);
+                Long expiration = (Long) (this.seconds() + expiryDelta);
                 String payload = (this.apiKey + String.valueOf(expiration));
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
                 String method = "user.auth";

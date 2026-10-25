@@ -265,13 +265,10 @@ class lbank(Exchange, ImplicitAPI):
                 },
                 'networks': {
                     'ERC20': 'erc20',
-                    'ETH': 'erc20',
                     'TRC20': 'trc20',
-                    'TRX': 'trc20',
                     'OMNI': 'omni',
                     'ASA': 'asa',
                     'BEP20': 'bep20(bsc)',
-                    'BSC': 'bep20(bsc)',
                     'HT': 'heco',
                     'BNB': 'bep2',
                     'BTC': 'btc',
@@ -1177,10 +1174,15 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        limitResolved = 100 if (limit is None) else min(limit, 2000)
+        limitResolved = self.parse_to_int(100 if (limit is None) else min(limit, 2000))
         duration = self.parse_timeframe(timeframe)
-        sinceResolved = (self.milliseconds() - (duration * 1000 * limitResolved)) if (since is None) else since
-        parsedSince = self.parse_to_int(sinceResolved / 1000)
+        now = self.milliseconds()
+        defaultSince = now - (duration * 1000 * limitResolved)
+        sinceResolved = defaultSince
+        parsedSince = self.parse_to_int(defaultSince / 1000)
+        if since is not None:
+            sinceResolved = since
+            parsedSince = self.parse_to_int(since / 1000)
         parsedLimit = min(limitResolved + 1, 2000)  # max 2000;
         request = {
             'symbol': market['id'],
@@ -1299,7 +1301,7 @@ class lbank(Exchange, ImplicitAPI):
         }
         data = self.safe_dict(response, 'data')
         # from spotPrivatePostUserInfo
-        toBtc = self.safe_value(data, 'toBtc')
+        toBtc = self.safe_dict(data, 'toBtc')
         if toBtc is not None:
             used = self.safe_dict(data, 'freeze', {})
             free = self.safe_dict(data, 'free', {})
@@ -1328,7 +1330,7 @@ class lbank(Exchange, ImplicitAPI):
             return self.safe_balance(result)
         # from spotPrivatePostSupplementUserInfo
         isArray = isinstance(data, list)
-        if isArray is True:
+        if isArray:
             for i in range(0, len(data)):
                 item = self.safe_dict(data, i)
                 currencyId = self.safe_string(item, 'coin')
@@ -1608,7 +1610,7 @@ class lbank(Exchange, ImplicitAPI):
         }
         ioc = (timeInForce == 'IOC')
         fok = (timeInForce == 'FOK')
-        maker = ((postOnly is True) or (timeInForce == 'PO'))
+        maker = ((postOnly) or (timeInForce == 'PO'))
         if (type == 'market') and (ioc or fok or maker):
             raise InvalidOrder(self.id + ' createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed')
         if type == 'limit':
@@ -1674,7 +1676,7 @@ class lbank(Exchange, ImplicitAPI):
             'info': result,
         }, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             '-1': 'canceled',  # canceled
             '0': 'open',  # not traded
@@ -2181,9 +2183,9 @@ class lbank(Exchange, ImplicitAPI):
         defaultNetworks = self.safe_dict(self.options, 'defaultNetworks')
         defaultNetwork = self.safe_string_upper(defaultNetworks, currencyCode)
         networks = self.safe_dict(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network', defaultNetwork)  # this line allows the user to specify either ERC20 or ETH
-        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
-        return network
+        networkParam = self.safe_string_upper(params, 'network', defaultNetwork)  # accepts unified codes and aliases
+        networkCode = self.safe_string(self.networkAliases, networkParam, networkParam) if (networkParam is not None) else None
+        return self.safe_string(networks, networkCode, networkCode)
 
     def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
@@ -2255,6 +2257,8 @@ class lbank(Exchange, ImplicitAPI):
         }
         networks = self.safe_dict(self.options, 'networks')
         network = self.safe_string_upper(params, 'network')
+        if network is not None:
+            network = self.safe_string(self.networkAliases, network, network)
         network = self.safe_string(networks, network, network)
         paramsOmitted = self.omit(params, 'network') if (network is not None) else params
         if network is not None:
@@ -2283,7 +2287,7 @@ class lbank(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2292,12 +2296,12 @@ class lbank(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             self.load_markets()
         fee = self.safe_string(paramsWithdrawTag, 'fee')
@@ -2320,6 +2324,8 @@ class lbank(Exchange, ImplicitAPI):
         if tagWithdrawTag is not None:
             request['memo'] = tagWithdrawTag
         network = self.safe_string_upper_2(paramsOmitted, 'network', 'networkName')
+        if network is not None:
+            network = self.safe_string(self.networkAliases, network, network)
         paramsOmitted2 = self.omit(paramsOmitted, ['network', 'networkName'])
         networks = self.safe_dict(self.options, 'networks')
         networkId = self.safe_string(networks, network, network)
@@ -2560,19 +2566,15 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         isAuthorized = self.check_required_credentials(False)
-        result: dict
-        if isAuthorized is True:
+        if isAuthorized:
             options = self.safe_dict(self.options, 'fetchTransactionFees', {})
             defaultMethod = self.safe_string(options, 'method', 'fetchPrivateTransactionFees')
             method = self.safe_string(params, 'method', defaultMethod)
             paramsOmitted = self.omit(params, 'method')
             if method == 'fetchPublicTransactionFees':
-                result = self.fetch_public_transaction_fees(paramsOmitted)
-            else:
-                result = self.fetch_private_transaction_fees(paramsOmitted)
-        else:
-            result = self.fetch_public_transaction_fees(params)
-        return result
+                return self.fetch_public_transaction_fees(paramsOmitted)
+            return self.fetch_private_transaction_fees(paramsOmitted)
+        return self.fetch_public_transaction_fees(params)
 
     def fetch_private_transaction_fees(self, params: dict = {}) -> dict:
         # complete response
@@ -2703,19 +2705,15 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         isAuthorized = self.check_required_credentials(False)
-        response: dict
-        if isAuthorized is True:
+        if isAuthorized:
             options = self.safe_dict(self.options, 'fetchDepositWithdrawFees', {})
             defaultMethod = self.safe_string(options, 'method', 'fetchPrivateDepositWithdrawFees')
             method = self.safe_string(params, 'method', defaultMethod)
             paramsOmitted = self.omit(params, 'method')
             if method == 'fetchPublicDepositWithdrawFees':
-                response = self.fetch_public_deposit_withdraw_fees(codes, paramsOmitted)
-            else:
-                response = self.fetch_private_deposit_withdraw_fees(codes, paramsOmitted)
-        else:
-            response = self.fetch_public_deposit_withdraw_fees(codes, params)
-        return response
+                return self.fetch_public_deposit_withdraw_fees(codes, paramsOmitted)
+            return self.fetch_private_deposit_withdraw_fees(codes, paramsOmitted)
+        return self.fetch_public_deposit_withdraw_fees(codes, params)
 
     def fetch_private_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
         # complete response
@@ -2839,7 +2837,7 @@ class lbank(Exchange, ImplicitAPI):
                             }
         return result
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         # * only used for fetchPrivateDepositWithdrawFees
         #
@@ -2893,7 +2891,7 @@ class lbank(Exchange, ImplicitAPI):
                     }
         return result
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         query = self.omit(params, self.extract_params(path))
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
@@ -2935,11 +2933,13 @@ class lbank(Exchange, ImplicitAPI):
             if signatureMethod == 'RSA':
                 cacheSecretAsPem = self.safe_bool(self.options, 'cacheSecretAsPem', True)
                 pem = None
-                if cacheSecretAsPem is True:
-                    pem = self.safe_string(self.options, 'pem')
-                    if pem is None:
+                if cacheSecretAsPem:
+                    cachedPem = self.safe_string(self.options, 'pem')
+                    if cachedPem is None:
                         pem = self.convert_secret_to_pem(self.encode(self.secret))
                         self.options['pem'] = pem
+                    else:
+                        pem = cachedPem
                 else:
                     pem = self.convert_secret_to_pem(self.encode(self.secret))
                 sign = self.rsa(uppercaseHash, pem, 'sha256')
@@ -2954,17 +2954,15 @@ class lbank(Exchange, ImplicitAPI):
                 'echostr': echostr,
             }
             return {'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def convert_secret_to_pem(self, secret: object):
-        lineLength = 64
+    def convert_secret_to_pem(self, secret: object) -> str:
         secretLength = len(secret) - 0
-        numLines = self.parse_to_int(secretLength / lineLength)
-        numLines = self.sum(numLines, 1)
+        fullLines = self.parse_to_int(secretLength / 64)
         pem = "-----BEGIN PRIVATE KEY-----\n"  # eslint-disable-line
-        for i in range(0, numLines):
-            start = i * lineLength
-            end = self.sum(start, lineLength)
+        for i in range(0, fullLines):
+            start = i * 64
+            end = self.sum(start, 64)
             pem += self.secret[start:end] + "\n"  # eslint-disable-line
         return pem + '-----END PRIVATE KEY-----'
 
