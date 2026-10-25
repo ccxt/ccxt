@@ -808,16 +808,16 @@ export default class cryptocom extends Exchange {
                 contract = false;
             } else if (inst_type === 'PERPETUAL_SWAP') {
                 type = 'swap';
-                symbol = symbol + ':' + quote;
+                symbol = base + '/' + quote + ':' + quote;
                 contract = true;
             } else if (inst_type === 'FUTURE') {
                 type = 'future';
-                symbol = symbol + ':' + quote + '-' + this.yymmdd (expiry);
+                symbol = base + '/' + quote + ':' + quote + '-' + this.yymmdd (expiry);
                 contract = true;
             } else if (inst_type === 'WARRANT') {
                 type = 'option';
                 const symbolOptionType = (optionType === 'call') ? 'C' : 'P';
-                symbol = symbol + ':' + quote + '-' + this.yymmdd (expiry) + '-' + strike + '-' + symbolOptionType;
+                symbol = base + '/' + quote + ':' + quote + '-' + this.yymmdd (expiry) + '-' + strike + '-' + symbolOptionType;
                 contract = true;
             }
             const isLinear = (contract === true) ? true : undefined;
@@ -3639,7 +3639,7 @@ export default class cryptocom extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
+            const nonce = this.numberToString (this.nonce ());
             const requestParams = this.extend ({}, params);
             const paramsKeys = Object.keys (requestParams);
             const strSortKey = this.paramsToString (requestParams, 0);
