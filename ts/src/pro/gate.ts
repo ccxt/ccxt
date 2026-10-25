@@ -447,7 +447,7 @@ export default class gate extends gateRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const marketId = market['id'];
+        const marketId = this.safeString (market, 'id', '');
         const url = this.getUrlByMarket (market);
         const isEuUrl = url.indexOf ('gateeu') >= 0;
         const isNonEuSpot = (market['spot'] === true) && !isEuUrl;
@@ -480,7 +480,7 @@ export default class gate extends gateRest {
             if (limitResolved === 400) {
                 finalInterval = '400';
             }
-            payload = [ 'ob.' + market['id'] + '.' + finalInterval ];
+            payload = [ 'ob.' + marketId + '.' + finalInterval ];
         } else {
             channel = messageType + '.order_book_update';
             payload = [ marketId, interval ];
@@ -510,7 +510,7 @@ export default class gate extends gateRest {
         const market = this.market (symbol);
         const url = this.getUrlByMarket (market);
         const symbolValue: string = market['symbol'];
-        const marketId = market['id'];
+        const marketId = this.safeString (market, 'id', '');
         const isEuUrl = url.indexOf ('gateeu') >= 0;
         const isNonEuSpot = (market['spot'] === true) && !isEuUrl;
         let intervalDefault: Str = '100ms';
@@ -538,7 +538,7 @@ export default class gate extends gateRest {
             if (limit === 400) {
                 finalInterval = '400';
             }
-            payload = [ 'ob.' + market['id'] + '.' + finalInterval ];
+            payload = [ 'ob.' + marketId + '.' + finalInterval ];
         } else {
             channel = messageType + '.order_book_update';
             payload = [ marketId, intervalOption ];

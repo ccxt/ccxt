@@ -1298,12 +1298,10 @@ export default class gate extends Exchange {
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
         const marketIdBase = symbol.split ('_');
-        let base: Str = undefined;
-        let expiry = this.safeString (optionParts, 1);
-        if (symbol.indexOf ('/') > -1) {
-            base = this.safeString (symbolBase, 0);
-        } else {
-            base = this.safeString (marketIdBase, 0);
+        let base: Str = this.safeString (symbolBase, 0, '');
+        let expiry: Str = this.safeString (optionParts, 1);
+        if (symbol.indexOf ('/') === -1) {
+            base = this.safeString (marketIdBase, 0, '');
             expiry = (expiry as string).slice (2, 8); // convert 20230728 to 230728
         }
         const strike = this.safeString (optionParts, 2);
@@ -1829,7 +1827,6 @@ export default class gate extends Exchange {
                 if ((base === undefined) || (quote === undefined)) {
                     continue;
                 }
-                let symbol = base + '/' + quote;
                 const expiry = this.safeTimestamp (market, 'expiration_time');
                 const strike = this.safeString (market, 'strike_price');
                 const isCall = this.safeBool (market, 'is_call');
@@ -1841,7 +1838,7 @@ export default class gate extends Exchange {
                 if (isCall === true) {
                     optionType = 'call';
                 }
-                symbol = symbol + ':' + quote + '-' + this.yymmdd (expiry) + '-' + strike + '-' + optionLetter;
+                const symbol = base + '/' + quote + ':' + quote + '-' + this.yymmdd (expiry) + '-' + strike + '-' + optionLetter;
                 const priceDeviate = this.safeString (market, 'order_price_deviate');
                 const markPrice = this.safeString (market, 'mark_price');
                 const minMultiplier = Precise.stringSub ('1', priceDeviate);
@@ -4481,9 +4478,9 @@ export default class gate extends Exchange {
         }
         await this.loadUnifiedStatus ();
         const market = this.market (symbol);
-        const trigger = this.safeValue (params, 'trigger');
-        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
+        const trigger = this.safeBool (params, 'trigger');
+        const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber (params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const isStopLossOrder = stopLossPrice !== undefined;
         const isTakeProfitOrder = takeProfitPrice !== undefined;
