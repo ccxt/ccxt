@@ -62,6 +62,12 @@ func TestWsBalanceOwnerKeepsTheHandlerMap(t *testing.T) {
 		t.Fatalf("replace must drop the earlier entries, %d left", len(handlerView))
 	}
 
+	// replacing the map with itself (an in-place safeBalance merge) keeps every entry
+	exchange.WsBalanceReplace(exchange.Balance)
+	if handlerView["free"] != "2" || len(handlerView) != 1 {
+		t.Fatalf("self-replace must keep the entries, got %v", handlerView)
+	}
+
 	// a whole-map replace moves entries instead of swapping the map handlers already point at
 	exchange.WsCacheReplace("Balance", map[string]any{"total": "3"})
 	if _, exists := handlerView["info"]; exists {

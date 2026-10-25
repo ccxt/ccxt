@@ -546,8 +546,11 @@ func (this *BaseExchange) WsCacheApplyOrderBookSnapshot(stored any, orderBook an
 func (this *BaseExchange) WsBalanceReplace(value any) {
 	source, _ := derefScalar(value).(map[string]any)
 	current := this.wsBalanceMap()
+	// drop only keys value lacks, so a value that is this same map (safeBalance merges in place) survives
 	for key := range current {
-		delete(current, key)
+		if _, kept := source[key]; !kept {
+			delete(current, key)
+		}
 	}
 	for key, entry := range source {
 		current[key] = entry
