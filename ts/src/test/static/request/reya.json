@@ -187,6 +187,87 @@
                 ],
                 "url": "https://api.reya.xyz/v2/candleHistory/BTCRUSDPERP/1m?endTime=1699999980000"
             }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "default account-scoped history with bounded wallet page",
+                "method": "fetchDeposits",
+                "input": [],
+                "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/transfers?type=DEPOSIT&limit=100"
+            },
+            {
+                "description": "since until cursor and page cap; account currency and pagination stay local",
+                "method": "fetchDeposits",
+                "input": [
+                    "WSTETH",
+                    1700000000000,
+                    250,
+                    {
+                        "accountId": 43,
+                        "until": 1700000010000,
+                        "cursor": "entry-88",
+                        "paginationCalls": 2,
+                        "type": "FUNDING",
+                        "address": "0x0000000000000000000000000000000000000002",
+                        "limit": 999
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/transfers?type=DEPOSIT&startTime=1700000000000&endTime=1700000010000&cursor=entry-88&limit=100"
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "default account-scoped history with bounded wallet page",
+                "method": "fetchWithdrawals",
+                "input": [],
+                "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/transfers?type=WITHDRAWAL&limit=100"
+            },
+            {
+                "description": "since until cursor and page cap; account currency and pagination stay local",
+                "method": "fetchWithdrawals",
+                "input": [
+                    "WSTETH",
+                    1700000000000,
+                    250,
+                    {
+                        "accountId": 43,
+                        "until": 1700000010000,
+                        "cursor": "entry-88",
+                        "paginationCalls": 2,
+                        "type": "FUNDING",
+                        "address": "0x0000000000000000000000000000000000000002",
+                        "limit": 999
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/transfers?type=WITHDRAWAL&startTime=1700000000000&endTime=1700000010000&cursor=entry-88&limit=100"
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "default account-scoped history with bounded wallet page",
+                "method": "fetchTransfers",
+                "input": [],
+                "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/transfers?type=TRANSFER&limit=100"
+            },
+            {
+                "description": "since until cursor and page cap; account currency and pagination stay local",
+                "method": "fetchTransfers",
+                "input": [
+                    "WSTETH",
+                    1700000000000,
+                    250,
+                    {
+                        "accountId": 43,
+                        "until": 1700000010000,
+                        "cursor": "entry-88",
+                        "paginationCalls": 2,
+                        "type": "FUNDING",
+                        "address": "0x0000000000000000000000000000000000000002",
+                        "limit": 999
+                    }
+                ],
+                "url": "https://api.reya.xyz/v2/wallet/0x0000000000000000000000000000000000000001/transfers?type=TRANSFER&startTime=1700000000000&endTime=1700000010000&cursor=entry-88&limit=100"
+            }
         ]
     },
     "privateKey": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
