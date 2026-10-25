@@ -3374,7 +3374,7 @@ export default class coinbaseinternational extends Exchange {
      * @returns {object} cleaned parameters; options.route persists the selection for nested calls and Pro
      */
     handleRouteAndParams (methodName: string, params: Dict = {}): Dict {
-        const [ route, paramsResolved ] = this.handleOptionAndParams (params, methodName, 'route', 'auto');
+        const [ route, paramsResolved ] = this.handleOptionStringAndParams (params, methodName, 'route', 'auto');
         const deribit = this.resolveRoute (route);
         const previousBackend = this.safeBool (this.options, 'routeBackend');
         const configuredBackend = this.isNativeDeribitCredentials ();
