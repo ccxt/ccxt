@@ -3508,17 +3508,19 @@ export default class woo extends Exchange {
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = this.implodeHostname (baseApiUrl) + '/' + version + '/';
+        const urlPrefix = this.implodeHostname (baseApiUrl) + '/' + version + '/';
         const paramsSorted: Dict = this.keysort (this.omit (params, this.extractParams (path)));
+        let url: string = urlPrefix;
         if (access === 'public') {
-            url = url + 'public/' + pathWithParams;
+            const publicUrl = urlPrefix + 'public/' + pathWithParams;
+            url = publicUrl;
             if (Object.keys (paramsSorted).length > 0) {
-                url = url + '?' + this.urlencode (paramsSorted);
+                url = publicUrl + '?' + this.urlencode (paramsSorted);
             }
         } else if (access === 'pub') {
-            url = url + pathWithParams;
+            url = urlPrefix + pathWithParams;
             if (Object.keys (paramsSorted).length > 0) {
-                url = url + '?' + this.urlencode (paramsSorted);
+                url = urlPrefix + pathWithParams + '?' + this.urlencode (paramsSorted);
             }
         } else {
             this.checkRequiredCredentials ();
@@ -3538,34 +3540,37 @@ export default class woo extends Exchange {
             const paramsSigned: Dict = this.keysort (paramsSorted);
             let auth: string = '';
             const ts = this.nonce ().toString ();
-            url = url + pathWithParams;
+            const authBase = ts + method + '/' + version + '/' + pathWithParams;
+            url = urlPrefix + pathWithParams;
             requestHeaders = {
                 'x-api-key': this.apiKey,
                 'x-api-timestamp': ts,
             };
             if (version === 'v3') {
-                auth = ts + method + '/' + version + '/' + pathWithParams;
+                auth = authBase;
                 if (method === 'POST' || method === 'PUT') {
-                    requestBody = this.json (paramsSigned);
-                    auth = auth + requestBody;
+                    const jsonBody = this.json (paramsSigned);
+                    requestBody = jsonBody;
+                    auth = authBase + jsonBody;
                     requestHeaders['content-type'] = 'application/json';
                 } else {
                     if (Object.keys (paramsSigned).length > 0) {
                         const query = this.urlencode (paramsSigned);
-                        url = url + '?' + query;
-                        auth = auth + '?' + query;
+                        url = urlPrefix + pathWithParams + '?' + query;
+                        auth = authBase + '?' + query;
                     }
                 }
             } else {
-                auth = this.urlencode (paramsSigned);
+                const encodedParams = this.urlencode (paramsSigned);
+                auth = encodedParams;
                 if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-                    requestBody = auth;
+                    requestBody = encodedParams;
                 } else {
                     if (Object.keys (paramsSigned).length > 0) {
-                        url = url + '?' + auth;
+                        url = urlPrefix + pathWithParams + '?' + encodedParams;
                     }
                 }
-                auth = auth + '|' + ts;
+                auth = encodedParams + '|' + ts;
                 requestHeaders['content-type'] = 'application/x-www-form-urlencoded';
             }
             requestHeaders['x-api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);

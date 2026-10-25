@@ -1015,7 +1015,7 @@ export default class woo extends wooRest {
         let messageHash: string = topic;
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
         if (symbolResolved !== undefined) {
-            messageHash += ':' + symbolResolved;
+            messageHash = topic + ':' + symbolResolved;
         }
         const request: Dict = {
             'event': 'subscribe',
@@ -1056,7 +1056,7 @@ export default class woo extends wooRest {
         let messageHash: string = 'myTrades';
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
         if (symbolResolved !== undefined) {
-            messageHash += ':' + symbolResolved;
+            messageHash = 'myTrades' + ':' + symbolResolved;
         }
         const request: Dict = {
             'event': 'subscribe',
