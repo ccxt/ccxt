@@ -295,11 +295,13 @@ export default class coinspot extends Exchange {
         const result: Dict = { 'info': response };
         const balances = this.safeValue2 (response, 'balance', 'balances');
         if (Array.isArray (balances)) {
-            for (let i = 0; i < balances.length; i++) {
-                const currencies = balances[i];
-                const currencyIds = Object.keys (currencies);
-                for (let j = 0; j < currencyIds.length; j++) {
-                    const currencyId = currencyIds[j];
+            const rows: Dict[] = this.toArray (balances);
+            const numRows = rows.length;
+            for (let i = 0; i < numRows; i++) {
+                const currencies: Dict = this.safeDict (rows, i, {});
+                const currencyIdsList = Object.keys (currencies);
+                for (let j = 0; j < currencyIdsList.length; j++) {
+                    const currencyId = currencyIdsList[j];
                     const balance = this.safeDict (currencies, currencyId);
                     const code = this.safeCurrencyCode (currencyId);
                     const account = this.account ();
@@ -310,9 +312,9 @@ export default class coinspot extends Exchange {
                 }
             }
         } else {
-            const currencyIds = Object.keys (balances);
-            for (let i = 0; i < currencyIds.length; i++) {
-                const currencyId = currencyIds[i];
+            const currencyIdsMap = Object.keys (balances);
+            for (let i = 0; i < currencyIdsMap.length; i++) {
+                const currencyId = currencyIdsMap[i];
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
                 account['total'] = this.safeString (balances, currencyId);
