@@ -177,7 +177,7 @@ export default class grvt extends grvtRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const marketId = market['id'];
+            const marketId = this.safeString (market, 'id', '');
             rawHashes.push (marketId + '@' + intervalOption.toString ());
             messageHashes.push ('ticker::' + market['symbol']);
         }
@@ -327,7 +327,7 @@ export default class grvt extends grvtRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const marketId = market['id'];
+            const marketId = this.safeString (market, 'id', '');
             const limitRaw = this.safeInteger (params, 'limit', 50); // 50, 200, 500, 1000
             rawHashes.push (marketId + '@' + limitRaw.toString ());
             messageHashes.push ('trade::' + market['symbol']);
@@ -433,7 +433,7 @@ export default class grvt extends grvtRest {
             const data = this.safeList (symbolsAndTimeframes, i);
             const symbolString = this.safeString (data, 0);
             const market = this.market (symbolString);
-            const marketId = market['id'];
+            const marketId = this.safeString (market, 'id', '');
             const unfiedTimeframe = this.safeString (data, 1, '1');
             const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
             rawHashes.push (marketId + '@' + timeframeId + '-TRADE');
@@ -560,7 +560,7 @@ export default class grvt extends grvtRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const marketId = market['id'];
+            const marketId = this.safeString (market, 'id', '');
             rawHashes.push (marketId + '@' + extraPart);
             messageHashes.push ('orderbook::' + market['symbol']);
         }
@@ -748,7 +748,8 @@ export default class grvt extends grvtRest {
         }
         const trade = this.parseWsMyTrade (data);
         this.myTrades.append (trade);
-        client.resolve (this.myTrades, 'myTrades::' + trade['symbol']);
+        const tradeSymbol = this.safeString (trade, 'symbol', '');
+        client.resolve (this.myTrades, 'myTrades::' + tradeSymbol);
         client.resolve (this.myTrades, 'myTrades');
     }
 
@@ -832,7 +833,7 @@ export default class grvt extends grvtRest {
         }
         const data = this.safeDict (message, 'feed');
         const position = this.parseWsPosition (data);
-        const symbol = this.safeString (position, 'symbol');
+        const symbol = this.safeString (position, 'symbol', '');
         this.positions.append (position);
         const newPositions: List = [];
         newPositions.push (position);
@@ -957,7 +958,8 @@ export default class grvt extends grvtRest {
         const order = this.parseWsOrder (data);
         this.orders.append (order);
         client.resolve (this.orders, 'orders');
-        client.resolve (this.orders, 'order::' + order['symbol']);
+        const orderSymbol = this.safeString (order, 'symbol', '');
+        client.resolve (this.orders, 'order::' + orderSymbol);
     }
 
     override parseWsOrder (order: any, market: Market = undefined): Order {

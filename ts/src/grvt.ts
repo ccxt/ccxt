@@ -599,10 +599,11 @@ export default class grvt extends Exchange {
         const approvedBuilder = this.safeList (currentBuilders, 'results', []);
         const length = approvedBuilder.length;
         let found = false;
+        const builderId = this.safeString (this.options, 'builder');
         for (let i = 0; i < length; i++) {
             const builderInfo = this.safeDict (approvedBuilder, i, {});
             const builderAccountId = this.safeString (builderInfo, 'builder_account_id');
-            if (builderAccountId === this.safeString (this.options, 'builder')) {
+            if (builderAccountId === builderId) {
                 found = true;
                 break;
             }
@@ -2228,7 +2229,7 @@ export default class grvt extends Exchange {
             let denominator = Math.pow (10, sizeDecLength);
             const sizeInteger = sizeDigits * sizeMultiplier / denominator;
             const legOrder: Dict = {
-                'assetID': market['info']['instrument_hash'],
+                'assetID': this.safeString (market['info'], 'instrument_hash'),
                 'contractSize': this.parseToInt (sizeInteger),
                 'isBuyingContract': leg['is_buying_asset'],
             };
