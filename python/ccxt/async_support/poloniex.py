@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.poloniex import ImplicitAPI
 import asyncio
 import hashlib
+import math
 from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Leverage, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -722,6 +723,13 @@ class poloniex(Exchange, ImplicitAPI):
             # limit should in between 100 and 500
             request['limit'] = limit
         requestUntil, paramsUntil = self.handle_until_option(keyEnd, request, paramsPaginate)
+        if (since is not None) and (limit is not None) and (self.safe_integer(requestUntil, keyEnd) is None):
+            # without an end time the exchange returns the latest candles, not the ones starting at since,
+            # so end the window at the start of the limit-th candle from the first one at or after since
+            duration = self.parse_timeframe(timeframe) * 1000
+            firstCandle = self.parse_to_int(int(math.ceil(since / duration))) * duration
+            endTimeByLimit = self.sum(firstCandle, duration * (limit - 1))
+            requestUntil[keyEnd] = min(endTimeByLimit, self.milliseconds())
         if market['contract'] is True:
             responseRaw = await self.swapPublicGetV3MarketCandles(self.extend(requestUntil, paramsUntil))
             #

@@ -1210,8 +1210,6 @@ class pacifica(Exchange, ImplicitAPI):
         """
         if since is None:
             raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a "since" argument')
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a "symbol" argument')
         defaultMaxLimit = 3950  # 4000 by docs, but in fact >~3960 returns error
         if self.markets is None:
             self.load_markets()
