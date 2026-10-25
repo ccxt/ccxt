@@ -1996,7 +1996,8 @@ export default class alpaca extends Exchange {
         if (activityType !== undefined) {
             const netAmount = this.safeString (transaction, 'net_amount');
             const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise.stringLt (netAmount, '0'));
-            timestamp = this.parse8601 (this.safeString (transaction, 'date') + 'T00:00:00Z');
+            const date = this.safeString (transaction, 'date', '');
+            timestamp = this.parse8601 (date + 'T00:00:00Z');
             datetime = this.iso8601 (timestamp);
             type = isIncoming ? 'deposit' : 'withdrawal';
             amount = this.parseNumber (Precise.stringAbs (netAmount));
@@ -2234,7 +2235,7 @@ export default class alpaca extends Exchange {
             headersValue['APCA-API-KEY-ID'] = this.apiKey;
             headersValue['APCA-API-SECRET-KEY'] = this.secret;
         }
-        const query = this.omit (params, this.extractParams (path));
+        const query: Dict = this.omit (params, this.extractParams (path));
         let bodyJson: Str = undefined;
         if (Object.keys (query).length > 0) {
             if ((method === 'GET') || (method === 'DELETE')) {

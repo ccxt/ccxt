@@ -104,7 +104,8 @@ export default class alpaca extends alpacaRest {
         //
         const ticker = this.parseTicker (message);
         const symbol = ticker['symbol'];
-        const messageHash = 'ticker:' + ticker['symbol'];
+        const tickerSymbol = this.safeString (ticker, 'symbol', '');
+        const messageHash = 'ticker:' + tickerSymbol;
         if (symbol !== undefined) {
             this.tickers[symbol] = ticker;
         }
@@ -373,9 +374,12 @@ export default class alpaca extends alpacaRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
-        if (symbolResolved !== undefined) {
-            messageHash += ':' + symbolResolved;
+        let symbolResolved: Str = undefined;
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            const marketSymbol = this.safeString (market, 'symbol', '');
+            symbolResolved = marketSymbol;
+            messageHash = 'myTrades:' + marketSymbol;
         }
         const request: Dict = {
             'action': 'listen',
@@ -411,8 +415,9 @@ export default class alpaca extends alpacaRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbolResolved = this.safeString (market, 'symbol');
-            messageHash = 'orders:' + symbolResolved;
+            const marketSymbol = this.safeString (market, 'symbol', '');
+            symbolResolved = marketSymbol;
+            messageHash = 'orders:' + marketSymbol;
         }
         const request: Dict = {
             'action': 'listen',
@@ -490,7 +495,8 @@ export default class alpaca extends alpacaRest {
         orders.append (order);
         let messageHash = 'orders';
         client.resolve (orders, messageHash);
-        messageHash = 'orders:' + order['symbol'];
+        const orderSymbol = this.safeString (order, 'symbol', '');
+        messageHash = 'orders:' + orderSymbol;
         client.resolve (orders, messageHash);
     }
 
@@ -556,7 +562,8 @@ export default class alpaca extends alpacaRest {
             return;
         }
         myTrades.append (trade);
-        let messageHash = 'myTrades:' + trade['symbol'];
+        const tradeSymbol = this.safeString (trade, 'symbol', '');
+        let messageHash = 'myTrades:' + tradeSymbol;
         client.resolve (myTrades, messageHash);
         messageHash = 'myTrades';
         client.resolve (myTrades, messageHash);
@@ -662,11 +669,12 @@ export default class alpaca extends alpacaRest {
         //        "msg": "invalid syntax"
         //    }
         //
-        const code = this.safeString (message, 'code');
+        const code = this.safeString (message, 'code', '');
         const msg = this.safeString (message, 'msg');
-        let errorMessage = this.id + ' code: ' + code;
+        const header = this.id + ' code: ' + code;
+        let errorMessage = header;
         if (msg !== undefined) {
-            errorMessage = errorMessage + ' message: ' + msg;
+            errorMessage = header + ' message: ' + msg;
         }
         throw new ExchangeError (errorMessage);
     }
