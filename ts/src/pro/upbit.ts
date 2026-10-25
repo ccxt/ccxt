@@ -386,10 +386,9 @@ export default class upbit extends upbitRest {
         if (symbolResolved !== undefined) {
             messageHashResolved = messageHash + ':' + symbolResolved;
         }
-        let url = this.implodeParams (this.safeString (this.urls['api'], 'ws'), {
+        const url = this.implodeParams (this.safeString (this.urls['api'], 'ws'), {
             'hostname': this.hostname,
-        });
-        url += '/private';
+        }) + '/private';
         const client = this.client (url);
         // Track private channel subscriptions to support multiple concurrent watches
         const subscriptionsKey = 'upbitPrivateSubscriptions';
@@ -639,10 +638,11 @@ export default class upbit extends upbitRest {
         const myTrades = this.myTrades;
         const trade = this.parseWsTrade (message);
         myTrades.append (trade);
-        let messageHash = 'myTrades';
+        const messageHash = 'myTrades';
         client.resolve (myTrades, messageHash);
-        messageHash = 'myTrades:' + trade['symbol'];
-        client.resolve (myTrades, messageHash);
+        const tradeSymbol = this.safeString (trade, 'symbol');
+        const tradeMessageHash = 'myTrades:' + tradeSymbol;
+        client.resolve (myTrades, tradeMessageHash);
     }
 
     handleOrder (client: Client, message: Dict) {
@@ -693,10 +693,10 @@ export default class upbit extends upbitRest {
             }
         }
         cachedOrders.append (parsed);
-        let messageHash = 'myOrder';
+        const messageHash = 'myOrder';
         client.resolve (this.orders, messageHash);
-        messageHash = messageHash + ':' + symbol;
-        client.resolve (this.orders, messageHash);
+        const symbolMessageHash = messageHash + ':' + symbol;
+        client.resolve (this.orders, symbolMessageHash);
     }
 
     /**

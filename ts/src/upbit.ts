@@ -892,7 +892,7 @@ export default class upbit extends Exchange {
         if (ids === undefined) {
             return [];
         }
-        let idsString = '';
+        let idsString: string = '';
         const queries: string[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = this.safeString (ids, i);
@@ -963,7 +963,7 @@ export default class upbit extends Exchange {
             timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         }
         let side: Str = undefined;
-        const askOrBid = this.safeStringLower2 (trade, 'ask_bid', 'side');
+        const askOrBid = this.safeStringLower2 (trade, 'ask_bid', 'side', '');
         if (askOrBid === 'ask') {
             side = 'sell';
         } else if (askOrBid === 'bid') {
