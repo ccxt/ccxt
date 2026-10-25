@@ -410,8 +410,8 @@ export default class polymarket extends Exchange {
             this.publicGetInfoAssets (params),
         ];
         const responses = await Promise.all (promises);
-        const instruments = responses[0];
-        const assets = responses[1];
+        const instruments = this.safeList (responses, 0, []);
+        const assets = this.safeList (responses, 1, []);
         const result: Dict = {};
         for (let i = 0; i < instruments.length; i++) {
             const instrument = instruments[i];
@@ -675,14 +675,14 @@ export default class polymarket extends Exchange {
         //     ]
         //
         const merged: Dict = {};
-        const statistics = responses[1];
+        const statistics = this.safeList (responses, 1, []);
         for (let i = 0; i < statistics.length; i++) {
             const entry = statistics[i];
             const instrumentId = this.safeString (entry, 'instrument_id');
             // the 24 hourly kline rows are dropped from the merged payload to keep tickers light, candles are served by fetchOHLCV
             merged[instrumentId as string] = this.omit (entry, 'klines');
         }
-        const bbos = responses[2];
+        const bbos = this.safeList (responses, 2, []);
         for (let i = 0; i < bbos.length; i++) {
             const entry = bbos[i];
             const instrumentId = this.safeString (entry, 'instrument_id');
@@ -690,7 +690,7 @@ export default class polymarket extends Exchange {
             // the tickers endpoint timestamp wins the merge below because most unified fields come from it - bbo rows carry a slightly newer sampling time
             merged[instrumentId as string] = this.extend (previous, entry);
         }
-        const tickers = responses[0];
+        const tickers = this.safeList (responses, 0, []);
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = tickers[i];
@@ -1363,10 +1363,12 @@ export default class polymarket extends Exchange {
             'params': params,
         };
         const orders = await this.createOrders ([ order as OrderRequest ], params);
-        const first = orders[0];
-        if (first['status'] === 'rejected') {
-            const errorId = this.safeString (first['info'], 'error');
-            const feedback = this.id + ' createOrder() rejected: ' + this.json (first['info']);
+        const first = this.safeDict (orders, 0, {});
+        const firstStatus = this.safeString (first, 'status');
+        if (firstStatus === 'rejected') {
+            const firstInfo = this.safeDict (first, 'info', {});
+            const errorId = this.safeString (firstInfo, 'error');
+            const feedback = this.id + ' createOrder() rejected: ' + this.json (firstInfo);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorId, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorId, feedback);
             throw new InvalidOrder (feedback);
@@ -1420,9 +1422,9 @@ export default class polymarket extends Exchange {
         //
         const results = [];
         for (let i = 0; i < response.length; i++) {
-            const ack = response[i];
+            const ack = this.safeDict (response, i, {});
             const marketInner = ordersMarkets[i];
-            const echo = ordersEntries[i];
+            const echo = this.safeDict (ordersEntries, i, {});
             const status = this.safeString (ack, 'status');
             const merged = this.extend (echo, {
                 'oid': this.safeInteger (ack, 'oid'),
@@ -1509,7 +1511,7 @@ export default class polymarket extends Exchange {
         //
         const results = [];
         for (let i = 0; i < response.length; i++) {
-            const ack = response[i];
+            const ack = this.safeDict (response, i, {});
             const status = this.safeString (ack, 'status');
             const unified = (status === 'err') ? 'rejected' : 'canceled';
             const merged: Dict = {
@@ -2014,7 +2016,7 @@ export default class polymarket extends Exchange {
         // select the requested row explicitly in case the documented
         // order_id filter is ever ignored the way the tickers one is
         for (let i = 0; i < response.length; i++) {
-            const row = response[i];
+            const row = this.safeDict (response, i, {});
             const rowId = this.safeString (row, 'order_id');
             if (rowId === id) {
                 return this.parseOrder (row, market);
@@ -2102,8 +2104,9 @@ export default class polymarket extends Exchange {
         let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['instrument_id'] = market['id'];
+            const symbolMarket: Market = this.market (symbol);
+            market = symbolMarket;
+            request['instrument_id'] = symbolMarket['id'];
         }
         if (since !== undefined) {
             request['start_timestamp'] = since;
@@ -2404,7 +2407,7 @@ export default class polymarket extends Exchange {
         // select the requested row explicitly in case the documented
         // instrument_id filter is ever ignored the way the tickers one is
         for (let i = 0; i < response.length; i++) {
-            const row = response[i];
+            const row = this.safeDict (response, i, {});
             const rowId = this.safeString (row, 'instrument_id');
             if (rowId === market['id']) {
                 return this.parseLeverage (row, market);
@@ -2781,10 +2784,11 @@ export default class polymarket extends Exchange {
         // per-instrument decimals, deliberately for any magnitude - a six
         // digit integer price coarsens to an effective step of ten
         const market = this.market (symbol);
+        const precision = this.safeDict (market, 'precision', {});
         const significant = this.decimalToPrecision (price, ROUND, 5, SIGNIFICANT_DIGITS);
-        const result = this.decimalToPrecision (significant, ROUND, market['precision']['price'], TICK_SIZE);
+        const result = this.decimalToPrecision (significant, ROUND, precision['price'], TICK_SIZE);
         if (result === '0') {
-            throw new InvalidOrder (this.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + this.numberToString (market['precision']['price']));
+            throw new InvalidOrder (this.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + this.numberToString (precision['price']));
         }
         return result;
     }
@@ -2795,10 +2799,11 @@ export default class polymarket extends Exchange {
         }
         // quantities carry the same five significant figures cap
         const market = this.market (symbol);
+        const precision = this.safeDict (market, 'precision', {});
         const significant = this.decimalToPrecision (amount, TRUNCATE, 5, SIGNIFICANT_DIGITS);
-        const result = this.decimalToPrecision (significant, TRUNCATE, market['precision']['amount'], TICK_SIZE);
+        const result = this.decimalToPrecision (significant, TRUNCATE, precision['amount'], TICK_SIZE);
         if (result === '0') {
-            throw new InvalidOrder (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (market['precision']['amount']));
+            throw new InvalidOrder (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (precision['amount']));
         }
         return result;
     }
