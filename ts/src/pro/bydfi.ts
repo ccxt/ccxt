@@ -297,10 +297,10 @@ export default class bydfi extends bydfiRest {
         //     }
         //
         const ticker = this.parseTicker (message);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString (ticker, 'symbol', '');
         const messageHash = 'ticker::' + symbol;
-        this.tickers[symbol as string] = ticker;
-        client.resolve (this.tickers[symbol as string], messageHash);
+        this.tickers[symbol] = ticker;
+        client.resolve (this.tickers[symbol], messageHash);
         client.resolve (this.tickers, 'ticker::all');
     }
 
@@ -318,7 +318,8 @@ export default class bydfi extends bydfiRest {
      */
     override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
-        return result[symbol][timeframe];
+        const symbolResult = this.safeDict (result, symbol, {});
+        return this.safeList (symbolResult, timeframe, []);
     }
 
     /**
@@ -348,13 +349,14 @@ export default class bydfi extends bydfiRest {
      */
     override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         const symbolsLength = symbolsAndTimeframes.length;
-        if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
+        const firstSymbolAndTimeframe = this.safeList (symbolsAndTimeframes, 0);
+        if (symbolsLength === 0 || !Array.isArray (firstSymbolAndTimeframe)) {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
         await this.loadMarkets ();
         const channels: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+        for (let i = 0; i < symbolsLength; i++) {
             const symbolAndTimeframe = this.safeList (symbolsAndTimeframes, i);
             const marketId = this.safeString (symbolAndTimeframe, 0);
             const market = this.market (marketId);
@@ -366,7 +368,10 @@ export default class bydfi extends bydfiRest {
             channels.push (channelMarketId + '@kline_' + interval);
             messageHashes.push ('ohlcv::' + channelMarketSymbol + '::' + interval);
         }
-        const [ symbol, timeframe, candles ] = await this.watchPublic (messageHashes, channels, params);
+        const ohlcvResolved = await this.watchPublic (messageHashes, channels, params);
+        const symbol = this.safeString (ohlcvResolved, 0, '');
+        const timeframe = this.safeString (ohlcvResolved, 1, '');
+        const candles = this.safeValue (ohlcvResolved, 2);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = candles.getLimit (symbol, limit);
@@ -386,13 +391,14 @@ export default class bydfi extends bydfiRest {
      */
     override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params: Dict = {}): Promise<any> {
         const symbolsLength = symbolsAndTimeframes.length;
-        if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
+        const firstSymbolAndTimeframe = this.safeList (symbolsAndTimeframes, 0);
+        if (symbolsLength === 0 || !Array.isArray (firstSymbolAndTimeframe)) {
             throw new ArgumentsRequired (this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
         await this.loadMarkets ();
         const channels: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+        for (let i = 0; i < symbolsLength; i++) {
             const symbolAndTimeframe = this.safeList (symbolsAndTimeframes, i);
             const marketId = this.safeString (symbolAndTimeframe, 0);
             const market = this.market (marketId);
@@ -1063,7 +1069,7 @@ export default class bydfi extends bydfiRest {
         const messageHashes = this.safeList (subscription, 'messageHashes', []);
         const subHashIsPrefix = this.safeBool (subscription, 'subHashIsPrefix', false);
         for (let i = 0; i < messageHashes.length; i++) {
-            const unsubHash = messageHashes[i];
+            const unsubHash = this.safeString (messageHashes, i, '');
             const subHash = unsubHash.replace ('unsubscribe::', '');
             this.cleanUnsubscription (client, subHash, unsubHash, subHashIsPrefix);
         }

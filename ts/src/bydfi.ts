@@ -1399,7 +1399,7 @@ export default class bydfi extends Exchange {
             throw new BadRequest (this.id + ' createOrders() accepts a maximum of 5 orders');
         }
         const ordersRequests: List = [];
-        for (let i = 0; i < orders.length; i++) {
+        for (let i = 0; i < length; i++) {
             const rawOrder = this.safeDict (orders, i);
             const symbol = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
@@ -1469,7 +1469,7 @@ export default class bydfi extends Exchange {
             throw new BadRequest (this.id + ' editOrders() accepts a maximum of 5 orders');
         }
         const ordersRequests: List = [];
-        for (let i = 0; i < orders.length; i++) {
+        for (let i = 0; i < length; i++) {
             const rawOrder = this.safeDict (orders, i);
             const id = this.safeString (rawOrder, 'id');
             const symbol = this.safeString (rawOrder, 'symbol');
@@ -1785,13 +1785,14 @@ export default class bydfi extends Exchange {
     handleSinceAndUntil (methodName: string, since: Int = undefined, params: Dict = {}): Dict {
         const [ untilParam, paramsUntil ] = this.handleOptionIntegerAndParams2 (params, methodName, 'until', 'endTime');
         const now = this.milliseconds ();
-        const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
+        const sevenDays = 604800000; // the maximum range is 7 days, 7 * 24 * 60 * 60 * 1000
         let startTime: Int = since;
         let until: Int = untilParam;
         if (since === undefined) {
             if (untilParam !== undefined) {
                 // since is undefined but until is defined
-                startTime = untilParam - sevenDays;
+                const untilInt = this.parseToInt (untilParam);
+                startTime = untilInt - sevenDays;
             } else {
                 // both since and until are undefined
                 startTime = now - sevenDays;
@@ -2628,7 +2629,8 @@ export default class bydfi extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        for (let i = 0; i < response.length; i++) {
+        const responseLength = response.length;
+        for (let i = 0; i < responseLength; i++) {
             const balance = this.safeDict (response, i);
             const symbol = this.safeString (balance, 'asset');
             const code = this.safeCurrencyCode (symbol);
@@ -2857,13 +2859,14 @@ export default class bydfi extends Exchange {
         };
         const [ untilParam, paramsUntil ] = this.handleOptionIntegerAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
         const now = this.milliseconds ();
-        const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
+        const sevenDays = 604800000; // the maximum range is 7 days, 7 * 24 * 60 * 60 * 1000
         let startTime: Int = since;
         let until: Int = untilParam;
         if (since === undefined) {
             if (untilParam !== undefined) {
                 // since is undefined but until is defined
-                startTime = untilParam - sevenDays;
+                const untilInt = this.parseToInt (untilParam);
+                startTime = untilInt - sevenDays;
             } else {
                 // both since and until are undefined
                 startTime = now - sevenDays;
@@ -3024,7 +3027,7 @@ export default class bydfi extends Exchange {
                 };
             }
         }
-        url += endpoint;
+        url = apiUrl + endpoint;
         const bodyResolved = requestBody;
         const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
