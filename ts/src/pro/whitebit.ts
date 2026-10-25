@@ -853,7 +853,7 @@ export default class whitebit extends whitebitRest {
         const data = this.safeList (message, 'params', []);
         for (let i = 0; i < data.length; i++) {
             const balanceDict = this.safeDict (data, i, {});
-            this.balance['info'] = balanceDict;
+            this.balance['info'] = this.safeDict (data, i, {});
             if (isMargin) {
                 const currencyId = this.safeString (balanceDict, 'a');
                 const code = this.safeCurrencyCode (currencyId);

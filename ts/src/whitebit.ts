@@ -537,7 +537,7 @@ export default class whitebit extends Exchange {
         if (swap) {
             settleId = quoteId;
             settle = this.safeCurrencyCode (settleId);
-            symbol = symbol + ':' + settle;
+            symbol = base + '/' + quote + ':' + quote;
             type = 'swap';
             contract = true;
             linear = true;
@@ -1484,7 +1484,7 @@ export default class whitebit extends Exchange {
                 const orders = this.toArray (response);
                 for (let i = 0; i < orders.length; i++) {
                     const order = orders[i];
-                    const orderId = this.safeString (order, 'orderId');
+                    const orderId = this.safeString (order, 'orderId', '');
                     if (orderId === id) {
                         const marketId = this.safeString (order, 'market');
                         const marketNew = this.safeMarket (marketId, undefined, '_');
@@ -1509,7 +1509,7 @@ export default class whitebit extends Exchange {
                     const marketOrders: Dict[] = this.safeList (response, marketId, []);
                     for (let j = 0; j < marketOrders.length; j++) {
                         const order = marketOrders[j];
-                        const orderId = this.safeString (order, 'id');
+                        const orderId = this.safeString (order, 'id', '');
                         if (orderId === id) {
                             return this.parseOrder (order, marketNew);
                         }
