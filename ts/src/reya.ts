@@ -7,7 +7,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, Exchange
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Account, Balances, Dict, Endpoint, FundingRate, FundingRates, Int, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { int, Account, Balances, Dict, Endpoint, FundingRate, FundingRates, Int, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 /**
  * @class reya
@@ -106,6 +106,69 @@ export default class reya extends Exchange {
                 'deadlineSeconds': 30,
                 'mainnet': { 'chainId': 1729, 'exchangeId': 2, 'ordersGateway': '0xfc8c96be87da63cecddbf54abfa7b13ee8044739' },
                 'sandbox': { 'chainId': 89346162, 'exchangeId': 1, 'ordersGateway': '0x7Ec89E555c771D2B5939aBE5C4E4291852633D4D' },
+            },
+            'features': {
+                'swap': {
+                    'linear': {
+                        'sandbox': true,
+                        'createOrder': {
+                            'marginMode': false,
+                            'triggerPrice': false,
+                            'triggerPriceType': undefined,
+                            'triggerDirection': false,
+                            'stopLossPrice': false,
+                            'takeProfitPrice': false,
+                            'attachedStopLossTakeProfit': undefined,
+                            'timeInForce': {
+                                'GTC': true,
+                                'IOC': true,
+                                'FOK': false,
+                                'PO': false, // use params.postOnly with GTC or venue-specific GTT
+                                'GTD': false, // venue-specific GTT uses params.expiresAfter
+                            },
+                            'hedged': false,
+                            'trailing': false,
+                            'leverage': false,
+                            'marketBuyByCost': false,
+                            'marketBuyRequiresPrice': false,
+                            'selfTradePrevention': false,
+                            'iceberg': false,
+                        },
+                        'createOrders': undefined,
+                        'fetchMyTrades': {
+                            'marginMode': false,
+                            'limit': 100,
+                            'daysBack': undefined,
+                            'untilDays': undefined,
+                            'symbolRequired': false,
+                        },
+                        'fetchOrder': {
+                            'marginMode': false,
+                            'trigger': false,
+                            'trailing': false,
+                            'symbolRequired': false,
+                        },
+                        'fetchOpenOrders': {
+                            'marginMode': false,
+                            'limit': undefined,
+                            'trigger': false,
+                            'trailing': false,
+                            'symbolRequired': false,
+                        },
+                        'fetchOrders': {
+                            'marginMode': false,
+                            'limit': 100,
+                            'daysBack': undefined,
+                            'untilDays': undefined,
+                            'trigger': false,
+                            'trailing': false,
+                            'symbolRequired': false,
+                        },
+                        'fetchClosedOrders': undefined,
+                        'fetchOHLCV': { 'limit': 200 },
+                    },
+                    'inverse': undefined,
+                },
             },
             'exceptions': {
                 'exact': {
@@ -321,10 +384,10 @@ export default class reya extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const duration = this.parseTimeframe (timeframe) * 1000;
-        const count = (limit === undefined) ? 200 : Math.min (limit, 200);
+        const candleLimit = (limit === undefined) ? 200 : Math.min (limit, 200);
         let endTime = this.milliseconds ();
         if (since !== undefined) {
-            endTime = Math.min (endTime, since + duration * (count - 1));
+            endTime = Math.min (endTime, this.sum (since, duration * (candleLimit - 1)));
         }
         const until = this.safeInteger (params, 'until', endTime);
         const request: Dict = { 'symbol': market['id'], 'resolution': this.safeString (this.timeframes, timeframe, timeframe), 'endTime': until };
@@ -338,7 +401,7 @@ export default class reya extends Exchange {
         for (let i = 0; i < timestamps.length; i++) {
             result.push ([ this.safeTimestamp (timestamps, i), this.safeNumber (opens, i), this.safeNumber (highs, i), this.safeNumber (lows, i), this.safeNumber (closes, i), undefined ]);
         }
-        return this.filterBySinceLimit (this.sortBy (result, 0), since, count, 0, since === undefined) as OHLCV[];
+        return this.filterBySinceLimit (this.sortBy (result, 0), since, candleLimit, 0, since === undefined) as OHLCV[];
     }
 
     /** @ignore */
@@ -725,14 +788,16 @@ export default class reya extends Exchange {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             const normalized = Precise.stringAdd (clientOrderId, '0');
-            if (normalized === undefined || normalized.indexOf ('.') !== -1 || Precise.stringLe (normalized, '0') || Precise.stringGt (normalized, '18446744073709551615')) {
+            if (normalized === undefined || normalized.indexOf ('.') >= 0 || Precise.stringLe (normalized, '0') || Precise.stringGt (normalized, '18446744073709551615')) {
                 throw new InvalidOrder (this.id + ' clientOrderId must be a non-zero uint64 decimal string');
             }
             request['clientOrderId'] = normalized;
         }
         const omitted = this.omit (params, [ 'accountId', 'clientOrderId', 'timeInForce', 'postOnly', 'reduceOnly', 'slippage', 'expiresAfter' ]);
         const response = await this.privatePostCreateOrder (this.extend (omitted, request));
-        const parsed = this.parseOrder (this.extend (request, { 'side': (side === 'buy') ? 'B' : 'A' }, response), market);
+        const sideId = (side === 'buy') ? 'B' : 'A';
+        const merged = this.extend (this.extend (request, { 'side': sideId }), response);
+        const parsed = this.parseOrder (merged, market);
         parsed['type'] = type;
         return parsed;
     }
@@ -793,7 +858,7 @@ export default class reya extends Exchange {
         const network = this.reyaNetwork ();
         const domain = { 'name': 'Reya', 'version': '1', 'verifyingContract': this.safeString (network, 'ordersGateway') };
         const nonce = this.safeString (request, 'nonce', this.numberToString (this.nonce ()));
-        const deadline = this.safeInteger (request, 'deadline', this.seconds () + this.safeInteger (this.options, 'deadlineSeconds', 30));
+        const deadline = this.safeInteger (request, 'deadline', this.sum (this.seconds (), this.safeInteger (this.options, 'deadlineSeconds', 30)));
         const accountId = this.safeInteger (request, 'accountId');
         const symbol = this.safeString (request, 'symbol');
         const market = (symbol === undefined) ? undefined : this.market (symbol);
@@ -873,7 +938,7 @@ export default class reya extends Exchange {
     }
 
     /** @ignore */
-    override handleErrors (httpCode: number, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: Dict, requestBody: string): any {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any {
         if (response === undefined) {
             return undefined;
         }

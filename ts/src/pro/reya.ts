@@ -31,7 +31,7 @@ export default class reya extends reyaRest {
     }
 
     /** @ignore */
-    async watchReyaChannel (channel: string, params: Dict = {}): Promise<any> {
+    async subscribeReyaChannel (channel: string, params: Dict = {}): Promise<any> {
         const url = this.urls['api']['ws'];
         const request = this.extend (params, { 'type': 'subscribe', 'channel': channel });
         return await this.watch (url, channel, request, channel);
@@ -71,7 +71,7 @@ export default class reya extends reyaRest {
     override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        return await this.watchReyaChannel ('/v2/perpMarket/' + market['id'] + '/summary', params);
+        return await this.subscribeReyaChannel ('/v2/perpMarket/' + market['id'] + '/summary', params);
     }
 
     /**
@@ -88,7 +88,7 @@ export default class reya extends reyaRest {
     override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const trades = await this.watchReyaChannel ('/v2/market/' + market['id'] + '/perpExecutions', params);
+        const trades = await this.subscribeReyaChannel ('/v2/market/' + market['id'] + '/perpExecutions', params);
         let tradeLimit = limit;
         if (this.newUpdates) {
             tradeLimit = trades.getLimit (market['symbol'], limit);
@@ -106,30 +106,26 @@ export default class reya extends reyaRest {
             }
             this.orderbooks[symbol] = this.orderBook ({}, 100);
         }
-        const book: any = this.orderbooks[symbol];
+        const orderbook = this.orderbooks[symbol];
         const timestamp = this.safeInteger (data, 'updatedAt');
         if (snapshot) {
-            book.reset (this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'px', 'qty'));
+            orderbook.reset (this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'px', 'qty'));
         } else {
-            const sides = [ 'bids', 'asks' ];
-            for (let i = 0; i < sides.length; i++) {
-                const side = sides[i];
-                const levels = this.safeList (data, side, []);
-                for (let j = 0; j < levels.length; j++) {
-                    const level = levels[j];
-                    this.handleDelta (book[side], level);
-                }
-            }
+            this.handleReyaDeltas (orderbook['bids'], this.safeList (data, 'bids', []));
+            this.handleReyaDeltas (orderbook['asks'], this.safeList (data, 'asks', []));
             // updatedAt is not a sequence: different updates may share a millisecond.
-            book['timestamp'] = timestamp;
-            book['datetime'] = this.iso8601 (timestamp);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
         }
-        client.resolve (book, channel);
+        client.resolve (orderbook, channel);
     }
 
     /** @ignore */
-    override handleDelta (bookside: any, delta: any) {
-        bookside.store (this.safeNumber (delta, 'px'), this.safeNumber (delta, 'qty'));
+    handleReyaDeltas (bookSide: any, levels: any[]) {
+        for (let i = 0; i < levels.length; i++) {
+            const level = levels[i];
+            bookSide.store (this.safeNumber (level, 'px'), this.safeNumber (level, 'qty'));
+        }
     }
 
     /** @ignore */
