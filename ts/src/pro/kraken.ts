@@ -1035,12 +1035,12 @@ export default class kraken extends krakenRest {
                 // const checkAsks = asks.map ((elem) => [ elem['price'], elem['qty'] ]);
                 // const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
                 for (let i = 0; i < 10; i++) {
-                    const currentAsk = this.safeValue (checkAsks, i, {});
+                    const currentAsk = this.safeList (checkAsks, i, []);
                     const formattedAsk = this.formatNumber (currentAsk[0]) + this.formatNumber (currentAsk[1]);
                     payloadArray.push (formattedAsk);
                 }
                 for (let i = 0; i < 10; i++) {
-                    const currentBid = this.safeValue (checkBids, i, {});
+                    const currentBid = this.safeList (checkBids, i, []);
                     const formattedBid = this.formatNumber (currentBid[0]) + this.formatNumber (currentBid[1]);
                     payloadArray.push (formattedBid);
                 }

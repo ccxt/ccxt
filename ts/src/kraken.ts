@@ -578,7 +578,9 @@ export default class kraken extends Exchange {
     }
 
     override feeToPrecision (symbol: Str, fee: any): string {
-        return this.decimalToPrecision (fee, TRUNCATE, this.market (symbol)['precision']['amount'], this.precisionMode);
+        const market = this.market (symbol);
+        const marketPrecision: Dict = this.safeDict (market, 'precision', {});
+        return this.decimalToPrecision (fee, TRUNCATE, marketPrecision['amount'], this.precisionMode);
     }
 
     /**
@@ -711,7 +713,7 @@ export default class kraken extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'altname': market['altname'],
+                'altname': this.safeString (market, 'altname'),
                 'type': 'spot',
                 'spot': spot,
                 'margin': (leverageBuyLength > 0),
@@ -2034,9 +2036,9 @@ export default class kraken extends Exchange {
         const orderDescriptionObj = this.safeDict (orderOmitted, 'descr'); // can be null
         const orderDescription = (orderDescriptionObj !== undefined) ? this.safeString (orderDescriptionObj, 'order') : this.safeString (orderOmitted, 'descr');
         let side: Str = undefined;
-        let rawType: Str = undefined;
+        let descriptionType: Str = undefined;
         let marketId: Str = undefined;
-        let price: Str = undefined;
+        let price: Str = this.safeString (description, 'price');
         let amount: Str = undefined;
         let cost: Str = undefined;
         let triggerPrice: Str = undefined;
@@ -2052,14 +2054,14 @@ export default class kraken extends Exchange {
             const part4 = this.safeString (parts, 4);
             const part5 = this.safeString (parts, 5);
             if (part4 === 'limit' || part4 === 'market') {
-                rawType = part4; // eg, limit, market
+                descriptionType = part4; // eg, limit, market
             } else {
-                rawType = part4 + ' ' + part5; // eg. stop loss, take profit, trailing stop
+                descriptionType = part4 + ' ' + part5; // eg. stop loss, take profit, trailing stop
             }
-            if (rawType === 'stop loss' || rawType === 'take profit') {
+            if (descriptionType === 'stop loss' || descriptionType === 'take profit') {
                 triggerPrice = this.safeString (parts, 6);
                 price = this.safeString (parts, 9);
-            } else if (rawType === 'limit') {
+            } else if (descriptionType === 'limit') {
                 price = this.safeString (parts, 5);
             }
         }
@@ -2067,7 +2069,7 @@ export default class kraken extends Exchange {
         if (descriptionSide !== undefined) {
             side = descriptionSide;
         }
-        rawType = this.safeString (description, 'ordertype', rawType); // orderType has dash, e.g. trailing-stop
+        const rawType: Str = this.safeString (description, 'ordertype', descriptionType); // orderType has dash, e.g. trailing-stop
         marketId = this.safeString (description, 'pair', marketId);
         const marketResolved = this.resolveMarketByAltnameOrId (marketId, market);
         let symbol: Str = undefined;
@@ -2101,9 +2103,9 @@ export default class kraken extends Exchange {
                     'rate': undefined,
                 };
                 if (flags.indexOf ('fciq') >= 0) {
-                    fee['currency'] = marketResolved['quote'];
+                    fee['currency'] = this.safeString (marketResolved, 'quote');
                 } else if (flags.indexOf ('fcib') >= 0) {
-                    fee['currency'] = marketResolved['base'];
+                    fee['currency'] = this.safeString (marketResolved, 'base');
                 }
             }
         }
@@ -2338,8 +2340,9 @@ export default class kraken extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const marketType = this.safeString (market, 'type', '');
         if (market['spot'] !== true) {
-            throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+            throw new NotSupported (this.id + ' editOrder() does not support ' + marketType + ' orders, only spot orders are accepted');
         }
         let request: Dict = {
             'txid': id,
@@ -2469,7 +2472,7 @@ export default class kraken extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        const orderTrades = this.safeValue (params, 'trades');
+        const orderTrades = this.safeList (params, 'trades');
         const tradeIds: List = [];
         if (orderTrades === undefined) {
             throw new ArgumentsRequired (this.id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)");
