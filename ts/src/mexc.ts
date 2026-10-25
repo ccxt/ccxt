@@ -2567,9 +2567,9 @@ export default class mexc extends Exchange {
         let openType = this.safeInteger (params, 'openType', 2); // defaulting to cross margin
         if (marginMode !== undefined) {
             if (marginMode === 'cross') {
-                openType = this.parseToInt (2);
+                openType = 2;
             } else if (marginMode === 'isolated') {
-                openType = this.parseToInt (1);
+                openType = 1;
             } else {
                 throw new ArgumentsRequired (this.id + ' createSwapOrder() marginMode parameter should be either "cross" or "isolated"');
             }
@@ -2578,7 +2578,7 @@ export default class mexc extends Exchange {
             throw new InvalidOrder (this.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', type === 2, params);
-        let orderType: any = undefined;
+        let orderType: Int = undefined;
         if (postOnly) {
             orderType = 2;
         } else if (type === 'limit') {
@@ -2586,7 +2586,7 @@ export default class mexc extends Exchange {
         } else if (type === 'market') {
             orderType = 6;
         } else {
-            orderType = type;
+            orderType = this.parseToInt (type);
         }
         let volString = this.amountToPrecision (symbol, amount);
         if (volString === undefined) {
@@ -2609,7 +2609,7 @@ export default class mexc extends Exchange {
             // 'trend': 1, // Required for trigger order 1: latest price, 2: fair price, 3: index price
             // 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         };
-        if ((orderType !== 5) && (orderType !== 6) && (orderType !== 'market')) {
+        if ((orderType !== 5) && (orderType !== 6)) {
             let priceString = this.priceToPrecision (symbol, price);
             if (priceString === undefined) {
                 priceString = '0';
