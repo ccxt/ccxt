@@ -327,8 +327,10 @@ export default class phemex extends phemexRest {
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const usePerpetualApi = this.safeString (paramsMarketType, 'settle') === 'USDT';
-        let messageHash = ':balance';
-        messageHash = usePerpetualApi ? 'perpetual' + messageHash : type + messageHash;
+        let messageHash = 'perpetual:balance';
+        if (!usePerpetualApi) {
+            messageHash = type + ':balance';
+        }
         return await this.subscribePrivate (type, messageHash, paramsMarketType);
     }
 
@@ -847,7 +849,7 @@ export default class phemex extends phemexRest {
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            messageHash = messageHash + market['symbol'];
+            messageHash = 'trades:' + market['symbol'];
         }
         const isUsdtMarket = (market !== undefined) && (market['settle'] === 'USDT');
         let settleRequest: Dict = {};
@@ -857,7 +859,11 @@ export default class phemex extends phemexRest {
         const [ type, paramsType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, this.extend (params, settleRequest));
         if (symbolResolved === undefined) {
             const settle = this.safeString (paramsType, 'settle');
-            messageHash = (settle === 'USDT') ? (messageHash + 'perpetual') : (messageHash + type);
+            if (settle === 'USDT') {
+                messageHash = 'trades:perpetual';
+            } else {
+                messageHash = 'trades:' + type;
+            }
         }
         const trades = await this.subscribePrivate (type, messageHash, paramsType);
         let limitResolved: Int = limit;
@@ -1018,7 +1024,7 @@ export default class phemex extends phemexRest {
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            messageHash = messageHash + market['symbol'];
+            messageHash = 'orders:' + market['symbol'];
         }
         const isUsdtMarket = (market !== undefined) && (market['settle'] === 'USDT');
         let settleRequest: Dict = {};
@@ -1028,7 +1034,11 @@ export default class phemex extends phemexRest {
         const [ type, paramsType ] = this.handleMarketTypeAndParams ('watchOrders', market, this.extend (params, settleRequest));
         const isUSDTSettled = this.safeString (paramsType, 'settle') === 'USDT';
         if (symbolResolved === undefined) {
-            messageHash = (isUSDTSettled) ? (messageHash + 'perpetual') : (messageHash + type);
+            if (isUSDTSettled) {
+                messageHash = 'orders:perpetual';
+            } else {
+                messageHash = 'orders:' + type;
+            }
         }
         const orders = await this.subscribePrivate (type, messageHash, paramsType);
         let limitResolved: Int = limit;

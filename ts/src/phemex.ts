@@ -1243,10 +1243,9 @@ export default class phemex extends Exchange {
             for (let k = 0; k < bidasks.length; k++) {
                 orders.push (this.customParseBidAsk (bidasks[k], priceKey, amountKey, market));
             }
-            result[side] = orders;
+            const descending = (i === 0);
+            result[side] = this.sortBy (orders, 0, descending);
         }
-        result[bidsKey] = this.sortBy (result[bidsKey], 0, true);
-        result[asksKey] = this.sortBy (result[asksKey], 0);
         return result;
     }
 
@@ -4742,7 +4741,7 @@ export default class phemex extends Exchange {
         //
         const marketId = this.safeString (info, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const riskLimits = (marketResolved['info']['riskLimits']);
+        const riskLimits = this.safeList (marketResolved['info'], 'riskLimits', []);
         const tiers: LeverageTier[] = [];
         let minNotional: Int = 0;
         for (let i = 0; i < riskLimits.length; i++) {
