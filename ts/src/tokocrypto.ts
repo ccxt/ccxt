@@ -1888,8 +1888,10 @@ export default class tokocrypto extends Exchange {
             'TAKE_PROFIT_LIMIT': 6,
             'LIMIT_MAKER': 7,
         };
+        const baseId = this.safeString (market, 'baseId', '');
+        const quoteId = this.safeString (market, 'quoteId', '');
         const request: Dict = {
-            'symbol': market['baseId'] + '_' + market['quoteId'],
+            'symbol': baseId + '_' + quoteId,
             'type': this.safeString (reverseOrderTypeMapping, uppercaseType),
         };
         if (side === 'buy') {
@@ -2679,15 +2681,15 @@ export default class tokocrypto extends Exchange {
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
-        if (!(apiName in this.urls['api']['rest'])) {
+        const restUrls = this.extend ({}, this.urls['api']['rest']);
+        if (!(apiName in restUrls)) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
         const baseApiUrl = this.safeString (this.urls['api']['rest'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url: string = baseApiUrl;
-        url += '/' + path;
+        let url = baseApiUrl + '/' + path;
         if (apiName === 'wapi') {
             url += '.html';
         }
@@ -2706,7 +2708,7 @@ export default class tokocrypto extends Exchange {
             }
         } else if ((apiName === 'private') || (apiName === 'sapi' && path !== 'system/status') || (apiName === 'sapiV3') || (apiName === 'wapi' && path !== 'systemStatus') || (apiName === 'dapiPrivate') || (apiName === 'dapiPrivateV2') || (apiName === 'fapiPrivate') || (apiName === 'fapiPrivateV2')) {
             this.checkRequiredCredentials ();
-            let query: Str = undefined;
+            let query = '';
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
             const extendedParams = this.extend ({
                 'timestamp': this.nonce (),
@@ -2731,13 +2733,11 @@ export default class tokocrypto extends Exchange {
                 'X-MBX-APIKEY': this.apiKey,
             };
             const queryInUrl = (method === 'GET') || (method === 'DELETE') || (apiName === 'wapi');
-            let bodySigned: Str = query;
-            if (queryInUrl) {
-                bodySigned = undefined;
-            }
+            let bodySigned: Str = undefined;
             if (queryInUrl) {
                 url += '?' + query;
             } else {
+                bodySigned = query;
                 headersSigned['Content-Type'] = 'application/x-www-form-urlencoded';
             }
             return { 'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned };
