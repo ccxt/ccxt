@@ -827,12 +827,15 @@ export default class mexc extends mexcRest {
     }
 
     handleOrderBookSubscription (client: Client, message: Dict) {
-        // spot
+        // the ack echoes the subscribed channel, the market id is always its last segment
+        //
+        //     { id: 0, code: 0, msg: "spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT" }
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
         const msg = this.safeString (message, 'msg', '');
         const parts = msg.split ('@');
-        const marketId = this.safeString (parts, 2);
+        const partsLength = parts.length; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        const marketId = this.safeString (parts, partsLength - 1);
         const symbol = this.safeSymbol (marketId);
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ({});
@@ -2138,10 +2141,25 @@ export default class mexc extends mexcRest {
         //        "code": 0,
         //        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         //    }
+        //
+        // a rejected subscription answers with code 0 as well, the failure is only in the text
+        //
+        //    {
+        //        "id": 0,
+        //        "code": 0,
+        //        "msg": "Not Subscribed successfully! [spot@public.aggre.depth.v3.api.pb@999ms@BTCUSDT].  Reason： Blocked! "
+        //    }
+        //
         // Set the default to an empty string if the message is empty during the test.
         const msg = this.safeString (message, 'msg', '');
         if (msg === 'PONG') {
             this.handlePong (client, message);
+        } else if (msg.indexOf ('Not Subscribed successfully') > -1) {
+            // the venue echoes the channel, not the hash the subscription is keyed by, so the
+            // failure cannot be attributed to one watcher - reject what is pending on this
+            // client instead of leaving every caller hanging
+            const error = new ExchangeError (this.id + ' ' + msg);
+            client.reject (error);
         } else if (msg.indexOf ('@') > -1) {
             const parts = msg.split ('@');
             const channel = this.safeString (parts, 1);
