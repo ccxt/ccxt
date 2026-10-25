@@ -4212,7 +4212,7 @@ export default class whitebit extends Exchange {
         const maxLimit = 100;
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, maxLimit) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, maxLimit) as FundingRateHistory[];
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -4224,7 +4224,7 @@ export default class whitebit extends Exchange {
         if (since !== undefined) {
             request['startDate'] = Math.round (since / 1000);
         }
-        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('until_timestamp', request, paramsPaginate, 0.001);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endDate', request, paramsPaginate, 0.001);
         if (limit !== undefined) {
             requestUntil['limit'] = limit;
         }
