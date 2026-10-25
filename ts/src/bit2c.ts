@@ -302,7 +302,8 @@ export default class bit2c extends Exchange {
             const code = codes[i];
             const account = this.account ();
             const currency = this.currency (code);
-            const uppercase = currency['id'].toUpperCase ();
+            const currencyId = this.safeString (currency, 'id', '');
+            const uppercase = currencyId.toUpperCase ();
             if (uppercase in response) {
                 account['free'] = this.safeString (response, 'AVAILABLE_' + uppercase);
                 account['total'] = this.safeString (response, uppercase);
@@ -1062,7 +1063,8 @@ export default class bit2c extends Exchange {
         let url = apiUrl + '/' + this.implodeParams (path, params);
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
-        if (api[0] === 'public') {
+        const apiName = this.safeString (api, 0);
+        if (apiName === 'public') {
             url += '.json';
         } else {
             this.checkRequiredCredentials ();
