@@ -1291,8 +1291,9 @@ export default class coinmate extends Exchange {
         }
         let url = apiUrl + '/' + path;
         if (apiName === 'public') {
-            if (Object.keys (params).length > 0) {
-                url += '?' + this.urlencode (params);
+            const publicQuery = this.extend ({}, params);
+            if (Object.keys (publicQuery).length > 0) {
+                url += '?' + this.urlencode (publicQuery);
             }
         } else {
             this.checkRequiredCredentials ();
