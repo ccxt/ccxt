@@ -127,7 +127,7 @@ export default class krakenfutures extends krakenfuturesRest {
         };
         const marketIds: Str[] = [];
         let messageHash = name;
-        const symbolsValue: string[] = (symbols === undefined) ? [] : symbols;
+        const symbolsValue: string[] = symbols;
         for (let i = 0; i < symbolsValue.length; i++) {
             const symbol = symbolsValue[i];
             marketIds.push (this.marketId (symbol));
@@ -135,7 +135,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const length = symbolsValue.length;
         if (length === 1) {
             const market = this.market (marketIds[0]);
-            messageHash = messageHash + ':' + market['symbol'];
+            messageHash += ':' + market['symbol'];
         }
         subscribe['product_ids'] = marketIds;
         const request = this.extend (subscribe, params);

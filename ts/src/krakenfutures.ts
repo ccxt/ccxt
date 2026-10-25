@@ -498,7 +498,7 @@ export default class krakenfutures extends Exchange {
                 linear = !inverse;
                 symbol = base + '/' + quote + ':' + settle;
                 if (future) {
-                    symbol = symbol + '-' + this.yymmdd (expiry);
+                    symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry);
                 }
             }
             result.push ({
@@ -1466,7 +1466,7 @@ export default class krakenfutures extends Exchange {
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if (!('order_tag' in extendedParams)) {
                 // order tag is mandatory so we will generate one if not provided
-                extendedParams['order_tag'] = this.sum (i, 1).toString (); // sequential counter
+                extendedParams['order_tag'] = this.numberToString (this.sum (i, 1)); // sequential counter
             }
             extendedParams['order'] = 'send';
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
@@ -3619,10 +3619,11 @@ export default class krakenfutures extends Exchange {
             const market = this.market (account);
             const marketId = market['id'];
             const splitId = (marketId as string).split ('_');
+            const splitMarketId: string = this.safeString (splitId, 1, '');
             if (market['inverse'] === true) {
-                return 'fi_' + this.safeString (splitId, 1);
+                return 'fi_' + splitMarketId;
             } else {
-                return 'fv_' + this.safeString (splitId, 1);
+                return 'fv_' + splitMarketId;
             }
         } else {
             return account;
