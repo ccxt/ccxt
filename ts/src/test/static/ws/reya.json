@@ -1,0 +1,142 @@
+{
+    "exchange": "reya",
+    "skipKeys": [],
+    "methods": {
+        "watchOrderBook": [
+            {
+                "description": "equal timestamps, zero deletes and reconnect snapshot reset",
+                "input": [
+                    "BTC/RUSD:RUSD",
+                    100
+                ],
+                "url": "wss://ws.reya.xyz",
+                "messages": [
+                    {
+                        "type": "subscribed",
+                        "channel": "/v2/market/BTCRUSDPERP/depth",
+                        "contents": {
+                            "type": "SNAPSHOT",
+                            "symbol": "BTCRUSDPERP",
+                            "updatedAt": 1700000000000,
+                            "bids": [
+                                {
+                                    "px": "100",
+                                    "qty": "1"
+                                }
+                            ],
+                            "asks": [
+                                {
+                                    "px": "101",
+                                    "qty": "1"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "channel_data",
+                        "channel": "/v2/market/BTCRUSDPERP/depth",
+                        "data": {
+                            "type": "UPDATE",
+                            "symbol": "BTCRUSDPERP",
+                            "updatedAt": 1700000000000,
+                            "bids": [
+                                {
+                                    "px": "100",
+                                    "qty": "0"
+                                },
+                                {
+                                    "px": "99",
+                                    "qty": "2"
+                                }
+                            ],
+                            "asks": [
+                                {
+                                    "px": "101",
+                                    "qty": "1"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "subscribed",
+                        "channel": "/v2/market/BTCRUSDPERP/depth",
+                        "contents": {
+                            "type": "SNAPSHOT",
+                            "symbol": "BTCRUSDPERP",
+                            "updatedAt": 1700000000000,
+                            "bids": [
+                                {
+                                    "px": "98",
+                                    "qty": "3"
+                                }
+                            ],
+                            "asks": [
+                                {
+                                    "px": "101",
+                                    "qty": "1"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/RUSD:RUSD",
+                        "bids": [
+                            [
+                                100,
+                                1
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                101,
+                                1
+                            ]
+                        ],
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "nonce": null
+                    },
+                    {
+                        "symbol": "BTC/RUSD:RUSD",
+                        "bids": [
+                            [
+                                99,
+                                2
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                101,
+                                1
+                            ]
+                        ],
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "nonce": null
+                    },
+                    {
+                        "symbol": "BTC/RUSD:RUSD",
+                        "bids": [
+                            [
+                                98,
+                                3
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                101,
+                                1
+                            ]
+                        ],
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "nonce": null
+                    }
+                ]
+            }
+        ]
+    },
+    "options": {}
+}

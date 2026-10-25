@@ -1,0 +1,90 @@
+{
+    "BTC/RUSD:RUSD": {
+        "id": "BTCRUSDPERP",
+        "symbol": "BTC/RUSD:RUSD",
+        "base": "BTC",
+        "quote": "RUSD",
+        "settle": "RUSD",
+        "baseId": "BTC",
+        "quoteId": "RUSD",
+        "settleId": "RUSD",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "contractSize": 1,
+        "active": true,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001
+            },
+            "leverage": {
+                "min": 1,
+                "max": 50
+            }
+        },
+        "info": {
+            "symbol": "BTCRUSDPERP",
+            "marketId": 2,
+            "status": "TRADING",
+            "qtyStepSize": "0.0001",
+            "tickSize": "0.001",
+            "minOrderQty": "0.0001",
+            "initialMarginParameter": "0.02",
+            "maxLeverage": 50
+        }
+    },
+    "ETH/RUSD:RUSD": {
+        "id": "ETHRUSDPERP",
+        "symbol": "ETH/RUSD:RUSD",
+        "base": "ETH",
+        "quote": "RUSD",
+        "settle": "RUSD",
+        "baseId": "ETH",
+        "quoteId": "RUSD",
+        "settleId": "RUSD",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "contractSize": 1,
+        "active": true,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001
+            },
+            "leverage": {
+                "min": 1,
+                "max": 50
+            }
+        },
+        "info": {
+            "symbol": "ETHRUSDPERP",
+            "marketId": 1,
+            "status": "TRADING",
+            "qtyStepSize": "0.0001",
+            "tickSize": "0.001",
+            "minOrderQty": "0.0001",
+            "initialMarginParameter": "0.02",
+            "maxLeverage": 50
+        }
+    }
+}
