@@ -107,7 +107,7 @@ export default class bitget extends bitgetRest {
     }
 
     getInstType (methodName: Str, market: Market, uta: boolean = false, params: Dict = {}): [Str, Dict] {
-        const useProductType = (market === undefined) || (market['swap'] === true) || (market['future'] === true);
+        const useProductType = (market === undefined) || (this.safeBool (market, 'swap', false)) || (this.safeBool (market, 'future', false));
         let productTypeAndParams: [ Str, Dict ] = [ undefined, {} ];
         if (useProductType) {
             productTypeAndParams = this.handleProductTypeAndParams (market, params);
@@ -287,7 +287,7 @@ export default class bitget extends bitgetRest {
         //
         this.handleBidAsk (client, message);
         const ticker = this.parseWsTicker (message);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString (ticker, 'symbol');
         if (symbol !== undefined) {
             this.tickers[symbol] = ticker;
         }
@@ -485,7 +485,7 @@ export default class bitget extends bitgetRest {
 
     handleBidAsk (client: Client, message: Dict) {
         const ticker = this.parseWsBidAsk (message);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString (ticker, 'symbol');
         if (symbol !== undefined) {
             this.bidsasks[symbol] = ticker;
         }
@@ -615,7 +615,7 @@ export default class bitget extends bitgetRest {
             args['topic'] = channel;
             args['symbol'] = market['id'];
             args['interval'] = interval;
-            messageHash = channel + symbol;
+            messageHash = 'kline' + symbol;
         } else {
             channel = 'candle' + interval;
             args['channel'] = channel;
@@ -1025,12 +1025,16 @@ export default class bitget extends bitgetRest {
                 const payloadArray: string[] = [];
                 for (let i = 0; i < 25; i++) {
                     if (i < bidsLength) {
-                        payloadArray.push (storedBids[i][2][0]);
-                        payloadArray.push (storedBids[i][2][1]);
+                        const bidLevel = storedBids[i];
+                        const bidParts = bidLevel[2];
+                        payloadArray.push (bidParts[0]);
+                        payloadArray.push (bidParts[1]);
                     }
                     if (i < asksLength) {
-                        payloadArray.push (storedAsks[i][2][0]);
-                        payloadArray.push (storedAsks[i][2][1]);
+                        const askLevel = storedAsks[i];
+                        const askParts = askLevel[2];
+                        payloadArray.push (askParts[0]);
+                        payloadArray.push (askParts[1]);
                     }
                 }
                 const payload = payloadArray.join (':');
