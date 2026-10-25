@@ -854,9 +854,9 @@ export default class hitbtc extends Exchange {
                 settle = settleCode;
                 linear = (quote === settleCode);
                 inverse = !linear;
-                symbol = symbol + ':' + settle;
+                symbol = base + '/' + quote + ':' + settle;
                 if (future) {
-                    symbol = symbol + '-' + expiry;
+                    symbol = base + '/' + quote + ':' + settle + '-' + this.numberToString (expiry);
                     type = 'future';
                 } else {
                     type = 'swap';
@@ -989,7 +989,12 @@ export default class hitbtc extends Exchange {
             const networkId = this.safeString2 (rawNetwork, 'protocol', 'network');
             const rawNetworkCode = this.networkIdToCode (networkId, code);
             const networkCodeUpper = (rawNetworkCode !== undefined) ? rawNetworkCode.toUpperCase () : undefined;
-            const networkCode = (networkCodeUpper !== undefined) ? this.safeString (this.networkAliases, networkCodeUpper, networkCodeUpper) : code; // as hitbtc is white label, ensure we safeguard from possible bugs
+            let networkCode: Str = undefined;
+            if (networkCodeUpper !== undefined) {
+                networkCode = this.safeString (this.networkAliases, networkCodeUpper, networkCodeUpper);
+            } else {
+                networkCode = code; // as hitbtc is white label, ensure we safeguard from possible bugs
+            }
             if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'info': rawNetwork,

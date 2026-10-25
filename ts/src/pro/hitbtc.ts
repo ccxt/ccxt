@@ -190,9 +190,10 @@ export default class hitbtc extends hitbtcRest {
         const wsUrls = this.safeDict (this.urls['api'], 'ws');
         const url = this.safeString (wsUrls, 'private');
         const splitName = name.split ('_subscribe');
-        let messageHash = this.safeString (splitName, 0, '');
+        const messageHashBase = this.safeString (splitName, 0, '');
+        let messageHash = messageHashBase;
         if (symbol !== undefined) {
-            messageHash = messageHash + '::' + symbol;
+            messageHash = messageHashBase + '::' + symbol;
         }
         const requestId = this.incrementingNonce ();
         const subscribe: Dict = {
@@ -219,7 +220,8 @@ export default class hitbtc extends hitbtcRest {
         await this.authenticate ();
         const wsUrls = this.safeDict (this.urls['api'], 'ws');
         const url = this.safeString (wsUrls, 'private');
-        const messageHash = this.incrementingNonce ().toString ();
+        const requestId = this.incrementingNonce ();
+        const messageHash = this.numberToString (requestId);
         const subscribe: Dict = {
             'method': name,
             'params': params,
