@@ -2487,7 +2487,7 @@ export default class binance extends binanceRest {
                     // market id format: BTC-240328-70000-C → expiry part is parts[1] = '240328'
                     const marketId = this.safeString (market, 'id', '');
                     const parts = marketId.split ('-');
-                    const expiryDate = this.safeString (parts, 1);
+                    const expiryDate = this.safeString (parts, 1, '');
                     const baseIdLower = this.safeStringLower (market, 'baseId', '');
                     const quoteIdLower = this.safeStringLower (market, 'quoteId', '');
                     const underlying = baseIdLower + '' + quoteIdLower;

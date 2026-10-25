@@ -2837,16 +2837,12 @@ export default class binance extends Exchange {
         const settle = 'USDT';
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
-        let base: Str = undefined;
-        if (symbol.indexOf ('/') > -1) {
-            base = this.safeString (symbolBase, 0);
-        } else {
-            base = this.safeString (optionParts, 0);
-        }
-        const expiry = this.safeString (optionParts, 1);
+        const baseParts: string[] = (symbol.indexOf ('/') > -1) ? symbolBase : optionParts;
+        const base = this.safeString (baseParts, 0, '');
+        const expiry = this.safeString (optionParts, 1, '');
         const strike = this.safeInteger (optionParts, 2);
-        const strikeAsString = this.safeString (optionParts, 2);
-        const optionType = this.safeString (optionParts, 3);
+        const strikeAsString = this.safeString (optionParts, 2, '');
+        const optionType = this.safeString (optionParts, 3, '');
         const datetime = this.convertExpireDate (expiry);
         const timestamp = this.parse8601 (datetime);
         return {
@@ -13369,7 +13365,7 @@ export default class binance extends Exchange {
                 throw new NotSupported (this.id + ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.');
             }
             const requestParams = this.handleClientOrderId (params, apiName, path, method);
-            let query: Str = undefined;
+            let query: string = '';
             // handle batchOrders
             if ((path === 'batchOrders') && ((method === 'POST') || (method === 'PUT'))) {
                 const batchOrders: Dict[] = this.safeList (requestParams, 'batchOrders', []);
