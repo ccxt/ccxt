@@ -530,11 +530,12 @@ export default class bitbns extends Exchange {
             const parts = key.split ('availableorder');
             const numParts = parts.length;
             if (numParts > 1) {
+                const usedCurrencyId = this.safeString (parts, 1, '');
                 let currencyId = this.safeString (parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 const account = this.account ();
                 account['free'] = this.safeString (data, key);
-                account['used'] = this.safeString (data, 'inorder' + currencyId);
+                account['used'] = this.safeString (data, 'inorder' + usedCurrencyId);
                 if (currencyId === 'Money') {
                     currencyId = 'INR';
                 }
@@ -1291,9 +1292,8 @@ export default class bitbns extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'www' ], method: string = 'GET', params: Dict = {}): Dict {
-        const urls = this.urls;
         const apiName = api[0];
-        if (!(apiName in urls['api'])) {
+        if (!(apiName in this.urls['api'])) {
             throw new ExchangeError (this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
         if (apiName !== 'www') {
