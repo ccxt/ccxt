@@ -85,9 +85,11 @@ export default class bithumb extends bithumbRest {
         const messageHash = 'ticker:' + market['symbol'];
         const tickTypes = this.safeString (paramsGeneration, 'tickTypes', '24H');
         const paramsOmitted: Dict = this.omit (paramsGeneration, 'tickTypes');
+        const baseId = this.safeString (market, 'base', '');
+        const quoteId = this.safeString (market, 'quote', '');
         let request: Dict | Dict[] = {
             'type': 'ticker',
-            'symbols': [ market['base'] + '_' + market['quote'] ],
+            'symbols': [ baseId + '_' + quoteId ],
             'tickTypes': [ tickTypes ],
         };
         if (isGenerationTwo) {
@@ -140,7 +142,9 @@ export default class bithumb extends bithumbRest {
             if (isGenerationTwo) {
                 streamMarketId = this.getGen2MarketId (market);
             } else {
-                streamMarketId = (market['base'] + '_' + market['quote']);
+                const baseId = this.safeString (market, 'base', '');
+                const quoteId = this.safeString (market, 'quote', '');
+                streamMarketId = baseId + '_' + quoteId;
             }
             streamMarketIds.push (streamMarketId);
             messageHashes.push ('ticker:' + market['symbol']);
@@ -388,9 +392,11 @@ export default class bithumb extends bithumbRest {
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
         const messageHash = 'orderbook' + ':' + symbolValue;
+        const baseId = this.safeString (market, 'base', '');
+        const quoteId = this.safeString (market, 'quote', '');
         let request: Dict | Dict[] = {
             'type': 'orderbookdepth',
-            'symbols': [ market['base'] + '_' + market['quote'] ],
+            'symbols': [ baseId + '_' + quoteId ],
         };
         if (isGenerationTwo) {
             const marketIdRequest = this.getGen2MarketId (market);
@@ -572,9 +578,11 @@ export default class bithumb extends bithumbRest {
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
         const messageHash = 'trade:' + symbolValue;
+        const baseId = this.safeString (market, 'base', '');
+        const quoteId = this.safeString (market, 'quote', '');
         let request: Dict | Dict[] = {
             'type': 'transaction',
-            'symbols': [ market['base'] + '_' + market['quote'] ],
+            'symbols': [ baseId + '_' + quoteId ],
         };
         if (isGenerationTwo) {
             const marketIdRequest = this.getGen2MarketId (market);
@@ -960,7 +968,7 @@ export default class bithumb extends bithumbRest {
         //
         const messageHash = 'myOrder';
         const parsed = this.parseWsOrder (message);
-        const symbol = this.safeString (parsed, 'symbol');
+        const symbol = this.safeString (parsed, 'symbol', '');
         // const orderId = this.safeString (parsed, 'id');
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);

@@ -414,8 +414,8 @@ export default class bithumb extends Exchange {
         if ((marketId !== undefined) && (marketId.indexOf ('-') >= 0)) {
             return marketId;
         }
-        const quoteId = this.safeString2 (market, 'quoteId', 'quote');
-        const baseId = this.safeString2 (market, 'baseId', 'base');
+        const quoteId = this.safeString2 (market, 'quoteId', 'quote', '');
+        const baseId = this.safeString2 (market, 'baseId', 'base', '');
         return quoteId + '-' + baseId;
     }
 
@@ -669,7 +669,7 @@ export default class bithumb extends Exchange {
                 const code = codes[i];
                 const account = this.account ();
                 const currency = this.currency (code);
-                const lowerCurrencyId = this.safeStringLower (currency, 'id');
+                const lowerCurrencyId = this.safeStringLower (currency, 'id', '');
                 account['total'] = this.safeString (balances, 'total_' + lowerCurrencyId);
                 account['used'] = this.safeString (balances, 'in_use_' + lowerCurrencyId);
                 account['free'] = this.safeString (balances, 'available_' + lowerCurrencyId);
@@ -3264,7 +3264,7 @@ export default class bithumb extends Exchange {
         if (numberStr === undefined) {
             return undefined;
         }
-        let finalNumberStr = numberStr;
+        let finalNumberStr: string = numberStr;
         while (finalNumberStr.indexOf (',') > -1) {
             finalNumberStr = finalNumberStr.replace (',', '');
         }
@@ -3366,7 +3366,7 @@ export default class bithumb extends Exchange {
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
                 const bodyParts = encodedBody.split ('%20');
                 requestBody = bodyParts.join ('+');
-                const nonce = this.nonce ().toString ();
+                const nonce = this.numberToString (this.nonce ());
                 const auth = endpoint + "\0" + requestBody + "\0" + nonce; // eslint-disable-line quotes
                 const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha512);
                 const signature64 = this.stringToBase64 (signature);
