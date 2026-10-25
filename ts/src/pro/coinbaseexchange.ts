@@ -73,8 +73,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const productIds: Str[] = [];
         if (symbol !== undefined) {
             market = this.market (symbol);
-            messageHash += ':' + market['id'];
-            productIds.push (market['id']);
+            const marketId = this.safeString (market, 'id', '');
+            messageHash += ':' + marketId;
+            productIds.push (marketId);
         }
         let url = this.safeString (this.urls['api'], 'ws');
         if (url === undefined) {
@@ -109,8 +110,10 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             market = this.market (symbol);
-            productIds.push (market['id']);
-            messageHashes.push (messageHashStart + ':' + market['symbol']);
+            const marketId = this.safeString (market, 'id', '');
+            const marketSymbol = this.safeString (market, 'symbol', '');
+            productIds.push (marketId);
+            messageHashes.push (messageHashStart + ':' + marketSymbol);
         }
         let url = this.safeString (this.urls['api'], 'ws');
         if (url === undefined) {
@@ -368,7 +371,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const marketIds = this.marketIds (symbolsNormalized);
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsLength; i++) {
-            const marketId = marketIds[i];
+            const marketId = this.safeString (marketIds, i, '');
             messageHashes.push (name + ':' + marketId);
         }
         const url = this.urls['api']['ws'];
@@ -407,7 +410,8 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const messageHash = name + ':' + market['id'];
+        const resolvedMarketId = this.safeString (market, 'id', '');
+        const messageHash = name + ':' + resolvedMarketId;
         const url = this.urls['api']['ws'];
         const subscribe: Dict = {
             'type': 'subscribe',
@@ -560,7 +564,8 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             idKey = 'maker_order_id';
         }
         parsed['order'] = this.safeString (trade, idKey);
-        const marketResolved: Market = this.market (parsed['symbol']);
+        const parsedSymbol: Str = parsed['symbol'];
+        const marketResolved: Market = this.market (parsedSymbol);
         const feeCurrency = marketResolved['quote'];
         let feeCost: Str = undefined;
         const cost = this.safeString (parsed, 'cost');
@@ -941,7 +946,8 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const market = this.safeMarket (marketId, undefined, '-');
         const symbol = market['symbol'];
         const name = 'level2';
-        const messageHash = name + ':' + marketId;
+        const resolvedMarketId = this.safeString (market, 'id', '');
+        const messageHash = name + ':' + resolvedMarketId;
         const subscription = this.safeDict (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
         if (type === 'snapshot') {

@@ -1226,8 +1226,9 @@ export default class coinbaseexchange extends Exchange {
         const maker = this.safeNumber (response, 'maker_fee_rate');
         const taker = this.safeNumber (response, 'taker_fee_rate');
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols: string[] = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
