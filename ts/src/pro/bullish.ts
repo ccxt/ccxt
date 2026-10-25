@@ -189,8 +189,9 @@ export default class bullish extends bullishRest {
             this.trades[symbol] = tradesArrayCache;
         }
         const tradesArray = this.trades[symbol];
-        for (let i = 0; i < trades.length; i++) {
-            tradesArray.append (trades[i]);
+        const tradesList = this.toArray (trades);
+        for (let i = 0; i < tradesList.length; i++) {
+            tradesArray.append (tradesList[i]);
         }
         this.trades[symbol] = tradesArray;
         const messageHash = 'trades::' + market['symbol'];
@@ -212,11 +213,12 @@ export default class bullish extends bullishRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
+        const marketId = this.safeString (market, 'id', '');
         const wsUrl = this.safeString (this.urls['api']['ws'], 'public');
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' watchTicker() has no public websocket url');
         }
-        const url = wsUrl + '/trading-api/v1/market-data/tick/' + market['id'];
+        const url = wsUrl + '/trading-api/v1/market-data/tick/' + marketId;
         const messageHash = 'ticker::' + symbolValue;
         return await this.watch (url, messageHash, params, messageHash); // no need to send a subscribe message, the server sends a ticker update on connect
     }
@@ -362,12 +364,13 @@ export default class bullish extends bullishRest {
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
-        for (let i = 0; i < entry.length; i++) {
+        const entries = this.toArray (entry);
+        for (let i = 0; i < entries.length; i++) {
             if (i % 2 !== 0) {
                 continue;
             }
-            const price = this.safeString (entry, i);
-            const amount = this.safeString (entry, i + 1);
+            const price = this.safeString (entries, i);
+            const amount = this.safeString (entries, i + 1);
             result.push ([ price, amount ]);
         }
         return result;
@@ -394,7 +397,7 @@ export default class bullish extends bullishRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             symbolResolved = this.symbol (symbol);
-            messageHash = messageHash + '::' + symbolResolved;
+            messageHash = subscribeHash + '::' + symbolResolved;
         }
         const request: Dict = {
             'topic': 'orders',
@@ -514,7 +517,7 @@ export default class bullish extends bullishRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             symbolResolved = this.symbol (symbol);
-            messageHash += '::' + symbolResolved;
+            messageHash = subscribeHash + '::' + symbolResolved;
         }
         const request: Dict = {
             'topic': 'trades',

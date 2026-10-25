@@ -2532,8 +2532,9 @@ export default class bullish extends Exchange {
         const result: Dict = {
             'info': response,
         };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict (response, i);
+        const rows = this.toArray (response);
+        for (let i = 0; i < rows.length; i++) {
+            const balance = this.safeDict (rows, i);
             const symbol = this.safeString (balance, 'assetSymbol');
             const code = this.safeCurrencyCode (symbol);
             const account = this.account ();
@@ -2996,7 +2997,7 @@ export default class bullish extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0);
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         const request = this.omit (params, this.extractParams (path));
