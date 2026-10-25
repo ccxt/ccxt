@@ -905,8 +905,9 @@ export default class hollaex extends Exchange {
         const makerFees = this.safeDict (fees, 'maker', {});
         const takerFees = this.safeDict (fees, 'taker', {});
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market (symbol);
             const makerString = this.safeString (makerFees, market['id']);
             const takerString = this.safeString (takerFees, market['id']);
