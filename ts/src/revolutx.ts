@@ -853,7 +853,11 @@ export default class revolutx extends Exchange {
         //         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
         //     ]
         //
-        const data = Array.isArray (response) ? response : this.safeList (response, 'data', []);
+        let payload = response;
+        if (Array.isArray (payload)) {
+            payload = { 'data': payload };
+        }
+        const data = this.safeList (payload, 'data', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < data.length; i++) {
             const balance = this.safeDict (data, i, {});
