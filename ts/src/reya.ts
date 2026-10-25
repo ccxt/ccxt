@@ -3,7 +3,7 @@
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/reya.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
+import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NotSupported, OrderImmediatelyFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -177,22 +177,46 @@ export default class reya extends Exchange {
             'exceptions': {
                 'exact': {
                     'INPUT_VALIDATION_ERROR': BadRequest,
-                    'INVALID_SIGNATURE_ERROR': AuthenticationError,
-                    'UNAUTHORIZED_SIGNATURE_ERROR': AuthenticationError,
+                    'NUMERIC_OVERFLOW_ERROR': BadRequest,
                     'SYMBOL_NOT_FOUND_ERROR': BadSymbol,
                     'NO_ACCOUNTS_FOUND_ERROR': AuthenticationError,
+                    'UNAUTHORIZED_SIGNATURE_ERROR': AuthenticationError,
+                    'UNAUTHORIZED_ACCOUNT_ERROR': PermissionDenied,
+                    'NOT_WHITELISTED_ERROR': PermissionDenied,
+                    'ACCOUNT_SUSPENDED_ERROR': AccountSuspended,
                     'INVALID_NONCE_ERROR': InvalidNonce,
-                    'UNAUTHORIZED_ERROR': PermissionDenied,
-                    'UNAUTHORIZED_SIGNER_ERROR': PermissionDenied,
-                    'ACCOUNT_NOT_FOUND_ERROR': AuthenticationError,
-                    'MARKET_NOT_FOUND_ERROR': BadSymbol,
                     'ORDER_NOT_FOUND_ERROR': OrderNotFound,
-                    'POST_ONLY_WOULD_CROSS_ERROR': InvalidOrder,
-                    'INSUFFICIENT_MARGIN_ERROR': InsufficientFunds,
+                    'DUPLICATE_CLIENT_ORDER_ID_ERROR': DuplicateOrderId,
+                    'POST_ONLY_WOULD_CROSS_ERROR': OrderImmediatelyFillable,
+                    'ORDER_DEADLINE_PASSED_ERROR': InvalidOrder,
+                    'ORDER_DEADLINE_TOO_HIGH_ERROR': InvalidOrder,
+                    'ORDER_EXPIRES_TOO_SOON_ERROR': InvalidOrder,
+                    'PRICE_QTY_BOUNDS_ERROR': InvalidOrder,
+                    'MODIFY_QTY_BELOW_FILLED_ERROR': InvalidOrder,
+                    'EMPTY_MODIFY_ERROR': InvalidOrder,
+                    'REDUCE_ONLY_CONDITION_NOT_MET_ERROR': InvalidOrder,
+                    'OPEN_INTEREST_CAP_ERROR': InvalidOrder,
+                    'OPEN_INTEREST_BUDGET_ERROR': InvalidOrder,
+                    'OPEN_ORDER_COUNT_EXCEEDED_ERROR': InvalidOrder,
+                    'OPEN_ORDER_NOTIONAL_EXCEEDED_ERROR': InvalidOrder,
+                    'TRIGGER_IOC_MUST_NOT_EXPIRE_ERROR': InvalidOrder,
+                    'TRIGGER_LIMIT_OUTSIDE_BAND_ERROR': InvalidOrder,
+                    'TRIGGER_ALREADY_EXISTS_ERROR': InvalidOrder,
+                    'INSUFFICIENT_BALANCE_ERROR': InsufficientFunds,
+                    'ACCOUNT_BELOW_INITIAL_MARGIN_ERROR': InsufficientFunds,
+                    'ACCOUNT_BELOW_LIQUIDATION_MARGIN_ERROR': InsufficientFunds,
+                    'TRADING_HALTED_ERROR': MarketClosed,
                     'RATE_LIMITED_ERROR': RateLimitExceeded,
                     'CAPACITY_LIMITED_ERROR': ExchangeNotAvailable,
                     'SERVICE_UNAVAILABLE_ERROR': ExchangeNotAvailable,
+                    'SERVICE_DISABLED_ERROR': ExchangeNotAvailable,
+                    'CROSSING_ORDERS_TEMPORARILY_UNAVAILABLE_ERROR': ExchangeNotAvailable,
                     'ORDER_OUTCOME_UNKNOWN_ERROR': RequestTimeout,
+                    'CREATE_ORDER_OTHER_ERROR': ExchangeError,
+                    'CANCEL_ORDER_OTHER_ERROR': ExchangeError,
+                    'MODIFY_ORDER_OTHER_ERROR': ExchangeError,
+                    'CANCEL_ALL_AFTER_OTHER_ERROR': ExchangeError,
+                    'INTERNAL_SERVER_ERROR': ExchangeError,
                 },
                 'broad': {},
             },
@@ -233,15 +257,21 @@ export default class reya extends Exchange {
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetPerpMarketDefinitions (params);
-        return this.parseMarkets (response);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            // a definition outside the BASERUSDPERP naming has no unified symbol; skip it rather than fail loadMarkets
+            const marketId = this.safeString (market, 'symbol', '');
+            if (marketId.endsWith ('RUSDPERP')) {
+                result.push (this.parseMarket (market));
+            }
+        }
+        return result;
     }
 
     /** @ignore */
     override parseMarket (market: Dict): Market {
-        const marketId = this.safeString (market, 'symbol');
-        if (marketId === undefined || !marketId.endsWith ('RUSDPERP')) {
-            throw new BadSymbol (this.id + ' invalid perpetual symbol');
-        }
+        const marketId = this.safeString (market, 'symbol', '');
         const baseId = marketId.slice (0, -8);
         const base = this.safeCurrencyCode (baseId);
         return this.safeMarketStructure ({
@@ -1025,10 +1055,8 @@ export default class reya extends Exchange {
 
     /** @ignore */
     override nonce (): number {
-        const previous = this.safeInteger (this.options, 'lastNonce', 0);
-        const next = Math.max (this.milliseconds () * 1000, previous + 1);
-        this.options['lastNonce'] = next;
-        return next;
+        // microseconds; incrementingNonce () bumps past the previous value when two signed requests share one
+        return this.milliseconds () * 1000;
     }
 
     /** @ignore */
@@ -1036,7 +1064,7 @@ export default class reya extends Exchange {
         this.checkRequiredCredentials ();
         const network = this.reyaNetwork ();
         const domain = { 'name': 'Reya', 'version': '1', 'verifyingContract': this.safeString (network, 'ordersGateway') };
-        const nonce = this.safeString (request, 'nonce', this.numberToString (this.nonce ()));
+        const nonce = this.safeString (request, 'nonce', this.numberToString (this.incrementingNonce ()));
         const deadline = this.safeInteger (request, 'deadline', this.sum (this.seconds (), this.safeInteger (this.options, 'deadlineSeconds', 30)));
         const accountId = this.safeInteger (request, 'accountId');
         const symbol = this.safeString (request, 'symbol');
