@@ -110,7 +110,7 @@ export default class woofipro extends woofiproRest {
         }
         const name = 'orderbook';
         const market = this.market (symbol);
-        const marketId = this.safeString (market, 'id');
+        const marketId = this.safeString (market, 'id', '');
         const topic = marketId + '@' + name;
         const request: Dict = {
             'event': 'subscribe',
@@ -173,7 +173,7 @@ export default class woofipro extends woofiproRest {
         }
         const name = 'ticker';
         const market = this.market (symbol);
-        const marketId = this.safeString (market, 'id');
+        const marketId = this.safeString (market, 'id', '');
         const topic = marketId + '@' + name;
         const request: Dict = {
             'event': 'subscribe',
@@ -404,7 +404,7 @@ export default class woofipro extends woofiproRest {
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'kline';
-        const marketId = this.safeString (market, 'id');
+        const marketId = this.safeString (market, 'id', '');
         const topic = marketId + '@' + name + '_' + interval;
         const request: Dict = {
             'event': 'subscribe',
@@ -483,7 +483,7 @@ export default class woofipro extends woofiproRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const marketId = this.safeString (market, 'id');
+        const marketId = this.safeString (market, 'id', '');
         const topic = marketId + '@trade';
         const request: Dict = {
             'event': 'subscribe',
