@@ -323,7 +323,7 @@ export default class zebpay extends Exchange {
         const defaultMarkets = [ 'spot', 'swap' ];
         const types = this.safeList (fetchMarketsOptions, 'types', defaultMarkets);
         for (let i = 0; i < types.length; i++) {
-            const type = this.safeString (types, i);
+            const type = this.safeString (types, i, '');
             if (type === 'spot') {
                 promisesUnresolved.push (this.fetchSpotMarkets (params));
             } else if (type === 'swap') {
@@ -400,9 +400,13 @@ export default class zebpay extends Exchange {
             const networkId = this.safeString (chain, 'chainId');
             const networkCode = this.networkIdToCode (networkId, code);
             const depositAllowed = this.safeBool (chain, 'isDepositEnabled', false);
-            deposit = (depositAllowed) ? depositAllowed : deposit;
+            if (depositAllowed) {
+                deposit = true;
+            }
             const withdrawAllowed = this.safeBool (chain, 'isWithdrawEnabled', false);
-            withdraw = (withdrawAllowed) ? withdrawAllowed : withdraw;
+            if (withdrawAllowed) {
+                withdraw = true;
+            }
             const withdrawFeeString = this.safeString (chain, 'withdrawalFee');
             if (withdrawFeeString !== undefined) {
                 minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise.stringMin (withdrawFeeString, minWithdrawFeeString);
@@ -1725,12 +1729,11 @@ export default class zebpay extends Exchange {
             if ((base === undefined) || (quote === undefined)) {
                 continue;
             }
-            const settle = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'status');
             const symbol = base + '/' + quote;
             result.push (this.safeMarketStructure ({
                 'id': id,
-                'symbol': symbol + ':' + settle,
+                'symbol': symbol + ':' + quote,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
@@ -1952,9 +1955,8 @@ export default class zebpay extends Exchange {
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url: string = baseApiUrl;
         const tail = '/api/' + this.implodeParams (path, paramsOmitted);
-        url += tail;
+        let suffix: string = '';
         const timestamp = this.milliseconds ().toString ();
         let signature = '';
         const query = this.omit (paramsOmitted, this.extractParams (path));
@@ -1963,13 +1965,13 @@ export default class zebpay extends Exchange {
         if (access === 'public') {
             if (method === 'GET' || method === 'DELETE') {
                 if (queryLength !== 0) {
-                    url += '?' + this.urlencode (query);
+                    suffix = '?' + this.urlencode (query);
                 }
             } else {
                 const priceType = this.safeString (paramsOmitted, 'priceType');
                 const paramsBody = this.omit (paramsOmitted, 'priceType');
                 if (priceType !== undefined) {
-                    url += '?' + this.urlencode ({ 'priceType': priceType });
+                    suffix = '?' + this.urlencode ({ 'priceType': priceType });
                 }
                 bodySigned = JSON.stringify (paramsBody);
                 headersSigned = {
@@ -1985,7 +1987,7 @@ export default class zebpay extends Exchange {
                 // For GET/DELETE: Append params to URL and sign the query string
                 const queryString = this.urlencode (paramsOmitted);
                 signature = this.hmac (this.encode (queryString), this.encode (this.secret), sha256, 'hex');
-                url += '?' + queryString;
+                suffix = '?' + queryString;
             } else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
                 bodySigned = this.json (paramsOmitted);
@@ -1998,6 +2000,7 @@ export default class zebpay extends Exchange {
             };
             headersSigned['Content-Type'] = 'application/json';
         }
+        const url: string = baseApiUrl + tail + suffix;
         const headersResolved: NullableDict = headersSigned;
         const bodyResolved: Str = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
@@ -2016,7 +2019,7 @@ export default class zebpay extends Exchange {
         // {"statusDescription":"Order quantity is out of range","data":{},"statusCode":400,"customMessage":["Order quantity is out of range"]}
         //
         const errorCode = this.safeString2 (response, 'code', 'statusCode');
-        const message = this.safeString2 (response, 'msg', 'statusDescription');
+        const message = this.safeString2 (response, 'msg', 'statusDescription', '');
         const feedback = this.id + ' ' + message;
         this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
