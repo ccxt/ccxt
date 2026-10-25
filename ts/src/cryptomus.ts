@@ -756,8 +756,8 @@ export default class cryptomus extends Exchange {
         const sideBuy = side === 'buy';
         const amountToString = this.numberToString (amount);
         const priceToString = this.numberToString (price);
-        const [ costParam, paramsCost ] = this.handleParamString (paramsOmitted, 'cost');
-        let cost: Str = costParam;
+        const paramsCost: Dict = this.omit (paramsOmitted, 'cost');
+        let cost: Str = this.safeString (paramsOmitted, 'cost');
         let response: Dict;
         if (type === 'market') {
             const requiresPriceAndParams = this.handleOptionBoolAndParams (paramsCost, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -1225,16 +1225,16 @@ export default class cryptomus extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        if ('code' in response) {
-            const code = this.safeString (response, 'code');
+        const code = this.safeString (response, 'code');
+        const message = this.safeString (response, 'message');
+        if (code !== undefined) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             throw new ExchangeError (feedback);
-        } else if ('message' in response) {
+        } else if (message !== undefined) {
             //
             //      {"message":"Minimum amount 15 USDT","state":1}
             //
-            const message = this.safeString (response, 'message');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
