@@ -465,7 +465,7 @@ export default class lbank extends Exchange {
     }
 
     override parseCurrency (rawCurrency: Dict[]): CurrencyInterface {
-        const id = this.safeString (rawCurrency[0], 'assetCode'); // first member is guaranteed
+        const id = this.safeString (this.safeDict (rawCurrency, 0, {}), 'assetCode'); // first member is guaranteed
         const code = this.safeCurrencyCode (id);
         const networksRaw = rawCurrency;
         const networks: Dict = {};
@@ -539,7 +539,9 @@ export default class lbank extends Exchange {
             this.fetchSwapMarkets (params),
         ];
         const resolvedMarkets = await Promise.all (marketsPromises);
-        return this.arrayConcat (resolvedMarkets[0], resolvedMarkets[1]);
+        const spotMarkets = resolvedMarkets[0];
+        const swapMarkets = resolvedMarkets[1];
+        return this.arrayConcat (spotMarkets, swapMarkets);
     }
 
     async fetchSpotMarkets (params: Dict = {}): Promise<Market[]> {
