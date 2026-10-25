@@ -1464,7 +1464,7 @@ export default class luno extends Exchange {
         return this.parseLedger (entries, currency, since, limit);
     }
 
-    parseLedgerComment (comment: any) {
+    parseLedgerComment (comment: any): Dict {
         const words = comment.split (' ');
         const types: Dict = {
             'Withdrawal': 'fee',
@@ -1511,8 +1511,6 @@ export default class luno extends Exchange {
         let before = after;
         let amount: Str = '0.0';
         const result = this.parseLedgerComment (comment);
-        const type = result['type'];
-        const referenceId = result['referenceId'];
         let direction: Str = undefined;
         let status: Str = undefined;
         if (!Precise.stringEquals (balance_delta, '0.0')) {
@@ -1536,9 +1534,9 @@ export default class luno extends Exchange {
             'id': id,
             'direction': direction,
             'account': account_id,
-            'referenceId': referenceId,
+            'referenceId': result['referenceId'],
             'referenceAccount': undefined,
-            'type': type,
+            'type': result['type'],
             'currency': code,
             'amount': this.parseToNumeric (amount),
             'timestamp': timestamp,

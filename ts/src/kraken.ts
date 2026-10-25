@@ -1129,7 +1129,7 @@ export default class kraken extends Exchange {
         const request: Dict = {};
         const symbolsNormalized = this.marketSymbols (symbols);
         if (symbolsNormalized !== undefined) {
-            const marketIds: List = [];
+            const marketIds: Str[] = [];
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
@@ -1841,7 +1841,7 @@ export default class kraken extends Exchange {
         return this.parseOrders (this.safeList (result, 'orders') as List);
     }
 
-    findMarketByAltnameOrId (id: any) {
+    findMarketByAltnameOrId (id: any): MarketInterface {
         const marketsByAltname = this.safeDict (this.options, 'marketsByAltname', {});
         if (id in marketsByAltname) {
             return marketsByAltname[id];
@@ -2063,13 +2063,19 @@ export default class kraken extends Exchange {
                 price = this.safeString (parts, 5);
             }
         }
-        side = this.safeString (description, 'type', side);
+        const descriptionSide = this.safeString (description, 'type');
+        if (descriptionSide !== undefined) {
+            side = descriptionSide;
+        }
         rawType = this.safeString (description, 'ordertype', rawType); // orderType has dash, e.g. trailing-stop
         marketId = this.safeString (description, 'pair', marketId);
         const marketResolved = this.resolveMarketByAltnameOrId (marketId, market);
         let symbol: Str = undefined;
         const timestamp = this.safeTimestamp (orderOmitted, 'opentm');
-        amount = this.safeString (orderOmitted, 'vol', amount);
+        const orderAmount = this.safeString (orderOmitted, 'vol');
+        if (orderAmount !== undefined) {
+            amount = orderAmount;
+        }
         const filled = this.safeString (orderOmitted, 'vol_exec');
         let fee: NullableDict = undefined;
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
@@ -3091,7 +3097,7 @@ export default class kraken extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionsByType (type: string, transactions: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined) {
+    parseTransactionsByType (type: string, transactions: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined): Transaction[] {
         const result: List = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = this.parseTransaction (this.extend ({
@@ -3761,11 +3767,12 @@ export default class kraken extends Exchange {
         if (body[0] === '{') {
             if (typeof response !== 'string') {
                 const message = this.id + ' ' + body;
-                if ('error' in response) {
-                    const numErrors = response['error'].length;
+                const errors = this.safeList (response, 'error');
+                if (errors !== undefined) {
+                    const numErrors = errors.length;
                     if (numErrors > 0) {
-                        for (let i = 0; i < response['error'].length; i++) {
-                            const error = response['error'][i];
+                        for (let i = 0; i < numErrors; i++) {
+                            const error = errors[i];
                             this.throwExactlyMatchedException (this.exceptions['exact'], error, message);
                             this.throwBroadlyMatchedException (this.exceptions['broad'], error, message);
                         }

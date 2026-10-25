@@ -14,7 +14,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -44,8 +43,6 @@ type WSClient struct {
 	Options           map[string]any
 	StartedConnecting bool
 	ProxyUrl          string
-
-	PingMu sync.RWMutex
 }
 
 // NewWSClient dials the given URL and starts the read-loop.
@@ -118,17 +115,18 @@ func (this *WSClient) CreateConnection() error {
 	if err != nil {
 		return err
 	}
-	this.Connection = conn
+	// the conn owner holds the handle from here on: writes and the close go through it
+	this.AdoptConnection(conn)
 
 	// handle connection pong here:
-	this.Connection.SetPongHandler(func(string) error {
+	conn.SetPongHandler(func(string) error {
 		this.OnPong()
 		return nil
 	})
 
 	// Start event handling goroutines
 	go this.handleOpen()
-	go this.handleMessages()
+	go this.handleMessages(conn)
 
 	return nil
 }
@@ -138,21 +136,16 @@ func (this *WSClient) handleOpen() {
 	this.OnOpen()
 }
 
-// Handle incoming WebSocket messages
-func (this *WSClient) handleMessages() {
+// Handle incoming WebSocket messages; conn is this loop's own reference to the
+// handle the conn owner adopted, the owner performs the close.
+func (this *WSClient) handleMessages(conn *websocket.Conn) {
 	defer func() {
 		this.OnClose(nil)
-		if this.Connection != nil {
-			this.Connection.Close()
-		}
+		this.ReleaseConnection(conn)
 	}()
 
 	for {
-		if this.Connection == nil {
-			return
-		}
-
-		messageType, data, err := this.Connection.ReadMessage()
+		messageType, data, err := conn.ReadMessage()
 		if err != nil {
 			this.OnError(NetworkError(err))
 			return
@@ -177,41 +170,51 @@ func (this *WSClient) handleMessages() {
 }
 
 func (this *WSClient) Connect(backoffDelay ...int) (*Future, error) {
-	if !this.StartedConnecting {
-		this.StartedConnecting = true
-		// exponential backoff for consequent ws connections if necessary
-		delay := 0
-		if len(backoffDelay) > 0 {
-			delay = backoffDelay[0]
-		}
-
-		if delay > 0 {
-			go func() {
-				time.Sleep(time.Duration(delay) * time.Millisecond)
-				this.CreateConnection()
-				// TODO: handle error
-				// if err != nil {
-				// 	return nil, err
-				// }
-			}()
-		} else {
-			err := this.CreateConnection()
-			if err != nil {
-				return nil, err
-			}
-		}
+	delay := 0
+	if len(backoffDelay) > 0 {
+		delay = backoffDelay[0]
+	}
+	if err := this.connectOnce(func() int { return delay }); err != nil {
+		return nil, err
 	}
 	return this.Connected.(*Future), nil
 }
 
-func (this *WSClient) IsOpen() bool {
-	return this.Connection != nil
+// ConnectWithBackoff is Connect for callers that must compute the first-dial
+// backoff themselves; estimate runs on the dial owner, only when this call is the
+// one that starts the socket, so counting real dials needs no lock.
+func (this *WSClient) ConnectWithBackoff(estimate func() int) (*Future, error) {
+	if err := this.connectOnce(estimate); err != nil {
+		return nil, err
+	}
+	return this.Connected.(*Future), nil
 }
 
-func (this *WSClient) ResetConnection(err any) {
-	this.ClearConnectionTimeout()
-	this.ClearPingInterval()
-	this.Reject(err)
+// connectOnce performs the once-only dial decision on the client's dial owner; a
+// backoff dial is started from its own goroutine afterwards so the caller is not
+// held, and the dial itself still runs on the owner.
+func (this *WSClient) connectOnce(estimate func() int) error {
+	var dialErr error
+	delay := 0
+	this.Client.dialTable().run(func() {
+		if this.StartedConnecting {
+			return
+		}
+		this.StartedConnecting = true
+		if estimate != nil {
+			delay = estimate()
+		}
+		if delay <= 0 {
+			dialErr = this.CreateConnection()
+		}
+	})
+	if delay > 0 {
+		go func() {
+			time.Sleep(time.Duration(delay) * time.Millisecond)
+			this.Client.dialTable().run(func() { _ = this.CreateConnection() })
+		}()
+	}
+	return dialErr
 }
 
 func (this *WSClient) SetPingInterval() {
@@ -232,17 +235,7 @@ func (this *WSClient) SetPingInterval() {
 	}
 }
 
-func (this *WSClient) ClearPingInterval() {
-	if this.PingInterval != nil {
-		if ticker, ok := this.PingInterval.(*time.Ticker); ok {
-			ticker.Stop()
-		}
-		this.PingInterval = nil
-	}
-}
-
 func (this *WSClient) OnPingInterval() {
-	this.PingMu.Lock()
 	if derefScalar(this.KeepAlive).(int64) > 0 {
 		if derefScalar(this.IsConnected).(bool) == true {
 			now := time.Now().UnixNano() / int64(time.Millisecond)
@@ -278,13 +271,13 @@ func (this *WSClient) OnPingInterval() {
 						}
 					}()
 				} else {
-					// WriteControl is safe to call concurrently with WriteMessage,
-					// so the keepalive ping needs no ConnectionMu
-					if this.Connection != nil {
+					// the conn owner serializes this control frame with the message
+					// writes; no handle means the connection is already gone
+					if this.HasConnection() {
 						if this.Verbose {
 							this.Log(time.Now(), "sending connection ping")
 						}
-						err := this.Connection.WriteControl(websocket.PingMessage, nil, time.Now().Add(5*time.Second))
+						_, err := this.writePing()
 						if err != nil {
 							// a swallowed ping failure only surfaced two keepAlive
 							// periods later as a misattributed pong-miss timeout,
@@ -298,7 +291,6 @@ func (this *WSClient) OnPingInterval() {
 			}
 		}
 	}
-	this.PingMu.Unlock()
 }
 
 func (this *WSClient) OnOpen() {
@@ -317,12 +309,13 @@ func (this *WSClient) OnOpen() {
 }
 
 func (this *WSClient) Close() *Future {
-	if this.Connection != nil {
+	if this.HasConnection() {
 		if this.Disconnected == nil {
 			this.Disconnected = NewFuture()
 		}
-		this.Connection.Close()
-		this.Connection = nil
+		// the conn owner closes the handle and drops it, so the next HasConnection
+		// reads false without a reader having to observe a nil
+		this.closeConnection()
 	}
 	return this.Disconnected.(*Future)
 }
@@ -363,9 +356,6 @@ func (this *WSClient) GetUrl() string {
 	return this.Client.GetUrl()
 }
 
-func (this *WSClient) GetSubscriptions() any {
-	return this.Client.GetSubscriptions()
-}
 func (this *WSClient) GetLastPong() any {
 	return this.Client.GetLastPong()
 }

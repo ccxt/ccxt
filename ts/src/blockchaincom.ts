@@ -1325,11 +1325,10 @@ export default class blockchaincom extends Exchange {
         }
         const errorCode = this.safeString (response, 'status');
         const errorMessage = this.safeString (response, 'error');
-        if (code !== undefined) {
-            const feedback = this.id + ' ' + this.json (response);
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
-        }
+        // code is an int: it is never undefined, the guard was dead
+        const feedback = this.id + ' ' + this.json (response);
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
         return undefined;
     }
 }

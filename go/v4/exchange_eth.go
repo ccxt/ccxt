@@ -853,7 +853,7 @@ func (this *BaseExchange) LighterCreateClient(signer any, chainId any, privateKe
 }
 
 func (this *BaseExchange) lighterCreateClient(signer any, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64) any {
-	url := this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "public"))
+	url := this.ImplodeHostname(this.UrlsApi["public"])
 
 	httpClient := http.NewClient(url)
 

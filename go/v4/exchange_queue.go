@@ -2,7 +2,6 @@ package ccxt
 
 import (
 	"errors"
-	"sync"
 )
 
 type QueueElement struct {
@@ -11,55 +10,52 @@ type QueueElement struct {
 	Id   string
 }
 
+// Queue keeps its element list in a one-slot channel: the goroutine that takes
+// the list out of the slot is its only owner until it puts it back, so every
+// method is a hand-off instead of a critical section and no lock is involved.
 type Queue struct {
-	elements []QueueElement
-	mu       sync.Mutex
+	elements chan []QueueElement
 }
 
 func NewQueue() Queue {
-	return Queue{
-		elements: []QueueElement{},
+	q := Queue{
+		elements: make(chan []QueueElement, 1),
 	}
+	q.elements <- []QueueElement{}
+	return q
 }
 
 func (q *Queue) Enqueue(element QueueElement) {
-	q.mu.Lock()
-	defer q.mu.Unlock()
-	q.elements = append(q.elements, element)
+	elements := <-q.elements
+	q.elements <- append(elements, element)
 }
 
 func (q *Queue) Dequeue() (QueueElement, error) {
-	q.mu.Lock()
-	defer q.mu.Unlock()
-
-	if len(q.elements) == 0 {
+	elements := <-q.elements
+	if len(elements) == 0 {
+		q.elements <- elements
 		return QueueElement{}, errors.New("queue is empty")
 	}
-
-	front := q.elements[0]
-	q.elements = q.elements[1:]
+	front := elements[0]
+	q.elements <- elements[1:]
 	return front, nil
 }
 
 func (q *Queue) Length() int {
-	q.mu.Lock()
-	defer q.mu.Unlock()
-	return len(q.elements)
+	elements := <-q.elements
+	q.elements <- elements
+	return len(elements)
 }
 
 func (q *Queue) IsEmpty() bool {
-	q.mu.Lock()
-	defer q.mu.Unlock()
-	return len(q.elements) == 0
+	return q.Length() == 0
 }
 
 func (q *Queue) Peek() (QueueElement, error) {
-	q.mu.Lock()
-	defer q.mu.Unlock()
-
-	if len(q.elements) == 0 {
+	elements := <-q.elements
+	q.elements <- elements
+	if len(elements) == 0 {
 		return QueueElement{}, errors.New("queue is empty")
 	}
-
-	return q.elements[0], nil
+	return elements[0], nil
 }

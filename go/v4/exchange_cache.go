@@ -12,10 +12,13 @@ package ccxt
 // store streaming Data (trades, ohlcvs, order-books …).  Only two operations
 // are required for those flows: Append() and ToArray().  Everything else can be
 // added later if/when the need arises.
+//
+// Ownership: every cache starts one owner goroutine in NewBaseCache and every
+// operation below is posted to it, so only that goroutine touches the fields
+// and a call site needs no lock.
 
 import (
 	"fmt"
-	"sync"
 )
 
 // ArrayCacheInterface is the value a ws list stream resolves: one of the caches, or a plain list.
@@ -55,21 +58,54 @@ type CacheType interface {
 	Append(any)
 }
 
+// cacheOp is one unit of work for a cache owner: apply runs on the owner
+// goroutine, close(done) releases the caller that posted it.
+type cacheOp struct {
+	apply func()
+	done  chan struct{}
+}
+
 type BaseCache struct {
-	MaxSize         int        `json:"-"`
-	Mu              sync.Mutex `json:"-"`
-	Data            []any      `json:"data"`
-	allNewUpdates   int        `json:"-"`
-	clearAllUpdates bool       `json:"-"`
+	MaxSize         int          `json:"-"`
+	Data            []any        `json:"data"`
+	allNewUpdates   int          `json:"-"`
+	clearAllUpdates bool         `json:"-"`
+	ops             chan cacheOp `json:"-"`
 }
 
 func NewBaseCache(MaxSize int) *BaseCache {
-	return &BaseCache{MaxSize: MaxSize, Data: make([]any, 0)}
+	c := &BaseCache{MaxSize: MaxSize, Data: make([]any, 0), ops: make(chan cacheOp)}
+	go c.run()
+	return c
+}
+
+// run is the cache owner: it is the only goroutine that touches the cache state.
+func (c *BaseCache) run() {
+	for op := range c.ops {
+		op.apply()
+		close(op.done)
+	}
+}
+
+// submit hands one operation to the owner and waits for it to land, so a caller
+// only observes state the owner already finished with. A cache built without a
+// constructor has no owner and runs the operation inline.
+func (c *BaseCache) submit(fn func()) {
+	if c.ops == nil {
+		fn()
+		return
+	}
+	done := make(chan struct{})
+	c.ops <- cacheOp{apply: fn, done: done}
+	<-done
 }
 
 func (c *BaseCache) Clear() {
-	c.Mu.Lock()
-	defer c.Mu.Unlock()
+	c.submit(c.clearOwned)
+}
+
+// clearOwned empties the array on the owner.
+func (c *BaseCache) clearOwned() {
 	c.Data = c.Data[:0]
 }
 
@@ -112,8 +148,8 @@ func cacheTimestampOf(item any) (int64, bool) {
 	return 0, false
 }
 
+// AppendInternal is the raw append ArrayCache's owner calls; it is never posted.
 func (c *BaseCache) AppendInternal(item any) {
-	// helper (no lock)
 	if c.MaxSize > 0 && len(c.Data) >= c.MaxSize {
 		// drop the oldest element (behaviour identical to JS shift())
 		c.Data = c.Data[1:]
@@ -164,7 +200,7 @@ func NewArrayCache(MaxSize any) *ArrayCache {
 	}
 }
 
-// resetUpdateTrackersLocked clears the getLimit counters. Caller must hold Mu.
+// resetUpdateTrackersLocked clears the getLimit counters. Runs on the cache owner.
 func (c *ArrayCache) resetUpdateTrackersLocked() {
 	c.clearUpdatesBySymbol = make(map[string]bool)
 	c.allNewUpdates = 0
@@ -176,7 +212,7 @@ func (c *ArrayCache) resetUpdateTrackersLocked() {
 // trackAppendLocked records one append against the getLimit counters.
 // When nestedNewUpdatesBySymbol is set (ById / BySide), distinctId is stored in
 // seenUpdatesBySymbol and newUpdatesBySymbol gets the set size — same as Cache.ts.
-// Plain ArrayCache just increments the int. Caller must hold Mu.
+// Plain ArrayCache just increments the int. Runs on the cache owner.
 func (c *ArrayCache) trackAppendLocked(key string, distinctId string) {
 	if c.clearAllUpdates {
 		c.clearAllUpdates = false
@@ -219,6 +255,13 @@ func (c *ArrayCache) trackAppendLocked(key string, distinctId string) {
 }
 
 func (c *ArrayCache) Append(item any) {
+	c.submit(func() {
+		c.appendOwned(item)
+	})
+}
+
+// appendOwned is Append's body, on the cache owner goroutine.
+func (c *ArrayCache) appendOwned(item any) {
 	// We expect the incoming item to at least expose a "symbol" field; try to
 	// extract it when it is a map[string]any – if not present we still
 	// store the item, it just won't participate in Hashmap logic.
@@ -236,8 +279,6 @@ func (c *ArrayCache) Append(item any) {
 	}
 
 	// Basic ring-buffer semantics
-	c.Mu.Lock()
-	defer c.Mu.Unlock()
 	shouldAppend := true
 	if symbol != "" && id != "" {
 		// keep reference for O(1) updates / de-dupe
@@ -249,7 +290,7 @@ func (c *ArrayCache) Append(item any) {
 		if old, exists := byId[id]; exists {
 			// merge copy-on-write: never mutate the stored map in place. Previously
 			// returned items (via ToArray -> WatchOrders etc.) share these map
-			// references and are read by user goroutines without holding c.Mu, so an
+			// references and are read by user goroutines without a lock, so an
 			// in-place write here is a fatal "concurrent map read and map write"
 			if om, ok := old.(map[string]any); ok {
 				if nm, ok := item.(map[string]any); ok {
@@ -331,9 +372,12 @@ func (c *ArrayCache) Append(item any) {
 }
 
 func (c *ArrayCache) Clear() {
-	c.BaseCache.Clear()
-	c.Mu.Lock()
-	defer c.Mu.Unlock()
+	c.submit(c.clearOwned)
+}
+
+// clearOwned empties the array, the by-id index and both poll scopes on the owner.
+func (c *ArrayCache) clearOwned() {
+	c.Data = c.Data[:0]
 	c.Hashmap = make(map[string]map[string]any)
 	c.newUpdatesBySymbol = make(map[string]int)
 	c.seenUpdatesBySymbol = make(map[string]*Set)
@@ -345,9 +389,15 @@ func (c *ArrayCache) Clear() {
 
 // ToArray implements the ArrayCache interface (defined in exchange.go).
 func (c *ArrayCache) ToArray() []any {
-	c.Mu.Lock()
-	defer c.Mu.Unlock()
-	// return a shallow copy to prevent external Mutation
+	var out []any
+	c.submit(func() {
+		out = c.toArrayOwned()
+	})
+	return out
+}
+
+// toArrayOwned returns a shallow copy on the owner, so a caller cannot mutate the array.
+func (c *ArrayCache) toArrayOwned() []any {
 	out := make([]any, len(c.Data))
 	copy(out, c.Data)
 	return out
@@ -355,6 +405,15 @@ func (c *ArrayCache) ToArray() []any {
 
 // GetLimit mirrors Cache.ts getLimit (symbol: Str, limit: Int): Int - an absent result is a nil pointer.
 func (c *ArrayCache) GetLimit(symbol any, limit any) *int64 {
+	var out *int64
+	c.submit(func() {
+		out = c.getLimitOwned(symbol, limit)
+	})
+	return out
+}
+
+// getLimitOwned answers one poll on the owner: it reads the count and flags the deferred reset.
+func (c *ArrayCache) getLimitOwned(symbol any, limit any) *int64 {
 	var newUpdatesValue any = nil
 
 	// a typed nil pointer is not == nil, so both arguments must be normalized
@@ -383,9 +442,13 @@ func (c *ArrayCache) GetLimit(symbol any, limit any) *int64 {
 
 // removes all items with the given symbol from the cache
 func (c *ArrayCache) Remove(symbol string) {
-	c.Mu.Lock()
-	defer c.Mu.Unlock()
+	c.submit(func() {
+		c.removeOwned(symbol)
+	})
+}
 
+// removeOwned drops every row of the symbol on the owner.
+func (c *ArrayCache) removeOwned(symbol string) {
 	// Remove from hashmap
 	delete(c.Hashmap, symbol)
 
@@ -435,12 +498,16 @@ func NewArrayCacheByTimestamp(MaxSize any) *ArrayCacheByTimestamp {
 }
 
 func (c *ArrayCacheByTimestamp) Append(item any) {
+	c.submit(func() {
+		c.appendOwned(item)
+	})
+}
+
+// appendOwned is Append's body, on the cache owner goroutine.
+func (c *ArrayCacheByTimestamp) appendOwned(item any) {
 	// a genuine timestamp of 0 is a valid key, so the presence flag is carried
 	// separately instead of being inferred from `ts != 0`
 	ts, hasTs := cacheTimestampOf(item)
-
-	c.Mu.Lock()
-	defer c.Mu.Unlock()
 
 	var existing any
 	exists := false
@@ -483,14 +550,22 @@ func (c *ArrayCacheByTimestamp) Append(item any) {
 // The previous implementation iterated the OLD row's indices and read the NEW
 // one, so appending [100,9,9] onto [100,1,2,3,4,5] indexed arr[3] and panicked
 // with index out of range; when the lengths happened to line up it still left a
-// stale tail behind ([100,9,9,3,4,5]). Callers must hold c.Mu.
+// stale tail behind ([100,9,9,3,4,5]). Runs on the cache owner.
 func (c *ArrayCacheByTimestamp) mergeRow(ts int64, existing any, item any) {
 	oldArr, okOld := existing.([]any)
 	newArr, okNew := item.([]any)
 	if okOld && okNew && len(oldArr) == len(newArr) {
-		// same shape: c.Data and c.Hashmap share this backing array, so writing
-		// through it is enough and no slice header has to be republished
-		copy(oldArr, newArr)
+		// same shape: publish a fresh row instead of writing through the one
+		// ToArray already handed out, so a reader never shares storage with the owner
+		row := make([]any, len(newArr))
+		copy(row, newArr)
+		c.Hashmap[ts] = row
+		for i := len(c.Data) - 1; i >= 0; i-- {
+			if ets, ok := cacheTimestampOf(c.Data[i]); ok && ets == ts {
+				c.Data[i] = row
+				return
+			}
+		}
 		return
 	}
 
@@ -517,9 +592,12 @@ func (c *ArrayCacheByTimestamp) mergeRow(ts int64, existing any, item any) {
 // known timestamp merged into a reference that was no longer in the array and
 // the candle was silently dropped.
 func (c *ArrayCacheByTimestamp) Clear() {
-	c.BaseCache.Clear()
-	c.Mu.Lock()
-	defer c.Mu.Unlock()
+	c.submit(c.clearOwned)
+}
+
+// clearOwned resets the timestamp index and the array on the owner.
+func (c *ArrayCacheByTimestamp) clearOwned() {
+	c.Data = c.Data[:0]
 	c.Hashmap = make(map[int64]any)
 	c.sizeTracker = NewSet()
 	c.newUpdates = 0
@@ -527,16 +605,26 @@ func (c *ArrayCacheByTimestamp) Clear() {
 }
 
 func (c *ArrayCacheByTimestamp) ToArray() []any {
-	c.Mu.Lock()
-	defer c.Mu.Unlock()
-	out := make([]any, len(c.Data))
-	copy(out, c.Data)
+	var out []any
+	c.submit(func() {
+		out = make([]any, len(c.Data))
+		copy(out, c.Data)
+	})
 	return out
 }
 
 // GetLimit for timestamp cache ignores symbol because entries are not
 // symbol-segmented.  It mirrors the same precedence order as ArrayCache.
 func (c *ArrayCacheByTimestamp) GetLimit(symbol any, limit any) *int64 {
+	var out *int64
+	c.submit(func() {
+		out = c.getLimitOwned(symbol, limit)
+	})
+	return out
+}
+
+// getLimitOwned answers the poll on the owner and flags the deferred reset.
+func (c *ArrayCacheByTimestamp) getLimitOwned(symbol any, limit any) *int64 {
 	c.clearUpdates = true
 	if derefScalar(limit) == nil {
 		return Int64PtrTyped(c.newUpdates)
@@ -546,9 +634,13 @@ func (c *ArrayCacheByTimestamp) GetLimit(symbol any, limit any) *int64 {
 
 // Remove removes all items with the given symbol from the timestamp cache
 func (c *ArrayCacheByTimestamp) Remove(symbol string) {
-	c.Mu.Lock()
-	defer c.Mu.Unlock()
+	c.submit(func() {
+		c.removeOwned(symbol)
+	})
+}
 
+// removeOwned filters the symbol out on the owner.
+func (c *ArrayCacheByTimestamp) removeOwned(symbol string) {
 	// Filter out items with this symbol from Data
 	filteredData := make([]any, 0, len(c.Data))
 	for _, item := range c.Data {
@@ -616,6 +708,13 @@ func NewArrayCacheBySymbolBySide() *ArrayCacheBySymbolBySide {
 // These specialised caches currently rely on ArrayCache.Append which tracks by
 // (symbol, id).  For BySide we override Append to key by side instead.
 func (c *ArrayCacheBySymbolBySide) Append(item any) {
+	c.submit(func() {
+		c.appendBySideOwned(item)
+	})
+}
+
+// appendBySideOwned is Append's body, on the cache owner goroutine.
+func (c *ArrayCacheBySymbolBySide) appendBySideOwned(item any) {
 	var symbol, side string
 	if m, ok := item.(map[string]any); ok {
 		// stringify instead of type-asserting: parsed positions carry *string symbol and
@@ -624,8 +723,6 @@ func (c *ArrayCacheBySymbolBySide) Append(item any) {
 		side = cacheKeyOf(m, "side")
 	}
 
-	c.Mu.Lock()
-	defer c.Mu.Unlock()
 	shouldAppend := true
 
 	// if symbol != "" && side != "" {
@@ -645,7 +742,7 @@ func (c *ArrayCacheBySymbolBySide) Append(item any) {
 
 	if old, exists := bySide[side]; exists {
 		// merge copy-on-write, same reasoning as ArrayCache.Append: previously
-		// returned items share these map references and are read without c.Mu
+		// returned items share these map references and are read without a lock
 		if om, ok := old.(map[string]any); ok {
 			if nm, ok := item.(map[string]any); ok {
 				merged := make(map[string]any, len(om)+len(nm))

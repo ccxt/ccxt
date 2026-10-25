@@ -193,6 +193,7 @@ import path from 'node:path';
 import { threadId } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
 import { ts, urlsDescribeStringProducer } from './csharp-local-types.js';
+import { javaVenueCalleeType, installHx10w9JD01 } from './hx10w9-JD01.js';
 
 // ===== SS-15 rejection census (env-gated debug; inert unless CCXT_SS15_CENSUS=1) =====
 //
@@ -1603,6 +1604,12 @@ function syncCoreCallType (printer, node) {
     if (methodName === undefined || JAVA_CORE_SYNC_DECLINED.has (methodName)) {
         return undefined;
     }
+    // hx10w9-JD01: a generated venue callee's own printed signature decides here, not the
+    // previous on-disk generation of the file this build rewrites
+    const emitted = javaVenueCalleeType (printer, node);
+    if (emitted !== undefined) {
+        return emitted.type;
+    }
     const entry = javaCoreDeclarationTable (node)?.get (methodName);
     if (entry === undefined || entry.future || entry.types.size !== 1) {
         return undefined;
@@ -2001,6 +2008,9 @@ const VENUE_RETURN_KINDS = {
     'networkIdToCode': [ 'String' ], 'findTimeframe': [ 'String' ],
     'outcome': [ JAVA_ARRAY_TYPE_MAP () ], 'safeOutcome': [ JAVA_ARRAY_TYPE_MAP () ],
     'parseSearchQueries': [ 'java.util.List<Object>' ], 'parsePredictionTicker': [ JAVA_ARRAY_TYPE_MAP () ],
+    // hx10w3 J02: `parseWsBalance (…): Balances` is a dict view — the field it feeds (this.balance)
+    // prints Map<String, Object>, so the venue declarations and their callers must say so too
+    'parseWsBalance': [ JAVA_ARRAY_TYPE_MAP () ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -5900,6 +5910,11 @@ export function installJavaLocalTypes (transpiler) {
     if (!printer || typeof printer.printFunctionType !== 'function' || printer._javaLocalTypesPatched) {
         return;
     }
+    installHx10w9JD01(printer, (declaration) => {
+        // only the family this unit decides: a sync whole-call to a generated venue method
+        const initializer = declaration?.initializer === undefined ? undefined : unwrapParens (declaration.initializer);
+        return initializer === undefined ? undefined : javaVenueCalleeType (printer, initializer)?.type;
+    });
     // (1) string/list method signatures. Wrapped on the printer instance so every
     // declaration — base tier and every venue override — goes through the same table.
     const upstreamFunctionType = printer.printFunctionType.bind (printer);
@@ -19761,4 +19776,15 @@ function x21BaseOnlyDispatch (call) {
     const declarations = javaFreshMapDispatch (call.getSourceFile ().fileName, name);
     return declarations !== undefined && declarations.length > 0
         && declarations.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName));
+}
+
+// hx10 J04: a native print of a receiver method carries the same type the helper's entry names,
+// so `String x = <native>` keeps its local typing (see build/hx10w2-J04.js)
+export function registerJavaReceiverMethodMatch (name, match) {
+    const entry = RECEIVER_METHOD_LOCAL_ENTRIES[name];
+    if (entry === undefined || match === undefined) {
+        return;
+    }
+    const previous = entry.match;
+    entry.match = previous === undefined ? match : { test: (value) => previous.test (value) || match.test (value) };
 }

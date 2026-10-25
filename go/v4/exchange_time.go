@@ -16,26 +16,20 @@ func (this *BaseExchange) Seconds() int64 {
 	return this.Milliseconds() / 1000
 }
 
-// SetLastRestRequestTimestamp guards the write with a mutex because concurrent
-// requests would otherwise data-race on LastRestRequestTimestamp. This is a
-// hand-written Go override (blacklisted in goTranspiler.ts) of the transpiled
-// setLastRestRequestTimestamp method in ts/src/base/Exchange.ts.
+// SetLastRestRequestTimestamp hands the timestamp to the request book's owner
+// (exchange_request_book.go), so concurrent request goroutines never write it.
+// This is a hand-written Go override (blacklisted in goTranspiler.ts) of the
+// transpiled setLastRestRequestTimestamp method in ts/src/base/Exchange.ts.
 func (this *BaseExchange) SetLastRestRequestTimestamp() {
-	this.lastMu.Lock()
-	this.LastRestRequestTimestamp = this.Milliseconds()
-	this.lastMu.Unlock()
+	this.handOffRequestBook(requestBookOp{kind: requestBookStamp, stamp: this.Milliseconds()})
 }
 
-// SetLastRequest guards the writes with a mutex because concurrent requests would
-// otherwise data-race on these bookkeeping fields. This is a hand-written Go
-// override (blacklisted in goTranspiler.ts) of the transpiled setLastRequest
-// method in ts/src/base/Exchange.ts.
+// SetLastRequest hands the request's headers/body/url to the book's owner, so
+// concurrent request goroutines never write them.
+// This is a hand-written Go override (blacklisted in goTranspiler.ts) of the
+// transpiled setLastRequest method in ts/src/base/Exchange.ts.
 func (this *BaseExchange) SetLastRequest(request any) {
-	this.lastMu.Lock()
-	this.Last_request_headers = GetValue(request, "headers")
-	this.Last_request_body = GetValue(request, "body")
-	this.Last_request_url = GetValue(request, "url")
-	this.lastMu.Unlock()
+	this.handOffRequestBook(requestBookOp{kind: requestBookRequest, request: request})
 }
 
 // microseconds returns the current time in microseconds since the Unix epoch.

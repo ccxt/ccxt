@@ -80,7 +80,7 @@ export default class bitvavo extends bitvavoRest {
         }
         const market = this.market (symbol);
         const messageHash = name + '@' + market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const request: Dict = {
             'action': 'subscribe',
             'channels': [
@@ -107,7 +107,7 @@ export default class bitvavo extends bitvavoRest {
             const market = this.market (symbolsNormalized[i]);
             args.push (market['id'] as string);
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const request: Dict = {
             'action': 'subscribe',
             'channels': [
@@ -322,7 +322,7 @@ export default class bitvavo extends bitvavoRest {
             marketIds.push (market['id'] as string);
             messageHashes.push (name + '@' + market['id']);
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const request: Dict = {
             'action': 'subscribe',
             'channels': [
@@ -411,7 +411,7 @@ export default class bitvavo extends bitvavoRest {
         const marketId = market['id'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = name + '@' + marketId + '_' + interval;
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const request: Dict = {
             'action': 'subscribe',
             'channels': [
@@ -531,7 +531,7 @@ export default class bitvavo extends bitvavoRest {
                 'markets': marketIdsByInterval[interval],
             });
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const request: Dict = {
             'action': 'subscribe',
             'channels': channels,
@@ -623,7 +623,7 @@ export default class bitvavo extends bitvavoRest {
         const symbolValue: string = market['symbol'];
         const name = 'book';
         const messageHash = name + '@' + market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const request: Dict = {
             'action': 'subscribe',
             'channels': [
@@ -672,7 +672,7 @@ export default class bitvavo extends bitvavoRest {
             marketIds.push (market['id'] as string);
             messageHashes.push (name + '@' + market['id']);
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const request: Dict = {
             'action': 'subscribe',
             'channels': [
@@ -835,7 +835,7 @@ export default class bitvavo extends bitvavoRest {
         }
         const name = 'getBook';
         const messageHash = name + '@' + marketId;
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const request: Dict = {
             'action': name,
             'market': marketId,
@@ -934,7 +934,7 @@ export default class bitvavo extends bitvavoRest {
     }
 
     async unWatchChannels (topic: string, channels: any[], subMessageHashes: string[], subscriptionArgs: Dict, params: Dict = {}): Promise<any> {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const request: Dict = {
             'action': 'unsubscribe',
             'channels': channels,
@@ -1006,7 +1006,7 @@ export default class bitvavo extends bitvavoRest {
         const market = this.market (symbol);
         const symbolValue: Str = market['symbol'];
         const marketId = market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const name = 'account';
         const messageHash = 'order:' + symbolValue;
         const request: Dict = {
@@ -1047,7 +1047,7 @@ export default class bitvavo extends bitvavoRest {
         const market = this.market (symbol);
         const symbolValue: Str = market['symbol'];
         const marketId = market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const name = 'account';
         const messageHash = 'myTrades:' + symbolValue;
         const request: Dict = {
@@ -1254,7 +1254,7 @@ export default class bitvavo extends bitvavoRest {
         const messageHashStr = messageHash.toString ();
         request['action'] = action;
         request['requestId'] = messageHash;
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         return await this.watch (url, messageHashStr, request, messageHashStr);
     }
 
@@ -1515,7 +1515,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override fetchMarketsWs (params = {}): Promise<any> {
+    override fetchMarketsWs (params: Dict = {}): Promise<any> {
         return this.watchRequest ('getMarkets', params);
     }
 
@@ -1797,7 +1797,7 @@ export default class bitvavo extends bitvavoRest {
     }
 
     async authenticate (params: Dict = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const client = this.client (url);
         const messageHash = 'authenticated';
         let future = this.safeValue (client.subscriptions, messageHash);

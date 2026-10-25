@@ -692,7 +692,8 @@ export default class bitget extends bitgetRest {
         const marketId = this.safeString2 (arg, 'instId', 'symbol');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
+        const symbolOhlcvs = this.safeDict (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = symbolOhlcvs;
         const channel = this.safeString2 (arg, 'channel', 'topic', '');
         let interval = this.safeString (arg, 'interval');
         let isUta: Bool = undefined;
@@ -707,11 +708,11 @@ export default class bitget extends bitgetRest {
         if (timeframe === undefined) {
             return;
         }
-        let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
+        let stored = this.safeValue (symbolOhlcvs, timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            symbolOhlcvs[timeframe] = stored;
         }
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
@@ -985,11 +986,8 @@ export default class bitget extends bitgetRest {
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
         const data = this.safeValue (message, 'data');
-        let rawOrderBook = this.safeDict (data, 0);
-        if (rawOrderBook === undefined) {
-            // tokenized stock snapshots arrive as a plain dict instead of a list
-            rawOrderBook = this.safeDict (message, 'data');
-        }
+        // tokenized stock snapshots arrive as a plain dict instead of a list
+        const rawOrderBook = this.safeDict (data, 0, this.safeDict (message, 'data'));
         if (rawOrderBook === undefined) {
             return;
         }

@@ -6,7 +6,7 @@ import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import type Client from '../base/ws/Client.js';
-import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, Market, NullableDict, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Balances, Bool, Dict, Endpoint, Int, Market, NullableDict, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 import { AccountNotEnabled, AuthenticationError, ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, PermissionDenied } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -305,13 +305,13 @@ export default class opinion extends Exchange {
             this.safeString (raw, 'noTokenId'),
         ];
         const outcomes: any[] = [];
-        let resolvedOutcome = undefined;
+        let resolvedOutcome: Str = undefined;
         for (let i = 0; i < outcomeLabels.length; i++) {
             const label = outcomeLabels[i];
             const tokenId = outcomeTokenIds[i];
             const outcomeHandle = this.slugToOutcomeSymbol (effectiveEventSlug, slug, label);
-            let winner = undefined;
-            let settleFraction = undefined;
+            let winner: Bool = undefined;
+            let settleFraction: Num = undefined;
             if (hasResult) {
                 winner = (tokenId === resultTokenId);
                 settleFraction = winner ? 1 : 0;
@@ -334,7 +334,7 @@ export default class opinion extends Exchange {
         const marketResolvedOutcome = resolvedOutcome;
         // the venue sends cutoffAt 0 for markets without a scheduled cutoff - map it to
         // undefined instead of the epoch, same for the event-level end date
-        let expiryTimestamp = undefined;
+        let expiryTimestamp: Int = undefined;
         if (this.safeInteger (raw, 'cutoffAt', 0) !== 0) {
             expiryTimestamp = this.safeTimestamp (raw, 'cutoffAt');
         }
@@ -611,7 +611,7 @@ export default class opinion extends Exchange {
         const statusEnum = this.safeString (rawEvent, 'statusEnum');
         const active = (statusEnum === 'Activated');
         const resolved = (statusEnum === 'Resolved');
-        let end = undefined;
+        let end: Int = undefined;
         if (this.safeInteger (rawEvent, 'cutoffAt', 0) !== 0) {
             end = this.safeTimestamp (rawEvent, 'cutoffAt');
         }
@@ -1212,7 +1212,7 @@ export default class opinion extends Exchange {
      */
     override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         await this.loadApiKey ();
-        let outcomeObj: any = undefined;
+        let outcomeObj: Market = undefined;
         const request: Dict = {};
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome (outcome);
@@ -1237,7 +1237,7 @@ export default class opinion extends Exchange {
      */
     async fetchOrder (id: string, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         await this.loadApiKey ();
-        let outcomeObj: any = undefined;
+        let outcomeObj: Market = undefined;
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome (outcome);
         }
@@ -1297,7 +1297,7 @@ export default class opinion extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a walletAddress');
         }
         await this.loadApiKey ();
-        let outcomeObj: any = undefined;
+        let outcomeObj: Market = undefined;
         const request: Dict = { 'walletAddress': this.walletAddress };
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome (outcome);
@@ -1631,7 +1631,7 @@ export default class opinion extends Exchange {
         if ((this.walletAddress === undefined) || (this.privateKey === undefined)) {
             throw new AuthenticationError (this.id + ' private endpoints require an apiKey, or a walletAddress and privateKey to self-issue one');
         }
-        let creds = undefined;
+        let creds: NullableDict = undefined;
         try {
             creds = await this.fetchApiKey ();
         } catch (e) {
@@ -1653,7 +1653,8 @@ export default class opinion extends Exchange {
         this.options['apiKey'] = creds['apiKey'];
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
-        this.apiKey = creds['apiKey'] as string;
+        // an empty string, not undefined: the strict base types the credential as string
+        this.apiKey = this.safeString (creds, 'apiKey', '') as string;
         return creds;
     }
 

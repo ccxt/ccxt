@@ -1,7 +1,5 @@
 package ccxt
 
-import "sync"
-
 func (this *BaseExchange) initializeProperties(extendedProperties map[string]any) {
 
 	this.TransformedApi = map[string]any{}
@@ -9,16 +7,16 @@ func (this *BaseExchange) initializeProperties(extendedProperties map[string]any
 	this.cacheLoaded = false
 	reqCred := SafeValue(extendedProperties, "requiredCredentials", map[string]interface{}{})
 	this.RequiredCredentials = reqCred.(map[string]interface{})
-	this.ApiKey = SafeString(extendedProperties, "apiKey", nil)
-	this.Secret = SafeString(extendedProperties, "secret", nil)
-	this.Password = SafeString(extendedProperties, "password", nil)
+	this.ApiKey = SafeString(extendedProperties, "apiKey", "").(string)
+	this.Secret = SafeString(extendedProperties, "secret", "").(string)
+	this.Password = SafeString(extendedProperties, "password", "").(string)
 	this.Login = SafeString(extendedProperties, "login", nil)
 	this.Twofa = SafeString(extendedProperties, "twofa", nil)
-	this.PrivateKey = SafeString(extendedProperties, "privateKey", nil)
-	this.WalletAddress = SafeString(extendedProperties, "walletAddress", nil)
+	this.PrivateKey = SafeString(extendedProperties, "privateKey", "").(string)
+	this.WalletAddress = SafeString(extendedProperties, "walletAddress", "").(string)
 	this.Token = SafeString(extendedProperties, "token", nil)
-	this.Uid = SafeString(extendedProperties, "uid", nil)
-	this.AccountId = SafeString(extendedProperties, "accountId", nil)
+	this.Uid = SafeString(extendedProperties, "uid", "").(string)
+	this.AccountId = SafeString(extendedProperties, "accountId", "").(string)
 
 	this.UserAgents = SafeValue(extendedProperties, "userAgents", map[string]interface{}{
 		"chrome":    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36",
@@ -35,11 +33,10 @@ func (this *BaseExchange) initializeProperties(extendedProperties map[string]any
 	this.Hostname = SafeString(extendedProperties, "hostname", "").(string)
 	this.Urls = SafeValue(extendedProperties, "urls", map[string]any{}).(map[string]any)
 
-	this.Options = this.MapToSafeMap(this.GetDefaultOptions().(map[string]any))
+	this.Options = derefScalar(this.GetDefaultOptions()).(map[string]any)
 	extendedOptions := SafeValue(extendedProperties, "options", map[string]any{}).(map[string]any)
 	for k, v := range extendedOptions {
-		// this.Options[k] = v
-		this.Options.Store(k, v)
+		this.Options[k] = v
 	}
 
 	this.Verbose = SafeValue(extendedProperties, "verbose", false).(bool)
@@ -51,11 +48,11 @@ func (this *BaseExchange) initializeProperties(extendedProperties map[string]any
 	this.Exceptions = SafeValue(extendedProperties, "exceptions", map[string]any{}).(map[string]any)
 	propertiesMarkets := SafeValue(extendedProperties, "markets", nil)
 	if propertiesMarkets != nil {
-		this.Markets = this.MapToSafeMap(propertiesMarkets.(map[string]any))
+		this.PublishMarkets(this.Extend(propertiesMarkets))
 	}
 	propCurrencies := SafeValue(extendedProperties, "currencies", map[string]any{}).(map[string]any)
 	if len(propCurrencies) > 0 {
-		this.Currencies = this.MapToSafeMap(propCurrencies)
+		this.PublishCurrencies(this.Extend(propCurrencies))
 	}
 	this.EnableRateLimit = SafeValue(extendedProperties, "enableRateLimit", true).(bool)
 	this.RateLimit = SafeFloat(extendedProperties, "rateLimit", -1).(float64)
@@ -82,27 +79,15 @@ func (this *BaseExchange) initializeProperties(extendedProperties map[string]any
 	this.FetchHistoryCacheSize = SafeValue(extendedProperties, "fetchHistoryCacheSize", 0).(int)
 }
 
-func (this *BaseExchange) MapToSafeMap(input map[string]any) *sync.Map {
+// MapToSafeMap copies the input into a plain dictionary: the safe dictionary type is
+// a plain map now, so the input is no longer wrapped in a concurrent one.
+func (this *BaseExchange) MapToSafeMap(input map[string]any) map[string]any {
 	if input == nil {
 		return nil
 	}
-	var sm sync.Map
+	copied := make(map[string]any, len(input))
 	for k, v := range input {
-		sm.Store(k, v)
+		copied[k] = v
 	}
-	return &sm
-}
-
-func (this *BaseExchange) SafeMapToMap(sm *sync.Map) map[string]any {
-	if sm == nil {
-		return nil
-	}
-	result := make(map[string]any)
-	sm.Range(func(key, value any) bool {
-		if strKey, ok := key.(string); ok {
-			result[strKey] = value
-		}
-		return true
-	})
-	return result
+	return copied
 }

@@ -1521,8 +1521,8 @@ export default class cryptocom extends Exchange {
             const marketId = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount: Num = this.safeValue (rawOrder, 'amount');
-            const price: Num = this.safeValue (rawOrder, 'price');
+            const amount: Num = this.safeNumber (rawOrder, 'amount');
+            const price: Num = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.createAdvancedOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
@@ -2668,7 +2668,7 @@ export default class cryptocom extends Exchange {
         } as Transaction;
     }
 
-    customHandleMarginModeAndParams (methodName: any, params: Dict = {}): [Str, Dict] {
+    customHandleMarginModeAndParams (methodName: string, params: Dict = {}): [Str, Dict] {
         /**
          * @ignore
          * @method
@@ -2680,7 +2680,7 @@ export default class cryptocom extends Exchange {
         const isMargin = this.safeBool (params, 'margin', false);
         const paramsOmitted: Dict = this.omit (params, 'margin');
         let marginMode: Str = undefined;
-        let paramsMarginMode = undefined;
+        let paramsMarginMode: NullableDict = undefined;
         [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams (methodName, paramsOmitted);
         if (marginMode !== undefined) {
             if (marginMode !== 'cross') {
@@ -3020,7 +3020,7 @@ export default class cryptocom extends Exchange {
             market = this.market (symbol);
         }
         let type: Str = undefined;
-        let paramsMarketType = undefined;
+        let paramsMarketType: NullableDict = undefined;
         [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
         this.checkRequiredArgument ('fetchSettlementHistory', type, 'type', [ 'future', 'option', 'WARRANT', 'FUTURE' ]);
         if (type === 'option') {
@@ -3578,7 +3578,7 @@ export default class cryptocom extends Exchange {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
-            const isSwap = market['swap'];
+            const isSwap = this.safeBool (market, 'swap');
             let takerFeeKey: Str = 'effective_spot_taker_rate_bps';
             if (isSwap === true) {
                 takerFeeKey = 'effective_deriv_taker_rate_bps';

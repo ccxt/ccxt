@@ -50,7 +50,7 @@ export default class upbit extends upbitRest {
         const symbolsMarket: Strings = this.marketSymbols (symbolsRequested);
         const symbolsNormalized: string[] = (symbolsMarket === undefined) ? [] : symbolsMarket;
         const marketIds = this.marketIds (symbolsNormalized);
-        const url = this.implodeParams (this.urls['api']['ws'], {
+        const url = this.implodeParams (this.safeString (this.urls['api'], 'ws'), {
             'hostname': this.hostname,
         });
         const client = this.client (url);
@@ -386,7 +386,7 @@ export default class upbit extends upbitRest {
         if (symbolResolved !== undefined) {
             messageHashResolved = messageHash + ':' + symbolResolved;
         }
-        let url = this.implodeParams (this.urls['api']['ws'], {
+        let url = this.implodeParams (this.safeString (this.urls['api'], 'ws'), {
             'hostname': this.hostname,
         });
         url += '/private';

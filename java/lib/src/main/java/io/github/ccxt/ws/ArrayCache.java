@@ -1,12 +1,13 @@
 package io.github.ccxt.ws;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Fixed-size FIFO cache with deduplication and new-update tracking.
@@ -34,46 +35,75 @@ import java.util.concurrent.ConcurrentHashMap;
  *       it ({@code hashmap[symbol][id]}, {@code hashmap[symbol][side]}) because generated
  *       exchange code reads it directly — javaTranspiler.ts:2146-2153 emits those reads.</li>
  *   <li><b>Field-wise merge, not replacement.</b> Re-appending an existing key merges the
- *       new fields into the <i>stored</i> object and keeps that object's identity
- *       (Cache.ts:188-192), so fields absent from the update survive.</li>
+ *       new fields onto the stored row and keeps that row's identity (Cache.ts:188-192), so
+ *       fields absent from the update survive and a view handed out earlier sees the new
+ *       values.</li>
  * </ul>
  *
- * <h2>Concurrency</h2>
- * {@code append}, {@code getLimit}, {@code clear}, {@code snapshot} and both {@code toArray}
- * overloads are {@code synchronized} — this is load-bearing and documented at the call site
- * in {@code BaseExchange.filterBySinceLimit}. Do not strip the locks.
+ * <h2>Ownership</h2>
+ * The exchange ws owner thread is the only writer ({@code BaseExchange.wsOwner}); every
+ * append/clear call site is a ws frame handler. A reader on any other thread never mutates
+ * the cache: it reads the immutable view published after each mutation and hands its poll
+ * scope back through {@link #pendingPolls}, which the owner applies before its next append.
  */
 public class ArrayCache extends ArrayList<Object> {
 
     /** JS coerces an {@code undefined} object key to the literal string "undefined". */
     protected static final String UNDEFINED_KEY = "undefined";
 
+    /** Poll scope sentinels for the reader-to-owner request queue. */
+    protected static final String POLL_ALL = "\0ccxt:all";
+    protected static final String POLL_TIMESTAMP = "\0ccxt:timestamp";
+
     /** {@code <= 0} means unbounded, matching the falsy-maxSize guard in Cache.ts. */
     protected final int maxSize;
+
+    /** Owner-to-reader hand-off: the last published immutable view. */
+    protected final OwnerSlot<CacheView> published = new OwnerSlot<>();
+
+    /** Reader-to-owner hand-off: poll scopes whose counters the next append must reset. */
+    protected final LinkedBlockingQueue<String> pendingPolls = new LinkedBlockingQueue<>();
+
+    /** The ws owner thread, claimed by the first mutation; null means "nobody has written yet". */
+    protected Thread owner;
+
+    /**
+     * True only on the thread that owns the cache. An unclaimed cache answers every caller from
+     * the published view, which is empty and equals the live state until the first append.
+     */
+    protected final boolean isOwner() {
+        Thread o = this.owner;
+        return o != null && o == Thread.currentThread();
+    }
 
     /**
      * Public index read directly by generated exchange code. Shape depends on the variant:
      * {@code ArrayCacheByTimestamp} stores {@code timestamp -> row}; the keyed variants store
      * a nested {@code symbol -> (id|side) -> item}. Plain {@code ArrayCache} never writes here.
+     * This is the reader view; the owner writes {@link #liveHashmap}.
      */
-    public final ConcurrentHashMap<String, Object> hashmap = new ConcurrentHashMap<>();
+    public final Map<String, Object> hashmap;
+
+    protected final Map<String, Object> liveHashmap = new LinkedHashMap<>();
 
     /** symbol -> update count since the last read. */
-    protected final ConcurrentHashMap<String, Integer> newUpdatesBySymbol = new ConcurrentHashMap<String, Integer>();
+    protected final Map<String, Integer> newUpdatesBySymbol = new LinkedHashMap<>();
     /** Distinct ids/sides seen this window when {@link #nestedNewUpdatesBySymbol}. */
-    protected final ConcurrentHashMap<String, Set<String>> seenUpdatesBySymbol = new ConcurrentHashMap<String, Set<String>>();
+    protected final Map<String, Set<String>> seenUpdatesBySymbol = new LinkedHashMap<>();
     /** The same, cleared only by the GLOBAL {@link #getLimit} scope - the two poll scopes are independent. */
-    protected final ConcurrentHashMap<String, Set<String>> seenUpdatesAll = new ConcurrentHashMap<String, Set<String>>();
+    protected final Map<String, Set<String>> seenUpdatesAll = new LinkedHashMap<>();
     /** symbol -> "reset me on the next append". */
-    protected final ConcurrentHashMap<String, Boolean> clearUpdatesBySymbol = new ConcurrentHashMap<String, Boolean>();
-    protected volatile int allNewUpdates = 0;
-    protected volatile boolean clearAllUpdates = false;
+    protected final Map<String, Boolean> clearUpdatesBySymbol = new LinkedHashMap<>();
+    protected int allNewUpdates = 0;
+    protected boolean clearAllUpdates = false;
     /** true when {@link #seenUpdatesBySymbol} tracks distinct ids/sides per symbol. */
     protected boolean nestedNewUpdatesBySymbol = false;
 
     public ArrayCache(int maxSize) {
         super();
         this.maxSize = maxSize;
+        this.hashmap = new PublishedMap(this.published, this);
+        this.published.publish(CacheView.EMPTY);
     }
 
     /** No-arg construction is unbounded, mirroring {@code new ArrayCache ()} in TS. */
@@ -111,7 +141,8 @@ public class ArrayCache extends ArrayList<Object> {
     }
 
     /**
-     * Field-wise merge of {@code source} onto {@code target}.
+     * Field-wise merge of {@code source} onto {@code target}, keeping the stored row's
+     * identity — the handed-out view reads the merged fields through it (Cache.ts:188-192).
      * Maps keep keys present only on the target (order deltas). List rows (OHLCV)
      * take the incoming length — a shorter candle must drop the previous tail.
      *
@@ -147,22 +178,129 @@ public class ArrayCache extends ArrayList<Object> {
         return true;
     }
 
+    // ─── publication ───
+
+    /** What a reader may look at: rows and counters as of the last completed mutation. */
+    protected static final class CacheView {
+        static final CacheView EMPTY = new CacheView(
+                Collections.emptyList(), Collections.emptyMap(), Collections.emptyMap(), 0, 0);
+
+        final List<Object> rows;
+        final Map<String, Object> hashmap;
+        final Map<String, Integer> newUpdates;
+        final int allNewUpdates;
+        final int timestampNewUpdates;
+
+        CacheView(List<Object> rows, Map<String, Object> hashmap, Map<String, Integer> newUpdates,
+                  int allNewUpdates, int timestampNewUpdates) {
+            this.rows = rows;
+            this.hashmap = hashmap;
+            this.newUpdates = newUpdates;
+            this.allNewUpdates = allNewUpdates;
+            this.timestampNewUpdates = timestampNewUpdates;
+        }
+    }
+
+    /** Reader view of the index: answers from the published snapshot, never mutates. */
+    protected static final class PublishedMap extends java.util.AbstractMap<String, Object> {
+        private final OwnerSlot<CacheView> slot;
+        private final ArrayCache cache;
+
+        PublishedMap(OwnerSlot<CacheView> slot, ArrayCache cache) {
+            this.slot = slot;
+            this.cache = cache;
+        }
+
+        private Map<String, Object> view() {
+            if (this.cache.isOwner()) {
+                return this.cache.liveHashmap;
+            }
+            return slot.latest(CacheView.EMPTY).hashmap;
+        }
+
+        @Override
+        public Object get(Object key) {
+            return this.view().get(key);
+        }
+
+        @Override
+        public boolean containsKey(Object key) {
+            return this.view().containsKey(key);
+        }
+
+        @Override
+        public int size() {
+            return this.view().size();
+        }
+
+        @Override
+        public Set<Map.Entry<String, Object>> entrySet() {
+            return this.view().entrySet();
+        }
+    }
+
+    /** Variant counters that travel with the published view; base caches publish none. */
+    protected int extraCounter() {
+        return 0;
+    }
+
+    /** Build and publish the immutable reader view. Owner thread only. */
+    protected void publishView() {
+        List<Object> rows = Collections.unmodifiableList(new ArrayList<>(this));
+        Map<String, Object> index = new LinkedHashMap<>(this.liveHashmap.size() * 2 + 2);
+        for (Map.Entry<String, Object> entry : this.liveHashmap.entrySet()) {
+            Object value = entry.getValue();
+            if (value instanceof Map<?, ?> nested) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> copy = new LinkedHashMap<>((Map<String, Object>) nested);
+                index.put(entry.getKey(), Collections.unmodifiableMap(copy));
+            } else {
+                index.put(entry.getKey(), value);
+            }
+        }
+        Map<String, Integer> counts = new LinkedHashMap<>(this.newUpdatesBySymbol);
+        this.published.publish(new CacheView(rows, Collections.unmodifiableMap(index),
+                Collections.unmodifiableMap(counts), this.allNewUpdates, this.extraCounter()));
+    }
+
+    /** Record a poll scope for the next append to reset; any reader thread. */
+    protected void requestPoll(String symbol) {
+        this.pendingPolls.offer(symbol == null ? POLL_ALL : symbol);
+    }
+
+    /** Apply the poll scopes readers asked for since the previous mutation. Owner thread only. */
+    protected void drainPolls() {
+        String scope;
+        while ((scope = this.pendingPolls.poll()) != null) {
+            if (POLL_ALL.equals(scope)) {
+                this.clearAllUpdates = true;
+            } else {
+                this.clearUpdatesBySymbol.put(scope, Boolean.TRUE);
+            }
+        }
+    }
+
     /**
-     * Stable snapshot for readers — taken under the same monitor as append(),
-     * so consumers can iterate without racing the WS thread.
+     * Stable snapshot for readers: a copy of the live rows on the owner thread, the immutable
+     * view the owner published after its last mutation on any other thread.
      */
-    public synchronized List<Object> snapshot() {
-        return new ArrayList<>(this);
+    public List<Object> snapshot() {
+        if (this.isOwner()) {
+            // super.toArray(), not new ArrayList<>(this): the inherited Collection copy would
+            // route back through the overridden toArray() below and recurse
+            return new ArrayList<>(java.util.Arrays.asList(super.toArray()));
+        }
+        return new ArrayList<>(this.published.latest(CacheView.EMPTY).rows);
     }
 
     @Override
-    public synchronized Object[] toArray() {
-        return super.toArray();
+    public Object[] toArray() {
+        return this.snapshot().toArray();
     }
 
     @Override
-    public synchronized <T> T[] toArray(T[] a) {
-        return super.toArray(a);
+    public <T> T[] toArray(T[] a) {
+        return this.snapshot().toArray(a);
     }
 
     /**
@@ -174,15 +312,17 @@ public class ArrayCache extends ArrayList<Object> {
      * are no longer in the list, so the indices are wiped alongside the contents.
      */
     @Override
-    public synchronized void clear() {
+    public void clear() {
+        this.owner = Thread.currentThread();
         super.clear();
-        this.hashmap.clear();
+        this.liveHashmap.clear();
         this.newUpdatesBySymbol.clear();
         this.seenUpdatesBySymbol.clear();
         this.seenUpdatesAll.clear();
         this.clearUpdatesBySymbol.clear();
         this.allNewUpdates = 0;
         this.clearAllUpdates = false;
+        this.publishView();
     }
 
     /**
@@ -194,14 +334,28 @@ public class ArrayCache extends ArrayList<Object> {
      * @return {@code min(newUpdates, limit)}; {@code limit} verbatim (possibly {@code null})
      *         when the symbol has never been seen
      */
-    public synchronized Long getLimit(String symbol, Long limit) {
+    public Long getLimit(String symbol, Long limit) {
         Integer newUpdatesValue;
-        if (symbol == null) {
-            newUpdatesValue = this.allNewUpdates;
-            this.clearAllUpdates = true;
+        if (this.isOwner()) {
+            if (symbol == null) {
+                newUpdatesValue = this.allNewUpdates;
+                this.clearAllUpdates = true;
+            } else {
+                newUpdatesValue = this.newUpdatesBySymbol.get(symbol);
+                this.clearUpdatesBySymbol.put(symbol, Boolean.TRUE);
+            }
         } else {
-            newUpdatesValue = this.newUpdatesBySymbol.get(symbol);
-            this.clearUpdatesBySymbol.put(symbol, Boolean.TRUE);
+            // a reader never writes the counters: it hands its poll scope to the owner, which
+            // resets them before its next append — the reset is deferred in Cache.ts anyway
+            CacheView view = this.published.latest(CacheView.EMPTY);
+            this.requestPoll(symbol);
+            // if/else, not a ternary: `int ?: Integer` unboxes the map result and NPEs on an
+            // unseen symbol, where Cache.ts returns undefined and the caller gets `limit` back
+            if (symbol == null) {
+                newUpdatesValue = view.allNewUpdates;
+            } else {
+                newUpdatesValue = view.newUpdates.get(symbol);
+            }
         }
         if (newUpdatesValue == null) {
             return limit;
@@ -251,13 +405,15 @@ public class ArrayCache extends ArrayList<Object> {
      * Append an item to the cache, evicting the oldest entry when full,
      * and record it against the per-symbol and all-symbols update counters.
      */
-    public synchronized void append(Object item) {
+    public void append(Object item) {
+        this.owner = Thread.currentThread();
         if (this.shouldEvict()) {
             this.remove(0);
         }
         this.add(item);
 
         String key = keyOf(fieldOf(item, "symbol"));
+        this.drainPolls();
         this.applyDeferredResets();
         if (Boolean.TRUE.equals(this.clearUpdatesBySymbol.get(key))) {
             this.clearUpdatesBySymbol.put(key, Boolean.FALSE);
@@ -267,6 +423,7 @@ public class ArrayCache extends ArrayList<Object> {
         int count = (previous == null) ? 0 : previous.intValue();
         this.newUpdatesBySymbol.put(key, count + 1);
         this.allNewUpdates = this.allNewUpdates + 1;
+        this.publishView();
     }
 
     // ─── Variants ───
@@ -307,28 +464,52 @@ public class ArrayCache extends ArrayList<Object> {
             return null;
         }
 
-        /** Counts distinct timestamps, ignores {@code symbol} entirely (Cache.ts:134-140). */
         @Override
-        public synchronized Long getLimit(String symbol, Long limit) {
-            this.clearUpdates = true;
-            if (limit == null) {
-                return (long) this.timestampNewUpdates;
-            }
-            return Math.min((long) this.timestampNewUpdates, limit);
+        protected int extraCounter() {
+            return this.timestampNewUpdates;
         }
 
         @Override
-        public synchronized void clear() {
+        protected void drainPolls() {
+            if (this.pendingPolls.isEmpty()) {
+                return;
+            }
+            while (this.pendingPolls.poll() != null) {
+                this.clearUpdates = true;
+            }
+        }
+
+        /** Counts distinct timestamps, ignores {@code symbol} entirely (Cache.ts:134-140). */
+        @Override
+        public Long getLimit(String symbol, Long limit) {
+            int newUpdates;
+            if (this.isOwner()) {
+                newUpdates = this.timestampNewUpdates;
+                this.clearUpdates = true;
+            } else {
+                this.requestPoll(POLL_TIMESTAMP);
+                newUpdates = this.published.latest(CacheView.EMPTY).timestampNewUpdates;
+            }
+            if (limit == null) {
+                return (long) newUpdates;
+            }
+            return Math.min((long) newUpdates, limit);
+        }
+
+        @Override
+        public void clear() {
             super.clear();
             this.sizeTracker.clear();
             this.timestampNewUpdates = 0;
             this.clearUpdates = false;
+            this.publishView();
         }
 
         @Override
-        public synchronized void append(Object item) {
+        public void append(Object item) {
+            this.owner = Thread.currentThread();
             String key = keyOf(timestampKeyOf(item));
-            Object reference = this.hashmap.get(key);
+            Object reference = this.liveHashmap.get(key);
             if (reference != null) {
                 // a repeat timestamp is merged into the stored row and keeps its position —
                 // ArrayCacheByTimestamp does NOT move updated rows to the end (Cache.ts:143-150)
@@ -337,22 +518,24 @@ public class ArrayCache extends ArrayList<Object> {
                     if (index >= 0) {
                         this.set(index, item);
                     }
-                    this.hashmap.put(key, item);
+                    this.liveHashmap.put(key, item);
                 }
             } else {
-                this.hashmap.put(key, item);
+                this.liveHashmap.put(key, item);
                 if (this.shouldEvict()) {
                     Object evicted = this.remove(0);
-                    this.hashmap.remove(keyOf(timestampKeyOf(evicted)));
+                    this.liveHashmap.remove(keyOf(timestampKeyOf(evicted)));
                 }
                 this.add(item);
             }
+            this.drainPolls();
             if (this.clearUpdates) {
                 this.clearUpdates = false;
                 this.sizeTracker.clear();
             }
             this.sizeTracker.add(key);
             this.timestampNewUpdates = this.sizeTracker.size();
+            this.publishView();
         }
     }
 
@@ -382,12 +565,12 @@ public class ArrayCache extends ArrayList<Object> {
 
         @SuppressWarnings("unchecked")
         protected Map<String, Object> bucket(String key) {
-            Object existing = this.hashmap.get(key);
+            Object existing = this.liveHashmap.get(key);
             if (existing instanceof Map) {
                 return (Map<String, Object>) existing;
             }
             Map<String, Object> created = new LinkedHashMap<>();
-            this.hashmap.put(key, created);
+            this.liveHashmap.put(key, created);
             return created;
         }
 
@@ -398,7 +581,8 @@ public class ArrayCache extends ArrayList<Object> {
 
         @Override
         @SuppressWarnings("unchecked")
-        public synchronized void append(Object item) {
+        public void append(Object item) {
+            this.owner = Thread.currentThread();
             String key = keyOf(fieldOf(item, this.keyField));
             String subKey = this.subKeyOf(item);
             Map<String, Object> byId = this.bucket(key);
@@ -425,7 +609,7 @@ public class ArrayCache extends ArrayList<Object> {
             if (this.evictionEnabled() && this.shouldEvict()) {
                 Object evicted = this.remove(0);
                 String evictedKey = keyOf(fieldOf(evicted, this.keyField));
-                Object evictedBucket = this.hashmap.get(evictedKey);
+                Object evictedBucket = this.liveHashmap.get(evictedKey);
                 if (evictedBucket instanceof Map) {
                     ((Map<String, Object>) evictedBucket).remove(this.subKeyOf(evicted));
                 }
@@ -449,6 +633,7 @@ public class ArrayCache extends ArrayList<Object> {
             }
             this.add(toStore);
 
+            this.drainPolls();
             this.applyDeferredResets();
             Set<String> idSet = this.seenUpdatesBySymbol.get(key);
             if (idSet == null) {
@@ -473,6 +658,7 @@ public class ArrayCache extends ArrayList<Object> {
             int beforeAll = allIdSet.size();
             allIdSet.add(subKey);
             this.allNewUpdates = this.allNewUpdates + (allIdSet.size() - beforeAll);
+            this.publishView();
         }
     }
 

@@ -190,6 +190,17 @@ impl Default for ExecutedPlanLedger {
     }
 }
 
+/// Everything one router mutates through `&self`. One owner thread holds all of
+/// it (see `OwnerThread`), so the ledger, the cached balances and the generation
+/// that invalidates them are read and written together and never half-applied.
+#[derive(Default)]
+struct RouterShared {
+    ledger: ExecutedPlanLedger,
+    balances: Option<String>,
+    generation: u64,
+}
+
+
 /// The shape of the `onStep` hook: it is handed one event describing a finished
 /// step and returns `"halt"` to stop the route. SYNCHRONOUS by design — it sits
 /// between orders on the money path, so do no network I/O in it.
@@ -218,13 +229,9 @@ pub struct OrderRouter {
     /// test pins time by setting it. A field rather than an overridable method
     /// because `OrderRouter` is a concrete struct, not a trait.
     now_ms_override: Option<f64>,
-    /// In-process idempotency ledger: the identity of every plan this instance
-    /// has already executed live. Behind a mutex because `execute` takes `&self`.
-    /// TWO structures for one ledger, in every port: a FIFO deque that fixes the
-    /// eviction order, and a `HashSet` so the membership test is a hash lookup
-    /// rather than a scan whose cost grows with the ledger. They live under ONE
-    /// mutex because they are written and evicted together and must never disagree.
-    executed_plan_ids: std::sync::Mutex<ExecutedPlanLedger>,
+    /// The idempotency ledger and the balances cache, both owned by one thread:
+    /// `execute`/`fetch_route` take `&self`, so they hand over a job and wait.
+    shared: crate::value::OwnerThread<RouterShared>,
     /// The caller's `onStep` hook, or `None`. See `OnStepHook` for why this is a
     /// field in this port and an options key in the other five. `execute` takes
     /// `&self`, so this is only ever read, never written, during a run.
@@ -237,14 +244,6 @@ pub struct OrderRouter {
     //  fetch_route filters and funds on them, execute falls back to them — only the
     //  installation is a setter.
     venues: std::collections::BTreeMap<String, Box<dyn RouterVenue>>,
-
-    //  The rendered balances string for `venues`, read once and reused. fetch_route is ONE
-    //  HTTP request and must stay that way. Placing an order is what makes balances wrong,
-    //  so a live execute drops it. A Mutex because fetch_route takes &self.
-    balances_cache: std::sync::Mutex<Option<String>>,
-    //  bumped by every invalidation, so a wallet read that was already in flight when the
-    //  cache was dropped cannot store its now-obsolete snapshot on the way back
-    balances_generation: std::sync::atomic::AtomicU64,
 
     //  Whether this router manages balances at all. TWO decisions used to ride on `venues`:
     //  where you can trade, and what you hold. The first is a filter - free, and it cannot go
@@ -585,11 +584,9 @@ impl OrderRouter {
             timeout_ms: DEFAULT_TIMEOUT_MS,
             max_notional_usd: NO_CAP,
             now_ms_override: None,
-            executed_plan_ids: std::sync::Mutex::new(ExecutedPlanLedger::new()),
+            shared: crate::value::OwnerThread::spawn("ccxt-order-router", RouterShared::default()),
             on_step: None,
             venues: std::collections::BTreeMap::new(),
-            balances_cache: std::sync::Mutex::new(None),
-            balances_generation: std::sync::atomic::AtomicU64::new(0),
             track_balances: false,
         };
         // The service dropped API keys in favour of per-IP rate limiting, so an empty key is
@@ -618,11 +615,9 @@ impl OrderRouter {
             timeout_ms,
             max_notional_usd,
             now_ms_override: None,
-            executed_plan_ids: std::sync::Mutex::new(ExecutedPlanLedger::new()),
+            shared: crate::value::OwnerThread::spawn("ccxt-order-router", RouterShared::default()),
             on_step: None,
             venues: std::collections::BTreeMap::new(),
-            balances_cache: std::sync::Mutex::new(None),
-            balances_generation: std::sync::atomic::AtomicU64::new(0),
             track_balances: false,
         })
     }
@@ -667,30 +662,37 @@ impl OrderRouter {
         self.on_step = None;
     }
 
+    /// Hands one job to the router's owner thread and returns its result.
+    fn shared_op<R, F>(&self, f: F) -> R
+    where R: Send + 'static, F: FnOnce(&mut RouterShared) -> R + Send + 'static {
+        self.shared.run(f)
+    }
+
     /// Reports whether this instance has executed the given plan id recently enough for
     /// the bounded ledger to still remember it.
     pub fn has_executed_plan(&self, plan_id: &str) -> bool {
-        self.executed_plan_ids.lock().unwrap().contains(plan_id)
+        let id = plan_id.to_string();
+        self.shared_op(move |s| s.ledger.contains(&id))
     }
 
     /// Records one plan id in the bounded ledger, evicting the oldest entry when full.
     pub fn record_executed_plan(&self, plan_id: &str) {
-        self.executed_plan_ids.lock().unwrap().record(plan_id.to_string());
+        let id = plan_id.to_string();
+        self.shared_op(move |s| s.ledger.record(id));
     }
 
     /// How many plan ids the ledger currently holds, and the id at one position in
     /// insertion order. Both exist so the self-test can assert the bound and the
     /// eviction order without reaching through the mutex itself.
     pub fn executed_plan_count(&self) -> usize {
-        self.executed_plan_ids.lock().unwrap().len()
+        self.shared_op(|s| s.ledger.len())
     }
 
     pub fn executed_plan_at(&self, index: usize) -> String {
-        let ledger = self.executed_plan_ids.lock().unwrap();
-        match ledger.at(index) {
+        self.shared_op(move |s| match s.ledger.at(index) {
             Some(entry) => entry.clone(),
             None => String::new(),
-        }
+        })
     }
 
     /// Pins the clock, for tests. Production never calls this.
@@ -3559,8 +3561,8 @@ impl OrderRouter {
             return Err(bad_request("OrderRouter: refusing to execute live without an identity, the plan carries no requestId — pass options.idempotencyKey"));
         }
         if !self.bool_at(options, "allowReexecution", false) {
-            let ledger = self.executed_plan_ids.lock().unwrap();
-            if ledger.contains(&plan_id) {
+            let id = plan_id.clone();
+            if self.shared_op(move |s| s.ledger.contains(&id)) {
                 return Err(bad_request("OrderRouter: refusing to re-execute a plan this instance already executed, pass allowReexecution to override"));
             }
         }
@@ -3651,8 +3653,8 @@ impl OrderRouter {
         // recorded completed runs would wave through exactly the retry that
         // double-fills.
         {
-            let mut ledger = self.executed_plan_ids.lock().unwrap();
-            ledger.record(plan_id.clone());
+            let id = plan_id.clone();
+            self.shared_op(move |s| s.ledger.record(id));
         }
         // From here orders go out, so whatever balances were cached are about to be
         // wrong. Dropped BEFORE dispatch, for the same reason the ledger is written
@@ -3845,46 +3847,33 @@ impl OrderRouter {
             return Ok(String::new());
         }
         if !reload {
-            if let Ok(guard) = self.balances_cache.lock() {
-                if let Some(cached) = guard.as_ref() {
-                    return Ok(cached.clone());
-                }
+            if let Some(cached) = self.shared_op(|s| s.balances.clone()) {
+                return Ok(cached);
             }
         }
-        let generation = self
-            .balances_generation
-            .load(std::sync::atomic::Ordering::SeqCst);
+        let generation = self.shared_op(|s| s.generation);
         let (balances, _dropped) = self.collect_balances(&self.venues).await?;
         //  an invalidation landed while these wallets were being read, which means money
         //  moved under this snapshot. It is still the right answer for THIS caller, but it
         //  must not become the cache the next quote trusts.
-        if generation
-            == self
-                .balances_generation
-                .load(std::sync::atomic::Ordering::SeqCst)
-        {
-            if let Ok(mut guard) = self.balances_cache.lock() {
-                *guard = Some(balances.clone());
-            }
-        }
+        let snapshot = balances.clone();
+        self.shared_op(move |s| {
+            if s.generation == generation { s.balances = Some(snapshot); }
+        });
         Ok(balances)
     }
 
     /// Drops the cached balances, so the next quote re-reads the wallets.
     pub fn invalidate_balances(&self) {
-        self.balances_generation
-            .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-        if let Ok(mut guard) = self.balances_cache.lock() {
-            *guard = None;
-        }
+        self.shared_op(|s| {
+            s.generation = s.generation.wrapping_add(1);
+            s.balances = None;
+        });
     }
 
     /// Reports whether a balances snapshot is currently cached.
     pub fn balances_are_loaded(&self) -> bool {
-        match self.balances_cache.lock() {
-            Ok(guard) => guard.is_some(),
-            Err(_) => false,
-        }
+        self.shared_op(|s| s.balances.is_some())
     }
 
     /// Reads every supplied venue's wallet and renders it as the router's balances string,

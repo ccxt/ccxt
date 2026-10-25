@@ -965,7 +965,7 @@ type orderRouterStubVenue struct {
 	fillRatio  float64
 	failCreate bool
 	features   map[string]any
-	markets    *sync.Map
+	markets    map[string]any
 	balanceFn  func() (Balances, error)
 	// a queue of orders FetchOrder hands back, one per poll; empty means the
 	// created order comes back closed on the first read
@@ -987,8 +987,8 @@ type orderRouterStubVenue struct {
 }
 
 func newOrderRouterStubVenue(fillRatio float64, failCreate bool) *orderRouterStubVenue {
-	markets := &sync.Map{}
-	markets.Store("BTC/USDT", routerStubMarket())
+	markets := map[string]any{}
+	markets["BTC/USDT"] = routerStubMarket()
 	return &orderRouterStubVenue{
 		calls:      []string{},
 		fillRatio:  fillRatio,
@@ -1047,7 +1047,7 @@ func (this *orderRouterStubVenue) LoadMarkets(params ...any) (map[string]MarketI
 	return map[string]MarketInterface{}, nil
 }
 
-func (this *orderRouterStubVenue) GetMarkets() *sync.Map {
+func (this *orderRouterStubVenue) GetMarkets() map[string]any {
 	return this.markets
 }
 

@@ -2107,7 +2107,7 @@ export default class modetrade extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const clientOrderIds = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
+        const clientOrderIds: Strings = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const paramsOmitted: Dict = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const request: Dict = {};
         let response: Dict;

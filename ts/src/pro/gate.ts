@@ -752,8 +752,8 @@ export default class gate extends gateRest {
             if (Array.isArray (bidAsk)) {
                 bookSide.storeArray (this.parseOrderBookBidAsk (bidAsk));
             } else {
-                const price = this.safeFloat (bidAsk, 'p');
-                const amount = this.safeFloat (bidAsk, 's');
+                const price = this.safeNumber (bidAsk, 'p');
+                const amount = this.safeNumber (bidAsk, 's');
                 bookSide.store (price, amount);
             }
         }
@@ -2111,7 +2111,7 @@ export default class gate extends gateRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         //
         // subscribe
         //    {

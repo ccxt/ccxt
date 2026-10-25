@@ -6,12 +6,15 @@ import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLo
 import { installJavaH2kJ02FreshObjectMapWrites } from './java-local-types.js';
 import { installH2kJ11StringArgs } from './java-local-types.js';
 import { installJavaNativePadStartFirst, installJ08NativeReplace } from './java-local-types.js';
+import { installHx10J04StringHelpers } from './hx10w2-J04.js';
 import { installJ10Types } from './java-local-types.js';
 import { installJ11MapLocals } from './java-local-types.js';
 import { installJ12ParamTypes } from './java-local-types.js';
 import { installJ13ListLocals } from './java-local-types.js';
 import { installJ14ScalarLocals } from './java-local-types.js';
 import { installJ17StringReturns } from './java-local-types.js';
+import { installJ03BooleanConditions } from './hx10w2-J03.js'; // hx10 wave-2 J03
+import { installJ06TupleAsyncLocals } from './hx10w3-J06.js'; // hx10 wave-3 J06
 import log from 'ololog'
 
 // task payload posted by javaTranspiler.ts#webworkerTranspile (structured clone)
@@ -97,12 +100,15 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installH2kJ11StringArgs (cachedTranspiler);
         installJavaNativePadStartFirst (cachedTranspiler);
         installJ08NativeReplace (cachedTranspiler);
+        installHx10J04StringHelpers (cachedTranspiler); // hx10 J04
         installJ10Types (cachedTranspiler); // hx4 J10
         installJ11MapLocals (cachedTranspiler); // hx4 J11
         installJ12ParamTypes (cachedTranspiler); // hx4 J12
         installJ13ListLocals (cachedTranspiler); // hx4 J13
         installJ14ScalarLocals (cachedTranspiler); // hx4 J14
         installJ17StringReturns (cachedTranspiler); // hx4 J17
+        installJ03BooleanConditions (cachedTranspiler); // hx10 wave-2 J03
+        installJ06TupleAsyncLocals (cachedTranspiler); // hx10 wave-3 J06
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

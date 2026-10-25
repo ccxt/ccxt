@@ -2206,6 +2206,8 @@ export default class poloniex extends Exchange {
     }
 
     orderRequest (symbol: string, type: OrderType, side: OrderSide, amount: Num, request: Dict, price: Num = undefined, params: Dict = {}): [Dict, Dict] {
+        // build the request on a copy: the caller keeps its own dict and reads ours
+        const result: Dict = this.extend ({}, request);
         const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
         const market = this.market (symbol);
         const isContract = (market['contract'] === true);
@@ -2219,7 +2221,7 @@ export default class poloniex extends Exchange {
         if (isContract) {
             if (marginMode !== undefined) {
                 this.checkRequiredArgument ('createOrder', marginMode, 'marginMode', [ 'cross', 'isolated' ]);
-                request['mgnMode'] = marginMode.toUpperCase ();
+                result['mgnMode'] = marginMode.toUpperCase ();
             }
             if ((hedged !== undefined) && (hedged !== '')) {
                 if (marginMode === undefined) {
@@ -2239,11 +2241,11 @@ export default class poloniex extends Exchange {
                 throw new InvalidOrder (this.id + ' createOrder() does not support trigger orders for ' + market['type'] + ' markets');
             }
             upperCaseType = (price === undefined) ? 'STOP' : 'STOP_LIMIT';
-            request['stopPrice'] = triggerPrice;
+            result['stopPrice'] = triggerPrice;
         } else if (isPostOnly) {
             upperCaseType = 'LIMIT_MAKER';
         }
-        request['type'] = upperCaseType;
+        result['type'] = upperCaseType;
         if (isMarket) {
             if (side === 'buy') {
                 let quoteAmount: Str = undefined;
@@ -2269,25 +2271,25 @@ export default class poloniex extends Exchange {
                 if (market['spot'] === true) {
                     amountKey = 'amount';
                 }
-                request[amountKey] = quoteAmount;
+                result[amountKey] = quoteAmount;
             } else {
                 let amountKey: Str = 'sz';
                 if (market['spot'] === true) {
                     amountKey = 'quantity';
                 }
-                request[amountKey] = this.amountToPrecision (symbol, amount);
+                result[amountKey] = this.amountToPrecision (symbol, amount);
             }
         } else {
             let amountKey: Str = 'sz';
             if (market['spot'] === true) {
                 amountKey = 'quantity';
             }
-            request[amountKey] = this.amountToPrecision (symbol, amount);
+            result[amountKey] = this.amountToPrecision (symbol, amount);
             let priceKey: Str = 'px';
             if (market['spot'] === true) {
                 priceKey = 'price';
             }
-            request[priceKey] = this.priceToPrecision (symbol, price);
+            result[priceKey] = this.priceToPrecision (symbol, price);
         }
         const clientOrderId = this.safeString2 (queryOmitted, 'clientOrderId', 'clOrdId');
         if (clientOrderId !== undefined) {
@@ -2296,11 +2298,11 @@ export default class poloniex extends Exchange {
             if (market['spot'] === true) {
                 clientOrderIdKey = 'clientOrderId';
             }
-            request[clientOrderIdKey] = clientOrderId;
+            result[clientOrderIdKey] = clientOrderId;
             queryOmitted = this.omit (queryOmitted, [ 'clientOrderId', 'clOrdId' ]);
         }
         // remember the timestamp before issuing the request
-        return [ request, queryOmitted ];
+        return [ result, queryOmitted ];
     }
 
     /**
@@ -2949,7 +2951,7 @@ export default class poloniex extends Exchange {
         }
         const currency = this.currency (code);
         let networkCode: Str = undefined;
-        let query = undefined;
+        let query: NullableDict = undefined;
         [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             // we need to know the network to find out the currency-junction

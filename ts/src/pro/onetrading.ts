@@ -242,11 +242,12 @@ export default class onetrading extends onetradingRest {
             const ticker = tickers[i];
             const marketId = this.safeString (ticker, 'instrument');
             const symbol = this.safeSymbol (marketId);
-            this.tickers[symbol] = this.parseWSTicker (ticker);
+            const parsedTicker = this.parseWSTicker (ticker);
+            this.tickers[symbol] = parsedTicker;
             const timestamp = this.parse8601 (datetime);
-            this.tickers[symbol]['timestamp'] = timestamp;
-            this.tickers[symbol]['datetime'] = this.iso8601 (timestamp);
-            client.resolve (this.tickers[symbol], 'ticker.' + symbol);
+            parsedTicker['timestamp'] = timestamp;
+            parsedTicker['datetime'] = this.iso8601 (timestamp);
+            client.resolve (parsedTicker, 'ticker.' + symbol);
         }
         client.resolve (this.tickers, 'tickers');
     }
@@ -1216,15 +1217,16 @@ export default class onetrading extends onetradingRest {
             this.safeNumber (message, 'close'),
             this.safeNumber (message, 'volume'),
         ];
-        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
+        const symbolOhlcvs = this.safeDict (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = symbolOhlcvs;
+        let stored = this.safeValue (symbolOhlcvs, timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
         }
         stored.append (parsed);
         if (symbol !== undefined && timeframe !== undefined) {
-            this.ohlcvs[symbol][timeframe] = stored;
+            symbolOhlcvs[timeframe] = stored;
         }
         client.resolve (stored, channel);
     }

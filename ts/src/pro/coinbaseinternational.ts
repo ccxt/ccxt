@@ -104,7 +104,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return requestId;
     }
 
-    getWsUrl (isPrivate = false): string {
+    getWsUrl (isPrivate: boolean = false): string {
         if (this.isNativeDeribitCredentials ()) {
             return 'wss://www.deribit.com/ws/api/v2';
         }
@@ -164,7 +164,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the subscription result
      */
-    async subscribe (channels: string[], messageHashes: string[], isPrivate = false, params = {}) {
+    async subscribe (channels: string[], messageHashes: string[], isPrivate: boolean = false, params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('subscribe', params);
         let url = this.getWsUrl (false);
         let method = 'public/subscribe';
@@ -205,7 +205,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {boolean} true when unsubscription has been requested
      */
-    async unSubscribe (channels: string[], isPrivate = false, params = {}) {
+    async unSubscribe (channels: string[], isPrivate: boolean = false, params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('unSubscribe', params);
         let url = this.getWsUrl (false);
         let method = 'public/unsubscribe';
@@ -1465,7 +1465,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the authentication response
      */
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('authenticate', params);
         const url = this.getWsUrl (true);
         const client = this.client (url);
@@ -1517,13 +1517,13 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {boolean} [isPrivate] whether to authenticate before sending the request
      * @returns {object} the exchange response
      */
-    async requestWs (method: string, params = {}, isPrivate = false) {
+    async requestWs (method: string, params: Dict = {}, isPrivate: boolean = false) {
         const paramsResolved = this.handleRouteAndParams ('requestWs', params);
         const url = this.getWsUrl (true);
         if (isPrivate) {
             await this.authenticate ();
         }
-        const requestId = this.requestId ();
+        const requestId: number = this.requestId ();
         const messageHash = requestId.toString ();
         const request: Dict = {
             'jsonrpc': '2.0',
@@ -1882,7 +1882,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    async setHeartbeat (interval: Int = 30, params = {}) {
+    async setHeartbeat (interval: Int = 30, params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('setHeartbeat', params);
         const request = this.extend ({ 'interval': interval }, paramsResolved);
         return await this.requestWs ('public/set_heartbeat', request);
@@ -1899,7 +1899,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    async disableHeartbeat (params = {}) {
+    async disableHeartbeat (params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('disableHeartbeat', params);
         return await this.requestWs ('public/disable_heartbeat', paramsResolved);
     }
@@ -1919,7 +1919,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.scope] connection or account, default connection
      * @returns {object} the exchange response
      */
-    async setCancelOnDisconnect (enabled: Bool, params = {}) {
+    async setCancelOnDisconnect (enabled: Bool, params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('setCancelOnDisconnect', params);
         const method = (enabled === true) ? 'private/enable_cancel_on_disconnect' : 'private/disable_cancel_on_disconnect';
         return await this.requestWs (method, paramsResolved, true);
@@ -1937,7 +1937,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.scope] connection or account, default connection
      * @returns {object} the exchange response
      */
-    async getCancelOnDisconnect (params = {}) {
+    async getCancelOnDisconnect (params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('getCancelOnDisconnect', params);
         return await this.requestWs ('private/get_cancel_on_disconnect', paramsResolved, true);
     }
@@ -1956,7 +1956,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    async unsubscribeAllWs (isPrivate = false, params = {}) {
+    async unsubscribeAllWs (isPrivate: boolean = false, params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('unsubscribeAllWs', params);
         const method = isPrivate ? 'private/unsubscribe_all' : 'public/unsubscribe_all';
         return await this.requestWs (method, paramsResolved, isPrivate);
@@ -1974,7 +1974,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {bool} [params.invalidate_token] whether to invalidate session tokens, default true
      * @returns {object} the exchange response
      */
-    async logoutWs (params = {}) {
+    async logoutWs (params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('logoutWs', params);
         await this.authenticate ();
         const url = this.getWsUrl (true);

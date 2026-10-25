@@ -156,15 +156,14 @@ export default class aster extends asterRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
-        const symbolsList: string[] = (symbolsNormalized === undefined) ? [] : symbolsNormalized;
-        const firstMarket = this.getMarketFromSymbols (symbolsList);
-        const type = this.safeString (firstMarket, 'type', 'swap');
-        const symbolsLength = symbolsList.length;
         const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'watchTickers');
-        const paramsOmitted: Dict = this.omit (paramsCallerMethodName, 'callerMethodName');
-        if (symbolsLength === 0) {
+        if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
+        const symbolsList: string[] = symbolsNormalized;
+        const firstMarket = this.getMarketFromSymbols (symbolsList);
+        const type = this.safeString (firstMarket, 'type', 'swap');
+        const paramsOmitted: Dict = this.omit (paramsCallerMethodName, 'callerMethodName');
         const url = this.safeString (this.urls['api']['ws']['public'], type);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
@@ -210,15 +209,14 @@ export default class aster extends asterRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
-        const symbolsList: string[] = (symbolsNormalized === undefined) ? [] : symbolsNormalized;
-        const firstMarket = this.getMarketFromSymbols (symbolsList);
-        const type = this.safeString (firstMarket, 'type', 'swap');
-        const symbolsLength = symbolsList.length;
         const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'unWatchTickers');
-        const paramsOmitted = this.omit (paramsCallerMethodName, 'callerMethodName');
-        if (symbolsLength === 0) {
+        if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
+        const symbolsList: string[] = symbolsNormalized;
+        const firstMarket = this.getMarketFromSymbols (symbolsList);
+        const type = this.safeString (firstMarket, 'type', 'swap');
+        const paramsOmitted = this.omit (paramsCallerMethodName, 'callerMethodName');
         const url = this.safeString (this.urls['api']['ws']['public'], type);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
@@ -291,15 +289,14 @@ export default class aster extends asterRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
-        const symbolsList: string[] = (symbolsNormalized === undefined) ? [] : symbolsNormalized;
-        const firstMarket = this.getMarketFromSymbols (symbolsList);
-        const type = this.safeString (firstMarket, 'type', 'swap');
-        const symbolsLength = symbolsList.length;
         const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'watchMarkPrices');
-        const paramsOmitted: Dict = this.omit (paramsCallerMethodName, 'callerMethodName');
-        if (symbolsLength === 0) {
+        if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
+        const symbolsList: string[] = symbolsNormalized;
+        const firstMarket = this.getMarketFromSymbols (symbolsList);
+        const type = this.safeString (firstMarket, 'type', 'swap');
+        const paramsOmitted: Dict = this.omit (paramsCallerMethodName, 'callerMethodName');
         const url = this.safeString (this.urls['api']['ws']['public'], type);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
@@ -349,15 +346,14 @@ export default class aster extends asterRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
-        const symbolsList: string[] = (symbolsNormalized === undefined) ? [] : symbolsNormalized;
-        const firstMarket = this.getMarketFromSymbols (symbolsList);
-        const type = this.safeString (firstMarket, 'type', 'swap');
-        const symbolsLength = symbolsList.length;
         const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'unWatchMarkPrices');
-        const paramsOmitted = this.omit (paramsCallerMethodName, 'callerMethodName');
-        if (symbolsLength === 0) {
+        if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
+        const symbolsList: string[] = symbolsNormalized;
+        const firstMarket = this.getMarketFromSymbols (symbolsList);
+        const type = this.safeString (firstMarket, 'type', 'swap');
+        const paramsOmitted = this.omit (paramsCallerMethodName, 'callerMethodName');
         const url = this.safeString (this.urls['api']['ws']['public'], type);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
@@ -483,13 +479,12 @@ export default class aster extends asterRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
-        const symbolsList: string[] = (symbolsNormalized === undefined) ? [] : symbolsNormalized;
-        const firstMarket = this.getMarketFromSymbols (symbolsList);
-        const type = this.safeString (firstMarket, 'type', 'swap');
-        const symbolsLength = symbolsList.length;
-        if (symbolsLength === 0) {
+        if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks() requires a non-empty array of symbols');
         }
+        const symbolsList: string[] = symbolsNormalized;
+        const firstMarket = this.getMarketFromSymbols (symbolsList);
+        const type = this.safeString (firstMarket, 'type', 'swap');
         const url = this.safeString (this.urls['api']['ws']['public'], type);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
@@ -535,13 +530,12 @@ export default class aster extends asterRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
-        const symbolsList: string[] = (symbolsNormalized === undefined) ? [] : symbolsNormalized;
-        const firstMarket = this.getMarketFromSymbols (symbolsList);
-        const type = this.safeString (firstMarket, 'type', 'swap');
-        const symbolsLength = symbolsList.length;
-        if (symbolsLength === 0) {
+        if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
             throw new ArgumentsRequired (this.id + ' unWatchBidsAsks() requires a non-empty array of symbols');
         }
+        const symbolsList: string[] = symbolsNormalized;
+        const firstMarket = this.getMarketFromSymbols (symbolsList);
+        const type = this.safeString (firstMarket, 'type', 'swap');
         const url = this.safeString (this.urls['api']['ws']['public'], type);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');

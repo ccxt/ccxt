@@ -11,10 +11,31 @@ import fs from 'fs';
 import log from 'ololog';
 import ansi from 'ansicolor';
 import { goChanCarrierPass, goChanSelfTest } from './go-chan.js';
+import { hx10G03Pass, hx10G03Check } from './hx10w2-G03.js';
+import { hx10w6G11Pass, hx10w6G11Check } from './hx10w6-G11.js';
+import { hx10w7G14Pass, hx10w7G14SelfTest } from './hx10w7-G14.js';
 import { goErrValuePass, goErrSelfTest } from './go-err.js';
 import { goChan3Pass, goChan3SelfTest } from './go-chan3.js';
 import { goTickerCachePass, goTickerCacheSelfTest } from './go-ticker-cache.js';
+import { g06MapReads, g06MapReadsSelfTest } from './hx10w2-G06.js';
+import { hx10G06Check } from './hx10w3-G06.js';
+import { g09Pass, g09Check } from './hx10w2-G09.js';
+import { g09w3Pass, g09w3Check } from './hx10w3-G09.js';
+import { hx10G10Pass, hx10G10SelfTest } from './hx10w2-G10.js';
+import { hx10G02Pass, hx10w3G02SelfCheck } from './hx10w3-G02.js';
+import { hx10w5G05Pass, g05check } from './hx10w5-G05.js';
+import { b02TupleSliceSlotReads, b02TupleSliceSlotSelfTest } from './hx10w7-B02.js';
+import { gp18Pass, gp18SetTableForTest, hx10w9Gp18SelfTest } from './hx10w9-GP18.js';  // hx10 wave-9 GP18: endpoint receive reads its typed view
+import { hx10w8Gp08TuplePairBinds, hx10w8Gp08SelfTest } from './hx10w8-GP08.js';
+import { gp14ParamGoType, gp14SelfTest } from './hx10w9-GP14.js';
+import { gp28Stores, hx10w10Gp28Check, hx10w10Gp28Wired } from './hx10w10-GP28.js';  // hx10 wave-10 GP28: trades/orderbooks map-field stores
+import { hx10w9Gp17TupleTwins, hx10w9Gp17ParamsSlotBinds, hx10w9Gp17SelfTest } from './hx10w9-GP17.js';
+import { og02IdBookPass, og02IdBookCheck } from './hx10w6-OG02.js';  // hx10 wave-6 OG02: id/nonce counters + last-response fields owned by the request book
+import { hx10w4OG01Pass, hx10w4OG01Check } from './hx10w4-OG01.js';
+import { hx10w4OG03Pass, og03selfcheck } from './hx10w4-OG03.js';
 import { goStructReturnsPass, goStructReturnsSelfTest } from './go-struct-returns.js';
+import { hx10w2G01MapReads, hx10w2G01Check } from './hx10w2-G01.js';
+import { hx10w10Gp26TypedReads, hx10w10Gp26Check } from './hx10w10-GP26.js';  // hx10 wave-10 GP26: GetValue on a declared map local
 import {Transpiler as OldTranspiler } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import Piscina from 'piscina';
@@ -23,7 +44,36 @@ import { isMainEntry } from "./transpile.js";
 import { goGofmtBinarySpacing } from "./goGofmtLayout.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { goNativeArithmetic, g10kArithSelfTest, hx4G17SelfTest, hx4G18NativeCompare, hx4G18SelfTest, hx4G23Comparisons, hx4G23SelfTest, hx4G26SelfTest, hx4G27Comparisons, hx4G27SelfTest, hx4G30Arith, hx4G30SelfTest, hx4G31Divide, hx4G31Check, hx4G32Comparisons, hx4G32SelfTest, hx4G35InlineMulSub, hx4G35Check, hx4G36Inline, hx4G36Check, hx4G36AddImport, hx4G37InlineComparisons, hx4G37Check, hx4G40InlineIsEqual, hx4G40Check, hx4G42InlineTypeChecks, hx4G42Check, hx5X26CaseAffix, hx5X26Check, hx4G45InlineStr, hx4G45Check, hx5X29ParseNative, hx5X29Check } from './go-native-arith.js';
+import { hx10w2G04, g04Check } from './hx10w2-G04.js';
+import { hx10OG02Pass, hx10OG02Check } from './hx10w4-OG02.js';  // hx10 wave-4 OG02: market tables published immutably
+import { hx10OG05Pass, og05Check } from './hx10w7-OG05.js';  // hx10 w7 OG05: base/quote currencies + transactions published
+import { hx10w2G05, hx10w2G05Check } from './hx10w2-G05.js';  // hx10w2 G05
+import { G05_PROVEN_LIST_METHODS, g05Check, g05Locals } from './hx10w3-G05.js';  // hx10w3 G05: generated base return types
 import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES, CCXT_GO_STRING_PTR_METHOD_NAMES } from './go-local-types.js';
+import { g02pass, g02check } from './hx10w2-G02.js';  // hx10 G02
+import { emitHx10w2G07Native, hx10w2G07SelfCheck } from './hx10w2-G07.js';
+import { hx10w3G07Pass, hx10w3G07Check } from './hx10w3-G07.js';
+import { hx10G08TupleReads, hx10G08Check } from './hx10w2-G08.js';
+import { g01SubsHandOff, g01SubsCheck } from './hx10w3-G01.js';  // hx10w3 G01
+import { installCcxtGoParamTypes, g08w3Check } from './hx10w3-G08.js';
+import { installCcxtGoDictParams, hx10w8GB01Check } from './hx10w8-GB01.js';
+import { installCcxtGoGb05ParamTypes, hx10w8GB05Check } from './hx10w8-GB05.js';  // hx10 w8 GB05: parse-family frame parameters
+import { installCcxtGoGb11HandleErrorsCode, hx10w9GB11Check } from './hx10w9-GB11.js';  // hx10 w9 GB11: handleErrors status code
+import { hx10w10GP24BaseImports, hx10w10GP24PruneImports, installHx10w10GP24BaseImportSeam, hx10w10GP24Check, hx10w10GP24Wired } from './hx10w10-GP24.js';  // hx10 w10 GP24: base-file stdlib import seam
+import { hx10w3G10, g10SelfCheck } from './hx10w3-G10.js';  // hx10w3 G10
+import { hx10w6G01BalanceOwner, hx10w6G01BalanceCheck, g01BalanceWired } from './hx10w6-G01.js';  // hx10 wave6 G01: typed balance account
+import { hx10w9GB10BalanceWrites, hx10w9GB10Check, hx10w9GB10Wired } from './hx10w9-GB10.js';  // hx10 wave9 GB10: Balance stores
+import { g01UrlsViews, g01Check } from './hx10w5-G01.js';  // hx10w5 G01: urls views
+import { g04BookSides, g04BookSidesCheck } from './hx10w6-G04.js';  // hx10w6 G04: typed order-book side reads
+import { hx10G15Pass, hx10G15Check } from './hx10w5-G15.js';  // hx10 wave5 G15
+import { g21Pass, g21Check } from './hx10w5-G21.js';  // hx10 w5 G21: prediction-tier boxed locals
+import { og03w6pass, og03w6SelfCheck, og03w6Wired } from './hx10w6-OG03.js';  // hx10 w6 OG03: registry reads ask the owner
+import { og06SyncMapArmsPass, og06SelfCheck } from './hx10w7-OG06.js';  // hx10 w7 OG06: dead *sync.Map arms in the resolved map coercion
+import { gb08Pass, gb08Check } from './hx10w8-GB08.js';  // hx10 w8 GB08: prediction-tier dead bounds guards
+import { gp19Pass, gp19Check } from './hx10w9-GP19.js';  // hx10 w9 GP19: the same dead bounds guards in every go/v4 venue and pro file
+import { hx10w8GO04Pass, hx10w8GO04Check } from './hx10w8-GO04.js';  // hx10 w8 GO04: the typed FromMap builders take the boxed value
+import { hx10w9GO05Pass, hx10w9GO05Check } from './hx10w9-GO05.js';  // hx10 w9 GO05: the last *sync.Map arms of the resolved map coercion
+import { hx10w10GP27Pass, hx10w10GP27Check } from './hx10w10-GP27.js';  // hx10 w10 GP27: a ws core's resolved map/list coercion moves onto the shared watch channel
 
 type dict = { [key: string]: string };
 
@@ -43,6 +93,20 @@ const GO_UNIFIED_REQUIRED_ID_PARAMS: { [method: string]: number[] } = {
     'transfer': [ 0, 3 ], 'setMarginMode': [ 0 ],
 };
 
+// hx10w9 GP13: the slice mirror of the string table below. These six ws methods take their
+// symbols list as `string[]`/`string[][]` in ts/src, and the hand-written Go wrappers in
+// go/v4/exchange_wrappers.go already declare `symbols []string` / `symbolsAndTimeframes [][]string`.
+// The ast printer types the base and every override from this table and opens a call-site array
+// literal as that slice (`[ sym ]` -> `[]string{sym}`), so `.length` becomes len().
+// Only the unWatch half is proven: every call site of these two passes a literal the printer
+// opens as the slice, and every venue override (or inherited base method) prints the same type.
+// The watch* twins stay boxed: their wrapper symbols are `Str`/`this.symbol(..)` (an `any` box in
+// Go) or a `*string` from a `safe*` reader, so a slice parameter would need a conversion call.
+const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } } = {
+    'unWatchTradesForSymbols': { 0: '[]string' },
+    'unWatchOrderBookForSymbols': { 0: '[]string' },
+};
+
 const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'createOrder': [ 0, 1, 2 ], 'createOrderWs': [ 0, 1, 2 ], 'createLimitOrder': [ 0, 1 ], 'createLimitOrderWs': [ 0, 1 ],
     'createMarketOrder': [ 0, 1 ], 'createMarketOrderWs': [ 0, 1 ], 'createMarketOrderWithCost': [ 0, 1 ],
@@ -55,7 +119,7 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'createTakeProfitOrderWs': [ 0, 1, 2 ], 'createTrailingAmountOrder': [ 0, 1, 2 ],
     'createTrailingAmountOrderWs': [ 0, 1, 2 ], 'createTrailingPercentOrder': [ 0, 1, 2 ],
     'createTrailingPercentOrderWs': [ 0, 1, 2 ], 'createTriggerOrder': [ 0, 1, 2 ], 'createTriggerOrderWs': [ 0, 1, 2 ],
-    'createTwapOrder': [ 0, 1 ], 'sign': [ 0 ], 'handleErrors': [ 5 ], 'editLimitOrder': [ 1, 2 ], 'editOrderWithClientOrderId': [ 1, 2, 3 ],
+    'createTwapOrder': [ 0, 1 ], 'sign': [ 0 ], 'handleErrors': [ 2, 5 ], 'calculateRateLimiterCost': [ 1, 2 ], 'editLimitOrder': [ 1, 2 ], 'editOrderWithClientOrderId': [ 1, 2, 3 ],
     'editOrderWs': [ 1, 2, 3 ], 'setTakeProfitAndStopLossParams': [ 1, 2 ], 'editLimitBuyOrder': [ 1 ],
     'editLimitSellOrder': [ 1 ], 'watchOHLCV': [ 0 ], 'unWatchOrderBook': [ 0 ], 'unWatchTrades': [ 0 ],
     'unWatchOHLCV': [ 0 ], 'unWatchTicker': [ 0 ], 'unWatchMarkPrice': [ 0 ], 'unWatchFundingRate': [ 0 ],
@@ -797,6 +861,10 @@ function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>, safeLocal: (
     if (/^\w+$/.test (text)) {
         return scalarLocals.has (text) || safeLocal (text);
     }
+    // the ws subscriptions table (exchange_client.go) hands back a dereferenced scalar, a dictionary or nil
+    if (/^[\w.()*\[\]]+\.(?:SubscriptionGet|SubscriptionDict|SubscriptionsSnapshot)\(.*\)$/.test (text)) {
+        return true;
+    }
     const call = /^((?:this\.)?\w+)\(/.exec (text);
     if (!call) {
         return false;
@@ -997,6 +1065,8 @@ function goAnyLocalNilSelfTest (): string[] {
     ok (f ('\tvar a any = nil\n\tif true {\n\t\ta = this.SafeDict(p, "x")\n\t} else {\n\t\ta = []any{1}\n\t}\n\tif !IsEqual(a, nil) {\n\t\treturn a\n\t}\n').indexOf ('if (a != nil) {') >= 0, 'SafeDict/literal writes compare natively');
     ok (f ('\tvar s any = DerefScalar(this.SafeString(p, "s"))\n\tvar n int64 = this.Milliseconds()\n\ts = n\n\tif IsEqual(s, nil) {\n\t}\n').indexOf ('if (s == nil) {') >= 0, 'DerefScalar of a scalar accessor and a scalar local are safe');
     ok (f ('\tvar m any = map[string]any{\n\t\t"a": 1,\n\t}\n\tif IsEqual(m, nil) {\n\t}\n').indexOf ('if (m == nil) {') >= 0, 'a multi-line literal is safe');
+    ok (f ('\tvar s any = client.(ccxt.ClientInterface).SubscriptionGet("a")\n\tif IsEqual(s, nil) {\n\t}\n').indexOf ('if (s == nil) {') >= 0, 'a ws subscription read is dereferenced, so it compares natively');
+    ok (f ('\tvar d any = client.(ccxt.ClientInterface).SubscriptionDict("a")\n\tif IsEqual(d, nil) {\n\t}\n').indexOf ('if (d == nil) {') >= 0, 'a ws subscription dictionary read compares natively');
     const keep = [
         '\tvar v any = this.SafeString(p, "v")\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = this.SafeValue(p, "v")\n\tif IsEqual(v, nil) {\n\t}\n',
@@ -2111,26 +2181,24 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     } else if (guardedPointer (key) && (typeAt (key, k) === '*string')) {
         keyOut = '*' + key;
     }
-    // a nil *string key makes the helper a no-op: guard the write when the value reads no call
+    // a nil *string key makes the helper a no-op: `if k != nil { m[*k] = v }` is its map
+    // branch, so the write can be guarded instead of demanding a non-nil proof.
+    const nilKeyGuardable = (keyOut === undefined) && /^\w+$/.test (key) && (typeAt (key, k) === '*string')
+        && notRebound (key) && (lastLine === k);
     let nilKeyGuard = false;
-    if ((keyOut === undefined) && /^\w+$/.test (key) && (typeAt (key, k) === '*string') && notRebound (key) && (lastLine === k)
-        && /^(?:\w+|"[^"\\\n]*"|-?\d+(?:\.\d+)?)$/.test (value)) {
-        keyOut = '*' + key;
-        nilKeyGuard = true;
-    }
     const valueType = /^\w+$/.test (value) ? typeAt (value, k) : undefined;
     // SafeString with a string default never answers nil (exchange_safe.go)
     const defaulted = /^this\.SafeString\((\w+(?:\[\"[^\"\\\n]*\"\])?|this\.\w+), (\w+|"[^"\\\n]*"), (\w+|"[^"\\\n]*")\)$/.exec (value);
     const defaultedOk = (defaulted !== null) && (defaulted[3].startsWith ('"') || (typeAt (defaulted[3], k) === 'string'));
     let valueOut: string | undefined = undefined;
-    if (keyOut === undefined) {
+    if ((keyOut === undefined) && !nilKeyGuardable) {
         return;
     }
     if (/^(?:"[^"\\\n]*"|-?\d+(?:\.\d+)?|true|false|nil)$/.test (value) || goMapWritePlainValueExpr (valueMasked)) {
         valueOut = value;
     } else if ((valueType !== undefined) && (GO_ACCESS_SCALAR_TYPES.indexOf (valueType) >= 0)) {
         valueOut = value;
-    } else if ((valueType !== undefined) && keyOut.startsWith ('"') && (GO_ACCESS_PLAIN_VALUE_TYPES.indexOf (valueType) >= 0)) {
+    } else if ((valueType !== undefined) && (keyOut !== undefined) && keyOut.startsWith ('"') && (GO_ACCESS_PLAIN_VALUE_TYPES.indexOf (valueType) >= 0)) {
         valueOut = value; // container locals under a literal key, as the typed-container pass always printed them
     } else if ((valueType === 'map[string]any') && goMapWriteLocalNeverNil (maskedFunc, declOf (value), value, declOf)) {
         valueOut = value; // the helper would store a typed-nil map as untyped nil
@@ -2140,11 +2208,15 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         valueOut = '*' + value;
     } else if ((valueType === 'any') && notRebound (value) && goMapWriteMapResultLocal (lines, declOf (value))) {
         valueOut = value; // every return of the producer is a fresh non-nil map
-    } else if (!nilKeyGuard && goMapWriteMapResultCall (lines, valueMasked) && (goMapWriteGroupEnd (valueMasked, valueMasked.indexOf ('(')) === valueMasked.length)) {
+    } else if (!nilKeyGuardable && goMapWriteMapResultCall (lines, valueMasked) && (goMapWriteGroupEnd (valueMasked, valueMasked.indexOf ('(')) === valueMasked.length)) {
         valueOut = value;
     }
-    if ((valueOut === undefined) && !nilKeyGuard && (lastLine === k)) {
+    if ((valueOut === undefined) && !nilKeyGuardable && (lastLine === k)) {
         valueOut = hx4G39PointerValue (lines, value, valueMasked, typeAt (value, k))?.replace (/\n/g, '\n' + head[1]);  // hx4 G39
+    }
+    if ((valueOut !== undefined) && (keyOut === undefined) && nilKeyGuardable && (valueOut.indexOf ('\n') < 0)) {
+        keyOut = '*' + key;  // hx10w7 G06: guarded *string key, exact copy of the helper's map branch
+        nilKeyGuard = true;
     }
     if ((keyOut === undefined) || (valueOut === undefined)) {
         return;
@@ -2751,15 +2823,38 @@ function nativeLoopBoundedSliceReads (content: string): string {
     return changed ? lines.join ('\n') : content;
 }
 
+// hx10w3 G04: the pass has to run inside formatGoSource, not only in its own self-test
+function hx10G04Wired (): string[] {
+    const src = 'package ccxt\n\nfunc (this *X) f() any {\n\tthis.Markets_by_id.Store("k", 1)\n\treturn nil\n}\n';
+    const out = formatGoSource ('selftest.go', src);
+    return out.includes ('\tthis.Markets_by_id["k"] = 1\n') ? [] : [ 'hx10 G04: not wired into formatGoSource: ' + out ];
+}
+
+// hx10w9 GP18: the pass has to run inside formatGoSource, not only in its own self-test
+function hx10w9Gp18Wired (): string[] {
+    const src = 'package ccxt\n\nfunc (this *X) f(id any) any {\n\tr1 := <-this.PrivateGetOrdersId(id)\n\tif r1.Err != nil {\n\t\tpanic(r1.Err)\n\t}\n\tvar response map[string]any = MapTyped(r1.Raw)\n\treturn response\n}\n';
+    gp18SetTableForTest (new Map ([ [ 'X.PrivateGetOrdersId', 'map[string]any' ] ]));
+    let out = '';
+    try {
+        out = formatGoSource ('selftest.go', src);
+    } finally {
+        gp18SetTableForTest (undefined);
+    }
+    return out.includes ('var response map[string]any = r1.Value') ? [] : [ 'hx10w9 GP18: not wired into formatGoSource: ' + out ];
+}
+
 // Semantic post-passes over the printer text: a leaked body goroutine, a missing type
 // assertion and an unbounded element read are fixed here; layout is the printer's job and
 // is gofmt-clean except where an emitter splices operand text into a call it prints.
-function formatGoSource (filePath: string, content: string): string {
+export function formatGoSource (filePath: string, content: string): string {
     if (!filePath.endsWith ('.go')) {
         return content;
     }
     // first, so goChanCarrierPass and the local classifiers see the typed parser signatures
     content = retypeGoProvenParseMethods (content);
+    content = g21Pass (content, filePath);  // hx10 w5 G21, first: the prediction tier's boxed locals
+    content = g05Locals (content);  // hx10w3 G05: typed locals from generated return types
+    content = g02pass (content);  // hx10 G02
     content = guardMultiSendCores (content);
     content = h2kG11NativeBoxAbsentSends (content);
     content = assertTypedElementAccess (content);
@@ -2768,21 +2863,28 @@ function formatGoSource (filePath: string, content: string): string {
     content = nativeLoopBoundedSliceReads (content);
     content = hx4X01TupleProducerReads (content);
     content = nativeTupleHolderReads (content);
+    content = b02TupleSliceSlotReads (content);  // hx10 w7 B02: the params slot of a tuple holder
+    content = hx10w8Gp08TuplePairBinds (content);  // hx10 w8 GP08: typed slot-0 local, native pair bind
     content = nativeAsyncTupleHolderReads (content);
     content = hx4G12TupleSlotReads (content, filePath);
     hx4G34TupleSlotNeverNil.file = goTextMaskLiteralsAndComments (content).split ('\n');  // hx4 G34
+    content = g06MapReads (content);  // hx10w2 G06
     content = nativeTypedContainerAccess (g10kAddElemRetypeMapLocals (content));
+    content = gp28Stores (content);  // hx10 w10 GP28: trades/orderbooks cache stores on the map field
     content = hx4G25Pass (content);  // hx4 G25
     content = hx4G29Pass (content);  // hx4 G29
     hx4G34TupleSlotNeverNil.file = undefined;  // hx4 G34
+    content = g01SubsHandOff (content);  // hx10w3 G01
     content = g10kInopClientMaps (content);
     content = hx4G07FieldInOp (content);
+    content = g09w3Pass (content);  // hx10w3 G09: prediction caches are typed maps
     content = hx5P28BaseFieldReads (content);  // hx5 P28
     content = h2kG13NativeKeysAndRemove (content);
     content = g10kTypepredIsArray (content);
     content = g10kArrNativeRemove (content);
     content = nativeDerefArgMapReads (content);
     content = nativeDerefOnlyListReads (content);
+    content = g04BookSides (content);  // hx10w6 G04: the book reads that pass left on a proven receiver
     content = nativeOrderBookSideReads (content);
     content = nativeEndpointListReceives (content);
     content = nativeAsyncListReceives (content);
@@ -2797,8 +2899,34 @@ function formatGoSource (filePath: string, content: string): string {
     content = g10kLenNative (content);
     content = goErrValuePass (goEndpointCheckedReceives (content));  // G10K-err-a
     content = goChan3Pass (content);  // GO-CHAN3: AsyncResult[any] -> AsyncResult[T], after go-err
+    content = gp18Pass (content);  // hx10 w9 GP18: EndpointResult[T] receive reads .Value, MapTyped(Raw) drops
     content = goTickerCachePass (content);  // typed ws ticker caches, after goChan3's resolved switches
+    content = g09Pass (content);  // hx10w2 G09: Options is a plain map
+    content = hx10G10Pass (content);  // hx10 G10: plain ws cache maps on BaseExchange
+    content = hx10G02Pass (content);  // hx10 W3 G02: ws caches owned by the exchange dispatch loop
+    content = hx10w4OG01Pass (content);  // hx10 W4 OG01: balance cache owned by the same loop
+    content = hx10w6G01BalanceOwner (content);  // hx10 wave6 G01: typed balance field and account views
+    content = hx10w9GB10BalanceWrites (content);  // hx10 wave9 GB10: native Balance stores after the owner passes
+    content = hx10OG02Pass (content);  // hx10 wave-4 OG02: markets book owned by the load path
+    content = hx10OG05Pass (content);  // hx10 w7 OG05: base/quote currencies + transactions published
+    content = hx10w4OG03Pass (content);  // hx10w4 OG03: ticker caches + positions owned by the dispatch loop
+    content = og03w6pass (content);  // hx10w6 OG03: ws client registry reads ask the owner
     content = hx4G39TupleSlotDerefs (content);  // hx4 G39
+    content = hx10w3G07Pass (content);  // hx10 w3 G07
+    content = hx10G03Pass (content);  // hx10 G03, last: the passes above are what type these receivers
+    content = hx10G08TupleReads (content);  // hx10 G08
+    content = g01UrlsViews (content);  // hx10w5 G01: typed urls views
+    content = hx10w5G05Pass (content);  // hx10w5 G05: one ohlcv book per symbol, typed per timeframe
+    content = hx10G15Pass (content);  // hx10 wave5 G15: option-dict field receivers
+    content = og02IdBookPass (content);  // hx10w6 OG02: the id/nonce counter and last-response reads hand off to the request book owner
+    content = og06SyncMapArmsPass (content);  // hx10 w7 OG06: the resolved map coercion drops its *sync.Map arm where the producer cannot yield one
+    content = gb08Pass (content, filePath);  // hx10 w8 GB08: prediction-tier element reads inside a len(list) loop
+    content = gp19Pass (content, filePath);  // hx10 w9 GP19: venue + pro element reads inside a len(list) loop
+    content = hx10w8GO04Pass (content);  // hx10 w8 GO04: a coercion feeding one typed FromMap builder goes, the builder takes the box
+    content = gb09CredentialStrings (content);  // hx10 w9 GB09: the credential fields are plain strings
+    content = hx10w9GO05Pass (content);  // hx10 w9 GO05: no *sync.Map producer is left, so the coercion's last arm goes
+    content = hx10w10GP27Pass (content);  // hx10 w10 GP27: the resolved map/list coercion becomes a typed watch receive
+    content = hx10w9Gp17ParamsSlotBinds (hx10w9Gp17TupleTwins (content));  // hx10 w9 GP17: last, on the settled call sites
     return goGofmtSplicedText (content);
 }
 
@@ -3892,13 +4020,22 @@ export function collapseRedundantNilChecks (content: string): string {
 const GO_MARKET_ROW_METHODS = [ 'Market', 'SafeMarket' ];
 const GO_MAP_RETURNING_METHODS = [ 'Market', 'Currency', 'SafeCurrency', 'SafeMarket', 'Account', 'ParseOrderBook',
     'SafeOrder', 'SafeTicker', 'SafeLedgerEntry', 'ParseOrder', 'ParseTicker', 'ParseTransaction', 'ParseTransfer', 'ParseLedgerEntry',
-    'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest' ];
+    'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest',
+    // the ws parsers are `any` on the printer and retyped to map[string]any by the family below
+    'ParseWsTrade', 'ParseWsTicker', 'ParseWsOrder' ];
+
+// `go/v4/exchange_struct_returns.go` converters: every one returns the map it builds from a
+// parsed struct, so a `MapTyped(<converter>(..))` around one is the identity.
+const GO_PROVEN_STRUCT_TO_MAP_CALLS = [ 'TradeToMap', 'TickerToMap', 'OrderToMap', 'PositionToMap', 'FundingRateToMap' ];
 
 // Structure parsers retyped to `map[string]any` on the base, every override and IDerivedExchange; the
 // venue-only sub-parsers are the ones a retyped parser returns (kucoin/phemex dispatch).
 function goProvenParseMapMethods (): string[] {
     return [ 'SafeOrder', 'SafeTicker', 'SafeLedgerEntry', 'ParseOrder', 'ParseTicker', 'ParseTransaction', 'ParseTransfer', 'ParseLedgerEntry',
         'ParseContractTicker', 'ParseUtaOrder', 'ParseContractOrder', 'ParseSpotOrder', 'ParseSwapOrder',
+        // ws parsers: every override returns Safe{Order,Ticker,Trade}(..) wrapped by the
+        // struct->map converter, i.e. a dictionary on every path
+        'ParseWsTrade', 'ParseWsTicker', 'ParseWsOrder',
         'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest',
         'SafePredictionOrder', 'SafePredictionTicker', 'SafePredictionOrderBook', 'ParsePredictionOrder', 'ParsePredictionTicker', 'ParsePredictionOpenInterest',
         'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting',
@@ -3958,10 +4095,13 @@ function goFunctionLevelReturnExprs (body: string): string[] | undefined {
  * these can return nil. Go interfaces pin one signature, so an unproven def throws instead of staying `any`.
  */
 export function retypeGoProvenParseMethods (content: string): string {
-    const lists = goProvenListMethods ();
+    const lists = goProvenListMethods ().concat (G05_PROVEN_LIST_METHODS);
     content = retypeGoProvenFamily (content, lists, '[]any', 'this.ToArray', lists.concat ([ 'ArraySlice', 'ToArray', 'SortBy', 'SortBy2', 'ArrayConcat' ]));
     const maps = goProvenParseMapMethods ().concat (goProvenMapCollectionMethods ());
-    return retypeGoProvenFamily (content, maps, 'map[string]any', 'MapTyped', maps.concat ([ 'Extend', 'DeepExtend', 'IndexBy' ]));
+    // proven dict producers the struct-returns pass retypes itself: a family def may return one,
+    // but they are not members of this family (their `any` stub is the struct pass's to retype)
+    const calleeOnly = [ 'SafeTrade', 'ParseTrade' ];
+    return retypeGoProvenFamily (content, maps, 'map[string]any', 'MapTyped', maps.concat (calleeOnly, [ 'Extend', 'DeepExtend', 'IndexBy' ]));
 }
 
 // list producers (base + every override): TS `X[]`; a returned `array` parameter is coerced with ToArray (caches too)
@@ -4027,7 +4167,9 @@ export function goBalanceLocalIsMap (body: string, name: string): boolean {
 function retypeGoProvenFamily (content: string, names: string[], type: string, paramWrap: string, calls: string[]): string {
     const literal = type + '{';
     const provenCall = new RegExp ('^(?:ccxt\\.)?this\\.(?:DerivedExchange\\.|base\\.)?(?:' + calls.join ('|') + ')\\(');
-    const proven = (e: string) => e.startsWith (literal) || provenCall.test (e);
+    // the struct->map converters are package-level functions (no `this.` receiver)
+    const provenConverter = new RegExp ('^(?:ccxt\\.)?(?:' + GO_PROVEN_STRUCT_TO_MAP_CALLS.join ('|') + ')\\(');
+    const proven = (e: string) => e.startsWith (literal) || provenCall.test (e) || provenConverter.test (e);
     const typeRe = type.replace (/[[\]]/g, '\\$&');
     const head = new RegExp ('\\nfunc \\(this \\*(\\w+)\\) (' + names.join ('|') + ')\\(([^)\\n]*)\\) any \\{\\n', 'g');
     let out = '';
@@ -4062,7 +4204,9 @@ function retypeGoProvenFamily (content: string, names: string[], type: string, p
             }
             const declRe = (local === undefined) ? undefined : new RegExp ('\\n(\\t+)var ' + local + ' (any|' + typeRe + ') = ([^\\n]*)');
             const decl = (declRe === undefined) ? null : declRe.exec (newBody);
-            const writes = (local === undefined) ? [] : (newBody.match (new RegExp ('(^|[^\\w.])' + local + '(\\s*[-+*/]?=[^=]|\\s*:=|\\s*,[^\\n]*?=)', 'gm')) || []);
+            // the multi-assignment alternative stops at the first `=` and never crosses a call's
+            // parentheses: `GetValue(x, "k"), nil)) && (y !=` is a comparison, not a write of `x`
+            const writes = (local === undefined) ? [] : (newBody.match (new RegExp ('(^|[^\\w.])' + local + '(\\s*[-+*/]?=[^=]|\\s*:=|\\s*,\\s*[A-Za-z_][\\w.[\\]]*\\s*=[^=])', 'gm')) || []);
             const nilWrites = (local === undefined) ? [] : (newBody.match (new RegExp ('(^|[^\\w.])' + local + ' = nil\\b', 'gm')) || []);
             const declCount = (local === undefined) ? 0 : (newBody.match (new RegExp ('\\bvar ' + local + '\\b', 'g')) || []).length;
             // a local the printer already typed `type` compiles whatever its writes; nil writes stay rejected
@@ -4096,12 +4240,29 @@ function goProvenParseSelfTest (): string[] {
     ok (retypeGoProvenParseMethods (fn ('ParseBalanceCustom', '\tvar result any = map[string]any{}\n\tresult = this.MergeBalanceAccount(result, c, a)\n\treturn this.SafeBalance(result)\n')).includes ('\treturn this.SafeBalance(result).(map[string]any)\n'), 'merged balance local');
     ok (throws (fn ('ParseBalanceCustom', '\tvar result any = map[string]any{}\n\tresult = this.MergeBalanceAccount(other, c, a)\n\treturn this.SafeBalance(result)\n')), 'foreign merge rejected');
     ok (throws (fn ('ParseBalanceCustom', '\tvar result any = map[string]any{}\n\tresult = order\n\treturn this.SafeBalance(result)\n')), 'rewritten balance local rejected');
-    ok (retypeGoProvenParseMethods (fn ('ParseTrade', '\treturn nil\n')).includes (') any {'), 'other method untouched');
+    ok (retypeGoProvenParseMethods (fn ('ParseWidget', '\treturn nil\n')).includes (') any {'), 'other method untouched');
+    // G12: the ws dict parsers return a struct->map converter call, which is a dictionary
+    ok (retypeGoProvenParseMethods (fn ('ParseWsOrder', '\treturn ccxt.OrderToMap(this.SafeOrder(map[string]any{\n\t\t\"a\": 1,\n\t}, market))\n')).includes (') ParseWsOrder(order any, optionalArgs ...any) map[string]any {'), 'ws parser converter call');
+    // G12: a comparison is not a write of the returned local
+    ok (retypeGoProvenParseMethods (fn ('ParseWsTicker', '\tvar r any = ccxt.TickerToMap(this.SafeTicker(map[string]any{}))\n\tif r != nil {\n\t\t_ = r\n\t}\n\tif GetValue(r, \"a\"), 1 != 2 {\n\t\t_ = r\n\t}\n\treturn r\n')).includes ('\tvar r map[string]any = ccxt.TickerToMap('), 'comparison is not a write');
+    ok (throws (fn ('ParseWsTrade', '\tif order == nil {\n\t\treturn nil\n\t}\n\treturn ccxt.TradeToMap(this.SafeTrade(order))\n')), 'ws parser nil return rejected');
+    // G12: MapTyped around a struct->map converter is the identity
+    ok (dropNoOpMapTyped ('\tvar p map[string]any = MapTyped(PositionToMap(this.ParsePosition(p)))\n') === '\tvar p map[string]any = PositionToMap(this.ParsePosition(p))\n', 'converter wrap dropped');
+    ok (dropNoOpMapTyped ('\tvar b map[string]any = MapTyped(this.SafeBalance(p))\n') === '\tvar b map[string]any = MapTyped(this.SafeBalance(p))\n', 'a still-untyped callee keeps its wrap');
+    // hx10w8 GB07: a second Market/Currency wrap around a base row builder is the identity
+    ok (dropNoOpMapTyped ('\treturn MarketTyped(this.Exchange.SafeMarket(id))\n') === '\treturn this.Exchange.SafeMarket(id)\n', 'base row wrap dropped');
+    ok (dropNoOpMapTyped ('\treturn MarketTyped(this.SafeMarket(id))\n') === '\treturn MarketTyped(this.SafeMarket(id))\n', 'an override keeps its wrap');
     return problems;
 }
 
+// hx10w8 GB07: base methods whose every return path is already a MarketTyped/CurrencyTyped row, so a
+// second wrapper around their call is the identity (the helper hands back the same map for a plain row).
+const GO_PLAIN_ROW_METHODS = [ 'Market', 'SafeMarket', 'Currency', 'SafeCurrency' ];
+const GO_PLAIN_ROW_CALL = new RegExp ('^(?:this\\.(?:DerivedExchange\\.|Exchange\\.)(?:' + GO_PLAIN_ROW_METHODS.join ('|')
+    + ')|this\\.(?:SafeCurrencyStructure|SafeMarketStructure))\\(');  // the two structure builders have no venue override
+
 function dropNoOpMapTyped (content: string): string {
-    const callee = new RegExp ('^this\\.(?:DerivedExchange\\.|Exchange\\.)?(?:' + GO_MAP_RETURNING_METHODS.join ('|') + ')\\(');
+    const callee = new RegExp ('^(?:this\\.(?:DerivedExchange\\.|Exchange\\.)?(?:' + GO_MAP_RETURNING_METHODS.join ('|') + ')|(?:ccxt\\.)?(?:' + GO_PROVEN_STRUCT_TO_MAP_CALLS.join ('|') + '))\\(');
     // index of the paren closing the one opened at `open`, -1 when unbalanced
     const close = (text: string, open: number): number => {
         let depth = 0;
@@ -4122,7 +4283,7 @@ function dropNoOpMapTyped (content: string): string {
     };
     let out = '';
     let cursor = 0;
-    const wrapper = /\b(?:ccxt\.)?MapTyped\(|\bthis\.(?:DerivedExchange\.|Exchange\.)?(?:Currency|SafeCurrency|SafeMarket)\(/g;
+    const wrapper = /\b(?:ccxt\.)?(?:MapTyped|MarketTyped|CurrencyTyped)\(|\bthis\.(?:DerivedExchange\.|Exchange\.)?(?:Currency|SafeCurrency|SafeMarket)\(/g;
     for (let m = wrapper.exec (content); m !== null; m = wrapper.exec (content)) {
         if (m.index < cursor) {
             continue;
@@ -4141,7 +4302,11 @@ function dropNoOpMapTyped (content: string): string {
         }
         const inner = content.substring (open + 1, end);
         const innerOpen = inner.indexOf ('(');
-        if (!callee.test (inner) || (close (inner, innerOpen) !== inner.length - 1)) {
+        // a MarketTyped/CurrencyTyped wrap is the identity only on a base method that already answers a
+        // plain row; MapTyped keeps its wider table
+        const rowWrap = /^(?:ccxt\.)?(?:MarketTyped|CurrencyTyped)\($/.test (m[0]);
+        const innerIsCall = (rowWrap ? GO_PLAIN_ROW_CALL : callee).test (inner);
+        if (!innerIsCall || (close (inner, innerOpen) !== inner.length - 1)) {
             continue;
         }
         out += content.substring (cursor, m.index) + dropNoOpMapTyped (inner);
@@ -4155,6 +4320,8 @@ function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
     }
+    // an import whose printed text a later rewrite deleted is unused; drop it before formatting
+    content = path.endsWith ('.go') ? hx10w10GP24PruneImports (content) : content;  // hx10w10 GP24
     // gofmt aligns the trailing `//` comments of adjacent lines through its tabwriter; the
     // printer reproduces that itself (ast-transpiler `alignGoTrailingComments`), and this second
     // pass covers the text assembled here (hand-written emitters and sections concatenated after
@@ -4166,13 +4333,16 @@ function overwriteFileAndFolder (path: string, content: string) {
     // expression - so the spacing pass runs once more over its output
     // market-row reads run after dropNoOpMapTyped so `MapTyped(this.Market(..))` writes read as rows
     content = goGofmtSplicedText (goGofmtNestedParens (hx4G28IsEqualSafe (g10kIsEqualNative (h2kG16NativeStringHelpers (path, nativeMarketRowReads (dropNoOpMapTyped (goSafeDictMapReads (g10kMaplistOmitOfTupleMaps (goOmitDictOfTypedMaps (goEndpointCheckedReceives (content)))))))))));  // hx4 G28
+    content = hx10w2G01MapReads (content);  // hx10 G01
     content = g10kGvMapReads (content);
     content = x02CurrencyRows (content); // hx4 X02
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     content = g10kNativeDerefs (path, content);
     content = g10kStrNativeStringHelpers (path, content);  // G10K-str
+    content = emitHx10w2G07Native (content);  // hx10w2 G07
     content = path.endsWith ('.go') ? goNativeStringAdds (content) : content;  // hx4 G24: row reads exist only from here
+    content = path.endsWith ('.go') ? hx10w2G05 (content) : content;  // hx10w2 G05: arith + deref on block-scoped types
     content = path.endsWith ('.go') ? hx4G33IsEqual (content) : content;  // hx4 G33
     content = path.endsWith ('.go') ? hx4G38Pass (content) : content;  // hx4 G38
     // struct returns after every retype pass (base ParseTicker is `any` until formatGoSource)
@@ -4190,9 +4360,15 @@ function overwriteFileAndFolder (path: string, content: string) {
         content = hx5X29ParseNative (content);  // hx5 X29
         content = hx4G42InlineTypeChecks (content, hx4G36Aligner ());  // hx4 G42
         content = hx4G40InlineIsEqual (content, hx4G36Aligner ());  // hx4 G40: last, after every typed IsEqual pass
+        content = hx10w2G04 (content);  // hx10 G04
+        content = hx10w3G10 (content);  // hx10w3 G10: nil-guarded native compares on pointer boxes
         // hx4 G45 after the spacing pass: its line-local lexer misreads a `}(args) + x` continuation
         content = alignGoTrailingComments (hx4G45InlineStr (goGofmtBinarySpacing (content), hx4G36Aligner ()));
     }
+    content = path.endsWith ('.go') ? hx10G03Pass (content) : content;  // hx10 G03: on the text every retype pass above has finished
+    content = path.endsWith ('.go') ? hx10w6G11Pass (content) : content;  // hx10w6 G11: the identity MapTyped wrap
+    content = path.endsWith ('.go') ? hx10w7G14Pass (content) : content;  // hx10w7 G14: field / multi-value binding operands it could not read
+    content = path.endsWith ('.go') ? hx10w10Gp26TypedReads (content) : content;  // hx10w10 GP26: GetValue on a declared map local
     overwriteFile (path, content);
 }
 
@@ -4934,6 +5110,8 @@ class NewTranspiler {
                 // base, every override and go/v4/exchange_interface.go (audit: no override nil-compares them)
                 "unifiedStringParams": GO_UNIFIED_STRING_PARAMS,
                 "unifiedInt64Params": GO_UNIFIED_INT64_PARAMS,
+                // hx10w9 GP13: the ws watch family's symbols list prints `[]string`/`[][]string`
+                "unifiedSliceParams": GO_UNIFIED_SLICE_PARAMS,
             //     "parser": {
             //         "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
             //         "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
@@ -5053,6 +5231,11 @@ class NewTranspiler {
         // build/go-worker.ts installs the same hooks for the Piscina path
         installCcxtGoLocalTypes (this.transpiler.goTranspiler, GO_UNIFIED_INT64_PARAMS);
         installCcxtGoIndexableTypes (this.transpiler.goTranspiler);
+        installCcxtGoParamTypes (this.transpiler.goTranspiler);
+        installCcxtGoDictParams (this.transpiler.goTranspiler);
+        installCcxtGoGb05ParamTypes (this.transpiler.goTranspiler);
+        installCcxtGoGb11HandleErrorsCode (this.transpiler.goTranspiler);
+        installHx10w10GP24BaseImportSeam (this.transpiler.goTranspiler);
     }
 
     createGeneratedHeader() {
@@ -5285,6 +5468,11 @@ class NewTranspiler {
     convertJavascriptParamToGoParam(param: any): string | undefined {
         const name = param.name;
         const safeName = this.safeGoName(name);
+        // hx10 GP14: a positional slot of the async wrapper pair prints the core's parameter type
+        const gp14Type = gp14ParamGoType (param);
+        if (gp14Type !== undefined) {
+            return `${safeName} ${gp14Type}`;
+        }
         const isOptional =  param.optional || param.initializer !== undefined;
         const op = isOptional ? '?' : '';
         let paramType: any = undefined;
@@ -6231,7 +6419,7 @@ ${constStatements.join('\n')}
             const file = goAnyLocalNativeNilCompares (goPointerLocalNativeNilCompares (goBoxedPointerNilCompares (goParamNativeNilCompares (coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES), 'IsEqual('), 'IsEqual('), 'IsEqual('), 'IsEqual(');
             // repeated base passes (REST / prediction recursion / WS) emit identical bytes —
             // skip the rewrite of this ~390 KB file after the first
-            this.writeGeneratedOnce (goExchangeBase, hx4G20BaseNativePasses (file));
+            this.writeGeneratedOnce (goExchangeBase, hx10w10GP24BaseImports (hx4G20BaseNativePasses (file)));
         }
     }
 
@@ -6314,12 +6502,13 @@ ${constStatements.join('\n')}
             // field at (longest field name + 1); the embedded (typeless) field prints alone and
             // stays out of that alignment. This write never goes through formatGoSource(), so the
             // literal below is emitted pre-aligned.
+            // prediction caches carry their map type here (hx10w3 G09): hx10w3-G09 reads it per site
             const structFields: [string, string][] = [
                 [ 'BaseExchange', '' ],
-                [ 'Outcomes', 'any' ],
-                [ 'Outcomes_by_id', 'any' ],
-                [ 'Events', 'any' ],
-                [ 'Events_by_slug', 'any' ],
+                [ 'Outcomes', 'map[string]any' ],
+                [ 'Outcomes_by_id', 'map[string]any' ],
+                [ 'Events', 'map[string]any' ],
+                [ 'Events_by_slug', 'map[string]any' ],
                 [ 'ReloadingEvents', 'bool' ],
                 [ 'EventsLoading', 'any' ],
             ];
@@ -6349,7 +6538,7 @@ ${constStatements.join('\n')}
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, (hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx5X29ParseNative (hx4G45InlineStr (hx5X27StringHelpers (hx5X26CaseAffix (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file)))))))))))), hx4G36Aligner ()))), hx4G36Aligner ())), hx4G36Aligner ()), hx4G36Aligner ())))))
+            fs.writeFileSync (goPredictionBase, hx10w10GP24BaseImports (gp19Pass (hx10w7G14Pass ((hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx5X29ParseNative (hx4G45InlineStr (hx5X27StringHelpers (hx5X26CaseAffix (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx10w9GO05Pass (hx10w8GO04Pass (og06SyncMapArmsPass (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file)))))))))))))), hx4G36Aligner ()))), hx4G36Aligner ())), hx4G36Aligner ()), hx4G36Aligner ()))))), goPredictionBase))));  // hx10 w9 GP19: this base file bypasses formatGoSource
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -8851,6 +9040,13 @@ async function runLocalTypeAudit () {
     process.exit (pass ? 0 : 1);
 }
 
+// hx10w6 G04: the book-side pass has to run inside formatGoSource, not only in its own self-test
+function g04BookSidesWired (): string[] {
+    const src = 'package ccxtpro\n\nfunc (this *X) HandleOrderBookMessage(client any) any {\n\tvar orderbook any = this.OrderBook()\n\tthis.HandleDeltas(ccxt.GetValue(orderbook, "asks"), nil)\n\treturn nil\n}\n';
+    const out = formatGoSource ('selftest.go', src);
+    return out.includes ('orderbook.GetAsks()') ? [] : [ 'hx10w6 G04: not wired into formatGoSource: ' + out ];
+}
+
 async function runMain () {
     if (process.argv.includes ('--audit-local-types')) {
         await runLocalTypeAudit ();
@@ -8861,7 +9057,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10w2G07SelfCheck ()).concat (hx10G08Check ()).concat (g09Check ()).concat (hx10G10SelfTest ()).concat (g01SubsCheck ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og05Check ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (og06SelfCheck ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w9Gp18SelfTest ()).concat (hx10w9Gp18Wired ()).concat (hx10w8GO04Check ()).concat (gp14SelfTest ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (hx10w10GP24Check ()).concat (hx10w10GP24Wired ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -10124,7 +10320,8 @@ function goDerefArgMapReadSelfTest (): string[] {
 // or a base method returning `string`. Any other leaf (any, *string, numbers) keeps Add.
 // functions, not consts: the transpile runs at module load before this block is evaluated
 function goAddStringMethods (): Set<string> { return new Set ([ 'ImplodeParams', 'ImplodeHostname', 'Json', 'Hmac', 'Urlencode', 'Rawencode', 'UrlencodeWithArrayRepeat', 'UrlencodeNested', 'Yymmdd', 'Ymd', 'Ymdhms', 'Yyyymmdd', 'Uuid', 'Uuid16', 'Uuid22', 'Uuid2' ]); }
-function goAddStringFields (): Set<string> { return new Set ([ 'Id', 'Name', 'Version', 'Hostname' ]); }
+// GB09: the credential fields are declared `string` in go/v4/exchange.go, so they are non-nil leaves too
+function goAddStringFields (): Set<string> { return new Set ([ 'Id', 'Name', 'Version', 'Hostname', 'ApiKey', 'Secret', 'Uid', 'Password', 'AccountId', 'WalletAddress', 'PrivateKey' ]); }
 
 function goAddCloseParen (masked: string, open: number): number {
     let depth = 0;
@@ -11545,11 +11742,7 @@ function g10kInopSelfTest (): string[] {
     }
     if (!f ('\tif ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), p) {\n\t}\n').includes ('InOp(')) {
         problems.push ('g10k-inop: any key must keep InOp');
-    }
-    if (!f ('\tif ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), \"a\") {\n\t}\n').includes ('InOp(')) {
-        problems.push ('g10k-inop: sync.Map accessor must keep InOp');
-    }
-    if (!f ('\tvar h string = \"a\"\n\tif ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), h) || ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), \"b\") {\n\t}\n').includes ('InOp(')) {
+    }    if (!f ('\tvar h string = \"a\"\n\tif ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), h) || ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), \"b\") {\n\t}\n').includes ('InOp(')) {
         problems.push ('g10k-inop: two calls must keep InOp');
     }
     return problems;
@@ -11559,10 +11752,10 @@ function g10kInopSelfTest (): string[] {
 // Remove(R, k) where R is a *sync.Map base field -> R.Delete(k), or a
 // map[string]any (this.Clients, GetRejections()) -> delete(R, k); k must be a proven non-nil string.
 function g10kArrReceiverKind (recv: string): string | undefined {
-    if (/^this\.(?:Orderbooks|Tickers|Bidsasks|FundingRates|Ohlcvs|Options)$/.test (recv)) {
+    if (/^this\.(?:Orderbooks|Tickers|Bidsasks|FundingRates|Ohlcvs)$/.test (recv)) {
         return 'sync';
     }
-    if ((recv === 'this.Clients') || /^\w+\.\((?:ccxt\.)?ClientInterface\)\.GetRejections\(\)$/.test (recv)) {
+    if ((recv === 'this.Clients') || (recv === 'this.Options') || /^\w+\.\((?:ccxt\.)?ClientInterface\)\.GetRejections\(\)$/.test (recv)) {
         return 'map';
     }
     return undefined;
@@ -13082,15 +13275,27 @@ function hx4G19SelfTest (): string[] {
 // exchange_generated.go / exchange_prediction.go bypass formatGoSource: run its typed-receiver native passes on them
 function hx4G20BaseNativePasses (content: string): string {
     content = nativeLoopBoundedSliceReads (retagLoopBoundedElementReads (content));
+    content = hx10w10Gp26TypedReads (content);  // hx10w10 GP26: GetValue on a declared map local (base files bypass formatGoSource)
     hx4G34TupleSlotNeverNil.file = goTextMaskLiteralsAndComments (content).split ('\n');  // hx4 G34
+    content = g06MapReads (content);  // hx10w2 G06
     content = nativeTypedContainerAccess (g10kAddElemRetypeMapLocals (content));
     content = hx4G25Pass (content);  // hx4 G25
     content = hx4G29Pass (content);  // hx4 G29
     hx4G34TupleSlotNeverNil.file = undefined;  // hx4 G34
     content = h2kG13NativeKeysAndRemove (hx4G07FieldInOp (g10kInopClientMaps (content)));
+    content = g09w3Pass (content);  // hx10w3 G09: prediction caches are typed maps
     content = hx5P28BaseFieldReads (content);  // hx5 P28
     content = hx4G38Pass (hx4G33IsEqual (hx4G28IsEqualSafe (content)));  // hx4 G28, G33, G38
-    return g10kLenNative (goNativeStringAdds (hx4G32Comparisons (hx4G31Divide (hx4G27Comparisons (hx4G23Comparisons (hx4G18NativeCompare (hx4G30Arith (content))))))));  // hx4 G27..G32
+    content = g10kLenNative (goNativeStringAdds (hx4G32Comparisons (hx4G31Divide (hx4G27Comparisons (hx4G23Comparisons (hx4G18NativeCompare (hx4G30Arith (content))))))));  // hx4 G27..G32
+    content = hx10G03Pass (content);  // hx10 G03
+    content = hx10w2G04 (content);  // hx10 G04
+    content = hx10w3G10 (content);  // hx10w3 G10
+    content = hx10OG02Pass (content);  // hx10 wave-4 OG02: these two base files bypass formatGoSource
+    content = hx10OG05Pass (content);  // hx10 w7 OG05: base/quote currencies + transactions published
+    content = g01UrlsViews (content);  // hx10w5 G01: typed urls views + the refreshes after each urls write
+    content = og02IdBookPass (content);  // hx10w6 OG02: base cleanRestData + incrementingNonce hand off to the request book owner
+    content = g09Pass (content);  // hx10w2 G09
+    return gb09CredentialStrings (content);  // hx10 w9 GB09: the credential fields are plain strings
     return g10kLenNative (goNativeStringAdds (goNativeArithmetic (content)));
 }
 
@@ -13815,7 +14020,8 @@ function hx4G34Check (): string[] {
             caller (viaPrep),                                                                             // callee not in this file
         ]) {
             const r = formatGoSource ('selftest.go', keep);
-            ok (r.includes ('AddElementToObject(request'), 'keeps helper: ' + JSON.stringify (keep) + ' -> ' + r);
+            // G34's own claim is the UNGUARDED write; a nil-guarded write needs no slot proof (hx10 G03)
+            ok (!/\n\trequest\["k"\] = "v"\n/.test (r), 'no unguarded write without the slot proof: ' + JSON.stringify (keep) + ' -> ' + r);
         }
     } catch (e) {
         problems.push ('hx4 G34 threw: ' + e.message);
@@ -14121,6 +14327,27 @@ function hx4G39PointerValue (lines: string[], value: string, valueMasked: string
 }
 
 // hx4 G40 (hx5 X23: an unproven IsEqual stays the helper call; a typed map against nil becomes `m == nil`)
+// hx10 G04: the typed operand comparison pass must run in both write paths
+function g04Wired (): string[] {
+    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'hx10-G04-'));
+    const file = path.join (dir, 'x.go');
+    const body = 'func (this *X) F(p any) any {\n\tvar a *string = this.SafeString(p, "a")\n\tvar b *string = this.SafeString(p, "b")\n\tif IsEqual(a, b) {\n\t\treturn nil\n\t}\n\treturn a\n}\n';
+    try {
+        overwriteFileAndFolder (file, 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\n' + body);
+        const out = fs.readFileSync (file, 'utf8');
+        if (!out.includes ('if a == b || (a != nil && b != nil && *a == *b) {')) {
+            return [ 'hx10 G04: not wired into overwriteFileAndFolder: ' + out ];
+        }
+        const base = hx4G20BaseNativePasses ('package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\n' + body);
+        if (!base.includes ('if a == b ||')) {
+            return [ 'hx10 G04: not wired into the base-methods chain: ' + base ];
+        }
+        return [];
+    } finally {
+        fs.rmSync (dir, { 'recursive': true, 'force': true });
+    }
+}
+
 function hx4G40Wired (): string[] {
     const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'hx4-G40-'));
     const file = path.join (dir, 'x.go');
@@ -14448,6 +14675,96 @@ function hx5P28Check (): string[] {
         ok (hx5P28BaseFieldReads (once) === once, 'idempotent');
     } catch (e) {
         problems.push ('hx5 P28 threw: ' + e.message);
+    }
+    return problems;
+}
+
+// ===== hx10 w9 GB09: credential fields are plain Go strings =====
+// go/v4/exchange.go declares ApiKey/Secret/Uid/Password/AccountId/WalletAddress/PrivateKey `string`,
+// so an absent key is "" and never a nil box: their nil tests print as empty-string tests, a
+// nil/empty pair collapses to its empty half, and a defaulted SafeString write into one derefs.
+function gb09CredentialFields (): string[] {
+    return [ 'ApiKey', 'Secret', 'Uid', 'Password', 'AccountId', 'WalletAddress', 'PrivateKey' ];
+}
+
+// `this.<Field> = this.SafeString(..., "<literal>")`: the literal default makes the call non-nil
+function gb09CredentialWrite (line: string): string | undefined {
+    const m = /^(\t*this\.(\w+) = )(this\.[\w]+\(.*\))$/.exec (line);
+    if ((m === null) || (gb09CredentialFields ().indexOf (m[2]) < 0)) {
+        return undefined;
+    }
+    const call = m[3];
+    const inner = call.slice (call.indexOf ('(') + 1, -1);
+    const args = goAddSplitTop (inner, inner, ',');
+    if ((args === null) || (args.length < 3)) {
+        return undefined; // no default: the call can be nil, keep it (a compile error, not a panic)
+    }
+    if (!/^"(?:[^"\\$\n]|\\.)*"$/.test (args[args.length - 1].trim ())) {
+        return undefined;
+    }
+    return m[1] + '*' + call;
+}
+
+export function gb09CredentialStrings (content: string): string {
+    if (content.indexOf ('this.') < 0) {
+        return content;
+    }
+    const alt = gb09CredentialFields ().join ('|');
+    const nilOrEmpty = new RegExp ('\\(this\\.(' + alt + ') == nil\\) \\|\\| \\(this\\.\\1 == ""\\)', 'g');
+    const setOrEmpty = new RegExp ('\\(this\\.(' + alt + ') != nil\\) && \\(this\\.\\1 != ""\\)', 'g');
+    const bareNilOrEmpty = new RegExp ('(?<![\\w.])this\\.(' + alt + ') == nil \\|\\| this\\.\\1 == ""', 'g');
+    const bareSetOrEmpty = new RegExp ('(?<![\\w.])this\\.(' + alt + ') != nil && this\\.\\1 != ""', 'g');
+    const equalNil = new RegExp ('(!?)(?<![\\w.])(?:ccxt\\.)?IsEqual\\(this\\.(' + alt + '), nil\\)', 'g');
+    const isNil = new RegExp ('(?<![\\w.])this\\.(' + alt + ') == nil', 'g');
+    const isNotNil = new RegExp ('(?<![\\w.])this\\.(' + alt + ') != nil', 'g');
+    const lines = content.split ('\n');
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if ((line.indexOf ('this.') < 0) || ((line.indexOf ('nil') < 0) && (line.indexOf ('SafeString') < 0))) {
+            continue;
+        }
+        let out = line;
+        if (out.indexOf ('nil') >= 0) {
+            out = out.replace (nilOrEmpty, '(this.$1 == "")');
+            out = out.replace (setOrEmpty, '(this.$1 != "")');
+            out = out.replace (bareNilOrEmpty, 'this.$1 == ""');
+            out = out.replace (bareSetOrEmpty, 'this.$1 != ""');
+            out = out.replace (equalNil, ((_m: string, not: string, field: string) => 'this.' + field + ((not === '!') ? ' != ""' : ' == ""')) as any);
+            out = out.replace (isNil, 'this.$1 == ""');
+            out = out.replace (isNotNil, 'this.$1 != ""');
+        }
+        if (out.indexOf ('SafeString') >= 0) {
+            const written = gb09CredentialWrite (out);
+            if (written !== undefined) {
+                out = written;
+            }
+        }
+        if (out !== line) {
+            lines[i] = out;
+        }
+    }
+    return lines.join ('\n');
+}
+
+function gb09Check (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push ('hx10 w9 GB09: ' + message); } };
+    try {
+        const f = (text: string) => gb09CredentialStrings (text);
+        const nilTest = '\tif this.ApiKey == nil {';
+        ok (f (nilTest).indexOf ('if this.ApiKey == "" {') >= 0, 'nil test prints as the empty-string test: ' + f (nilTest));
+        const pair = '\tvar s bool = (this.PrivateKey != nil) && (this.PrivateKey != "")';
+        ok (f (pair).indexOf ('var s bool = (this.PrivateKey != "")') >= 0, 'nil/empty pair collapses: ' + f (pair));
+        const boxed = '\tif this.Token == nil || this.Login == nil {';
+        ok (f (boxed) === boxed, 'Token/Login stay boxed: ' + f (boxed));
+        const write = '\tthis.ApiKey = this.SafeString(creds, "apiKey", "")';
+        ok (f (write).indexOf ('this.ApiKey = *this.SafeString(creds, "apiKey", "")') >= 0, 'defaulted write derefs: ' + f (write));
+        const nilable = '\tthis.ApiKey = this.SafeString(creds, "apiKey")';
+        ok (f (nilable) === nilable, 'nil-able write keeps the call: ' + f (nilable));
+        const once = f (pair + '\n' + write + '\n' + nilTest);
+        ok (f (once) === once, 'idempotent');
+    } catch (e) {
+        problems.push ('hx10 w9 GB09 threw: ' + e.message);
     }
     return problems;
 }

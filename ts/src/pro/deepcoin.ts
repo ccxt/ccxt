@@ -101,7 +101,7 @@ export default class deepcoin extends deepcoinRest {
         return 'ping';
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: string) {
         client.lastPong = this.milliseconds ();
         return message;
     }
@@ -115,7 +115,7 @@ export default class deepcoin extends deepcoinRest {
         return newValue;
     }
 
-    createPublicRequest (market: any, requestId: number, topicID: string, suffix: string = '', unWatch: boolean = false): Dict {
+    createPublicRequest (market: Dict, requestId: number, topicID: string, suffix: string = '', unWatch: boolean = false): Dict {
         let marketId = this.safeString (market, 'symbol'); // spot markets use symbol with slash
         if (this.safeString (market, 'type') === 'swap') {
             marketId = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', ''); // swap markets use symbol without slash
@@ -136,7 +136,7 @@ export default class deepcoin extends deepcoinRest {
         return request;
     }
 
-    async watchPublic (market: any, messageHash: string, topicID: string, params: Dict = {}, suffix: string = ''): Promise<any> {
+    async watchPublic (market: Dict, messageHash: string, topicID: string, params: Dict = {}, suffix: string = ''): Promise<any> {
         const url = this.urls['api']['ws']['public'][market['type']];
         const requestId = this.requestId ();
         const request = this.createPublicRequest (market, requestId, topicID, suffix);
@@ -147,7 +147,7 @@ export default class deepcoin extends deepcoinRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
     }
 
-    async unWatchPublic (market: any, messageHash: string, topicID: string, params: Dict = {}, subscription: Dict = {}, suffix: string = ''): Promise<any> {
+    async unWatchPublic (market: Dict, messageHash: string, topicID: string, params: Dict = {}, subscription: Dict = {}, suffix: string = ''): Promise<any> {
         const url = this.urls['api']['ws']['public'][market['type']];
         const requestId = this.requestId ();
         const client = this.client (url);

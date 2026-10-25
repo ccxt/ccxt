@@ -5,7 +5,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -18,16 +17,6 @@ import io.github.ccxt.base.JsonHelper;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class Helpers {
-
-    /**
-     * Converts a raw List<Object> into a typed List<T>; used by the committed
-     * TypedSurface / PredictionTypedSurface default methods and by the exchange
-     * dumps the pipeline does not regenerate (java STATIC_RESPONSE/request tiers).
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> List<T> toTypedList(Object raw, java.util.function.Function<Object, T> ctor) {
-        return ((List<Object>) raw).stream().map(ctor).collect(java.util.stream.Collectors.toList());
-    }
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -417,6 +406,7 @@ public class Helpers {
         return false;
     }
 
+    // Printed by javaTranspiler's Math.min fallback; keep at 0 call sites.
     public static Object mathMin(Object a, Object b) {
         if (a == null || b == null) return null;
         double first = toDouble(a);
@@ -424,15 +414,7 @@ public class Helpers {
         return (first < second) ? a : b;
     }
 
-    public static double mathPow(Object base, Object exp) {
-        if (base instanceof Number && exp instanceof Number) {
-            double baseFloat = ((Number) base).doubleValue();
-            double expFloat = ((Number) exp).doubleValue();
-            return Math.pow(baseFloat, expFloat);
-        }
-        return 0;
-    }
-
+    // Printed by javaTranspiler's Math.max fallback; keep at 0 call sites.
     public static Object mathMax(Object a, Object b) {
         if (a == null || b == null) return null;
         double first = toDouble(a);
@@ -575,14 +557,7 @@ public class Helpers {
         }
     }
 
-    public static Object toFixed(Object number, Object decimals) {
-        double n = toDouble(number);
-        int d = toInt(decimals);
-        BigDecimal bd = new BigDecimal(Double.toString(n)).setScale(d, RoundingMode.HALF_UP);
-        return bd.doubleValue();
-    }
-
-public static Object callDynamically(Object obj, Object methodName, Object[] args) {
+    public static Object callDynamically(Object obj, Object methodName, Object[] args) {
     if (args == null) args = new Object[]{};
 
     String name = (String) methodName;
@@ -647,7 +622,7 @@ private static void coerceArgs(Method m, Object[] args) {
                 else args[i] = Double.parseDouble(s);
             } catch (NumberFormatException ignored) {}
         }
-        // a String slot takes the value's string form (the getArgString conversion)
+        // a String slot takes the value's string form (same as toStringArg)
         if (expected == String.class && !(args[i] instanceof String)) {
             args[i] = toStringArg(args[i]);
         }
@@ -738,6 +713,7 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         }
     }
 
+    // Printed by javaTranspiler's x.concat(y) arm; keep at 0 call sites.
     public static Object concat(Object a, Object b) {
         if (a == null && b == null) return null;
         if (a == null) return b;
@@ -884,25 +860,6 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
     // Slot readers for the generated `Object... optionalArgs` fronts: an omitted slot takes the
     // default, an explicit null stays null, and any Number widens to Long.
 
-    /** the `Long` slot reader: omitted -> def, explicit null -> null, Number -> longValue() */
-    public static Long getArgLong(Object[] v, int index, Long def) {
-        if (v == null || v.length <= index) {
-            return def;
-        }
-        Object value = v[index];
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof Long) {
-            return (Long) value;
-        }
-        if (value instanceof Number) {
-            return ((Number) value).longValue();
-        }
-        throw new ClassCastException("ccxt: expected a number for optional argument " + index
-                + ", got " + value.getClass().getName());
-    }
-
     /** a write into a typed `Long` parameter: null stays null, any Number widens to Long */
     public static Long toLongOrNull(Object value) {
         if (value == null) {
@@ -917,12 +874,12 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         throw new ClassCastException("ccxt: expected a number, got " + value.getClass().getName());
     }
 
-    /** a value passed to a typed `String` core parameter: the getArgString conversion */
+    /** a value passed to a typed `String` core parameter */
     public static String toStringArg(Object value) {
         return value == null ? null : (value instanceof String ? (String) value : String.valueOf(value));
     }
 
-    /** a value passed to a typed `Map` core parameter: the getArgMap check */
+    /** a value passed to a typed `Map` core parameter */
     @SuppressWarnings("unchecked")
     public static Map<String, Object> toMapArg(Object value) {
         if (value == null || value instanceof Map) {
@@ -931,7 +888,7 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         throw new ClassCastException("ccxt: expected a dictionary, got " + value.getClass().getName());
     }
 
-    /** a value passed to a typed `List<String>` core parameter: the getArgStringList check */
+    /** a value passed to a typed `List<String>` core parameter */
     @SuppressWarnings("unchecked")
     public static List<String> toStringListArg(Object value) {
         if (value == null || value instanceof List) {
@@ -940,58 +897,16 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         throw new ClassCastException("ccxt: expected a list of strings, got " + value.getClass().getName());
     }
 
-    /** the `List<String>` slot reader: omitted -> def, explicit null -> null */
-    public static List<String> getArgStringList(Object[] v, int index, List<String> def) {
-        if (v == null || v.length <= index) {
-            return def;
-        }
-        return toStringListArg(v[index]);
-    }
-
-    /** the `String` slot reader: omitted -> def, explicit null -> null, non-String -> its string form */
-    public static String getArgString(Object[] v, int index, String def) {
-        if (v == null || v.length <= index) {
-            return def;
-        }
-        Object value = v[index];
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof String) {
-            return (String) value;
-        }
-        return String.valueOf(value);
-    }
-
-    /** the `Map<String, Object>` slot reader: omitted -> def, explicit null -> null */
-    @SuppressWarnings("unchecked")
-    public static Map<String, Object> getArgMap(Object[] v, int index, Map<String, Object> def) {
-        if (v == null || v.length <= index) {
-            return def;
-        }
-        Object value = v[index];
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof Map) {
-            return (Map<String, Object>) value;
-        }
-        throw new ClassCastException("ccxt: expected a dictionary for optional argument " + index
-                + ", got " + value.getClass().getName());
-    }
-
 
     /**
-     * Snapshot-copy of a Map's keys under the map's intrinsic lock, so concurrent
-     * put/remove from a WS-handler thread doesn't IOOBE the iteration. Used by
-     * the transpile of `Object.keys(x)` — see post-process in build/javaTranspiler.ts.
+     * Copy of a Map's keys. The caller owns the map or reads a published snapshot (an
+     * immutable map, or a null-free store's weakly consistent view), so the copy needs no
+     * monitor. Used by the transpile of `Object.keys(x)`.
      * For non-Map targets returns an empty list (matches JS Object.keys on non-objects).
      */
     public static List<Object> objectKeys(Object target) {
         if (target instanceof Map<?, ?> m) {
-            synchronized (m) {
-                return new ArrayList<>(m.keySet());
-            }
+            return new ArrayList<>(m.keySet());
         }
         return new ArrayList<>();
     }
@@ -999,9 +914,7 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
     /** Same as {@link #objectKeys} but for values — transpile of `Object.values(x)`. */
     public static List<Object> objectValues(Object target) {
         if (target instanceof Map<?, ?> m) {
-            synchronized (m) {
-                return new ArrayList<>(m.values());
-            }
+            return new ArrayList<>(m.values());
         }
         return new ArrayList<>();
     }
@@ -1012,19 +925,14 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
             if (args.length != 2)
                 throw new IllegalArgumentException("Map requires (key, value)");
             Map<Object, Object> m = (Map<Object, Object>) map;
-            // ConcurrentHashMap rejects null values. We use it for thread-safe
-            // shared state (Exchange.options); translate null put → remove
-            // there since TS `obj[key] = null` is semantically equivalent to
-            // "key is not set" (safeValue returns null either way).
-            // Other maps (request payloads, responses) keep explicit null
-            // entries — many static-request/response tests check for them.
-            // The synchronized block pairs with objectKeys() above: any reader
-            // taking the map's monitor sees a stable view of put/remove here.
-            synchronized (m) {
-                if (args[1] == null && m instanceof java.util.concurrent.ConcurrentHashMap) {
+            // JS keeps an explicit null entry; a null-free store spells the same write as a removal
+            if (args[1] != null || args[0] == null) {
+                m.put(args[0], args[1]);
+            } else {
+                try {
+                    m.put(args[0], null);
+                } catch (NullPointerException nullFree) {
                     m.remove(args[0]);
-                } else {
-                    m.put(args[0], args[1]);
                 }
             }
             return;
@@ -1053,28 +961,23 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
                 "List requires (value) to append or (index(Integer), value) to insert");
         }
 
-        // Fallback: set field via reflection for arbitrary objects (e.g., WsOrderBook).
-        // Sync on the target so a sequence of writes (e.g. timestamp + datetime updated
-        // together by an exchange's handler) appears atomic to readers that take the
-        // same monitor (see WsOrderBook.toMap, which synchronizes on `this`). Without
-        // it, apex/gate orderbooks showed datetime drift / null because the two writes
-        // weren't memory-visible together.
+        // Fallback: set a field via reflection on a plain object. The target is owned by the
+        // calling thread (every Map, including WsOrderBook, takes the branch above), so the
+        // write needs no monitor to be visible to that thread's later reads.
         if (args.length == 2 && args[0] instanceof String fieldName) {
-            synchronized (target) {
+            try {
+                java.lang.reflect.Field field = target.getClass().getField(fieldName);
+                field.setAccessible(true);
+                field.set(target, args[1]);
+                return;
+            } catch (NoSuchFieldException e) {
                 try {
-                    java.lang.reflect.Field field = target.getClass().getField(fieldName);
-                    field.setAccessible(true);
-                    field.set(target, args[1]);
+                    String setter = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+                    java.lang.reflect.Method method = target.getClass().getMethod(setter, Object.class);
+                    method.invoke(target, args[1]);
                     return;
-                } catch (NoSuchFieldException e) {
-                    try {
-                        String setter = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
-                        java.lang.reflect.Method method = target.getClass().getMethod(setter, Object.class);
-                        method.invoke(target, args[1]);
-                        return;
-                    } catch (Exception e2) { /* fall through */ }
-                } catch (Exception e) { /* fall through */ }
-            }
+                } catch (Exception e2) { /* fall through */ }
+            } catch (Exception e) { /* fall through */ }
         }
         throw new IllegalArgumentException("Target is neither Map nor List: " + typeName(target));
     }
@@ -1206,6 +1109,7 @@ private static <T extends Throwable> void throwUnchecked(Throwable t) throws T {
         return str.substring(0, length);
     }
 
+    // Printed by javaTranspiler's padStart fallback; keep at 0 call sites.
     public static String padStart(Object input, Object length2, Object padStr) {
         int length = toInt(length2);
         String str = toString(input);
@@ -1230,6 +1134,7 @@ private static <T extends Throwable> void throwUnchecked(Throwable t) throws T {
         }
     }
 
+    // Printed by javaTranspiler's Math.abs arm; keep at 0 call sites.
     public static Object mathAbs(Object val) {
         if (val == null) {
             return null;

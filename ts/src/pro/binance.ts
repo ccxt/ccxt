@@ -3717,7 +3717,7 @@ export default class binance extends binanceRest {
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             const delta = this.safeString (message, 'd');
-            if ((accountType !== undefined) && (code !== undefined) && (code in this.balance[accountType])) {
+            if ((code !== undefined) && (code in this.balance[accountType])) {
                 let previousValue = this.balance[accountType][code]['free'];
                 if (typeof previousValue !== 'string') {
                     previousValue = this.numberToString (previousValue);
@@ -3726,7 +3726,7 @@ export default class binance extends binanceRest {
             } else {
                 account['free'] = delta;
             }
-            if ((accountType !== undefined) && (code !== undefined)) {
+            if (code !== undefined) {
                 this.balance[accountType][code] = account;
             }
         } else {
@@ -3742,7 +3742,7 @@ export default class binance extends binanceRest {
                 account['free'] = this.safeString (entry, 'f');
                 account['used'] = this.safeString (entry, 'l');
                 account['total'] = this.safeString (entry, wallet);
-                if ((accountType !== undefined) && (code !== undefined)) {
+                if (code !== undefined) {
                     this.balance[accountType][code] = account;
                 }
             }
@@ -4903,7 +4903,7 @@ export default class binance extends binanceRest {
             this.handleOrder (client, message);
             return;
         }
-        let messageValue: any = message;
+        let messageValue: Dict = message;
         if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
             messageValue = this.safeDict (message, 'o', message);
             if ((e === 'ALGO_UPDATE') && !('T' in messageValue)) {

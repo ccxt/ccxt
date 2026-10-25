@@ -12,67 +12,78 @@
 //! Ownership model (why this is a global registry, not a field on `Exchange`):
 //! the base `watch()` borrows `&mut self` to drive `handle_message`, which
 //! itself needs the client. Keeping the connection + futures in a process-wide
-//! registry keyed by URL (behind its own locks) keeps it disjoint from the
-//! `&mut Exchange` borrow, so the drive loop can read the next frame and call
-//! `handle_message(self, client, msg)` without aliasing.
+//! registry keyed by URL keeps it disjoint from the `&mut Exchange` borrow, so
+//! the drive loop can read the next frame and call `handle_message` without
+//! aliasing. The registry has ONE owner thread: every other task hands it a
+//! job over a channel and waits for the reply, so no client field is shared and
+//! no lock is taken at a use site.
 
 #![allow(dead_code)]
 
 use std::collections::{HashMap, HashSet, VecDeque};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use futures::{SinkExt, StreamExt};
 use once_cell::sync::Lazy;
-use tokio::sync::{mpsc, Notify};
+use tokio::sync::{mpsc, watch};
 use tokio_tungstenite::tungstenite::Message;
 
 use crate::Value;
 
-/// Per-connection state. Lives in [`REGISTRY`] behind an `Arc`, so both the
-/// background reader/writer tasks and the `watch` drive loop share it.
+/// Handle to one per-connection state. The state itself lives on the client
+/// store's owner thread; a handle carries only the key (`url`) and the wakeup
+/// channel its waiters await.
 pub struct ClientState {
     pub url: String,
+    /// Bumped by the owner on every observable state change.
+    gen_rx: watch::Receiver<u64>,
+}
+
+/// Per-connection state. Created, mutated and dropped only on the client
+/// store's owner thread, so nothing here is behind a lock.
+struct ClientCore {
+    handle: Arc<ClientState>,
     /// Frames queued for the writer task → socket.
     outgoing: mpsc::UnboundedSender<Message>,
-    /// Receiver half held until the socket connects (a slot is pre-registered
-    /// before connecting so `client.subscriptions` writes persist — upbit builds
-    /// its subscribe frame from subscriptions set before the socket is up). The
-    /// writer task takes this on connect.
-    pending_rx: Mutex<Option<mpsc::UnboundedReceiver<Message>>>,
-    /// Serializes the (async) connect so concurrent `ensure_client`s for a
-    /// pre-registered slot don't open two sockets.
-    connect_gate: tokio::sync::Mutex<()>,
+    /// Receiver half handed to the writer task when the socket connects (a slot
+    /// is pre-registered before connecting so `client.subscriptions` writes
+    /// persist — upbit builds its subscribe frame before the socket is up).
+    pending_rx: Option<mpsc::UnboundedReceiver<Message>>,
+    /// Set while one caller is inside `ensure_client`'s dial for this url; the
+    /// store decides the winner, so concurrent callers never open two sockets.
+    connecting: bool,
     /// Parsed inbound messages awaiting dispatch to `handle_message`.
-    incoming: Mutex<VecDeque<Value>>,
-    /// Woken on: new inbound message, a resolve/reject, or close.
-    notify: Notify,
+    incoming: VecDeque<Value>,
     /// messageHash → resolved value (set by `handle_message` via `resolve`).
-    resolved: Mutex<HashMap<String, Value>>,
+    resolved: HashMap<String, Value>,
     /// messageHash → error (set by `reject`; delivered before/instead of value).
-    rejections: Mutex<HashMap<String, Value>>,
+    rejections: HashMap<String, Value>,
     /// subscribeHash → subscription object (TS `client.subscriptions[hash]`).
     /// A subscribe frame is sent only the first time a hash is inserted.
-    subscriptions: Mutex<HashMap<String, Value>>,
+    subscriptions: HashMap<String, Value>,
     /// messageHashes some `watch` call is currently waiting on. Mirrors TS
     /// `client.futures` (read by a few venues' `handle_message`).
-    futures: Mutex<HashSet<String>>,
+    futures: HashSet<String>,
     /// In-flight single-flight slots keyed by messageHash — the registry behind
     /// TS's `client.future ()` / `client.reusableFuture ()` leader election
     /// (binance/bybit/kucoin/... `authenticate`). Separate from `resolved`
     /// because a flight has *many* waiters (all of whom must observe the
     /// settled value, not consume it) and because settling one must also clear
     /// its `futures` entry so the NEXT cycle can elect a fresh leader.
-    flights: Mutex<HashMap<String, FlightSlot>>,
-    connected: Mutex<bool>,
-    closed: Mutex<bool>,
-    last_pong_ms: Mutex<i64>,
+    flights: HashMap<String, FlightSlot>,
+    connected: bool,
+    closed: bool,
+    last_pong_ms: i64,
     /// Static-WS-test mock transport. When `mock` is set, `send_text` records the
     /// (JSON-parsed) outgoing frame into `mock_sent` instead of relying on a
     /// socket, and no real connection is ever opened. `ws_test_completed` is the
     /// watch side's done-flag the frame injector's rejection loop polls.
-    mock: Mutex<bool>,
-    mock_sent: Mutex<Vec<Value>>,
-    ws_test_completed: Mutex<bool>,
+    mock: bool,
+    mock_sent: Vec<Value>,
+    ws_test_completed: bool,
+    /// Wakeup channel for this client's waiters (`next_message`,
+    /// `ws_await_flight`, `ensure_client` joiners).
+    gen_tx: watch::Sender<u64>,
 }
 
 /// One single-flight slot. `settled` stays populated after the flight closes so
@@ -86,8 +97,102 @@ struct FlightSlot {
     settled: Option<Result<Value, Value>>,
 }
 
-static REGISTRY: Lazy<Mutex<HashMap<String, Arc<ClientState>>>> =
-    Lazy::new(|| Mutex::new(HashMap::new()));
+/// All live clients, owned by one thread. Every other task hands this store a
+/// job over a channel, so no core is ever shared and there is no lock to nest,
+/// poison, or hold across an await. A job sees the whole store, so a decision
+/// (who dials, who leads a flight, who takes a settled value) is atomic by
+/// construction: the owner runs one job at a time.
+#[derive(Default)]
+struct WsClientStore {
+    clients: HashMap<String, ClientCore>,
+}
+
+type ClientJob = Box<dyn FnOnce(&mut WsClientStore) + Send + 'static>;
+
+// Marks the owner thread while a job runs: a job that calls back into the
+// store would wait on its own reply forever, so `client_op` panics instead.
+thread_local! {
+    static IN_CLIENT_JOB: std::cell::Cell<bool> = std::cell::Cell::new(false);
+}
+
+struct InClientJob;
+
+impl InClientJob {
+    fn enter() -> Self {
+        IN_CLIENT_JOB.with(|f| f.set(true));
+        InClientJob
+    }
+}
+
+impl Drop for InClientJob {
+    fn drop(&mut self) { IN_CLIENT_JOB.with(|f| f.set(false)); }
+}
+
+/// Who dials a slot's socket: the store elects exactly one caller.
+enum ConnectClaim {
+    Connected,
+    Wait,
+    Claimed,
+}
+
+/// Wake this client's waiters. The generation is what `watch::Receiver::changed`
+/// compares, so a waiter that armed before the change still sees it.
+fn bump(c: &mut ClientCore) {
+    let next = *c.gen_tx.borrow() + 1;
+    let _ = c.gen_tx.send(next);
+}
+
+/// Settle an open single-flight and clear its `futures` entry, so the next
+/// cycle elects a fresh leader. False when `hash` names no open flight.
+fn core_flight_settle(c: &mut ClientCore, hash: &str, res: Result<Value, Value>) -> bool {
+    match c.flights.get_mut(hash) {
+        Some(slot) if slot.open => {
+            slot.open = false;
+            slot.settled = Some(res);
+        }
+        _ => return false,
+    }
+    c.futures.remove(hash);
+    true
+}
+
+/// Hand `f` to the store's owner thread and return its result.
+fn client_op<R, F>(f: F) -> R
+where
+    R: Send + 'static,
+    F: FnOnce(&mut WsClientStore) -> R + Send + 'static,
+{
+    if IN_CLIENT_JOB.with(|flag| flag.get()) {
+        panic!("ccxt: ws client job called back into the client store (would deadlock)");
+    }
+    let (tx, rx) = std::sync::mpsc::sync_channel::<Result<R, Box<dyn std::any::Any + Send>>>(1);
+    let job: ClientJob = Box::new(move |store: &mut WsClientStore| {
+        let _ = tx.send(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| f(store))));
+    });
+    if WS_CLIENTS_TX.send(job).is_err() {
+        panic!("ccxt: ws client owner is gone");
+    }
+    match rx.recv() {
+        Ok(Ok(v)) => v,
+        Ok(Err(payload)) => std::panic::resume_unwind(payload),
+        Err(_) => panic!("ccxt: ws client owner dropped the reply"),
+    }
+}
+
+static WS_CLIENTS_TX: Lazy<mpsc::UnboundedSender<ClientJob>> = Lazy::new(|| {
+    let (tx, mut rx) = mpsc::unbounded_channel::<ClientJob>();
+    std::thread::Builder::new()
+        .name("ccxt-ws-clients".to_string())
+        .spawn(move || {
+            let mut store = WsClientStore::default();
+            while let Some(job) = rx.blocking_recv() {
+                let _in_job = InClientJob::enter();
+                job(&mut store);
+            }
+        })
+        .expect("ccxt: cannot start the ws client owner");
+    tx
+});
 
 /// Monotonic-ish wall clock in ms. `SystemTime` is fine here (keep-alive only).
 fn now_ms() -> i64 {
@@ -148,22 +253,62 @@ fn parse_raw_binary(b: &[u8]) -> Value {
 }
 
 impl ClientState {
+    /// Read this client's core on the owner thread. The caller is the observer,
+    /// so this does not wake waiters.
+    fn with<R, F>(&self, f: F) -> R
+    where
+        R: Send + 'static,
+        F: FnOnce(&mut ClientCore) -> R + Send + 'static,
+    {
+        let url = self.url.clone();
+        client_op(move |s| match s.clients.get_mut(&url) {
+            Some(c) => f(c),
+            None => panic!("ccxt: no ws client state for {url}"),
+        })
+    }
+
+    /// Mutate this client's core and wake everyone waiting on it.
+    fn with_mut<R, F>(&self, f: F) -> R
+    where
+        R: Send + 'static,
+        F: FnOnce(&mut ClientCore) -> R + Send + 'static,
+    {
+        let url = self.url.clone();
+        client_op(move |s| {
+            let c = match s.clients.get_mut(&url) {
+                Some(c) => c,
+                None => panic!("ccxt: no ws client state for {url}"),
+            };
+            let r = f(c);
+            bump(c);
+            r
+        })
+    }
+
+    /// A receiver armed at the current generation: await `changed ()` on it and
+    /// no change published after this call can be missed.
+    fn waiter(&self) -> watch::Receiver<u64> {
+        let mut rx = self.gen_rx.clone();
+        rx.borrow_and_update();
+        rx
+    }
+
     fn push_incoming(&self, v: Value) {
-        self.incoming.lock().unwrap().push_back(v);
-        self.notify.notify_waiters();
+        self.with_mut(move |c| c.incoming.push_back(v));
     }
 
     /// Await the next inbound message. `None` once the socket is closed and
-    /// the backlog is drained. Uses the create-future-before-check pattern so
+    /// the backlog is drained. The waiter is armed before the queue is read, so
     /// a resolve/push racing the await is never lost.
     pub async fn next_message(&self) -> Option<Value> {
-        let mock = *self.mock.lock().unwrap();
+        let mock = self.with(|c| c.mock);
+        let mut rx = self.waiter();
         loop {
-            let notified = self.notify.notified();
-            if let Some(v) = self.incoming.lock().unwrap().pop_front() {
-                return Some(v);
+            let next = self.with(|c| c.incoming.pop_front());
+            if next.is_some() {
+                return next;
             }
-            if *self.closed.lock().unwrap() {
+            if self.with(|c| c.closed) {
                 return None;
             }
             if mock {
@@ -171,11 +316,11 @@ impl ClientState {
                 // If nothing arrives within a short window the fixture is
                 // finished (or under-feeds this watch) — stop instead of
                 // blocking the drive loop forever, so the test completes.
-                if tokio::time::timeout(std::time::Duration::from_millis(1500), notified).await.is_err() {
+                if tokio::time::timeout(std::time::Duration::from_millis(1500), rx.changed()).await.is_err() {
                     return None;
                 }
-            } else {
-                notified.await;
+            } else if rx.changed().await.is_err() {
+                return None;
             }
         }
     }
@@ -187,46 +332,51 @@ impl ClientState {
     /// principle be someone's flight and someone else's `watch`, and only the
     /// waiter that exists will read its side.
     pub fn resolve(&self, hash: &str, value: Value) {
-        self.flight_settle(hash, Ok(value.clone()));
-        self.resolved.lock().unwrap().insert(hash.to_string(), value);
-        self.notify.notify_waiters();
+        let h = hash.to_string();
+        self.with_mut(move |c| {
+            core_flight_settle(c, &h, Ok(value.clone()));
+            c.resolved.insert(h.clone(), value);
+        });
     }
 
     /// Store an error for `hash` (TS `client.reject`), settling an open
     /// single-flight on the same hash — see `resolve`.
     pub fn reject(&self, hash: &str, err: Value) {
-        self.flight_settle(hash, Err(err.clone()));
-        self.rejections.lock().unwrap().insert(hash.to_string(), err);
-        self.notify.notify_waiters();
+        let h = hash.to_string();
+        self.with_mut(move |c| {
+            core_flight_settle(c, &h, Err(err.clone()));
+            c.rejections.insert(h.clone(), err);
+        });
     }
 
     /// If any of `hashes` has a resolved value or rejection, remove and return
     /// it (`Ok` for value, `Err` for rejection). Rejections take priority.
     pub fn take_settled(&self, hashes: &[String]) -> Option<Result<Value, Value>> {
-        {
-            let mut rj = self.rejections.lock().unwrap();
-            for h in hashes {
-                if let Some(e) = rj.remove(h) {
+        let hs = hashes.to_vec();
+        self.with(move |c| {
+            for h in &hs {
+                if let Some(e) = c.rejections.remove(h) {
                     return Some(Err(e));
                 }
             }
-        }
-        let mut r = self.resolved.lock().unwrap();
-        for h in hashes {
-            if let Some(v) = r.remove(h) {
-                return Some(Ok(v));
+            for h in &hs {
+                if let Some(v) = c.resolved.remove(h) {
+                    return Some(Ok(v));
+                }
             }
-        }
-        None
+            None
+        })
     }
 
     /// Register interest in `hashes` (TS `client.future`). Returns true if the
     /// subscribe frame still needs sending for `subscribe_hash`.
     pub fn note_futures(&self, hashes: &[String]) {
-        let mut f = self.futures.lock().unwrap();
-        for h in hashes {
-            f.insert(h.clone());
-        }
+        let hs = hashes.to_vec();
+        self.with(move |c| {
+            for h in hs {
+                c.futures.insert(h);
+            }
+        });
     }
 
     /// Open a single-flight for `hash`, or join one already in progress. `true`
@@ -235,136 +385,148 @@ impl ClientState {
     ///
     /// The insert into `futures` is what makes the transpiled
     /// `if (messageHash in client.futures)` follower test observable, and it
-    /// happens under the same lock as the check — this is TS's documented
+    /// happens in the same store job as the check — TS's documented
     /// "atomic check-and-insert".
     pub fn flight_begin(&self, hash: &str) -> bool {
-        let mut fl = self.flights.lock().unwrap();
-        match fl.get_mut(hash) {
+        let h = hash.to_string();
+        self.with(move |c| match c.flights.get_mut(&h) {
             // Open flight — join it as a follower.
             Some(slot) if slot.open => false,
             // Closed: re-open, keeping the last value for anyone who re-awaits
             // without new work being done.
             Some(slot) => {
                 slot.open = true;
-                self.futures.lock().unwrap().insert(hash.to_string());
+                c.futures.insert(h.clone());
                 true
             }
             None => {
-                fl.insert(hash.to_string(), FlightSlot { open: true, settled: None });
-                self.futures.lock().unwrap().insert(hash.to_string());
+                c.flights.insert(h.clone(), FlightSlot { open: true, settled: None });
+                c.futures.insert(h);
                 true
             }
-        }
+        })
     }
 
     /// The flight's last outcome, if it has one. Does NOT consume it: every
     /// waiter must be able to observe the same result.
     pub fn flight_peek(&self, hash: &str) -> Option<Result<Value, Value>> {
-        self.flights.lock().unwrap().get(hash).and_then(|s| s.settled.clone())
+        let h = hash.to_string();
+        self.with(move |c| c.flights.get(&h).and_then(|s| s.settled.clone()))
     }
 
     /// Whether a flight for `hash` exists and is still open.
     pub fn flight_is_open(&self, hash: &str) -> bool {
-        self.flights.lock().unwrap().get(hash).map(|s| s.open).unwrap_or(false)
+        let h = hash.to_string();
+        self.with(move |c| c.flights.get(&h).map(|s| s.open).unwrap_or(false))
     }
 
     /// Settle an open flight and wake its waiters. Returns false (and does
     /// nothing) when `hash` names no open flight, so `resolve`/`reject` can
     /// fall through to their normal watch-hash behaviour.
     pub fn flight_settle(&self, hash: &str, res: Result<Value, Value>) -> bool {
-        {
-            let mut fl = self.flights.lock().unwrap();
-            match fl.get_mut(hash) {
-                Some(slot) if slot.open => {
-                    slot.open = false;
-                    slot.settled = Some(res);
-                }
-                _ => return false,
-            }
-        }
-        // Clear the `futures` entry as part of settling, mirroring TS: the
-        // flight is over, so the next cycle must elect a fresh leader.
-        self.futures.lock().unwrap().remove(hash);
-        self.notify.notify_waiters();
-        true
+        let h = hash.to_string();
+        self.with_mut(move |c| core_flight_settle(c, &h, res))
     }
 
     /// Record `subscribe_hash` → `subscription`; returns true the first time
     /// (so the caller sends the subscribe frame exactly once). Mirrors TS
     /// `client.subscriptions[subscribeHash] = subscription || true`.
     pub fn subscribe_once(&self, subscribe_hash: &str, subscription: Value) -> bool {
-        let mut subs = self.subscriptions.lock().unwrap();
-        if subs.contains_key(subscribe_hash) {
-            return false;
-        }
-        let stored = if matches!(subscription, Value::Null) {
-            Value::Bool(true)
-        } else {
-            subscription
-        };
-        subs.insert(subscribe_hash.to_string(), stored);
-        true
+        let sh = subscribe_hash.to_string();
+        self.with(move |c| {
+            if c.subscriptions.contains_key(&sh) {
+                return false;
+            }
+            let stored = if matches!(subscription, Value::Null) {
+                Value::Bool(true)
+            } else {
+                subscription
+            };
+            c.subscriptions.insert(sh, stored);
+            true
+        })
     }
 
     /// Directly set a subscription entry (TS `client.subscriptions[h] = x`
     /// written from `handle_message`).
     pub fn set_subscription(&self, subscribe_hash: &str, subscription: Value) {
-        self.subscriptions.lock().unwrap().insert(subscribe_hash.to_string(), subscription);
+        let sh = subscribe_hash.to_string();
+        self.with(move |c| {
+            c.subscriptions.insert(sh, subscription);
+        });
     }
 
     pub fn is_subscribed(&self, subscribe_hash: &str) -> bool {
-        self.subscriptions.lock().unwrap().contains_key(subscribe_hash)
+        let sh = subscribe_hash.to_string();
+        self.with(move |c| c.subscriptions.contains_key(&sh))
     }
 
     pub fn send_text(&self, s: String) -> bool {
         if std::env::var("CCXT_WS_DEBUG").is_ok() { eprintln!("[wssend] {}", s.chars().take(200).collect::<String>()); }
         // Static-WS-test mock transport: record the frame (JSON-parsed, like the
         // TS `client.connection.send` stub) instead of hitting a socket.
-        if *self.mock.lock().unwrap() {
-            self.mock_sent.lock().unwrap().push(parse_text(&s));
-            return true;
-        }
-        self.outgoing.send(Message::Text(s)).is_ok()
+        self.with(move |c| {
+            if c.mock {
+                c.mock_sent.push(parse_text(&s));
+                return true;
+            }
+            c.outgoing.send(Message::Text(s)).is_ok()
+        })
+    }
+
+    /// Keep-alive frame straight onto the writer queue (false once it is gone).
+    fn send_ping(&self) -> bool {
+        self.with(|c| c.outgoing.send(Message::Ping(Vec::new())).is_ok())
     }
 
     /// Enable the mock transport: mark connected (so `ensure_client` never opens
     /// a socket) and route `send_text` to the capture buffer.
     pub fn mock_enable(&self) {
-        *self.mock.lock().unwrap() = true;
-        *self.connected.lock().unwrap() = true;
+        self.with_mut(|c| {
+            c.mock = true;
+            c.connected = true;
+        });
     }
     /// Injected inbound frame → the same queue the socket reader feeds.
     pub fn mock_inject(&self, msg: Value) {
-        self.incoming.lock().unwrap().push_back(msg);
-        self.notify.notify_one();
+        self.with_mut(move |c| c.incoming.push_back(msg));
     }
-    pub fn is_mock(&self) -> bool { *self.mock.lock().unwrap() }
+    pub fn is_mock(&self) -> bool { self.with(|c| c.mock) }
     /// The captured outgoing frames as a `Value::List`.
     pub fn mock_sent_value(&self) -> Value {
-        Value::Array(self.mock_sent.lock().unwrap().clone())
+        self.with(|c| Value::Array(c.mock_sent.clone()))
     }
     pub fn has_pending_futures(&self) -> bool {
-        !self.futures.lock().unwrap().is_empty()
+        self.with(|c| !c.futures.is_empty())
     }
     /// Whether the mock inbound queue still holds un-consumed frames.
     pub fn has_queued_messages(&self) -> bool {
-        !self.incoming.lock().unwrap().is_empty()
+        self.with(|c| !c.incoming.is_empty())
     }
-    pub fn mark_ws_test_completed(&self) { *self.ws_test_completed.lock().unwrap() = true; }
-    pub fn is_ws_test_completed(&self) -> bool { *self.ws_test_completed.lock().unwrap() }
+    pub fn mark_ws_test_completed(&self) { self.with(|c| c.ws_test_completed = true); }
+    pub fn is_ws_test_completed(&self) -> bool { self.with(|c| c.ws_test_completed) }
     /// Reject every pending future so a fixture whose frames don't resolve the
     /// watch fails (with a message) rather than hanging the drive loop.
     pub fn reject_pending_futures(&self, err: Value) {
-        let hashes: Vec<String> = self.futures.lock().unwrap().iter().cloned().collect();
-        for h in hashes { self.reject(&h, err.clone()); }
+        self.with_mut(move |c| {
+            let hashes: Vec<String> = c.futures.iter().cloned().collect();
+            for h in hashes {
+                core_flight_settle(c, &h, Err(err.clone()));
+                c.rejections.insert(h, err.clone());
+            }
+        });
     }
 
     pub fn is_closed(&self) -> bool {
-        *self.closed.lock().unwrap()
+        self.with(|c| c.closed)
+    }
+
+    pub fn is_connected(&self) -> bool {
+        self.with(|c| c.connected)
     }
 
     pub fn on_pong(&self) {
-        *self.last_pong_ms.lock().unwrap() = now_ms();
+        self.with(|c| c.last_pong_ms = now_ms());
     }
 
     /// Drop resolved/rejected/subscription/future state,
@@ -372,11 +534,13 @@ impl ClientState {
     /// Internal wipe only — the transpiled `client.reset(error)` goes through
     /// `reset_with_error` below, which delivers the error first.
     pub fn reset(&self) {
-        self.resolved.lock().unwrap().clear();
-        self.rejections.lock().unwrap().clear();
-        self.subscriptions.lock().unwrap().clear();
-        self.futures.lock().unwrap().clear();
-        self.flights.lock().unwrap().clear();
+        self.with(|c| {
+            c.resolved.clear();
+            c.rejections.clear();
+            c.subscriptions.clear();
+            c.futures.clear();
+            c.flights.clear();
+        });
     }
 
     /// TS `client.reset(error)` — reject every pending future/flight with the
@@ -388,14 +552,17 @@ impl ClientState {
     /// subscriptions are left to the caller — the TS `Client.reset` does not
     /// clear them either.
     pub fn reset_with_error(&self, error: Value) {
-        let hashes: Vec<String> = self.futures.lock().unwrap().iter().cloned().collect();
-        for h in &hashes {
-            if self.resolved.lock().unwrap().contains_key(h) {
-                continue;
+        self.with_mut(move |c| {
+            let hashes: Vec<String> = c.futures.iter().cloned().collect();
+            for h in &hashes {
+                if c.resolved.contains_key(h) {
+                    continue;
+                }
+                core_flight_settle(c, h, Err(error.clone()));
+                c.rejections.insert(h.clone(), error.clone());
             }
-            self.reject(h, error.clone());
-        }
-        self.futures.lock().unwrap().clear();
+            c.futures.clear();
+        });
     }
 
     /// Snapshot of `subscriptions` as a `Value::Map { hash: subscription }` —
@@ -404,63 +571,73 @@ impl ClientState {
     /// (`client.subscriptions[chanId] = …`, common in bitfinex/chan-id venues)
     /// route back to this live `ClientState` instead of a discarded clone.
     pub fn subscriptions_value(&self) -> Value {
-        let subs = self.subscriptions.lock().unwrap();
-        let mut m = indexmap::IndexMap::new();
-        m.insert("__ws_subs_url".to_string(), Value::Str(self.url.clone().into()));
-        for (h, sub) in subs.iter() {
-            // Tag each subscription DICT with a back-reference so a field write
-            // on it (`subscription['receivedSnapshot'] = true`) persists to this
-            // live client — venues mutate a subscription retrieved from
-            // client.subscriptions and rely on JS object identity.
-            let tagged = match sub {
-                Value::Dict(d) => {
-                    let mut inner = (**d).clone();
-                    inner.insert("__ws_sub_ref".to_string(),
-                        Value::Str(format!("{}\u{1}{}", self.url, h).into()));
-                    Value::Dict(std::sync::Arc::new(inner))
-                }
-                other => other.clone(),
-            };
-            m.insert(h.clone(), tagged);
-        }
-        Value::Map(m)
+        let url = self.url.clone();
+        self.with(move |c| {
+            let mut m = indexmap::IndexMap::new();
+            m.insert("__ws_subs_url".to_string(), Value::Str(url.clone().into()));
+            for (h, sub) in c.subscriptions.iter() {
+                // Tag each subscription DICT with a back-reference so a field write
+                // on it (`subscription['receivedSnapshot'] = true`) persists to this
+                // live client — venues mutate a subscription retrieved from
+                // client.subscriptions and rely on JS object identity.
+                let tagged = match sub {
+                    Value::Dict(d) => {
+                        let mut inner = (**d).clone();
+                        inner.insert("__ws_sub_ref".to_string(),
+                            Value::Str(format!("{}\u{1}{}", url, h).into()));
+                        Value::Dict(std::sync::Arc::new(inner))
+                    }
+                    other => other.clone(),
+                };
+                m.insert(h.clone(), tagged);
+            }
+            Value::Map(m)
+        })
     }
 
     /// Set a field on a stored subscription dict (`client.subscriptions[hash]
     /// [key] = val`). Creates the entry if missing.
     pub fn set_subscription_field(&self, hash: &str, key: &str, val: Value) {
-        let mut subs = self.subscriptions.lock().unwrap();
-        match subs.get_mut(hash) {
-            Some(Value::Dict(d)) => { std::sync::Arc::make_mut(d).insert(key.to_string(), val); }
-            _ => {
+        let h = hash.to_string();
+        let k = key.to_string();
+        self.with(move |c| {
+            if matches!(c.subscriptions.get(&h), Some(Value::Dict(_))) {
+                if let Some(Value::Dict(d)) = c.subscriptions.get_mut(&h) {
+                    std::sync::Arc::make_mut(d).insert(k, val);
+                }
+            } else {
                 let mut inner = indexmap::IndexMap::new();
-                inner.insert(key.to_string(), val);
-                subs.insert(hash.to_string(), Value::Dict(std::sync::Arc::new(inner)));
+                inner.insert(k, val);
+                c.subscriptions.insert(h, Value::Dict(std::sync::Arc::new(inner)));
             }
-        }
+        });
     }
 
     /// Snapshot of `futures` as a `Value::Map { hash: true }`.
     pub fn futures_value(&self) -> Value {
-        let f = self.futures.lock().unwrap();
-        let mut m = indexmap::IndexMap::new();
-        for h in f.iter() {
-            // Each entry is a future *handle* carrying the url + its own hash, so
-            // transpiled `client.futures[hash].resolve(x)` (bitget/cryptocom auth)
-            // routes back to this ClientState — see value_resolve/value_reject.
-            let mut fh = indexmap::IndexMap::new();
-            fh.insert("url".to_string(), Value::Str(self.url.clone().into()));
-            fh.insert("__ws_future_hash".to_string(), Value::Str(h.clone().into()));
-            m.insert(h.clone(), Value::Map(fh));
-        }
-        Value::Map(m)
+        let url = self.url.clone();
+        self.with(move |c| {
+            let mut m = indexmap::IndexMap::new();
+            for h in c.futures.iter() {
+                // Each entry is a future *handle* carrying the url + its own hash, so
+                // transpiled `client.futures[hash].resolve(x)` (bitget/cryptocom auth)
+                // routes back to this client — see value_resolve/value_reject.
+                let mut fh = indexmap::IndexMap::new();
+                fh.insert("url".to_string(), Value::Str(url.clone().into()));
+                fh.insert("__ws_future_hash".to_string(), Value::Str(h.clone().into()));
+                m.insert(h.clone(), Value::Map(fh));
+            }
+            Value::Map(m)
+        })
     }
 }
 
 /// Get the existing client for `url`, or `None` if not yet connected.
 pub fn get_client(url: &str) -> Option<Arc<ClientState>> {
-    let reg = REGISTRY.lock().unwrap();
-    reg.get(url).filter(|c| !c.is_closed()).cloned()
+    let u = url.to_string();
+    client_op(move |s| {
+        s.clients.get(&u).filter(|c| !c.closed).map(|c| c.handle.clone())
+    })
 }
 
 /// `client.subscriptions[key] = val` written on a tagged snapshot — persist it
@@ -471,7 +648,8 @@ pub fn value_subs_insert(url: &str, key: &str, val: Value) {
 
 /// `delete client.subscriptions[key]` on a tagged snapshot.
 pub fn value_subs_remove(url: &str, key: &str) {
-    if let Some(c) = get_client(url) { c.subscriptions.lock().unwrap().remove(key); }
+    let k = key.to_string();
+    if let Some(c) = get_client(url) { c.with(move |core| { core.subscriptions.remove(&k); }); }
 }
 
 /// `client.subscriptions[hash][key] = val` written on a tagged subscription
@@ -567,29 +745,58 @@ pub async fn ensure_client_with_headers(
     decompress_binary: bool,
 ) -> Result<Arc<ClientState>, String> {
     let state = ensure_slot(url);
-    if *state.connected.lock().unwrap() {
-        return Ok(state);
+    // The store elects exactly one dialer per slot; a caller that loses the
+    // election waits for that dial and then takes the claim itself, so two
+    // callers never open two sockets.
+    loop {
+        let mut rx = state.waiter();
+        match state.with(|c| {
+            if c.connected {
+                ConnectClaim::Connected
+            } else if c.connecting {
+                ConnectClaim::Wait
+            } else {
+                c.connecting = true;
+                ConnectClaim::Claimed
+            }
+        }) {
+            ConnectClaim::Connected => return Ok(state),
+            ConnectClaim::Claimed => break,
+            ConnectClaim::Wait => {
+                if rx.changed().await.is_err() {
+                    return Err(format!("[NetworkError] ws {url} client owner is gone"));
+                }
+            }
+        }
     }
-    // Serialize connect; re-check under the gate (another task may have just
-    // connected this slot). Lock via a cloned Arc so `state` stays movable.
-    let gate_holder = state.clone();
-    let _gate = gate_holder.connect_gate.lock().await;
-    if *state.connected.lock().unwrap() {
-        return Ok(state);
-    }
-    let ws = match proxy.as_deref().filter(|p| !p.is_empty()) {
-        Some(p) => connect_via_proxy(url, headers, p).await?,
-        None => {
-            let (ws, _resp) = tokio_tungstenite::connect_async(upgrade_request(url, headers)?)
+    let dialled = match proxy.as_deref().filter(|p| !p.is_empty()) {
+        Some(p) => connect_via_proxy(url, headers, p).await,
+        None => match upgrade_request(url, headers) {
+            Ok(req) => tokio_tungstenite::connect_async(req)
                 .await
-                .map_err(|e| format!("[NetworkError] ws connect {url}: {e}"))?;
-            ws
+                .map(|(ws, _resp)| ws)
+                .map_err(|e| format!("[NetworkError] ws connect {url}: {e}")),
+            Err(e) => Err(e),
+        },
+    };
+    let ws = match dialled {
+        Ok(ws) => ws,
+        Err(e) => {
+            state.with_mut(|c| c.connecting = false);
+            return Err(e);
         }
     };
     let (mut write, mut read) = ws.split();
-    let mut rx = state.pending_rx.lock().unwrap().take()
-        .ok_or_else(|| format!("[NetworkError] ws {url} slot has no writer channel"))?;
-    *state.last_pong_ms.lock().unwrap() = now_ms();
+    let maybe_rx = state.with(|c| c.pending_rx.take());
+    let mut rx = match maybe_rx {
+        Some(rx) => rx,
+        None => {
+            let e = format!("[NetworkError] ws {url} slot has no writer channel");
+            state.with_mut(|c| c.connecting = false);
+            return Err(e);
+        }
+    };
+    state.with_mut(|c| c.last_pong_ms = now_ms());
 
     // Writer task: drain the outgoing queue to the socket.
     tokio::spawn(async move {
@@ -615,9 +822,10 @@ pub async fn ensure_client_with_headers(
                 _ => {}
             }
         }
-        *st.connected.lock().unwrap() = false;
-        *st.closed.lock().unwrap() = true;
-        st.notify.notify_waiters();
+        st.with_mut(|c| {
+            c.connected = false;
+            c.closed = true;
+        });
     });
 
     // Keep-alive: an unsolicited Ping every 30s; the peer's Pong updates
@@ -631,13 +839,16 @@ pub async fn ensure_client_with_headers(
             if st2.is_closed() {
                 break;
             }
-            if st2.outgoing.send(Message::Ping(Vec::new())).is_err() {
+            if !st2.send_ping() {
                 break;
             }
         }
     });
 
-    *state.connected.lock().unwrap() = true;
+    state.with_mut(|c| {
+        c.connected = true;
+        c.connecting = false;
+    });
     Ok(state)
 }
 
@@ -655,39 +866,51 @@ pub fn client_field_live(url: &str, field: &str) -> Value {
 /// Get-or-create the registry slot for `url` WITHOUT connecting the socket, so
 /// `client.subscriptions` written before `watch()` connects still persist.
 fn ensure_slot(url: &str) -> Arc<ClientState> {
-    let mut reg = REGISTRY.lock().unwrap();
-    if let Some(c) = reg.get(url) {
-        if !c.is_closed() {
-            return c.clone();
+    let u = url.to_string();
+    client_op(move |s| {
+        if let Some(c) = s.clients.get(&u) {
+            if !c.closed {
+                return c.handle.clone();
+            }
         }
-    }
-    let (tx, rx) = mpsc::unbounded_channel::<Message>();
-    let state = Arc::new(ClientState {
-        url: url.to_string(),
-        outgoing: tx,
-        pending_rx: Mutex::new(Some(rx)),
-        connect_gate: tokio::sync::Mutex::new(()),
-        incoming: Mutex::new(VecDeque::new()),
-        notify: Notify::new(),
-        resolved: Mutex::new(HashMap::new()),
-        rejections: Mutex::new(HashMap::new()),
-        subscriptions: Mutex::new(HashMap::new()),
-        futures: Mutex::new(HashSet::new()),
-        flights: Mutex::new(HashMap::new()),
-        connected: Mutex::new(false),
-        closed: Mutex::new(false),
-        last_pong_ms: Mutex::new(now_ms()),
-        mock: Mutex::new(false),
-        mock_sent: Mutex::new(Vec::new()),
-        ws_test_completed: Mutex::new(false),
-    });
-    reg.insert(url.to_string(), state.clone());
-    state
+        let (out_tx, out_rx) = mpsc::unbounded_channel::<Message>();
+        let (gen_tx, gen_rx) = watch::channel(0u64);
+        let handle = Arc::new(ClientState { url: u.clone(), gen_rx });
+        s.clients.insert(u.clone(), ClientCore {
+            handle: handle.clone(),
+            outgoing: out_tx,
+            pending_rx: Some(out_rx),
+            connecting: false,
+            incoming: VecDeque::new(),
+            resolved: HashMap::new(),
+            rejections: HashMap::new(),
+            subscriptions: HashMap::new(),
+            futures: HashSet::new(),
+            flights: HashMap::new(),
+            connected: false,
+            closed: false,
+            last_pong_ms: now_ms(),
+            mock: false,
+            mock_sent: Vec::new(),
+            ws_test_completed: false,
+            gen_tx,
+        });
+        handle
+    })
 }
 
-/// Remove (and thereby drop / disconnect) the client for `url`.
+/// Remove (and thereby disconnect) the client for `url`. The core stays owned by
+/// the store so a handle still in flight keeps addressing its own state, but it
+/// is marked closed and no longer handed out.
 pub fn drop_client(url: &str) {
-    REGISTRY.lock().unwrap().remove(url);
+    let u = url.to_string();
+    client_op(move |s| {
+        if let Some(c) = s.clients.get_mut(&u) {
+            c.closed = true;
+            c.connected = false;
+            bump(c);
+        }
+    });
 }
 
 // ── `Value`-handle bridge ────────────────────────────────────────────────────
@@ -703,14 +926,21 @@ pub fn drop_client(url: &str) {
 /// sends are captured. Clears any prior state so each fixture starts fresh.
 pub fn mock_setup(url: &str) {
     let c = ensure_slot(url);
-    c.reset();
-    c.mock_enable();
-    c.mock_sent.lock().unwrap().clear();
-    // Discard any messages left unconsumed by a prior test on the same URL (e.g.
-    // a heartbeat a watchTrades drive loop returned past before reading) so they
-    // don't leak an extra handler dispatch / sent frame into the next test.
-    c.incoming.lock().unwrap().clear();
-    *c.ws_test_completed.lock().unwrap() = false;
+    c.with_mut(|core| {
+        core.resolved.clear();
+        core.rejections.clear();
+        core.subscriptions.clear();
+        core.futures.clear();
+        core.flights.clear();
+        core.mock = true;
+        core.connected = true;
+        core.mock_sent.clear();
+        // Discard any messages left unconsumed by a prior test on the same URL
+        // (e.g. a heartbeat a watchTrades drive loop returned past before
+        // reading) so they don't leak an extra handler dispatch / sent frame.
+        core.incoming.clear();
+        core.ws_test_completed = false;
+    });
 }
 pub fn mock_inject(url: &str, msg: Value) {
     if let Some(c) = get_client(url) { c.mock_inject(msg); }
@@ -749,6 +979,61 @@ pub fn client_value(url: &str) -> Value {
     m.insert("subscriptions".to_string(), c.subscriptions_value());
     m.insert("futures".to_string(), c.futures_value());
     Value::Map(m)
+}
+
+/// Typed client handle for the ws drive loop (units R01/R10).
+///
+/// The loop owns one per frame and hands it to the venue's `handle_message`;
+/// venues read the four fields it exposes instead of `get_value` on a box.
+/// Writes to `subscriptions`/`futures` reach the live client by tag.
+#[allow(dead_code)]
+#[derive(Clone)]
+pub struct ClientHandle {
+    /// `client.url` — `Value::Str` when the handle names a url, else `Null`.
+    pub url: Value,
+    /// `client.subscriptions`, exactly what `get_value` used to read.
+    pub subscriptions: Value,
+    /// `client.futures` (open single-flights on this client).
+    pub futures: Value,
+    /// `client.rejections`.
+    pub rejections: Value,
+    value: Value,
+}
+
+#[allow(dead_code)]
+impl ClientHandle {
+    pub fn from_value(value: Value) -> ClientHandle {
+        let read = |k: &str| crate::get_value(&value, &Value::Str(k.to_string().into()));
+        ClientHandle {
+            url: read("url"),
+            subscriptions: read("subscriptions"),
+            futures: read("futures"),
+            rejections: read("rejections"),
+            value,
+        }
+    }
+
+    pub fn url(&self) -> Option<String> {
+        match &self.url { Value::Str(s) => Some(s.to_string()), _ => None }
+    }
+
+    /// The `Value` handle the untyped generated handlers take.
+    pub fn as_value(&self) -> Value { self.value.clone() }
+
+    pub fn resolve(&self, args: &[Value]) -> Value { value_resolve(&self.value, args) }
+    pub fn reject(&self, args: &[Value]) -> Value { value_reject(&self.value, args) }
+    pub fn send(&self, args: &[Value]) -> Value { value_send(&self.value, args) }
+    pub fn reset(&self, error: Value) -> Value { value_reset(&self.value, error) }
+    pub fn on_pong(&self) -> Value { value_on_pong(&self.value) }
+    pub fn as_map(&self) -> Option<&indexmap::IndexMap<String, Value>> {
+        self.value.as_map()
+    }
+    pub fn future(&self, args: &[Value]) -> Value {
+        self.value.future(args)
+    }
+    pub fn reusable_future(&self, msg_hash: Value) -> Value {
+        self.value.reusable_future(msg_hash)
+    }
 }
 
 /// Open-or-join the single-flight for `hash` on `url`, creating the registry
@@ -835,9 +1120,9 @@ pub async fn ws_await_flight(handle: &Value) -> Value {
     };
     let deadline = tokio::time::Instant::now() + budget;
     loop {
-        // Create the wakeup before peeking, so a settle racing this loop is
-        // never missed (same pattern as `next_message`).
-        let notified = client.notify.notified();
+        // Arm the wakeup before peeking, so a settle racing this loop is never
+        // missed (same pattern as `next_message`).
+        let mut rx = client.waiter();
         if let Some(res) = client.flight_peek(&hash) {
             return match res {
                 Ok(v) => v,
@@ -854,7 +1139,7 @@ pub async fn ws_await_flight(handle: &Value) -> Value {
             // Closed without a value (reset between fixture cases).
             return Value::Null;
         }
-        if tokio::time::timeout_at(deadline, notified).await.is_err() {
+        if tokio::time::timeout_at(deadline, rx.changed()).await.is_err() {
             panic!(
                 "[NetworkError] timed out waiting for the in-flight '{}' on {}",
                 hash, url
@@ -920,12 +1205,7 @@ pub fn value_reject(client: &Value, args: &[Value]) -> Value {
             match args.get(1).and_then(hash_str) {
                 Some(hash) => c.reject(&hash, err.clone()),
                 // reject with no hash → reject every pending future.
-                None => {
-                    let hashes: Vec<String> = c.futures.lock().unwrap().iter().cloned().collect();
-                    for h in hashes {
-                        c.reject(&h, err.clone());
-                    }
-                }
+                None => c.reject_pending_futures(err.clone()),
             }
         }
     }

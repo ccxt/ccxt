@@ -721,34 +721,56 @@ class ArrayCacheTest {
 
     // ─── concurrency ───
 
+    /**
+     * The cache is single-writer by construction: one ws owner thread appends, any number of
+     * user threads read {@code snapshot()}/{@code getLimit()}. Readers must never observe a
+     * torn row list, and the owner's maxSize must hold.
+     */
     @Test
-    @DisplayName("append/getLimit/snapshot stay consistent under concurrent writers")
+    @DisplayName("one owner writer + concurrent readers: no torn snapshot, maxSize holds")
     void testConcurrentAppendIsSafe() throws Exception {
         var cache = new ArrayCache.ArrayCacheBySymbolById(500);
-        int threads = 8;
-        int perThread = 250;
-        var pool = Executors.newFixedThreadPool(threads);
+        int readers = 8;
+        int perWriter = 2000;
+        var pool = Executors.newFixedThreadPool(readers + 1);
         var start = new CountDownLatch(1);
+        var failures = new java.util.concurrent.ConcurrentLinkedQueue<Throwable>();
         try {
-            for (int t = 0; t < threads; t++) {
-                final int id = t;
+            for (int r = 0; r < readers; r++) {
                 pool.submit(() -> {
                     start.await();
-                    for (int i = 0; i < perThread; i++) {
-                        cache.append(item("symbol", "S" + id, "id", id + "-" + i, "i", i));
-                        cache.getLimit("S" + id, 10L);
-                        cache.snapshot();
+                    for (int i = 0; i < perWriter; i++) {
+                        try {
+                            List<Object> snapshot = cache.snapshot();
+                            assertTrue(snapshot.size() <= 500, "readers never see more than maxSize rows");
+                            for (Object row : snapshot) {
+                                assertNotNull(row, "a published row is never null");
+                            }
+                            Long seen = cache.getLimit("S0", 10L);
+                            assertTrue(seen == null || seen <= 500L, "a poll scope never reports more");
+                        } catch (Throwable t) {
+                            failures.add(t);
+                            return null;
+                        }
                     }
                     return null;
                 });
             }
+            pool.submit(() -> {
+                start.await();
+                for (int i = 0; i < perWriter; i++) {
+                    cache.append(item("symbol", "S" + (i % 4), "id", i, "i", i));
+                }
+                return null;
+            });
             start.countDown();
             pool.shutdown();
             assertTrue(pool.awaitTermination(60, TimeUnit.SECONDS), "workers must finish");
         } finally {
             pool.shutdownNow();
         }
-        assertEquals(500, cache.size(), "maxSize must hold under concurrency");
+        assertTrue(failures.isEmpty(), "readers must not fail: " + failures);
+        assertEquals(500, cache.size(), "maxSize must hold");
         assertEquals(500, cache.snapshot().size());
     }
 }

@@ -999,13 +999,13 @@ export default class nado extends nadoRest {
         if (requestIdString === undefined) {
             throw new ArgumentsRequired (this.id + ' watchExecuteRequest() requires requestIdString');
         }
-        const url = this.urls['api']['ws']['gateway'];
+        const url = this.safeString (this.urls['api']['ws'], 'gateway');
         const messageHash = 'execute:' + requestIdString;
         return await this.watch (url, messageHash, request, messageHash);
     }
 
     async watchPublic (streamType: Str, market: any, messageHash: string, params: Dict = {}) {
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString (this.urls['api']['ws'], 'subscriptions');
         const stream: Dict = {
             'type': streamType,
         };
@@ -1035,7 +1035,7 @@ export default class nado extends nadoRest {
     }
 
     async watchPrivate (streamType: Str, stream: Dict, messageHash: string, params: Dict = {}) {
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString (this.urls['api']['ws'], 'subscriptions');
         const client = this.client (url);
         const clientSubscription = this.safeValue (client.subscriptions, messageHash);
         if (clientSubscription !== undefined) {
@@ -1059,7 +1059,7 @@ export default class nado extends nadoRest {
     }
 
     async unWatchPrivate (stream: Dict, messageHash: string, params: Dict = {}) {
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString (this.urls['api']['ws'], 'subscriptions');
         const id = this.requestId ();
         const unsubscribeHash = 'unsubscribe:' + messageHash;
         const request: Dict = {
@@ -1081,7 +1081,7 @@ export default class nado extends nadoRest {
 
     async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString (this.urls['api']['ws'], 'subscriptions');
         const client = this.client (url);
         const messageHash = 'authenticated';
         const authenticated = this.safeValue (client.subscriptions, messageHash);
@@ -1151,7 +1151,7 @@ export default class nado extends nadoRest {
     }
 
     async watchPublicMultiple (streamType: Str, markets: Market[], messageHashes: string[], params: Dict = {}, subscriptionParams: Dict[] | undefined = undefined) {
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString (this.urls['api']['ws'], 'subscriptions');
         const client = this.client (url);
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
@@ -1179,7 +1179,7 @@ export default class nado extends nadoRest {
     }
 
     async unWatchPublic (streamType: Str, market: Market, messageHash: string, params: Dict = {}) {
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString (this.urls['api']['ws'], 'subscriptions');
         const id = this.requestId ();
         const request = this.createPublicSubscriptionRequest ('unsubscribe', streamType, market, id, params);
         const subscription: Dict = {
@@ -1196,7 +1196,7 @@ export default class nado extends nadoRest {
     }
 
     async unWatchPublicMultiple (streamType: Str, markets: Market[], messageHashes: string[], params: Dict = {}, subscriptionParams: Dict[] | undefined = undefined): Promise<boolean> {
-        const url = this.urls['api']['ws']['subscriptions'];
+        const url = this.safeString (this.urls['api']['ws'], 'subscriptions');
         const client = this.client (url);
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
@@ -1792,10 +1792,7 @@ export default class nado extends nadoRest {
         }
     }
 
-    handleUnsubscriptionCache (messageHash: Str) {
-        if (messageHash === undefined) {
-            return;
-        }
+    handleUnsubscriptionCache (messageHash: string) {
         if (messageHash.indexOf ('trade:') === 0) {
             const symbol = messageHash.replace ('trade:', '');
             if (symbol in this.trades) {
@@ -1843,7 +1840,7 @@ export default class nado extends nadoRest {
     }
 
     override ping (client: Client) {
-        const gatewayUrl: string = this.urls['api']['ws']['gateway'];
+        const gatewayUrl: Str = this.safeString (this.urls['api']['ws'], 'gateway');
         if (client.url === gatewayUrl) {
             // the v2 gateway is kept alive with protocol-level ping frames,
             // returning undefined makes the client send one instead of a message

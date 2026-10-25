@@ -114,7 +114,7 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, urlKey, {}), 'ws', {}), 'public');
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -200,7 +200,7 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, urlKey, {}), 'ws', {}), 'public');
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -264,7 +264,7 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, urlKey, {}), 'ws', {}), 'public');
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -345,7 +345,7 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, urlKey, {}), 'ws', {}), 'public');
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -406,7 +406,7 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, urlKey, {}), 'ws', {}), 'public');
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -454,7 +454,7 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, urlKey, {}), 'ws', {}), 'public');
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -494,7 +494,7 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, urlKey, {}), 'ws', {}), 'public');
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -604,7 +604,7 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, urlKey, {}), 'ws', {}), 'public');
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -642,7 +642,7 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, urlKey, {}), 'ws', {}), 'public');
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -683,7 +683,7 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, urlKey, {}), 'ws', {}), 'public');
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -727,7 +727,7 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, urlKey, {}), 'ws', {}), 'public');
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -861,7 +861,7 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, urlKey, {}), 'ws', {}), 'public');
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -903,7 +903,7 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, urlKey, {}), 'ws', {}), 'public');
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -1060,7 +1060,7 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, urlKey, {}), 'ws', {}), 'public');
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -1103,7 +1103,7 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, urlKey, {}), 'ws', {}), 'public');
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -1193,7 +1193,7 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, urlKey, {}), 'ws', {}), 'public');
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -1236,7 +1236,7 @@ export default class pacifica extends pacificaRest {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const url = this.safeString (this.urls[urlKey]['ws'], 'public');
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, urlKey, {}), 'ws', {}), 'public');
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }

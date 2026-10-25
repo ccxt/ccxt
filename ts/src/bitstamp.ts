@@ -1592,7 +1592,7 @@ export default class bitstamp extends Exchange {
         return this.parseTransactionFees (response);
     }
 
-    parseTransactionFees (response: any, codes: Strings = undefined) {
+    parseTransactionFees (response: any, codes: Strings = undefined): Dict {
         const result: Dict = {};
         const currencies = this.indexBy (response, 'currency');
         const ids = Object.keys (currencies);

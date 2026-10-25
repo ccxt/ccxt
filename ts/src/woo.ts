@@ -2901,7 +2901,7 @@ export default class woo extends Exchange {
         return this.parseDepositAddress (this.extend (data, { 'network': this.safeString (request, 'network') }), currency);
     }
 
-    getDedicatedNetworkId (currency: any, params: Dict): [Str, Dict] {
+    getDedicatedNetworkId (currency: Dict, params: Dict): [Str, Dict] {
         const [ networkCodeRaw, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         const networkCode = this.networkIdToCode (networkCodeRaw, currency['code']);
         const networkEntry = (networkCode === undefined) ? undefined : this.safeDict (currency['networks'], networkCode);

@@ -18,6 +18,9 @@ import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 import { ts } from './csharp-local-types.js';
+import { nativeJavaJ02ElementReads, j02SelfTest } from './hx10w2-J02.js';
+import { nativeJ05CallReceiverReads, j05CallReceiverSelfTest } from './hx10w7-J05.js'; // hx10 wave-7 J05
+import { nativeJavaJ05DictChains, j05DictChainsSelfTest } from './hx10w3-J05.js'; // hx10 wave-3 J05
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, javaBooleanLocalWrite, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaNativeReplace, installJavaStringReturnSites } from './java-local-types.js';
 import { installJavaH2kJ02FreshObjectMapWrites } from './java-local-types.js';
 import { nativeJavaEqualTruthy } from './java-local-types.js';
@@ -28,8 +31,12 @@ import { nativeJavaJ04Arithmetic, nativeJavaJ23Arithmetic, nativeJavaJ24Arithmet
 import { nativeJavaJ31Arithmetic, nativeJavaJ32DivModNeg, nativeJavaJ37DivModNeg } from './java-local-types.js';
 import { installH2kJ11StringArgs } from './java-local-types.js';
 import { nativeJavaInOp } from './java-local-types.js';
+import { nativeJavaJ06FieldOps, j06SelfTest } from './hx10w2-J06.js';
+import { j01wsNativeOps, j01wsSelfTest } from './hx10w3-J01.js'; // hx10 wave-3 J01
+import { wsMapReads, wsReadsTest } from './hx10w7-OJ06.js'; // hx10w7 OJ06
 import { nativeJavaToLongOrNullH2kJ13 } from './java-local-types.js';
 import { installJavaNativePadStartFirst, installJ08NativeReplace } from './java-local-types.js';
+import { installHx10J04StringHelpers } from './hx10w2-J04.js';
 import { installJ10Types } from './java-local-types.js';
 import { installJ11MapLocals } from './java-local-types.js';
 import { installJ12ParamTypes } from './java-local-types.js';
@@ -37,9 +44,21 @@ import { installJ13ListLocals } from './java-local-types.js';
 import { installJ14ScalarLocals } from './java-local-types.js';
 import { installJ15J12PreScan } from './java-local-types.js';
 import { installJ17StringReturns } from './java-local-types.js';
+import { installJ03BooleanConditions, nativeJavaJ03Family } from './hx10w2-J03.js'; // hx10 wave-2 J03
+import { installJ06TupleAsyncLocals, j06TupleAsyncSelfTest } from './hx10w3-J06.js'; // hx10 wave-3 J06
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
+import { hx10J01ElementWrites, j01ElementWritesSelfTest } from './hx10w2-J01.js';
+import { hx10w3J02BalancePuts, j02BalanceSelfTest } from './hx10w3-J02.js';
+import { nativeJavaJ04OptionsOps, j04OptionsSelfTest } from './hx10w3-J04.js'; // hx10 w3 J04
+import { hx10w4OJ01OptionsOwner, oj01OptionsSelfTest } from './hx10w4-OJ01.js'; // hx10 w4 OJ01
+import { nativeJavaBF02FieldOps, bf02SelfTest } from './hx10w4-BF02.js'; // hx10 w4 BF02
+import { j01w7FieldPuts, j01w7FieldPutsSelfTest } from './hx10w7-J01.js'; // hx10w7 J01
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
+import { nativeJavaJ05, j05FamilySelfTest } from './hx10w2-J05.js';
+import { nativeJavaJ09SwitchBlobs, j09SelfTest } from './hx10w6-J09.js'; // hx10 wave-6 J09
+import { j12AsyncThrows, j12SelfTest } from './hx10w7-J12.js'; // hx10 wave-7 J12
+import { hx10w10JO01, jo01SelfTest } from './hx10w10-JO01.js'; // hx10 wave-10 JO01
 
 ansi.nice
 
@@ -67,6 +86,11 @@ function overwriteFileAndFolder(path: string, content: string) {
     if (path.endsWith('.java')) {
         content = nativeJavaStringAdd(content);
         content = applyJavaImports(path.includes('/java/lib/') ? nativeJavaJ44(nativeJavaJ43(nativeJavaJ42(nativeJavaJ41(nativeJavaJ40(content))))) : content); // hx4 J40
+        content = nativeJavaJ06FieldOps(content); // hx10w2 J06
+        content = nativeJavaBF02FieldOps(content); // hx10 w4 BF02
+        content = nativeJavaJ09SwitchBlobs(content); // hx10 wave-6 J09
+        if (path.includes('/java/lib/')) { content = nativeJ05CallReceiverReads(content); } // hx10 wave-7 J05
+        content = j12AsyncThrows(content); // hx10 wave-7 J12
     }
     overwriteFile(path, content);
 }
@@ -2401,6 +2425,7 @@ class NewTranspiler {
         installH2kJ11StringArgs(this.transpiler);
         installJavaNativePadStartFirst(this.transpiler);
         installJ08NativeReplace(this.transpiler);
+        installHx10J04StringHelpers(this.transpiler); // hx10 J04
         installJ10Types(this.transpiler); // hx4 J10
         installJ11MapLocals(this.transpiler); // hx4 J11
         installJ12ParamTypes(this.transpiler); // hx4 J12
@@ -2408,6 +2433,10 @@ class NewTranspiler {
         installJ14ScalarLocals(this.transpiler); // hx4 J14
         installJ15J12PreScan(this.transpiler); // hx4 J15
         installJ17StringReturns(this.transpiler); // hx4 J17
+        // hx10 J03: a `boolean`-typed parameter condition is a Boolean-or-null box (also in java-worker.ts)
+        installJ03BooleanConditions(this.transpiler);
+        // hx10 wave-3 J06: awaited / destructured locals take the box their TS type proves (also in java-worker.ts)
+        installJ06TupleAsyncLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -3168,15 +3197,15 @@ class NewTranspiler {
     // simple java.util / unified-type names; the hand-written header only gains the imports the body needs.
     spliceTranspiledJavaBody(filename: string, javaDelimiter: string, restOfFile: string, body: string, literal: boolean) {
         const pattern = new RegExp(javaDelimiter + restOfFile);
-        const shortened = shortenJavaReferences(nativeJavaJ36MultiplySubtract(hx4J21BaseNativePasses(this, body))); // hx4 J36
-        const replacement = javaDelimiter + '\n' + shortened.source;
+        const shortened = shortenJavaReferences(nativeJavaJ36MultiplySubtract(hx4J21BaseNativePasses(this, body, filename))); // hx4 J36
+        const replacement = javaDelimiter + '\n' + hx10w10JO01(j12AsyncThrows(shortened.source)); // hx10 wave-10 JO01
         if (literal) {
             this.replaceInFileLiteral(filename, pattern, replacement);
         } else {
             replaceInFile(filename, pattern, replacement);
         }
         const contents = fs.readFileSync(filename, 'utf8');
-        const withImports = nativeJavaJ42(nativeJavaJ38(nativeJavaJ36MultiplySubtract(ensureJavaImports(contents, shortened.imports)))); // hx4 J42
+        const withImports = nativeJavaJ03Family(nativeJavaJ42(nativeJavaJ38(nativeJavaJ36MultiplySubtract(ensureJavaImports(contents, shortened.imports))))); // hx4 J42, hx10 J03
         if (withImports !== contents) {
             fs.writeFileSync(filename, withImports);
         }
@@ -3612,6 +3641,8 @@ class NewTranspiler {
         content = this.retypeFinalVarDeclarations(content);
         content = nativeJavaDeclaredElementReads(content);
         content = nativeJavaJ03ElementReads(content);
+        content = nativeJavaJ02ElementReads(content); // hx10 w2 J02
+        content = nativeJavaJ05DictChains(content); // hx10 w3 J05
         content = nativeJavaArrayLength(content);
         content = h2kJ07NativeDeclaredLength(content);
         // literal limit locals fed to Long slots (java-local-types section 32)
@@ -3634,6 +3665,7 @@ class NewTranspiler {
         content = nativeJavaJ31Arithmetic(content); // hx4 J31
         content = nativeJavaJ25Compare(content); // hx4 J25
         content = nativeJavaJ32DivModNeg(content); // hx4 J32
+        content = nativeJavaJ05(content); // hx10w2 J05
 
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
@@ -4062,6 +4094,9 @@ class NewTranspiler {
         // Direct access without cast
         content = content.replace(/client\.subscriptions\.remove\(/gm, '((java.util.Map<String,Object>)client.subscriptions).remove(');
         content = content.replace(/client\.subscriptions\.keySet\(/gm, '((java.util.Map<String,Object>)client.subscriptions).keySet(');
+
+        // WsClient.subscriptions/rejections/futures are owner-thread maps behind OwnerMap views, so the
+        // helper's put branch and a plain put agree; the generated text stays as the base prints it.
 
         // Object.keys / Object.values / Array.isArray are now emitted as
         // `Helpers.objectKeys(x)` / `objectValues(x)` / `isArray(x)` directly
@@ -4866,6 +4901,15 @@ class NewTranspiler {
         javaSource = nativeJavaJ36MultiplySubtract(javaSource) // hx4 J36 post-J37
         javaSource = nativeJavaJ38(javaSource) // hx4 J38
         javaSource = nativeJavaJ39Containers(javaSource) // hx4 J39
+        javaSource = hx10J01ElementWrites(javaSource) // hx10 J01
+        javaSource = wsMapReads(j01wsNativeOps(javaSource)) // hx10 wave-3 J01 + hx10w7 OJ06
+        javaSource = hx10w3J02BalancePuts(javaSource) // hx10w3 J02
+        javaSource = j01w7FieldPuts(javaSource) // hx10w7 J01
+        javaSource = nativeJavaJ04OptionsOps(javaSource) // hx10 w3 J04
+        javaSource = nativeJavaBF02FieldOps(javaSource) // hx10 w4 BF02
+        javaSource = hx10w4OJ01OptionsOwner(javaSource) // hx10 w4 OJ01
+        javaSource = nativeJavaJ03Family(javaSource) // hx10 wave-2 J03
+        javaSource = hx10w10JO01(javaSource) // hx10 wave-10 JO01: counter RMW is one owner task
 
         if (javaFolder) {
             const outputName = this.capitalize(fileNameNoExt) + '.java';
@@ -5772,7 +5816,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j40X15SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest(), x21SelfTest(), x22SelfTest(), j01ElementWritesSelfTest(), j02SelfTest(), j03FamilySelfTest(), j04w2Str(), j05FamilySelfTest(), j06SelfTest(), j01wsSelfTest(), wsReadsTest(), j02BalanceSelfTest(), j04OptionsSelfTest(), oj01OptionsSelfTest(), j05DictChainsSelfTest(), j06TupleAsyncSelfTest(new NewTranspiler().transpiler), bf02SelfTest(), j09SelfTest(), j01w7FieldPutsSelfTest(), j05CallReceiverSelfTest(), j12SelfTest(), jo01SelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -7113,11 +7157,63 @@ function j12ParamTypesSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/zzjA\(String code, Boolean flag, java\.util\.List<Object> rows\)/.test(out)) problems.push('j12: zzjA must print String/Boolean/List<Object> params');
         if (!/this\.zzjA\(s, java\.util\.Objects\.equals\(s, "b"\), \(java\.util\.List<Object>\) \(this\.safeList\(/.test(out)) problems.push('j12: zzjA call must pass the String local bare and checkcast the List');
+        // hx10 w4 PJ01: a plain `string` annotation prints String on a generated venue method whether the
+        // parameter is written, `+`-left or handed an unproven caller, because writes are cast and the
+        // caller carries the checkcast
         for (const name of [ 'zzjB', 'zzjC', 'zzjD', 'zzjE' ]) {
-            if (!new RegExp(`${name}\\(Object code\\)`).test(out)) problems.push(`j12: ${name} must keep Object code`);
+            if (!new RegExp(`${name}\\(String code\\)`).test(out)) problems.push(`j12: ${name} must print String code`);
         }
     } catch (e: any) {
         problems.push(`j12 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// hx10 J04: snippet checks for the native string-helper prints (`--audit-string-types --self-test`)
+function j04w2Str (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzj04w2selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        'export default class zzj04w2selftest extends Exchange {',
+        '    zzjSlice (s: string, o: any) {',
+        '        const b = s.length;',
+        '        const both = s.slice (1, b);',
+        '        const tail = s.slice (2);',
+        '        const head = s.slice (0, b - 1);',
+        "        const pos = s.indexOf ('x');",
+        '        const boxed = s.slice (0, pos);',
+        '        const rest = s.slice (b);',
+        '        const unproven = o.slice (1, b);',
+        "        const fractional = s.slice (this.safeFloat (o, 'a'), b);",
+        '        return [ both, tail, head, rest, boxed, unproven, fractional ];',
+        '    }',
+        '    zzjSplit (s: string, sep: string, o: any) {',
+        '        return [ s.split (sep), s.split (o) ];',
+        '    }',
+        '    zzjReplaceAll (s: string, repl: string) {',
+        "        return s.replaceAll ('ab', repl);",
+        '    }',
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        fs.writeFileSync(path.join(os.tmpdir(), 'j04w2-out.java'), out);
+        const ok = (cond: boolean, msg: string) => { if (!cond) problems.push(`hx10 J04: ${msg}`); };
+        ok(/\(s == null \? null : s\.substring\(/.test(out), 'a String slice with integral bounds must print native');
+        ok(/String both = \(s == null \? null : /.test(out), 'the native slice keeps the String local typing');
+        ok(/Helpers\.slice\(o, 1, b\)/.test(out), 'an unproven receiver keeps the helper');
+        ok(/s\.substring\(\(int\) Math\.min\(Math\.max\(b < 0 \? s\.length\(\) \+ b : b, 0\), s\.length\(\)\)\)/.test(out), 'an open-end slice prints the one-argument substring');
+        ok(/\(\(Number\)pos\)\.intValue\(\)/.test(out), 'an Object-printed index bound takes the intValue truncation');
+        ok(/Helpers\.slice\(s, this\.safeFloat/.test(out), 'a fractional bound keeps the helper');
+        ok(/\(\(String\)s\)\.split\(java\.util\.regex\.Pattern\.quote\(sep\)\)/.test(out), 'a String separator prints the native split');
+        ok(/Helpers\.split\(s, o\)/.test(out), 'an unproven separator keeps the helper');
+        ok(/\(\(String\)s\)\.replace\("ab", \(\(String\)repl\)\)/.test(out), 'a literal pattern with a String replacement prints native replace');
+    } catch (e: any) {
+        problems.push(`j04w2 self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
@@ -7455,11 +7551,13 @@ function j20ParamCompareSelfTest (): string[] {
 
 // hx4 J21: the transpiled bodies of BaseExchange.java / Exchange.java / PredictionExchange.java
 // get the same native post-passes createJavaClass runs on exchange files, in the same order
-function hx4J21BaseNativePasses (transpiler: any, body: string): string {
+function hx4J21BaseNativePasses (transpiler: any, body: string, sourcePath?: string): string {
     let content = body;
     content = transpiler.retypeFinalVarDeclarations(content);
     content = nativeJavaDeclaredElementReads(content);
     content = nativeJavaJ03ElementReads(content);
+    content = nativeJavaJ02ElementReads(content, sourcePath); // hx10 w2 J02
+    content = nativeJavaJ05DictChains(content); // hx10 w3 J05
     content = nativeJavaArrayLength(content);
     content = h2kJ07NativeDeclaredLength(content);
     content = nativeJavaLongLimitLocals(content);
@@ -7486,6 +7584,16 @@ function hx4J21BaseNativePasses (transpiler: any, body: string): string {
     content = nativeJavaJ41(content); // hx4 J41
     content = nativeJavaJ43(content); // hx4 J43
     content = nativeJavaJ44(content); // hx4 J44
+    content = hx10J01ElementWrites(content); // hx10 J01
+    content = hx10w3J02BalancePuts(content); // hx10w3 J02
+    content = j01w7FieldPuts(content); // hx10w7 J01
+    content = nativeJavaJ04OptionsOps(content); // hx10 w3 J04
+    content = nativeJavaBF02FieldOps(content); // hx10 w4 BF02
+    content = hx10w4OJ01OptionsOwner(content); // hx10 w4 OJ01
+    content = nativeJavaJ05(content); // hx10w2 J05
+    content = nativeJavaJ06FieldOps(content); // hx10w2 J06
+    content = wsMapReads(j01wsNativeOps(content)); // hx10 wave-3 J01 + hx10w7 OJ06
+    content = nativeJavaJ09SwitchBlobs(content); // hx10 wave-6 J09
     return content;
 }
 
@@ -10252,7 +10360,9 @@ function x21SelfTest (): string[] {
         if (!/String b = \(String\) this\.parsePrecision\(/.test(out)) problems.push("x21: 'b' (parsePrecision) must print String");
         if (!/Map<String, Object> d = /.test(out)) problems.push("x21: 'd' (venue omit-of-Map-param callee) must print Map");
         if (!/Map<String, Object> e = /.test(out)) problems.push("x21: 'e' (venue omit-of-handle-element-1 callee) must print Map");
-        for (const name of [ 'c', 'f' ]) {
+        // hx10 w4 PJ03 types a venue method's proven Dict return, so a local off zzxLoose is a Map too
+        if (!/Map<String, Object> f = /.test(out)) problems.push("x21: 'f' (venue Dict-returning callee) must print Map");
+        for (const name of [ 'c' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`x21: '${name}' has an unproven write/producer and must stay Object`);
         }
         if (problems.length) problems.push('x21 output:\n' + out);
@@ -10350,6 +10460,79 @@ function x22SelfTest (): string[] {
         const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !/j39|switch|synchronized/.test (out);
         if (!ok) problems.push (`hx5 X22: ${name}\n${out}`);
         if (nativeJavaJ39Containers (out) !== out) problems.push (`hx5 X22: ${name} not idempotent`);
+    }
+    return problems;
+}
+
+// hx10 wave-2 J03: native isTrue/isEqual/add/subtract/multiply/divide from statically known types
+// (`--audit-string-types --self-test`). Text cases exercise the printed-type proofs one rule at a
+// time; the probe exercises the printer rule for a `boolean`/`Bool` parameter condition.
+function j03FamilySelfTest (): string[] {
+    const problems: string[] = [];
+    {
+        const cls = (body: string) => `    public Object m (Object q)\n    {\n${body}\n    }\n`;
+        const withDecls = (decls: string, body: string) => `    public Object m (Object q)\n    {\n${decls}\n${body}\n    }\n`;
+        const run = (decls: string, body: string) => nativeJavaJ03Family (withDecls (decls, body));
+        const cases: [string, string, string, string | undefined][] = [
+            // arithmetic: the declared box is the proof, the helper's null arm becomes an explicit ternary
+            [ 'multiply Long x Long', '        Long a = this.safeInteger(q, "a");\n        Long b = this.safeInteger(q, "b");', '        Object r = Helpers.multiply(a, b);', 'Object r = ((a == null || b == null) ? null : (a * b));' ],
+            [ 'multiply Long x int literal', '        Long p = this.safeInteger(q, "p");', '        Object r = Helpers.multiply(p, 20);', '((p == null) ? null : (p * 20L))' ],
+            [ 'multiply Integer widened', '        Integer n = this.safeInteger(q, "n");', '        Object r = Helpers.multiply(n, 16L);', '(((long) n) * 16L)' ],
+            [ 'subtract Double pair', '        Double a = this.safeFloat(q, "a");\n        Double b = this.safeFloat(q, "b");', '        Object r = Helpers.subtract(a, b);', '((a == null || b == null) ? null : (a - b))' ],
+            [ 'divide Long pair', '        Long a = this.safeInteger(q, "a");\n        Long b = this.safeInteger(q, "b");', '        Object r = Helpers.divide(a, b);', '(((double) a) / ((double) b))' ],
+            [ 'add Long pair', '        Long a = this.safeInteger(q, "a");\n        Long b = this.safeInteger(q, "b");', '        Object r = Helpers.add(a, b);', '((a == null || b == null) ? null : (a + b))' ],
+            [ 'add String plus literal', '        String id = "x";', '        Object r = Helpers.add(this.id, " redeem");', '(this.id + " redeem")' ],
+            // isEqual: same declared family -> Objects.equals (never reference `==` on boxes)
+            [ 'isEqual Long pair', '        Long a = this.safeInteger(q, "a");\n        Long b = this.safeInteger(q, "b");', '        Object r = Helpers.isEqual(a, b);', 'java.util.Objects.equals(a, b)' ],
+            [ 'isEqual String pair', '        String a = this.safeString(q, "a");\n        String b = this.safeString(q, "b");', '        Object r = Helpers.isEqual(a, b);', 'java.util.Objects.equals(a, b)' ],
+            [ 'isEqual null', '        Long a = this.safeInteger(q, "a");', '        Object r = Helpers.isEqual(a, null);', '(a == null)' ],
+            // isTrue: a declared boolean is the condition, a Boolean box is the null-safe TRUE test
+            [ 'isTrue boolean', '        boolean f = java.util.Objects.equals(q, "f");', '        if (Helpers.isTrue(f)) { }', 'if (f)' ],
+            [ 'isTrue Boolean', '        Boolean f = (Boolean) this.safeBool(q, "f", false);', '        if (Helpers.isTrue(f)) { }', 'Boolean.TRUE.equals(f)' ],
+            // negatives: an unproven box keeps the plain helper call
+            [ 'multiply Double', '        Double a = this.safeFloat(q, "a");\n        Double b = this.safeFloat(q, "b");', '        Object r = Helpers.multiply(a, b);', undefined ],
+            [ 'subtract mixed integral', '        Long a = this.safeInteger(q, "a");\n        Integer b = this.safeInteger2(q, "b");', '        Object r = Helpers.subtract(a, b);', undefined ],
+            [ 'add String x Double', '        Double d = this.safeFloat(q, "d");', '        Object r = Helpers.add(d, "1");', undefined ],
+            [ 'isEqual String x number', '        String s = this.safeString(q, "s");', '        Object r = Helpers.isEqual(s, 1);', undefined ],
+            [ 'isEqual Long x Integer', '        Long a = this.safeInteger(q, "a");\n        Integer b = this.safeInteger2(q, "b");', '        Object r = Helpers.isEqual(a, b);', undefined ],
+            [ 'isTrue Object', '        Object c = this.safeValue(q, "c");', '        if (Helpers.isTrue(c)) { }', undefined ],
+            [ 'multiply ternary arm', '        Long a = this.safeInteger(q, "a");\n        Long b = this.safeInteger(q, "b");', '        Object r = (a == null) ? Helpers.multiply(a, b) : q;', undefined ],
+            [ 'multiply other-method local', '        Long a = this.safeInteger(q, "a");\n        Long b = this.safeInteger(q, "b");', '        Object r = Helpers.multiply(a, b);', undefined ],
+        ];
+        for (const [ name, decls, body, expect ] of cases) {
+            const source = name === 'multiply other-method local'
+                ? `    public Object other (Object q)\n    {\n${decls}\n    }\n\n    public Object m (Object q)\n    {\n        Object r = Helpers.multiply(a, b);\n    }\n`
+                : withDecls (decls, body);
+            const out = nativeJavaJ03Family (source);
+            const ok = expect === undefined ? out === source : out.includes (expect);
+            if (!ok) problems.push (`hx10 J03: ${name}\n${out}`);
+            if (nativeJavaJ03Family (out) !== out) problems.push (`hx10 J03: ${name} not idempotent`);
+        }
+        // a comment or a string holding a helper call is not a call site
+        const commented = cls ('        // Helpers.multiply(a, b)\n        Object r = "Helpers.add(x, y)";');
+        if (nativeJavaJ03Family (commented) !== commented) problems.push ('hx10 J03: a comment/string was rewritten');
+    }
+    const probe = path.join (process.cwd (), 'ts', 'src', `zzj03selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        'export default class zzj03selftest extends Exchange {',
+        '    j03Condition (flag = false, raw: any) { let r = 0; if (flag) { r = 1; } if (raw) { r = 2; } return r; }',
+        '    j03Written (flag = false) { flag = this.safeBool ({}, "k", false); if (flag) { return 1; } return 0; }',
+        '}',
+    ].join ('\n');
+    try {
+        fs.writeFileSync (probe, body);
+        const out = new NewTranspiler ().transpiler.transpileJavaByPath (probe).content as string;
+        if (process.env['J03_DUMP'] !== undefined) fs.writeFileSync (process.env['J03_DUMP'], out);
+        if (!/public Object j03Condition\(Object flag, Object raw\)/.test (out)) problems.push ('hx10 J03: the probe signature changed');
+        if (!/TRUE\.equals\(java\.util\.Objects\.requireNonNullElse\(flag, false\)\)/.test (out)) problems.push ('hx10 J03: a boolean parameter condition must print the null-safe TRUE test');
+        if (!/Helpers\.isTrue\(raw\)/.test (out)) problems.push ('hx10 J03: an `any` parameter must keep the helper');
+        const written = out.slice (out.indexOf ('j03Written'));
+        if (written.includes ('TRUE.equals(')) problems.push ('hx10 J03: a parameter the body writes must keep the helper');
+    } catch (e: any) {
+        problems.push (`hx10 J03 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync (probe, { force: true });
     }
     return problems;
 }

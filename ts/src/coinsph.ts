@@ -677,7 +677,7 @@ export default class coinsph extends Exchange {
         });
     }
 
-    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         } else if (('noSymbolAndNoSymbols' in config) && !('symbol' in params) && !('symbols' in params)) {
@@ -1767,9 +1767,7 @@ export default class coinsph extends Exchange {
             'buy': 'BUY',
             'sell': 'SELL',
         };
-        if (status === undefined) {
-            return undefined;
-        }
+        // safeString returns the status itself when it is absent, so no early return
         return this.safeString (statuses, status, status);
     }
 
@@ -1799,9 +1797,7 @@ export default class coinsph extends Exchange {
             'take_profit': 'TAKE_PROFIT',
             'take_profit_limit': 'TAKE_PROFIT_LIMIT',
         };
-        if (status === undefined) {
-            return undefined;
-        }
+        // safeString returns the status itself when it is absent, so no early return
         return this.safeString (statuses, status, status);
     }
 

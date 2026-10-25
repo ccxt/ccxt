@@ -1045,16 +1045,16 @@ export default class zebpay extends Exchange {
         const upperCaseType = type.toUpperCase ();
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
-        let query: Dict = this.omit (params, [ 'marginAsset', 'takeProfitPrice', 'takeProfitPrice' ]);
+        const query: Dict = this.omit (params, [ 'marginAsset', 'takeProfitPrice', 'takeProfitPrice' ]);
         this.checkRequiredArgument ('createOrder', side, 'side');
-        let request: Dict = {
+        const request: Dict = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
         };
         let response = undefined;
         if (market['spot'] === true) {
-            [ request, query ] = this.orderRequest (symbol, type, amount, request, price, query);
-            response = await this.privateSpotPostV2ExOrders (this.extend (request, query));
+            const orderRequestResult = this.orderRequest (symbol, type, amount, request, price, query);
+            response = await this.privateSpotPostV2ExOrders (this.extend (orderRequestResult[0], orderRequestResult[1]));
         } else {
             const marginAsset = this.safeString (query, 'marginAsset', 'INR');
             const formType = this.safeStringUpper (query, 'formType', 'ORDER_FORM');

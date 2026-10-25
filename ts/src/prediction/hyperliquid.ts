@@ -870,7 +870,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [params.until] end timestamp in ms
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (outcome: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (outcome: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         // markets are keyed by the parent market outcome, not the outcome handle ("MARKET:LABEL")
@@ -2289,8 +2289,8 @@ export default class hyperliquid extends Exchange {
             baseUrl = this.safeString (apiUrls, apiGroup, this.safeString (apiUrls, 'public', ''));
         }
         const url = baseUrl + '/' + path;
-        let headersValue: any = undefined;
-        let bodyValue: any = undefined;
+        let headersValue: NullableDict = undefined;
+        let bodyValue: Str = undefined;
         if (method === 'POST') {
             headersValue = { 'Content-Type': 'application/json' };
             bodyValue = this.json (params);
@@ -2326,7 +2326,7 @@ export default class hyperliquid extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
         if (('byType' in config) && ('type' in params)) {
             const type = params['type'];
             const byType = config['byType'] as Dict;

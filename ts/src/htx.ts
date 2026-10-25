@@ -1292,8 +1292,8 @@ export default class htx extends Exchange {
         // decommissioned after the huobi -> htx rebrand and no longer resolve,
         // so this method uses the live native endpoints instead
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
-        let status = undefined;
-        let eta = undefined;
+        let status: Str = undefined;
+        let eta: Int = undefined;
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.spotPublicGetV2MarketStatus (paramsMarketType);
@@ -1310,7 +1310,11 @@ export default class htx extends Exchange {
             //
             const data = this.safeDict (response, 'data', {});
             const marketStatus = this.safeInteger (data, 'marketStatus');
-            status = (marketStatus === 1) ? 'ok' : 'maintenance';
+            if (marketStatus === 1) {
+                status = 'ok';
+            } else {
+                status = 'maintenance';
+            }
             eta = this.safeInteger (data, 'haltEndTime');
         } else {
             const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchStatus', undefined, paramsMarketType);
@@ -1342,7 +1346,11 @@ export default class htx extends Exchange {
                 etaKey = 'swap_estimated_recovery_time';
             }
             const heartbeat = this.safeInteger (data, heartbeatKey);
-            status = (heartbeat === 1) ? 'ok' : 'maintenance';
+            if (heartbeat === 1) {
+                status = 'ok';
+            } else {
+                status = 'maintenance';
+            }
             eta = this.safeInteger (data, etaKey);
         }
         return {
@@ -1729,7 +1737,11 @@ export default class htx extends Exchange {
                     const parts = contractId.split ('-');
                     baseId = this.safeStringLower (market, 'symbol');
                     quoteId = this.safeStringLower (parts, 1);
-                    settleId = inverse ? baseId : quoteId;
+                    if (inverse) {
+                        settleId = baseId;
+                    } else {
+                        settleId = quoteId;
+                    }
                 } else if (future) {
                     marketType = 'future';
                     baseId = this.safeStringLower (market, 'symbol');
@@ -3892,7 +3904,7 @@ export default class htx extends Exchange {
     parseMarginBalanceHelper (balance: Dict, code: string, result: Dict): Dict {
         let account: NullableDict = undefined;
         if (code in result) {
-            account = result[code];
+            account = this.safeDict (result, code);
         } else {
             account = this.account ();
         }
@@ -4989,7 +5001,11 @@ export default class htx extends Exchange {
         } else {
             const reduceOnlyInteger = this.safeInteger (order, 'reduce_only');
             if (reduceOnlyInteger !== undefined) {
-                reduceOnly = (reduceOnlyInteger === 0) ? false : true;
+                if (reduceOnlyInteger === 0) {
+                    reduceOnly = false;
+                } else {
+                    reduceOnly = true;
+                }
             }
         }
         return this.safeOrder ({
@@ -7576,7 +7592,7 @@ export default class htx extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        let signedHeaders = undefined;
+        let signedHeaders: NullableDict = undefined;
         let signedBody: Str = undefined;
         const pathString: string = path;
         let url = '/';

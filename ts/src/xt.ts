@@ -1781,10 +1781,11 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const ticker = this.safeValue (response, 'result');
         if (market['spot'] === true) {
-            return this.parseTicker (ticker[0], market);
+            const tickers = this.safeList (response, 'result', []);
+            return this.parseTicker (tickers[0], market);
         }
+        const ticker = this.safeDict (response, 'result', {});
         return this.parseTicker (ticker, market);
     }
 
@@ -5857,7 +5858,7 @@ export default class xt extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api: string[] = [], method: string = 'GET', params = {}) {
+    override sign (path: string, api: string[] = [], method: string = 'GET', params: Dict = {}) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const request = '/' + this.implodeParams (path, params);

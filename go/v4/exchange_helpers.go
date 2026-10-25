@@ -13,11 +13,9 @@ import (
 	"time"
 )
 
-// serialize writes in AddElementToObject to avoid concurrent map writes in hot WS paths
-var addElementMu sync.Mutex
-
-// AddElementMu is the same lock, for InOp inlined into generated code of other packages
-var AddElementMu = &addElementMu
+// These helpers lock nothing: every map they touch is goroutine-local or owned by one
+// goroutine (the markets book owner or the ws dispatch loop), and no writer anywhere
+// takes a helper lock, so a read-side mutex was never a synchronization edge.
 
 func UnWrapType(value any) any {
 	// converts from wrapped types to basic types
@@ -119,16 +117,6 @@ func EvalTruthy(val any) bool {
 		return len(v) > 0
 	case map[string]any:
 		return len(v) > 0
-	case *sync.Map:
-		if v == nil {
-			return false
-		}
-		hasAny := false
-		v.Range(func(_, _ any) bool {
-			hasAny = true
-			return false // stop after the first item
-		})
-		return hasAny
 	case []string:
 		return len(v) > 0
 	case []int64:
@@ -192,10 +180,10 @@ func GetValue(collection any, key any) any {
 	return derefScalar(getValue(collection, key))
 }
 
-// MapTyped converts a boxed dictionary into a plain map: a map passes through, a
-// *sync.Map is converted, anything else (including nil) reads as a nil map, exactly
-// what the boxed value answered through GetValue/ObjectKeys/InOp. The printer emits it
-// for a local whose TypeScript type proves the box holds the market dictionary.
+// MapTyped converts a boxed dictionary into a plain map: a map passes through, anything
+// else (including nil) reads as a nil map, exactly what the boxed value answered through
+// GetValue/ObjectKeys/InOp. The printer emits it for a local whose TypeScript type proves
+// the box holds the market dictionary.
 func MapTyped(v any) map[string]any {
 	v = derefScalar(v)
 	if v == nil {
@@ -203,9 +191,6 @@ func MapTyped(v any) map[string]any {
 	}
 	if asMap, ok := v.(map[string]any); ok {
 		return asMap
-	}
-	if asSyncMap, ok := v.(*sync.Map); ok {
-		return SafeMapToMap(asSyncMap)
 	}
 	return nil
 }
@@ -215,8 +200,6 @@ func MapTyped(v any) map[string]any {
 // GetValue(row, "k"). A row still holding such a value is copied, never written in place.
 func MarketTyped(v any) map[string]any {
 	row := MapTyped(v)
-	addElementMu.Lock()
-	defer addElementMu.Unlock()
 	var plain map[string]any
 	for key, value := range row {
 		if marketValueIsPlain(value) {
@@ -299,25 +282,18 @@ func getValue(collection any, key any) any {
 		if !isStr {
 			return nil
 		}
-		// serialize map reads to avoid races with concurrent writes
-		addElementMu.Lock()
 		val, ok := v[keyStr]
-		addElementMu.Unlock()
 		if ok {
 			return val
 		}
-	case *sync.Map:
-		if v == nil {
-			return nil
-		}
+	case map[string]map[string]any:
+		// the ohlcv book is two-level: a symbol key answers its timeframe map
 		if !isStr {
 			return nil
 		}
-		val, ok := v.Load(keyStr)
+		val, ok := v[keyStr]
 		if ok {
 			return val
-		} else {
-			return nil
 		}
 	case []any:
 		if keyNum >= 0 && keyNum < len(v) {
@@ -779,10 +755,6 @@ func IsEqual(a, b any) bool {
 		if bVal, ok := b.(string); ok {
 			return aVal == bVal
 		}
-	case *sync.Map:
-		if aVal == nil {
-			return true
-		}
 	}
 
 	if a == nil || b == nil {
@@ -1041,32 +1013,31 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 			return // a typed-nil map is absent: a no-op, like untyped nil
 		}
 		if key, ok := stringOrInt.(string); ok {
-			addElementMu.Lock()
 			obj[key] = value
-			addElementMu.Unlock()
 			// return nil
 		} else {
 			// return fmt.Errorf("invalid key type for map: expected string")
 		}
-	case *sync.Map:
+	case map[string]map[string]any:
+		// the ohlcv book is two-level: a symbol key holds its timeframe map
+		if obj == nil {
+			return // a typed-nil map is absent: a no-op, like untyped nil
+		}
+		book, ok := value.(map[string]any)
+		if !ok {
+			return // a book slot only takes a book, like the helper's unsupported-type no-op
+		}
 		if key, ok := stringOrInt.(string); ok {
-			obj.Store(key, value)
-			// return nil
-		} else {
-			// return fmt.Errorf("invalid key type for sync.Map: expected string")
+			obj[key] = book
 		}
 	case map[string]map[string]*ArrayCacheByTimestamp:
 		if key, ok := stringOrInt.(string); ok {
 			if v, ok := value.(map[string]*ArrayCacheByTimestamp); ok {
-				addElementMu.Lock()
 				obj[key] = v
-				addElementMu.Unlock()
 			} else if _, ok := value.(map[string]any); ok {
 				// assume we want a new map[string]*ArrayCacheByTimestamp
 				cache := make(map[string]*ArrayCacheByTimestamp)
-				addElementMu.Lock()
 				obj[key] = cache
-				addElementMu.Unlock()
 			} else {
 				// return fmt.Errorf("value type mismatch for map[string]map[string]*ArrayCacheByTimestamp")
 			}
@@ -1074,9 +1045,7 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 	case map[string]*ArrayCacheByTimestamp:
 		if key, ok := stringOrInt.(string); ok {
 			if v, ok := value.(*ArrayCacheByTimestamp); ok {
-				addElementMu.Lock()
 				obj[key] = v
-				addElementMu.Unlock()
 			} else {
 				// return fmt.Errorf("value type mismatch for map[string]*ArrayCacheByTimestamp")
 			}
@@ -1084,9 +1053,7 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 	case map[string]*ArrayCache:
 		if key, ok := stringOrInt.(string); ok {
 			if v, ok := value.(*ArrayCache); ok {
-				addElementMu.Lock()
 				obj[key] = v
-				addElementMu.Unlock()
 			} else {
 				// return fmt.Errorf("value type mismatch for map[string]*ArrayCache")
 			}
@@ -1094,9 +1061,7 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 	case map[string]*ArrayCacheBySymbolById:
 		if key, ok := stringOrInt.(string); ok {
 			if v, ok := value.(*ArrayCacheBySymbolById); ok {
-				addElementMu.Lock()
 				obj[key] = v
-				addElementMu.Unlock()
 			} else {
 				// return fmt.Errorf("value type mismatch for map[string]*ArrayCacheBySymbolById")
 			}
@@ -1104,9 +1069,7 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 	case map[string]*ArrayCacheBySymbolBySide:
 		if key, ok := stringOrInt.(string); ok {
 			if v, ok := value.(*ArrayCacheBySymbolBySide); ok {
-				addElementMu.Lock()
 				obj[key] = v
-				addElementMu.Unlock()
 			} else {
 				// return fmt.Errorf("value type mismatch for map[string]*ArrayCacheBySymbolBySide")
 			}
@@ -1165,21 +1128,15 @@ func InOp(dict any, key any) bool {
 
 	switch v := dict.(type) {
 	case map[string]any:
-		// serialize map read to avoid concurrent read/write with AddElementToObject
-		addElementMu.Lock()
 		_, ok := v[key.(string)]
-		addElementMu.Unlock()
 		if ok {
 			return true
 		}
-	case *sync.Map:
-		if v == nil {
-			return false
-		}
-		if keyStr, ok := key.(string); ok {
-			if _, ok := v.Load(keyStr); ok {
-				return true
-			}
+	case map[string]map[string]any:
+		// the ohlcv book is two-level: presence of the symbol key answers the book
+		_, ok := v[key.(string)]
+		if ok {
+			return true
 		}
 	case OrderBookInterface:
 		// WsOrderBook is a typed struct, not a map - without this case every key-presence
@@ -1198,36 +1155,28 @@ func InOp(dict any, key any) bool {
 		}
 	case map[string]map[string]*ArrayCacheByTimestamp:
 		if keyStr, ok2 := derefScalar(key).(string); ok2 {
-			addElementMu.Lock()
 			_, ok3 := v[keyStr]
-			addElementMu.Unlock()
 			if ok3 {
 				return true
 			}
 		}
 	case map[string]*ArrayCacheByTimestamp:
 		if keyStr, ok2 := derefScalar(key).(string); ok2 {
-			addElementMu.Lock()
 			_, ok3 := v[keyStr]
-			addElementMu.Unlock()
 			if ok3 {
 				return true
 			}
 		}
 	case map[string]*ArrayCache:
 		if keyStr, ok2 := derefScalar(key).(string); ok2 {
-			addElementMu.Lock()
 			_, ok3 := v[keyStr]
-			addElementMu.Unlock()
 			if ok3 {
 				return true
 			}
 		}
 	case map[string]*ArrayCacheBySymbolBySide:
 		if keyStr, ok2 := derefScalar(key).(string); ok2 {
-			addElementMu.Lock()
 			_, ok3 := v[keyStr]
-			addElementMu.Unlock()
 			if ok3 {
 				return true
 			}
@@ -1304,8 +1253,6 @@ func IsDictionary(v any) bool {
 	}
 	switch v.(type) {
 	case map[string]any:
-		return true
-	case *sync.Map:
 		return true
 	case Dict:
 		return true
@@ -1646,18 +1593,6 @@ func ObjectKeys(v any) []string {
 			keys = append(keys, key)
 		}
 		return keys
-	} else if syncMap, ok := v.(*sync.Map); ok {
-		keys := []string{}
-		if syncMap == nil {
-			return keys
-		}
-		syncMap.Range(func(k, _ any) bool {
-			if keyStr, ok := k.(string); ok {
-				keys = append(keys, keyStr)
-			}
-			return true
-		})
-		return keys
 	}
 	return nil
 	// val := reflect.ValueOf(v)
@@ -1685,16 +1620,6 @@ func ObjectValues(v any) []any {
 		for _, value := range mapObject {
 			values = append(values, value)
 		}
-		return values
-	} else if syncMap, ok := v.(*sync.Map); ok {
-		values := []any{}
-		if syncMap == nil {
-			return values
-		}
-		syncMap.Range(func(_, value any) bool {
-			values = append(values, value)
-			return true
-		})
 		return values
 	}
 	return nil
@@ -1860,7 +1785,7 @@ func IsNil(x any) bool {
 // derefScalar reproduces untyped-nil semantics for a maybe-undefined value that
 // travels as a pointer: a nil pointer becomes untyped nil (absent), a non-nil one
 // becomes the value it points at. Pointer types that are values in their own right
-// (*sync.Map, *PreciseStruct, *ArrayCache, ...) are returned untouched.
+// (*PreciseStruct, *ArrayCache, ...) are returned untouched.
 // DerefScalar is the exported form of derefScalar, used by transpiled code that
 // stores a Safe* result in an `any` local and then compares it inline.
 func DerefScalar(v any) any {
@@ -2940,11 +2865,9 @@ func Remove(dict any, key any) {
 		}
 		delete(v, keyStr)
 		return
-	case *sync.Map:
-		// the javascript delete statement is a no-op on a missing key and
-		// never throws, mirror that semantic instead of panicking, concurrent
-		// transpiled deletes of the same key raced here and panicked the loser
-		v.Delete(keyStr)
+	case map[string]map[string]any:
+		// the ohlcv book is two-level; the javascript delete is a no-op on a missing key
+		delete(v, keyStr)
 		return
 	case map[string]any:
 		// the javascript delete statement is a no-op on a missing key
@@ -3027,7 +2950,7 @@ func setDefaults(p any) {
 // name is the typed sync method. Mirrors GO_ASYNC_SUFFIX in build/goTranspiler.ts.
 const asyncMethodSuffix = "Async"
 
-func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...any) <-chan AsyncResult[any] {
+func CallInternalMethod(methods map[string]any, itf any, name2 string, args ...any) <-chan AsyncResult[any] {
 	name := Capitalize(name2)
 	// baseValue := reflect.ValueOf(itf)
 	// baseType := baseValue.Type()
@@ -3050,9 +2973,9 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 		// Async-suffixed trampoline; the plain name is the typed sync method (or a plain
 		// sync helper when no trampoline exists), so the trampoline is looked up first.
 		cacheKey := fmt.Sprintf("%s", name)
-		cachedMethod, found := methodCache.Load(cacheKey + asyncMethodSuffix)
+		cachedMethod, found := methods[cacheKey+asyncMethodSuffix]
 		if !found {
-			cachedMethod, found = methodCache.Load(cacheKey)
+			cachedMethod, found = methods[cacheKey]
 		}
 
 		if !found {
@@ -3192,16 +3115,6 @@ func RecoveredError(r any) error {
 	return NewError("Exception", ToString(r), string(debug.Stack()))
 }
 
-// PanicMessage renders a recovered value into the legacy "panic:<msg>\nStack trace:\n<stack>" string.
-func PanicMessage(r any) string {
-	stack := debug.Stack()
-	strErr := ToString(r)
-	if !strings.HasPrefix(strErr, "panic:") {
-		return fmt.Sprintf("panic:%s\nStack trace:\n%s", strErr, stack)
-	}
-	return fmt.Sprintf("%s\nStack trace:\n%s", strErr, stack)
-}
-
 // ReturnPanicError is deferred by async cores: a panic becomes {Err}, "break" sends nothing.
 func ReturnPanicError[T any](ch chan AsyncResult[T]) {
 	// https://stackoverflow.com/questions/72651899/why-golang-can-not-recover-from-a-panic-in-a-function-called-by-the-defer-functi
@@ -3231,25 +3144,6 @@ func (r AsyncResult[T]) Failure() error {
 // Typed returns the carried value.
 func (r AsyncResult[T]) Typed() T {
 	return r.Value
-}
-
-// AwaitResult receives once from an async core; on success conv builds the typed Value.
-func AwaitResult[T any](conv func(any) T, ch <-chan AsyncResult[any]) AsyncResult[T] {
-	r := <-ch
-	if r.Err != nil {
-		return AsyncResult[T]{Err: r.Err}
-	}
-	return AsyncResult[T]{Value: conv(r.Value)}
-}
-
-// AssertAs is the checked type assertion as a converter value.
-func AssertAs[T any](v any) T {
-	return v.(T)
-}
-
-// Untyped is the identity converter for results whose declared type is any.
-func Untyped(v any) any {
-	return v
 }
 
 // EndpointResult carries one implicit-API response: Raw is exactly what Fetch2Async
@@ -3327,6 +3221,20 @@ func EndpointRaw[T any](in <-chan EndpointResult[T]) <-chan AsyncResult[any] {
 		defer close(out)
 		if r, ok := <-in; ok {
 			out <- AsyncResult[any]{Value: r.Raw, Err: r.Err}
+		}
+	}()
+	return out
+}
+
+// EndpointTyped is EndpointRaw's inverse: a runtime-dispatched endpoint (no baked path, so it
+// cannot use Fetch2Result) still has a declared response shape, and the receiver reads it as
+// that shape instead of converting the box at every call site.
+func EndpointTyped[T any](in <-chan AsyncResult[any]) <-chan EndpointResult[T] {
+	out := make(chan EndpointResult[T], 1)
+	go func() {
+		defer close(out)
+		if r, ok := <-in; ok {
+			out <- EndpointResult[T]{Value: endpointValue[T](r.Value), Raw: r.Value, Err: r.Err}
 		}
 	}()
 	return out

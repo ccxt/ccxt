@@ -1754,7 +1754,10 @@ export default class kucoin extends Exchange {
             promises.push (this.loadMigrationStatus ());
         }
         const responses = await Promise.all (promises);
-        const symbolsData = fetchSpotMarkets ? this.safeList (responses[0], 'data', []) : [];
+        let symbolsData: List = [];
+        if (fetchSpotMarkets) {
+            symbolsData = this.safeList (responses[0], 'data', []);
+        }
         let crossIndex = 0;
         let isolatedIndex = 0;
         let tickersIndex = 0;
@@ -4256,7 +4259,7 @@ export default class kucoin extends Exchange {
         const market = this.market (symbol);
         const testOrder = this.safeBool (params, 'test', false);
         const paramsOmitted: Dict = this.omit (params, 'test');
-        const hasTpOrSlOrder = (this.safeValue (paramsOmitted, 'stopLoss') !== undefined) || (this.safeValue (paramsOmitted, 'takeProfit') !== undefined);
+        const hasTpOrSlOrder = (this.safeDict (paramsOmitted, 'stopLoss') !== undefined) || (this.safeDict (paramsOmitted, 'takeProfit') !== undefined);
         const orderRequest = this.createContractOrderRequest (symbol, type, side, amount, price, paramsOmitted);
         let response: Dict;
         if (testOrder) {
@@ -9255,7 +9258,7 @@ export default class kucoin extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
-    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
         const versions = this.safeDict (this.options, 'versions', {});
         const apiVersions = this.safeDict (versions, api[0], {});
         const methodVersions = this.safeDict (apiVersions, method, {});

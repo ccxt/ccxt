@@ -1214,7 +1214,7 @@ export default class dydx extends Exchange {
         return this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash: any, privateKey: any) {
+    signHash (hash: any, privateKey: any): Dict {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
@@ -1225,7 +1225,7 @@ export default class dydx extends Exchange {
         };
     }
 
-    signMessage (message: any, privateKey: any) {
+    signMessage (message: any, privateKey: any): Dict {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
@@ -1321,7 +1321,7 @@ export default class dydx extends Exchange {
         return r;
     }
 
-    createOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}): any[] {
+    createOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): [string, Dict] {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -1859,7 +1859,7 @@ export default class dydx extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async estimateTxFee (message: any, memo: Str, account: any): Promise<Dict> {
+    async estimateTxFee (message: Dict, memo: Str, account: Dict): Promise<Dict> {
         const txBytes = this.encodeDydxTxForSimulation (message, memo, account['sequence'], account['pub_key']);
         const request: Dict = {
             'txBytes': txBytes,

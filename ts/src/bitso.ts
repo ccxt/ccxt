@@ -499,10 +499,8 @@ export default class bitso extends Exchange {
             const market = markets[i];
             const id = this.safeString (market, 'book');
             const [ baseId, quoteId ] = (id as string).split ('_');
-            let base: Str = baseId.toUpperCase ();
-            let quote: Str = quoteId.toUpperCase ();
-            base = this.safeCurrencyCode (base);
-            quote = this.safeCurrencyCode (quote);
+            const base = this.safeCurrencyCode (baseId.toUpperCase ());
+            const quote = this.safeCurrencyCode (quoteId.toUpperCase ());
             if ((base === undefined) || (quote === undefined)) {
                 continue;
             }

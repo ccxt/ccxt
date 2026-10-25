@@ -1,17 +1,24 @@
 package ccxt
 
-import (
-	"reflect"
-	"sync"
-)
+import "reflect"
 
 // Runtime side of the struct-typed row builders (build/go-struct-returns.ts): the generated
 // ParseTicker/SafeTicker/... return a struct, every untyped caller boxes it back with <T>ToMap.
 // The structs carry exactly the keys declared in ts/src/base/types.ts; Info is the raw response.
 
+// RowDict is the box coercion every <T>FromMap builder takes over from its call sites: a
+// dictionary (even a nil one) passes through, anything else is not a dictionary. It answers
+// what the site's coercion switch answered before.
+func RowDict(data any) (map[string]any, bool) {
+	if m, ok := data.(map[string]any); ok {
+		return m, true
+	}
+	return nil, false
+}
+
 // TickerFromMap builds a Ticker from a unified ticker map.
 func TickerFromMap(data any) Ticker {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return Ticker{}
 	}
@@ -25,7 +32,7 @@ func TickerToMap(t Ticker) map[string]any {
 
 // TradeFromMap builds a Trade from a unified trade map (a non-dict `fee` reads as absent).
 func TradeFromMap(data any) Trade {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return Trade{}
 	}
@@ -40,7 +47,7 @@ func TradeToMap(t Trade) map[string]any {
 // OrderFromMap builds an Order from a unified order map. NewOrder asserts `fee` is a dict and
 // `trades` a list of maps, so a non-dict fee reads as absent and trades are built here.
 func OrderFromMap(data any) Order {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return Order{}
 	}
@@ -65,7 +72,7 @@ func OrderToMap(o Order) map[string]any {
 
 // PositionFromMap builds a Position from a unified position map.
 func PositionFromMap(data any) Position {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return Position{}
 	}
@@ -87,7 +94,7 @@ func PositionToMap(p Position) map[string]any {
 
 // TransactionFromMap builds a Transaction from a unified transaction map (a non-dict `fee` reads as absent).
 func TransactionFromMap(data any) Transaction {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return Transaction{}
 	}
@@ -104,7 +111,7 @@ func TransactionToMap(t Transaction) map[string]any {
 
 // LedgerEntryFromMap builds a LedgerEntry from a unified ledger entry map.
 func LedgerEntryFromMap(data any) LedgerEntry {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return LedgerEntry{}
 	}
@@ -118,7 +125,7 @@ func LedgerEntryToMap(l LedgerEntry) map[string]any {
 
 // DepositAddressFromMap builds a DepositAddress from a unified deposit-address map.
 func DepositAddressFromMap(data any) DepositAddress {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return DepositAddress{}
 	}
@@ -132,7 +139,7 @@ func DepositAddressToMap(d DepositAddress) map[string]any {
 
 // TransferEntryFromMap builds a TransferEntry from a unified transfer map.
 func TransferEntryFromMap(data any) TransferEntry {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return TransferEntry{}
 	}
@@ -146,7 +153,7 @@ func TransferEntryToMap(t TransferEntry) map[string]any {
 
 // FundingRateFromMap builds a FundingRate from a unified funding-rate map.
 func FundingRateFromMap(data any) FundingRate {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return FundingRate{}
 	}
@@ -160,7 +167,7 @@ func FundingRateToMap(f FundingRate) map[string]any {
 
 // OpenInterestFromMap builds an OpenInterest from a unified open-interest map.
 func OpenInterestFromMap(data any) OpenInterest {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return OpenInterest{}
 	}
@@ -175,7 +182,7 @@ func OpenInterestToMap(o OpenInterest) map[string]any {
 // TradingFeeInterfaceFromMap builds a TradingFeeInterface from a unified trading-fee map; Info is
 // the raw response only (NewTradingFeeInterface keeps the whole map there).
 func TradingFeeInterfaceFromMap(data any) TradingFeeInterface {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return TradingFeeInterface{}
 	}
@@ -191,7 +198,7 @@ func TradingFeeInterfaceToMap(f TradingFeeInterface) map[string]any {
 
 // LeverageFromMap builds a Leverage from a unified leverage map.
 func LeverageFromMap(data any) Leverage {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return Leverage{}
 	}
@@ -205,7 +212,7 @@ func LeverageToMap(l Leverage) map[string]any {
 
 // MarginModeFromMap builds a MarginMode from a unified marginMode map.
 func MarginModeFromMap(data any) MarginMode {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return MarginMode{}
 	}
@@ -219,7 +226,7 @@ func MarginModeToMap(m MarginMode) map[string]any {
 
 // GreeksFromMap builds a Greeks from a unified greeks map.
 func GreeksFromMap(data any) Greeks {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return Greeks{}
 	}
@@ -233,7 +240,7 @@ func GreeksToMap(g Greeks) map[string]any {
 
 // OptionFromMap builds a Option from a unified option map.
 func OptionFromMap(data any) Option {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return Option{}
 	}
@@ -247,7 +254,7 @@ func OptionToMap(o Option) map[string]any {
 
 // ConversionFromMap builds a Conversion from a unified conversion map.
 func ConversionFromMap(data any) Conversion {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return Conversion{}
 	}
@@ -265,7 +272,7 @@ func ConversionToMap(c Conversion) map[string]any {
 
 // StructDictFromMap builds the typed dict of a unified dict of rows.
 func StructDictFromMap[T any](data any, from func(any) T) map[string]T {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return nil
 	}
@@ -324,7 +331,7 @@ func MarginModeMapToMap(d map[string]MarginMode) map[string]any {
 }
 
 func ADLFromMap(data any) ADL {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return ADL{}
 	}
@@ -333,7 +340,7 @@ func ADLFromMap(data any) ADL {
 func ADLToMap(v ADL) map[string]any { return StructToMap(v) }
 
 func CrossBorrowRateFromMap(data any) CrossBorrowRate {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return CrossBorrowRate{}
 	}
@@ -342,7 +349,7 @@ func CrossBorrowRateFromMap(data any) CrossBorrowRate {
 func CrossBorrowRateToMap(v CrossBorrowRate) map[string]any { return StructToMap(v) }
 
 func IsolatedBorrowRateFromMap(data any) IsolatedBorrowRate {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return IsolatedBorrowRate{}
 	}
@@ -351,16 +358,15 @@ func IsolatedBorrowRateFromMap(data any) IsolatedBorrowRate {
 func IsolatedBorrowRateToMap(v IsolatedBorrowRate) map[string]any { return StructToMap(v) }
 
 func LastPriceFromMap(data any) LastPrice {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return LastPrice{}
 	}
 	return NewLastPrice(m)
 }
-func LastPriceToMap(v LastPrice) map[string]any { return StructToMap(v) }
 
 func LongShortRatioFromMap(data any) LongShortRatio {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return LongShortRatio{}
 	}
@@ -369,7 +375,7 @@ func LongShortRatioFromMap(data any) LongShortRatio {
 func LongShortRatioToMap(v LongShortRatio) map[string]any { return StructToMap(v) }
 
 func MarginModificationFromMap(data any) MarginModification {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return MarginModification{}
 	}
@@ -378,7 +384,7 @@ func MarginModificationFromMap(data any) MarginModification {
 func MarginModificationToMap(v MarginModification) map[string]any { return StructToMap(v) }
 
 func LiquidationFromMap(data any) Liquidation {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return Liquidation{}
 	}
@@ -387,7 +393,7 @@ func LiquidationFromMap(data any) Liquidation {
 func LiquidationToMap(v Liquidation) map[string]any { return StructToMap(v) }
 
 func BorrowInterestFromMap(data any) BorrowInterest {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return BorrowInterest{}
 	}
@@ -396,7 +402,7 @@ func BorrowInterestFromMap(data any) BorrowInterest {
 func BorrowInterestToMap(v BorrowInterest) map[string]any { return StructToMap(v) }
 
 func FundingHistoryFromMap(data any) FundingHistory {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return FundingHistory{}
 	}
@@ -405,7 +411,7 @@ func FundingHistoryFromMap(data any) FundingHistory {
 func FundingHistoryToMap(v FundingHistory) map[string]any { return StructToMap(v) }
 
 func FundingRateHistoryFromMap(data any) FundingRateHistory {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return FundingRateHistory{}
 	}
@@ -414,7 +420,7 @@ func FundingRateHistoryFromMap(data any) FundingRateHistory {
 func FundingRateHistoryToMap(v FundingRateHistory) map[string]any { return StructToMap(v) }
 
 func LeverageTierFromMap(data any) LeverageTier {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return LeverageTier{}
 	}
@@ -430,9 +436,6 @@ func IsolatedBorrowRateMapToMap(d map[string]IsolatedBorrowRate) map[string]any 
 }
 func LastPriceMapFromMap(data any) map[string]LastPrice {
 	return StructDictFromMap(data, LastPriceFromMap)
-}
-func LastPriceMapToMap(d map[string]LastPrice) map[string]any {
-	return StructDictToMap(d, LastPriceToMap)
 }
 
 func copyMap(m map[string]any) map[string]any {
@@ -580,7 +583,7 @@ func lowerFirst(s string) string {
 // NewOHLCVForSymbolsMap converts a watchOHLCVForSymbols result (symbol -> timeframe -> candles,
 // built by createOHLCVObject as nested map[string]any) into the typed wrapper shape.
 func NewOHLCVForSymbolsMap(data any) map[string]map[string][]OHLCV {
-	bySymbol, ok := data.(map[string]any)
+	bySymbol, ok := RowDict(data)
 	if !ok {
 		return nil
 	}
@@ -663,9 +666,6 @@ func WatchResolved[T any](v any) T {
 			return any(c.ToArray()).(T)
 		}
 	case map[string]any:
-		if m, ok := v.(*sync.Map); ok {
-			return any(SafeMapToMap(m)).(T)
-		}
 	case bool:
 		return any(IsTrue(v)).(T)
 	case *string:
@@ -884,7 +884,7 @@ func AccountsToList(v []Account) []any {
 }
 
 func StatusFromMap(data any) Status {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return Status{}
 	}
@@ -893,16 +893,15 @@ func StatusFromMap(data any) Status {
 func StatusToMap(v Status) map[string]any { return StructToMap(v) }
 
 func PositionModeInfoFromMap(data any) PositionModeInfo {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return PositionModeInfo{}
 	}
 	return NewPositionModeInfo(m)
 }
-func PositionModeInfoToMap(v PositionModeInfo) map[string]any { return StructToMap(v) }
 
 func AccountFromMap(data any) Account {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return Account{}
 	}
@@ -911,7 +910,7 @@ func AccountFromMap(data any) Account {
 func AccountToMap(v Account) map[string]any { return StructToMap(v) }
 
 func DepositWithdrawFeeFromMap(data any) DepositWithdrawFee {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return DepositWithdrawFee{}
 	}
@@ -971,18 +970,12 @@ func CrossBorrowRateMapToMap(d map[string]CrossBorrowRate) map[string]any {
 func GreeksMapFromMap(data any) map[string]Greeks {
 	return StructDictFromMap(data, GreeksFromMap)
 }
-func GreeksMapToMap(d map[string]Greeks) map[string]any {
-	return StructDictToMap(d, GreeksToMap)
-}
 func OptionMapFromMap(data any) map[string]Option {
 	return StructDictFromMap(data, OptionFromMap)
 }
-func OptionMapToMap(d map[string]Option) map[string]any {
-	return StructDictToMap(d, OptionToMap)
-}
 
 func OrderBookFromMap(data any) OrderBook {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return OrderBook{}
 	}
@@ -1015,7 +1008,7 @@ func OrderBookMapToMap(d map[string]OrderBook) map[string]any {
 }
 
 func OrderBookL3FromMap(data any) OrderBookL3 {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return OrderBookL3{}
 	}
@@ -1038,18 +1031,15 @@ func OrderBookL3ToMap(ob OrderBookL3) map[string]any {
 }
 
 func MarginLoanFromMap(data any) MarginLoan {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return MarginLoan{}
 	}
 	return NewMarginLoan(m)
 }
-func MarginLoanToMap(v MarginLoan) map[string]any {
-	return StructToMap(v)
-}
 
 func BalanceFromMap(data any) Balance {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return Balance{}
 	}
@@ -1068,7 +1058,7 @@ func floatPtrMapToAny(in map[string]*float64) map[string]any {
 }
 
 func BalancesFromMap(data any) Balances {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return Balances{}
 	}
@@ -1093,7 +1083,7 @@ func BalancesToMap(b Balances) map[string]any {
 }
 
 func LeverageTiersFromMap(data any) LeverageTiers {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return LeverageTiers{}
 	}
@@ -1111,24 +1101,18 @@ func LeverageTiersToMap(lt LeverageTiers) map[string]any {
 }
 
 func PredictionTickerFromMap(data any) PredictionTicker {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return PredictionTicker{}
 	}
 	return NewPredictionTicker(m)
 }
-func PredictionTickerToMap(v PredictionTicker) map[string]any {
-	return StructToMap(v)
-}
 func PredictionTickerMapFromMap(data any) map[string]PredictionTicker {
 	return StructDictFromMap(data, PredictionTickerFromMap)
 }
-func PredictionTickerMapToMap(d map[string]PredictionTicker) map[string]any {
-	return StructDictToMap(d, PredictionTickerToMap)
-}
 
 func PredictionOrderFromMap(data any) PredictionOrder {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return PredictionOrder{}
 	}
@@ -1145,7 +1129,7 @@ func PredictionOrdersToList(s []PredictionOrder) []any {
 }
 
 func PredictionTradeFromMap(data any) PredictionTrade {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return PredictionTrade{}
 	}
@@ -1162,7 +1146,7 @@ func PredictionTradesToList(s []PredictionTrade) []any {
 }
 
 func PredictionPositionFromMap(data any) PredictionPosition {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return PredictionPosition{}
 	}
@@ -1179,7 +1163,7 @@ func PredictionPositionsToList(s []PredictionPosition) []any {
 }
 
 func PredictionOrderBookFromMap(data any) PredictionOrderBook {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return PredictionOrderBook{}
 	}
@@ -1206,29 +1190,23 @@ func PredictionOrderBookToMap(ob PredictionOrderBook) map[string]any {
 }
 
 func PredictionTradingFeeFromMap(data any) PredictionTradingFee {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return PredictionTradingFee{}
 	}
 	return NewPredictionTradingFee(m)
 }
-func PredictionTradingFeeToMap(v PredictionTradingFee) map[string]any {
-	return StructToMap(v)
-}
 
 func PredictionOpenInterestFromMap(data any) PredictionOpenInterest {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return PredictionOpenInterest{}
 	}
 	return NewPredictionOpenInterest(m)
 }
-func PredictionOpenInterestToMap(v PredictionOpenInterest) map[string]any {
-	return StructToMap(v)
-}
 
 func PredictionEventFromMap(data any) PredictionEvent {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return PredictionEvent{}
 	}
@@ -1245,7 +1223,7 @@ func PredictionEventsToList(s []PredictionEvent) []any {
 }
 
 func PredictionSettlementFromMap(data any) PredictionSettlement {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return PredictionSettlement{}
 	}
@@ -1262,7 +1240,7 @@ func PredictionSettlementsToList(s []PredictionSettlement) []any {
 }
 
 func PredictionOutcomeFromMap(data any) PredictionOutcome {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return PredictionOutcome{}
 	}
@@ -1280,9 +1258,6 @@ func PredictionOutcomeMapToMap(d map[string]PredictionOutcome) map[string]any {
 func PredictionEventMapFromMap(data any) map[string]PredictionEvent {
 	return StructDictFromMap(data, PredictionEventFromMap)
 }
-func PredictionEventMapToMap(d map[string]PredictionEvent) map[string]any {
-	return StructDictToMap(d, PredictionEventToMap)
-}
 
 func StructSliceToMaps[T any](v []T, to func(T) map[string]any) []map[string]any {
 	if v == nil {
@@ -1296,7 +1271,7 @@ func StructSliceToMaps[T any](v []T, to func(T) map[string]any) []map[string]any
 }
 
 func MarketInterfaceFromMap(data any) MarketInterface {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return MarketInterface{}
 	}
@@ -1321,7 +1296,7 @@ func MarketInterfacesToList(s []MarketInterface) []any {
 }
 
 func CurrencyFromMap(data any) Currency {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return Currency{}
 	}
@@ -1332,7 +1307,7 @@ func CurrencyToMap(c Currency) map[string]any {
 }
 
 func CurrenciesFromMap(data any) Currencies {
-	m, ok := data.(map[string]any)
+	m, ok := RowDict(data)
 	if !ok {
 		return Currencies{}
 	}
@@ -1365,9 +1340,6 @@ func MapSliceToList(s []map[string]any) []any {
 	}
 	return out
 }
-func MapElementToMap(m map[string]any) map[string]any {
-	return m
-}
 
 func StringSliceFromList(data any) []string {
 	if data == nil {
@@ -1384,9 +1356,6 @@ func StringSliceToList(s []string) []any {
 		out[i] = v
 	}
 	return out
-}
-func StringElementToAny(s string) any {
-	return s
 }
 
 // dynamicLists maps each list-of-struct channel element onto the []any of maps the untyped (TS-shaped) base code reads.

@@ -862,8 +862,8 @@ export default class bitrue extends Exchange {
         }
         const promises = await Promise.all (promisesRaw);
         const spotMarkets = this.safeList (this.safeDict (promises, 0), 'symbols', []);
-        const futureMarkets = this.safeValue (promises, 1);
-        const deliveryMarkets = this.safeValue (promises, 2);
+        const futureMarkets = this.safeList (promises, 1, []);
+        const deliveryMarkets = this.safeList (promises, 2, []);
         let markets = spotMarkets;
         markets = this.arrayConcat (markets, futureMarkets);
         markets = this.arrayConcat (markets, deliveryMarkets);
@@ -2131,7 +2131,7 @@ export default class bitrue extends Exchange {
         } else if (market['spot'] === true) {
             request['symbol'] = market['id'];
             request['quantity'] = this.amountToPrecision (symbol, amount);
-            const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
+            const validOrderTypes = this.safeList (market['info'], 'orderTypes', []);
             if (!this.inArray (uppercaseType, validOrderTypes)) {
                 throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
             }
@@ -3411,7 +3411,7 @@ export default class bitrue extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         } else if (('byLimit' in config) && ('limit' in params)) {

@@ -757,7 +757,7 @@ export default class blockchaincom extends blockchaincomRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         const channel = this.safeString (message, 'channel');
         const handlers: Dict = {
             'ticker': this.handleTicker,

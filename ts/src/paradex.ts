@@ -730,10 +730,10 @@ export default class paradex extends Exchange {
         //
         const marketId = this.safeString (fee, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const feeConfig = this.safeDict (fee, 'fee_config', {});
-        const apiFee = this.safeDict (feeConfig, 'api_fee', {});
-        const makerFee = this.safeDict (apiFee, 'maker_fee', {});
-        const takerFee = this.safeDict (apiFee, 'taker_fee', {});
+        const feeConfig: Dict = this.safeDict (fee, 'fee_config', {});
+        const apiFee: Dict = this.safeDict (feeConfig, 'api_fee', {});
+        const makerFee: Dict = this.safeDict (apiFee, 'maker_fee', {});
+        const takerFee: Dict = this.safeDict (apiFee, 'taker_fee', {});
         return {
             'info': fee,
             'symbol': marketResolved['symbol'],
@@ -785,7 +785,7 @@ export default class paradex extends Exchange {
         //     }
         //
         const data: Dict[] = this.safeList (response, 'results', []);
-        const first = this.safeDict (data, 0, {});
+        const first: Dict = this.safeDict (data, 0, {});
         return this.parseTradingFee (first, market);
     }
 
@@ -1000,7 +1000,7 @@ export default class paradex extends Exchange {
         //     }
         //
         const data: Dict[] = this.safeList (response, 'results', []);
-        const ticker = this.safeDict (data, 0, {});
+        const ticker: Dict = this.safeDict (data, 0, {});
         return this.parseTicker (ticker, market);
     }
 
@@ -1380,7 +1380,7 @@ export default class paradex extends Exchange {
         //     }
         //
         const data: Dict[] = this.safeList (response, 'results', []);
-        const interest = this.safeDict (data, 0, {});
+        const interest: Dict = this.safeDict (data, 0, {});
         return this.parseOpenInterest (interest, market);
     }
 
@@ -1484,7 +1484,7 @@ export default class paradex extends Exchange {
         return this.safeDict (this.options, 'paradexAccount', {});
     }
 
-    async onboarding (params: Dict = {}) {
+    async onboarding (params: Dict = {}): Promise<Dict> {
         const account = await this.retrieveAccount ();
         const req = {
             'action': 'Onboarding',
@@ -1973,8 +1973,8 @@ export default class paradex extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
-            const orderParams = this.safeDict (rawOrder, 'params', {});
-            const extendedParams = this.extend (params, orderParams);
+            const orderParams: Dict = this.safeDict (rawOrder, 'params', {});
+            const extendedParams: Dict = this.extend (params, orderParams);
             let orderRequest = this.createOrderRequest (symbol, type, side, amount, price, extendedParams);
             orderRequest = await this.signOrderRequest (orderRequest);
             ordersRequests.push (orderRequest);
@@ -2387,7 +2387,7 @@ export default class paradex extends Exchange {
     override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict (response, i, {});
+            const balance: Dict = this.safeDict (response, i, {});
             const currencyId = this.safeString (balance, 'token');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -3159,7 +3159,7 @@ export default class paradex extends Exchange {
         //     }
         //
         const data: Dict[] = this.safeList (response, 'results', []);
-        const greeks = this.safeDict (data, 0, {});
+        const greeks: Dict = this.safeDict (data, 0, {});
         return this.parseGreeks (greeks, market);
     }
 
@@ -3254,7 +3254,7 @@ export default class paradex extends Exchange {
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'option');
         const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger (greeks, 'created_at');
-        const greeksData = this.safeDict (greeks, 'greeks', {});
+        const greeksData: Dict = this.safeDict (greeks, 'greeks', {});
         return {
             'symbol': symbol,
             'timestamp': timestamp,

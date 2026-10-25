@@ -241,7 +241,7 @@ export class BaseExchange {
 
     isSandboxModeEnabled: boolean = false;
 
-    api!: Dictionary<any>;
+    api!: Dictionary<Dict>;
     certified: boolean = false;
     pro: boolean = false;
     countries: Strings = undefined;
@@ -355,7 +355,7 @@ export class BaseExchange {
     positions: any;
     urls!: {
         logo?: string;
-        api: NestedDictionary;
+        api: Dict;
         test: NestedDictionary;
         www?: string;
         doc?: string[];
@@ -378,7 +378,7 @@ export class BaseExchange {
     enableLastHttpResponse: boolean = true;
     enableLastResponseHeaders: boolean = true;
     last_http_response: string | undefined = undefined;
-    last_json_response: any = undefined;
+    last_json_response: Dict | undefined = undefined;
     last_response_headers: Dictionary<string> | undefined = undefined;
     last_request_headers: Dictionary<string> | undefined = undefined;
     last_request_body: any = undefined;
@@ -469,7 +469,7 @@ export class BaseExchange {
 
     // nested by design: exchanges declare { 'exact': {...}, 'broad': {...} }
     // and pro subclasses add a 'ws' sub-tree, with error classes as values
-    exceptions: Dict = {};
+    exceptions: Dictionary<Dict> = {};
     timeframes: Dictionary<number | string> = {};
 
     version: Str = undefined;
@@ -492,7 +492,7 @@ export class BaseExchange {
     // WS/PRO options
     clients: Dictionary<WsClient> = {};
     newUpdates: boolean = true;
-    streaming: Dictionary<any> = {};
+    streaming: Dictionary<Dict> = {};
 
     // INTERNAL METHODS
     sleep = sleep;
@@ -1514,7 +1514,7 @@ export class BaseExchange {
             }
             return this.markets;
         }
-        let currencies: any = undefined;
+        let currencies: Currencies | undefined = undefined;
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
             currencies = await this.fetchCurrencies ();
@@ -1524,7 +1524,7 @@ export class BaseExchange {
         if ('cachedCurrencies' in this.options) {
             delete this.options['cachedCurrencies'];
         }
-        return this.setMarkets (markets, currencies as any);
+        return this.setMarkets (markets, currencies);
     }
 
     /**
@@ -3340,7 +3340,7 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    storeByKey (dict: any, key: NullableIndexType, value: any) {
+    storeByKey (dict: Dict, key: NullableIndexType, value: any) {
         /**
          * @ignore
          * @method
@@ -3372,7 +3372,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' handleBookDelta not supported yet');
     }
 
-    handleDeltasWithKeys (bookSide: any, deltas: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+    handleDeltasWithKeys (bookSide: any, deltas: any[], priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         for (let i = 0; i < deltas.length; i++) {
             const bidAsk = this.parseOrderBookBidAsk (deltas[i], priceKey, amountKey, countOrIdKey);
             bookSide.storeArray (bidAsk);
@@ -3535,7 +3535,7 @@ export class BaseExchange {
         return [ wsProxy, wssProxy, wsSocksProxy ];
     }
 
-    checkConflictingProxies (proxyAgentSet: any, proxyUrlSet: any) {
+    checkConflictingProxies (proxyAgentSet: Str, proxyUrlSet: Str) {
         const proxyAgentIsSet = (proxyAgentSet !== undefined) && (proxyAgentSet !== null) && (proxyAgentSet !== '');
         const proxyUrlIsSet = (proxyUrlSet !== undefined) && (proxyUrlSet !== null) && (proxyUrlSet !== '');
         if (proxyAgentIsSet && proxyUrlIsSet) {
@@ -3589,7 +3589,7 @@ export class BaseExchange {
                     }
                 }
                 if (fromStart) {
-                    const limitResolved = (limit > arrayLength) ? arrayLength : limit;
+                    const limitResolved: Int = (limit > arrayLength) ? arrayLength : limit;
                     if (ascending) {
                         return this.arraySlice (array, 0, limitResolved);
                     }
@@ -3609,7 +3609,7 @@ export class BaseExchange {
             return [];
         }
         const sinceIsDefined = this.valueIsDefined (since);
-        const parsedArray = this.toArray (array) as any;
+        const parsedArray: any[] = this.toArray (array);
         let result = parsedArray;
         if (sinceIsDefined) {
             result = [ ];
@@ -3633,7 +3633,7 @@ export class BaseExchange {
     filterByValueSinceLimit (array: object[], field: IndexType, value: any = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any[] {
         const valueIsDefined = this.valueIsDefined (value);
         const sinceIsDefined = this.valueIsDefined (since);
-        const parsedArray = this.toArray (array) as any;
+        const parsedArray: any[] = this.toArray (array);
         let result = parsedArray;
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined) {
@@ -4418,7 +4418,7 @@ export class BaseExchange {
         if (length !== 0) {
             for (let i = 0; i < length; i++) {
                 const key = keys[i];
-                const network = networks[key];
+                const network = this.safeDict (networks, key, {});
                 const deposit = this.safeBool (network, 'deposit');
                 const currencyDeposit = this.safeBool (currency, 'deposit');
                 if (currencyDeposit === undefined || (deposit === true)) {
@@ -4607,7 +4607,7 @@ export class BaseExchange {
         // we insert spot markets first
         const marketValues = this.sortBy (this.toArray (markets), 'spot', true, true);
         for (let i = 0; i < marketValues.length; i++) {
-            const value = marketValues[i];
+            const value = this.safeDict (marketValues, i, {});
             if (value['id'] in marketsById) {
                 const marketsByIdArray = (marketsById[value['id']] as any);
                 marketsByIdArray.push (value);
@@ -4891,7 +4891,7 @@ export class BaseExchange {
                         }
                     }
                     if (shouldParseFees) {
-                        const tradeFees = this.safeValue (trade, 'fees');
+                        const tradeFees = this.safeList (trade, 'fees');
                         if (tradeFees !== undefined) {
                             for (let j = 0; j < tradeFees.length; j++) {
                                 const tradeFee = tradeFees[j];
@@ -5130,7 +5130,7 @@ export class BaseExchange {
         if (markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
-        const market = markets[symbol];
+        const market = this.safeDict (markets, symbol, {});
         const feeSide = this.safeString (market, 'feeSide', 'quote');
         let useQuote: Bool = undefined;
         if (feeSide === 'get') {
@@ -6567,10 +6567,11 @@ export class BaseExchange {
         if (code === undefined) {
             return code;
         }
-        let currency = this.safeDict (this.currencies, code);
-        if (currency === undefined) {
-            currency = this.safeCurrency (code);
+        const currencyById = this.safeDict (this.currencies, code);
+        if (currencyById !== undefined) {
+            return currencyById['id'];
         }
+        const currency = this.safeCurrency (code);
         if (currency !== undefined) {
             return currency['id'];
         }
@@ -6645,10 +6646,7 @@ export class BaseExchange {
     }
 
     getListFromObjectValues (objects: any, key: IndexType): string[] {
-        let newArray = objects;
-        if (!Array.isArray (objects)) {
-            newArray = this.toArray (objects);
-        }
+        const newArray = this.toArray (objects);
         const results: string[] = [];
         for (let i = 0; i < newArray.length; i++) {
             results.push (newArray[i][key]);
@@ -6814,7 +6812,7 @@ export class BaseExchange {
         const options = this.safeDict (this.options, 'buildOHLCVC', {});
         const skipZeroPrices = this.safeBool (options, 'skipZeroPrices', true);
         for (let i = 0; i < oldest; i++) {
-            const trade = trades[i];
+            const trade = this.safeDict (trades, i, {});
             const ts = this.safeInteger (trade, 'timestamp');
             const price = trade['price'];
             if ((ts === undefined) || (price === undefined)) {
@@ -6933,7 +6931,7 @@ export class BaseExchange {
     safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
-                const markets = this.markets_by_id[marketId];
+                const markets = this.safeList (this.markets_by_id, marketId, []);
                 const numMarkets = markets.length;
                 if (numMarkets === 1) {
                     return markets[0];
@@ -7364,7 +7362,7 @@ export class BaseExchange {
         return undefined;
     }
 
-    calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
+    calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
         return this.safeValue (config, 'cost', 1);
     }
 
@@ -8110,7 +8108,7 @@ export class BaseExchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as LongShortRatio[];
     }
 
-    handleTriggerPricesAndParams (symbol: any, params: any, omitParams = true): [Str, Str, Str, Dict] {
+    handleTriggerPricesAndParams (symbol: any, params: Dict, omitParams = true): [Str, Str, Str, Dict] {
         //
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         let triggerPriceStr: Str = undefined;
@@ -8144,7 +8142,7 @@ export class BaseExchange {
         return [ triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, paramsOmitted ];
     }
 
-    handleTriggerDirectionAndParams (params: any, exchangeSpecificKey: Str = undefined, allowEmpty: Bool = false): [Str, Dict] {
+    handleTriggerDirectionAndParams (params: Dict, exchangeSpecificKey: Str = undefined, allowEmpty: Bool = false): [Str, Dict] {
         /**
          * @ignore
          * @method
@@ -8227,7 +8225,7 @@ export class BaseExchange {
             } else if (isMarketOrder) {
                 throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
             } else {
-                let keysToOmit = undefined;
+                let keysToOmit: string[] = [];
                 if (po) {
                     keysToOmit = [ 'timeInForce', 'postOnly' ];
                 } else {
@@ -8502,7 +8500,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseDepositWithdrawFee() is not supported yet');
     }
 
-    depositWithdrawFee (info: any): any {
+    depositWithdrawFee (info: NullableDict): Dict {
         return {
             'info': info,
             'withdraw': {
@@ -8517,7 +8515,7 @@ export class BaseExchange {
         };
     }
 
-    assignDefaultDepositWithdrawFees (fee: any, currency: Currency = undefined): any {
+    assignDefaultDepositWithdrawFees (fee: Dict, currency: Currency = undefined): Dict {
         /**
          * @ignore
          * @method
@@ -8591,7 +8589,7 @@ export class BaseExchange {
         return market;
     }
 
-    parseWsOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined): OHLCV[] {
+    parseWsOHLCVs (ohlcvs: object[], market: Market = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined): OHLCV[] {
         const results: OHLCV[] = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             results.push (this.parseWsOHLCV (ohlcvs[i], market));
@@ -8703,7 +8701,7 @@ export class BaseExchange {
                     }
                     errors = 0;
                     result = this.arrayConcat (result, response);
-                    const firstElement = this.safeValue (response, 0);
+                    const firstElement = this.safeDict (response, 0);
                     paginationTimestamp = this.safeInteger2 (firstElement, 'timestamp', 0);
                     if (paginationTimestamp === undefined) {
                         shouldBreak = true;
@@ -8730,7 +8728,7 @@ export class BaseExchange {
                     }
                     errors = 0;
                     result = this.arrayConcat (result, response);
-                    const last = this.safeValue (response, responseLength - 1);
+                    const last = this.safeDict (response, responseLength - 1);
                     const lastTimestamp = this.safeInteger (last, 'timestamp', 0);
                     if (lastTimestamp === undefined) {
                         shouldBreak = true;
@@ -10087,7 +10085,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' fetchTradesWs() is not supported yet');
     }
 
-    async loadOrderBook (client: any, messageHash: string, symbol: string, limit: Int = undefined, params = {}) {
+    async loadOrderBook (client: any, messageHash: string, symbol: string, limit: Int = undefined, params: Dict = {}) {
         if (!(symbol in this.orderbooks)) {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;

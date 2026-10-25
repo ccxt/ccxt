@@ -3,7 +3,7 @@
 import { BaseExchange } from './Exchange.js';
 import { Precise } from './Precise.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
-import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, PredictionOutcomeMarket, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Bool, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, PredictionOutcomeMarket, fetchEventsParams } from './types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -620,7 +620,7 @@ export default class PredictionExchange extends BaseExchange {
         const outcomesList = this.safeList (market, 'outcomes', []);
         for (let j = 0; j < outcomesList.length; j++) {
             const oc = outcomesList[j];
-            let ocSymbol = this.safeString2 (oc, 'outcome', 'symbol');
+            let ocSymbol: Str = this.safeString2 (oc, 'outcome', 'symbol');
             const ocId = this.safeString2 (oc, 'outcomeId', 'id');
             // assign unconditionally — safeString2 keeps the canonical key when present
             // and falls back to the legacy one, so this never clobbers and avoids a
@@ -1256,11 +1256,11 @@ export default class PredictionExchange extends BaseExchange {
         // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
         // never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
         // outcome-addressed row). prediction is always linear with a contract size of 1.
-        let amount = this.omitZero (this.safeString (outcomeOrder, 'amount'));
+        let amount: Str = this.omitZero (this.safeString (outcomeOrder, 'amount'));
         let filled = this.safeString (outcomeOrder, 'filled');
         let remaining = this.safeString (outcomeOrder, 'remaining');
         let cost = this.safeString (outcomeOrder, 'cost');
-        let average = this.omitZero (this.safeString (outcomeOrder, 'average'));
+        let average: Str = this.omitZero (this.safeString (outcomeOrder, 'average'));
         const price = this.omitZero (this.safeString (outcomeOrder, 'price'));
         let side = this.safeString (outcomeOrder, 'side');
         const status = this.safeString (outcomeOrder, 'status');
@@ -1337,16 +1337,18 @@ export default class PredictionExchange extends BaseExchange {
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         const orderType = this.safeString (outcomeOrder, 'type');
         let timeInForce = this.safeString (outcomeOrder, 'timeInForce');
-        let postOnly = this.safeBool (outcomeOrder, 'postOnly');
+        // the venue flag and the derived one are each written once, so neither local widens
+        const postOnlyValue = this.safeBool (outcomeOrder, 'postOnly');
+        let derivedPostOnly: Bool = undefined;
         if (timeInForce === undefined) {
             if (orderType === 'market') {
                 timeInForce = 'IOC';
             }
-            if (postOnly === true) {
+            if (postOnlyValue === true) {
                 timeInForce = 'PO';
             }
-        } else if (postOnly === undefined) {
-            postOnly = (timeInForce === 'PO');
+        } else if (postOnlyValue === undefined) {
+            derivedPostOnly = (timeInForce === 'PO');
         }
         const timestamp = this.safeInteger (outcomeOrder, 'timestamp');
         let datetime = this.safeString (outcomeOrder, 'datetime');
@@ -1372,7 +1374,7 @@ export default class PredictionExchange extends BaseExchange {
             'cost': this.parseNumber (cost),
             'fee': fee,
             'reduceOnly': this.safeBool (outcomeOrder, 'reduceOnly'),
-            'postOnly': postOnly,
+            'postOnly': (postOnlyValue !== undefined) ? postOnlyValue : derivedPostOnly,
             'trades': trades,
             'outcome': this.safeString (outcomeOrder, 'outcome'),
             'outcomeId': this.safeString (outcomeOrder, 'outcomeId'),
@@ -1426,9 +1428,9 @@ export default class PredictionExchange extends BaseExchange {
         const open = this.omitZero (this.safeString (ticker, 'open'));
         const close = this.omitZero (this.safeString2 (ticker, 'close', 'last'));
         const last = this.omitZero (this.safeString2 (ticker, 'last', 'close'));
-        let change = this.safeString (ticker, 'change');
-        let percentage = this.omitZero (this.safeString (ticker, 'percentage'));
-        let average = this.omitZero (this.safeString (ticker, 'average'));
+        let change: Str = this.safeString (ticker, 'change');
+        let percentage: Str = this.omitZero (this.safeString (ticker, 'percentage'));
+        let average: Str = this.omitZero (this.safeString (ticker, 'average'));
         if ((change === undefined) && (open !== undefined) && (close !== undefined)) {
             change = Precise.stringSub (close, open);
         }
@@ -1733,7 +1735,7 @@ export default class PredictionExchange extends BaseExchange {
             return '';
         }
         let h = this.remove0xPrefix (hexValue);
-        let start = 0;
+        let start: Int = 0;
         const total = h.length;
         while ((start < total) && (h.slice (start, start + 1) === '0')) {
             start = start + 1;

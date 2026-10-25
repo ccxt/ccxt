@@ -5,16 +5,16 @@ import { safeInputType, Int, Str, NullableIndexType, Num, Dictionary } from '../
 const isNumber = Number.isFinite;
 const isInteger = Number.isInteger;
 const isArray = Array.isArray;
-const hasProps = (o: any) => ((o !== undefined) && (o !== null));
-const isString = (s: any) => (typeof s === 'string');
-const isObject = (o: any) => ((o !== undefined) && (o !== null) && (typeof o === 'object'));
-const isRegExp = (o: any) => (o instanceof RegExp);
-const isDictionary = (o: any) => (isObject (o) && (Object.getPrototypeOf (o) === Object.prototype) && !isArray (o) && !isRegExp (o));
-const isStringCoercible = (x: any) => ((hasProps (x) && x.toString) || isNumber (x));
+const hasProps = (o: any): boolean => ((o !== undefined) && (o !== null));
+const isString = (s: any): boolean => (typeof s === 'string');
+const isObject = (o: any): boolean => ((o !== undefined) && (o !== null) && (typeof o === 'object'));
+const isRegExp = (o: any): boolean => (o instanceof RegExp);
+const isDictionary = (o: any): boolean => (isObject (o) && (Object.getPrototypeOf (o) === Object.prototype) && !isArray (o) && !isRegExp (o));
+const isStringCoercible = (x: any): boolean => ((hasProps (x) && x.toString) || isNumber (x));
 
 /*  .............................................   */
 
-const prop = (o: any, k: NullableIndexType) => {
+const prop = (o: any, k: NullableIndexType): any => {
     if (k !== undefined && k !== null && isObject (o)) {
         const x = o[k];
         if (x !== null && x !== '') {
@@ -23,7 +23,7 @@ const prop = (o: any, k: NullableIndexType) => {
     }
     return undefined;
 };
-const prop2 = (o: any, k1: NullableIndexType, k2: NullableIndexType) => {
+const prop2 = (o: any, k1: NullableIndexType, k2: NullableIndexType): any => {
     if (!isObject (o)) {
         return undefined;
     }
@@ -108,7 +108,7 @@ function safeTimestamp (o: safeInputType, k: NullableIndexType, $default?: numbe
     return isNumber (product) ? Math.trunc (product) : $default; // guard the product, not just the value
 }
 
-function safeValue (o: safeInputType, k: NullableIndexType, $default?: any) {
+function safeValue (o: safeInputType, k: NullableIndexType, $default?: any): any {
     const x = prop (o, k);
     return (x !== undefined) ? x : $default; // prop () never yields null or ''
 }
@@ -170,7 +170,7 @@ function safeTimestamp2 (o: safeInputType, k1: NullableIndexType, k2: NullableIn
     return isNumber (product) ? Math.trunc (product) : $default; // guard the product, not just the value
 }
 
-function safeValue2 (o: safeInputType, k1: NullableIndexType, k2: NullableIndexType, $default?: any) {
+function safeValue2 (o: safeInputType, k1: NullableIndexType, k2: NullableIndexType, $default?: any): any {
     const x = prop2 (o, k1, k2);
     return (x !== undefined) ? x : $default; // prop2 () never yields null or ''
 }

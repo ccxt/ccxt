@@ -152,8 +152,8 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         this.balance['info'] = data;
         const currencyId = this.safeString (data, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId);
@@ -282,8 +282,8 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         const marketId = this.safeString (data, 'instrument_name');
         const symbol = this.safeSymbol (marketId);
         const ticker = this.parseTicker (data);
@@ -351,8 +351,8 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         const ticker = this.parseWsBidAsk (data);
         const symbol = ticker['symbol'];
         this.bidsasks[symbol as string] = ticker;
@@ -442,7 +442,7 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
+        const params: Dict = this.safeDict (message, 'params', {});
         const channel = this.safeString (params, 'channel', '');
         const parts = channel.split ('.');
         const marketId = this.safeString (parts, 1);
@@ -533,7 +533,7 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
+        const params: Dict = this.safeDict (message, 'params', {});
         const channel = this.safeString (params, 'channel', '');
         const trades = this.safeList (params, 'data', []);
         let cachedTrades = this.myTrades;
@@ -645,8 +645,8 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         const channel = this.safeString (params, 'channel');
         const parts = (channel as string).split ('.');
         let descriptor = '';
@@ -793,7 +793,7 @@ export default class deribit extends deribitRest {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
-        const params = this.safeDict (message, 'params', {});
+        const params: Dict = this.safeDict (message, 'params', {});
         const channel = this.safeString (params, 'channel', '');
         const data = this.safeValue (params, 'data', {});
         let orders: Order[] = [];
@@ -875,15 +875,15 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
+        const params: Dict = this.safeDict (message, 'params', {});
         const channel = this.safeString (params, 'channel', '');
         const parts = channel.split ('.');
         const marketId = this.safeString (parts, 2);
         const rawTimeframe = this.safeString (parts, 3);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const wsOptions = this.safeDict (this.options, 'ws', {});
-        const timeframes = this.safeDict (wsOptions, 'timeframes', {});
+        const wsOptions: Dict = this.safeDict (this.options, 'ws', {});
+        const timeframes: Dict = this.safeDict (wsOptions, 'timeframes', {});
         const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         if (this.safeDict (this.ohlcvs[symbol], unifiedTimeframe) === undefined) {
@@ -891,7 +891,7 @@ export default class deribit extends deribitRest {
             this.ohlcvs[symbol][unifiedTimeframe as string] = new ArrayCacheByTimestamp (limit);
         }
         const stored = this.ohlcvs[symbol][unifiedTimeframe as string];
-        const ohlcv = this.safeDict (params, 'data', {});
+        const ohlcv: Dict = this.safeDict (params, 'data', {});
         // data contains a single OHLCV candle
         const parsed = this.parseWsOHLCV (ohlcv, market);
         stored.append (parsed);
@@ -1061,7 +1061,7 @@ export default class deribit extends deribitRest {
             }
             throw new NotSupported (this.id + ' no handler found for this message ' + this.json (message));
         }
-        const result = this.safeDict (message, 'result', {});
+        const result: Dict = this.safeDict (message, 'result', {});
         const accessToken = this.safeString (result, 'access_token');
         if (accessToken !== undefined) {
             this.handleAuthenticationMessage (client, message);

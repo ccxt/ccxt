@@ -1,5 +1,6 @@
 /* eslint-disable max-classes-per-file */
 // @ts-nocheck
+import { Int, IndexType } from '../types.js';
 // ----------------------------------------------------------------------------
 //
 // Upto 10x faster after initializing memory for the floating point array
@@ -12,7 +13,7 @@
  * @param array
  * @param x
  */
-function bisectLeft (array, x) {
+function bisectLeft (array: Float64Array, x: number): number {
     let low = 0
     let high = array.length - 1
     while (low <= high) {
@@ -33,7 +34,7 @@ function bisectLeft (array, x) {
  * @param self the order book side
  * @param index slot to free up
  */
-function shiftRowsUp (self, index) {
+function shiftRowsUp (self: Array<any>, index: Int): void {
     const length = self.length;
     self.push (self[length - 1]);
     for (let i = length - 1; i > index; i--) {
@@ -48,7 +49,7 @@ function shiftRowsUp (self, index) {
  * @param self the order book side
  * @param index slot to remove
  */
-function shiftRowsDown (self, index) {
+function shiftRowsDown (self: Array<any>, index: Int): void {
     const length = self.length;
     for (let i = index; i < length - 1; i++) {
         self[i] = self[i + 1];
@@ -60,13 +61,20 @@ const SIZE = 1024
 const SEED = new Float64Array (new Array (SIZE).fill (Number.MAX_VALUE))
 
 interface IOrderBookSide<T> extends Array<T> {
-    store(price: any, size: any);
-    storeArray(array: any[]);
-    limit();
+    store(price: IndexType | undefined, size: IndexType | undefined): void;
+    storeArray(array: (IndexType | undefined)[]): void;
+    limit(): void;
 }
 
 class OrderBookSide extends Array implements IOrderBookSide<any> {
-    constructor (deltas: object[] = [], depth: number | undefined = undefined) {
+
+    declare index: Float64Array
+
+    declare depth: number
+
+    declare side: boolean
+
+    constructor (deltas: Array<(IndexType | undefined)[]> = [], depth: Int = undefined) {
         super ()
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty (this, 'index', {
@@ -86,7 +94,7 @@ class OrderBookSide extends Array implements IOrderBookSide<any> {
         }
     }
 
-    storeArray (delta) {
+    storeArray (delta: (IndexType | undefined)[]): void {
         const price = delta[0]
         const size = delta[1]
         const index_price = this.side ? -price : price
@@ -115,12 +123,12 @@ class OrderBookSide extends Array implements IOrderBookSide<any> {
     }
 
     // index an incoming delta in the string-price-keyed dictionary
-    store (price, size) {
+    store (price: IndexType | undefined, size: IndexType | undefined): void {
         this.storeArray ([ price, size ])
     }
 
     // replace stored orders with new values
-    limit () {
+    limit (): void {
         if (this.length > this.depth) {
             for (let i = this.depth; i < this.length; i++) {
                 this.index[i] = Number.MAX_VALUE
@@ -129,7 +137,7 @@ class OrderBookSide extends Array implements IOrderBookSide<any> {
         }
     }
 
-    copy () {
+    copy (): OrderBookSide {
         const copy = new (this.constructor as any)([], this.depth)
         for (let i = 0; i < this.length; i++) {
             copy.storeArray (this[i].slice ())
@@ -145,11 +153,11 @@ class OrderBookSide extends Array implements IOrderBookSide<any> {
 
 class CountedOrderBookSide extends OrderBookSide {
 
-    store (price, size) {
+    store (price: IndexType | undefined, size: IndexType | undefined): void {
         throw new Error ('CountedOrderBookSide.store() is not supported, use storeArray([price, size, count]) instead')
     }
 
-    storeArray (delta) {
+    storeArray (delta: (IndexType | undefined)[]): void {
         const price = delta[0]
         const size = delta[1]
         const count = delta[2]
@@ -185,7 +193,16 @@ class CountedOrderBookSide extends OrderBookSide {
 // stores vector arrays indexed by id (3rd value in a bidask delta array)
 
 class IndexedOrderBookSide extends Array implements IOrderBookSide<any> {
-    constructor (deltas: object[] = [], depth = Number.MAX_SAFE_INTEGER) {
+
+    declare index: Float64Array
+
+    declare depth: number
+
+    declare hashmap: Map<any, any>
+
+    declare side: boolean
+
+    constructor (deltas: Array<(IndexType | undefined)[]> = [], depth: Int = Number.MAX_SAFE_INTEGER) {
         super ()
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty (this, 'hashmap', {
@@ -213,11 +230,11 @@ class IndexedOrderBookSide extends Array implements IOrderBookSide<any> {
         }
     }
 
-    store (price, size) {
+    store (price: IndexType | undefined, size: IndexType | undefined): void {
         throw new Error ('IndexedOrderBook.store() is not supported, use storeArray([price, size, id]) instead')
     }
 
-    storeArray (delta) {
+    storeArray (delta: (IndexType | undefined)[]): void {
         const price = delta[0]
         const size = delta[1]
         const id = delta[2]
@@ -297,7 +314,7 @@ class IndexedOrderBookSide extends Array implements IOrderBookSide<any> {
     }
 
     // replace stored orders with new values
-    limit () {
+    limit (): void {
         if (this.length > this.depth) {
             for (let i = this.depth; i < this.length; i++) {
                 // the hashmap is keyed by id, deleting by this.index[i], a
@@ -311,7 +328,7 @@ class IndexedOrderBookSide extends Array implements IOrderBookSide<any> {
         }
     }
 
-    copy () {
+    copy (): OrderBookSide {
         const copy = new (this.constructor as any)([], this.depth)
         for (let i = 0; i < this.length; i++) {
             copy.storeArray (this[i].slice ())
@@ -323,12 +340,12 @@ class IndexedOrderBookSide extends Array implements IOrderBookSide<any> {
 // ----------------------------------------------------------------------------
 // a more elegant syntax is possible here, but native inheritance is portable
 
-class Asks extends OrderBookSide { get side () { return false }}
-class Bids extends OrderBookSide { get side () { return true }}
-class CountedAsks extends CountedOrderBookSide { get side () { return false }}
-class CountedBids extends CountedOrderBookSide { get side () { return true }}
-class IndexedAsks extends IndexedOrderBookSide { get side () { return false }}
-class IndexedBids extends IndexedOrderBookSide { get side () { return true }}
+class Asks extends OrderBookSide { get side (): boolean { return false }}
+class Bids extends OrderBookSide { get side (): boolean { return true }}
+class CountedAsks extends CountedOrderBookSide { get side (): boolean { return false }}
+class CountedBids extends CountedOrderBookSide { get side (): boolean { return true }}
+class IndexedAsks extends IndexedOrderBookSide { get side (): boolean { return false }}
+class IndexedBids extends IndexedOrderBookSide { get side (): boolean { return true }}
 
 // ----------------------------------------------------------------------------
 

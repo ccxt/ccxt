@@ -138,7 +138,7 @@ class WsClientExecutorShutdownTest {
                 "reconnected client must still process frames");
 
         // Once the redial is gone, a later disconnect re-arms the shutdown.
-        client.startedConnecting.set(false);
+        client.startedConnecting = false;
         clientsMap(ex).put(client.url, client);
         ex.onError(client, new RuntimeException("second disconnect"));
         awaitShutdown(client, 5_000);
@@ -147,14 +147,15 @@ class WsClientExecutorShutdownTest {
 
     /** Double scheduling and Exchange.close() must coexist. */
     @Test
-    void schedulingIsIdempotentAndCoexistsWithClose() {
+    void schedulingIsIdempotentAndCoexistsWithClose() throws Exception {
         Client client = stubClient("wss://example.invalid/idempotent");
         client.executorShutdownDelayMs = 50;
 
         client.scheduleExecutorShutdown();
         assertDoesNotThrow(client::scheduleExecutorShutdown);
-        assertDoesNotThrow(client::close); // close() shuts the executor down immediately
+        assertDoesNotThrow(client::close); // close() settles now, its executor retires on the timer
 
+        awaitShutdown(client, 5_000);
         assertTrue(client.isMessageExecutorShutdown());
     }
 }

@@ -3014,10 +3014,11 @@ export default class bybit extends Exchange {
         const request: Dict = {};
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         if (symbolsNormalized !== undefined) {
-            market = this.market (symbolsNormalized[0]);
+            const symbolMarket = this.market (symbolsNormalized[0]);
+            market = symbolMarket;
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
-                request['symbol'] = market['id'];
+                request['symbol'] = symbolMarket['id'];
             }
         }
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchFundingRates', market, params);
@@ -5204,8 +5205,9 @@ export default class bybit extends Exchange {
         let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market (symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [ type, paramsValue ] = this.getBybitType ('cancelAllOrders', market, params);
         request['category'] = type;
@@ -5428,8 +5430,9 @@ export default class bybit extends Exchange {
         const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market (symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [ type, paramsValue ] = this.getBybitType ('fetchOrdersClassic', market, paramsPaginate);
         if (type === 'spot') {
@@ -5611,8 +5614,9 @@ export default class bybit extends Exchange {
         const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market (symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [ type, paramsValue ] = this.getBybitType ('fetchCanceledAndClosedOrders', market, paramsPaginate);
         request['category'] = type;
@@ -5788,8 +5792,9 @@ export default class bybit extends Exchange {
         const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market (symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [ type, paramsValue ] = this.getBybitType ('fetchOpenOrders', market, paramsPaginate);
         if (type === 'linear' || type === 'inverse') {
@@ -5929,8 +5934,9 @@ export default class bybit extends Exchange {
         };
         let market: Market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market (symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [ type, paramsValue ] = this.getBybitType ('fetchMyTrades', market, paramsPaginate);
         request['category'] = type;
@@ -6799,9 +6805,10 @@ export default class bybit extends Exchange {
         const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market (symbol);
+            market = symbolMarket;
+            symbol = symbolMarket['symbol'];
+            request['symbol'] = symbolMarket['id'];
         }
         const [ type, paramsValue ] = this.getBybitType ('fetchPositions', market, paramsPaginate);
         if (type === 'linear' || type === 'inverse') {
@@ -8107,8 +8114,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        let market: Market = undefined;
-        market = this.market (symbol);
+        const market = this.market (symbol);
         if ((market['spot'] === true) || (market['option'] === true)) {
             throw new BadRequest (this.id + ' fetchMarketLeverageTiers() symbol does not support market ' + symbol);
         }
@@ -8357,8 +8363,9 @@ export default class bybit extends Exchange {
         const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market (symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [ type, paramsValue ] = this.getBybitType ('fetchSettlementHistory', market, params);
         if (type === 'spot') {
@@ -8415,8 +8422,9 @@ export default class bybit extends Exchange {
         const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market (symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [ type, paramsValue ] = this.getBybitType ('fetchMySettlementHistory', market, params);
         if (type === 'spot') {
@@ -8675,12 +8683,11 @@ export default class bybit extends Exchange {
             'category': 'option',
             'baseCoin': baseCoin,
         };
-        let market: Market = undefined;
         if (symbolsNormalized !== undefined) {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
-                market = this.market (symbolsNormalized[0]);
-                request['symbol'] = market['id'];
+                const symbolMarket = this.market (symbolsNormalized[0]);
+                request['symbol'] = symbolMarket['id'];
             }
         }
         const response = await this.publicGetV5MarketTickers (this.extend (request, params));
@@ -8811,8 +8818,9 @@ export default class bybit extends Exchange {
         };
         let market: Market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market (symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [ type, paramsValue ] = this.getBybitType ('fetchMyLiquidations', market, paramsPaginate);
         request['category'] = type;
@@ -8962,10 +8970,9 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let market: Market = undefined;
         let symbol: Str = undefined;
         if (symbols !== undefined) {
-            market = this.market (symbols[0]);
+            const market = this.market (symbols[0]);
             if (market['spot'] === true) {
                 throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported for spot market');
             }
@@ -9072,8 +9079,9 @@ export default class bybit extends Exchange {
         };
         let market: Market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market (symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [ type, paramsValue ] = this.getBybitType ('fetchFundingHistory', market, paramsPaginate);
         request['category'] = type;

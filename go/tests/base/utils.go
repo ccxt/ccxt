@@ -120,9 +120,7 @@ func WsClientHasPendingFutures(exchange ccxt.ICoreExchange, url any) bool {
 	// whether the watch flow is currently awaiting a message - the frame
 	// injector polls this instead of relying on a fixed head-start sleep
 	client := exchange.(wsClientProvider).Client(url)
-	client.FuturesMu.Lock()
-	defer client.FuturesMu.Unlock()
-	return len(client.Futures) > 0
+	return client.PendingFutureCount() > 0
 }
 
 var wsCompletedClientsMu sync.Mutex

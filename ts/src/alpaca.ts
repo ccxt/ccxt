@@ -2259,9 +2259,8 @@ export default class alpaca extends Exchange {
         // }
         const feedback = this.id + ' ' + body;
         const errorCode = this.safeString (response, 'code');
-        if (code !== undefined) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-        }
+        // code is an int: it is never undefined, the guard was dead
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         const message = this.safeString (response, 'message');
         if (message !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);

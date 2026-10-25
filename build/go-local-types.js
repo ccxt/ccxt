@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { ts, urlsDescribeStringProducer } from './csharp-local-types.js';
+import { installHx10G06NilDeclaredTupleJoins as hx10G06InstallTupleJoins } from './hx10w3-G06.js';
 
 // CCXT-side extension of the Go printer's local-variable typing.
 //
@@ -2087,7 +2088,9 @@ function aliasExchangeReceiver (goTranspiler, printedValue) {
 //     and `Add` would then return nil, which a Go `string` cannot hold;
 //   * a parenthesised / otherwise re-printed initializer: the rewrite below only
 //     fires when the printer prints exactly `Add(<left>, <right>)`.
-const GO_STRING_EXCHANGE_FIELDS = [ 'this.Id', 'this.Version', 'this.Name', 'this.Url', 'this.Hostname', 'this.UserAgent' ];
+// GB09: the credential fields are `string` in go/v4/exchange.go too (Token/Login/Twofa stay boxed)
+const GO_STRING_EXCHANGE_FIELDS = [ 'this.Id', 'this.Version', 'this.Name', 'this.Url', 'this.Hostname', 'this.UserAgent',
+    'this.ApiKey', 'this.Secret', 'this.Uid', 'this.Password', 'this.AccountId', 'this.WalletAddress', 'this.PrivateKey' ];
 
 // the `+` nodes whose declaration print is in flight. The hook answers `string`
 // only for one of these, so the same expression shape in any other position
@@ -2118,8 +2121,8 @@ function goStringOperand (goTranspiler, node) {
         return goStringOperand (goTranspiler, node.expression);
     case ts.SyntaxKind.PropertyAccessExpression: {
         // `this.id` / `this.version` / ... print as `this.Id` / `this.Version`: the
-        // BaseExchange fields declared `string` in go/v4/exchange.go. Every other
-        // config field (ApiKey, Secret, Uid, Password, ...) is `interface{}`.
+        // BaseExchange fields declared `string` in go/v4/exchange.go. Token/Login/Twofa
+        // and the proxy fields are still `interface{}`.
         const printed = goTranspiler.printNode (node, 0);
         return GO_STRING_EXCHANGE_FIELDS.indexOf (printed) >= 0;
     }
@@ -6953,6 +6956,7 @@ export function installCcxtGoLocalTypes (goTranspiler, unifiedInt64Params = unde
     installCcxtGoNilDeclaredValueJoins (goTranspiler);
     installCcxtGoTernaryCast (goTranspiler);
     installCcxtGoNilDeclaredJoin (goTranspiler);
+    hx10G06InstallTupleJoins (goTranspiler);  // hx10 G06: tuple-slot param bags
     if (typeof goTranspiler.printVariableDeclarationList === 'function'
         && typeof goTranspiler.goEnclosingFunction === 'function'
         && typeof goTranspiler.goTypeNameIsShadowed === 'function'

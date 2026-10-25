@@ -2123,7 +2123,7 @@ export default class okx extends Exchange {
                 type = 'fiat';
             }
             const idParts = networkId.split ('-');
-            const parts = this.arraySlice (idParts, 1);
+            const parts: Str[] = this.arraySlice (idParts, 1);
             const chainPart = parts.join ('-');
             const networkCode = this.networkIdToCode (chainPart, code);
             if (networkCode !== undefined) {
@@ -3235,8 +3235,8 @@ export default class okx extends Exchange {
         if (!shouldOmitSize) {
             request['sz'] = this.amountToPrecision (symbol, amount);
         }
-        const spot = market['spot'];
-        const contract = market['contract'];
+        const spot = this.safeBool (market, 'spot');
+        const contract = this.safeBool (market, 'contract');
         const triggerPrice = this.safeValueN (params, [ 'triggerPrice', 'stopPrice', 'triggerPx' ]);
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
@@ -6107,7 +6107,7 @@ export default class okx extends Exchange {
         const chain = this.safeString (transaction, 'chain');
         if (chain !== undefined) {
             const chainParts = chain.split ('-');
-            const networkParts = this.arraySlice (chainParts, 1);
+            const networkParts: Str[] = this.arraySlice (chainParts, 1);
             const networkId = networkParts.join ('-');
             network = this.networkIdToCode (networkId, code);
         }
@@ -6321,7 +6321,7 @@ export default class okx extends Exchange {
             // 'posId': '307173036051017730', // optional string, Single or multiple position IDs (no more than 20) separated with commas
         };
         if (symbols !== undefined) {
-            const marketIds: List = [];
+            const marketIds: Str[] = [];
             for (let i = 0; i < symbols.length; i++) {
                 const entry = symbols[i];
                 const market = this.market (entry);

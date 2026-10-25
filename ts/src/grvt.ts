@@ -561,12 +561,11 @@ export default class grvt extends Exchange {
             return {};
         }
         const walletAddress = this.ethGetAddressFromPrivateKey (this.privateKey);
-        let request: Dict = {
+        const request: Dict = {
             'address': walletAddress,
             'signature': this.defaultSignature (),
         };
-        request = this.createSignedRequest (request, 'EIP712_WALLETLOGIN_TYPE');
-        const response = await this.privateEdgePostAuthWalletLogin (this.extend (request, params));
+        const response = await this.privateEdgePostAuthWalletLogin (this.extend (this.createSignedRequest (request, 'EIP712_WALLETLOGIN_TYPE'), params));
         //
         //    {
         //        "location": "",
@@ -613,15 +612,14 @@ export default class grvt extends Exchange {
         } else {
             try {
                 const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId'); // this.ethGetAddressFromPrivateKey (this.secret); // this.safeString (this.options, 'userMainAccountId');
-                let request: Dict = {
+                const request: Dict = {
                     'main_account_id': defaultFromAccountId,
                     'builder_account_id': this.safeString (this.options, 'builder'),
                     'max_futures_fee_rate': this.safeString (this.options, 'builderRate'),
                     'max_spot_fee_rate': this.safeString (this.options, 'builderRate'),
                     'signature': this.defaultSignature (),
                 };
-                request = this.createSignedRequest (request, 'EIP712_BUILDER_APPROVAL_TYPE');
-                const authResponse = await this.privateTradingPostFullV1AuthorizeBuilder (this.extend (request, params));
+                const authResponse = await this.privateTradingPostFullV1AuthorizeBuilder (this.extend (this.createSignedRequest (request, 'EIP712_BUILDER_APPROVAL_TYPE'), params));
                 //
                 // {
                 //     "result": {
@@ -1763,7 +1761,7 @@ export default class grvt extends Exchange {
         return this.toArray (filteredResults[1]);
     }
 
-    filterTransfersByType (transfers: any, transferType: string, onlyMainAccount = true): List[] {
+    filterTransfersByType (transfers: Dict[], transferType: string, onlyMainAccount = true): List[] {
         const matchedResults: List = [];
         const nonMatchedResults: List = [];
         for (let i = 0; i < transfers.length; i++) {
@@ -1812,7 +1810,7 @@ export default class grvt extends Exchange {
             toSubAccount = (toAccount === 'trading') ? tradingAccountId : fundingAccountId;
             paramsFundingAccountId = paramsFunding;
         }
-        let request: Dict = {
+        const request: Dict = {
             'from_account_id': this.safeString (paramsFundingAccountId, 'from_account_id', defaultFromAccountId),
             'from_sub_account_id': this.safeString (paramsFundingAccountId, 'from_sub_account_id', fromSubAccount),
             'to_account_id': this.safeString (paramsFundingAccountId, 'to_account_id', defaultFromAccountId),
@@ -1823,10 +1821,9 @@ export default class grvt extends Exchange {
             'transfer_type': 'STANDARD',
             'transfer_metadata': null,
         };
-        request = this.createSignedRequest (request, 'EIP712_TRANSFER_TYPE', currency);
         let response = undefined;
         try {
-            response = await this.privateTradingPostFullV1Transfer (this.extend (request, paramsFundingAccountId));
+            response = await this.privateTradingPostFullV1Transfer (this.extend (this.createSignedRequest (request, 'EIP712_TRANSFER_TYPE', currency), paramsFundingAccountId));
         } catch (error) {
             const msg = this.exceptionMessage (error);
             const isFromFundingAccount = fromSubAccount === 'funding';
@@ -1972,7 +1969,7 @@ export default class grvt extends Exchange {
         await this.loadMarketsAndSignIn ();
         const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId');
         const currency = this.currency (code);
-        let request: Dict = {
+        const request: Dict = {
             'to_eth_address': address,
             'from_account_id': defaultFromAccountId,
             'currency': currency['id'],
@@ -1985,8 +1982,7 @@ export default class grvt extends Exchange {
             throw new BadRequest (this.id + ' withdraw() requires a network parameter');
         }
         request['signature']['chain_id'] = networkId;
-        request = this.createSignedRequest (request, 'EIP712_WITHDRAWAL_TYPE', currency);
-        const response = await this.privateTradingPostFullV1Withdrawal (this.extend (request, query));
+        const response = await this.privateTradingPostFullV1Withdrawal (this.extend (this.createSignedRequest (request, 'EIP712_WITHDRAWAL_TYPE', currency), query));
         //
         // {
         //     "result": {
@@ -3316,7 +3312,7 @@ export default class grvt extends Exchange {
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
-        let requestPath: any = path;
+        let requestPath: string = path;
         const query = this.omit (params, this.extractParams (requestPath));
         const apiName = api[0];
         const apiUrl = this.safeString (this.urls['api'], apiName);

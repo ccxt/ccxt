@@ -1683,13 +1683,13 @@ export default class krakenfutures extends krakenfuturesRest {
         });
     }
 
-    async watchMultiHelper (unifiedName: string, channelName: string, symbols: any = undefined, subscriptionArgs: any = undefined, params: Dict = {}) {
+    async watchMultiHelper (unifiedName: string, channelName: string, symbols: any = undefined, subscriptionArgs: Dict | undefined = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const url = this.urls['api']['ws'];
         // symbols are required
-        const symbolsNormalized: any = this.marketSymbols (symbols, undefined, false, true, false);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, false);
         const messageHashes: string[] = [];
         const rawSubs: Str[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {

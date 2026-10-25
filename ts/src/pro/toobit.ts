@@ -304,7 +304,7 @@ export default class toobit extends toobitRest {
         const url = this.safeString (this.urls['api']['ws'], 'common') + '/quote/ws/v1';
         const messageHashes: List = [];
         const timeframes = this.safeDict (this.options['ws'], 'timeframes', {});
-        const marketIds: List = [];
+        const marketIds: Str[] = [];
         let selectedTimeframe: Str = undefined;
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = this.safeList (symbolsAndTimeframes, i);

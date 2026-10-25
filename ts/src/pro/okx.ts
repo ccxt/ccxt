@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import okxRest from '../okx.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, List, Liquidation, Bool, Market } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, NullableDict, List, Liquidation, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -1367,7 +1367,7 @@ export default class okx extends okxRest {
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         let depth: Str = undefined;
-        let paramsDepth = undefined;
+        let paramsDepth: NullableDict = undefined;
         [ depth, paramsDepth ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'depth', 'books');
         const limit = this.safeInteger (paramsDepth, 'limit');
         if (limit !== undefined) {
@@ -1468,7 +1468,7 @@ export default class okx extends okxRest {
         const symbol = this.safeSymbol (marketId, market);
         const seqId = this.safeInteger (message, 'seqId');
         const prevSeqId = this.safeInteger (message, 'prevSeqId');
-        const nonce = orderbook['nonce'];
+        const nonce = this.safeInteger (orderbook, 'nonce');
         if (prevSeqId !== undefined && prevSeqId !== -1 && nonce !== prevSeqId) {
             const error = new InvalidNonce (this.id + ' watchOrderBook received invalid nonce');
             delete client.subscriptions[messageHash];

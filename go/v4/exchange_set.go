@@ -1,7 +1,5 @@
 package ccxt
 
-import "sync"
-
 func (this *BaseExchange) SetEnableRateLimit(rateLimit bool) {
 	this.EnableRateLimit = rateLimit
 }
@@ -27,11 +25,11 @@ func (this *BaseExchange) GetRequiredCredentials() map[string]any {
 }
 
 func (this *BaseExchange) GetLast_request_url() any {
-	return this.Last_request_url
+	return this.readRequestBook().requestUrl
 }
 
 func (this *BaseExchange) GetLast_request_body() any {
-	return this.Last_request_body
+	return this.readRequestBook().requestBody
 }
 
 func (this *BaseExchange) SetProxyUrl(proxyUrl any) {
@@ -51,15 +49,18 @@ func (this *BaseExchange) SetSocksProxy(proxyUrl any) {
 }
 
 func (this *BaseExchange) GetLast_request_headers() map[string]any {
-	return this.Last_request_headers.(map[string]any)
+	headers, _ := this.readRequestBook().requestHeaders.(map[string]any)
+	return headers
 }
 
 func (this *BaseExchange) GetLast_response_headers() map[string]any {
-	return this.Last_response_headers.(map[string]any)
+	headers, _ := this.readRequestBook().responseHeaders.(map[string]any)
+	return headers
 }
 
 func (this *BaseExchange) GetLastResponseHeaders() map[string]any {
-	return this.Last_response_headers.(map[string]any)
+	headers, _ := this.readRequestBook().responseHeaders.(map[string]any)
+	return headers
 }
 
 func (this *BaseExchange) SetFetchHistoryCacheSize(size any) {
@@ -84,7 +85,7 @@ func (this *BaseExchange) GetHas() map[string]any {
 	return this.Has
 }
 
-func (this *BaseExchange) GetOptions() *sync.Map {
+func (this *BaseExchange) GetOptions() map[string]any {
 	return this.Options
 }
 
@@ -100,12 +101,12 @@ func (this *BaseExchange) GetApi() map[string]any {
 	return this.Api
 }
 
-func (this *BaseExchange) GetCurrencies() *sync.Map {
-	return this.Currencies
+func (this *BaseExchange) GetCurrencies() map[string]any {
+	return this.Currencies()
 }
 
-func (this *BaseExchange) GetMarkets() *sync.Map {
-	return this.Markets
+func (this *BaseExchange) GetMarkets() map[string]any {
+	return this.Markets()
 }
 
 func (this *BaseExchange) GetNetworkAliases() map[string]any {
@@ -141,7 +142,7 @@ func (this *BaseExchange) SetCurrencies(currencies any) {
 	if currencies == nil {
 		return
 	}
-	this.Currencies = this.MapToSafeMap(currencies.(map[string]any))
+	this.PublishCurrencies(this.Extend(currencies))
 }
 
 func (this *BaseExchange) SetPassword(password any) {
@@ -205,7 +206,7 @@ func (this *BaseExchange) SetAccounts(accounts any) {
 
 func (this *BaseExchange) SetOptions(options any) {
 	options = derefScalar(options) // generated callers may pass typed pointers; a typed nil is an absent value
-	this.Options = this.MapToSafeMap(options.(map[string]any))
+	this.Options = options.(map[string]any)
 }
 
 func (this *BaseExchange) SetWssProxy(wssProxy any) {
@@ -244,8 +245,9 @@ func (this *BaseExchange) SetVerbose(verbose any) {
 	this.Verbose = verbose.(bool)
 }
 
-func (this *BaseExchange) GetCache() *sync.Map {
-	return &this.methodCache
+// GetCache returns the published reflection method table for this exchange object.
+func (this *BaseExchange) GetCache() map[string]any {
+	return this.methodsFor(this.Itf)
 }
 
 func (this *BaseExchange) GetItf() any {

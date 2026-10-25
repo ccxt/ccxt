@@ -4,7 +4,6 @@ import (
 	// "errors"
 	"encoding/json"
 	"fmt"
-	"sync"
 
 	// "reflect"
 	"strconv"
@@ -94,8 +93,6 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 
 	// Handle maps
 	if dict, ok := obj.(map[string]any); ok {
-		// serialize map reads to avoid races with concurrent writes elsewhere
-		addElementMu.Lock()
 		for _, key := range keys {
 			if key == nil {
 				continue
@@ -104,29 +101,26 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 			if value, found := dict[keyStr]; found {
 				value = derefScalar(value)
 				if value != nil && value != "" {
-					addElementMu.Unlock()
 					return value
 				}
 			}
 		}
-		addElementMu.Unlock()
 		return defVal
-	} else if syncDict, ok := obj.(*sync.Map); ok {
-		if syncDict == nil {
-			return defVal
-		}
+	} else if bookMap, ok := obj.(map[string]map[string]any); ok {
+		// the ohlcv book is two-level: a symbol key answers its timeframe map
 		for _, key := range keys {
 			if key == nil {
 				continue
 			}
 			keyStr := fmt.Sprintf("%v", key)
-			if value, found := syncDict.Load(keyStr); found {
-				value = derefScalar(value)
-				if value != nil && value != "" {
+			if found, present := bookMap[keyStr]; present {
+				var value any = derefScalar(found)
+				if value != nil {
 					return value
 				}
 			}
 		}
+		return defVal
 	}
 
 	switch v := obj.(type) {

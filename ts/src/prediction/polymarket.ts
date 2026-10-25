@@ -356,7 +356,7 @@ export default class polymarket extends Exchange {
         const queries = this.parseSearchQueries (params) as any[];
         const rest = this.omit (params, [ 'query', 'queries' ]);
         const queriesLength = queries.length;
-        let rawEvents: any[] = [];
+        let rawEvents: Dict[] = [];
         if (queriesLength > 0) {
             rawEvents = await this.fetchRawEventsBySearch (queries, rest);
         } else {
@@ -392,7 +392,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.limit] page size per search query, defaults to 50
      * @returns {object[]} an array of raw gamma event objects
      */
-    async fetchRawEventsBySearch (queries: string[], params: Dict = {}): Promise<any[]> {
+    async fetchRawEventsBySearch (queries: string[], params: Dict = {}): Promise<Dict[]> {
         const resultLimit = this.safeInteger (params, 'limit');
         // fixed page size (gamma's limit_per_type). do NOT tie it to `limit`: that made a small
         // limit fan out into many tiny-page requests (limit:1 -> ~one request per matching event).
@@ -416,7 +416,7 @@ export default class polymarket extends Exchange {
         }
         const rest = this.omit (params, [ 'limit', 'sort', 'status', 'searchIn', 'eventId', 'slug', 'query', 'queries', 'searchPageSize', 'maxSearchPages' ]);
         const seen: Dict = {};
-        const rawEvents: any[] = [];
+        const rawEvents: Dict[] = [];
         for (let qi = 0; qi < queries.length; qi++) {
             const q = queries[qi];
             const baseRequest: Dict = { 'q': q, 'limit_per_type': pageSize, 'sort': sortParam, 'ascending': false };
@@ -426,7 +426,7 @@ export default class polymarket extends Exchange {
             let firstRequest: Dict = { 'page': 1 };
             firstRequest = this.extend (this.extend (firstRequest, baseRequest), rest);
             const first = await this.gammaPublicGetPublicSearch (firstRequest);
-            const firstEvents = this.safeList (first, 'events', []) as any[];
+            const firstEvents: Dict[] = this.safeList (first, 'events', []);
             const firstEventsLength = firstEvents.length;
             const pagination = this.safeDict (first, 'pagination', {});
             const totalResults = this.safeInteger (pagination, 'totalResults', firstEventsLength);
@@ -456,12 +456,12 @@ export default class polymarket extends Exchange {
                 restPromises.push (this.gammaPublicGetPublicSearch (pageRequest));
             }
             const restResponses = await Promise.all (restPromises);
-            const allEvents: any[] = [];
+            const allEvents: Dict[] = [];
             for (let fi = 0; fi < firstEvents.length; fi++) {
                 allEvents.push (firstEvents[fi]);
             }
             for (let ri = 0; ri < restResponses.length; ri++) {
-                const pageEvents = this.safeList (restResponses[ri], 'events', []) as any[];
+                const pageEvents: Dict[] = this.safeList (restResponses[ri], 'events', []);
                 for (let ei = 0; ei < pageEvents.length; ei++) {
                     allEvents.push (pageEvents[ei]);
                 }
@@ -522,7 +522,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.limit] max number of events to fetch (default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
      * @returns {object[]} an array of raw gamma event objects
      */
-    async fetchRawEventsList (params: Dict = {}): Promise<any[]> {
+    async fetchRawEventsList (params: Dict = {}): Promise<Dict[]> {
         // gamma hard-caps each response at 100 events regardless of the requested limit, so the
         // page size must be that cap or pagination never advances (the > check below stays false)
         const pageSize = this.safeInteger (this.options, 'eventsPageSize', 100);
@@ -549,7 +549,7 @@ export default class polymarket extends Exchange {
         const requestedTagsLength = requestedTags.length;
         if (requestedTagsLength > 1) {
             const seen: Dict = {};
-            const unioned: any[] = [];
+            const unioned: Dict[] = [];
             for (let ti = 0; ti < requestedTagsLength; ti++) {
                 const singleTagParams = this.extend ({}, params);
                 singleTagParams['tags'] = [ requestedTags[ti] ];
@@ -585,7 +585,7 @@ export default class polymarket extends Exchange {
         const firstPageIsArray = Array.isArray (firstPageResponse);
         const firstPage = (firstPageIsArray) ? firstPageResponse : [];
         const firstPageLength = firstPage.length;
-        const allRawEvents: any[] = [];
+        const allRawEvents: Dict[] = [];
         for (let fi = 0; fi < firstPageLength; fi++) {
             allRawEvents.push (firstPage[fi]);
         }
@@ -618,7 +618,7 @@ export default class polymarket extends Exchange {
 
     parseEventToMarkets (event: Dict): Market[] {
         const eventSlug = this.safeString (event, 'slug', this.safeString (event, 'id'));
-        const rawMarkets = this.safeList (event, 'markets', []) as any[];
+        const rawMarkets: Dict[] = this.safeList (event, 'markets', []);
         const result: Market[] = [];
         //
         // {
@@ -941,7 +941,7 @@ export default class polymarket extends Exchange {
                 if (endIndex > tokenIdsLength) {
                     endIndex = tokenIdsLength;
                 }
-                const chunk: any[] = [];
+                const chunk: string[] = [];
                 for (let i = startIndex; i < endIndex; i++) {
                     chunk.push (tokenIds[i]);
                 }
@@ -2458,7 +2458,7 @@ export default class polymarket extends Exchange {
             throw new ExchangeError (this.id + ' fetchEvents() missing queries');
         }
         const queriesLength = queries.length;
-        let rawEvents: any[] = [];
+        let rawEvents: Dict[] = [];
         if ((requestedEventId !== undefined) || (requestedSlug !== undefined)) {
             // direct lookup by event id or slug via the events endpoint (returns a list)
             const lookup: Dict = {};
@@ -2482,7 +2482,7 @@ export default class polymarket extends Exchange {
         if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
-        const result: any[] = [];
+        const result: Dict[] = [];
         for (let rei = 0; rei < rawEvents.length; rei++) {
             const rawEvent = rawEvents[rei];
             let eventForParsing = rawEvent;
@@ -2674,7 +2674,7 @@ export default class polymarket extends Exchange {
      * @returns {object[]} a list of event structures
      */
     parseEvents (rawEvents: any[]): Dict[] {
-        const result: any[] = [];
+        const result: Dict[] = [];
         for (let i = 0; i < rawEvents.length; i++) {
             const rawEvent = rawEvents[i];
             result.push (this.parseEvent (rawEvent));

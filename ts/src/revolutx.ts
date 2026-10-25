@@ -3,7 +3,7 @@
 import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/revolutx.js';
 import { BadRequest, InvalidOrder, InvalidNonce, OrderNotFound, ExchangeError, ArgumentsRequired, PermissionDenied, InsufficientFunds, RateLimitExceeded } from './base/errors.js';
-import type { Balances, Currencies, Currency, Dict, Endpoint, Fee, Int, int, List, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Endpoint, Fee, Int, int, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { eddsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -550,7 +550,7 @@ export default class revolutx extends Exchange {
         }
         const request: Dict = {};
         if (symbols !== undefined) {
-            const marketIds: List = [];
+            const marketIds: Str[] = [];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market (symbol);
@@ -1171,11 +1171,11 @@ export default class revolutx extends Exchange {
         if (cursor !== undefined) {
             request['cursor'] = cursor;
         }
-        const orderStates = this.safeList2 (params, 'orderStates', 'order_states');
+        const orderStates: Strings = this.safeList2 (params, 'orderStates', 'order_states');
         if (orderStates !== undefined) {
             request['order_states'] = orderStates.join (',');
         }
-        const orderTypes = this.safeList2 (params, 'orderTypes', 'order_types');
+        const orderTypes: Strings = this.safeList2 (params, 'orderTypes', 'order_types');
         if (orderTypes !== undefined) {
             request['order_types'] = orderTypes.join (',');
         }
@@ -1244,11 +1244,11 @@ export default class revolutx extends Exchange {
         if (cursor !== undefined) {
             request['cursor'] = cursor;
         }
-        const orderStates = this.safeList2 (params, 'orderStates', 'order_states');
+        const orderStates: Strings = this.safeList2 (params, 'orderStates', 'order_states');
         if (orderStates !== undefined) {
             request['order_states'] = orderStates.join (',');
         }
-        const orderTypes = this.safeList2 (params, 'orderTypes', 'order_types');
+        const orderTypes: Strings = this.safeList2 (params, 'orderTypes', 'order_types');
         if (orderTypes !== undefined) {
             request['order_types'] = orderTypes.join (',');
         }

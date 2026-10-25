@@ -1,7 +1,6 @@
 package io.github.ccxt.ws;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Promise-like wrapper around CompletableFuture with explicit resolve/reject.
@@ -66,18 +65,18 @@ public class Future {
      * Race multiple futures — returns a new Future that resolves/rejects
      * when the first input future completes.
      * Matches C# Future.race() and JS Promise.race().
+     *
+     * <p>No settled flag: {@link CompletableFuture#complete} / {@code completeExceptionally} already
+     * apply exactly one completion, so the first callback to arrive wins and the rest are no-ops.
      */
     public static Future race(Future... futures) {
         Future result = new Future();
-        AtomicBoolean settled = new AtomicBoolean(false);
         for (Future f : futures) {
             f.completableFuture.whenComplete((val, ex) -> {
-                if (settled.compareAndSet(false, true)) {
-                    if (ex != null) {
-                        result.completableFuture.completeExceptionally(ex);
-                    } else {
-                        result.completableFuture.complete(val);
-                    }
+                if (ex != null) {
+                    result.completableFuture.completeExceptionally(ex);
+                } else {
+                    result.completableFuture.complete(val);
                 }
             });
         }

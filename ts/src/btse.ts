@@ -963,8 +963,8 @@ export default class btse extends Exchange {
         if (market['contract'] !== true) {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() supports contract markets only');
         }
-        let period = undefined;
-        let paramsPeriod = undefined;
+        let period: Str = undefined;
+        let paramsPeriod: NullableDict = undefined;
         [ period, paramsPeriod ] = this.handleOptionStringAndParams (params, 'fetchFundingRateHistory', 'period');
         if (period === undefined) {
             period = '7D';
@@ -1633,7 +1633,7 @@ export default class btse extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        let paramsUntil = undefined;
+        let paramsUntil: NullableDict = undefined;
         [ request, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, paramsUntil, 'spot');
         let response = undefined;
@@ -3790,7 +3790,7 @@ export default class btse extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    futuresRequestId (market: any) {
+    futuresRequestId (market: Dict) {
         // the futures v3 trading api identifies contracts by the short trade-currency
         // form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read
         // from the raw market info so that cached markets resolve it as well

@@ -40,9 +40,8 @@ class WsClientFuturesLockTest {
                 /* validateServerSsl */ true);
     }
 
-    @SuppressWarnings("unchecked")
-    private static Map<String, Object> futuresOf(WsClient client) {
-        return (Map<String, Object>) client.futures;
+    private static Map<String, Future> futuresOf(WsClient client) {
+        return client.futures;
     }
 
     /** Concurrent future() calls for one hash share one Future; one resolve settles all. */

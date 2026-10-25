@@ -31,7 +31,7 @@ class WsClientConcurrencyTest {
         // and breaking the single-attempt postcondition the test asserts. a
         // blackhole address just hangs far beyond the test window, so nothing
         // can interleave and the assertions are deterministic
-        return new WsClient(
+        WsClient client = new WsClient(
                 "wss://10.255.255.1/ws",
                 null,
                 /* handleMessage */ (c, m) -> {},
@@ -42,6 +42,10 @@ class WsClientConcurrencyTest {
                 /* keepAlive */ 30_000L,
                 /* decompressBinary */ false,
                 /* validateServerSsl */ true);
+        // stubbed transport: connect() arms the single dial but never opens a socket, so
+        // a fast dial failure cannot reset startedConnecting mid-assertion
+        client.isMock = true;
+        return client;
     }
 
     /**
@@ -75,7 +79,7 @@ class WsClientConcurrencyTest {
         start.countDown();
         for (Thread t : threads) t.join();
 
-        assertTrue(client.startedConnecting.get(), "startedConnecting should be set after connect");
+        assertTrue(client.startedConnecting, "startedConnecting should be set after connect");
         // All callers must observe the same future reference (single connection attempt).
         for (int i = 1; i < n; i++) {
             assertSame(returned[0], returned[i], "Caller " + i + " got a different future");

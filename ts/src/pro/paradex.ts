@@ -171,8 +171,8 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         const parsedTrade = this.parseTrade (data);
         const symbol = parsedTrade['symbol'];
         const messageHash = this.safeString (params, 'channel');
@@ -250,8 +250,8 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         const marketId = this.safeString (data, 'market');
         const market = this.safeMarket (marketId);
         const timestamp = this.safeInteger (data, 'last_updated_at');
@@ -429,8 +429,8 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         const parsed = this.parseOrder (data);
         const symbol = this.safeString (parsed, 'symbol');
         if (this.orders === undefined) {
@@ -513,8 +513,8 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         const trade = this.parseTrade (data);
         const symbol = this.safeString (trade, 'symbol');
         if (this.myTrades === undefined) {
@@ -600,8 +600,8 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
@@ -682,8 +682,8 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         // merge the parsed update into the existing balance object instead of
         // replacing it: a consumer awakened by an earlier message holds a
         // reference to this.balance, and Client.resolve is a no-op while
@@ -754,8 +754,8 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -864,8 +864,8 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         const fundingRate = this.parseFundingRateWs (data);
         const symbol = fundingRate['symbol'];
         this.fundingRates[(symbol as string)] = fundingRate;
@@ -943,7 +943,7 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         let channel: Str = undefined;
-        let data: any = undefined;
+        let data: NullableDict = undefined;
         if (templateId === 1) {
             data = this.parseSbeTrade (frameHex, blockLength, frameLength);
             if (data !== undefined) {

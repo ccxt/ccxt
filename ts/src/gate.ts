@@ -2803,7 +2803,7 @@ export default class gate extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response: Dict;
+        let response: List;
         if (type === 'swap') {
             response = await this.privateFuturesGetSettleAccountBook (this.extend (request, requestParams));
         } else if (type === 'future') {
@@ -2826,7 +2826,7 @@ export default class gate extends Exchange {
         return this.parseFundingHistories (response, symbolResolved, since, limit);
     }
 
-    parseFundingHistories (response: any, symbol: Str, since: Int, limit: Int): FundingHistory[] {
+    parseFundingHistories (response: List, symbol: Str, since: Int, limit: Int): FundingHistory[] {
         const result: FundingHistory[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = this.safeDict (response, i);
@@ -3545,9 +3545,10 @@ export default class gate extends Exchange {
         const paramsOmitted = this.omit (paramsRequest, 'until');
         if (since !== undefined) {
             const duration = this.parseTimeframe (timeframe);
-            request['from'] = this.parseToInt (since / 1000);
+            const fromTimestamp = this.parseToInt (since / 1000);
+            request['from'] = fromTimestamp;
             const distance = (limitValue - 1) * duration;
-            const toTimestamp = this.sum (request['from'], distance);
+            const toTimestamp = this.sum (fromTimestamp, distance);
             const currentTimestamp = this.seconds ();
             const to = Math.min (toTimestamp, currentTimestamp);
             if (until !== undefined) {
@@ -4724,7 +4725,7 @@ export default class gate extends Exchange {
         if (useGateFuturesDecimalSize) {
             sizeRequest = signedAmount;
         }
-        let request: NullableDict = undefined;
+        let request: Dict = {};
         const nonTriggerOrder = !isTpsl && (trigger === undefined);
         if (nonTriggerOrder) {
             if (contract === true) {

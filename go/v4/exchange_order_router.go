@@ -2485,14 +2485,9 @@ func (this *OrderRouter) Execute(plan map[string]any, venues map[string]IExchang
 // symbol -> market dictionary the pure layer speaks.
 func routerVenueMarkets(venue IExchange) map[string]any {
 	markets := map[string]any{}
-	loaded := venue.GetMarkets()
-	if loaded == nil {
-		return markets
+	for key, value := range venue.GetMarkets() {
+		markets[key] = value
 	}
-	loaded.Range(func(key any, value any) bool {
-		markets[ToString(key)] = value
-		return true
-	})
 	return markets
 }
 

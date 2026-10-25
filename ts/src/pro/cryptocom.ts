@@ -287,7 +287,7 @@ export default class cryptocom extends cryptocomRest {
         } else {
             books = this.safeDict (data, 'update', {});
             const previousNonce = this.safeInteger (data, 'pu');
-            const currentNonce = orderbook['nonce'];
+            const currentNonce = this.safeInteger (orderbook, 'nonce');
             if (currentNonce !== previousNonce) {
                 const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
                 if (checksum === true) {

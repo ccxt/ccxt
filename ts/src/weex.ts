@@ -4390,7 +4390,7 @@ export default class weex extends Exchange {
         if (hasJsonBody) {
             requestBody = this.json (query);
         }
-        let requestHeaders: NullableDict = undefined;
+        let requestHeaders: Dict = {};
         if (isPrivate) {
             const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
             if ((sandboxMode) && (path.indexOf ('capi/v3/sim/') !== 0)) {

@@ -76,7 +76,7 @@ export default class alpaca extends alpacaRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
-        const url = this.urls['api']['ws']['crypto'];
+        const url = this.safeString (this.safeDict (this.urls['api'], 'ws'), 'crypto');
         await this.authenticate (url);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -162,7 +162,7 @@ export default class alpaca extends alpacaRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
-        const url = this.urls['api']['ws']['crypto'];
+        const url = this.safeString (this.safeDict (this.urls['api'], 'ws'), 'crypto');
         await this.authenticate (url);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -222,7 +222,7 @@ export default class alpaca extends alpacaRest {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
-        const url = this.urls['api']['ws']['crypto'];
+        const url = this.safeString (this.safeDict (this.urls['api'], 'ws'), 'crypto');
         await this.authenticate (url);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -308,7 +308,7 @@ export default class alpaca extends alpacaRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        const url = this.urls['api']['ws']['crypto'];
+        const url = this.safeString (this.safeDict (this.urls['api'], 'ws'), 'crypto');
         await this.authenticate (url);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -367,7 +367,7 @@ export default class alpaca extends alpacaRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        const url = this.urls['api']['ws']['trading'];
+        const url = this.safeString (this.safeDict (this.urls['api'], 'ws'), 'trading');
         await this.authenticate (url);
         let messageHash = 'myTrades';
         if (this.markets === undefined) {
@@ -402,7 +402,7 @@ export default class alpaca extends alpacaRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
-        const url = this.urls['api']['ws']['trading'];
+        const url = this.safeString (this.safeDict (this.urls['api'], 'ws'), 'trading');
         await this.authenticate (url);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -627,7 +627,7 @@ export default class alpaca extends alpacaRest {
         }, market);
     }
 
-    async authenticate (url: string, params: Dict = {}) {
+    async authenticate (url: Str, params: Dict = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);
@@ -639,7 +639,7 @@ export default class alpaca extends alpacaRest {
                 'key': this.apiKey,
                 'secret': this.secret,
             };
-            if (url === this.safeString (this.urls['api']['ws'], 'trading')) {
+            if (url === this.safeString (this.safeDict (this.urls['api'], 'ws'), 'trading')) {
                 // this auth request is being deprecated in test environment
                 request = {
                     'action': 'authenticate',

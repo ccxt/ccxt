@@ -118,7 +118,7 @@ export default class backpack extends backpackRest {
      * @param {boolean} [unwatch] whether to unsubscribe
      * @returns {object} unified tickers
      */
-    async subscribeWsTickers (methodName: string, symbols: Strings = undefined, params: Dict = {}, bidAsk = false, unwatch = false): Promise<Tickers> {
+    async subscribeWsTickers (methodName: string, symbols: Strings = undefined, params: Dict = {}, bidAsk: boolean = false, unwatch: boolean = false): Promise<Tickers> {
         const query = await this.prepareWsStockParams (methodName, params);
         const stock = this.safeBool (query, 'stock', false);
         const explicitSource = this.safeString (query, 'source');
@@ -369,7 +369,7 @@ export default class backpack extends backpackRest {
      * @param {string} [params.channel] stockPrice or stockIndicativeQuote, matching the subscription
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTicker (symbol: string, params = {}): Promise<any> {
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
         await this.subscribeWsTickers ('watchTicker', [ symbol ], params, false, true);
         return undefined;
     }
@@ -674,7 +674,7 @@ export default class backpack extends backpackRest {
      * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         const query = await this.prepareWsStockParams ('watchOHLCV', params);
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, query);
         return result[symbol][timeframe];
@@ -692,7 +692,7 @@ export default class backpack extends backpackRest {
      * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         const query = await this.prepareWsStockParams ('watchOHLCV', params);
         return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], query);
     }
@@ -871,7 +871,7 @@ export default class backpack extends backpackRest {
      * @param {string} [params.source] Venue only
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         const query = await this.prepareWsStockParams ('watchTrades', params);
         return await this.unWatchTradesForSymbols ([ symbol ], query);
     }
@@ -1106,7 +1106,7 @@ export default class backpack extends backpackRest {
      * @param {string} [params.source] Venue only
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         const query = await this.prepareWsStockParams ('watchOrderBook', params);
         return await this.unWatchOrderBookForSymbols ([ symbol ], query);
     }

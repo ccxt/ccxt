@@ -162,7 +162,7 @@ export default class binance extends Exchange {
             const eventsLength = events.length;
             const queryMarkets: Market[] = [];
             for (let ei = 0; ei < eventsLength; ei++) {
-                const eventMarkets = this.safeList (events[ei], 'markets', []) as any[];
+                const eventMarkets: List = this.safeList (events[ei], 'markets', []);
                 const eventMarketsLength = eventMarkets.length;
                 for (let mi = 0; mi < eventMarketsLength; mi++) {
                     queryMarkets.push (eventMarkets[mi]);
@@ -179,7 +179,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < rawTopicsLength; i++) {
             const parsedEvent = this.parseEvent (rawTopics[i]);
             parsedEvents.push (parsedEvent);
-            const eventMarkets = this.safeList (parsedEvent, 'markets', []) as any[];
+            const eventMarkets: List = this.safeList (parsedEvent, 'markets', []);
             const eventMarketsLength = eventMarkets.length;
             for (let mi = 0; mi < eventMarketsLength; mi++) {
                 flatMarkets.push (eventMarkets[mi]);
@@ -199,12 +199,12 @@ export default class binance extends Exchange {
      * @param {object} [rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
      * @returns {object[]} raw market topic objects
      */
-    async fetchRawTopics (maxTopics: Int, rest: Dict = {}): Promise<any[]> {
+    async fetchRawTopics (maxTopics: Int, rest: Dict = {}): Promise<Dict[]> {
         const maxTopicsOption = this.safeInteger (this.options, 'maxFetchMarketsLimit', 200);
         const maxTopicsResolved = (maxTopics !== undefined) ? maxTopics : maxTopicsOption;
         const pageLimitOption = this.safeInteger (this.options, 'marketsPageLimit', 100);
         const pageLimit = (pageLimitOption > 100) ? 100 : pageLimitOption;
-        const collected: any[] = [];
+        const collected: List = [];
         let offset: int = 0;
         while (true) {
             const collectedLength = collected.length;
@@ -250,7 +250,7 @@ export default class binance extends Exchange {
             //         "hasMore": true
             //     }
             //
-            const pageTopics = this.safeList (response, 'marketTopics', []) as any[];
+            const pageTopics: Dict[] = this.safeList (response, 'marketTopics', []);
             const pageTopicsLength = pageTopics.length;
             for (let i = 0; i < pageTopicsLength; i++) {
                 collected.push (pageTopics[i]);
@@ -273,7 +273,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra params forwarded verbatim to the detail endpoint
      * @returns {object} the raw market topic object
      */
-    async fetchRawTopicDetail (topicId: string, params: Dict = {}): Promise<any> {
+    async fetchRawTopicDetail (topicId: string, params: Dict = {}): Promise<Dict> {
         const request: Dict = {
             'marketTopicId': topicId,
         };
@@ -288,17 +288,17 @@ export default class binance extends Exchange {
      * @param {object[]} rawTopics raw market topic objects
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    async completeRawTopics (rawTopics: any[]): Promise<any[]> {
-        const result: any[] = [];
+    async completeRawTopics (rawTopics: Dict[]): Promise<Dict[]> {
+        const result: Dict[] = [];
         const rawTopicsLength = rawTopics.length;
         for (let i = 0; i < rawTopicsLength; i++) {
             const rawTopic = rawTopics[i];
-            const rawMarkets = this.safeList (rawTopic, 'markets', []) as any[];
+            const rawMarkets: Dict[] = this.safeList (rawTopic, 'markets', []);
             const rawMarketsLength = rawMarkets.length;
             let hasOutcomes = false;
             if (rawMarketsLength > 0) {
                 const firstMarket = this.safeDict (rawMarkets, 0, {});
-                const firstOutcomes = this.safeList (firstMarket, 'outcomes', []) as any[];
+                const firstOutcomes: Dict[] = this.safeList (firstMarket, 'outcomes', []);
                 const firstOutcomesLength = firstOutcomes.length;
                 hasOutcomes = (firstOutcomesLength > 0);
             }
@@ -366,7 +366,7 @@ export default class binance extends Exchange {
         if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
-        let rawTopics: any[] = [];
+        let rawTopics: List = [];
         if (allQueriesLength > 0) {
             rawTopics = await this.fetchEventsByQuery (allQueries, fetchCap, rest);
         } else if (eventId !== undefined) {
@@ -405,7 +405,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < rawTopicsLength; i++) {
             const parsedEvent = this.parseEvent (rawTopics[i]);
             result.push (parsedEvent);
-            const parsedMarkets = this.safeList (parsedEvent, 'markets', []) as any[];
+            const parsedMarkets: List = this.safeList (parsedEvent, 'markets', []);
             const parsedMarketsLength = parsedMarkets.length;
             for (let mi = 0; mi < parsedMarketsLength; mi++) {
                 const m = parsedMarkets[mi];
@@ -435,9 +435,9 @@ export default class binance extends Exchange {
      * @param {object} [rest] extra params forwarded verbatim to the search endpoint
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    async fetchEventsByQuery (queries: string[], limit: Int, rest: Dict = {}): Promise<any[]> {
+    async fetchEventsByQuery (queries: string[], limit: Int, rest: Dict = {}): Promise<Dict[]> {
         const seen: Dict = {};
-        const collected: any[] = [];
+        const collected: List = [];
         const queriesLength = queries.length;
         const limitValue = (limit === undefined) ? 20 : limit;
         const limitResolved = (limitValue > 50) ? 50 : limitValue;
@@ -531,7 +531,7 @@ export default class binance extends Exchange {
         //         "markets": [ { "marketId": 5567895, "title": "UP", "outcomes": [ ... ] } ]
         //     }
         //
-        const rawMarkets = this.safeList (rawTopic, 'markets', []) as any[];
+        const rawMarkets: Dict[] = this.safeList (rawTopic, 'markets', []);
         const marketsList: any[] = [];
         let anyActive = false;
         const rawMarketsLength = rawMarkets.length;
@@ -1615,7 +1615,7 @@ export default class binance extends Exchange {
      * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
      * @returns {object} a quote
      */
-    async fetchQuote (request: Dict, params: Dict = {}): Promise<any> {
+    async fetchQuote (request: Dict, params: Dict = {}): Promise<Dict> {
         const response = await this.sapiPrivatePostTradeGetQuote (this.extend (request, params));
         //
         // {

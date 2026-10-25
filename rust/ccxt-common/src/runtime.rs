@@ -122,6 +122,7 @@ pub fn multiply(a: &Value, b: &Value) -> Value {
     }
 }
 
+// Printed by the rust `/` wrapper table; keep at 0 call sites.
 pub fn divide(a: &Value, b: &Value) -> Value {
     match (as_f64(a), as_f64(b)) {
         (Some(_), Some(y)) if y == 0.0 => Value::Null,
@@ -130,6 +131,7 @@ pub fn divide(a: &Value, b: &Value) -> Value {
     }
 }
 
+// Printed by the rust `%` / `%=` wrapper table; keep at 0 call sites.
 pub fn mod_val(a: &Value, b: &Value) -> Value {
     if both_ints(a, b) {
         let yi = as_i64(b).unwrap();
@@ -143,6 +145,7 @@ pub fn mod_val(a: &Value, b: &Value) -> Value {
     }
 }
 
+// Printed by printPrefixUnaryExpression when native negation declines; keep.
 pub fn negate(v: &Value) -> Value {
     match v {
         Value::Int(n)   => Value::Int(-n),
@@ -514,26 +517,6 @@ pub fn get_array_length(v: &Value) -> Value {
     Value::Int(v.len() as i64)
 }
 
-pub fn get_index_of(haystack: &Value, needle: &Value) -> Value {
-    match haystack {
-        Value::Arr(a) => {
-            for (i, item) in a.iter().enumerate() {
-                if is_equal(item, needle) { return Value::Int(i as i64); }
-            }
-            Value::Int(-1)
-        }
-        Value::Str(s) => {
-            if let Value::Str(n) = needle {
-                match s.find(n.as_ref()) {
-                    Some(i) => Value::Int(i as i64),
-                    None    => Value::Int(-1),
-                }
-            } else { Value::Int(-1) }
-        }
-        _ => Value::Int(-1),
-    }
-}
-
 // ── JSON ────────────────────────────────────────────────────────────────────
 
 pub fn json_parse(v: &Value) -> Value {
@@ -747,34 +730,6 @@ pub mod Math {
 // processing in build/rustTranspiler.ts converts `Math.X(...)` to
 // `crate::runtime::Math::X(...)`.
 
-/// `slice(value, start [, end])` — string and array slicing.
-pub fn slice(v: &Value, start: &Value, end: &Value) -> Value {
-    let s = as_i64(start).unwrap_or(0);
-    let e_opt = as_i64(end);
-    match v {
-        Value::Str(s_val) => {
-            let chars: Vec<char> = s_val.chars().collect();
-            let len = chars.len() as i64;
-            let si = if s < 0 { (len + s).max(0) as usize } else { (s as usize).min(chars.len()) };
-            let ei = match e_opt {
-                None => chars.len(),
-                Some(n) => if n < 0 { (len + n).max(0) as usize } else { (n as usize).min(chars.len()) },
-            };
-            if si <= ei { Value::Str(chars[si..ei].iter().collect::<String>().into()) } else { Value::Str(String::new().into()) }
-        }
-        Value::Arr(a) => {
-            let len = a.len() as i64;
-            let si = if s < 0 { (len + s).max(0) as usize } else { (s as usize).min(a.len()) };
-            let ei = match e_opt {
-                None => a.len(),
-                Some(n) => if n < 0 { (len + n).max(0) as usize } else { (n as usize).min(a.len()) },
-            };
-            if si <= ei { Value::Array(a[si..ei].to_vec()) } else { Value::Array(vec![]) }
-        }
-        _ => Value::Null,
-    }
-}
-
 /// `join(array, separator)` — joins array elements into a string.
 pub fn join(arr: &Value, sep: &Value) -> Value {
     let s = stringify_simple(sep);
@@ -823,14 +778,6 @@ pub fn ends_with(haystack: &Value, suffix: &Value) -> bool {
         (Value::Str(h), Value::Str(s)) => h.ends_with(s.as_ref()),
         _ => false,
     }
-}
-
-/// `to_lower(s)` / `to_upper(s)` — string-case conversion (returns Value).
-pub fn to_lower(v: &Value) -> Value {
-    match v { Value::Str(s) => Value::Str(s.to_lowercase().into()), _ => Value::Null }
-}
-pub fn to_upper(v: &Value) -> Value {
-    match v { Value::Str(s) => Value::Str(s.to_uppercase().into()), _ => Value::Null }
 }
 
 /// `trim(s)` — string trim.

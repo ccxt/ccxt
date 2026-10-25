@@ -849,6 +849,7 @@ export default class bullish extends Exchange {
                 }
             }
         }
+        const tradingFees = this.safeDict (this.fees, 'trading', {});
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -867,8 +868,8 @@ export default class bullish extends Exchange {
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
-            'taker': this.fees['trading']['taker'],
-            'maker': this.fees['trading']['maker'],
+            'taker': tradingFees['taker'],
+            'maker': tradingFees['maker'],
             'contractSize': contractSize,
             'expiry': this.parse8601 (expiryDatetime),
             'expiryDatetime': expiryDatetime,

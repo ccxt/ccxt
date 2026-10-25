@@ -457,7 +457,7 @@ export default class bittrade extends Exchange {
         return result;
     }
 
-    async fetchTradingLimitsById (id: Str, params: Dict = {}) {
+    async fetchTradingLimitsById (id: Str, params: Dict = {}): Promise<Dict> {
         const request: Dict = {
             'symbol': id,
         };
@@ -481,7 +481,7 @@ export default class bittrade extends Exchange {
         return this.parseTradingLimits (this.safeDict (response, 'data', {}));
     }
 
-    parseTradingLimits (limits: Dict, symbol: Str = undefined, params: Dict = {}) {
+    parseTradingLimits (limits: Dict, symbol: Str = undefined, params: Dict = {}): Dict {
         //
         //   {                                  symbol: "aidocbtc",
         //                  "buy-limit-must-less-than":  1.1,

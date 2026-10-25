@@ -586,7 +586,7 @@ export default class bitfinex extends Exchange {
     override priceToPrecision (symbol: Str, price: any): string {
         const symbolValue: Str = this.safeSymbol (symbol);
         const market = this.market (symbolValue);
-        const priceValue: any = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode);
+        const priceValue: string = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
@@ -902,7 +902,7 @@ export default class bitfinex extends Exchange {
         return result;
     }
 
-    parseCurrencyCustom (id: any, indexed: Dict, indexedNetworks: Dict): Currency {
+    parseCurrencyCustom (id: string, indexed: Dict, indexedNetworks: Dict): Currency {
         const code = this.safeCurrencyCode (id);
         const label = this.safeList (indexed['label'], id, []);
         const name = this.safeString (label, 1);
@@ -1994,8 +1994,8 @@ export default class bitfinex extends Exchange {
         const results: Dict[] = [];
         const data = this.safeList (response, 4, []);
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const individualOrder = entry[4];
+            const entry: List = data[i];
+            const individualOrder: List = entry[4];
             results.push ({ 'result': individualOrder[0] });
         }
         return this.parseOrders (results);

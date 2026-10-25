@@ -115,16 +115,16 @@ function helperTestProperties () {
     assert (exchange.options !== undefined);
 
     //
-    // credentials
+    // credentials: the Go port declares them as plain strings, so unset is '' there
     //
-    assert (testSharedMethods.exchangeProp (exchange, 'apiKey') === undefined, 'apiKey should be empty string');
-    assert (exchange.secret === undefined, 'secret should be empty string');
-    assert (exchange.uid === undefined, 'uid should be empty string');
+    assert ((testSharedMethods.exchangeProp (exchange, 'apiKey') === undefined) || (testSharedMethods.exchangeProp (exchange, 'apiKey') === ''), 'apiKey should be empty string');
+    assert ((exchange.secret === undefined) || (exchange.secret === ''), 'secret should be empty string');
+    assert ((exchange.uid === undefined) || (exchange.uid === ''), 'uid should be empty string');
     assert (exchange.login === undefined, 'login should be empty string');
-    assert (exchange.password === undefined, 'password should be empty string');
+    assert ((exchange.password === undefined) || (exchange.password === ''), 'password should be empty string');
     assert (exchange.twofa === undefined, 'twofa should be undefined');
-    assert (testSharedMethods.exchangeProp (exchange, 'privateKey') === undefined, 'privateKey should be empty string');
-    assert (testSharedMethods.exchangeProp (exchange, 'walletAddress') === undefined, 'walletAddress should be empty string');
+    assert ((testSharedMethods.exchangeProp (exchange, 'privateKey') === undefined) || (testSharedMethods.exchangeProp (exchange, 'privateKey') === ''), 'privateKey should be empty string');
+    assert ((testSharedMethods.exchangeProp (exchange, 'walletAddress') === undefined) || (testSharedMethods.exchangeProp (exchange, 'walletAddress') === ''), 'walletAddress should be empty string');
     assert (exchange.token === undefined, 'token should be empty string');
     const requiredCredentials = {
         'apiKey': true,

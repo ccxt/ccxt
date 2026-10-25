@@ -29,8 +29,6 @@ public class PredictionExchange extends BaseExchange implements PredictionTypedS
     public volatile Object outcomes_by_id = null;
     public volatile Object events = null;
     public volatile Object events_by_slug = null;
-    public volatile boolean reloadingEvents = false;
-    public volatile java.util.concurrent.CompletableFuture<Object> eventsLoading = null;
 
     public PredictionExchange () {
         super();
@@ -520,11 +518,11 @@ public Object describe()
         // through fetchEvents; this never fetches
         if ((!java.util.Objects.equals(this.events, null)) && (((Map<?, ?>)this.events).containsKey(eventIdOrSlug)))
         {
-            return Helpers.GetValue(this.events, eventIdOrSlug);
+            return (this.events == null || eventIdOrSlug == null ? null : ((Map<?, ?>)this.events).get(eventIdOrSlug));
         }
         if ((!java.util.Objects.equals(this.events_by_slug, null)) && (((Map<?, ?>)this.events_by_slug).containsKey(eventIdOrSlug)))
         {
-            return Helpers.GetValue(this.events_by_slug, eventIdOrSlug);
+            return (this.events_by_slug == null || eventIdOrSlug == null ? null : ((Map<?, ?>)this.events_by_slug).get(eventIdOrSlug));
         }
         throw new BadSymbol((((this.id + " has no cached event ") + eventIdOrSlug) + " - call fetchEvents ({ 'query': ... }) first")) ;
     }
@@ -541,11 +539,11 @@ public Object describe()
         }
         if (((Map<?, ?>)this.outcomes).containsKey(outcomeSymbol))
         {
-            return (Map<String, Object>) (Helpers.GetValue(this.outcomes, outcomeSymbol));
+            return (Map<String, Object>) ((this.outcomes == null || outcomeSymbol == null ? null : ((Map<?, ?>)this.outcomes).get(outcomeSymbol)));
         }
         if ((!java.util.Objects.equals(this.outcomes_by_id, null)) && (((Map<?, ?>)this.outcomes_by_id).containsKey(outcomeSymbol)))
         {
-            return (Map<String, Object>) (Helpers.GetValue(this.outcomes_by_id, outcomeSymbol));
+            return (Map<String, Object>) ((this.outcomes_by_id == null || outcomeSymbol == null ? null : ((Map<?, ?>)this.outcomes_by_id).get(outcomeSymbol)));
         }
         throw new BadSymbol((((this.id + " does not have outcome ") + outcomeSymbol) + " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
     }
@@ -576,11 +574,11 @@ public Object describe()
         {
             if ((!java.util.Objects.equals(this.outcomes, null)) && (((Map<?, ?>)this.outcomes).containsKey(outcomeIdOrSymbol)))
             {
-                return (Map<String, Object>) (Helpers.GetValue(this.outcomes, outcomeIdOrSymbol));
+                return (Map<String, Object>) ((this.outcomes == null || outcomeIdOrSymbol == null ? null : ((Map<?, ?>)this.outcomes).get(outcomeIdOrSymbol)));
             }
             if ((!java.util.Objects.equals(this.outcomes_by_id, null)) && (((Map<?, ?>)this.outcomes_by_id).containsKey(outcomeIdOrSymbol)))
             {
-                return (Map<String, Object>) (Helpers.GetValue(this.outcomes_by_id, outcomeIdOrSymbol));
+                return (Map<String, Object>) ((this.outcomes_by_id == null || outcomeIdOrSymbol == null ? null : ((Map<?, ?>)this.outcomes_by_id).get(outcomeIdOrSymbol)));
             }
         }
         if (!java.util.Objects.equals(outcomeObj, null))
@@ -805,7 +803,7 @@ public Object describe()
                         Object suffix = ocId;
                         if ((idLen != null && idLen > 6))
                         {
-                            suffix = Helpers.slice(ocId, (((long) idLen) - 6L), null);
+                            suffix = (ocId == null ? null : ocId.substring((int) Math.min(Math.max(((((long) idLen) - 6L)) < 0 ? ocId.length() + ((((long) idLen) - 6L)) : ((((long) idLen) - 6L)), 0), ocId.length())));
                         }
                         ocSymbol = ((ocSymbol + "_") + ((String)suffix).toUpperCase());
                     }
@@ -861,7 +859,7 @@ public Object describe()
             String marketHandle = this.safeString2(m, "market", "symbol");
             if (!java.util.Objects.equals(marketHandle, null))
             {
-                Helpers.addElementToObject(this.markets, marketHandle, m);
+                ((Map<Object, Object>) (Map<?, ?>) this.markets).put(marketHandle, m);
             }
         }
         this.populateOutcomes();
@@ -1012,7 +1010,7 @@ public Object describe()
         Object colonIndex = ((String)outcomeSymbol).indexOf(":");
         if ((((Integer) colonIndex) >= 0))
         {
-            marketPart = Helpers.slice(outcomeSymbol, 0, colonIndex);
+            marketPart = (outcomeSymbol == null ? null : ((String)outcomeSymbol).substring(0, (int) Math.min(((Number)colonIndex).intValue() < 0 ? ((String)outcomeSymbol).length() + ((Number)colonIndex).intValue() : ((Number)colonIndex).intValue(), ((String)outcomeSymbol).length())));
         }
         if ((((String)marketPart).indexOf("0x") == 0))
         {
@@ -1759,20 +1757,22 @@ public Object describe()
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         String orderType = this.safeString(outcomeOrder, "type");
         String timeInForce = this.safeString(outcomeOrder, "timeInForce");
-        Boolean postOnly = (Boolean) this.safeBool(outcomeOrder, "postOnly", (Object) null);
+        // the venue flag and the derived one are each written once, so neither local widens
+        Boolean postOnlyValue = (Boolean) this.safeBool(outcomeOrder, "postOnly", (Object) null);
+        Boolean derivedPostOnly = null;
         if (java.util.Objects.equals(timeInForce, null))
         {
             if (java.util.Objects.equals(orderType, "market"))
             {
                 timeInForce = "IOC";
             }
-            if (java.util.Objects.equals(postOnly, true))
+            if (java.util.Objects.equals(postOnlyValue, true))
             {
                 timeInForce = "PO";
             }
-        } else if (java.util.Objects.equals(postOnly, null))
+        } else if (java.util.Objects.equals(postOnlyValue, null))
         {
-            postOnly = (java.util.Objects.equals(timeInForce, "PO"));
+            derivedPostOnly = (java.util.Objects.equals(timeInForce, "PO"));
         }
         Long timestamp = this.safeInteger(outcomeOrder, "timestamp");
         String datetime = this.safeString(outcomeOrder, "datetime");
@@ -1799,7 +1799,7 @@ public Object describe()
         result.put("cost", this.parseNumber(cost));
         result.put("fee", fee);
         result.put("reduceOnly", this.safeBool(outcomeOrder, "reduceOnly", (Object) null));
-        result.put("postOnly", postOnly);
+        result.put("postOnly", (((!java.util.Objects.equals(postOnlyValue, null)))) ? postOnlyValue : derivedPostOnly);
         result.put("trades", trades);
         result.put("outcome", this.safeString(outcomeOrder, "outcome"));
         result.put("outcomeId", this.safeString(outcomeOrder, "outcomeId"));

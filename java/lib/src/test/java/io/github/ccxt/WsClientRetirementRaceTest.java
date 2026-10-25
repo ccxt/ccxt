@@ -47,11 +47,11 @@ class WsClientRetirementRaceTest {
 
     @SuppressWarnings("unchecked")
     private static Map<String, Future> futuresOf(Client client) {
-        return (Map<String, Future>) client.futures;
+        return (Map<String, Future>)(Map<?, ?>) client.futures;
     }
 
     private static void assertRetired(Client client, String who) {
-        assertNotNull(client.error, who + ": retirement must set the terminal error marker");
+        assertNotNull(client.errorState(), who + ": retirement must set the terminal error marker");
         assertTrue(futuresOf(client).isEmpty(), who + ": retirement must clear futures");
         assertTrue(client.subscriptionsMap().isEmpty(), who + ": retirement must clear subscriptions");
     }
@@ -86,7 +86,7 @@ class WsClientRetirementRaceTest {
         assertRetired(callerClient, "caller");
         assertRejectedWithNetworkError(callerFuture,
                 "caller: pending future must reject with the cleanup error");
-        assertNull(replacementClient.error, "replacement: must not be retired");
+        assertNull(replacementClient.errorState(), "replacement: must not be retired");
         assertEquals(1, clientsMap(exchange).size(), "replacement: registry must keep one entry");
         assertSame(replacementClient, clientsMap(exchange).get(RETIREMENT_URL),
                 "replacement: must keep its registry slot");
@@ -133,7 +133,7 @@ class WsClientRetirementRaceTest {
         client.onError(first);
         client.onError(new NetworkError("late close"));
 
-        assertSame(first, client.error, "retirement must happen at most once, the first error wins");
+        assertSame(first, client.errorState(), "retirement must happen at most once, the first error wins");
         assertRetired(client, "twice");
         assertRejectedWithNetworkError(future, "twice: the first retirement must win the settlement");
     }
@@ -165,7 +165,7 @@ class WsClientRetirementRaceTest {
                     task.get(30, TimeUnit.SECONDS);
                 }
             }
-            assertNotNull(client.error, "a concurrent race must still retire the client");
+            assertNotNull(client.errorState(), "a concurrent race must still retire the client");
             assertTrue(pending.getFuture().isCompletedExceptionally(),
                     "the pending future must be settled");
             assertTrue(futuresOf(client).isEmpty(), "futures must be drained after the race");
