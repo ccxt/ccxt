@@ -137,7 +137,7 @@ export default class blofin extends blofinRest {
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             const trade = this.parseWsTrade (rawTrade);
-            const symbol = trade['symbol'];
+            const symbol = this.safeString (trade, 'symbol', '');
             let stored = this.safeValue (this.trades, symbol);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -306,7 +306,7 @@ export default class blofin extends blofinRest {
         const data = this.safeList (message, 'data') as List;
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsTicker (data[i]);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString (ticker, 'symbol', '');
             this.tickers[(symbol as string)] = ticker;
             if (channelName !== undefined) {
                 const messageHash = channelName + ':' + symbol;
@@ -368,7 +368,7 @@ export default class blofin extends blofinRest {
         const data = this.safeList (message, 'data') as List;
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsBidAsk (data[i]);
-            const symbol = this.safeString (ticker, 'symbol');
+            const symbol = this.safeString (ticker, 'symbol', '');
             const messageHash = 'bidask:' + symbol;
             this.bidsasks[(symbol as string)] = ticker;
             client.resolve (ticker, messageHash);
@@ -406,7 +406,8 @@ export default class blofin extends blofinRest {
     override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
-        return result[symbol][timeframe];
+        const symbolResult: Dict = this.safeDict (result, symbol, {});
+        return this.safeList (symbolResult, timeframe, []);
     }
 
     /**
@@ -618,7 +619,7 @@ export default class blofin extends blofinRest {
         const data = this.safeList (message, 'data') as List;
         for (let i = 0; i < data.length; i++) {
             const order = this.parseWsOrder (data[i]);
-            const symbol = order['symbol'];
+            const symbol = this.safeString (order, 'symbol', '');
             orders.append (order);
             if (channelName !== undefined) {
                 const messageHash = channelName + ':' + symbol;
@@ -674,7 +675,7 @@ export default class blofin extends blofinRest {
         const newPositions: List = [];
         for (let i = 0; i < data.length; i++) {
             const position = this.parseWsPosition (data[i]);
-            const symbol = this.safeString (position, 'symbol');
+            const symbol = this.safeString (position, 'symbol', '');
             newPositions.push (position);
             cache.append (position);
             if (channelName !== undefined) {
@@ -735,7 +736,7 @@ export default class blofin extends blofinRest {
         const data = this.safeList (message, 'data', []);
         const first = this.safeDict (data, 0, {});
         const fundingRate = this.parseFundingRate (first);
-        const symbol = fundingRate['symbol'];
+        const symbol = this.safeString (fundingRate, 'symbol', '');
         this.fundingRates[(symbol as string)] = fundingRate;
         const messageHash = 'fundingRate:' + symbol;
         client.resolve (fundingRate, messageHash);

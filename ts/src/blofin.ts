@@ -954,8 +954,8 @@ export default class blofin extends Exchange {
             };
         }
         if (isSpot) {
-            const spotBase = this.safeString (marketResolved, 'base');
-            const spotQuote = this.safeString (marketResolved, 'quote');
+            const spotBase = this.safeString (marketResolved, 'base', '');
+            const spotQuote = this.safeString (marketResolved, 'quote', '');
             const spotSymbol = spotBase + '/' + spotQuote;
             const cost = this.parseNumber (Precise.stringMul (price, amount));
             const result: Dict = {
