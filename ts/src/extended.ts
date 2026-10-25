@@ -2547,8 +2547,8 @@ export default class extended extends Exchange {
         };
         const msgHash = this.getExtendedOrderMsgHash (settlement);
         const sig = JSON.parse (this.extendedStarknetSign (msgHash, this.privateKey));
-        const r = this.getExtendedSignatureHex (sig[0]);
-        const s = this.getExtendedSignatureHex (sig[1]);
+        const r = this.getExtendedSignatureHex (this.safeString (sig, 0));
+        const s = this.getExtendedSignatureHex (this.safeString (sig, 1));
         settlement['r'] = r;
         settlement['s'] = s;
         return settlement;
@@ -2581,8 +2581,8 @@ export default class extended extends Exchange {
         const msgHash = this.getExtendedWithdrawalMsgHash (settlement, starkKey);
         const sig = JSON.parse (this.extendedStarknetSign (msgHash, this.privateKey));
         settlement['signature'] = {
-            'r': this.getExtendedSignatureHex (sig[0]),
-            's': this.getExtendedSignatureHex (sig[1]),
+            'r': this.getExtendedSignatureHex (this.safeString (sig, 0)),
+            's': this.getExtendedSignatureHex (this.safeString (sig, 1)),
         };
         return settlement;
     }
@@ -2613,8 +2613,8 @@ export default class extended extends Exchange {
         const msgHash = this.getExtendedTransferMsgHash (settlement);
         const sig = JSON.parse (this.extendedStarknetSign (msgHash, this.privateKey));
         settlement['signature'] = {
-            'r': this.getExtendedSignatureHex (sig[0]),
-            's': this.getExtendedSignatureHex (sig[1]),
+            'r': this.getExtendedSignatureHex (this.safeString (sig, 0)),
+            's': this.getExtendedSignatureHex (this.safeString (sig, 1)),
         };
         return settlement;
     }
@@ -2976,8 +2976,9 @@ export default class extended extends Exchange {
         let market: Market = undefined;
         let orderSymbol: Str = symbol;
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            orderSymbol = market['symbol'];
+            const symbolMarket = this.market (symbol);
+            market = symbolMarket;
+            orderSymbol = symbolMarket['symbol'];
         }
         let response = undefined;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
@@ -3442,7 +3443,8 @@ export default class extended extends Exchange {
         let result = '';
         while (Precise.stringGt (decimalString, '0')) {
             const remainder = this.parseToInt (Precise.stringMod (decimalString, '16'));
-            result = this.safeString (hexChars, remainder) + result;
+            const hexChar = this.safeString (hexChars, remainder, '');
+            result = hexChar + result;
             decimalString = Precise.stringDiv (decimalString, '16', 0) as string;
         }
         if (result === '') {
@@ -3591,7 +3593,7 @@ export default class extended extends Exchange {
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
-        const version = this.safeString (api, 0);
+        const version = this.safeString (api, 0, '');
         const accessibility = this.safeString (api, 1);
         const endpoint = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
