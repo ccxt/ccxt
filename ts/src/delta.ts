@@ -351,22 +351,14 @@ export default class delta extends Exchange {
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
         const hasSlash = symbol.indexOf ('/') > -1;
-        let base: Str = undefined;
-        let optionType: Str = undefined;
-        if (hasSlash) {
-            base = this.safeString (symbolBase, 0);
-            optionType = this.safeString (optionParts, 3);
-        } else {
-            base = this.safeString (optionParts, 1);
-            optionType = this.safeString (optionParts, 0);
-        }
-        const rawExpiry = this.safeString (optionParts, hasSlash ? 1 : 3);
-        let expiry: Str = undefined;
-        if (rawExpiry !== undefined) {
-            expiry = rawExpiry.slice (4) + rawExpiry.slice (2, 4) + rawExpiry.slice (0, 2);
-        }
+        const partSource = hasSlash ? symbolBase : optionParts;
+        const baseIndex = hasSlash ? 0 : 1;
+        const base = this.safeString (partSource, baseIndex, '');
+        const optionType = this.safeString (optionParts, hasSlash ? 3 : 0, '');
+        const rawExpiry = this.safeString (optionParts, hasSlash ? 1 : 3, '');
+        const expiry = rawExpiry.slice (4) + rawExpiry.slice (2, 4) + rawExpiry.slice (0, 2);
         const settle = quote;
-        const strike = this.safeString (optionParts, 2);
+        const strike = this.safeString (optionParts, 2, '');
         const datetime = this.convertExpireDate (expiry);
         const timestamp = this.parse8601 (datetime);
         let optionTypeUnified: Str = 'put';
@@ -1690,14 +1682,15 @@ export default class delta extends Exchange {
             request['end'] = untilIsDefined ? until : this.sum (start, windowSeconds);
         }
         const price = this.safeString (params, 'price');
+        const marketId = this.safeString (market, 'id', '');
         if (price === 'mark') {
-            request['symbol'] = 'MARK:' + market['id'];
+            request['symbol'] = 'MARK:' + marketId;
         } else if (price === 'index') {
             const marketInfo = this.safeDict (market, 'info');
             const spotIndex = this.safeDict (marketInfo, 'spot_index');
             request['symbol'] = this.safeString (spotIndex, 'symbol');
         } else {
-            request['symbol'] = market['id'];
+            request['symbol'] = marketId;
         }
         const paramsOmitted: Dict = this.omit (params, [ 'price', 'until' ]);
         const response = await this.publicGetHistoryCandles (this.extend (request, paramsOmitted));
@@ -4198,7 +4191,7 @@ export default class delta extends Exchange {
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
         if (apiName === 'public') {
-            if (Object.keys (query).length > 0) {
+            if (!this.isEmpty (query)) {
                 url += '?' + this.urlencode (query);
             }
         } else if (apiName === 'private') {
@@ -4210,9 +4203,9 @@ export default class delta extends Exchange {
             };
             let auth: string = method + timestamp + requestPath;
             if (method === 'GET') {
-                if (Object.keys (query).length > 0) {
+                if (!this.isEmpty (query)) {
                     const queryString = '?' + this.urlencode (query);
-                    auth += queryString;
+                    auth = method + timestamp + requestPath + queryString;
                     url += queryString;
                 }
             } else {
