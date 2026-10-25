@@ -1023,7 +1023,7 @@ export default class foxbit extends Exchange {
             const order = this.safeDict (orders, i);
             const symbol = this.safeString (order, 'symbol');
             const market = this.market (symbol);
-            const type = this.safeStringUpper (order, 'type');
+            const type = this.safeStringUpper (order, 'type', '');
             const orderParams = this.safeDict (order, 'params', {});
             if (type !== 'LIMIT' && type !== 'MARKET' && type !== 'STOP_MARKET' && type !== 'STOP_LIMIT' && type !== 'INSTANT') {
                 throw new InvalidOrder ('Invalid order type: ' + type + '. Must be one of: limit, market, stop_market, stop_limit, instant.');
@@ -1832,10 +1832,10 @@ export default class foxbit extends Exchange {
     override parseOrder (order: Dict, market: Market = undefined): Order {
         let symbol = this.safeString (order, 'market_symbol');
         let marketResolved: Market = market;
-        if ((market === undefined) && (symbol !== undefined)) {
+        if (market !== undefined) {
+            symbol = this.safeString (market, 'symbol');
+        } else if (symbol !== undefined) {
             marketResolved = this.market (symbol);
-        }
-        if (marketResolved !== undefined) {
             symbol = this.safeString (marketResolved, 'symbol');
         }
         const timestamp = this.parseDate (this.safeString (order, 'created_at'));
@@ -2113,7 +2113,7 @@ export default class foxbit extends Exchange {
         const error = this.safeDict (response, 'error');
         const code = this.safeString (error, 'code');
         const details = this.safeList (error, 'details');
-        const message = this.safeString (error, 'message');
+        const message = this.safeString (error, 'message', '');
         let detailsString = '';
         if (details !== undefined) {
             for (let i = 0; i < details.length; i++) {
