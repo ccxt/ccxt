@@ -137,7 +137,8 @@ export default class deepcoin extends deepcoinRest {
     }
 
     async watchPublic (market: Dict, messageHash: string, topicID: string, params: Dict = {}, suffix: string = ''): Promise<any> {
-        const url = this.urls['api']['ws']['public'][market['type']];
+        const marketType = this.safeString (market, 'type', '');
+        const url = this.urls['api']['ws']['public'][marketType];
         const requestId = this.requestId ();
         const request = this.createPublicRequest (market, requestId, topicID, suffix);
         const subscription = {
@@ -148,7 +149,8 @@ export default class deepcoin extends deepcoinRest {
     }
 
     async unWatchPublic (market: Dict, messageHash: string, topicID: string, params: Dict = {}, subscription: Dict = {}, suffix: string = ''): Promise<any> {
-        const url = this.urls['api']['ws']['public'][market['type']];
+        const marketType = this.safeString (market, 'type', '');
+        const url = this.urls['api']['ws']['public'][marketType];
         const requestId = this.requestId ();
         const client = this.client (url);
         const existingSubscription = this.safeDict (client.subscriptions, messageHash);
@@ -169,7 +171,8 @@ export default class deepcoin extends deepcoinRest {
 
     async watchPrivate (messageHash: string, params: Dict = {}): Promise<any> {
         const listenKey = await this.authenticate ();
-        const url = this.safeString (this.urls['api']['ws'], 'private') + '?listenKey=' + listenKey;
+        const wsUrlBase = this.safeString (this.urls['api']['ws'], 'private', '');
+        const url = wsUrlBase + '?listenKey=' + listenKey;
         return await this.watch (url, messageHash, undefined, 'private', params);
     }
 
@@ -1124,7 +1127,8 @@ export default class deepcoin extends deepcoinRest {
         } else {
             messageHashes.push (messageHash);
         }
-        const url = this.safeString (this.urls['api']['ws'], 'private') + '?listenKey=' + listenKey;
+        const wsUrlBase = this.safeString (this.urls['api']['ws'], 'private', '');
+        const url = wsUrlBase + '?listenKey=' + listenKey;
         const positions = await this.watchMultiple (url, messageHashes, params, [ 'private' ]);
         if (this.newUpdates) {
             return positions;

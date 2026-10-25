@@ -529,7 +529,7 @@ export default class deepcoin extends Exchange {
             isLinear = (quoteId !== 'USD');
             settleId = isLinear ? quoteId : baseId;
             settle = this.safeCurrencyCode (settleId);
-            symbol = symbol + ':' + settle;
+            symbol = base + '/' + quote + ':' + settle;
         }
         const fees = this.safeDict2 (this.fees, type, 'trading', {}) as Dict;
         let maxLeverage: Str = this.safeString (market, 'lever', '1');
@@ -3105,7 +3105,7 @@ export default class deepcoin extends Exchange {
         if (method === 'GET') {
             const query = this.urlencode (params);
             if (query.length > 0) {
-                requestPath += '?' + query;
+                requestPath = path + '?' + query;
             }
         }
         const apiUrl = this.safeString (this.urls['api'], apiName);
