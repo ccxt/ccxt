@@ -62,7 +62,9 @@ export default class independentreserve extends independentreserveRest {
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' watchTrades() has no websocket url');
         }
-        const url = wsUrl + '?subscribe=ticker-' + market['base'] + '-' + market['quote'];
+        const baseId = this.safeString (market, 'base', '');
+        const quoteId = this.safeString (market, 'quote', '');
+        const url = wsUrl + '?subscribe=ticker-' + baseId + '-' + quoteId;
         const messageHash = 'trades:' + symbolValue;
         const trades = await this.watch (url, messageHash, undefined, messageHash);
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -100,7 +102,7 @@ export default class independentreserve extends independentreserveRest {
         const trade = this.parseWsTrade (data);
         stored.append (trade);
         this.trades[symbol] = stored;
-        client.resolve (this.trades[symbol], messageHash);
+        client.resolve (stored, messageHash);
     }
 
     override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
@@ -156,7 +158,9 @@ export default class independentreserve extends independentreserveRest {
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' watchOrderBook() has no websocket url');
         }
-        const url = wsUrl + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote'];
+        const baseId = this.safeString (market, 'base', '');
+        const quoteId = this.safeString (market, 'quote', '');
+        const url = wsUrl + '/orderbook/' + limitString + '?subscribe=' + baseId + '-' + quoteId;
         const messageHash = 'orderbook:' + symbolValue + ':' + limitString;
         const subscription: Dict = {
             'receivedSnapshot': false,
@@ -194,7 +198,7 @@ export default class independentreserve extends independentreserveRest {
             return;
         }
         const parts = channel.split ('/');
-        const depth = this.safeString (parts, 1);
+        const depth = this.safeString (parts, 1, '');
         const baseId = this.safeString (parts, 2);
         const quoteId = this.safeString (parts, 3);
         const base = this.safeCurrencyCode (baseId);

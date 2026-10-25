@@ -350,11 +350,11 @@ export default class independentreserve extends Exchange {
         const baseCurrencyIds: List = this.toArray (baseCurrencies);
         const quoteCurrencyIds: List = this.toArray (quoteCurrencies);
         for (let i = 0; i < baseCurrencyIds.length; i++) {
-            const baseId = baseCurrencyIds[i];
+            const baseId = this.safeString (baseCurrencyIds, i, '');
             const base = this.safeCurrencyCode (baseId);
             const minAmount = this.safeNumber (limits, baseId);
             for (let j = 0; j < quoteCurrencyIds.length; j++) {
-                const quoteId = quoteCurrencyIds[j];
+                const quoteId = this.safeString (quoteCurrencyIds, j, '');
                 const quote = this.safeCurrencyCode (quoteId);
                 if ((base === undefined) || (quote === undefined)) {
                     continue;
@@ -613,8 +613,8 @@ export default class independentreserve extends Exchange {
                 symbol = base + '/' + quote;
             }
         } else if (market !== undefined) {
-            symbol = market['symbol'];
-            base = market['base'];
+            symbol = this.safeString (market, 'symbol');
+            base = this.safeString (market, 'base');
             quote = this.safeString (market, 'quote');
         }
         let orderType = this.safeString2 (order, 'Type', 'OrderType');
@@ -1173,16 +1173,18 @@ export default class independentreserve extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             // independentreserve requires an increasing nonce
-            const nonce = this.incrementingNonce ();
+            const rawNonce = this.incrementingNonce ();
+            const nonce = this.parseToInt (rawNonce);
             const auth = [
                 url,
                 'apiKey=' + this.apiKey,
                 'nonce=' + nonce.toString (),
             ];
-            const keys = Object.keys (params);
+            const paramsDict = this.extend ({}, params);
+            const keys = Object.keys (paramsDict);
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
-                const value = params[key].toString ();
+                const value = paramsDict[key].toString ();
                 auth.push (key + '=' + value);
             }
             const message = auth.join (',');
@@ -1193,7 +1195,7 @@ export default class independentreserve extends Exchange {
             query['signature'] = signature.toUpperCase ();
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
-                query[key] = params[key];
+                query[key] = paramsDict[key];
             }
             const signedBody: Str = this.json (query);
             const signedHeaders: Dict = { 'Content-Type': 'application/json' };
