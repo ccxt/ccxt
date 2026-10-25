@@ -1120,7 +1120,7 @@ export default class bigone extends Exchange {
         }
     }
 
-    parseContractBidsAsks (bidsAsks: any) {
+    parseContractBidsAsks (bidsAsks: Dict) {
         const bidsAsksKeys = Object.keys (bidsAsks);
         const result: Dict[] = [];
         for (let i = 0; i < bidsAsksKeys.length; i++) {
@@ -1132,8 +1132,8 @@ export default class bigone extends Exchange {
     }
 
     parseContractOrderBook (orderbook: Dict, symbol: string, limit: Int = undefined): OrderBook {
-        const responseBids = this.safeDict (orderbook, 'bids');
-        const responseAsks = this.safeDict (orderbook, 'asks');
+        const responseBids = this.safeDict (orderbook, 'bids', {});
+        const responseAsks = this.safeDict (orderbook, 'asks', {});
         const bids = this.parseContractBidsAsks (responseBids);
         const asks = this.parseContractBidsAsks (responseAsks);
         return {
