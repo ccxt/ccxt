@@ -644,8 +644,9 @@ export default class paymium extends Exchange {
         const baseUrl: string = baseApiUrl;
         let url = baseUrl + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
+        const hasQuery = Object.keys (query).length > 0;
         if (api[0] === 'public') {
-            if (Object.keys (query).length > 0) {
+            if (hasQuery) {
                 url += '?' + this.urlencode (query);
             }
         } else {
@@ -657,7 +658,6 @@ export default class paymium extends Exchange {
                 'Api-Key': this.apiKey,
                 'Api-Nonce': nonce,
             };
-            const hasQuery = Object.keys (query).length > 0;
             let signedBody: Str = undefined;
             if (method === 'POST' && hasQuery) {
                 signedBody = this.json (query);
@@ -670,7 +670,7 @@ export default class paymium extends Exchange {
             } else {
                 if (hasQuery) {
                     const queryString = this.urlencode (query);
-                    auth += queryString;
+                    auth = nonce + url + queryString;
                     url += '?' + queryString;
                 }
             }
