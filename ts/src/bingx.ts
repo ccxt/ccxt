@@ -2223,7 +2223,7 @@ export default class bingx extends Exchange {
         const symbolsLength = (symbolsNormalized === undefined) ? 0 : symbolsNormalized.length;
         if (type === 'spot') {
             if ((market !== undefined) && (symbolsLength === 1)) {
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString (market, 'id');
             }
             const response = await this.spotV2PublicGetQuoteBookTicker (this.extend (request, paramsMarketType));
             rows = this.safeList (response, 'data', []);
@@ -2231,7 +2231,7 @@ export default class bingx extends Exchange {
             if ((market === undefined) || (market['inverse'] === true) || (symbolsLength !== 1)) {
                 throw new ArgumentsRequired (this.id + ' fetchBidsAsks() requires exactly one linear swap symbol for contract markets');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
             const response = await this.swapV2PublicGetQuoteBookTicker (this.extend (request, paramsMarketType));
             const data = this.safeDict (response, 'data', {});
             rows = [ this.safeDict (data, 'book_ticker', {}) ];

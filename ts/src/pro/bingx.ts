@@ -164,7 +164,8 @@ export default class bingx extends bingxRest {
         } else {
             url = this.safeString (this.urls['api']['ws'], marketType);
         }
-        const dataType = market['id'] + '@ticker';
+        const marketId = this.safeString (market, 'id', '');
+        const dataType = marketId + '@ticker';
         const messageHash = this.getMessageHash ('ticker', this.safeString (market, 'symbol'));
         const uuid = this.uuid ();
         const request: Dict = {
@@ -197,7 +198,8 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const dataType = market['id'] + '@ticker';
+        const marketId = this.safeString (market, 'id', '');
+        const dataType = marketId + '@ticker';
         const subMessageHash = this.getMessageHash ('ticker', this.safeString (market, 'symbol'));
         const messageHash = 'unsubscribe::' + subMessageHash;
         const topic = 'ticker';
@@ -390,7 +392,8 @@ export default class bingx extends bingxRest {
         } else {
             url = this.safeString (this.urls['api']['ws'], marketType);
         }
-        const rawHash = market['id'] + '@trade';
+        const marketId = this.safeString (market, 'id', '');
+        const rawHash = marketId + '@trade';
         const messageHash = 'trade::' + symbolValue;
         const uuid = this.uuid ();
         const request: Dict = {
@@ -435,7 +438,8 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const dataType = market['id'] + '@trade';
+        const marketId = this.safeString (market, 'id', '');
+        const dataType = marketId + '@trade';
         const subMessageHash = this.getMessageHash ('trade', this.safeString (market, 'symbol'));
         const messageHash = 'unsubscribe::' + subMessageHash;
         const topic = 'trades';
@@ -527,7 +531,8 @@ export default class bingx extends bingxRest {
         //
         const data = this.safeValue (message, 'data', []);
         const rawHash = this.safeString (message, 'dataType', '');
-        const marketId = rawHash.split ('@')[0];
+        const hashParts = rawHash.split ('@');
+        const marketId = hashParts[0];
         const isSwap = client.url.indexOf ('swap') >= 0;
         let marketType: Str = 'spot';
         if (isSwap) {
@@ -581,7 +586,8 @@ export default class bingx extends bingxRest {
         }
         const options = this.safeDict (this.options, 'watchOrderBook', {});
         const depth = this.safeInteger (options, 'depth', 100);
-        const subscriptionHash = market['id'] + '@' + 'depth' + this.numberToString (depth);
+        const marketId = this.safeString (market, 'id', '');
+        const subscriptionHash = marketId + '@depth' + this.numberToString (depth);
         const messageHash = this.getMessageHash ('orderbook', this.safeString (market, 'symbol'));
         const uuid = this.uuid ();
         const request: Dict = {
@@ -629,7 +635,8 @@ export default class bingx extends bingxRest {
         const market = this.market (symbol);
         const options = this.safeDict (this.options, 'watchOrderBook', {});
         const depth = this.safeInteger (options, 'depth', 100);
-        const subMessageHash = market['id'] + '@' + 'depth' + this.numberToString (depth);
+        const marketId = this.safeString (market, 'id', '');
+        const subMessageHash = marketId + '@depth' + this.numberToString (depth);
         const messageHash = 'unsubscribe::' + subMessageHash;
         const topic = 'orderbook';
         const methodName = 'unWatchOrderBook';
@@ -876,7 +883,8 @@ export default class bingx extends bingxRest {
         }
         const symbol = market['symbol'];
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-        const rawTimeframe = dataType.split ('_')[1];
+        const timeframeParts = dataType.split ('_');
+        const rawTimeframe = timeframeParts[1];
         const marketOptions = this.safeDict (this.options, marketType);
         const timeframes = this.safeDict (marketOptions, 'timeframes', {});
         const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
@@ -939,7 +947,8 @@ export default class bingx extends bingxRest {
         const timeframes = this.safeDict (options, 'timeframes', {});
         const rawTimeframe = this.safeString (timeframes, timeframe, timeframe);
         const messageHash = this.getMessageHash ('ohlcv', this.safeString (market, 'symbol'), timeframe);
-        const subscriptionHash = market['id'] + '@kline_' + rawTimeframe;
+        const marketId = this.safeString (market, 'id', '');
+        const subscriptionHash = marketId + '@kline_' + rawTimeframe;
         const uuid = this.uuid ();
         const request: Dict = {
             'id': uuid,
@@ -983,7 +992,8 @@ export default class bingx extends bingxRest {
         const options = this.safeDict (this.options, market['type'], {});
         const timeframes = this.safeDict (options, 'timeframes', {});
         const rawTimeframe = this.safeString (timeframes, timeframe, timeframe);
-        const subMessageHash = market['id'] + '@kline_' + rawTimeframe;
+        const marketId = this.safeString (market, 'id', '');
+        const subMessageHash = marketId + '@kline_' + rawTimeframe;
         const messageHash = 'unsubscribe::' + subMessageHash;
         const topic = 'ohlcv';
         const methodName = 'unWatchOHLCV';
