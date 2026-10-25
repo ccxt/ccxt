@@ -1938,21 +1938,24 @@ export default class htx extends Exchange {
             const market = this.safeDict (futureMarkets, i, {});
             const info = this.safeDict (market, 'info', {});
             const contractType = this.safeString (info, 'contract_type');
-            const contractSuffix = this.safeString (futuresCharsMaps, contractType);
-            if (contractSuffix === undefined) {
+            const contractSuffix: string = this.safeString (futuresCharsMaps, contractType, '');
+            if (contractSuffix === '') {
                 continue; // unknown contract_type: no id to construct
             }
+            const marketBase: string = this.safeString (market, 'base', '');
+            const marketQuote: string = this.safeString (market, 'quote', '');
+            const marketLinear: boolean = this.safeBool (market, 'linear', false);
+            const marketSymbol: string = this.safeString (market, 'symbol', '');
             // see comment on formats a bit above
             let constructedId: Str = undefined;
-            if (market['linear'] === true) {
-                constructedId = market['base'] + '-' + market['quote'] + '-' + contractSuffix;
+            if (marketLinear) {
+                constructedId = marketBase + '-' + marketQuote + '-' + contractSuffix;
             } else {
-                constructedId = market['base'] + '_' + contractSuffix;
+                constructedId = marketBase + '_' + contractSuffix;
             }
             if (constructedId === symbolOrMarketId) {
-                const symbol = market['symbol'];
-                this.options['futureMarketIdsForSymbols'][symbolOrMarketId] = symbol;
-                return symbol;
+                this.options['futureMarketIdsForSymbols'][symbolOrMarketId] = marketSymbol;
+                return marketSymbol;
             }
         }
         // if not found, just save it to avoid unnecessary future iterations
