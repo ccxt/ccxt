@@ -4276,7 +4276,8 @@ export default class derive extends Exchange {
         }
         const optionsWallet = this.safeInteger (this.options, 'subaccount_id');
         if (optionsWallet !== undefined) {
-            return [ optionsWallet, paramsSubaccountId ];
+            // parsed, not returned raw: every arm of this tuple has to hand back a plain value so the statically typed ports read the slot natively instead of through a runtime helper
+            return [ this.parseToInt (optionsWallet), paramsSubaccountId ];
         }
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.');
     }
