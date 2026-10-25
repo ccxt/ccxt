@@ -2578,7 +2578,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
 /*
  * @method
- * @name ligher#fetchBalance
+ * @name lighter#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://apidocs.lighter.xyz/reference/account-1
  * @param {object} [params] extra parameters specific to the exchange API endpoint

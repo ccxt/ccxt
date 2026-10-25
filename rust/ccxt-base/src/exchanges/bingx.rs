@@ -4103,6 +4103,13 @@ impl BingxCore {
         let mut close: Value = self.safe_string_k(ticker.clone(), "lastPrice", &[]);
         let mut quoteVolume: Value = self.safe_string_k(ticker.clone(), "quoteVolume", &[]);
         let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "volume", &[]);
+        if (marketResolved.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+            // Coin-M volume is in contracts; quoteVolume is in the base currency.
+            // read the resolved market: parseTickers and fetchTickers reach here with no market argument
+            let mut contractSize: Value = self.safe_string_k(marketResolved.clone(), "contractSize", &[]);
+            baseVolume = quoteVolume.clone();
+            quoteVolume = crate::precise::Precise::stringMul(&self.safe_string_k(ticker.clone(), "volume", &[]), &contractSize);
+        }
         let mut percentage: Value = self.safe_string_k(ticker.clone(), "priceChangePercent", &[]);
         if (percentage != Value::Null) {
             percentage = percentage.as_str().map(|__s| Value::Str(__s.replace("%", "").into())).unwrap_or_else(|| percentage.clone());
@@ -4766,7 +4773,7 @@ impl BingxCore {
         let mut isTriggerOrder: bool = triggerPrice != Value::Null;
         let mut isStopLossPriceOrder: bool = stopLossPrice != Value::Null;
         let mut isTakeProfitPriceOrder: bool = takeProfitPrice != Value::Null;
-        let mut exchangeClientOrderId: Value = Value::Str("clientOrderID".into());
+        let mut exchangeClientOrderId: Value = Value::Str("clientOrderId".into());
         if isSpot {
             exchangeClientOrderId = Value::Str("newClientOrderId".into());
         }
@@ -5775,18 +5782,22 @@ impl BingxCore {
                 m
             });
             let mut clientOrderId: Value = self.safe_string2(paramsOmitted.clone(), Value::Str("clientOrderId".into()), Value::Str("clientOrderID".into()), &[]);
-            let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into())]), &[]);
-            if (clientOrderId != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientOrderID".into(), clientOrderId); }
-            }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".into(), id); }
-            }
+            let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clientOrderID".into())]), &[]);
             let mut type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("cancelOrder".into()), &[market.clone(), paramsOmitted2]);
             let mut type_var: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut subTypeparamsSubTypeVariable = self.handle_sub_type_and_params(Value::Str("cancelOrder".into()), &[market.clone(), paramsMarketType]);
             let mut subType: Value = subTypeparamsSubTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut paramsSubType: Value = subTypeparamsSubTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+            if (clientOrderId != Value::Null) {
+                let mut clientOrderIdRequest: Value = Value::Str("clientOrderId".into());
+                if (type_var.as_str() == Some("spot")) {
+                    clientOrderIdRequest = Value::Str("clientOrderID".into());
+                }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&clientOrderIdRequest), clientOrderId); }
+            }  else {
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".into(), id); }
+            }
             if (type_var.as_str() == Some("spot")) {
                 let __ws_arg_26 = self.extend(request.clone(), &[paramsSubType.clone()]);
                 response = self.spot_v1_private_post_trade_cancel(&[__ws_arg_26]).await;
@@ -6142,15 +6153,25 @@ impl BingxCore {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                    m.insert("orderId".to_string(), id);
                 m
             });
-            let mut type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("fetchOrder".into()), &[market.clone(), paramsOmitted]);
+            let mut clientOrderId: Value = self.safe_string2(paramsOmitted.clone(), Value::Str("clientOrderId".into()), Value::Str("clientOrderID".into()), &[]);
+            let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clientOrderID".into())]), &[]);
+            let mut type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("fetchOrder".into()), &[market.clone(), paramsOmitted2]);
             let mut type_var: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut subTypeparamsSubTypeVariable = self.handle_sub_type_and_params(Value::Str("fetchOrder".into()), &[market.clone(), paramsMarketType]);
             let mut subType: Value = subTypeparamsSubTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut paramsSubType: Value = subTypeparamsSubTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+            if (clientOrderId != Value::Null) {
+                let mut clientOrderIdRequest: Value = Value::Str("clientOrderId".into());
+                if (type_var.as_str() == Some("spot")) {
+                    clientOrderIdRequest = Value::Str("clientOrderID".into());
+                }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&clientOrderIdRequest), clientOrderId); }
+            }  else {
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".into(), id); }
+            }
             if (type_var.as_str() == Some("spot")) {
                 let __ws_arg_37 = self.extend(request.clone(), &[paramsSubType.clone()]);
                 response = self.spot_v1_private_get_trade_query(&[__ws_arg_37]).await;
@@ -7590,6 +7611,9 @@ impl BingxCore {
             if (orderId.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires an orderId argument for inverse swap trades".into()))));
             }
+            if (limit != Value::Null) {
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pageSize".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }; // api maximum 1000
+            }
             let __ws_arg_64 = self.extend(request.clone(), &[paramsSubType.clone()]);
             response = self.cswap_v1_private_get_trade_all_fill_orders(&[__ws_arg_64]).await;
             fills = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
@@ -8079,7 +8103,7 @@ impl BingxCore {
 
 /*
  * @method
- * @name bitget#closePositions
+ * @name bingx#closeAllPositions
  * @description closes open positions for a market
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
  * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
@@ -8259,6 +8283,7 @@ impl BingxCore {
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {string} [params.cancelClientOrderID] the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+ * @param {string} [params.cancelClientOrderId] the client order id of the order to cancel
  * @param {string} [params.cancelRestrictions] cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled
  * @param {string} [params.cancelReplaceMode] STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
  * @param {float} [params.quoteOrderQty] order amount
@@ -8283,9 +8308,19 @@ impl BingxCore {
         if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" editOrder() is not supported for inverse swap markets".into()))));
         }
-        let mut request: Value = self.create_order_request(symbol, type_var, side, amount, &[price, params.clone()]);
-        add_element_to_object(&mut request, &Value::Str("cancelOrderId".into()), id);
-        add_element_to_object(&mut request, &Value::Str("cancelReplaceMode".into()), self.safe_string_k(params, "cancelReplaceMode", &[Value::Str("STOP_ON_FAILURE".into())]));
+        let mut cancelClientOrderId: Value = self.safe_string2(params.clone(), Value::Str("cancelClientOrderId".into()), Value::Str("cancelClientOrderID".into()), &[]);
+        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("cancelClientOrderId".into()), Value::Str("cancelClientOrderID".into())]), &[]);
+        let mut request: Value = self.create_order_request(symbol, type_var, side, amount, &[price, paramsOmitted.clone()]);
+        if (cancelClientOrderId != Value::Null) {
+            let mut cancelClientOrderIdRequest: Value = Value::Str("cancelClientOrderId".into());
+            if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+                cancelClientOrderIdRequest = Value::Str("cancelClientOrderID".into());
+            }
+            add_element_to_object(&mut request, &cancelClientOrderIdRequest, cancelClientOrderId);
+        }  else {
+            add_element_to_object(&mut request, &Value::Str("cancelOrderId".into()), id);
+        }
+        add_element_to_object(&mut request, &Value::Str("cancelReplaceMode".into()), self.safe_string_k(paramsOmitted, "cancelReplaceMode", &[Value::Str("STOP_ON_FAILURE".into())]));
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             response = self.swap_v1_private_post_trade_cancel_replace(&[request.clone()]).await;

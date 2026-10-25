@@ -3352,10 +3352,7 @@ impl KrakenfuturesCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = Value::Null;
-        if (symbol != Value::Null) {
-            market = self.market(symbol);
-        }
+        let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { symbol });
         // todo: lastFillTime: this.iso8601(end)
         let mut response: Value = self.private_get_fills(&[params]).await;
         //
@@ -3379,7 +3376,9 @@ impl KrakenfuturesCore {
         //    }
         //
         let mut fills: Value = self.safe_list_k(response, "fills", &[Value::from(vec![])]);
-        return self.parse_trades(fills, &[market, since, limit]);
+        // the endpoint returns the fills of every contract, each row resolves its own market
+        let mut trades: Value = self.parse_trades(fills, &[]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limit]);
 
     Value::Null
 }
