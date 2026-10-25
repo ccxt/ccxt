@@ -57,7 +57,7 @@ export default class luno extends lunoRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const marketId = this.safeString (market, 'id');
+        const marketId = this.safeString (market, 'id', '');
         const subscriptionHash = '/stream/' + marketId;
         const subscription: Dict = { 'symbol': symbolValue };
         const wsUrl = this.safeString (this.urls['api'], 'ws');
@@ -173,7 +173,7 @@ export default class luno extends lunoRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const marketId = this.safeString (market, 'id');
+        const marketId = this.safeString (market, 'id', '');
         const subscriptionHash = '/stream/' + marketId;
         const subscription: Dict = { 'symbol': symbolValue };
         const wsUrl = this.safeString (this.urls['api'], 'ws');
@@ -439,7 +439,7 @@ export default class luno extends lunoRest {
             const error = new InvalidNonce (this.id + ' watchOrderBook() received an out-of-sequence update for ' + symbol + ', expected ' + expectedSequence.toString () + ' but got ' + messageSequence.toString ());
             orderbook['nonce'] = undefined;
             const market = this.market (symbol);
-            const marketId = this.safeString (market, 'id');
+            const marketId = this.safeString (market, 'id', '');
             const subscriptionHash = '/stream/' + marketId;
             if (subscriptionHash in client.subscriptions) {
                 delete client.subscriptions[subscriptionHash];

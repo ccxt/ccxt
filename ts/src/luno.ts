@@ -483,7 +483,7 @@ export default class luno extends Exchange {
     }
 
     override parseCurrency (rawCurrency: Dict[]): CurrencyInterface {
-        const id = this.safeString (rawCurrency[0], 'native_currency'); // first item is guaranteed
+        const id = this.safeString (this.safeDict (rawCurrency, 0), 'native_currency'); // first item is guaranteed
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
         for (let i = 0; i < rawCurrency.length; i++) {
@@ -705,8 +705,10 @@ export default class luno extends Exchange {
             const reservedUnconfirmed = Precise.stringAdd (reserved, unconfirmed);
             const balanceUnconfirmed = Precise.stringAdd (balance, unconfirmed);
             if ((code !== undefined) && (code in result)) {
-                result[code]['used'] = Precise.stringAdd (result[code]['used'], reservedUnconfirmed);
-                result[code]['total'] = Precise.stringAdd (result[code]['total'], balanceUnconfirmed);
+                result[code] = this.extend (result[code], {
+                    'used': Precise.stringAdd (this.safeString (result[code], 'used'), reservedUnconfirmed),
+                    'total': Precise.stringAdd (this.safeString (result[code], 'total'), balanceUnconfirmed),
+                });
             } else if (code !== undefined) {
                 const account = this.account ();
                 account['used'] = reservedUnconfirmed;
@@ -1402,7 +1404,7 @@ export default class luno extends Exchange {
         // by default without entry number or limit number, return most recent entry
         const entryValue = (entry === undefined) ? -1 : entry;
         const limitValue = (limit === undefined) ? 1 : limit;
-        const since = undefined;
+        const since: Int = undefined;
         const request: Dict = {
             'min_row': entryValue,
             'max_row': this.sum (entryValue, limitValue),
@@ -1467,7 +1469,7 @@ export default class luno extends Exchange {
         return this.parseLedger (entries, currency, since, limit);
     }
 
-    parseLedgerComment (comment: any): Dict {
+    parseLedgerComment (comment: string): Dict {
         const words = comment.split (' ');
         const types: Dict = {
             'Withdrawal': 'fee',
@@ -1510,7 +1512,7 @@ export default class luno extends Exchange {
         const available_delta = this.safeString (entry, 'available_delta');
         const balance_delta = this.safeString (entry, 'balance_delta');
         const after = this.safeString (entry, 'balance');
-        const comment = this.safeString (entry, 'description');
+        const comment = this.safeString (entry, 'description', '');
         let before = after;
         let amount: Str = '0.0';
         const result = this.parseLedgerComment (comment);
