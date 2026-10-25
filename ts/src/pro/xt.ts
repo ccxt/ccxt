@@ -329,7 +329,8 @@ export default class xt extends xtRest {
         const options = this.safeDict (this.options, 'watchTicker');
         const defaultMethod = this.safeString (options, 'method', 'ticker');
         const method = this.safeString (params, 'method', defaultMethod);
-        const name = method + '@' + market['id'];
+        const marketId = this.safeString (market, 'id', '');
+        const name = method + '@' + marketId;
         return await this.subscribe (name, 'public', 'watchTicker', market, undefined, params);
     }
 
@@ -352,7 +353,8 @@ export default class xt extends xtRest {
         const options = this.safeDict (this.options, 'unWatchTicker');
         const defaultMethod = this.safeString (options, 'method', 'ticker');
         const method = this.safeString (params, 'method', defaultMethod);
-        const name = method + '@' + market['id'];
+        const marketId = this.safeString (market, 'id', '');
+        const name = method + '@' + marketId;
         const messageHash = 'unsubscribe::' + name;
         return await this.unSubscribe (messageHash, name, 'public', 'unWatchTicker', defaultMethod, market, undefined, params);
     }
@@ -429,7 +431,8 @@ export default class xt extends xtRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const name = 'kline@' + market['id'] + ',' + timeframe;
+        const marketId = this.safeString (market, 'id', '');
+        const name = 'kline@' + marketId + ',' + timeframe;
         const ohlcv = await this.subscribe (name, 'public', 'watchOHLCV', market, undefined, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
@@ -454,7 +457,8 @@ export default class xt extends xtRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const name = 'kline@' + market['id'] + ',' + timeframe;
+        const marketId = this.safeString (market, 'id', '');
+        const name = 'kline@' + marketId + ',' + timeframe;
         const messageHash = 'unsubscribe::' + name;
         const symbolsAndTimeframes = [ [ market['symbol'], timeframe ] ];
         return await this.unSubscribe (messageHash, name, 'public', 'unWatchOHLCV', 'ohlcv', market, [ symbol ], params, { 'symbolsAndTimeframes': symbolsAndTimeframes });
@@ -477,7 +481,8 @@ export default class xt extends xtRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const name = 'trade@' + market['id'];
+        const marketId = this.safeString (market, 'id', '');
+        const name = 'trade@' + marketId;
         const trades = await this.subscribe (name, 'public', 'watchTrades', market, undefined, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
@@ -501,7 +506,8 @@ export default class xt extends xtRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const name = 'trade@' + market['id'];
+        const marketId = this.safeString (market, 'id', '');
+        const name = 'trade@' + marketId;
         const messageHash = 'unsubscribe::' + name;
         return await this.unSubscribe (messageHash, name, 'public', 'unWatchTrades', 'trades', market, [ symbol ], params);
     }
@@ -527,9 +533,10 @@ export default class xt extends xtRest {
         const market = this.market (symbol);
         const levels = this.safeString (params, 'levels');
         const paramsOmitted: Dict = this.omit (params, 'levels');
-        let name = 'depth_update@' + market['id'];
+        const marketId = this.safeString (market, 'id', '');
+        let name = 'depth_update@' + marketId;
         if (levels !== undefined) {
-            name = 'depth@' + market['id'] + ',' + levels;
+            name = 'depth@' + marketId + ',' + levels;
         }
         const orderbook: WsOrderBook = await this.subscribe (name, 'public', 'watchOrderBook', market, undefined, paramsOmitted);
         return orderbook.limit ();
@@ -555,9 +562,10 @@ export default class xt extends xtRest {
         const market = this.market (symbol);
         const levels = this.safeString (params, 'levels');
         const paramsOmitted: Dict = this.omit (params, 'levels');
-        let name = 'depth_update@' + market['id'];
+        const marketId = this.safeString (market, 'id', '');
+        let name = 'depth_update@' + marketId;
         if (levels !== undefined) {
-            name = 'depth@' + market['id'] + ',' + levels;
+            name = 'depth@' + marketId + ',' + levels;
         }
         const messageHash = 'unsubscribe::' + name;
         return await this.unSubscribe (messageHash, name, 'public', 'unWatchOrderBook', 'orderbook', market, [ symbol ], paramsOmitted);
@@ -689,7 +697,8 @@ export default class xt extends xtRest {
         if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' watchFundingRate() supports swap contracts only');
         }
-        const name = 'fund_rate@' + market['id'];
+        const marketId = this.safeString (market, 'id', '');
+        const name = 'fund_rate@' + marketId;
         return await this.subscribe (name, 'public', 'watchFundingRate', market, undefined, params);
     }
 
@@ -710,7 +719,8 @@ export default class xt extends xtRest {
         if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' unWatchFundingRate() supports swap contracts only');
         }
-        const name = 'fund_rate@' + market['id'];
+        const marketId = this.safeString (market, 'id', '');
+        const name = 'fund_rate@' + marketId;
         const messageHash = 'unsubscribe::' + name;
         return await this.unSubscribe (messageHash, name, 'public', 'unWatchFundingRate', 'fund_rate', market, undefined, params);
     }
