@@ -72,8 +72,9 @@ export default class bittrade extends bittradeRest {
         const api = this.safeString (this.options, 'api', 'api');
         const apiUrls = this.safeDict (this.urls, 'api', {});
         const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const apiWsUrls = this.safeDict (wsUrls, api, {});
         const hostname: Dict = { 'hostname': this.hostname };
-        const url = this.implodeParams (wsUrls[api]['public'], hostname);
+        const url = this.implodeParams (apiWsUrls['public'], hostname);
         const requestId = this.requestId ();
         const request: Dict = {
             'sub': messageHash,
@@ -146,8 +147,9 @@ export default class bittrade extends bittradeRest {
         const api = this.safeString (this.options, 'api', 'api');
         const apiUrls = this.safeDict (this.urls, 'api', {});
         const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const apiWsUrls = this.safeDict (wsUrls, api, {});
         const hostname: Dict = { 'hostname': this.hostname };
-        const url = this.implodeParams (wsUrls[api]['public'], hostname);
+        const url = this.implodeParams (apiWsUrls['public'], hostname);
         const requestId = this.requestId ();
         const request: Dict = {
             'sub': messageHash,
@@ -235,8 +237,9 @@ export default class bittrade extends bittradeRest {
         const api = this.safeString (this.options, 'api', 'api');
         const apiUrls = this.safeDict (this.urls, 'api', {});
         const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const apiWsUrls = this.safeDict (wsUrls, api, {});
         const hostname: Dict = { 'hostname': this.hostname };
-        const url = this.implodeParams (wsUrls[api]['public'], hostname);
+        const url = this.implodeParams (apiWsUrls['public'], hostname);
         const requestId = this.requestId ();
         const request: Dict = {
             'sub': messageHash,
@@ -322,8 +325,9 @@ export default class bittrade extends bittradeRest {
         const api = this.safeString (this.options, 'api', 'api');
         const apiUrls = this.safeDict (this.urls, 'api', {});
         const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const apiWsUrls = this.safeDict (wsUrls, api, {});
         const hostname: Dict = { 'hostname': this.hostname };
-        const url = this.implodeParams (wsUrls[api]['public'], hostname);
+        const url = this.implodeParams (apiWsUrls['public'], hostname);
         const requestId = this.requestId ();
         const request: Dict = {
             'sub': messageHash,
@@ -395,8 +399,9 @@ export default class bittrade extends bittradeRest {
             const api = this.safeString (this.options, 'api', 'api');
             const apiUrls = this.safeDict (this.urls, 'api', {});
             const wsUrls = this.safeDict (apiUrls, 'ws', {});
+            const apiWsUrls = this.safeDict (wsUrls, api, {});
             const hostname: Dict = { 'hostname': this.hostname };
-            const url = this.implodeParams (wsUrls[api]['public'], hostname);
+            const url = this.implodeParams (apiWsUrls['public'], hostname);
             const requestId = this.requestId ();
             const request: Dict = {
                 'req': messageHash,

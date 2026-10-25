@@ -509,7 +509,8 @@ export default class bittrade extends Exchange {
     }
 
     override costToPrecision (symbol: Str, cost: any): Str {
-        return this.decimalToPrecision (cost, TRUNCATE, this.market (symbol)['precision']['cost'], this.precisionMode);
+        const precision = this.safeDict (this.market (symbol), 'precision', {});
+        return this.decimalToPrecision (cost, TRUNCATE, precision['cost'], this.precisionMode);
     }
 
     /**
@@ -895,9 +896,10 @@ export default class bittrade extends Exchange {
         const timestamp = this.safeInteger2 (trade, 'ts', 'created-at');
         const order = this.safeString (trade, 'order-id');
         let side = this.safeString (trade, 'direction');
-        let type = this.safeString (trade, 'type');
-        if (type !== undefined) {
-            const typeParts = type.split ('-');
+        let type: Str = undefined;
+        const typeRaw = this.safeString (trade, 'type');
+        if (typeRaw !== undefined) {
+            const typeParts = typeRaw.split ('-');
             side = typeParts[0];
             type = typeParts[1];
         }
@@ -1266,8 +1268,9 @@ export default class bittrade extends Exchange {
         }
         await this.loadAccounts ();
         const method = this.safeString (this.options['fetchBalance'], 'method', 'privateGetAccountAccountsIdBalance');
+        const account = this.safeDict (this.accounts, 0, {});
         const request: Dict = {
-            'id': this.accounts[0]['id'],
+            'id': account['id'],
         };
         let response = undefined;
         if (method === 'privateGetAccountAccountsIdBalance') {
@@ -1586,8 +1589,9 @@ export default class bittrade extends Exchange {
         }
         await this.loadAccounts ();
         const market = this.market (symbol);
+        const account = this.safeDict (this.accounts, 0, {});
         const request: Dict = {
-            'account-id': this.accounts[0]['id'],
+            'account-id': account['id'],
             'symbol': market['id'],
             'type': side + '-' + type,
         };
