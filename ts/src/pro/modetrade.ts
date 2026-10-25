@@ -116,7 +116,7 @@ export default class modetrade extends modetradeRest {
         }
         const name = 'orderbook';
         const market = this.market (symbol);
-        const marketId = this.safeString (market, 'id');
+        const marketId = this.safeString (market, 'id', '');
         const topic = marketId + '@' + name;
         const request: Dict = {
             'event': 'subscribe',
@@ -179,7 +179,7 @@ export default class modetrade extends modetradeRest {
         }
         const name = 'ticker';
         const market = this.market (symbol);
-        const marketId = this.safeString (market, 'id');
+        const marketId = this.safeString (market, 'id', '');
         const topic = marketId + '@' + name;
         const request: Dict = {
             'event': 'subscribe',
@@ -410,7 +410,7 @@ export default class modetrade extends modetradeRest {
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'kline';
-        const marketId = this.safeString (market, 'id');
+        const marketId = this.safeString (market, 'id', '');
         const topic = marketId + '@' + name + '_' + interval;
         const request: Dict = {
             'event': 'subscribe',
@@ -491,7 +491,7 @@ export default class modetrade extends modetradeRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const marketId = this.safeString (market, 'id');
+        const marketId = this.safeString (market, 'id', '');
         const topic = marketId + '@trade';
         const request: Dict = {
             'event': 'subscribe',
@@ -735,7 +735,7 @@ export default class modetrade extends modetradeRest {
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbolResolved = this.safeString (market, 'symbol');
-            messageHash += ':' + symbolResolved;
+            messageHash = topic + ':' + symbolResolved;
         }
         const request: Dict = {
             'event': 'subscribe',
@@ -778,7 +778,7 @@ export default class modetrade extends modetradeRest {
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbolResolved = this.safeString (market, 'symbol');
-            messageHash += ':' + symbolResolved;
+            messageHash = 'myTrades' + ':' + symbolResolved;
         }
         const request: Dict = {
             'event': 'subscribe',
@@ -1178,7 +1178,7 @@ export default class modetrade extends modetradeRest {
             const position = this.parseWsPosition (rawPosition, market);
             newPositions.push (position);
             cache.append (position);
-            const marketSymbol = this.safeString (market, 'symbol');
+            const marketSymbol = this.safeString (market, 'symbol', '');
             const messageHash = 'positions::' + marketSymbol;
             client.resolve (position, messageHash);
         }
