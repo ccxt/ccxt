@@ -735,7 +735,7 @@ export default class pacifica extends Exchange {
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
         if (isSwap) {
-            symbol = symbol + ':' + settle;
+            symbol = base + '/' + quote + ':' + settle;
         }
         const fees = this.safeDict (this.fees, type, {});
         const taker = this.safeNumber (fees, 'taker');
@@ -999,7 +999,7 @@ export default class pacifica extends Exchange {
             return {};
         }
         const settingsBySymbol: Dict = {};
-        for (let i = 0; i < settings.length; i++) {
+        for (let i = 0; i < settingsLen; i++) {
             const setting = settings[i];
             const marketId = setting['symbol'];
             const market = this.safeMarket (marketId);
