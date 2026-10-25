@@ -117,7 +117,7 @@ export default class reya extends reyaRest {
                 const levels = this.safeList (data, side, []);
                 for (let j = 0; j < levels.length; j++) {
                     const level = levels[j];
-                    book[side].store (this.safeNumber (level, 'px'), this.safeNumber (level, 'qty'));
+                    this.handleDelta (book[side], level);
                 }
             }
             // updatedAt is not a sequence: different updates may share a millisecond.
@@ -125,6 +125,11 @@ export default class reya extends reyaRest {
             book['datetime'] = this.iso8601 (timestamp);
         }
         client.resolve (book, channel);
+    }
+
+    /** @ignore */
+    override handleDelta (bookside: any, delta: any) {
+        bookside.store (this.safeNumber (delta, 'px'), this.safeNumber (delta, 'qty'));
     }
 
     /** @ignore */
@@ -138,9 +143,11 @@ export default class reya extends reyaRest {
                 continue;
             }
             if (!(symbol in this.trades)) {
-                this.trades[symbol] = new ArrayCacheBySymbolById (this.safeInteger (this.options, 'tradesLimit', 1000));
+                const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                this.trades[symbol] = new ArrayCacheBySymbolById (tradesLimit);
             }
-            this.trades[symbol].append (trade);
+            const stored = this.trades[symbol];
+            stored.append (trade);
             symbols[symbol] = true;
         }
         const keys = Object.keys (symbols);
