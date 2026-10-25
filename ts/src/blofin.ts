@@ -398,7 +398,9 @@ export default class blofin extends Exchange {
                     'linear': {
                         'extends': 'forDerivatives',
                     },
-                    'inverse': undefined,
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
                 },
                 'future': {
                     'linear': undefined,
