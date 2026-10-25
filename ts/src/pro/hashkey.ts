@@ -233,7 +233,7 @@ export default class hashkey extends hashkeyRest {
         //
         const data = this.safeList (message, 'data', []);
         const ticker = this.parseTicker (this.safeDict (data, 0, {}));
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString (ticker, 'symbol', '');
         const messageHash = 'ticker:' + symbol;
         this.tickers[(symbol as string)] = ticker;
         client.resolve (this.tickers[(symbol as string)], messageHash);
@@ -455,7 +455,7 @@ export default class hashkey extends hashkeyRest {
         orders.append (parsed);
         const messageHash = 'orders';
         client.resolve (orders, messageHash);
-        const symbol = parsed['symbol'];
+        const symbol = this.safeString (parsed, 'symbol', '');
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve (orders, symbolSpecificMessageHash);
     }
@@ -562,7 +562,7 @@ export default class hashkey extends hashkeyRest {
         this.myTrades = tradesArray;
         const messageHash = 'myTrades';
         client.resolve (tradesArray, messageHash);
-        const symbol = parsed['symbol'];
+        const symbol = this.safeString (parsed, 'symbol', '');
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve (tradesArray, symbolSpecificMessageHash);
     }
@@ -692,7 +692,7 @@ export default class hashkey extends hashkeyRest {
         positions.append (parsed);
         const messageHash = 'positions';
         client.resolve (parsed, messageHash);
-        const symbol = parsed['symbol'];
+        const symbol = this.safeString (parsed, 'symbol', '');
         client.resolve (parsed, messageHash + ':' + symbol);
     }
 

@@ -1083,7 +1083,9 @@ export default class hashkey extends Exchange {
                 let minInitialMargin = this.safeString (first, 'initialMargin');
                 let maxInitialMargin = this.safeString (last, 'initialMargin');
                 if (Precise.stringGt (minInitialMargin, maxInitialMargin)) {
-                    [ minInitialMargin, maxInitialMargin ] = [ maxInitialMargin, minInitialMargin ];
+                    const initialMarginsSwapped = minInitialMargin;
+                    minInitialMargin = maxInitialMargin;
+                    maxInitialMargin = initialMarginsSwapped;
                 }
                 minLeverage = this.parseToInt (Precise.stringDiv ('1', maxInitialMargin));
                 maxLeverage = this.parseToInt (Precise.stringDiv ('1', minInitialMargin));
@@ -1717,9 +1719,10 @@ export default class hashkey extends Exchange {
         const symbol = marketResolved['symbol'];
         const last = this.safeString (ticker, 'c');
         let baseVolume = this.safeString (ticker, 'v');
-        if ((marketResolved['contract'] === true) && (marketResolved['contractSize'] !== undefined)) {
+        const contractSizeValue = this.safeString (marketResolved, 'contractSize');
+        if ((marketResolved['contract'] === true) && (contractSizeValue !== undefined)) {
             // 'v' counts contracts, and a ticker reports base volume
-            baseVolume = Precise.stringMul (baseVolume, this.numberToString (marketResolved['contractSize']));
+            baseVolume = Precise.stringMul (baseVolume, this.numberToString (contractSizeValue));
         }
         return this.safeTicker ({
             'symbol': symbol,
@@ -2533,7 +2536,8 @@ export default class hashkey extends Exchange {
         } else if (market['swap'] === true) {
             return await this.createSwapOrder (symbol, type, side, amount, price, params);
         } else {
-            throw new NotSupported (this.id + ' createOrder() is not supported for ' + market['type'] + ' type of markets');
+            const marketTypeValue = this.safeString (market, 'type', '');
+            throw new NotSupported (this.id + ' createOrder() is not supported for ' + marketTypeValue + ' type of markets');
         }
     }
 
@@ -2696,7 +2700,8 @@ export default class hashkey extends Exchange {
         } else if (market['swap'] === true) {
             return this.createSwapOrderRequest (symbol, type, side, amount, price, params);
         } else {
-            throw new NotSupported (this.id + ' ' + 'createOrderRequest() is not supported for ' + market['type'] + ' type of markets');
+            const marketTypeValue = this.safeString (market, 'type', '');
+            throw new NotSupported (this.id + ' ' + 'createOrderRequest() is not supported for ' + marketTypeValue + ' type of markets');
         }
     }
 
@@ -2969,7 +2974,8 @@ export default class hashkey extends Exchange {
             //     }
             //
         } else {
-            throw new NotSupported (this.id + ' ' + 'createOrderRequest() is not supported for ' + market['type'] + ' type of markets');
+            const marketTypeValue = this.safeString (market, 'type', '');
+            throw new NotSupported (this.id + ' ' + 'createOrderRequest() is not supported for ' + marketTypeValue + ' type of markets');
         }
         const result = this.safeList (response, 'result', []) as List;
         const responseOrders: List = [];
@@ -3111,7 +3117,8 @@ export default class hashkey extends Exchange {
             //     { "message": "success", "timestamp": "1723127222198", "code": "0000" }
             //
         } else {
-            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
+            const marketTypeValue = this.safeString (market, 'type', '');
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketTypeValue + ' type of markets');
         }
         const order = this.safeOrder (response);
         order['info'] = response;
@@ -4450,7 +4457,8 @@ export default class hashkey extends Exchange {
             //     }
             //
         } else {
-            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
+            const marketTypeValue = this.safeString (market, 'type', '');
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketTypeValue + ' type of markets');
         }
     }
 
