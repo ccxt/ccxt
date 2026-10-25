@@ -542,7 +542,10 @@ export default class mexc extends mexcRest {
             'method': method,
             'params': [ channel ],
         };
-        return await this.watch (url, messageHash, this.extend (request, paramsOmitted), messageHash);
+        const subscription: Dict = {
+            'channel': channel, // the rejection frame names the channel, this maps it back to the hash
+        };
+        return await this.watch (url, messageHash, this.extend (request, paramsOmitted), messageHash, subscription);
     }
 
     async watchSpotPrivate (channel: string, messageHash: string, params: Dict = {}) {
@@ -2155,11 +2158,24 @@ export default class mexc extends mexcRest {
         if (msg === 'PONG') {
             this.handlePong (client, message);
         } else if (msg.indexOf ('Not Subscribed successfully') > -1) {
-            // the venue echoes the channel, not the hash the subscription is keyed by, so the
-            // failure cannot be attributed to one watcher - reject what is pending on this
-            // client instead of leaving every caller hanging
+            // the venue names the refused channel between brackets, reject only that watcher
+            // and drop its subscription so a corrected retry sends a new frame
             const error = new ExchangeError (this.id + ' ' + msg);
-            client.reject (error);
+            const subscriptionHashes = Object.keys (client.subscriptions);
+            let rejected = false;
+            for (let i = 0; i < subscriptionHashes.length; i++) {
+                const subscriptionHash = subscriptionHashes[i];
+                const subscribedChannel = this.safeString (client.subscriptions[subscriptionHash], 'channel');
+                if ((subscribedChannel !== undefined) && (msg.indexOf ('[' + subscribedChannel + ']') >= 0)) {
+                    delete client.subscriptions[subscriptionHash];
+                    client.reject (error, subscriptionHash);
+                    rejected = true;
+                }
+            }
+            if (!rejected) {
+                // nothing matched, the caller would hang otherwise
+                client.reject (error);
+            }
         } else if (msg.indexOf ('@') > -1) {
             const parts = msg.split ('@');
             const channel = this.safeString (parts, 1);
