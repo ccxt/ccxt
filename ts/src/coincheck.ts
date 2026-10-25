@@ -1021,8 +1021,8 @@ export default class coincheck extends Exchange {
                 }
             } else {
                 if (Object.keys (query).length > 0) {
-                    bodySigned = this.urlencode (this.keysort (query));
-                    queryString = bodySigned;
+                    queryString = this.urlencode (this.keysort (query));
+                    bodySigned = queryString;
                 }
             }
             const auth = nonce + url + queryString;
