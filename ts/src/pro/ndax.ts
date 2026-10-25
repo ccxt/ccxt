@@ -57,8 +57,9 @@ export default class ndax extends ndaxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const marketId = this.safeString (market, 'id', '');
         const name = 'SubscribeLevel1';
-        const messageHash = name + ':' + market['id'];
+        const messageHash = name + ':' + marketId;
         const url = this.safeString (this.safeDict (this.urls, 'api', {}), 'ws');
         const requestId = this.requestId ();
         const payload: Dict = {
@@ -109,8 +110,9 @@ export default class ndax extends ndaxRest {
         if (symbol !== undefined) {
             this.tickers[symbol] = ticker;
         }
+        const marketId = this.safeString (market, 'id', '');
         const name = 'SubscribeLevel1';
-        const messageHash = name + ':' + market['id'];
+        const messageHash = name + ':' + marketId;
         client.resolve (ticker, messageHash);
     }
 
@@ -132,8 +134,9 @@ export default class ndax extends ndaxRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
+        const marketId = this.safeString (market, 'id', '');
         const name = 'SubscribeTrades';
-        const messageHash = name + ':' + market['id'];
+        const messageHash = name + ':' + marketId;
         const url = this.safeString (this.safeDict (this.urls, 'api', {}), 'ws');
         const requestId = this.requestId ();
         const payload: Dict = {
@@ -199,7 +202,8 @@ export default class ndax extends ndaxRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const messageHash = name + ':' + market['id'];
+            const marketId = this.safeString (market, 'id', '');
+            const messageHash = name + ':' + marketId;
             const tradesArray = this.safeValue (this.trades, symbol);
             client.resolve (tradesArray, messageHash);
         }
@@ -224,8 +228,9 @@ export default class ndax extends ndaxRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
+        const marketId = this.safeString (market, 'id', '');
         const name = 'SubscribeTicker';
-        const messageHash = name + ':' + timeframe + ':' + market['id'];
+        const messageHash = name + ':' + timeframe + ':' + marketId;
         const url = this.safeString (this.safeDict (this.urls, 'api', {}), 'ws');
         const requestId = this.requestId ();
         const payload: Dict = {
@@ -305,8 +310,8 @@ export default class ndax extends ndaxRest {
                 ];
                 const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
                 const length: number = stored.length;
-                if ((length > 0) && (candleTimestamp === this.safeInteger (stored[length - 1], 0))) {
-                    const previous = stored[length - 1];
+                const previous = this.safeValue (stored, length - 1);
+                if ((length > 0) && (candleTimestamp === this.safeInteger (previous, 0))) {
                     const parsedHigh = this.safeFloat (ohlcv, 1);
                     const previousHigh = this.safeFloat (previous, 1);
                     let high = previousHigh;
@@ -327,18 +332,18 @@ export default class ndax extends ndaxRest {
                     }
                     stored[length - 1] = [
                         parsed[0],
-                        previous[1],
+                        this.safeFloat (previous, 1),
                         high,
                         low,
                         parsed[4],
-                        this.sum (parsed[5], previous[5]),
+                        this.sum (parsed[5], this.safeFloat (previous, 5)),
                     ];
                     if (marketId !== undefined) {
                         updates[marketId][timeframe] = true;
                     }
                 } else {
                     if (length > 0) {
-                        const lastTimestamp = this.safeInteger (stored[length - 1], 0);
+                        const lastTimestamp = this.safeInteger (previous, 0);
                         if ((lastTimestamp !== undefined) && (lastTimestamp > candleTimestamp)) {
                             continue;
                         }
@@ -388,8 +393,9 @@ export default class ndax extends ndaxRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
+        const marketId = this.safeString (market, 'id', '');
         const name = 'SubscribeLevel2';
-        const messageHash = name + ':' + market['id'];
+        const messageHash = name + ':' + marketId;
         const url = this.safeString (this.safeDict (this.urls, 'api', {}), 'ws');
         const requestId = this.requestId ();
         const limitValue: Int = (limit === undefined) ? 100 : limit;
