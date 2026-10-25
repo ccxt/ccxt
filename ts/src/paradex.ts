@@ -1496,7 +1496,7 @@ export default class paradex extends Exchange {
             ],
         };
         const msg = this.starknetEncodeStructuredData (domain, messageTypes, req, this.safeString (account, 'address'));
-        const signature = this.starknetSign (msg, this.safeString (account, 'privateKey'));
+        const signature = this.starknetSign (msg, account['privateKey']);
         params['signature'] = signature;
         params['account'] = this.safeString (account, 'address');
         params['public_key'] = this.safeString (account, 'publicKey');
@@ -1537,7 +1537,7 @@ export default class paradex extends Exchange {
             ],
         };
         const msg = this.starknetEncodeStructuredData (domain, messageTypes, req, this.safeString (account, 'address'));
-        const signature = this.starknetSign (msg, this.safeString (account, 'privateKey'));
+        const signature = this.starknetSign (msg, account['privateKey']);
         params['signature'] = signature;
         params['account'] = this.safeString (account, 'address');
         params['timestamp'] = req['timestamp'];
@@ -1810,7 +1810,7 @@ export default class paradex extends Exchange {
         }
         const domain = await this.prepareParadexDomain ();
         const msg = this.starknetEncodeStructuredData (domain, messageTypes, orderReq, this.safeString (account, 'address'));
-        const signature = this.starknetSign (msg, this.safeString (account, 'privateKey'));
+        const signature = this.starknetSign (msg, account['privateKey']);
         const signedRequest: Dict = this.extend (request, {
             'signature': signature,
             'signature_timestamp': orderReq['timestamp'],
