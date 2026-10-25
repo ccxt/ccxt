@@ -843,7 +843,7 @@ export default class kucoin extends kucoinRest {
         // }
         //
         const parsedTicker = this.parseWsBidAsk (message);
-        const symbol = parsedTicker['symbol'];
+        const symbol = this.safeString (parsedTicker, 'symbol', '');
         this.bidsasks[(symbol as string)] = parsedTicker;
         const messageHash = 'bidask@' + symbol;
         client.resolve (parsedTicker, messageHash);
@@ -1337,7 +1337,7 @@ export default class kucoin extends kucoinRest {
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const trade = this.parseWsUtaTrade (data, market);
-        const symbol = trade['symbol'];
+        const symbol = this.safeString (trade, 'symbol', '');
         const messageHash = 'uta:trades:' + symbol;
         if (!((symbol as string) in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1724,8 +1724,9 @@ export default class kucoin extends kucoinRest {
                 return;
             }
         }
-        this.handleBookDelta (this.orderbooks[symbol], data);
-        client.resolve (this.orderbooks[symbol], messageHash);
+        const book = this.orderbooks[symbol];
+        this.handleBookDelta (book, data);
+        client.resolve (book, messageHash);
     }
 
     handleUtaOrderBook (client: Client, message: Dict) {
@@ -1756,7 +1757,7 @@ export default class kucoin extends kucoinRest {
             this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];
-        const depth = this.safeString (message, 'dp');
+        const depth = this.safeString (message, 'dp', '');
         const messageHash = 'uta:orderbook:' + symbol + ':depth:' + depth;
         if (type === 'snapshot') {
             const parsed = this.parseOrderBook (data, symbol, timestamp, 'b', 'a', 0, 1);
@@ -1783,8 +1784,9 @@ export default class kucoin extends kucoinRest {
                 return;
             }
         }
-        this.handleBookDelta (this.orderbooks[symbol], data);
-        client.resolve (this.orderbooks[symbol], messageHash);
+        const book = this.orderbooks[symbol];
+        this.handleBookDelta (book, data);
+        client.resolve (book, messageHash);
     }
 
     override getCacheIndex (orderbook: any, cache: any): number {
@@ -2300,11 +2302,11 @@ export default class kucoin extends kucoinRest {
             // orders filled at better prices, so the accumulated values win on
             // the non match messages, see https://github.com/ccxt/ccxt/issues/19083
             if (order['average'] !== undefined) {
-                parsed['average'] = order['average'];
-                parsed['cost'] = order['cost'];
+                parsed['average'] = this.safeNumber (order, 'average');
+                parsed['cost'] = this.safeNumber (order, 'cost');
             }
             if (parsed['filled'] === undefined) {
-                parsed['filled'] = order['filled'];
+                parsed['filled'] = this.safeNumber (order, 'filled');
             }
         }
         // accumulate the average fill price and cost from the match messages,
@@ -2382,7 +2384,7 @@ export default class kucoin extends kucoinRest {
         //
         const data = this.safeDict (message, 'd', {});
         const parsed = this.parseWsUtaOrder (data);
-        const symbol = this.safeString (parsed, 'symbol');
+        const symbol = this.safeString (parsed, 'symbol', '');
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -2515,7 +2517,8 @@ export default class kucoin extends kucoinRest {
         const suffix = this.getMyTradesMessageHashSuffix (topic);
         const typeSpecificMessageHash = messageHash + suffix;
         client.resolve (this.myTrades, typeSpecificMessageHash);
-        const symbolSpecificMessageHash = messageHash + ':' + parsed['symbol'];
+        const parsedSymbol = this.safeString (parsed, 'symbol', '');
+        const symbolSpecificMessageHash = messageHash + ':' + parsedSymbol;
         client.resolve (this.myTrades, symbolSpecificMessageHash);
     }
 
@@ -2541,7 +2544,7 @@ export default class kucoin extends kucoinRest {
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
         const trade = this.parseWsUtaTrade (data, market);
-        const symbol = trade['symbol'];
+        const symbol = this.safeString (trade, 'symbol', '');
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
@@ -2823,29 +2826,31 @@ export default class kucoin extends kucoinRest {
         }
         const accountsByType = this.safeDict (this.options, 'accountsByType');
         const uniformType = this.safeString (accountsByType, requestAccountType, 'trade');
-        if (!(uniformType in this.balance)) {
-            this.balance[uniformType] = {};
+        if (uniformType !== undefined) {
+            if (!(uniformType in this.balance)) {
+                this.balance[uniformType] = {};
+            }
+            this.balance[uniformType]['info'] = data;
+            const timestamp = this.safeInteger2 (data, 'time', 'timestamp');
+            this.balance[uniformType]['timestamp'] = timestamp;
+            this.balance[uniformType]['datetime'] = this.iso8601 (timestamp);
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            let used = this.safeString2 (data, 'hold', 'holdBalance');
+            const isolatedPosMargin = this.omitZero (this.safeString (data, 'isolatedPosMargin'));
+            if (isolatedPosMargin !== undefined) {
+                used = Precise.stringAdd (used, isolatedPosMargin);
+            }
+            account['free'] = this.safeString2 (data, 'available', 'availableBalance');
+            account['used'] = used;
+            account['total'] = this.safeString (data, 'total');
+            if (code !== undefined) {
+                this.balance[uniformType][code] = account;
+            }
+            this.balance[uniformType] = this.safeBalance (this.balance[uniformType]);
+            const messageHash = uniformType + ':balance';
+            client.resolve (this.balance[uniformType], messageHash);
         }
-        this.balance[uniformType]['info'] = data;
-        const timestamp = this.safeInteger2 (data, 'time', 'timestamp');
-        this.balance[uniformType]['timestamp'] = timestamp;
-        this.balance[uniformType]['datetime'] = this.iso8601 (timestamp);
-        const code = this.safeCurrencyCode (currencyId);
-        const account = this.account ();
-        let used = this.safeString2 (data, 'hold', 'holdBalance');
-        const isolatedPosMargin = this.omitZero (this.safeString (data, 'isolatedPosMargin'));
-        if (isolatedPosMargin !== undefined) {
-            used = Precise.stringAdd (used, isolatedPosMargin);
-        }
-        account['free'] = this.safeString2 (data, 'available', 'availableBalance');
-        account['used'] = used;
-        account['total'] = this.safeString (data, 'total');
-        if ((uniformType !== undefined) && (code !== undefined)) {
-            this.balance[uniformType][code] = account;
-        }
-        this.balance[uniformType] = this.safeBalance (this.balance[uniformType]);
-        const messageHash = uniformType + ':balance';
-        client.resolve (this.balance[uniformType], messageHash);
     }
 
     handleUtaBalance (client: Client, message: Dict) {
@@ -3336,7 +3341,7 @@ export default class kucoin extends kucoinRest {
         //
         const data = this.safeDict (message, 'd', {});
         const fundingRate = this.parseWsFundingRate (data);
-        const symbol = fundingRate['symbol'];
+        const symbol = this.safeString (fundingRate, 'symbol');
         if (symbol !== undefined) {
             this.fundingRates[symbol] = fundingRate;
         }

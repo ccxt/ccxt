@@ -1794,7 +1794,9 @@ export default class kucoin extends Exchange {
             if (id === undefined) {
                 continue;
             }
-            const [ baseId, quoteId ] = id.split ('-');
+            const idParts = id.split ('-');
+            const baseId = idParts[0];
+            const quoteId = idParts[1];
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             if ((base === undefined) || (quote === undefined)) {
@@ -11008,7 +11010,7 @@ export default class kucoin extends Exchange {
             'leverage': this.safeNumber2 (position, 'realLeverage', 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
-            'contractSize': this.safeValue (marketResolved, 'contractSize'),
+            'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'realizedPnl': this.safeNumberN (position, [ 'realisedPnl', 'pnl', 'realizedPnL' ]),
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
