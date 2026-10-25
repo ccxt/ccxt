@@ -1015,7 +1015,7 @@ export default class bitbank extends Exchange {
         const tagWithdrawTag: Str = tagAndParams[0];
         const paramsWithdrawTag: Dict = tagAndParams[1];
         this.checkAddress (address, code, tagWithdrawTag);
-        if (!('uuid' in paramsWithdrawTag)) {
+        if (!('uuid' in params)) {
             throw new ExchangeError (this.id + ' uuid is required for withdrawal');
         }
         if (this.markets === undefined) {
@@ -1097,7 +1097,7 @@ export default class bitbank extends Exchange {
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
-        const query = this.omit (params, this.extractParams (path));
+        const query = this.extend ({}, this.omit (params, this.extractParams (path)));
         const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
