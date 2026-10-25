@@ -526,6 +526,9 @@ export default class dydx extends Exchange {
         }
         const settleId = 'USDC';
         const settle = this.safeCurrencyCode (settleId);
+        if (settle === undefined) {
+            return undefined;
+        }
         const symbol = base + '/' + quote + ':' + settle;
         const contract = true;
         const swap = true;
@@ -1216,8 +1219,8 @@ export default class dydx extends Exchange {
 
     signHash (hash: any, privateKey: any): Dict {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString (signature, 'r', '');
+        const s = this.safeString (signature, 's', '');
         return {
             'r': r.padStart (64, '0'),
             's': s.padStart (64, '0'),
@@ -1252,7 +1255,9 @@ export default class dydx extends Exchange {
     signDydxTx (privateKey: Str, message: any, memo: Str, chainId: Str, account: any, authenticators: any, fee: any = undefined): string {
         const [ encodedTx, signDoc ] = this.encodeDydxTxForSigning (message, memo, chainId, account, authenticators, fee);
         const signature = this.signHash (encodedTx, privateKey);
-        return this.encodeDydxTxRaw (signDoc, signature['r'] + signature['s']);
+        const signatureR = this.safeString (signature, 'r', '');
+        const signatureS = this.safeString (signature, 's', '');
+        return this.encodeDydxTxRaw (signDoc, signatureR + signatureS);
     }
 
     retrieveCredentials (): Dict {
@@ -1263,7 +1268,9 @@ export default class dydx extends Exchange {
         let privateKey = this.safeString (this.options, 'privateKey');
         if (privateKey === undefined) {
             const signature: Dict = this.signOnboardingAction ();
-            privateKey = this.hashMessage (this.base16ToBinary (signature['r'] + signature['s']));
+            const signatureR = this.safeString (signature, 'r', '');
+            const signatureS = this.safeString (signature, 's', '');
+            privateKey = this.hashMessage (this.base16ToBinary (signatureR + signatureS));
         }
         credentials = this.retrieveDydxCredentials (privateKey);
         credentials['privateKey'] = this.binaryToBase16 (credentials['privateKey']);
@@ -2521,13 +2528,12 @@ export default class dydx extends Exchange {
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url: string = apiUrl;
+        let url: string = apiUrl + '/' + pathWithParams;
         const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
         const paramsSorted: Dict = this.keysort (paramsOmitted);
-        url += '/' + pathWithParams;
         if (method === 'GET') {
             if (Object.keys (paramsSorted).length > 0) {
-                url += '?' + this.urlencode (paramsSorted);
+                url = apiUrl + '/' + pathWithParams + '?' + this.urlencode (paramsSorted);
             }
         } else {
             requestBody = this.json (paramsSorted);

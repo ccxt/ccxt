@@ -287,11 +287,12 @@ export default class dydx extends dydxRest {
         const url = this.urls['api']['ws'];
         const market = this.market (symbol);
         const messageHash = 'ohlcv:' + market['symbol'];
+        const marketId = this.safeString (market, 'id', '');
         const resolution = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'type': 'subscribe',
             'channel': 'v4_candles',
-            'id': market['id'] + '/' + resolution,
+            'id': marketId + '/' + resolution,
         };
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         let limitResolved = limit;
@@ -319,11 +320,12 @@ export default class dydx extends dydxRest {
         const url = this.urls['api']['ws'];
         const market = this.market (symbol);
         const messageHash = 'ohlcv:' + market['symbol'];
+        const marketId = this.safeString (market, 'id', '');
         const resolution = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'type': 'unsubscribe',
             'channel': 'v4_candles',
-            'id': market['id'] + '/' + resolution,
+            'id': marketId + '/' + resolution,
         };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
@@ -413,7 +415,7 @@ export default class dydx extends dydxRest {
         // }
         //
         try {
-            const msg = this.safeString (message, 'message');
+            const msg = this.safeString (message, 'message', '');
             throw new ExchangeError (this.id + ' ' + msg);
         } catch (e) {
             client.reject (e);
