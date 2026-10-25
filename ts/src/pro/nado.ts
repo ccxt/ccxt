@@ -439,8 +439,9 @@ export default class nado extends nadoRest {
         if (symbolsNormalized !== undefined) {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
-                market = this.market (symbolsNormalized[0]);
-                messageHash = 'ticker:' + market['symbol'];
+                const symbolMarket = this.market (symbolsNormalized[0]);
+                market = symbolMarket;
+                messageHash = 'ticker:' + symbolMarket['symbol'];
                 streamType = 'best_bid_offer';
             }
         }
@@ -477,8 +478,9 @@ export default class nado extends nadoRest {
         if (symbolsNormalized !== undefined) {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
-                market = this.market (symbolsNormalized[0]);
-                messageHash = 'ticker:' + market['symbol'];
+                const symbolMarket = this.market (symbolsNormalized[0]);
+                market = symbolMarket;
+                messageHash = 'ticker:' + symbolMarket['symbol'];
                 streamType = 'best_bid_offer';
             }
         }
@@ -503,8 +505,9 @@ export default class nado extends nadoRest {
         if (symbolsNormalized !== undefined) {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
-                market = this.market (symbolsNormalized[0]);
-                messageHash = 'bidask:' + market['symbol'];
+                const symbolMarket = this.market (symbolsNormalized[0]);
+                market = symbolMarket;
+                messageHash = 'bidask:' + symbolMarket['symbol'];
                 streamType = 'best_bid_offer';
             }
         }
@@ -541,8 +544,9 @@ export default class nado extends nadoRest {
         if (symbolsNormalized !== undefined) {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
-                market = this.market (symbolsNormalized[0]);
-                messageHash = 'bidask:' + market['symbol'];
+                const symbolMarket = this.market (symbolsNormalized[0]);
+                market = symbolMarket;
+                messageHash = 'bidask:' + symbolMarket['symbol'];
                 streamType = 'best_bid_offer';
             }
         }
@@ -572,8 +576,11 @@ export default class nado extends nadoRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = this.safeString (market, 'symbol');
-            messageHash += ':' + symbolResolved;
+            const marketSymbol = this.safeString (market, 'symbol');
+            symbolResolved = marketSymbol;
+            if (marketSymbol !== undefined) {
+                messageHash += ':' + marketSymbol;
+            }
             productId = this.parseToInt (market['id']);
         }
         const [ subaccount, paramsSubaccount ] = this.handleOptionStringAndParams (params, 'watchOrders', 'subaccount', 'default');
@@ -608,11 +615,12 @@ export default class nado extends nadoRest {
         let market: Market = undefined;
         let messageHash = 'orders';
         let productId: Int = undefined;
-        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
-            messageHash += ':' + symbolResolved;
+            const marketSymbol = this.safeString (market, 'symbol');
+            if (marketSymbol !== undefined) {
+                messageHash += ':' + marketSymbol;
+            }
             productId = this.parseToInt (market['id']);
         }
         const [ subaccount, paramsSubaccount ] = this.handleOptionStringAndParams (params, 'unWatchOrders', 'subaccount', 'default');
@@ -648,8 +656,11 @@ export default class nado extends nadoRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = this.safeString (market, 'symbol');
-            messageHash += ':' + symbolResolved;
+            const marketSymbol = this.safeString (market, 'symbol');
+            symbolResolved = marketSymbol;
+            if (marketSymbol !== undefined) {
+                messageHash += ':' + marketSymbol;
+            }
             productId = this.parseToInt (market['id']);
         }
         const [ subaccount, paramsSubaccount ] = this.handleOptionStringAndParams (params, 'watchMyTrades', 'subaccount', 'default');
@@ -684,11 +695,12 @@ export default class nado extends nadoRest {
         let market: Market = undefined;
         let messageHash = 'myTrades';
         let productId: Int = undefined;
-        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
-            messageHash += ':' + symbolResolved;
+            const marketSymbol = this.safeString (market, 'symbol');
+            if (marketSymbol !== undefined) {
+                messageHash += ':' + marketSymbol;
+            }
             productId = this.parseToInt (market['id']);
         }
         const [ subaccount, paramsSubaccount ] = this.handleOptionStringAndParams (params, 'unWatchMyTrades', 'subaccount', 'default');
@@ -725,7 +737,10 @@ export default class nado extends nadoRest {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
                 const market = this.market (symbolsNormalized[0]);
-                messageHash += ':' + market['symbol'];
+                const marketSymbol = this.safeString (market, 'symbol');
+                if (marketSymbol !== undefined) {
+                    messageHash += ':' + marketSymbol;
+                }
                 productId = this.parseToInt (market['id']);
             }
         }
@@ -764,7 +779,10 @@ export default class nado extends nadoRest {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
                 const market = this.market (symbolsNormalized[0]);
-                messageHash += ':' + market['symbol'];
+                const marketSymbol = this.safeString (market, 'symbol');
+                if (marketSymbol !== undefined) {
+                    messageHash += ':' + marketSymbol;
+                }
                 productId = this.parseToInt (market['id']);
             }
         }
@@ -1818,7 +1836,8 @@ export default class nado extends nadoRest {
         } else if (messageHash === 'ticker') {
             const symbols = Object.keys (this.tickers);
             for (let i = 0; i < symbols.length; i++) {
-                delete this.tickers[symbols[i]];
+                const tickerSymbol = symbols[i];
+                delete this.tickers[tickerSymbol];
             }
         } else if (messageHash.indexOf ('bidask:') === 0) {
             const symbol = messageHash.replace ('bidask:', '');
@@ -1828,7 +1847,8 @@ export default class nado extends nadoRest {
         } else if (messageHash === 'bidask') {
             const symbols = Object.keys (this.bidsasks);
             for (let i = 0; i < symbols.length; i++) {
-                delete this.bidsasks[symbols[i]];
+                const bidaskSymbol = symbols[i];
+                delete this.bidsasks[bidaskSymbol];
             }
         } else if (messageHash.indexOf ('orders') === 0) {
             this.orders = undefined;

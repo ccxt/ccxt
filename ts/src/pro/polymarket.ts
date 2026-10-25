@@ -477,7 +477,7 @@ export default class polymarket extends polymarketRest {
             this.trades[symbol] = stored;
         }
         const trades = this.trades[symbol];
-        for (let i = 0; i < rows.length; i++) {
+        for (let i = 0; i < rowsLength; i++) {
             const row = this.safeDict (rows, i, {});
             const trade = this.parseWsTrade (row, market);
             trades.append (trade);
@@ -743,7 +743,7 @@ export default class polymarket extends polymarketRest {
         }
         const stored = this.orders;
         const symbols: Dict = {};
-        for (let i = 0; i < rows.length; i++) {
+        for (let i = 0; i < rowsLength; i++) {
             const row = this.safeDict (rows, i, {});
             const parsed = this.parseOrder (row);
             stored.append (parsed);
@@ -836,7 +836,7 @@ export default class polymarket extends polymarketRest {
         }
         const stored = this.myTrades;
         const symbols: Dict = {};
-        for (let i = 0; i < rows.length; i++) {
+        for (let i = 0; i < rowsLength; i++) {
             const row = this.safeDict (rows, i, {});
             const parsed = this.parseTrade (row);
             stored.append (parsed);

@@ -262,7 +262,7 @@ export default class hollaex extends hollaexRest {
             const trade = rawTrades[i];
             const parsed = this.parseTrade (trade);
             stored.append (parsed);
-            const symbol = trade['symbol'];
+            const symbol = this.safeString (trade, 'symbol');
             const market = this.market (symbol);
             const marketId = market['id'];
             if (marketId !== undefined) {
@@ -393,7 +393,7 @@ export default class hollaex extends hollaexRest {
             const order = rawOrders[i];
             const parsed = this.parseOrder (order);
             stored.append (parsed);
-            const symbol = order['symbol'];
+            const symbol = this.safeString (order, 'symbol');
             const market = this.market (symbol);
             const marketId = market['id'];
             if (marketId !== undefined) {
@@ -470,7 +470,7 @@ export default class hollaex extends hollaexRest {
     }
 
     async watchPublic (messageHash: string, params: Dict = {}) {
-        const url: string = this.urls['api']['ws'];
+        const url: Str = this.safeString (this.urls['api'], 'ws');
         const request: Dict = {
             'op': 'subscribe',
             'args': [ messageHash ],
@@ -494,7 +494,7 @@ export default class hollaex extends hollaexRest {
             // that would trigger a new connection on each received message
             this.options['ws-expires'] = expires;
         }
-        const url: string = this.urls['api']['ws'];
+        const url: Str = this.safeString (this.urls['api'], 'ws');
         const auth = 'CONNECT' + '/stream' + expires;
         const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
         const authParams: Dict = {

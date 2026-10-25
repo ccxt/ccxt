@@ -1947,7 +1947,8 @@ export default class phemex extends Exchange {
             side = this.safeStringLower (trade, tradeLength - 3);
             priceString = this.safeString (trade, tradeLength - 2);
             amountString = this.safeString (trade, tradeLength - 1);
-            if (typeof trade[tradeLength - 2] === 'number') {
+            const priceAmount = trade[tradeLength - 2];
+            if (typeof priceAmount === 'number') {
                 priceString = this.fromEp (priceString, marketResolved);
                 amountString = this.fromEv (amountString, marketResolved);
             }

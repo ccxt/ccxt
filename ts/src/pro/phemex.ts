@@ -973,7 +973,7 @@ export default class phemex extends phemexRest {
         }
         const marketIds: Dict = {};
         let type: Str = undefined;
-        for (let i = 0; i < message.length; i++) {
+        for (let i = 0; i < tradesLength; i++) {
             const rawTrade = message[i];
             const marketId = this.safeString (rawTrade, 'symbol');
             const market = this.safeMarket (marketId);
@@ -1218,7 +1218,7 @@ export default class phemex extends phemexRest {
             if (messageLength === 0) {
                 return;
             }
-            for (let i = 0; i < message.length; i++) {
+            for (let i = 0; i < messageLength; i++) {
                 const update = message[i];
                 const action = this.safeString (update, 'action');
                 if ((action !== undefined) && (action !== 'Cancel')) {

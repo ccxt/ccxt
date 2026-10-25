@@ -267,7 +267,8 @@ export default class htx extends htxRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const messageHash = 'market.' + market['id'] + '.trade.detail';
+        const marketId: Str = market['id'];
+        const messageHash = 'market.' + marketId + '.trade.detail';
         const url = this.getUrlByMarketType (market['type'], market['linear']);
         const trades = await this.subscribePublic (url, symbolValue, messageHash, undefined, params);
         let limitResolved: Int = limit;
@@ -366,7 +367,8 @@ export default class htx extends htxRest {
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const messageHash = 'market.' + market['id'] + '.kline.' + interval;
+        const marketId: Str = market['id'];
+        const messageHash = 'market.' + marketId + '.kline.' + interval;
         const url = this.getUrlByMarketType (market['type'], market['linear']);
         const ohlcv = await this.subscribePublic (url, symbolValue, messageHash, undefined, params);
         let limitResolved: Int = limit;
@@ -395,7 +397,8 @@ export default class htx extends htxRest {
         }
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const subMessageHash = 'market.' + market['id'] + '.kline.' + interval;
+        const marketId: Str = market['id'];
+        const subMessageHash = 'market.' + marketId + '.kline.' + interval;
         const topic = 'ohlcv';
         params['symbolsAndTimeframes'] = [ [ market['symbol'], timeframe ] ];
         return await this.unsubscribePublic (market, subMessageHash, topic, params);
@@ -472,10 +475,11 @@ export default class htx extends htxRest {
             throw new ExchangeError (this.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only');
         }
         let messageHash: Str = undefined;
+        const marketId: Str = market['id'];
         if (market['spot'] === true) {
-            messageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString (limitResolved);
+            messageHash = 'market.' + marketId + '.mbp.' + this.numberToString (limitResolved);
         } else {
-            messageHash = 'market.' + market['id'] + '.depth.size_' + this.numberToString (limitResolved) + '.high_freq';
+            messageHash = 'market.' + marketId + '.depth.size_' + this.numberToString (limitResolved) + '.high_freq';
         }
         const url = this.getUrlByMarketType (market['type'], market['linear'], false, true);
         let method: any = this.handleOrderBookSubscription;
@@ -510,11 +514,12 @@ export default class htx extends htxRest {
         const topic = 'orderbook';
         const options = this.safeDict (this.options, 'watchOrderBook', {});
         const depth = this.safeInteger (options, 'depth', 150);
+        const marketId: Str = market['id'];
         let subMessageHash: Str = undefined;
         if (market['spot'] === true) {
-            subMessageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString (depth);
+            subMessageHash = 'market.' + marketId + '.mbp.' + this.numberToString (depth);
         } else {
-            subMessageHash = 'market.' + market['id'] + '.depth.size_' + this.numberToString (depth) + '.high_freq';
+            subMessageHash = 'market.' + marketId + '.depth.size_' + this.numberToString (depth) + '.high_freq';
         }
         if (market['spot'] !== true) {
             params['data_type'] = 'incremental';
@@ -1871,7 +1876,9 @@ export default class htx extends htxRest {
                     channel = prefix + '.' + 'usdt';
                 } else {
                     // usdt contracts account
-                    prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
+                    if (marginMode === 'cross') {
+                        prefix = prefix + '_cross';
+                    }
                     messageHash = prefix;
                     if (marginMode === 'isolated') {
                         // isolated margin only allows filtering by symbol3
@@ -2471,6 +2478,7 @@ export default class htx extends htxRest {
         //     }
         //
         const status = this.safeString (message, 'status');
+        const wsExceptions: Dict = this.safeDict (this.exceptions, 'ws', {});
         if (status === 'error') {
             const id = this.safeString (message, 'id');
             if (id === undefined) {
@@ -2481,7 +2489,7 @@ export default class htx extends htxRest {
             if (subscription !== undefined) {
                 const errorCode = this.safeString (message, 'err-code');
                 try {
-                    this.throwExactlyMatchedException (this.exceptions['ws']['exact'], errorCode, this.json (message));
+                    this.throwExactlyMatchedException (wsExceptions['exact'], errorCode, this.json (message));
                     throw new ExchangeError (this.json (message));
                 } catch (e) {
                     const messageHash = this.safeString (subscription, 'messageHash');
@@ -2507,7 +2515,7 @@ export default class htx extends htxRest {
         if (code !== undefined && ((code !== '200') && (code !== '0'))) {
             const feedback = this.id + ' ' + this.json (message);
             try {
-                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], code, feedback);
+                this.throwExactlyMatchedException (wsExceptions['exact'], code, feedback);
                 throw new ExchangeError (feedback);
             } catch (e) {
                 if (e instanceof AuthenticationError) {
@@ -2859,22 +2867,31 @@ export default class htx extends htxRest {
     getUrlByMarketType (type: any, isLinear = true, isPrivate = false, isFeed = false, isV5 = false): Str {
         const api = this.safeString (this.options, 'api', 'api');
         const hostname: Dict = { 'hostname': this.hostname };
+        const apiUrls: Dict = this.safeDict (this.urls, 'api', {});
+        const wsUrls: Dict = this.safeDict (apiUrls, 'ws', {});
+        const typeUrlsByApi: Dict = this.safeDict (wsUrls, api, {});
         let hostnameURL: Str = undefined;
         let url: Str = undefined;
         if (type === 'spot') {
+            const spotUrls: Dict = this.safeDict (typeUrlsByApi, 'spot', {});
             if (isPrivate) {
-                hostnameURL = this.urls['api']['ws'][api]['spot']['private'];
+                hostnameURL = spotUrls['private'];
             } else {
                 if (isFeed) {
-                    hostnameURL = this.urls['api']['ws'][api]['spot']['feed'];
+                    hostnameURL = spotUrls['feed'];
                 } else {
-                    hostnameURL = this.urls['api']['ws'][api]['spot']['public'];
+                    hostnameURL = spotUrls['public'];
                 }
             }
             url = this.implodeParams (hostnameURL, hostname);
         } else {
-            const baseUrl = this.urls['api']['ws'][api][type];
-            const subTypeUrl = isLinear ? baseUrl['linear'] : baseUrl['inverse'];
+            const typeUrls: Dict = this.safeDict (typeUrlsByApi, type, {});
+            let subTypeUrl: NullableDict = undefined;
+            if (isLinear) {
+                subTypeUrl = this.safeDict (typeUrls, 'linear', {});
+            } else {
+                subTypeUrl = this.safeDict (typeUrls, 'inverse', {});
+            }
             if (isPrivate) {
                 if (isV5 && isLinear) {
                     url = this.safeString (subTypeUrl, 'privateV5', subTypeUrl['private']);
@@ -2958,7 +2975,13 @@ export default class htx extends htxRest {
         const isLinear = subtype === 'linear';
         const isV5 = this.safeBool (subscriptionParams, 'isV5', false);
         const url = this.getUrlByMarketType (type, isLinear, true, false, isV5);
-        const hostname = (type === 'spot') ? this.urls['hostnames']['spot'] : this.urls['hostnames']['contract'];
+        const hostnames: Dict = this.safeDict (this.urls, 'hostnames', {});
+        let hostname: Str = undefined;
+        if (type === 'spot') {
+            hostname = hostnames['spot'];
+        } else {
+            hostname = hostnames['contract'];
+        }
         const authParams: Dict = {
             'type': type,
             'url': url,

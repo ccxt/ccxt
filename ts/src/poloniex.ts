@@ -1871,7 +1871,7 @@ export default class poloniex extends Exchange {
 
     parseOpenOrders (orders: Dict[], market: Market, result: Order[]): Order[] {
         for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
+            const order: Dict = this.safeDict (orders, i, {});
             const extended = this.extend (order, {
                 'status': 'open',
                 'type': 'limit',
@@ -2198,7 +2198,7 @@ export default class poloniex extends Exchange {
         const results = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            const entry = data[i];
+            const entry: Dict = this.safeDict (data, i, {});
             const entryMarket = ordersMarkets[i];
             results.push (this.parseOrder (entry, entryMarket));
         }
@@ -2961,7 +2961,7 @@ export default class poloniex extends Exchange {
         networkCode = this.networkIdToCode (networkCode, code);
         const networkEntry = (networkCode === undefined) ? undefined : this.safeDict (currency['networks'], networkCode);
         if (networkEntry !== undefined) {
-            exchangeNetworkId = networkEntry['id'];
+            exchangeNetworkId = this.safeString (networkEntry, 'id');
         } else {
             exchangeNetworkId = this.networkCodeToId (networkCode, code);
         }
@@ -2974,12 +2974,12 @@ export default class poloniex extends Exchange {
     parseDepositAddressSpecial (response: Dict, currency: any, networkEntry: Dict): DepositAddress {
         let address = this.safeString (response, 'address');
         if (address === undefined) {
-            address = this.safeString (response, networkEntry['id']);
+            address = this.safeString (response, this.safeString (networkEntry, 'id'));
         }
         let tag: Str = undefined;
         this.checkAddress (address);
         if (networkEntry !== undefined) {
-            const depositAddress = this.safeString (networkEntry['info'], 'depositAddress');
+            const depositAddress = this.safeString (this.safeDict (networkEntry, 'info', {}), 'depositAddress');
             if (depositAddress !== undefined) {
                 tag = address;
                 address = depositAddress;
@@ -2987,7 +2987,7 @@ export default class poloniex extends Exchange {
         }
         return {
             'info': response,
-            'currency': currency['code'],
+            'currency': this.safeString (currency, 'code'),
             'network': this.safeString (networkEntry, 'network'),
             'address': address,
             'tag': tag,
@@ -3371,7 +3371,7 @@ export default class poloniex extends Exchange {
             entries = response;
         }
         for (let i = 0; i < entries.length; i++) {
-            const entry = entries[i];
+            const entry: Dict = this.safeDict (entries, i, {});
             const currencies = Object.keys (entry);
             const currencyId = this.safeString (currencies, 0);
             data[currencyId as string] = entry[currencyId as string];
@@ -3407,7 +3407,7 @@ export default class poloniex extends Exchange {
         for (let i = 0; i < responseKeys.length; i++) {
             const currencyId = responseKeys[i];
             const code = this.safeCurrencyCode (currencyId);
-            const feeInfo = response[currencyId];
+            const feeInfo = this.safeDict (response, currencyId);
             if ((code !== undefined) && ((codesValue === undefined) || (this.inArray (code, codesValue)))) {
                 const currency = this.currency (code);
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, currency);
@@ -3433,7 +3433,7 @@ export default class poloniex extends Exchange {
                                 },
                             };
                         }
-                        depositWithdrawFees[code]['networks'] = this.extend (depositWithdrawFees[code]['networks'], networkObject);
+                        depositWithdrawFees[code]['networks'] = this.extend (this.safeDict (depositWithdrawFees[code], 'networks', {}), networkObject);
                     }
                 }
             }
@@ -3542,7 +3542,7 @@ export default class poloniex extends Exchange {
         // if it's being parsed from "withdraw()" method, get the original response
         let transactionValue: Dict = transaction;
         if ('withdrawNetworkEntry' in transaction) {
-            transactionValue = transaction['response'];
+            transactionValue = this.safeDict (transaction, 'response', {});
         }
         const timestamp = this.safeTimestamp (transactionValue, 'timestamp');
         const currencyId = this.safeString (transactionValue, 'currency');
@@ -3992,7 +3992,7 @@ export default class poloniex extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0);
         const isArray = Array.isArray (params);
         let url: string = this.urls['api']['spot'];
         if (this.inArray (apiName, [ 'swapPublic', 'swapPrivate' ])) {

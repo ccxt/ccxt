@@ -390,7 +390,7 @@ export default class bullish extends bullishRest {
             await this.loadMarkets ();
         }
         const subscribeHash = 'orders';
-        let messageHash = subscribeHash;
+        let messageHash: string = subscribeHash;
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             symbolResolved = this.symbol (symbol);
@@ -510,7 +510,7 @@ export default class bullish extends bullishRest {
             await this.loadMarkets ();
         }
         const subscribeHash = 'myTrades';
-        let messageHash = subscribeHash;
+        let messageHash: string = subscribeHash;
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             symbolResolved = this.symbol (symbol);

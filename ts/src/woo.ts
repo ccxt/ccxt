@@ -780,7 +780,7 @@ export default class woo extends Exchange {
         }
         let settleId: Str = undefined;
         let settle: Str = undefined;
-        let symbol = base + '/' + quote;
+        let symbol: string = base + '/' + quote;
         let contractSize: Num = undefined;
         let linear: Bool = undefined;
         let inverse: Bool = undefined;
@@ -2903,10 +2903,12 @@ export default class woo extends Exchange {
 
     getDedicatedNetworkId (currency: Dict, params: Dict): [Str, Dict] {
         const [ networkCodeRaw, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
-        const networkCode = this.networkIdToCode (networkCodeRaw, currency['code']);
-        const networkEntry = (networkCode === undefined) ? undefined : this.safeDict (currency['networks'], networkCode);
+        const networks = this.safeDict (currency, 'networks', {});
+        const currencyCode = this.safeString (currency, 'code', '');
+        const networkCode = this.networkIdToCode (networkCodeRaw, currencyCode);
+        const networkEntry = (networkCode === undefined) ? undefined : this.safeDict (networks, networkCode);
         if (networkEntry === undefined) {
-            const supportedNetworks = Object.keys (currency['networks']);
+            const supportedNetworks = Object.keys (networks);
             throw new BadRequest (this.id + '  can not determine a network code, please provide unified "network" param, one from the following: ' + this.json (supportedNetworks));
         }
         const currentyNetworkId = this.safeString (networkEntry, 'currencyNetworkId');
@@ -3499,25 +3501,24 @@ export default class woo extends Exchange {
     override sign (path: string, section: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
-        const version = this.safeString (section, 0);
+        const version = this.safeString (section, 0, '');
         const access = this.safeString (section, 1);
         const pathWithParams = this.implodeParams (path, params);
         const baseApiUrl = this.safeString (this.urls['api'], access);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = this.implodeHostname (baseApiUrl);
-        url += '/' + version + '/';
+        let url = this.implodeHostname (baseApiUrl) + '/' + version + '/';
         const paramsSorted: Dict = this.keysort (this.omit (params, this.extractParams (path)));
         if (access === 'public') {
-            url += 'public/' + pathWithParams;
+            url = url + 'public/' + pathWithParams;
             if (Object.keys (paramsSorted).length > 0) {
-                url += '?' + this.urlencode (paramsSorted);
+                url = url + '?' + this.urlencode (paramsSorted);
             }
         } else if (access === 'pub') {
-            url += pathWithParams;
+            url = url + pathWithParams;
             if (Object.keys (paramsSorted).length > 0) {
-                url += '?' + this.urlencode (paramsSorted);
+                url = url + '?' + this.urlencode (paramsSorted);
             }
         } else {
             this.checkRequiredCredentials ();
@@ -3535,9 +3536,9 @@ export default class woo extends Exchange {
                 }
             }
             const paramsSigned: Dict = this.keysort (paramsSorted);
-            let auth = '';
+            let auth: string = '';
             const ts = this.nonce ().toString ();
-            url += pathWithParams;
+            url = url + pathWithParams;
             requestHeaders = {
                 'x-api-key': this.apiKey,
                 'x-api-timestamp': ts,
@@ -3546,13 +3547,13 @@ export default class woo extends Exchange {
                 auth = ts + method + '/' + version + '/' + pathWithParams;
                 if (method === 'POST' || method === 'PUT') {
                     requestBody = this.json (paramsSigned);
-                    auth += requestBody;
+                    auth = auth + requestBody;
                     requestHeaders['content-type'] = 'application/json';
                 } else {
                     if (Object.keys (paramsSigned).length > 0) {
                         const query = this.urlencode (paramsSigned);
-                        url += '?' + query;
-                        auth += '?' + query;
+                        url = url + '?' + query;
+                        auth = auth + '?' + query;
                     }
                 }
             } else {
@@ -3561,10 +3562,10 @@ export default class woo extends Exchange {
                     requestBody = auth;
                 } else {
                     if (Object.keys (paramsSigned).length > 0) {
-                        url += '?' + auth;
+                        url = url + '?' + auth;
                     }
                 }
-                auth += '|' + ts;
+                auth = auth + '|' + ts;
                 requestHeaders['content-type'] = 'application/x-www-form-urlencoded';
             }
             requestHeaders['x-api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
@@ -4050,7 +4051,8 @@ export default class woo extends Exchange {
             //     }
             //
         } else {
-            throw new NotSupported (this.id + ' fetchLeverage() is not supported for ' + market['type'] + ' markets');
+            const marketType = this.safeString (market, 'type', '');
+            throw new NotSupported (this.id + ' fetchLeverage() is not supported for ' + marketType + ' markets');
         }
         const data = this.safeDict (response, 'data', {});
         return this.parseLeverage (data, market);
@@ -4121,7 +4123,8 @@ export default class woo extends Exchange {
             request['marginMode'] = this.encodeMarginMode (marginMode);
             return await this.v3PrivatePutFuturesLeverage (this.extend (request, paramsMarginMode));
         } else {
-            throw new NotSupported (this.id + ' fetchLeverage() is not supported for ' + this.safeString (market, 'type') + ' markets');
+            const marketType = this.safeString (market, 'type', '');
+            throw new NotSupported (this.id + ' fetchLeverage() is not supported for ' + marketType + ' markets');
         }
     }
 

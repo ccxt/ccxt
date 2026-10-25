@@ -74,9 +74,10 @@ export default class mudrex extends mudrexRest {
         const messageHash = 'ticker:' + symbolValue;
         const url = this.urls['api']['ws'];
         this.setBrokerHeaders ();
-        const baseIdString = (market['baseId'] !== undefined) ? market['baseId'] : '';
-        const quoteIdString = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
-        const assetId = baseIdString.toLowerCase () + quoteIdString.toLowerCase ();
+        const baseIdString = this.safeString (market, 'baseId', '');
+        const quoteIdString = this.safeString (market, 'quoteId', '');
+        let assetId: string = baseIdString.toLowerCase ();
+        assetId = assetId + quoteIdString.toLowerCase ();
         const subscribe: Dict = {
             'id': this.requestId (),
             'method': 'SUBSCRIBE',
@@ -98,9 +99,11 @@ export default class mudrex extends mudrexRest {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const market = this.market (symbolsNormalized[i]);
                 messageHashes.push ('ticker:' + market['symbol']);
-                const baseIdString = (market['baseId'] !== undefined) ? market['baseId'] : '';
-                const quoteIdString = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
-                assets.push (baseIdString.toLowerCase () + quoteIdString.toLowerCase ());
+                const baseIdString = this.safeString (market, 'baseId', '');
+                const quoteIdString = this.safeString (market, 'quoteId', '');
+                let assetId: string = baseIdString.toLowerCase ();
+                assetId = assetId + quoteIdString.toLowerCase ();
+                assets.push (assetId);
             }
         }
         const url = this.urls['api']['ws'];

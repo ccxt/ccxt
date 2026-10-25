@@ -1595,17 +1595,19 @@ export default class htx extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarketsByTypeAndSubType (type: Str, subType: Str, params: Dict = {}): Promise<Market[]> {
-        const isSpot = (type === 'spot');
+        const typeStr: Str = type;
+        const subTypeStr: Str = subType;
+        const isSpot = (typeStr === 'spot');
         const request: Dict = {};
         let response = undefined;
         if (!isSpot) {
-            if (subType === 'linear') {
+            if (subTypeStr === 'linear') {
                 request['business_type'] = 'all'; // override default to fetch all linear markets
                 response = await this.contractPublicGetLinearSwapApiV1SwapContractInfo (this.extend (request, params));
-            } else if (subType === 'inverse') {
-                if (type === 'future') {
+            } else if (subTypeStr === 'inverse') {
+                if (typeStr === 'future') {
                     response = await this.contractPublicGetApiV1ContractContractInfo (this.extend (request, params));
-                } else if (type === 'swap') {
+                } else if (typeStr === 'swap') {
                     response = await this.contractPublicGetSwapApiV1SwapContractInfo (this.extend (request, params));
                 }
             }
@@ -1843,8 +1845,14 @@ export default class htx extends Exchange {
             let createdDate = this.safeString (market, 'create_date'); // i.e 20230101
             if (createdDate !== undefined) {
                 const createdArray = this.stringToCharsArray (createdDate);
-                createdDate = createdArray[0] + createdArray[1] + createdArray[2] + createdArray[3] + '-' + createdArray[4] + createdArray[5] + '-' + createdArray[6] + createdArray[7] + ' 00:00:00';
-                created = this.parse8601 (createdDate);
+                const createdLength = createdArray.length;
+                if (createdLength >= 8) {
+                    const yearPart = this.safeString (createdArray, 0, '') + this.safeString (createdArray, 1, '') + this.safeString (createdArray, 2, '') + this.safeString (createdArray, 3, '');
+                    const monthPart = this.safeString (createdArray, 4, '') + this.safeString (createdArray, 5, '');
+                    const dayPart = this.safeString (createdArray, 6, '') + this.safeString (createdArray, 7, '');
+                    createdDate = yearPart + '-' + monthPart + '-' + dayPart + ' 00:00:00';
+                    created = this.parse8601 (createdDate);
+                }
             }
             result.push ({
                 'id': id,
@@ -1927,7 +1935,7 @@ export default class htx extends Exchange {
             'next_quarter': 'NQ',
         };
         for (let i = 0; i < futureMarkets.length; i++) {
-            const market = futureMarkets[i];
+            const market = this.safeDict (futureMarkets, i, {});
             const info = this.safeDict (market, 'info', {});
             const contractType = this.safeString (info, 'contract_type');
             const contractSuffix = this.safeString (futuresCharsMaps, contractType);
@@ -3046,6 +3054,7 @@ export default class htx extends Exchange {
             untilSeconds = this.parseToInt (until / 1000);
         }
         const isContract = (market['contract'] === true);
+        const marketType: Str = market['type'];
         const contractLimit: number = (limit !== undefined) ? limit : 2000; // only used for from/to calculation
         let rangeLimit = limit;
         if (isContract) {
@@ -3080,7 +3089,7 @@ export default class htx extends Exchange {
                 } else if (priceType === 'index') {
                     response = await this.contractPublicGetIndexMarketHistoryIndex (this.extend (request, paramsUntil));
                 } else if (priceType === 'premiumIndex') {
-                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data');
+                    throw new BadRequest (this.id + ' ' + marketType + ' has no api endpoint for ' + priceType + ' kline data');
                 } else {
                     response = await this.contractPublicGetMarketHistoryKline (this.extend (request, paramsUntil));
                 }
@@ -3089,7 +3098,7 @@ export default class htx extends Exchange {
                 if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline (this.extend (request, paramsUntil));
                 } else if (priceType === 'index') {
-                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data');
+                    throw new BadRequest (this.id + ' ' + marketType + ' has no api endpoint for ' + priceType + ' kline data');
                 } else if (priceType === 'premiumIndex') {
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline (this.extend (request, paramsUntil));
                 } else {
@@ -3102,7 +3111,7 @@ export default class htx extends Exchange {
                 if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistorySwapMarkPriceKline (this.extend (request, paramsUntil));
                 } else if (priceType === 'index') {
-                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data');
+                    throw new BadRequest (this.id + ' ' + marketType + ' has no api endpoint for ' + priceType + ' kline data');
                 } else if (priceType === 'premiumIndex') {
                     response = await this.contractPublicGetIndexMarketHistorySwapPremiumIndexKline (this.extend (request, paramsUntil));
                 } else {
@@ -3112,7 +3121,7 @@ export default class htx extends Exchange {
                 if (priceType === 'mark') {
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline (this.extend (request, paramsUntil));
                 } else if (priceType === 'index') {
-                    throw new BadRequest (this.id + ' ' + market['type'] + ' has no api endpoint for ' + priceType + ' kline data');
+                    throw new BadRequest (this.id + ' ' + marketType + ' has no api endpoint for ' + priceType + ' kline data');
                 } else if (priceType === 'premiumIndex') {
                     response = await this.contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline (this.extend (request, paramsUntil));
                 } else {
@@ -5110,6 +5119,8 @@ export default class htx extends Exchange {
             await this.loadMarkets ();
         }
         await this.loadAccounts ();
+        const typeStr: string = type;
+        const sideStr: string = side;
         const market = this.market (symbol);
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('createOrder', params);
         const accountId = await this.fetchAccountIdByType (market['type'], marginMode, symbol);
@@ -5125,7 +5136,7 @@ export default class htx extends Exchange {
             // 'stop-price': this.priceToPrecision (symbol, stopPrice), // trigger price for stop limit orders
             // 'operator': 'gte', // gte, lte, trigger price condition
         };
-        let orderType = type.replace ('buy-', '');
+        let orderType = typeStr.replace ('buy-', '');
         orderType = orderType.replace ('sell-', '');
         const options = this.safeDict (this.options, market['type'], {});
         const triggerPrice = this.safeStringN (paramsMarginMode, [ 'triggerPrice', 'stopPrice', 'stop-price' ]);
@@ -5136,7 +5147,7 @@ export default class htx extends Exchange {
             }
         } else {
             let defaultOperator: Str = 'gte';
-            if (side === 'sell') {
+            if (sideStr === 'sell') {
                 defaultOperator = 'lte';
             }
             const stopOperator = this.safeString (paramsMarginMode, 'operator', defaultOperator);
@@ -5145,7 +5156,7 @@ export default class htx extends Exchange {
             if ((orderType === 'limit') || (orderType === 'limit-fok')) {
                 orderType = 'stop-' + orderType;
             } else if ((orderType !== 'stop-limit') && (orderType !== 'stop-limit-fok')) {
-                throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' orders');
+                throw new NotSupported (this.id + ' createOrder() does not support ' + typeStr + ' orders');
             }
         }
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (orderType === 'market', orderType === 'limit-maker', paramsMarginMode);
@@ -5158,7 +5169,7 @@ export default class htx extends Exchange {
         } else if (timeInForce === 'IOC') {
             orderType = 'ioc';
         }
-        request['type'] = side + '-' + orderType;
+        request['type'] = sideStr + '-' + orderType;
         const clientOrderId = this.safeString2 (paramsPostOnly, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if (clientOrderId === undefined) {
             const broker = this.safeDict (this.options, 'broker', {});
@@ -5174,7 +5185,7 @@ export default class htx extends Exchange {
         } else if (marginMode === 'c2c') {
             request['source'] = 'c2c-margin-api';
         }
-        const isMarketBuy = (orderType === 'market') && (side === 'buy');
+        const isMarketBuy = (orderType === 'market') && (sideStr === 'buy');
         const requiresPriceAndParams = this.handleOptionBoolAndParams (paramsPostOnly, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
         const cost = this.safeNumber (requiresPriceAndParams[1], 'cost');
         let paramsCost: Dict = paramsPostOnly;
@@ -6926,19 +6937,21 @@ export default class htx extends Exchange {
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('transfer', undefined, params);
         let fromAccountId = this.convertTypeToAccount (fromAccount);
         let toAccountId = this.convertTypeToAccount (toAccount);
-        const toCross = toAccountId === 'cross';
-        const fromCross = fromAccountId === 'cross';
-        const toIsolated = ((this.ids !== undefined) && this.inArray (toAccountId, this.ids));
-        const fromIsolated = ((this.ids !== undefined) && this.inArray (fromAccountId, this.ids));
-        const fromSpot = fromAccountId === 'pro';
-        const toSpot = toAccountId === 'pro';
+        const fromAccountIdStr: Str = fromAccountId;
+        const toAccountIdStr: Str = toAccountId;
+        const toCross = toAccountIdStr === 'cross';
+        const fromCross = fromAccountIdStr === 'cross';
+        const toIsolated = ((this.ids !== undefined) && this.inArray (toAccountIdStr, this.ids));
+        const fromIsolated = ((this.ids !== undefined) && this.inArray (fromAccountIdStr, this.ids));
+        const fromSpot = fromAccountIdStr === 'pro';
+        const toSpot = toAccountIdStr === 'pro';
         if (fromSpot && toSpot) {
             throw new BadRequest (this.id + ' transfer () cannot make a transfer between ' + fromAccount + ' and ' + toAccount);
         }
-        const fromOrToFuturesAccount = (fromAccountId === 'futures') || (toAccountId === 'futures');
+        const fromOrToFuturesAccount = (fromAccountIdStr === 'futures') || (toAccountIdStr === 'futures');
         let response = undefined;
         if (fromOrToFuturesAccount) {
-            let type = fromAccountId + '-to-' + toAccountId;
+            let type = fromAccountIdStr + '-to-' + toAccountIdStr;
             type = this.safeString (paramsSubType, 'type', type);
             request['type'] = type;
             response = await this.spotPrivatePostV1FuturesTransfer (this.extend (request, paramsSubType));
@@ -6955,7 +6968,7 @@ export default class htx extends Exchange {
         } else {
             let query: Dict = paramsSubType;
             if (subType === 'linear') {
-                if ((fromAccountId === 'swap') || (fromAccount === 'linear-swap')) {
+                if ((fromAccountIdStr === 'swap') || (fromAccount === 'linear-swap')) {
                     fromAccountId = 'linear-swap';
                 } else {
                     toAccountId = 'linear-swap';

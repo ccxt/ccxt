@@ -2338,9 +2338,10 @@ export default class bitget extends Exchange {
                     const yearPart = this.safeString (expiryParts, 0, '');
                     const dayPart = this.safeString (expiryParts, 2, '');
                     const year = yearPart.slice (2, 4);
-                    const month = this.safeString (expiryParts, 1);
+                    const month = expiryParts[1];
                     const day = dayPart.slice (0, 2);
-                    const expiryString = year + month + day;
+                    const monthDay = month + day;
+                    const expiryString = year + monthDay;
                     type = 'future';
                     future = true;
                     symbol = symbol + ':' + settle + '-' + expiryString;
@@ -2611,9 +2612,10 @@ export default class bitget extends Exchange {
                     const yearPart = this.safeString (expiryParts, 0, '');
                     const dayPart = this.safeString (expiryParts, 2, '');
                     const year = yearPart.slice (2, 4);
-                    const month = this.safeString (expiryParts, 1);
+                    const month = expiryParts[1];
                     const day = dayPart.slice (0, 2);
-                    const expiryString = year + month + day;
+                    const monthDay = month + day;
+                    const expiryString = year + monthDay;
                     type = 'future';
                     future = true;
                     symbol = symbol + ':' + settle + '-' + expiryString;
@@ -4027,8 +4029,9 @@ export default class bitget extends Exchange {
         if (isStock && (symbols === undefined)) {
             // for returning only tokenized stock symbols
             symbolsResolved = [];
-            for (let i = 0; i < this.symbols.length; i++) {
-                const symbol = this.symbols[i];
+            const allSymbols: string[] = this.symbols;
+            for (let i = 0; i < allSymbols.length; i++) {
+                const symbol = allSymbols[i];
                 const entry = this.market (symbol);
                 const isStockMarket = this.safeBool (entry, 'stock', false);
                 if (isStockMarket) {

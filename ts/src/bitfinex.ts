@@ -1468,7 +1468,7 @@ export default class bitfinex extends Exchange {
         let amountString = this.safeString (tradeList, amountIndex);
         const priceIndex = isPrivate ? 5 : 3;
         const priceString = this.safeString (tradeList, priceIndex);
-        if ((amountString as string)[0] === '-') {
+        if ((amountString as string).startsWith ('-')) {
             side = 'sell';
             amountString = Precise.stringAbs (amountString);
         } else {
@@ -1704,7 +1704,7 @@ export default class bitfinex extends Exchange {
         let postOnly = false;
         if (flags !== undefined) {
             for (let i = 0; i < flags.length; i++) {
-                if (flags[i] === 'postOnly') {
+                if (this.safeString (flags, i) === 'postOnly') {
                     postOnly = true;
                 }
             }

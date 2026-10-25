@@ -667,7 +667,9 @@ export default class coinbaseexchange extends Exchange {
         for (let i = 0; i < rawMarkets.length; i++) {
             const market = rawMarkets[i];
             const id = this.safeString (market, 'id');
-            const [ baseId, quoteId ] = (id as string).split ('-');
+            const parts: string[] = (id as string).split ('-');
+            const baseId = parts[0];
+            const quoteId = parts[1];
             // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
             // const baseId = this.safeString (market, 'base_currency');
             // const quoteId = this.safeString (market, 'quote_currency');
@@ -789,8 +791,9 @@ export default class coinbaseexchange extends Exchange {
 
     override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict (response, i);
+        const rawBalances = this.toArray (response);
+        for (let i = 0; i < rawBalances.length; i++) {
+            const balance = this.safeDict (rawBalances, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -905,7 +908,7 @@ export default class coinbaseexchange extends Exchange {
         let low: Str = undefined;
         let open: Str = undefined;
         let volume: Str = undefined;
-        const symbol = (market === undefined) ? undefined : market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
         if (Array.isArray (ticker)) {
             last = this.safeString (ticker, 4);
         } else {
@@ -2169,7 +2172,8 @@ export default class coinbaseexchange extends Exchange {
             this.options['coinbaseAccountsByCurrencyId'] = this.indexBy (accounts, 'currency');
         }
         const currencyId = currency['id'];
-        const account = this.safeDict (this.options['coinbaseAccountsByCurrencyId'], currencyId);
+        const accountsByCurrencyId = this.safeDict (this.options, 'coinbaseAccountsByCurrencyId');
+        const account = this.safeDict (accountsByCurrencyId, currencyId);
         if (account === undefined) {
             // eslint-disable-next-line quotes
             throw new InvalidAddress (this.id + " createDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in this.options['coinbaseAccountsByCurrencyId']");
@@ -2190,7 +2194,7 @@ export default class coinbaseexchange extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0);
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         let request = '/' + this.implodeParams (path, params);
@@ -2236,7 +2240,7 @@ export default class coinbaseexchange extends Exchange {
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if ((code === 400) || (code === 404)) {
-            if (body[0] === '{') {
+            if (body.startsWith ('{')) {
                 const message = this.safeString (response, 'message');
                 const feedback = this.id + ' ' + message;
                 this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);

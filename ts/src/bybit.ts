@@ -1589,10 +1589,10 @@ export default class bybit extends Exchange {
         let settle: Str = undefined;
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
-        let base: Str = undefined;
         let expiry: Str = undefined;
-        if (symbol.indexOf ('/') > -1) {
-            base = this.safeString (symbolBase, 0);
+        const hasSlash = symbol.indexOf ('/') > -1;
+        const baseName: Str = (hasSlash) ? this.safeString (symbolBase, 0) : this.safeString (optionParts, 0);
+        if (hasSlash) {
             expiry = this.safeString (optionParts, 1);
             const symbolQuoteAndSettle = this.safeString (symbolBase, 1);
             if (symbolQuoteAndSettle === undefined) {
@@ -1603,7 +1603,6 @@ export default class bybit extends Exchange {
             quote = quoteAndSettle;
             settle = quoteAndSettle;
         } else {
-            base = this.safeString (optionParts, 0);
             expiry = this.convertMarketIdExpireDate (this.safeString (optionParts, 1));
             if (symbol.endsWith ('-USDT')) {
                 quote = 'USDT';
@@ -1620,31 +1619,31 @@ export default class bybit extends Exchange {
         let amountPrecision: Num = undefined;
         let pricePrecision: Num = undefined;
         // hard coded amount and price precisions from fetchOptionMarkets
-        if (base === 'BTC') {
+        if (baseName === 'BTC') {
             amountPrecision = this.parseNumber ('0.01');
             pricePrecision = this.parseNumber ('5');
-        } else if (base === 'ETH') {
+        } else if (baseName === 'ETH') {
             amountPrecision = this.parseNumber ('0.1');
             pricePrecision = this.parseNumber ('0.1');
-        } else if (base === 'SOL') {
+        } else if (baseName === 'SOL') {
             amountPrecision = this.parseNumber ('1');
             pricePrecision = this.parseNumber ('0.01');
         }
         const convertedExpireDate = this.convertExpireDateToMarketIdDate (expiry);
         return {
-            'id': base + '-' + convertedExpireDate + '-' + strike + '-' + optionType,
-            'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
-            'base': base,
+            'id': baseName + '-' + convertedExpireDate + '-' + strike + '-' + optionType,
+            'symbol': baseName + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': baseName,
             'quote': quote,
             'settle': settle,
-            'baseId': base,
+            'baseId': baseName,
             'quoteId': quote,
             'settleId': settle,
             'active': false,
             'type': 'option',
-            'subType': (base === settle) ? 'inverse' : 'linear',
-            'linear': (base !== settle),
-            'inverse': (base === settle),
+            'subType': (baseName === settle) ? 'inverse' : 'linear',
+            'linear': (baseName !== settle),
+            'inverse': (baseName === settle),
             'spot': false,
             'swap': false,
             'future': false,
@@ -3732,7 +3731,9 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        const unifiedEnabled = await this.isUnifiedEnabled ();
+        const enableUnifiedMargin: boolean = this.safeBool (unifiedEnabled, 0, false);
+        const enableUnifiedAccount: boolean = this.safeBool (unifiedEnabled, 1, false);
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         // don't use getBybitType here
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
@@ -5200,7 +5201,9 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        const unifiedEnabled = await this.isUnifiedEnabled ();
+        const enableUnifiedMargin: boolean = this.safeBool (unifiedEnabled, 0, false);
+        const enableUnifiedAccount: boolean = this.safeBool (unifiedEnabled, 1, false);
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         let market: Market = undefined;
         const request: Dict = {};
@@ -5315,7 +5318,9 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        const unifiedEnabled = await this.isUnifiedEnabled ();
+        const enableUnifiedMargin: boolean = this.safeBool (unifiedEnabled, 0, false);
+        const enableUnifiedAccount: boolean = this.safeBool (unifiedEnabled, 1, false);
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         if (!isUnifiedAccount) {
             return await this.fetchOrderClassic (id, symbol, params);
@@ -6385,10 +6390,11 @@ export default class bybit extends Exchange {
             // 'limit': 0, Limit for data size per page. [1, 50]. Default: 20
             // 'cursor': '', Cursor. Used for pagination
         };
-        const enableUnified = await this.isUnifiedEnabled ();
+        const unifiedEnabled = await this.isUnifiedEnabled ();
+        const enableUnified: boolean = this.safeBool (unifiedEnabled, 1, false);
         let currency: Currency = undefined;
         let currencyKey = 'coin';
-        if (enableUnified[1] === true) {
+        if (enableUnified === true) {
             currencyKey = 'currency';
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -6407,7 +6413,7 @@ export default class bybit extends Exchange {
         }
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchLedger', undefined, paramsPaginate);
         let response: Dict;
-        if (enableUnified[1] === true) {
+        if (enableUnified === true) {
             const unifiedMarginStatus = this.safeInteger (this.options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
             if (subType === 'inverse' && (unifiedMarginStatus < 5)) {
                 response = await this.privateGetV5AccountContractTransactionLog (this.extend (request, paramsSubType));
@@ -7198,7 +7204,9 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        const unifiedEnabled = await this.isUnifiedEnabled ();
+        const enableUnifiedMargin: boolean = this.safeBool (unifiedEnabled, 0, false);
+        const enableUnifiedAccount: boolean = this.safeBool (unifiedEnabled, 1, false);
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         let market: Market = undefined;
         let response: Dict;
@@ -8224,10 +8232,10 @@ export default class bybit extends Exchange {
         //         "time": 1676360412576
         //     }
         //
-        let fees = this.safeDict (response, 'result', {});
-        fees = this.safeList (fees, 'list', []);
+        const feeRates: Dict = this.safeDict (response, 'result', {});
+        const fees: List = this.safeList (feeRates, 'list', []);
         const result: Dict = {};
-        for (let i = 0; i < (fees as List).length; i++) {
+        for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];
             if (symbol !== undefined) {
@@ -9438,7 +9446,9 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        const unifiedEnabled = await this.isUnifiedEnabled ();
+        const enableUnifiedMargin: boolean = this.safeBool (unifiedEnabled, 0, false);
+        const enableUnifiedAccount: boolean = this.safeBool (unifiedEnabled, 1, false);
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         let accountTypeDefault: Str = 'eb_convert_spot';
         if (isUnifiedAccount) {
@@ -9542,7 +9552,9 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        const unifiedEnabled = await this.isUnifiedEnabled ();
+        const enableUnifiedMargin: boolean = this.safeBool (unifiedEnabled, 0, false);
+        const enableUnifiedAccount: boolean = this.safeBool (unifiedEnabled, 1, false);
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         let accountTypeDefault: Str = 'eb_convert_spot';
         if (isUnifiedAccount) {
@@ -9636,7 +9648,9 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
+        const unifiedEnabled = await this.isUnifiedEnabled ();
+        const enableUnifiedMargin: boolean = this.safeBool (unifiedEnabled, 0, false);
+        const enableUnifiedAccount: boolean = this.safeBool (unifiedEnabled, 1, false);
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         let accountTypeDefault: Str = 'eb_convert_spot';
         if (isUnifiedAccount) {

@@ -88,7 +88,8 @@ export default class derive extends deriveRest {
         }
         const limitResolved: Int = (limit === undefined) ? 10 : limit;
         const market = this.market (symbol);
-        const topic = 'orderbook.' + market['id'] + '.10.' + this.numberToString (limitResolved);
+        const marketId = this.safeString (market, 'id', '');
+        const topic = 'orderbook.' + marketId + '.10.' + this.numberToString (limitResolved);
         const request: Dict = {
             'method': 'subscribe',
             'params': {
@@ -156,7 +157,8 @@ export default class derive extends deriveRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const topic = 'ticker_slim.' + market['id'] + '.100'; // v3 removed the fat ticker channel, ticker_slim is the only ticker feed
+        const marketId = this.safeString (market, 'id', '');
+        const topic = 'ticker_slim.' + marketId + '.100'; // v3 removed the fat ticker channel, ticker_slim is the only ticker feed
         const request: Dict = {
             'method': 'subscribe',
             'params': {
@@ -187,7 +189,8 @@ export default class derive extends deriveRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const topic = 'ticker_slim.' + market['id'] + '.100';
+        const marketId = this.safeString (market, 'id', '');
+        const topic = 'ticker_slim.' + marketId + '.100';
         const messageHash = 'unwatch' + topic;
         const request: Dict = {
             'method': 'unsubscribe',
@@ -221,8 +224,10 @@ export default class derive extends deriveRest {
         const messageHashes = [];
         for (let i = 0; i < symbolsResolved.length; i++) {
             const market = this.market (symbolsResolved[i]);
-            topics.push ('ticker_slim.' + market['id'] + '.100');
-            messageHashes.push ('bidask:' + market['symbol']);
+            const marketId = this.safeString (market, 'id', '');
+            const marketSymbol = this.safeString (market, 'symbol', '');
+            topics.push ('ticker_slim.' + marketId + '.100');
+            messageHashes.push ('bidask:' + marketSymbol);
         }
         const url = this.urls['api']['ws'];
         const requestId = this.requestId (url);
@@ -328,7 +333,8 @@ export default class derive extends deriveRest {
             limit = 10;
         }
         const market = this.market (symbol);
-        const topic = 'orderbook.' + market['id'] + '.10.' + this.numberToString (limit);
+        const marketId = this.safeString (market, 'id', '');
+        const topic = 'orderbook.' + marketId + '.10.' + this.numberToString (limit);
         const messageHash = 'unwatch' + topic;
         const request: Dict = {
             'method': 'unsubscribe',
@@ -357,7 +363,8 @@ export default class derive extends deriveRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const topic = 'trades.' + market['id'];
+        const marketId = this.safeString (market, 'id', '');
+        const topic = 'trades.' + marketId;
         const messageHah = 'unwatch' + topic;
         const request: Dict = {
             'method': 'unsubscribe',
@@ -488,7 +495,8 @@ export default class derive extends deriveRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const topic = 'trades.' + market['id'];
+        const marketId = this.safeString (market, 'id', '');
+        const topic = 'trades.' + marketId;
         const request: Dict = {
             'method': 'subscribe',
             'params': {
@@ -598,7 +606,8 @@ export default class derive extends deriveRest {
             await this.loadMarkets ();
         }
         const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('watchOrders', params);
-        const topic = this.numberToString (subaccountId) + '.orders';
+        const subaccountIdString = this.numberToString (subaccountId) as string;
+        const topic = subaccountIdString + '.orders';
         let messageHash = topic;
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbolResolved !== undefined) {
@@ -721,7 +730,8 @@ export default class derive extends deriveRest {
             await this.loadMarkets ();
         }
         const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('unWatchOrders', params);
-        const topic = this.numberToString (subaccountId) + '.orders';
+        const subaccountIdString = this.numberToString (subaccountId) as string;
+        const topic = subaccountIdString + '.orders';
         const messageHash = 'unwatch' + topic;
         const request: Dict = {
             'method': 'unsubscribe',
@@ -755,7 +765,8 @@ export default class derive extends deriveRest {
             await this.loadMarkets ();
         }
         const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('watchMyTrades', params);
-        const topic = this.numberToString (subaccountId) + '.trades';
+        const subaccountIdString = this.numberToString (subaccountId) as string;
+        const topic = subaccountIdString + '.trades';
         let messageHash = topic;
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbolResolved !== undefined) {
@@ -820,7 +831,8 @@ export default class derive extends deriveRest {
             await this.loadMarkets ();
         }
         const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('unWatchMyTrades', params);
-        const topic = this.numberToString (subaccountId) + '.trades';
+        const subaccountIdString = this.numberToString (subaccountId) as string;
+        const topic = subaccountIdString + '.trades';
         const messageHash = 'unwatch' + topic;
         const request: Dict = {
             'method': 'unsubscribe',
@@ -869,7 +881,8 @@ export default class derive extends deriveRest {
             const seeded = this.extend (snapshot, emptyBalance); // the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
             this.balance[subaccountIdKey] = seeded;
         }
-        const topic = this.numberToString (subaccountId) + '.balances';
+        const subaccountIdString = this.numberToString (subaccountId) as string;
+        const topic = subaccountIdString + '.balances';
         const request: Dict = {
             'method': 'subscribe',
             'params': {
@@ -931,7 +944,8 @@ export default class derive extends deriveRest {
             loadedSnapshots[subaccountIdKey] = true;
             this.options['loadedPositionsSnapshots'] = loadedSnapshots;
         }
-        const topic = this.numberToString (subaccountId) + '.balances';
+        const subaccountIdString = this.numberToString (subaccountId) as string;
+        const topic = subaccountIdString + '.balances';
         const messageHash = 'positions:' + topic;
         const request: Dict = {
             'method': 'subscribe',

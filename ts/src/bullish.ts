@@ -795,7 +795,7 @@ export default class bullish extends Exchange {
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
-        let symbol = base + '/' + quote;
+        let symbol: string = base + '/' + quote;
         const basePrecision = this.safeString (market, 'basePrecision');
         const quotePrecision = this.safeString (market, 'quotePrecision');
         const amountPrecision = this.safeString (market, 'quantityPrecision');
@@ -849,7 +849,7 @@ export default class bullish extends Exchange {
                 }
             }
         }
-        const tradingFees = this.safeDict (this.fees, 'trading', {});
+        const tradingFees: Dict = this.safeDict (this.fees, 'trading', {});
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -1528,11 +1528,9 @@ export default class bullish extends Exchange {
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
-        let method = 'privateGetV2HistoryOrders';
-        let paramsMethod = undefined;
-        [ method, paramsMethod ] = this.handleOptionStringAndParams (paramsSinceAndUntil, 'fetchOrders', 'method', method);
+        const [ methodResolved, paramsMethod ] = this.handleOptionStringAndParams (paramsSinceAndUntil, 'fetchOrders', 'method', 'privateGetV2HistoryOrders');
         let response: Dict | List = [];
-        if (method === 'privateGetV2Orders') {
+        if (methodResolved === 'privateGetV2Orders') {
             //
             //     [
             //         {
@@ -1563,7 +1561,7 @@ export default class bullish extends Exchange {
             //     ]
             //
             response = await this.privateGetV2Orders (this.extend (request, paramsMethod));
-        } else if (method === 'privateGetV2HistoryOrders') {
+        } else if (methodResolved === 'privateGetV2HistoryOrders') {
             response = await this.privateGetV2HistoryOrders (this.extend (request, paramsMethod));
         } else {
             throw new BadRequest (this.id + ' fetchOrders() method parameter must be either "privateGetV2Orders" or "privateGetV2HistoryOrders"');
@@ -2280,7 +2278,10 @@ export default class bullish extends Exchange {
 
     async loadAccount (params: Dict = {}): Promise<Str> {
         const [ tradingAccountIdOption, paramsTradingAccountId ] = this.handleOptionStringAndParams (params, 'loadAccount', 'tradingAccountId');
-        let tradingAccountId: Str = tradingAccountIdOption;
+        let tradingAccountId: Str = undefined;
+        if (tradingAccountIdOption !== undefined) {
+            tradingAccountId = tradingAccountIdOption;
+        }
         if (tradingAccountId === undefined) {
             const response = await this.privateGetV1AccountsTradingAccounts (paramsTradingAccountId);
             const accounts = this.toArray (response);
@@ -3035,14 +3036,18 @@ export default class bullish extends Exchange {
                 }
             }
             if (path === 'v1/users/hmac/login') {
-                requestHeaders = (requestHeaders === undefined) ? {} : requestHeaders;
+                if (requestHeaders === undefined) {
+                    requestHeaders = {};
+                }
                 requestHeaders['BX-PUBLIC-KEY'] = this.apiKey;
             } else {
                 const token = this.token;
                 if ((token === undefined)) {
                     throw new AuthenticationError (this.id + ' requires a token, please call signIn() first');
                 }
-                requestHeaders = (requestHeaders === undefined) ? {} : requestHeaders;
+                if (requestHeaders === undefined) {
+                    requestHeaders = {};
+                }
                 requestHeaders['Authorization'] = 'Bearer ' + token;
                 // headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
             }

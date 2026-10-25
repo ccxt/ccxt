@@ -368,7 +368,7 @@ export default class extended extends Exchange {
         const keys = Object.keys (input);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const item = input[key];
+            const item = this.safeDict (input, key, {});
             const numericIdString = this.safeString (item, 'numericId');
             if (numericIdString === undefined) {
                 continue;
@@ -1042,7 +1042,7 @@ export default class extended extends Exchange {
         const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict (data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend (entry, { 'cursor': cursor });
             }
@@ -1112,7 +1112,7 @@ export default class extended extends Exchange {
         const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict (data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend (entry, { 'cursor': cursor });
             }
@@ -1155,7 +1155,7 @@ export default class extended extends Exchange {
     parseFundingHistories (histories: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
         const result: List = [];
         for (let i = 0; i < histories.length; i++) {
-            result.push (this.parseFundingHistory (histories[i], market));
+            result.push (this.parseFundingHistory (this.safeDict (histories, i, {}), market));
         }
         const symbol = (market === undefined) ? undefined : this.safeString (market, 'symbol');
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as FundingHistory[];
@@ -1371,7 +1371,7 @@ export default class extended extends Exchange {
         const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict (data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend (entry, { 'cursor': cursor });
             }
@@ -1651,7 +1651,7 @@ export default class extended extends Exchange {
         const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict (data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend (entry, { 'cursor': cursor });
             }
@@ -1765,7 +1765,7 @@ export default class extended extends Exchange {
         const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict (data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend (entry, { 'cursor': cursor });
             }
@@ -1911,7 +1911,7 @@ export default class extended extends Exchange {
         const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict (data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend (entry, { 'cursor': cursor });
             }
@@ -2034,7 +2034,7 @@ export default class extended extends Exchange {
             return this.safeString (currencyByNumericId, 'code');
         }
         if (currency !== undefined) {
-            return currency['code'];
+            return this.safeString (currency, 'code');
         }
         let code = this.safeCurrencyCode (assetId);
         if (code === 'USD') {
@@ -2417,7 +2417,7 @@ export default class extended extends Exchange {
         const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict (data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend (entry, { 'cursor': cursor });
             }
@@ -2508,7 +2508,7 @@ export default class extended extends Exchange {
             return this.safeDict (this.options, 'account', {});
         }
         const accountData = await this.fetchAccount (params);
-        this.options['account'] = accountData['info'];
+        this.options['account'] = this.safeDict (accountData, 'info', {});
         return this.safeDict (this.options, 'account', {});
     }
 
@@ -3270,7 +3270,7 @@ export default class extended extends Exchange {
         const result: List = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict (data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend (entry, { 'cursor': cursor });
             }
@@ -3442,7 +3442,7 @@ export default class extended extends Exchange {
         let result = '';
         while (Precise.stringGt (decimalString, '0')) {
             const remainder = this.parseToInt (Precise.stringMod (decimalString, '16'));
-            result = hexChars[remainder] + result;
+            result = this.safeString (hexChars, remainder) + result;
             decimalString = Precise.stringDiv (decimalString, '16', 0) as string;
         }
         if (result === '') {

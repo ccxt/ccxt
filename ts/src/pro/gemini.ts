@@ -253,10 +253,11 @@ export default class gemini extends geminiRest {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const storesForSymbols: Dict = {};
             for (let i = 0; i < trades.length; i++) {
-                const marketId = this.safeString (trades[i], 'symbol', '').toLowerCase ();
+                const rawTrade = trades[i];
+                const marketId = this.safeString (rawTrade, 'symbol', '').toLowerCase ();
                 const market = this.safeMarket (marketId);
                 const symbol = market['symbol'];
-                const trade = this.parseWsTrade (trades[i], market);
+                const trade = this.parseWsTrade (rawTrade, market);
                 trade['timestamp'] = timestamp;
                 trade['datetime'] = this.iso8601 (timestamp);
                 let stored = this.safeValue (this.trades, symbol);
@@ -1012,7 +1013,9 @@ export default class gemini extends geminiRest {
         };
         // this.options = this.extend (defaultOptions, this.options);
         this.extendExchangeOptions (defaultOptions);
-        const originalHeaders = this.options['ws']['options']['headers'];
+        const wsOptions: Dict = this.safeDict (this.options, 'ws', {});
+        const wsSubOptions: Dict = this.safeDict (wsOptions, 'options', {});
+        const originalHeaders: Dict = this.safeDict (wsSubOptions, 'headers', {});
         const headers: Dict = {
             'X-GEMINI-APIKEY': this.apiKey,
             'X-GEMINI-PAYLOAD': b64,

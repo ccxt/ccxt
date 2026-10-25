@@ -55,7 +55,7 @@ export default class bitfinex extends bitfinexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const marketId = market['id'];
+        const marketId = this.safeString (market, 'id');
         const url = this.urls['api']['ws']['public'];
         const client = this.client (url);
         const messageHash = channel + ':' + marketId;
@@ -85,7 +85,7 @@ export default class bitfinex extends bitfinexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const marketId = market['id'];
+        const marketId = this.safeString (market, 'id');
         const url = this.urls['api']['ws']['public'];
         const client = this.client (url);
         const subMessageHash = channel + ':' + marketId;
@@ -136,8 +136,9 @@ export default class bitfinex extends bitfinexRest {
         const symbolValue: string = market['symbol'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const channel = 'candles';
-        const key = 'trade:' + interval + ':' + market['id'];
-        const messageHash = channel + ':' + interval + ':' + market['id'];
+        const marketId = this.safeString (market, 'id');
+        const key = 'trade:' + interval + ':' + marketId;
+        const messageHash = channel + ':' + interval + ':' + marketId;
         const request: Dict = {
             'event': 'subscribe',
             'channel': channel,
@@ -170,11 +171,12 @@ export default class bitfinex extends bitfinexRest {
         const symbolValue: string = market['symbol'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const channel = 'candles';
-        const subMessageHash = channel + ':' + interval + ':' + market['id'];
+        const marketId = this.safeString (market, 'id');
+        const subMessageHash = channel + ':' + interval + ':' + marketId;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
         const client = this.client (url);
-        const subId = 'unsubscribe:trade:' + interval + ':' + market['id']; // trade here because we use the key
+        const subId = 'unsubscribe:trade:' + interval + ':' + marketId; // trade here because we use the key
         const channelId = this.safeString (client.subscriptions, subId);
         const request: Dict = {
             'event': 'unsubscribe',
@@ -323,7 +325,8 @@ export default class bitfinex extends bitfinexRest {
         let messageHash = 'myTrade';
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            messageHash += ':' + market['id'];
+            const marketId = this.safeString (market, 'id');
+            messageHash += ':' + marketId;
         }
         const trades = await this.subscribePrivate (messageHash);
         let limitResolved = limit;
@@ -384,7 +387,8 @@ export default class bitfinex extends bitfinexRest {
         const trade = this.parseWsTrade ({ 'result': data });
         const symbol = trade['symbol'];
         const market = this.market (symbol);
-        const messageHash = name + ':' + market['id'];
+        const marketId = this.safeString (market, 'id');
+        const messageHash = name + ':' + marketId;
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
@@ -803,11 +807,11 @@ export default class bitfinex extends bitfinexRest {
             const bid = this.safeList (bids, i);
             const ask = this.safeList (asks, i);
             if (bid !== undefined) {
-                stringArray.push (this.numberToString (bids[i][idToCheck]) as string);
-                stringArray.push (this.numberToString (bids[i][1]) as string);
+                stringArray.push (this.numberToString (this.safeNumber (bid, idToCheck)) as string);
+                stringArray.push (this.numberToString (this.safeNumber (bid, 1)) as string);
             }
             if (ask !== undefined) {
-                stringArray.push (this.numberToString (asks[i][idToCheck]) as string);
+                stringArray.push (this.numberToString (this.safeNumber (ask, idToCheck)) as string);
                 const aski1 = this.safeNumber (ask, 1);
                 if (aski1 !== undefined) {
                     stringArray.push (this.numberToString (-aski1));
@@ -1101,7 +1105,8 @@ export default class bitfinex extends bitfinexRest {
         let messageHash = 'orders';
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            messageHash += ':' + market['id'];
+            const marketId = this.safeString (market, 'id');
+            messageHash += ':' + marketId;
         }
         const orders = await this.subscribePrivate (messageHash);
         let limitResolved = limit;
@@ -1184,7 +1189,8 @@ export default class bitfinex extends bitfinexRest {
         for (let i = 0; i < keys.length; i++) {
             const symbol = keys[i];
             const market = this.market (symbol);
-            const messageHash = name + ':' + market['id'];
+            const marketId = this.safeString (market, 'id');
+            const messageHash = name + ':' + marketId;
             client.resolve (this.orders, messageHash);
         }
     }

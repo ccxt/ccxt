@@ -2775,7 +2775,8 @@ export default class okx extends Exchange {
                 response = await this.publicGetMarketMarkPriceCandles (this.extend (request, paramsType));
             }
         } else if (priceType === 'index') {
-            request['instId'] = market['info']['instFamily']; // okx index candles require instFamily instead of instId
+            const marketInfo = this.safeDict (market, 'info', {});
+            request['instId'] = marketInfo['instFamily']; // okx index candles require instFamily instead of instId
             if (isHistoryCandles) {
                 response = await this.publicGetMarketHistoryIndexCandles (this.extend (request, paramsType));
             } else {
@@ -8671,9 +8672,10 @@ export default class okx extends Exchange {
             'type': '3', // delivery
         };
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['instId'] = market['id'];
-            request['instType'] = this.convertToInstrumentType (market['type']);
+            const symbolMarket = this.market (symbol);
+            market = symbolMarket;
+            request['instId'] = symbolMarket['id'];
+            request['instType'] = this.convertToInstrumentType (symbolMarket['type']);
         }
         if (since !== undefined) {
             request['begin'] = since;
@@ -8823,9 +8825,10 @@ export default class okx extends Exchange {
         const market = this.market (symbol);
         const marketId = this.safeString (market, 'id', '');
         const optionParts = marketId.split ('-');
+        const marketInfo = this.safeDict (market, 'info', {});
         const request: Dict = {
-            'uly': market['info']['uly'],
-            'instFamily': market['info']['instFamily'],
+            'uly': marketInfo['uly'],
+            'instFamily': marketInfo['instFamily'],
             'expTime': this.safeString (optionParts, 2),
         };
         const response = await this.publicGetPublicOptSummary (this.extend (request, params));
@@ -8906,8 +8909,9 @@ export default class okx extends Exchange {
                 market = this.market (symbolsNormalized[0]);
                 const marketId = this.safeString (market, 'id', '');
                 const optionParts = marketId.split ('-');
-                request['uly'] = market['info']['uly'];
-                request['instFamily'] = market['info']['instFamily'];
+                const marketInfo = this.safeDict (market, 'info', {});
+                request['uly'] = marketInfo['uly'];
+                request['instFamily'] = marketInfo['instFamily'];
                 request['expTime'] = this.safeString (optionParts, 2);
             }
         }

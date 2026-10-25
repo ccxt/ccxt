@@ -192,7 +192,7 @@ export default class bitget extends bitgetRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, false);
-        const symbolsList: string[] = (symbolsNormalized === undefined) ? [] : symbolsNormalized;
+        const symbolsList: string[] = symbolsNormalized;
         const market = this.market (symbolsList[0]);
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (params, 'watchTickers', 'uta', false);
         const [ instType, paramsValue ] = this.getInstType ('watchTickers', market, uta, paramsUta);
@@ -446,7 +446,7 @@ export default class bitget extends bitgetRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, false);
-        const symbolsList: string[] = (symbolsNormalized === undefined) ? [] : symbolsNormalized;
+        const symbolsList: string[] = symbolsNormalized;
         const market = this.market (symbolsList[0]);
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (params, 'watchBidsAsks', 'uta', false);
         const [ instType, paramsValue ] = this.getInstType ('watchBidsAsks', market, uta, paramsUta);
@@ -2627,12 +2627,12 @@ export default class bitget extends bitgetRest {
     }
 
     async watchPublic (uta: boolean, messageHash: string, args: Dict, params: Dict = {}) {
-        let url = (uta) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
+        let url = (uta === true) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
         if (sandboxMode) {
             const instType = this.safeString (args, 'instType');
             if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
-                if (uta) {
+                if (uta === true) {
                     url = this.urls['api']['demo']['utaPublic'];
                 } else {
                     url = this.urls['api']['demo']['public'];
@@ -2648,12 +2648,12 @@ export default class bitget extends bitgetRest {
     }
 
     async unWatchPublic (uta: boolean, messageHash: string, args: Dict, params: Dict = {}) {
-        let url = (uta) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
+        let url = (uta === true) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
         if (sandboxMode) {
             const instType = this.safeString (args, 'instType');
             if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
-                if (uta) {
+                if (uta === true) {
                     url = this.urls['api']['demo']['utaPublic'];
                 } else {
                     url = this.urls['api']['demo']['public'];
@@ -2692,13 +2692,13 @@ export default class bitget extends bitgetRest {
     }
 
     async watchPublicMultiple (uta: boolean, messageHashes: string[], argsArray: any[], params: Dict = {}) {
-        let url = (uta) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
+        let url = (uta === true) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
         if (sandboxMode) {
             const argsArrayFirst = this.safeDict (argsArray, 0, {});
             const instType = this.safeString (argsArrayFirst, 'instType');
             if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
-                url = (uta) ? this.urls['api']['demo']['utaPublic'] : this.urls['api']['demo']['public'];
+                url = (uta === true) ? this.urls['api']['demo']['utaPublic'] : this.urls['api']['demo']['public'];
             }
         }
         const request: Dict = {
@@ -2739,12 +2739,12 @@ export default class bitget extends bitgetRest {
     }
 
     async watchPrivate (uta: boolean, messageHash: string, subscriptionHash: string, args: Dict, params: Dict = {}) {
-        let url = (uta) ? this.urls['api']['ws']['utaPrivate'] : this.urls['api']['ws']['private'];
+        let url = (uta === true) ? this.urls['api']['ws']['utaPrivate'] : this.urls['api']['ws']['private'];
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
         if (sandboxMode) {
             const instType = this.safeString (args, 'instType');
             if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
-                if (uta) {
+                if (uta === true) {
                     url = this.urls['api']['demo']['utaPrivate'];
                 } else {
                     url = this.urls['api']['demo']['private'];

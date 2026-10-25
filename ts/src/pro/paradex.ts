@@ -867,7 +867,7 @@ export default class paradex extends paradexRest {
         const params: Dict = this.safeDict (message, 'params', {});
         const data: Dict = this.safeDict (params, 'data', {});
         const fundingRate = this.parseFundingRateWs (data);
-        const symbol = fundingRate['symbol'];
+        const symbol = this.safeString (fundingRate, 'symbol');
         this.fundingRates[(symbol as string)] = fundingRate;
         const channel = this.safeString (params, 'channel');
         // watchFundingRates without symbols waits on the bare channel
@@ -952,7 +952,7 @@ export default class paradex extends paradexRest {
         } else if (templateId === 3) {
             data = this.parseSbeOrderBook (frameHex, blockLength, frameLength);
             if (data !== undefined) {
-                channel = this.getOrderBookChannel (data['market']);
+                channel = this.getOrderBookChannel (this.safeString (data, 'market'));
             }
         } else if (templateId === 4) {
             data = this.parseSbeMarketSummary (frameHex, blockLength, frameLength);
@@ -1121,7 +1121,7 @@ export default class paradex extends paradexRest {
         return {
             // the full trade id, absent only on frames that predate it, the int64 tradeId cannot hold it
             'id': this.safeString (strings, 1),
-            'market': strings[0],
+            'market': this.safeString (strings, 0),
             'side': this.sbeReadEnum (frameHex, 32, sides),
             'size': this.sbeReadDecimal (frameHex, 41),
             'price': this.sbeReadDecimal (frameHex, 33),
@@ -1176,7 +1176,7 @@ export default class paradex extends paradexRest {
         }
         return {
             'seq_no': this.sbeReadInt64 (frameHex, 16),
-            'market': strings[0],
+            'market': this.safeString (strings, 0),
             'last_updated_at': this.sbeReadTimestamp (frameHex, 8),
             'update_type': 's',
             'inserts': inserts,
@@ -1209,7 +1209,7 @@ export default class paradex extends paradexRest {
             settlementTwapEstimate = this.sbeReadDecimal (frameHex, 248);
         }
         return {
-            'symbol': strings[0],
+            'symbol': this.safeString (strings, 0),
             'mark_price': this.sbeReadDecimal (frameHex, 24),
             'last_traded_price': this.sbeReadDecimal (frameHex, 40),
             'bid': this.sbeReadDecimal (frameHex, 72),
@@ -1242,7 +1242,7 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         return {
-            'market': strings[0],
+            'market': this.safeString (strings, 0),
             'funding_index': this.sbeReadDecimal (frameHex, 32),
             'funding_premium': this.sbeReadDecimal (frameHex, 48),
             'funding_rate': this.sbeReadDecimal (frameHex, 24),
@@ -1282,10 +1282,10 @@ export default class paradex extends paradexRest {
             'client_id': strings[1],
             'created_at': this.sbeReadTimestamp (frameHex, 68),
             'flags': flags,
-            'id': strings[0],
+            'id': this.safeString (strings, 0),
             'instruction': this.sbeReadEnum (frameHex, 27, timeInForces),
             'last_updated_at': this.sbeReadTimestamp (frameHex, 76),
-            'market': strings[2],
+            'market': this.safeString (strings, 2),
             'price': this.sbeReadDecimal (frameHex, 28),
             'published_at': this.sbeReadTimestamp (frameHex, 124),
             'received_at': this.sbeReadTimestamp (frameHex, 116),
@@ -1348,10 +1348,10 @@ export default class paradex extends paradexRest {
             'fee': this.sbeReadDecimal (frameHex, 43),
             'fee_currency': this.safeString (strings, 5),
             'fill_type': this.sbeReadEnum (frameHex, 24, fillTypes),
-            'id': strings[0],
+            'id': this.safeString (strings, 0),
             'liquidity': this.sbeReadEnum (frameHex, 26, liquidities),
-            'market': strings[4],
-            'order_id': strings[1],
+            'market': this.safeString (strings, 4),
+            'order_id': this.safeString (strings, 1),
             'price': this.sbeReadDecimal (frameHex, 27),
             'realized_funding': this.sbeReadDecimal (frameHex, 107),
             'realized_pnl': this.sbeReadDecimal (frameHex, 51),
@@ -1408,7 +1408,7 @@ export default class paradex extends paradexRest {
             'last_updated_at': this.sbeReadTimestamp (frameHex, 81),
             'leverage': this.sbeReadDecimal (frameHex, 73),
             'liquidation_price': this.sbeReadDecimal (frameHex, 65),
-            'market': strings[0],
+            'market': this.safeString (strings, 0),
             'realized_positional_pnl': this.sbeReadDecimal (frameHex, 49),
             'seq_no': this.sbeReadInt64 (frameHex, 16),
             'side': side,
@@ -1446,7 +1446,7 @@ export default class paradex extends paradexRest {
             'maintenance_margin_requirement': this.sbeReadDecimal (frameHex, 48),
             'margin_cushion': this.sbeReadDecimal (frameHex, 112),
             'seq_no': this.sbeReadInt64 (frameHex, 16),
-            'settlement_asset': strings[0],
+            'settlement_asset': this.safeString (strings, 0),
             'status': this.sbeReadEnum (frameHex, 120, statuses),
             'total_collateral': this.sbeReadDecimal (frameHex, 24),
             'updated_at': this.sbeReadTimestamp (frameHex, 72),

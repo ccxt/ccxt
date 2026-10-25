@@ -85,7 +85,9 @@ export default class modetrade extends modetradeRest {
         if (this.accountId !== undefined && this.accountId !== '') {
             id = this.accountId;
         }
-        const wsUrl = this.safeString (this.urls['api']['ws'], 'public');
+        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const wsUrl = this.safeString (wsUrls, 'public');
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' watchPublic() has no public websocket url');
         }
@@ -114,7 +116,8 @@ export default class modetrade extends modetradeRest {
         }
         const name = 'orderbook';
         const market = this.market (symbol);
-        const topic = market['id'] + '@' + name;
+        const marketId = this.safeString (market, 'id');
+        const topic = marketId + '@' + name;
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
@@ -176,7 +179,8 @@ export default class modetrade extends modetradeRest {
         }
         const name = 'ticker';
         const market = this.market (symbol);
-        const topic = market['id'] + '@' + name;
+        const marketId = this.safeString (market, 'id');
+        const topic = marketId + '@' + name;
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
@@ -358,7 +362,7 @@ export default class modetrade extends modetradeRest {
         const result: Ticker[] = [];
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsBidAsk (this.extend (data[i], { 'ts': timestamp }));
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 this.tickers[symbol] = ticker;
             }
@@ -406,7 +410,8 @@ export default class modetrade extends modetradeRest {
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'kline';
-        const topic = market['id'] + '@' + name + '_' + interval;
+        const marketId = this.safeString (market, 'id');
+        const topic = marketId + '@' + name + '_' + interval;
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
@@ -486,7 +491,8 @@ export default class modetrade extends modetradeRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const topic = market['id'] + '@trade';
+        const marketId = this.safeString (market, 'id');
+        const topic = marketId + '@trade';
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
@@ -632,7 +638,9 @@ export default class modetrade extends modetradeRest {
 
     async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
-        const wsUrl = this.safeString (this.urls['api']['ws'], 'private');
+        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const wsUrl = this.safeString (wsUrls, 'private');
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' authenticate() has no private websocket url');
         }
@@ -667,7 +675,9 @@ export default class modetrade extends modetradeRest {
 
     async watchPrivate (messageHash: string, message: Dict, params: Dict = {}) {
         await this.authenticate (params);
-        const wsUrl = this.safeString (this.urls['api']['ws'], 'private');
+        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const wsUrl = this.safeString (wsUrls, 'private');
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' watchPrivate() has no private websocket url');
         }
@@ -682,7 +692,9 @@ export default class modetrade extends modetradeRest {
 
     async watchPrivateMultiple (messageHashes: string[], message: Dict, params: Dict = {}) {
         await this.authenticate (params);
-        const wsUrl = this.safeString (this.urls['api']['ws'], 'private');
+        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const wsUrl = this.safeString (wsUrls, 'private');
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' watchPrivateMultiple() has no private websocket url');
         }
@@ -933,10 +945,13 @@ export default class modetrade extends modetradeRest {
         //
         const topic = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data');
-        if (Array.isArray (data)) {
+        const dataIsArray = Array.isArray (data);
+        if (dataIsArray) {
             // algoexecutionreport
-            for (let i = 0; i < data.length; i++) {
-                const order = data[i];
+            const dataList = this.safeList (message, 'data', []);
+            const dataListLength = dataList.length;
+            for (let i = 0; i < dataListLength; i++) {
+                const order = dataList[i];
                 const tradeIdStr = this.safeString (data, 'tradeId');
                 const tradeId = (tradeIdStr === undefined) ? undefined : this.omitZero (tradeIdStr);
                 if (tradeId !== undefined) {
@@ -1058,7 +1073,9 @@ export default class modetrade extends modetradeRest {
         } else {
             messageHashes.push ('positions');
         }
-        const wsUrl = this.safeString (this.urls['api']['ws'], 'private');
+        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const wsUrl = this.safeString (wsUrls, 'private');
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' watchPositions() has no private websocket url');
         }
@@ -1161,7 +1178,8 @@ export default class modetrade extends modetradeRest {
             const position = this.parseWsPosition (rawPosition, market);
             newPositions.push (position);
             cache.append (position);
-            const messageHash = 'positions::' + market['symbol'];
+            const marketSymbol = this.safeString (market, 'symbol');
+            const messageHash = 'positions::' + marketSymbol;
             client.resolve (position, messageHash);
         }
         client.resolve (newPositions, 'positions');

@@ -6,7 +6,7 @@ import bybitRest from '../bybit.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest, NotSupported } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, Bool, Market, NullableList, NullableDict } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, Bool, Market, NullableList, NullableDict, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -184,15 +184,14 @@ export default class bybit extends bybitRest {
     }
 
     async getUrlByMarketType (symbol: Str = undefined, isPrivate: Bool = false, method: Str = undefined, params: Dict = {}): Promise<string> {
-        let accessibility: Str = 'public';
-        if (isPrivate) {
-            accessibility = 'private';
-        }
+        const accessibility: string = (isPrivate) ? 'private' : 'public';
         const methodValue: Str = (method === undefined) ? '' : method;
         let isUsdcSettled: Bool = undefined;
         let isSpot: Bool = undefined;
         let type: Str = undefined;
         let market: Market = undefined;
+        const wsUrls: Dict = this.safeDict (this.urls['api'], 'ws', {});
+        const accessibilityUrls: Dict = this.safeDict (wsUrls, accessibility, {});
         let url = this.urls['api']['ws'];
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -211,19 +210,19 @@ export default class bybit extends bybitRest {
             const isUnifiedMargin = this.safeBool (unified, 0, false);
             const isUnifiedAccount = this.safeBool (unified, 1, false);
             if (isUsdcSettled && (!isUnifiedMargin) && (!isUnifiedAccount)) {
-                url = url[accessibility]['usdc'];
+                url = accessibilityUrls['usdc'];
             } else {
-                url = url[accessibility]['contract'];
+                url = accessibilityUrls['contract'];
             }
         } else {
             if (isSpot) {
-                url = url[accessibility]['spot'];
+                url = accessibilityUrls['spot'];
             } else if ((type === 'swap') || (type === 'future')) {
                 const subType: Str = this.handleSubTypeAndParams (methodValue, market, params, 'linear')[0];
-                url = url[accessibility][subType as string];
+                url = accessibilityUrls[subType as string];
             } else {
                 // option
-                url = url[accessibility]['option'];
+                url = accessibilityUrls['option'];
             }
         }
         url = this.implodeHostname (url);
@@ -2306,7 +2305,7 @@ export default class bybit extends bybitRest {
             info = rawBalances;
         }
         if (topic === 'wallet') {
-            const data = this.safeValue (message, 'data', {});
+            const data: List = this.safeList (message, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const result = this.safeDict (data, 0, {});
                 account = this.safeStringLower (result, 'accountType');

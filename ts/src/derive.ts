@@ -1944,7 +1944,7 @@ export default class derive extends Exchange {
         // the mutating calls stay hoisted out of other call arguments, nesting them breaks the rust borrow checker (E0502)
         const rawNonce = this.incrementingNonce ();
         const randomPart = this.randNumber (6); // guards against collisions of different instances with the same wallet
-        const milliseconds = this.numberToString (rawNonce);
+        const milliseconds = this.numberToString (rawNonce) as string;
         const suffix = this.numberToString (randomPart);
         const padded = suffix.padStart (6, '0');
         return milliseconds + padded;
@@ -2027,11 +2027,12 @@ export default class derive extends Exchange {
         }
         const maxFeeString = this.numberToString (maxFee);
         const amountString = this.numberToString (amount);
+        const marketInfo = this.safeDict (market, 'info', {});
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
-            market['info']['base_asset_address'],
-            this.convertToBigInt (market['info']['base_asset_sub_id']), // options carry a huge encoded sub_id that overflows double precision, so it must stay integral
+            marketInfo['base_asset_address'],
+            this.convertToBigInt (marketInfo['base_asset_sub_id']), // options carry a huge encoded sub_id that overflows double precision, so it must stay integral
             this.convertToBigInt ((this.parseUnits (priceString) as string)),
             this.convertToBigInt ((this.parseUnits ((this.amountToPrecision (symbol, amountString) as string)) as string)),
             this.convertToBigInt ((this.parseUnits (maxFeeString) as string)),
@@ -2192,11 +2193,12 @@ export default class derive extends Exchange {
         const priceString = this.numberToString (price) as string;
         const maxFeeString = this.safeString (paramsDeriveSubaccountId, 'max_fee', '0');
         const amountString = this.numberToString (amount);
+        const marketInfo = this.safeDict (market, 'info', {});
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
-            market['info']['base_asset_address'],
-            this.convertToBigInt (market['info']['base_asset_sub_id']), // options carry a huge encoded sub_id that overflows double precision, so it must stay integral
+            marketInfo['base_asset_address'],
+            this.convertToBigInt (marketInfo['base_asset_sub_id']), // options carry a huge encoded sub_id that overflows double precision, so it must stay integral
             this.convertToBigInt ((this.parseUnits (priceString) as string)),
             this.convertToBigInt ((this.parseUnits ((this.amountToPrecision (symbol, amountString) as string)) as string)),
             this.convertToBigInt ((this.parseUnits (maxFeeString) as string)),

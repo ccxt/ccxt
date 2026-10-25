@@ -644,7 +644,7 @@ export default class blofin extends Exchange {
         }
         let symbol = base + '/' + quote;
         if (swap) {
-            symbol = symbol + ':' + settle;
+            symbol = base + '/' + quote + ':' + settle;
         }
         const expiry = undefined;
         const strikePrice = undefined;
@@ -954,7 +954,9 @@ export default class blofin extends Exchange {
             };
         }
         if (isSpot) {
-            const spotSymbol = marketResolved['base'] + '/' + marketResolved['quote'];
+            const spotBase = this.safeString (marketResolved, 'base');
+            const spotQuote = this.safeString (marketResolved, 'quote');
+            const spotSymbol = spotBase + '/' + spotQuote;
             const cost = this.parseNumber (Precise.stringMul (price, amount));
             const result: Dict = {
                 'info': trade,
@@ -2294,10 +2296,12 @@ export default class blofin extends Exchange {
         }
         if (chainsLength === 1) {
             // a single network means the currency-level fee is unambiguous
-            const networkKeys = Object.keys (result['networks']);
+            const networks: Dict = this.safeDict (result, 'networks', {});
+            const networkKeys = Object.keys (networks);
             const onlyNetwork = this.safeString (networkKeys, 0);
             if (onlyNetwork !== undefined) {
-                result['withdraw'] = result['networks'][onlyNetwork]['withdraw'];
+                const networkResolved: Dict = this.safeDict (networks, onlyNetwork, {});
+                result['withdraw'] = networkResolved['withdraw'];
             }
         }
         return result;
@@ -2668,7 +2672,7 @@ export default class blofin extends Exchange {
         }, currencyResolved) as LedgerEntry;
     }
 
-    parseIds (ids: any) {
+    parseIds (ids: any): Strings {
         /**
          * @ignore
          * @method
@@ -2712,7 +2716,7 @@ export default class blofin extends Exchange {
             method = 'privatePostTradeCancelTpsl';
         }
         if (clientOrderIds === undefined) {
-            const orderIds = this.parseIds (ids);
+            const orderIds = this.parseIds (ids) as string[];
             if (tpslIds !== undefined) {
                 for (let i = 0; i < tpslIds.length; i++) {
                     request.push ({
@@ -3102,14 +3106,15 @@ export default class blofin extends Exchange {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const symbolsList = symbolsNormalized;
-        let instIds = '';
+        let instIds: string = '';
         for (let i = 0; i < symbolsList.length; i++) {
             const entry = symbolsList[i];
             const entryMarket = this.market (entry);
+            const entryId = this.safeString (entryMarket, 'id');
             if (i > 0) {
-                instIds = instIds + ',' + entryMarket['id'];
+                instIds = instIds + ',' + entryId;
             } else {
-                instIds = instIds + entryMarket['id'];
+                instIds = instIds + entryId;
             }
         }
         const request: Dict = {

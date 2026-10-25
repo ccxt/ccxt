@@ -596,8 +596,9 @@ export default class deepcoin extends Exchange {
         const symbols = Object.keys (result);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const market = result[symbol];
-            if ((market !== undefined) && (market['swap'] === true)) {
+            const market = this.safeDict (result, symbol, {});
+            const isSwap = this.safeBool (market, 'swap', false);
+            if (isSwap) {
                 const additionalId = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', '');
                 if (this.markets_by_id !== undefined) {
                     this.markets_by_id[additionalId] = [ market ]; // some endpoints return swap market id as base+quote
@@ -3099,7 +3100,7 @@ export default class deepcoin extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0);
         let requestPath: string = path;
         if (method === 'GET') {
             const query = this.urlencode (params);

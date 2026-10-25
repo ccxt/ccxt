@@ -5,7 +5,7 @@ import krakenfuturesRest from '../krakenfutures.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool, Market } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, NullableDict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -586,8 +586,8 @@ export default class krakenfutures extends krakenfuturesRest {
                 const trades: Dict[] = this.safeList (message, 'trades', []);
                 const length = trades.length;
                 for (let i = 0; i < length; i++) {
-                    const index = length - 1 - i; // need reverse to correct chronology
-                    const item = trades[index];
+                    // need reverse to correct chronology
+                    const item = trades[length - 1 - i];
                     const trade = this.parseWsTrade (item);
                     tradesArray.append (trade);
                 }
@@ -806,7 +806,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 previousOrder['lastTradeTimestamp'] = trade['timestamp'];
                 let totalCost: Str = '0';
                 let totalAmount: Str = '0';
-                const trades = previousOrder['trades'];
+                const trades: Dict[] = this.safeList (previousOrder, 'trades', []);
                 for (let i = 0; i < trades.length; i++) {
                     const currentTrade = trades[i];
                     totalCost = Precise.stringAdd (totalCost, this.numberToString (currentTrade['cost']));
@@ -830,8 +830,9 @@ export default class krakenfutures extends krakenfuturesRest {
                         'currency': this.numberToString (this.safeString (trade['fee'], 'currency')),
                     };
                 }
-                if ((previousOrder['fee']['cost'] !== undefined) && (this.safeNumber (trade['fee'], 'cost') !== undefined)) {
-                    const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
+                const previousFee = this.safeDict (previousOrder, 'fee', {});
+                if ((previousFee['cost'] !== undefined) && (this.safeNumber (trade['fee'], 'cost') !== undefined)) {
+                    const stringOrderCost = this.numberToString (previousFee['cost']);
                     const stringTradeCost = this.numberToString (this.safeNumber (trade['fee'], 'cost'));
                     previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
                 }
@@ -1036,10 +1037,10 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         //
         const isCancelled = this.safeBool (order, 'is_cancel');
-        let unparsedOrder = order;
+        let unparsedOrder: NullableDict = order;
         let status: Str = undefined;
         if (isCancelled !== undefined) {
-            unparsedOrder = this.safeValue (order, 'order');
+            unparsedOrder = this.safeDict (order, 'order');
             if (isCancelled) {
                 status = 'cancelled';
             }

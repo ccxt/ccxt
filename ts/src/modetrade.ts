@@ -2575,7 +2575,7 @@ export default class modetrade extends Exchange {
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['token'] = currency['id'];
+            request['token'] = this.safeString (currency, 'id');
         }
         if (since !== undefined) {
             request['start_t'] = since;

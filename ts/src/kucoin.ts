@@ -3670,7 +3670,8 @@ export default class kucoin extends Exchange {
                 request['chain'] = _netIdTmp.toLowerCase ();
             }
         }
-        const version = this.options['versions']['private']['GET']['deposit-addresses'];
+        const getVersions: Dict = this.safeDict (this.safeDict (this.safeDict (this.options, 'versions', {}), 'private', {}), 'GET', {});
+        const version = getVersions['deposit-addresses'];
         this.options['versions']['private']['GET']['deposit-addresses'] = 'v1';
         const response = await this.privateGetDepositAddresses (this.extend (request, paramsRequest));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
@@ -3802,7 +3803,8 @@ export default class kucoin extends Exchange {
             //
             response = await this.utaPrivateGetAssetDepositAddress (this.extend (request, paramsRequest));
         } else {
-            const version = this.options['versions']['private']['GET']['deposit-addresses'];
+            const getVersions: Dict = this.safeDict (this.safeDict (this.safeDict (this.options, 'versions', {}), 'private', {}), 'GET', {});
+            const version = getVersions['deposit-addresses'];
             this.options['versions']['private']['GET']['deposit-addresses'] = 'v2';
             response = await this.privateGetDepositAddresses (this.extend (request, paramsRequest));
             //
@@ -4191,7 +4193,8 @@ export default class kucoin extends Exchange {
             if (marginMode === 'isolated') {
                 throw new BadRequest (this.id + ' createOrder does not support isolated margin for stop orders');
             } else if (marginMode === 'cross') {
-                request['tradeType'] = this.options['marginModes'][marginMode];
+                const marginModes: Dict = this.safeDict (this.options, 'marginModes', {});
+                request['tradeType'] = marginModes[marginMode];
             }
         } else if (isMarginOrder) {
             if (marginMode === 'isolated') {
@@ -4208,9 +4211,11 @@ export default class kucoin extends Exchange {
 
     marketOrderAmountToPrecision (symbol: Str, amount: any): string {
         const market = this.market (symbol);
-        const result = this.decimalToPrecision (amount, TRUNCATE, market['info']['quoteIncrement'], this.precisionMode, this.paddingMode);
+        const marketInfo: Dict = this.safeDict (market, 'info', {});
+        const marketPrecision: Dict = this.safeDict (market, 'precision', {});
+        const result = this.decimalToPrecision (amount, TRUNCATE, marketInfo['quoteIncrement'], this.precisionMode, this.paddingMode);
         if (result === '0') {
-            throw new InvalidOrder (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (market['precision']['amount']));
+            throw new InvalidOrder (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (marketPrecision['amount']));
         }
         return result;
     }
@@ -5315,8 +5320,9 @@ export default class kucoin extends Exchange {
         } else if ((!trigger) && isMarginOrders) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for margin non-trigger orders');
         }
-        if (isMarginOrders) {
-            request['tradeType'] = this.options['marginModes'][marginMode];
+        if (marginMode !== undefined) {
+            const marginModes: Dict = this.safeDict (this.options, 'marginModes', {});
+            request['tradeType'] = marginModes[marginMode];
             if (marginMode === 'isolated' && (trigger)) {
                 throw new BadRequest (this.id + ' cancelAllOrders does not support isolated margin for stop orders');
             }
@@ -10422,8 +10428,9 @@ export default class kucoin extends Exchange {
         let request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market (symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         } else if (!uta) {
             throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
         }
@@ -11576,11 +11583,12 @@ export default class kucoin extends Exchange {
         for (let i = 0; i < info.length; i++) {
             const tier = this.safeDict (info, i, {});
             const marketId = this.safeString (tier, 'symbol');
-            marketCursor = this.safeMarket (marketId, marketCursor);
+            const tierMarket = this.safeMarket (marketId, marketCursor);
+            marketCursor = tierMarket;
             tiers.push ({
                 'tier': this.safeNumber2 (tier, 'level', 'tier'),
-                'symbol': marketCursor['symbol'],
-                'currency': marketCursor['base'],
+                'symbol': tierMarket['symbol'],
+                'currency': tierMarket['base'],
                 'minNotional': this.safeNumber2 (tier, 'minRiskLimit', 'minSize'),
                 'maxNotional': this.safeNumber2 (tier, 'maxRiskLimit', 'maxSize'),
                 'maintenanceMarginRate': this.safeNumber2 (tier, 'maintainMargin', 'maintainMarginRate'),

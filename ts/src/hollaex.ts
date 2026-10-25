@@ -362,13 +362,13 @@ export default class hollaex extends Exchange {
             const market = this.safeDict (pairs, key);
             const baseId = this.safeString (market, 'pair_base');
             const quoteId = this.safeString (market, 'pair_2');
-            const base = this.commonCurrencyCode ((baseId as string).toUpperCase ());
-            const quote = this.commonCurrencyCode ((quoteId as string).toUpperCase ());
+            const baseCode = this.commonCurrencyCode ((baseId as string).toUpperCase ());
+            const quoteCode = this.commonCurrencyCode ((quoteId as string).toUpperCase ());
             result.push ({
                 'id': this.safeString (market, 'name'),
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
+                'symbol': baseCode + '/' + quoteCode,
+                'base': baseCode,
+                'quote': quoteCode,
                 'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
@@ -1174,11 +1174,10 @@ export default class hollaex extends Exchange {
         //                     "exchange_id": 176
         //                 }
         //             }
-        const order = response;
-        if (order === undefined) {
+        if (response === undefined) {
             throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id);
         }
-        return this.parseOrder (order);
+        return this.parseOrder (response);
     }
 
     /**

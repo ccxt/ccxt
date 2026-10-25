@@ -778,7 +778,7 @@ export default class toobit extends toobitRest {
         // ]
         //
         const channel = this.safeString (message, 'e');
-        const data = this.safeList (message, 'B', []);
+        const data: Dict[] = this.safeList (message, 'B', []);
         const timestamp = this.safeInteger (message, 'E');
         let type: Str = 'spot';
         if (channel === 'outboundContractAccountInfo') {
@@ -787,7 +787,7 @@ export default class toobit extends toobitRest {
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
-        this.balance[type]['info'] = data;
+        this.balance[type]['info'] = this.safeList (message, 'B', []);
         this.balance[type]['timestamp'] = timestamp;
         this.balance[type]['datetime'] = this.iso8601 (timestamp);
         for (let i = 0; i < data.length; i++) {

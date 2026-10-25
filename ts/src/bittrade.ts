@@ -520,7 +520,7 @@ export default class bittrade extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        const method = this.handleOption ('fetchMarkets', 'method', 'publicGetCommonSymbols');
+        const method = this.safeString (this.options['fetchMarkets'], 'method', 'publicGetCommonSymbols');
         let response = undefined;
         if (method === 'publicGetCommonSymbols') {
             response = await this.publicGetCommonSymbols (params);
@@ -1232,7 +1232,8 @@ export default class bittrade extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const balances: Dict[] = this.safeList (response['data'], 'list', []);
+        const data = this.safeDict (response, 'data', {});
+        const balances: Dict[] = this.safeList (data, 'list', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -1264,7 +1265,7 @@ export default class bittrade extends Exchange {
             await this.loadMarkets ();
         }
         await this.loadAccounts ();
-        const method = this.handleOption ('fetchBalance', 'method', 'privateGetAccountAccountsIdBalance');
+        const method = this.safeString (this.options['fetchBalance'], 'method', 'privateGetAccountAccountsIdBalance');
         const request: Dict = {
             'id': this.accounts[0]['id'],
         };
@@ -1289,7 +1290,7 @@ export default class bittrade extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.handleOption ('fetchOrdersByStates', 'method', 'privateGetOrderOrders');
+        const method = this.safeString (this.options['fetchOrdersByStates'], 'method', 'privateGetOrderOrders');
         let response = undefined;
         if ((method === 'private_get_order_history') || (method === 'privateGetOrderHistory')) {
             response = await this.privateGetOrderHistory (this.extend (request, params));
@@ -1362,7 +1363,7 @@ export default class bittrade extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
-        const method = this.handleOption ('fetchOpenOrders', 'method', 'fetch_open_orders_v1') as string;
+        const method = this.safeString (this.options['fetchOpenOrders'], 'method', 'fetch_open_orders_v1');
         if ((method === 'fetch_open_orders_v2') || (method === 'fetchOpenOrdersV2')) {
             return await this.fetchOpenOrdersV2 (symbol, since, limit, params) as Order[];
         }
@@ -1631,7 +1632,7 @@ export default class bittrade extends Exchange {
         if (type === 'limit' || type === 'ioc' || type === 'limit-maker' || type === 'stop-limit' || type === 'stop-limit-fok') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const method = this.handleOption ('createOrder', 'method', 'privatePostOrderOrdersPlace');
+        const method = this.safeString (this.options['createOrder'], 'method', 'privatePostOrderOrdersPlace');
         let response = undefined;
         if (method === 'privatePostOrderOrdersPlace') {
             response = await this.privatePostOrderOrdersPlace (this.extend (request, paramsOrder));

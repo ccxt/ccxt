@@ -952,10 +952,11 @@ export default class bitopro extends Exchange {
             return candles;
         }
         const result: any[] = [];
-        let copyFrom = candles[0];
+        const firstCandle = this.safeList (candles, 0, []);
+        let copyFrom: any = firstCandle;
         let timestamp: Int = undefined;
         if (since === undefined) {
-            timestamp = copyFrom[0];
+            timestamp = firstCandle[0];
         } else {
             timestamp = since;
         }
@@ -963,7 +964,7 @@ export default class bitopro extends Exchange {
         const candleLength = candles.length;
         let resultLength: Int = 0;
         while ((resultLength < limit) && (i < candleLength)) {
-            const candle = candles[i];
+            const candle = this.safeList (candles, i, []);
             if (candle[0] === timestamp) {
                 result.push (candle);
                 i = this.sum (i, 1);
@@ -1253,7 +1254,7 @@ export default class bitopro extends Exchange {
         const orders: Order[] = [];
         for (let i = 0; i < dataKeys.length; i++) {
             const marketId = dataKeys[i];
-            const orderIds = data[marketId];
+            const orderIds = this.safeList (data, marketId, []);
             for (let j = 0; j < orderIds.length; j++) {
                 orders.push (this.safeOrder ({
                     'info': orderIds[j],
@@ -1917,7 +1918,7 @@ export default class bitopro extends Exchange {
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         let url = '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
+        const query: Dict = this.omit (params, this.extractParams (path));
         const requestHeaders: Dict = {};
         const isSignedBody = (apiName === 'private') && ((method === 'POST') || (method === 'PUT'));
         const signedBody: string = this.json (params);

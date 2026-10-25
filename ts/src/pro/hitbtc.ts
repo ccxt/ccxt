@@ -92,7 +92,8 @@ export default class hitbtc extends hitbtcRest {
      */
     async authenticate () {
         this.checkRequiredCredentials ();
-        const url = this.safeString (this.safeDict (this.urls['api'], 'ws'), 'private');
+        const wsUrls = this.safeDict (this.urls['api'], 'ws');
+        const url = this.safeString (wsUrls, 'private');
         const messageHash = 'authenticated';
         const client = this.client (url);
         const future = client.reusableFuture (messageHash);
@@ -151,7 +152,8 @@ export default class hitbtc extends hitbtcRest {
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const isBatch = name.indexOf ('batch') >= 0;
         const resolvedPerSymbol = !isBatch || (messageHashPrefix === 'orderbooks'); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
-        const url = this.safeString (this.safeDict (this.urls['api'], 'ws'), 'public');
+        const wsUrls = this.safeDict (this.urls['api'], 'ws');
+        const url = this.safeString (wsUrls, 'public');
         const messageHashes: string[] = [];
         if (symbolsNormalized !== undefined && resolvedPerSymbol) {
             for (let i = 0; i < symbolsNormalized.length; i++) {
@@ -185,7 +187,8 @@ export default class hitbtc extends hitbtcRest {
             await this.loadMarkets ();
         }
         await this.authenticate ();
-        const url = this.safeString (this.safeDict (this.urls['api'], 'ws'), 'private');
+        const wsUrls = this.safeDict (this.urls['api'], 'ws');
+        const url = this.safeString (wsUrls, 'private');
         const splitName = name.split ('_subscribe');
         let messageHash = this.safeString (splitName, 0, '');
         if (symbol !== undefined) {
@@ -214,7 +217,8 @@ export default class hitbtc extends hitbtcRest {
             await this.loadMarkets ();
         }
         await this.authenticate ();
-        const url = this.safeString (this.safeDict (this.urls['api'], 'ws'), 'private');
+        const wsUrls = this.safeDict (this.urls['api'], 'ws');
+        const url = this.safeString (wsUrls, 'private');
         const messageHash = this.incrementingNonce ().toString ();
         const subscribe: Dict = {
             'method': name,

@@ -522,9 +522,9 @@ export default class cryptocom extends cryptocomRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         const messageHashes: string[] = [];
-        const marketIds = this.marketIds (symbolsNormalized);
+        const marketIds: string[] = this.marketIds (symbolsNormalized);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             messageHashes.push ('ticker.' + marketId);
@@ -563,10 +563,10 @@ export default class cryptocom extends cryptocomRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         const messageHashes: string[] = [];
         const subMessageHashes: string[] = [];
-        const marketIds = this.marketIds (symbolsNormalized);
+        const marketIds: string[] = this.marketIds (symbolsNormalized);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const symbol = symbolsNormalized[i];
@@ -677,10 +677,10 @@ export default class cryptocom extends cryptocomRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         const messageHashes: string[] = [];
         const topics: string[] = [];
-        const marketIds = this.marketIds (symbolsNormalized);
+        const marketIds: string[] = this.marketIds (symbolsNormalized);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             messageHashes.push ('bidask.' + symbolsNormalized[i]);

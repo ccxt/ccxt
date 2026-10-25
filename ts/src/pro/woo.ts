@@ -86,11 +86,12 @@ export default class woo extends wooRest {
     }
 
     async watchPublic (messageHash: string, message: Dict) {
-        let urlUid: Str = '';
+        let urlUid: string = '';
         if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;
         }
-        const url = this.safeString (this.urls['api']['ws'], 'public') + urlUid;
+        const apiUrl = this.safeString (this.urls['api']['ws'], 'public', '');
+        const url = apiUrl + urlUid;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -100,11 +101,12 @@ export default class woo extends wooRest {
     }
 
     async unwatchPublic (subHash: string, symbol: Str, topic: string, params: Dict = {}): Promise<any> {
-        let urlUid: Str = '';
+        let urlUid: string = '';
         if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;
         }
-        const url = this.safeString (this.urls['api']['ws'], 'public') + urlUid;
+        const apiUrl = this.safeString (this.urls['api']['ws'], 'public', '');
+        const url = apiUrl + urlUid;
         const requestId = this.requestId (url);
         const unsubHash = 'unsubscribe::' + subHash;
         const message: Dict = {
@@ -146,12 +148,14 @@ export default class woo extends wooRest {
         }
         const [ method, paramsMethod ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'method', 'orderbook');
         const market = this.market (symbol);
-        const topic = market['id'] + '@' + method;
-        let urlUid: Str = '';
+        const marketId = this.safeString (market, 'id', '');
+        const topic = marketId + '@' + method;
+        let urlUid: string = '';
         if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;
         }
-        const url = this.safeString (this.urls['api']['ws'], 'public') + urlUid;
+        const apiUrl = this.safeString (this.urls['api']['ws'], 'public', '');
+        const url = apiUrl + urlUid;
         const requestId = this.requestId (url);
         const request: Dict = {
             'event': 'subscribe',
@@ -188,7 +192,8 @@ export default class woo extends wooRest {
         }
         const [ method, paramsMethod ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'method', 'orderbook');
         const market = this.market (symbol);
-        const subHash = market['id'] + '@' + method;
+        const marketId = this.safeString (market, 'id', '');
+        const subHash = marketId + '@' + method;
         const topic = 'orderbook';
         return await this.unwatchPublic (subHash, market['symbol'], topic, paramsMethod);
     }
@@ -360,7 +365,8 @@ export default class woo extends wooRest {
         }
         const name = 'ticker';
         const market = this.market (symbol);
-        const topic = market['id'] + '@' + name;
+        const marketId = this.safeString (market, 'id', '');
+        const topic = marketId + '@' + name;
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
@@ -383,7 +389,8 @@ export default class woo extends wooRest {
         }
         const [ method, paramsMethod ] = this.handleOptionStringAndParams (params, 'watchTicker', 'method', 'ticker');
         const market = this.market (symbol);
-        const subHash = market['id'] + '@' + method;
+        const marketId = this.safeString (market, 'id', '');
+        const subHash = marketId + '@' + method;
         const topic = 'ticker';
         return await this.unwatchPublic (subHash, market['symbol'], topic, paramsMethod);
     }
@@ -669,9 +676,10 @@ export default class woo extends wooRest {
             throw new ExchangeError (this.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
         }
         const market = this.market (symbol);
+        const marketId = this.safeString (market, 'id', '');
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'kline';
-        const topic = market['id'] + '@' + name + '_' + interval;
+        const topic = marketId + '@' + name + '_' + interval;
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
@@ -701,10 +709,11 @@ export default class woo extends wooRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const marketId = this.safeString (market, 'id', '');
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const topic = 'ohlcv';
         const name = 'kline';
-        const subHash = market['id'] + '@' + name + '_' + interval;
+        const subHash = marketId + '@' + name + '_' + interval;
         params['symbolsAndTimeframes'] = [ [ market['symbol'], timeframe ] ];
         return await this.unwatchPublic (subHash, market['symbol'], topic, params);
     }
@@ -773,7 +782,8 @@ export default class woo extends wooRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const topic = market['id'] + '@trade';
+        const marketId = this.safeString (market, 'id', '');
+        const topic = marketId + '@trade';
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
@@ -801,8 +811,9 @@ export default class woo extends wooRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const marketId = this.safeString (market, 'id', '');
         const topic = 'trades';
-        const subHash = market['id'] + '@trade';
+        const subHash = marketId + '@trade';
         return await this.unwatchPublic (subHash, market['symbol'], topic, params);
     }
 
@@ -929,7 +940,8 @@ export default class woo extends wooRest {
 
     async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
-        const url = this.safeString (this.urls['api']['ws'], 'private') + '/' + this.uid;
+        const apiUrl = this.safeString (this.urls['api']['ws'], 'private', '');
+        const url = apiUrl + '/' + this.uid;
         const client = this.client (url);
         const messageHash = 'authenticated';
         const event = 'auth';
@@ -955,7 +967,8 @@ export default class woo extends wooRest {
 
     async watchPrivate (messageHash: string, message: Dict, params: Dict = {}) {
         await this.authenticate (params);
-        const url = this.safeString (this.urls['api']['ws'], 'private') + '/' + this.uid;
+        const apiUrl = this.safeString (this.urls['api']['ws'], 'private', '');
+        const url = apiUrl + '/' + this.uid;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -966,7 +979,8 @@ export default class woo extends wooRest {
 
     async watchPrivateMultiple (messageHashes: string[], message: Dict, params: Dict = {}) {
         await this.authenticate (params);
-        const url = this.safeString (this.urls['api']['ws'], 'private') + '/' + this.uid;
+        const apiUrl = this.safeString (this.urls['api']['ws'], 'private', '');
+        const url = apiUrl + '/' + this.uid;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -993,12 +1007,12 @@ export default class woo extends wooRest {
             await this.loadMarkets ();
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        let topic: Str = 'executionreport';
+        let topic: string = 'executionreport';
         if (trigger) {
             topic = 'algoexecutionreportv2';
         }
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
-        let messageHash = topic;
+        let messageHash: string = topic;
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
         if (symbolResolved !== undefined) {
             messageHash += ':' + symbolResolved;
@@ -1034,12 +1048,12 @@ export default class woo extends wooRest {
             await this.loadMarkets ();
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        let topic: Str = 'executionreport';
+        let topic: string = 'executionreport';
         if (trigger) {
             topic = 'algoexecutionreportv2';
         }
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
-        let messageHash = 'myTrades';
+        let messageHash: string = 'myTrades';
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
         if (symbolResolved !== undefined) {
             messageHash += ':' + symbolResolved;
@@ -1298,7 +1312,8 @@ export default class woo extends wooRest {
         }
         const trade = this.parseWsTrade (message);
         myTrades.append (trade);
-        let messageHash = 'myTrades:' + trade['symbol'];
+        const tradeSymbol = this.safeString (trade, 'symbol', '');
+        let messageHash = 'myTrades:' + tradeSymbol;
         client.resolve (myTrades, messageHash);
         messageHash = 'myTrades';
         client.resolve (myTrades, messageHash);
@@ -1335,7 +1350,8 @@ export default class woo extends wooRest {
         } else {
             messageHashes.push ('positions');
         }
-        const url = this.safeString (this.urls['api']['ws'], 'private') + '/' + this.uid;
+        const apiUrl = this.safeString (this.urls['api']['ws'], 'private', '');
+        const url = apiUrl + '/' + this.uid;
         const client = this.client (url);
         this.setPositionsCache (client, symbolsNormalized);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
@@ -1428,7 +1444,8 @@ export default class woo extends wooRest {
             const position = this.parsePosition (rawPosition, market);
             newPositions.push (position);
             cache.append (position);
-            const messageHash = 'positions::' + market['symbol'];
+            const marketSymbol = this.safeString (market, 'symbol', '');
+            const messageHash = 'positions::' + marketSymbol;
             client.resolve (position, messageHash);
         }
         client.resolve (newPositions, 'positions');
@@ -1527,7 +1544,8 @@ export default class woo extends wooRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const topic = market['id'] + '@estfundingrate';
+        const marketId = this.safeString (market, 'id', '');
+        const topic = marketId + '@estfundingrate';
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,

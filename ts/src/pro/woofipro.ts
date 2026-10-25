@@ -110,7 +110,8 @@ export default class woofipro extends woofiproRest {
         }
         const name = 'orderbook';
         const market = this.market (symbol);
-        const topic = market['id'] + '@' + name;
+        const marketId = this.safeString (market, 'id');
+        const topic = marketId + '@' + name;
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
@@ -172,7 +173,8 @@ export default class woofipro extends woofiproRest {
         }
         const name = 'ticker';
         const market = this.market (symbol);
-        const topic = market['id'] + '@' + name;
+        const marketId = this.safeString (market, 'id');
+        const topic = marketId + '@' + name;
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
@@ -402,7 +404,8 @@ export default class woofipro extends woofiproRest {
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'kline';
-        const topic = market['id'] + '@' + name + '_' + interval;
+        const marketId = this.safeString (market, 'id');
+        const topic = marketId + '@' + name + '_' + interval;
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
@@ -480,7 +483,8 @@ export default class woofipro extends woofiproRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const topic = market['id'] + '@trade';
+        const marketId = this.safeString (market, 'id');
+        const topic = marketId + '@trade';
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
@@ -1147,7 +1151,8 @@ export default class woofipro extends woofiproRest {
             const position = this.parseWsPosition (rawPosition, market);
             newPositions.push (position);
             cache.append (position);
-            const messageHash = 'positions::' + market['symbol'];
+            const positionSymbol: string = market['symbol'];
+            const messageHash = 'positions::' + positionSymbol;
             client.resolve (position, messageHash);
         }
         client.resolve (newPositions, 'positions');

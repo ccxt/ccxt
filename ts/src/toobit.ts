@@ -1545,10 +1545,10 @@ export default class toobit extends Exchange {
         //            "t": "1755936610506"
         //        }, ...
         //
-        return this.parseBidsAsksCustom (response, symbolsNormalized);
+        return this.parseBidsAsksCustom (response, symbolsNormalized, {});
     }
 
-    parseBidsAsksCustom (tickers: Dict[], symbols: Strings = undefined, params: Dict = {}): Tickers {
+    parseBidsAsksCustom (tickers: Dict[], symbols: Strings, params: Dict): Tickers {
         const results: Ticker[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const parsedTicker = this.parseBidAskCustom (tickers[i]);

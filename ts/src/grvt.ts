@@ -2247,6 +2247,7 @@ export default class grvt extends Exchange {
             }
             legs.push (legOrder);
         }
+        const orderSignature: Dict = this.safeDict (order, 'signature', {});
         const returnValue: Dict = {
             'subAccountID': order['sub_account_id'],
             'isMarket': order['is_market'],
@@ -2254,8 +2255,8 @@ export default class grvt extends Exchange {
             'postOnly': order['post_only'],
             'reduceOnly': order['reduce_only'],
             'legs': legs,
-            'nonce': order['signature']['nonce'],
-            'expiration': order['signature']['expiration'],
+            'nonce': orderSignature['nonce'],
+            'expiration': orderSignature['expiration'],
         };
         if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && this.safeBool (this.options, 'builderFee', true)) {
             returnValue['builder'] = order['builder'];
@@ -3208,6 +3209,7 @@ export default class grvt extends Exchange {
 
     createSignedRequest (request: Dict, structureType: string, currencyObj: Dict | undefined = undefined, signerAddress: Str = undefined): Dict {
         let messageData: NullableDict = undefined;
+        const requestSignature: Dict = this.safeDict (request, 'signature', {});
         if (structureType === 'EIP712_TRANSFER_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom ('1000000');
             const amountInt = request['num_tokens'] * amountMultiplier;
@@ -3221,8 +3223,8 @@ export default class grvt extends Exchange {
                 'toSubAccount': request['to_sub_account_id'],
                 'tokenCurrency': currencyObj['numericId'],
                 'numTokens': this.parseToInt (amountInt),
-                'nonce': request['signature']['nonce'],
-                'expiration': request['signature']['expiration'],
+                'nonce': requestSignature['nonce'],
+                'expiration': requestSignature['expiration'],
             };
         } else if (structureType === 'EIP712_WITHDRAWAL_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom ('1000000');
@@ -3234,8 +3236,8 @@ export default class grvt extends Exchange {
                 'toEthAddress': request['to_eth_address'],
                 'tokenCurrency': currencyObj['numericId'],
                 'numTokens': this.parseToInt (request['num_tokens'] * amountMultiplier),
-                'nonce': request['signature']['nonce'],
-                'expiration': request['signature']['expiration'],
+                'nonce': requestSignature['nonce'],
+                'expiration': requestSignature['expiration'],
             };
         } else if (structureType === 'EIP712_ORDER_TYPE' || structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE') {
             messageData = this.eipMessageForOrder (request, structureType);
@@ -3246,14 +3248,14 @@ export default class grvt extends Exchange {
                 'builderAccountID': request['builder_account_id'],
                 'maxFutureFeeRate': this.parseToInt (parseFloat (request['max_futures_fee_rate']) * amountMultiplier),
                 'maxSpotFeeRate': this.parseToInt (parseFloat (request['max_spot_fee_rate']) * amountMultiplier),
-                'nonce': request['signature']['nonce'],
-                'expiration': request['signature']['expiration'],
+                'nonce': requestSignature['nonce'],
+                'expiration': requestSignature['expiration'],
             };
         } else if (structureType === 'EIP712_WALLETLOGIN_TYPE') {
             messageData = {
                 'signer': request['address'],
-                'nonce': request['signature']['nonce'],
-                'expiration': request['signature']['expiration'],
+                'nonce': requestSignature['nonce'],
+                'expiration': requestSignature['expiration'],
             };
         }
         const domainData = this.eipDomainData ();
@@ -3372,7 +3374,8 @@ export default class grvt extends Exchange {
             this.options['AuthAccountId'] = accountId;
             const cookie = this.safeString2 (headers, 'Set-Cookie', 'set-cookie');
             if (cookie !== undefined) {
-                const cookieValue = cookie.split (';')[0];
+                const cookieParts = cookie.split (';');
+                const cookieValue = cookieParts[0];
                 this.options['AuthCookieValue'] = cookieValue;
             }
             if (this.safeString (this.options, 'AuthCookieValue') === undefined || this.safeString (this.options, 'AuthAccountId') === undefined) {

@@ -286,7 +286,9 @@ export default class mudrex extends Exchange {
         const market = this.market (symbol);
         const priceType = this.safeString (params, 'price');
         // the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-        const assetPair = market['baseId'] + '/' + market['quoteId'];
+        const baseIdString = this.safeString (market, 'baseId', '');
+        const quoteIdString = this.safeString (market, 'quoteId', '');
+        const assetPair = baseIdString + '/' + quoteIdString;
         const request: Dict = {
             'assets': assetPair,
             'aggregation': this.safeString (this.timeframes, timeframe, timeframe),

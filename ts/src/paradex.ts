@@ -1446,14 +1446,14 @@ export default class paradex extends Exchange {
         if (l1) {
             const l1D = {
                 'name': 'Paradex',
-                'chainId': systemConfig['l1_chain_id'],
+                'chainId': this.safeString (systemConfig, 'l1_chain_id'),
                 'version': '1',
             };
             return l1D;
         }
         const domain = {
             'name': 'Paradex',
-            'chainId': systemConfig['starknet_chain_id'],
+            'chainId': this.safeString (systemConfig, 'starknet_chain_id'),
             'version': 1,
         };
         return domain;
@@ -1476,8 +1476,8 @@ export default class paradex extends Exchange {
             const signature = this.signMessage (msg, this.privateKey);
             const account = this.retrieveStarkAccount (
                 signature,
-                systemConfig['paraclear_account_hash'],
-                systemConfig['paraclear_account_proxy_hash']
+                this.safeString (systemConfig, 'paraclear_account_hash'),
+                this.safeString (systemConfig, 'paraclear_account_proxy_hash')
             );
             this.options['paradexAccount'] = account;
         }
@@ -1495,11 +1495,11 @@ export default class paradex extends Exchange {
                 { 'name': 'action', 'type': 'felt' },
             ],
         };
-        const msg = this.starknetEncodeStructuredData (domain, messageTypes, req, account['address']);
-        const signature = this.starknetSign (msg, account['privateKey']);
+        const msg = this.starknetEncodeStructuredData (domain, messageTypes, req, this.safeString (account, 'address'));
+        const signature = this.starknetSign (msg, this.safeString (account, 'privateKey'));
         params['signature'] = signature;
-        params['account'] = account['address'];
-        params['public_key'] = account['publicKey'];
+        params['account'] = this.safeString (account, 'address');
+        params['public_key'] = this.safeString (account, 'publicKey');
         const response = await this.privatePostOnboarding (params);
         return response;
     }
@@ -1536,10 +1536,10 @@ export default class paradex extends Exchange {
                 { 'name': 'expiration', 'type': 'felt' },
             ],
         };
-        const msg = this.starknetEncodeStructuredData (domain, messageTypes, req, account['address']);
-        const signature = this.starknetSign (msg, account['privateKey']);
+        const msg = this.starknetEncodeStructuredData (domain, messageTypes, req, this.safeString (account, 'address'));
+        const signature = this.starknetSign (msg, this.safeString (account, 'privateKey'));
         params['signature'] = signature;
-        params['account'] = account['address'];
+        params['account'] = this.safeString (account, 'address');
         params['timestamp'] = req['timestamp'];
         params['expiration'] = req['expiration'];
         const response = await this.privatePostAuth (params);
@@ -1679,7 +1679,7 @@ export default class paradex extends Exchange {
         return this.safeStringLower (types, type, type);
     }
 
-    scaleNumber (num: string): Str {
+    scaleNumber (num: Str): Str {
         return Precise.stringMul (num, '100000000');
     }
 
@@ -1782,11 +1782,11 @@ export default class paradex extends Exchange {
         const isMarket = (orderType.indexOf ('MARKET') >= 0);
         const orderReq: Dict = {
             'timestamp': now * 1000,
-            'market': this.stringToBase16 (request['market']),
+            'market': this.stringToBase16 (this.safeString (request, 'market')),
             'side': (this.safeString (request, 'side') === 'BUY') ? '1' : '2',
-            'orderType': this.stringToBase16 (request['type']),
-            'size': this.scaleNumber (request['size']),
-            'price': (isMarket) ? '0' : this.scaleNumber (request['price']),
+            'orderType': this.stringToBase16 (this.safeString (request, 'type')),
+            'size': this.scaleNumber (this.safeString (request, 'size')),
+            'price': (isMarket) ? '0' : this.scaleNumber (this.safeString (request, 'price')),
         };
         const orderFields = [
             { 'name': 'timestamp', 'type': 'felt' },
@@ -1798,7 +1798,7 @@ export default class paradex extends Exchange {
         ];
         let messageTypes = {};
         if (modify) {
-            orderReq['id'] = request['id'];
+            orderReq['id'] = this.safeString (request, 'id');
             orderFields.push ({ 'name': 'id', 'type': 'felt' });
             messageTypes = {
                 'ModifyOrder': orderFields,
@@ -1809,8 +1809,8 @@ export default class paradex extends Exchange {
             };
         }
         const domain = await this.prepareParadexDomain ();
-        const msg = this.starknetEncodeStructuredData (domain, messageTypes, orderReq, account['address']);
-        const signature = this.starknetSign (msg, account['privateKey']);
+        const msg = this.starknetEncodeStructuredData (domain, messageTypes, orderReq, this.safeString (account, 'address'));
+        const signature = this.starknetSign (msg, this.safeString (account, 'privateKey'));
         const signedRequest: Dict = this.extend (request, {
             'signature': signature,
             'signature_timestamp': orderReq['timestamp'],
@@ -3470,18 +3470,18 @@ export default class paradex extends Exchange {
             let privateBody: Str = undefined;
             // TODO: optimize
             if (pathValue === 'auth') {
-                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = query['account'];
-                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
-                privateHeaders['PARADEX-TIMESTAMP'] = query['timestamp'].toString ();
-                privateHeaders['PARADEX-SIGNATURE-EXPIRATION'] = query['expiration'].toString ();
+                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = this.safeString (query, 'account');
+                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = this.safeString (query, 'signature');
+                privateHeaders['PARADEX-TIMESTAMP'] = this.safeString (query, 'timestamp');
+                privateHeaders['PARADEX-SIGNATURE-EXPIRATION'] = this.safeString (query, 'expiration');
             } else if (pathValue === 'onboarding') {
                 privateHeaders['PARADEX-ETHEREUM-ACCOUNT'] = this.walletAddress;
-                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = query['account'];
-                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
+                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = this.safeString (query, 'account');
+                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = this.safeString (query, 'signature');
                 privateHeaders['PARADEX-TIMESTAMP'] = this.nonce ().toString ();
                 privateHeaders['Content-Type'] = 'application/json';
                 privateBody = this.json ({
-                    'public_key': query['public_key'],
+                    'public_key': this.safeString (query, 'public_key'),
                 });
             } else {
                 const token = this.safeString (this.options, 'authToken');

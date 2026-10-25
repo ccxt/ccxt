@@ -3590,7 +3590,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    getMessageHash (elementName: string, symbol: Str = undefined): string {
+    getMessageHash (elementName: Str, symbol: Str = undefined): string {
         // method from kucoinfutures
         // elementName can be 'ticker', 'bidask', ...
         if (symbol !== undefined) {

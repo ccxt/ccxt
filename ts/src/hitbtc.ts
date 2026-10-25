@@ -979,7 +979,7 @@ export default class hitbtc extends Exchange {
     }
 
     override parseCurrency (currency: Dict): CurrencyInterface {
-        const currencyId = currency['_coin_id'];
+        const currencyId = this.safeString (currency, '_coin_id');
         const code = this.safeCurrencyCode (currencyId);
         const entry = currency;
         const rawNetworks: Dict[] = this.safeList (entry, 'networks', []);
@@ -1274,7 +1274,7 @@ export default class hitbtc extends Exchange {
         //       "timestamp": "2021-10-22T07:29:14.585Z"
         //     }
         //
-        const timestamp = this.parse8601 (ticker['timestamp']);
+        const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         const symbol = this.safeSymbol (undefined, market);
         const baseVolume = this.safeString (ticker, 'volume');
         const quoteVolume = this.safeString (ticker, 'volume_quote');
@@ -1454,7 +1454,7 @@ export default class hitbtc extends Exchange {
         //      "liquidation": false
         //  }
         //
-        const timestamp = this.parse8601 (trade['timestamp']);
+        const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const marketId = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
         const symbol = marketResolved['symbol'];
@@ -1511,7 +1511,7 @@ export default class hitbtc extends Exchange {
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currencies'] = currency['id'];
+            request['currencies'] = this.safeString (currency, 'id');
         }
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
@@ -1854,7 +1854,7 @@ export default class hitbtc extends Exchange {
         //
         const result: Dict = {};
         for (let i = 0; i < (response as List).length; i++) {
-            const fee = this.parseTradingFee (response[i]);
+            const fee = this.parseTradingFee (this.safeDict (response, i, {}));
             const symbol = fee['symbol'];
             if (symbol !== undefined) {
                 result[symbol] = fee;
@@ -2470,7 +2470,7 @@ export default class hitbtc extends Exchange {
             'type': type,
             'side': side,
             'quantity': this.amountToPrecision (market['symbol'], amount),
-            'symbol': market['id'],
+            'symbol': this.safeString (market, 'id'),
             // 'client_order_id': 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4', // Optional
             // 'time_in_force': 'GTC', // Optional GTC, IOC, FOK, Day, GTD
             // 'price': this.priceToPrecision (symbol, price), // Required if type is limit, stopLimit, or takeProfitLimit
@@ -3098,7 +3098,7 @@ export default class hitbtc extends Exchange {
         //
         const result: Position[] = [];
         for (let i = 0; i < (response as List).length; i++) {
-            result.push (this.parsePosition (response[i]));
+            result.push (this.parsePosition (this.safeDict (response, i, {})));
         }
         return result as Position[];
     }
@@ -3684,12 +3684,13 @@ export default class hitbtc extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (params['margin_balance'] === undefined) {
+        const amount = this.safeNumber (params, 'margin_balance');
+        if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair');
         }
         const market = this.market (symbol);
-        const amount = this.safeNumber (params, 'margin_balance');
-        const maxLeverage = this.safeInteger (market['limits']['leverage'], 'max', 50);
+        const limits = this.safeDict (market, 'limits', {});
+        const maxLeverage = this.safeInteger (limits['leverage'], 'max', 50);
         if (market['type'] !== 'swap') {
             throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
         }
@@ -3779,7 +3780,10 @@ export default class hitbtc extends Exchange {
             const code = this.safeString (currency, 'code');
             const rawNetworkCode = this.networkIdToCode (networkId, code);
             const networkCodeUpper = (rawNetworkCode !== undefined) ? rawNetworkCode.toUpperCase () : undefined;
-            const networkCode = (networkCodeUpper !== undefined) ? this.safeString (this.networkAliases, networkCodeUpper, networkCodeUpper) : undefined;
+            let networkCode: Str = undefined;
+            if (networkCodeUpper !== undefined) {
+                networkCode = this.safeString (this.networkAliases, networkCodeUpper, networkCodeUpper);
+            }
             const withdrawFee = this.safeNumber (networkEntry, 'payout_fee');
             const isDefault = this.safeBool (networkEntry, 'default');
             const withdrawResult: Dict = {
@@ -3897,8 +3901,8 @@ export default class hitbtc extends Exchange {
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = apiUrl + '/' + implodedPath;
-        let getRequest: Str = undefined;
+        const baseUrl = apiUrl + '/' + implodedPath;
+        let getRequest: string = '';
         const keys = Object.keys (query);
         const queryLength = keys.length;
         const headersValue: NullableDict = {
@@ -3907,16 +3911,16 @@ export default class hitbtc extends Exchange {
         if (method === 'GET') {
             if (queryLength !== 0) {
                 getRequest = '?' + this.urlencode (query);
-                url = url + getRequest;
             }
         }
+        const url = baseUrl + getRequest;
         const bodyResolved = (method === 'GET') ? undefined : this.json (params);
         if (apiName === 'private') {
             this.checkRequiredCredentials ();
-            const timestamp = this.nonce ().toString ();
-            const payload = [ method, '/api/3/' + implodedPath ];
+            const timestamp = this.numberToString (this.nonce ());
+            const payload: string[] = [ method, '/api/3/' + implodedPath ];
             if (method === 'GET') {
-                if (getRequest !== undefined) {
+                if (getRequest !== '') {
                     payload.push (getRequest);
                 }
             } else {

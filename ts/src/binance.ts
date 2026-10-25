@@ -2924,7 +2924,7 @@ export default class binance extends Exchange {
                 }
                 // end diff
             } else if ((this.markets_by_id !== undefined) && (symbol in this.markets_by_id)) {
-                const markets = this.markets_by_id[symbol];
+                const markets: List = this.safeList (this.markets_by_id, symbol, []);
                 // begin diff
                 if (isDerivative) {
                     defaultType = (defaultSubType === 'inverse') ? 'inverse' : 'linear';
@@ -2942,7 +2942,9 @@ export default class binance extends Exchange {
             } else if ((symbol.indexOf ('/') > -1) && (symbol.indexOf (':') < 0)) {
                 if (isLegacy) {
                     // support legacy symbols
-                    const [ base, quote ] = symbol.split ('/');
+                    const basequote = symbol.split ('/');
+                    const base = basequote[0];
+                    const quote = basequote[1];
                     let settle: Str = quote;
                     if (quote === 'USD') {
                         settle = base;
@@ -3881,6 +3883,7 @@ export default class binance extends Exchange {
                 active = true;
             }
         }
+        const feesTrading: Dict = this.safeDict (fees, 'trading', {});
         const entry: Dict = {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -3904,8 +3907,8 @@ export default class binance extends Exchange {
             'linear': linear,
             'inverse': inverse,
             'subType': subType,
-            'taker': fees['trading']['taker'],
-            'maker': fees['trading']['maker'],
+            'taker': feesTrading['taker'],
+            'maker': feesTrading['maker'],
             'contractSize': contractSize,
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
@@ -13333,7 +13336,7 @@ export default class binance extends Exchange {
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = baseApiUrl;
+        let url: string = baseApiUrl;
         url += '/' + path;
         let signedHeaders: NullableDict = undefined;
         let signedBody: Str = undefined;

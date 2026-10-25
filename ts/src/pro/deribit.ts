@@ -686,11 +686,13 @@ export default class deribit extends deribitRest {
         const asks = this.safeList (data, 'asks', []);
         const cleanedBids: List = [];
         for (let i = 0; i < bids.length; i++) {
-            cleanedBids.push ([ bids[i][1], bids[i][2] ]);
+            const bid = this.safeList (bids, i, []);
+            cleanedBids.push ([ bid[1], bid[2] ]);
         }
         const cleanedAsks: List = [];
         for (let i = 0; i < asks.length; i++) {
-            cleanedAsks.push ([ asks[i][1], asks[i][2] ]);
+            const ask = this.safeList (asks, i, []);
+            cleanedAsks.push ([ ask[1], ask[2] ]);
         }
         data['bids'] = cleanedBids;
         data['asks'] = cleanedAsks;
@@ -944,8 +946,9 @@ export default class deribit extends deribitRest {
             let market: Market = undefined;
             let currentDescriptor: Str = undefined;
             if (isOHLCV) {
-                market = this.market (current[0]);
-                const unifiedTf = current[1];
+                const currentPair = this.safeList (symbolsArray, i, []);
+                market = this.market (currentPair[0]);
+                const unifiedTf = currentPair[1];
                 currentDescriptor = this.safeString (this.timeframes, unifiedTf, unifiedTf);
             } else {
                 market = this.market (current);

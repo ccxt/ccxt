@@ -127,7 +127,9 @@ export default class backpack extends backpackRest {
         const symbolsResolved: string[] = [];
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        const url = this.urls['api']['ws']['public'];
+        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public', '');
         const client = this.client (url);
         const kind = (bidAsk) ? 'bidask' : 'ticker';
         for (let i = 0; i < normalized.length; i++) {
@@ -145,7 +147,8 @@ export default class backpack extends backpackRest {
             }
             const requestParams: Dict = this.extend (marketParams, { 'stock': marketStock, 'source': source });
             const request = this.stockDataRequest (methodName, requestParams, market);
-            let topic = 'ticker.' + this.safeString (request, 'symbol');
+            const tickerSymbol = this.safeString (request, 'symbol');
+            let topic = 'ticker.' + tickerSymbol;
             if (channel !== undefined) {
                 if ((channel !== 'stockPrice') && (channel !== 'stockIndicativeQuote')) {
                     throw new BadRequest (this.id + ' ' + methodName + '() channel must be stockPrice or stockIndicativeQuote');
@@ -169,7 +172,8 @@ export default class backpack extends backpackRest {
                     topic = 'bookTicker.' + this.wsVenueMarketId (methodName, market, query);
                 }
             } else if (source === 'External') {
-                topic = 'externalTicker.' + market['baseId'] + '_USDC';
+                const externalBaseId = this.safeString (market, 'baseId');
+                topic = 'externalTicker.' + externalBaseId + '_USDC';
             } else if ((this.safeString (market, 'executionModel') === 'rfq') && (market['stock'] !== true)) {
                 throw new NotSupported (this.id + ' ' + methodName + '() RFQ venue tickers are only mapped for stock data');
             }
@@ -223,7 +227,9 @@ export default class backpack extends backpackRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws']['public'];
+        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public', '');
         let method: Str = 'SUBSCRIBE';
         if (unwatch) {
             method = 'UNSUBSCRIBE';
@@ -242,7 +248,9 @@ export default class backpack extends backpackRest {
 
     async watchPrivate (topics: string[], messageHashes: string[], params: Dict = {}, unwatch: boolean = false) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws']['private'];
+        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'private', '');
         const instruction = 'subscribe';
         const ts = this.nonce ().toString ();
         let method: Str = 'SUBSCRIBE';

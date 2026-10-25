@@ -555,7 +555,7 @@ export default class krakenfutures extends Exchange {
                 'info': market,
             });
         }
-        const settlementCurrencies = this.options['settlementCurrencies']['flex'];
+        const settlementCurrencies = this.safeList (this.safeDict (this.options, 'settlementCurrencies', {}), 'flex', []);
         const currencies: Dict[] = [];
         for (let i = 0; i < settlementCurrencies.length; i++) {
             const code = settlementCurrencies[i];

@@ -2044,7 +2044,7 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const sinceValue: Int = this.safeValue (params, 'start_date', since);
+        const sinceValue: Int = this.safeInteger (params, 'start_date', since);
         const paramsOmitted: Dict = this.omit (params, 'start_date');
         const request: Dict = {
             'symbol': market['id'],
@@ -2840,7 +2840,7 @@ export default class lbank extends Exchange {
                     network = codeInner;
                 }
                 const fee = this.safeString (item, 'fee');
-                if (this.safeValue (withdrawFees, codeInner) === undefined) {
+                if (this.safeDict (withdrawFees, codeInner) === undefined) {
                     if (codeInner !== undefined) {
                         withdrawFees[codeInner] = {};
                     }
@@ -3078,7 +3078,7 @@ export default class lbank extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        let query: Dict = this.omit (params, this.extractParams (path));
+        const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
         const apiUrl = this.safeString (this.urls['api'], 'rest');
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
@@ -3095,16 +3095,16 @@ export default class lbank extends Exchange {
             url = contractUrl + '/' + this.implodeParams (path, params);
         }
         if (api[1] === 'public') {
-            if (Object.keys (query).length > 0) {
-                url += '?' + this.urlencode (this.keysort (query));
+            if (Object.keys (paramsOmitted).length > 0) {
+                url += '?' + this.urlencode (this.keysort (paramsOmitted));
             }
         } else {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
             const echostr = this.uuid22 () + this.uuid16 ();
-            query = this.extend ({
+            const signedQuery = this.extend ({
                 'api_key': this.apiKey,
-            }, query);
+            }, paramsOmitted);
             let signatureMethod: Str = undefined;
             if (this.secret.length > 32) {
                 signatureMethod = 'RSA';
@@ -3116,7 +3116,7 @@ export default class lbank extends Exchange {
                 'echostr': echostr,
                 'signature_method': finalSig,
                 'timestamp': timestamp,
-            }, query)));
+            }, signedQuery)));
             const encoded = this.encode (auth);
             const hash = this.hash (encoded, md5);
             const uppercaseHash = hash.toUpperCase ();
@@ -3139,8 +3139,8 @@ export default class lbank extends Exchange {
             } else if (signatureMethod === 'HmacSHA256') {
                 sign = this.hmac (this.encode (uppercaseHash), this.encode (this.secret), sha256);
             }
-            query['sign'] = sign;
-            const bodySigned = this.urlencode (this.keysort (query));
+            signedQuery['sign'] = sign;
+            const bodySigned = this.urlencode (this.keysort (signedQuery));
             const headersSigned: NullableDict = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'timestamp': timestamp,

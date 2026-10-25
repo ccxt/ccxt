@@ -874,7 +874,7 @@ export default class bydfi extends Exchange {
         const [ untilParam, paramsUntil ] = this.handleOptionIntegerAndParams (paramsPaginate, 'fetchOHLCV', 'until');
         const now = this.milliseconds ();
         const duration = this.parseTimeframe (timeframe) * 1000;
-        const timeDelta = duration * numberOfCandles;
+        const timeDelta = this.parseToInt (duration * numberOfCandles);
         let startTime: Int = since;
         let until: Int = untilParam;
         if (since === undefined && untilParam === undefined) {
@@ -2984,7 +2984,7 @@ export default class bydfi extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0, '');
         const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');

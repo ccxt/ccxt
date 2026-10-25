@@ -3164,7 +3164,7 @@ export default class coinbaseinternational extends Exchange {
      * @param {boolean} [useEddsa] true for Ed25519 keys, false for ECDSA PEM keys
      * @returns {string} signed JWT
      */
-    createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined, useEddsa = false) {
+    createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined, useEddsa: boolean = false) {
         let uri: Str = undefined;
         if (url !== undefined) {
             uri = method + ' ' + url.replace ('https://', '');

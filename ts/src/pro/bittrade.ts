@@ -67,10 +67,13 @@ export default class bittrade extends bittradeRest {
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
         // only supports a limit of 150 at this time
-        const messageHash = 'market.' + market['id'] + '.detail';
+        const marketId = this.safeString (market, 'id', '');
+        const messageHash = 'market.' + marketId + '.detail';
         const api = this.safeString (this.options, 'api', 'api');
+        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
         const hostname: Dict = { 'hostname': this.hostname };
-        const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
+        const url = this.implodeParams (wsUrls[api]['public'], hostname);
         const requestId = this.requestId ();
         const request: Dict = {
             'sub': messageHash,
@@ -138,10 +141,13 @@ export default class bittrade extends bittradeRest {
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
         // only supports a limit of 150 at this time
-        const messageHash = 'market.' + market['id'] + '.trade.detail';
+        const marketId = this.safeString (market, 'id', '');
+        const messageHash = 'market.' + marketId + '.trade.detail';
         const api = this.safeString (this.options, 'api', 'api');
+        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
         const hostname: Dict = { 'hostname': this.hostname };
-        const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
+        const url = this.implodeParams (wsUrls[api]['public'], hostname);
         const requestId = this.requestId ();
         const request: Dict = {
             'sub': messageHash,
@@ -224,10 +230,13 @@ export default class bittrade extends bittradeRest {
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const messageHash = 'market.' + market['id'] + '.kline.' + interval;
+        const marketId = this.safeString (market, 'id', '');
+        const messageHash = 'market.' + marketId + '.kline.' + interval;
         const api = this.safeString (this.options, 'api', 'api');
+        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
         const hostname: Dict = { 'hostname': this.hostname };
-        const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
+        const url = this.implodeParams (wsUrls[api]['public'], hostname);
         const requestId = this.requestId ();
         const request: Dict = {
             'sub': messageHash,
@@ -308,10 +317,13 @@ export default class bittrade extends bittradeRest {
         const symbolValue: string = market['symbol'];
         // only supports a limit of 150 at this time
         const limitValue: Int = 150;
-        const messageHash = 'market.' + market['id'] + '.mbp.150';
+        const marketId = this.safeString (market, 'id', '');
+        const messageHash = 'market.' + marketId + '.mbp.150';
         const api = this.safeString (this.options, 'api', 'api');
+        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
         const hostname: Dict = { 'hostname': this.hostname };
-        const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
+        const url = this.implodeParams (wsUrls[api]['public'], hostname);
         const requestId = this.requestId ();
         const request: Dict = {
             'sub': messageHash,
@@ -381,8 +393,10 @@ export default class bittrade extends bittradeRest {
             const limit = this.safeInteger (subscription, 'limit');
             const params = this.safeDict (subscription, 'params');
             const api = this.safeString (this.options, 'api', 'api');
+            const apiUrls = this.safeDict (this.urls, 'api', {});
+            const wsUrls = this.safeDict (apiUrls, 'ws', {});
             const hostname: Dict = { 'hostname': this.hostname };
-            const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
+            const url = this.implodeParams (wsUrls[api]['public'], hostname);
             const requestId = this.requestId ();
             const request: Dict = {
                 'req': messageHash,

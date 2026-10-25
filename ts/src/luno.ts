@@ -799,8 +799,7 @@ export default class luno extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (order, 'creation_timestamp');
-        let status = this.parseOrderStatus (this.safeString (order, 'state'));
-        status = (status === 'open') ? status : status;
+        const status = this.parseOrderStatus (this.safeString (order, 'state'));
         let side: Str = undefined;
         const orderType = this.safeString (order, 'type');
         if ((orderType === 'ASK') || (orderType === 'SELL')) {
@@ -1364,9 +1363,10 @@ export default class luno extends Exchange {
         if (response === undefined) {
             throw new NullResponse (this.id + ' createOrder() returned empty response');
         }
+        const orderId = this.safeString (response, 'order_id');
         return this.safeOrder ({
             'info': response,
-            'id': response['order_id'],
+            'id': orderId,
         }, market);
     }
 
@@ -1449,7 +1449,10 @@ export default class luno extends Exchange {
         const minRowBase = this.safeInteger (params, 'min_row', -1000); // Maximum number of records supported
         const limitApplies = (limit !== undefined) && (maxRowBase - minRowBase > limit);
         const min_row = (limitApplies && (limit !== undefined) && maxRowBase <= 0) ? maxRowBase - limit : minRowBase;
-        const max_row = (limitApplies && maxRowBase > 0 && minRowBase > 0) ? minRowBase + limit : maxRowBase;
+        let max_row: Int = maxRowBase;
+        if (limitApplies && maxRowBase > 0 && minRowBase > 0) {
+            max_row = minRowBase + limit;
+        }
         const limitAdjusts = limitApplies && (maxRowBase <= 0 || minRowBase > 0); // max_row - min_row becomes limit
         if ((limitAdjusts && limit > 1000) || (!limitAdjusts && maxRowBase - minRowBase > 1000)) {
             throw new ExchangeError (this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000");
@@ -1511,6 +1514,8 @@ export default class luno extends Exchange {
         let before = after;
         let amount: Str = '0.0';
         const result = this.parseLedgerComment (comment);
+        const resultType = this.safeString (result, 'type');
+        const resultReferenceId = this.safeString (result, 'referenceId');
         let direction: Str = undefined;
         let status: Str = undefined;
         if (!Precise.stringEquals (balance_delta, '0.0')) {
@@ -1534,9 +1539,9 @@ export default class luno extends Exchange {
             'id': id,
             'direction': direction,
             'account': account_id,
-            'referenceId': result['referenceId'],
+            'referenceId': resultReferenceId,
             'referenceAccount': undefined,
-            'type': result['type'],
+            'type': resultType,
             'currency': code,
             'amount': this.parseToNumeric (amount),
             'timestamp': timestamp,

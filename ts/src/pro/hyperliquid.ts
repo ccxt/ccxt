@@ -274,7 +274,8 @@ export default class hyperliquid extends hyperliquidRest {
         const subMessageHash = 'orderbook:' + symbolValue;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
-        const id = this.incrementingNonce ().toString ();
+        const nonce = this.incrementingNonce ();
+        const id = this.numberToString (nonce);
         const request: Dict = {
             'id': id,
             'method': 'unsubscribe',

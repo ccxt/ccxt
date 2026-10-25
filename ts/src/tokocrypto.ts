@@ -806,6 +806,7 @@ export default class tokocrypto extends Exchange {
                 }
             }
             const marginTradingEnable = this.safeString (market, 'marginTradingEnable');
+            let costMin: Num = undefined;
             const entry: Dict = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -851,7 +852,7 @@ export default class tokocrypto extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': costMin,
                         'max': undefined,
                     },
                 },
@@ -888,7 +889,7 @@ export default class tokocrypto extends Exchange {
             }
             if ('MIN_NOTIONAL' in filtersByType) {
                 const filter: Dict = this.safeDict (filtersByType, 'MIN_NOTIONAL', {});
-                entry['limits']['cost']['min'] = this.safeNumber2 (filter, 'minNotional', 'notional');
+                costMin = this.safeNumber2 (filter, 'minNotional', 'notional');
             }
             result.push (entry);
         }
@@ -1846,7 +1847,10 @@ export default class tokocrypto extends Exchange {
         const isPostOnlyTimeInForce = (requestedTimeInForce === 'GTX');
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (isMarketOrder, isPostOnlyTimeInForce, params);
         // only supported for spot/margin api
-        const typeResolved: OrderType = (postOnly) ? 'LIMIT_MAKER' : type;
+        let typeResolved: OrderType = type;
+        if (postOnly) {
+            typeResolved = 'LIMIT_MAKER';
+        }
         // post only is expressed by the order type here, not by a time force
         let timeInForceResolved: Str = requestedTimeInForce;
         if (postOnly) {
@@ -1922,7 +1926,8 @@ export default class tokocrypto extends Exchange {
         //
         if (uppercaseType === 'MARKET') {
             if (side === 'buy') {
-                const precision = market['precision']['price'];
+                const marketPrecision: Dict = this.safeDict (market, 'precision', {});
+                const precision = marketPrecision['price'];
                 let quoteAmount: Str | Num = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
                 [ createMarketBuyOrderRequiresPrice, paramsRequest ] = this.handleOptionBoolAndParams (paramsRequest, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -2819,14 +2824,15 @@ export default class tokocrypto extends Exchange {
     }
 
     override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
-        if (('noCoin' in config) && !('coin' in params)) {
+        const paramsDict: Dict = this.extend ({}, params);
+        if (('noCoin' in paramsDict) && !('coin' in paramsDict)) {
             return config['noCoin'];
-        } else if (('noSymbol' in config) && !('symbol' in params)) {
+        } else if (('noSymbol' in paramsDict) && !('symbol' in paramsDict)) {
             return config['noSymbol'];
-        } else if (('noPoolId' in config) && !('poolId' in params)) {
+        } else if (('noPoolId' in paramsDict) && !('poolId' in paramsDict)) {
             return config['noPoolId'];
-        } else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = this.safeInteger (params, 'limit');
+        } else if (('byLimit' in config) && ('limit' in paramsDict)) {
+            const limit = this.safeInteger (paramsDict, 'limit');
             const byLimit: Num[][] = this.safeList (config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];

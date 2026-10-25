@@ -216,7 +216,8 @@ export default class weex extends weexRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const channelName = market['id'] + '@' + topic;
+            const marketId = this.safeString (market, 'id');
+            const channelName: string = marketId + '@' + topic;
             const messageHash = topic + '::' + symbol;
             messageHashes.push (messageHash);
             channels.push (channelName);
@@ -271,7 +272,8 @@ export default class weex extends weexRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const channelName = market['id'] + '@' + topic;
+            const marketId = this.safeString (market, 'id');
+            const channelName: string = marketId + '@' + topic;
             const messageHash = topic + '::' + symbol;
             const unSubMessageHash = 'unsubscribe::' + messageHash;
             subHashes.push (messageHash);
@@ -422,7 +424,8 @@ export default class weex extends weexRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const channelName = market['id'] + '@' + topic;
+            const marketId = this.safeString (market, 'id');
+            const channelName: string = marketId + '@' + topic;
             const messageHash = topic + '::' + symbol;
             messageHashes.push (messageHash);
             channels.push (channelName);
@@ -475,7 +478,8 @@ export default class weex extends weexRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const channelName = market['id'] + '@' + topic;
+            const marketId = this.safeString (market, 'id');
+            const channelName: string = marketId + '@' + topic;
             const messageHash = topic + '::' + symbol;
             const unSubMessageHash = 'unsubscribe::' + messageHash;
             subHashes.push (messageHash);
@@ -639,7 +643,8 @@ export default class weex extends weexRest {
             symbolString = this.safeString (market, 'symbol');
             const unifiedTimeframe = this.safeString (data, 1, '1');
             const interval = this.safeString (this.timeframes, unifiedTimeframe, unifiedTimeframe);
-            const channel = market['id'] + '@kline_' + interval + '_' + priceType;
+            const marketId = this.safeString (market, 'id');
+            const channel: string = marketId + '@kline_' + interval + '_' + priceType;
             const messageHash = 'ohlcv::' + symbolString + '::' + unifiedTimeframe;
             channels.push (channel);
             messageHashes.push (messageHash);
@@ -707,7 +712,8 @@ export default class weex extends weexRest {
             symbolString = this.safeString (market, 'symbol');
             const unifiedTimeframe = this.safeString (data, 1, '1');
             const interval = this.safeString (this.timeframes, unifiedTimeframe, unifiedTimeframe);
-            const channel = market['id'] + '@kline_' + interval + '_' + priceType;
+            const marketId = this.safeString (market, 'id');
+            const channel: string = marketId + '@kline_' + interval + '_' + priceType;
             const messageHash = 'ohlcv::' + symbolString + '::' + unifiedTimeframe;
             const unSubMessageHash = 'unsubscribe::' + messageHash;
             channels.push (channel);
@@ -854,7 +860,8 @@ export default class weex extends weexRest {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const messageHash = 'orderbook::' + symbol;
-            const channel = market['id'] + '@depth' + depthOption;
+            const marketId = this.safeString (market, 'id');
+            const channel: string = marketId + '@depth' + depthOption;
             messageHashes.push (messageHash);
             channels.push (channel);
         }
@@ -910,7 +917,8 @@ export default class weex extends weexRest {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const messageHash = 'orderbook::' + symbol;
-            const channel = market['id'] + '@depth' + depthOption;
+            const marketId = this.safeString (market, 'id');
+            const channel: string = marketId + '@depth' + depthOption;
             const unSubMessageHash = 'unsubscribe::' + messageHash;
             subHashes.push (messageHash);
             channels.push (channel);
@@ -1003,7 +1011,8 @@ export default class weex extends weexRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const channelName = market['id'] + '@' + 'bookTicker';
+            const marketId = this.safeString (market, 'id');
+            const channelName: string = marketId + '@' + 'bookTicker';
             const messageHash = 'bidask::' + symbol;
             messageHashes.push (messageHash);
             channels.push (channelName);
@@ -1044,7 +1053,8 @@ export default class weex extends weexRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const channelName = market['id'] + '@' + 'bookTicker';
+            const marketId = this.safeString (market, 'id');
+            const channelName: string = marketId + '@' + 'bookTicker';
             const messageHash = 'bidask::' + symbol;
             const unSubMessageHash = 'unsubscribe::' + messageHash;
             subHashes.push (messageHash);

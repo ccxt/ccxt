@@ -673,8 +673,9 @@ export default class bitstamp extends Exchange {
         //
         const result: List = [];
         for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
+            const market = this.safeDict (response, i);
+            const baseId = this.safeString (market, 'base_currency');
+            const quoteId = this.safeString (market, 'counter_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             if ((base === undefined) || (quote === undefined)) {
@@ -757,6 +758,9 @@ export default class bitstamp extends Exchange {
     constructCurrencyObject (id: Str, code: Str, name: Str, precision: Int, minCost: Num, originalPayload: Dict): Dict {
         let currencyType = 'crypto';
         const description = this.describe ();
+        const fees = this.safeDict (description, 'fees', {});
+        const fundingFees = this.safeDict (fees, 'funding', {});
+        const withdrawFee = this.safeNumber (fundingFees, 'withdraw');
         if (this.isFiat (code)) {
             currencyType = 'fiat';
         }
@@ -770,7 +774,7 @@ export default class bitstamp extends Exchange {
             'active': true,
             'deposit': undefined,
             'withdraw': undefined,
-            'fee': this.safeNumber (description['fees']['funding']['withdraw'], code),
+            'fee': withdrawFee,
             'precision': tickSize,
             'limits': {
                 'amount': {
@@ -866,14 +870,17 @@ export default class bitstamp extends Exchange {
         const arr = this.toArray (rawCurrencies);
         for (let i = 0; i < arr.length; i++) {
             const market = arr[i];
-            const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
+            const baseId = this.safeString (market, 'base_currency');
+            const quoteId = this.safeString (market, 'counter_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const description = this.safeString (market, 'description');
             if (description === undefined) {
                 throw new ExchangeError (this.id + ' parseCurrencies() missing description');
             }
-            const [ baseDescription, quoteDescription ] = description.split (' / ');
+            const descriptionParts = description.split (' / ');
+            const baseDescription = descriptionParts[0];
+            const quoteDescription = descriptionParts[1];
             const minimumOrder = this.safeString (market, 'minimum_order_value');
             if (minimumOrder === undefined) {
                 throw new ExchangeError (this.id + ' parseCurrencies() missing minimumOrder');
@@ -1109,11 +1116,13 @@ export default class bitstamp extends Exchange {
             throw new ExchangeError (this.id + ' getMarketFromTrade() too many keys: ' + this.json (currencyIds) + ' in the trade: ' + this.json (tradeOmitted));
         }
         if (numCurrencyIds === 2) {
-            let marketId = currencyIds[0] + currencyIds[1];
+            const firstCurrencyId: string = currencyIds[0];
+            const secondCurrencyId: string = currencyIds[1];
+            let marketId = firstCurrencyId + secondCurrencyId;
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 return this.safeMarket (marketId);
             }
-            marketId = currencyIds[1] + currencyIds[0];
+            marketId = secondCurrencyId + firstCurrencyId;
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 return this.safeMarket (marketId);
             }
@@ -1423,12 +1432,9 @@ export default class bitstamp extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        let responseList = response;
-        if (response === undefined) {
-            responseList = [];
-        }
-        for (let i = 0; i < responseList.length; i++) {
-            const currencyBalance = this.safeDict (responseList, i);
+        const responseEntries = this.toArray (response);
+        for (let i = 0; i < responseEntries.length; i++) {
+            const currencyBalance = this.safeDict (responseEntries, i);
             const currencyId = this.safeString (currencyBalance, 'currency');
             const currencyCode = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -1522,10 +1528,11 @@ export default class bitstamp extends Exchange {
         };
     }
 
-    parseTradingFees (fees: any[]): Dict {
+    parseTradingFees (fees: Dict[]): Dict {
         const result: Dict = { 'info': fees };
-        for (let i = 0; i < fees.length; i++) {
-            const fee = this.parseTradingFee (fees[i]);
+        const feesList = this.toArray (fees);
+        for (let i = 0; i < feesList.length; i++) {
+            const fee = this.parseTradingFee (feesList[i]);
             const symbol = fee['symbol'];
             if (symbol !== undefined) {
                 result[symbol] = fee;
@@ -2417,7 +2424,7 @@ export default class bitstamp extends Exchange {
             if (market === undefined) {
                 market = this.getMarketFromTrade (item);
             }
-            const direction = (parsedTrade['side'] === 'buy') ? 'in' : 'out';
+            const direction = (this.safeString (parsedTrade, 'side') === 'buy') ? 'in' : 'out';
             return this.safeLedgerEntry ({
                 'info': item,
                 'id': parsedTrade['id'],
@@ -2716,7 +2723,7 @@ export default class bitstamp extends Exchange {
         const currency = this.currency (code);
         const request: Dict = {
             'amount': this.parseToNumeric (this.currencyToPrecision (code, amount)),
-            'currency': currency['id'].toUpperCase (),
+            'currency': this.safeStringUpper (currency, 'id'),
         };
         let response: NullableDict = undefined;
         if (fromAccount === 'main') {

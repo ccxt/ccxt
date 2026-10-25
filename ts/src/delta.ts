@@ -1693,7 +1693,9 @@ export default class delta extends Exchange {
         if (price === 'mark') {
             request['symbol'] = 'MARK:' + market['id'];
         } else if (price === 'index') {
-            request['symbol'] = market['info']['spot_index']['symbol'];
+            const marketInfo = this.safeDict (market, 'info');
+            const spotIndex = this.safeDict (marketInfo, 'spot_index');
+            request['symbol'] = this.safeString (spotIndex, 'symbol');
         } else {
             request['symbol'] = market['id'];
         }
@@ -1989,7 +1991,7 @@ export default class delta extends Exchange {
         if (marketValue === undefined) {
             symbol = marketId;
         } else {
-            symbol = marketValue['symbol'];
+            symbol = this.safeString (marketValue, 'symbol');
         }
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const side = this.safeString (order, 'side');
@@ -2006,7 +2008,8 @@ export default class delta extends Exchange {
         if (feeCostString !== undefined) {
             let feeCurrencyCode: Str = undefined;
             if (marketValue !== undefined) {
-                const settlingAsset = this.safeDict (marketValue['info'], 'settling_asset', {});
+                const marketInfo = this.safeDict (marketValue, 'info');
+                const settlingAsset = this.safeDict (marketInfo, 'settling_asset', {});
                 const feeCurrencyId = this.safeString (settlingAsset, 'symbol');
                 feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             }
@@ -2598,7 +2601,7 @@ export default class delta extends Exchange {
         const currencyId = this.safeString (item, 'asset_id');
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId');
         const currencyValue: Currency = this.safeValue (currenciesByNumericId, currencyId, currency);
-        const code = (currencyValue === undefined) ? undefined : currencyValue['code'];
+        const code = this.safeString (currencyValue, 'code');
         const amount = this.safeString (item, 'amount');
         const timestamp = this.parse8601 (this.safeString (item, 'created_at'));
         const after = this.safeString (item, 'balance');
@@ -3639,7 +3642,7 @@ export default class delta extends Exchange {
     override parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
         let symbol: Str = undefined;
         if (market !== undefined) {
-            symbol = market['symbol'];
+            symbol = this.safeString (market, 'symbol');
         }
         return {
             'info': marginMode,
@@ -4184,7 +4187,7 @@ export default class delta extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0);
         const requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
         const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {

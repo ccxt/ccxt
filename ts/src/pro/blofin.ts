@@ -332,12 +332,15 @@ export default class blofin extends blofinRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized = this.marketSymbols (symbols, undefined, false);
         const symbolsList = symbolsNormalized as string[];
         const firstMarket = this.market (symbolsList[0]);
         const channel = 'tickers';
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBidsAsks', firstMarket, params);
-        const url = (this.urls['api'])['ws'][marketType]['public'];
+        const apiUrls: Dict = this.safeDict (this.urls, 'api', {});
+        const wsUrls: Dict = this.safeDict (apiUrls, 'ws', {});
+        const typeUrls: Dict = this.safeDict (wsUrls, marketType, {});
+        const url = this.safeString (typeUrls, 'public');
         const messageHashes: List = [];
         const args: List = [];
         for (let i = 0; i < symbolsList.length; i++) {
@@ -365,7 +368,7 @@ export default class blofin extends blofinRest {
         const data = this.safeList (message, 'data') as List;
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsBidAsk (data[i]);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString (ticker, 'symbol');
             const messageHash = 'bidask:' + symbol;
             this.bidsasks[(symbol as string)] = ticker;
             client.resolve (ticker, messageHash);
@@ -495,7 +498,10 @@ export default class blofin extends blofinRest {
             'channel': 'account',
         };
         const request = this.getSubscriptionRequest ([ sub ]);
-        const url = (this.urls['api'])['ws'][marketType]['private'];
+        const apiUrls: Dict = this.safeDict (this.urls, 'api', {});
+        const wsUrls: Dict = this.safeDict (apiUrls, 'ws', {});
+        const typeUrls: Dict = this.safeDict (wsUrls, marketType, {});
+        const url = this.safeString (typeUrls, 'private');
         return await this.watch (url, messageHash, this.deepExtend (request, paramsMarketType), messageHash);
     }
 
@@ -668,10 +674,11 @@ export default class blofin extends blofinRest {
         const newPositions: List = [];
         for (let i = 0; i < data.length; i++) {
             const position = this.parseWsPosition (data[i]);
+            const symbol = this.safeString (position, 'symbol');
             newPositions.push (position);
             cache.append (position);
             if (channelName !== undefined) {
-                const messageHash = channelName + ':' + position['symbol'];
+                const messageHash = channelName + ':' + symbol;
                 client.resolve (position, messageHash);
             }
         }
@@ -702,7 +709,10 @@ export default class blofin extends blofinRest {
             'instId': market['id'],
         };
         const request = this.getSubscriptionRequest ([ requestParams ]);
-        const url = (this.urls['api'])['ws'][marketType]['public'];
+        const apiUrls: Dict = this.safeDict (this.urls, 'api', {});
+        const wsUrls: Dict = this.safeDict (apiUrls, 'ws', {});
+        const typeUrls: Dict = this.safeDict (wsUrls, marketType, {});
+        const url = this.safeString (typeUrls, 'public');
         return await this.watch (url, messageHash, this.deepExtend (request, paramsMarketType), messageHash);
     }
 
@@ -739,8 +749,8 @@ export default class blofin extends blofinRest {
         const [ callerMethodNameOption, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', callerMethodName);
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         const isOHLCV = (channelName === 'candle');
-        let symbols = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
-        symbols = this.marketSymbols (symbols, undefined, true, true);
+        const symbolsRaw = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
+        const symbols = this.marketSymbols (symbolsRaw, undefined, true, true);
         let firstMarket: Market = undefined;
         const firstSymbol = this.safeString (symbols, 0);
         if (firstSymbol !== undefined) {
@@ -752,11 +762,7 @@ export default class blofin extends blofinRest {
         }
         let rawSubscriptions: List = [];
         const messageHashes: List = [];
-        if (symbols === undefined) {
-            symbols = [];
-        }
-        const symbolsLength = symbols.length;
-        if (symbolsLength > 0) {
+        if ((symbols !== undefined) && (symbols.length > 0)) {
             for (let i = 0; i < symbols.length; i++) {
                 const current = symbols[i];
                 let market: Market = undefined;
@@ -766,7 +772,7 @@ export default class blofin extends blofinRest {
                     const tfArray = symbolsArray[i];
                     const tf = tfArray[1];
                     const interval = this.safeString (this.timeframes, tf, tf);
-                    channel += interval;
+                    channel = channel + interval;
                 } else {
                     market = this.market (current);
                 }
@@ -790,7 +796,10 @@ export default class blofin extends blofinRest {
         if (isPublic) {
             privateOrPublic = 'public';
         }
-        const url = (this.urls['api'])['ws'][marketType][privateOrPublic];
+        const apiUrls: Dict = this.safeDict (this.urls, 'api', {});
+        const wsUrls: Dict = this.safeDict (apiUrls, 'ws', {});
+        const typeUrls: Dict = this.safeDict (wsUrls, marketType, {});
+        const url = this.safeString (typeUrls, privateOrPublic);
         return await this.watchMultiple (url, messageHashes, this.deepExtend (request, paramsMarketType), messageHashes);
     }
 
@@ -876,7 +885,10 @@ export default class blofin extends blofinRest {
             ],
         };
         const marketType = 'swap'; // for now
-        const url = (this.urls['api'])['ws'][marketType]['private'];
+        const apiUrls: Dict = this.safeDict (this.urls, 'api', {});
+        const wsUrls: Dict = this.safeDict (apiUrls, 'ws', {});
+        const typeUrls: Dict = this.safeDict (wsUrls, marketType, {});
+        const url = this.safeString (typeUrls, 'private');
         await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 }

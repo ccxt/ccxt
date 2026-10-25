@@ -104,7 +104,7 @@ export default class alpaca extends alpacaRest {
         //
         const ticker = this.parseTicker (message);
         const symbol = ticker['symbol'];
-        const messageHash = 'ticker:' + symbol;
+        const messageHash = 'ticker:' + ticker['symbol'];
         if (symbol !== undefined) {
             this.tickers[symbol] = ticker;
         }
@@ -681,7 +681,7 @@ export default class alpaca extends alpacaRest {
         return message;
     }
 
-    handleCryptoMessage (client: Client, message: any[]) {
+    handleCryptoMessage (client: Client, message: Dict[]) {
         for (let i = 0; i < message.length; i++) {
             const data = message[i];
             const T = this.safeString (data, 'T');

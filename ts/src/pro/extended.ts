@@ -355,7 +355,7 @@ export default class extended extends extendedRest {
             return;
         }
         for (let i = 0; i < rawTrades.length; i++) {
-            const trade = this.parseTrade (rawTrades[i]);
+            const trade = this.parseTrade (this.safeDict (rawTrades, i, {}));
             const symbol = this.safeString (trade, 'symbol');
             symbols[symbol as string] = true;
             stored.append (trade);
@@ -508,7 +508,7 @@ export default class extended extends extendedRest {
             return;
         }
         for (let i = 0; i < (rawOrders as any[]).length; i++) {
-            const order = this.parseOrder ((rawOrders as any[])[i]);
+            const order = this.parseOrder (this.safeDict (rawOrders, i, {}));
             const symbol = this.safeString (order, 'symbol');
             symbols[symbol as string] = true;
             orders.append (order);

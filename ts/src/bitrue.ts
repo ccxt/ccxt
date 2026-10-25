@@ -3271,7 +3271,7 @@ export default class bitrue extends Exchange {
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = apiUrl;
+        let url: string = apiUrl;
         if (!((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf ('listenKey') >= 0))) {
             url += '/' + version;
         }
@@ -3421,7 +3421,7 @@ export default class bitrue extends Exchange {
                 const entry = byLimit[i];
                 const threshold = this.safeInteger (entry, 0);
                 if (limit !== undefined && threshold !== undefined && limit <= threshold) {
-                    return entry[1];
+                    return this.safeNumber (entry, 1);
                 }
             }
         }

@@ -2905,7 +2905,7 @@ export default class mexc extends Exchange {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
         const until = this.safeInteger (params, 'until');
         const paramsOmitted: Dict = this.omit (params, 'until');
@@ -3095,7 +3095,7 @@ export default class mexc extends Exchange {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrdersByIds', market, params);
         if (marketType === 'spot') {
@@ -3323,7 +3323,7 @@ export default class mexc extends Exchange {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrder', paramsMarketType);
@@ -4500,7 +4500,7 @@ export default class mexc extends Exchange {
                 throw new ArgumentsRequired (this.id + ' setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions');
             } else {
                 request['openType'] = openType;
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString (market, 'id');
                 request['positionType'] = positionType;
             }
         } else {
@@ -4533,7 +4533,7 @@ export default class mexc extends Exchange {
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
         if (limit !== undefined) {
             request['page_size'] = limit;
@@ -5096,11 +5096,12 @@ export default class mexc extends Exchange {
         }
         if (code !== undefined) {
             currency = this.currency (code);
-            request['coin'] = currency['id'];
+            const currencyId: string = currency['id'];
+            request['coin'] = currencyId;
             // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
             // due to that I'm applying the network parameter directly so the user can control it on its side
             if (rawNetwork !== undefined) {
-                request['coin'] = currency['id'] + '-' + rawNetwork;
+                request['coin'] = currencyId + '-' + rawNetwork;
             }
         }
         if (since !== undefined) {

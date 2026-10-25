@@ -4562,14 +4562,14 @@ export default class hashkey extends Exchange {
                 bodySigned = this.json (this.safeList (params, 'orders'));
                 signature = this.hmac (this.encode (this.customUrlencode (additionalParams) as string), this.encode (this.secret), sha256);
                 query = this.customUrlencode (this.extend (additionalParams, { 'signature': signature }));
-                url += '?' + query;
+                url = apiUrl + '/' + path + '?' + query;
             } else {
                 const totalParams = this.extend (additionalParams, params);
                 signature = this.hmac (this.encode (this.customUrlencode (totalParams) as string), this.encode (this.secret), sha256);
                 totalParams['signature'] = signature;
                 query = this.customUrlencode (totalParams);
                 if (method === 'GET') {
-                    url += '?' + query;
+                    url = apiUrl + '/' + path + '?' + query;
                 } else {
                     bodySigned = query;
                 }
@@ -4581,7 +4581,7 @@ export default class hashkey extends Exchange {
         } else {
             query = this.urlencode (params);
             if (query.length !== 0) {
-                url += '?' + query;
+                url = apiUrl + '/' + path + '?' + query;
             }
         }
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };

@@ -328,6 +328,7 @@ export default class bitrue extends bitrueRest {
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
         const messageHash = 'orderbook:' + symbolValue;
+        const wsUrls = this.safeDict (this.urls['api'], 'ws', {});
         let url: Str = undefined;
         let channel: Str = undefined;
         let cbId: Str = undefined;
@@ -337,12 +338,12 @@ export default class bitrue extends bitrueRest {
             const wsId = 'e_' + baseIdLower + quoteIdLower;
             channel = 'market_' + wsId + '_depth_step0';
             cbId = wsId;
-            url = this.urls['api']['ws']['futurePublic'];
+            url = wsUrls['futurePublic'];
         } else {
             const marketIdLowercase = this.safeStringLower (market, 'id');
             channel = 'market_' + marketIdLowercase + '_simple_depth_step0';
             cbId = marketIdLowercase;
-            url = this.urls['api']['ws']['public'];
+            url = wsUrls['public'];
         }
         const message: Dict = {
             'event': 'sub',
@@ -400,7 +401,10 @@ export default class bitrue extends bitrueRest {
             const marketId = this.safeStringUpper (parts, 1);
             market = this.safeMarket (marketId);
         }
-        const symbol: string = (market as Dict)['symbol'];
+        const symbol = this.safeString (market, 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
         const timestamp = this.safeInteger (message, 'ts');
         const tick = this.safeDict (message, 'tick', {});
         let parseable = tick;
@@ -497,7 +501,8 @@ export default class bitrue extends bitrueRest {
         const wsId = 'e_' + baseIdLower + quoteIdLower;
         const channel = 'market_' + wsId + '_trade_ticker';
         const messageHash = 'trades:' + symbolValue;
-        const url = this.urls['api']['ws']['futurePublic'];
+        const wsUrls = this.safeDict (this.urls['api'], 'ws', {});
+        const url = wsUrls['futurePublic'];
         const message: Dict = {
             'event': 'sub',
             'params': {
@@ -542,7 +547,10 @@ export default class bitrue extends bitrueRest {
         if (market === undefined) {
             return;
         }
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
         const tick = this.safeDict (message, 'tick', {});
         const data: Dict[] = this.safeList (tick, 'data', []);
         let appended = false;
@@ -618,7 +626,8 @@ export default class bitrue extends bitrueRest {
         const wsId = 'e_' + baseIdLower + quoteIdLower;
         const channel = 'market_' + wsId + '_kline_' + interval;
         const messageHash = 'ohlcv:' + symbolValue + ':' + timeframe;
-        const url = this.urls['api']['ws']['futurePublic'];
+        const wsUrls = this.safeDict (this.urls['api'], 'ws', {});
+        const url = wsUrls['futurePublic'];
         const message: Dict = {
             'event': 'sub',
             'params': {
@@ -661,7 +670,10 @@ export default class bitrue extends bitrueRest {
         if (market === undefined) {
             return;
         }
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
         const wsInterval = this.safeString (parts, 4);
         const futuresTimeframes = this.safeDict (this.options, 'futuresTimeframes', {});
         const timeframe = this.findTimeframe (wsInterval, futuresTimeframes);
@@ -719,7 +731,8 @@ export default class bitrue extends bitrueRest {
         const wsId = 'e_' + baseIdLower + quoteIdLower;
         const channel = 'market_' + wsId + '_ticker';
         const messageHash = 'ticker:' + symbolValue;
-        const url = this.urls['api']['ws']['futurePublic'];
+        const wsUrls = this.safeDict (this.urls['api'], 'ws', {});
+        const url = wsUrls['futurePublic'];
         const message: Dict = {
             'event': 'sub',
             'params': {
@@ -755,7 +768,10 @@ export default class bitrue extends bitrueRest {
         if (market === undefined) {
             return;
         }
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
         const tick = this.safeDict (message, 'tick');
         if (tick === undefined) {
             return;
@@ -768,7 +784,7 @@ export default class bitrue extends bitrueRest {
     }
 
     parseWsTicker (tick: Dict, market: any, timestamp: Int = undefined): Ticker {
-        const symbol = market['symbol'];
+        const symbol: string = market['symbol'];
         const rawVol = this.safeNumber (tick, 'vol');
         const rawAmount = this.safeNumber (tick, 'amount');
         const baseVolume = this.convertFromRawQuantity (symbol, rawVol);
@@ -906,7 +922,8 @@ export default class bitrue extends bitrueRest {
                     throw new AuthenticationError (this.id + ' authenticate() received an empty listenKey');
                 }
                 this.options['listenKey'] = key;
-                const wsUrl = this.safeString (this.urls['api']['ws'], 'private');
+                const wsUrls = this.safeDict (this.urls['api'], 'ws', {});
+                const wsUrl = this.safeString (wsUrls, 'private');
                 if (wsUrl === undefined) {
                     throw new ExchangeError (this.id + ' authenticate() has no private websocket url');
                 }

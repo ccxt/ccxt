@@ -549,7 +549,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             feeRate = this.safeString (trade, 'taker_fee_rate');
             // side always represents the maker side of the trade
             // so if we're taker, we invert it
-            const currentSide = parsed['side'];
+            const currentSide = this.safeString (parsed, 'side');
             parsed['side'] = this.safeString ({
                 'buy': 'sell',
                 'sell': 'buy',
@@ -563,8 +563,8 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const marketResolved: Market = this.market (parsed['symbol']);
         const feeCurrency = marketResolved['quote'];
         let feeCost: Str = undefined;
-        if ((parsed['cost'] !== undefined) && (feeRate !== undefined)) {
-            const cost = this.safeString (parsed, 'cost');
+        const cost = this.safeString (parsed, 'cost');
+        if ((cost !== undefined) && (feeRate !== undefined)) {
             feeCost = Precise.stringMul (cost, feeRate);
         }
         parsed['fee'] = {
@@ -699,16 +699,14 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                 if ((previousSequence === undefined) || (sequence > previousSequence)) {
                     if (type === 'match') {
                         const trade = this.parseWsTrade (message);
-                        if (previousOrder['trades'] === undefined) {
-                            previousOrder['trades'] = [];
-                        }
-                        previousOrder['trades'].push (trade);
+                        const previousTrades = this.safeList (previousOrder, 'trades', []);
+                        previousTrades.push (trade);
+                        previousOrder['trades'] = previousTrades;
                         previousOrder['lastTradeTimestamp'] = trade['timestamp'];
                         let totalCost = '0';
                         let totalAmount = '0';
-                        const trades = previousOrder['trades'];
-                        for (let i = 0; i < trades.length; i++) {
-                            const tradeEntry = this.safeDict (trades, i);
+                        for (let i = 0; i < previousTrades.length; i++) {
+                            const tradeEntry = this.safeDict (previousTrades, i);
                             totalCost = this.safeString (tradeEntry, 'cost', '0');
                             totalAmount = this.safeString (tradeEntry, 'amount', '0');
                         }
@@ -729,9 +727,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                                 'currency': this.safeString (trade['fee'], 'currency'),
                             };
                         }
-                        if ((previousOrder['fee']['cost'] !== undefined) && (this.safeNumber (trade['fee'], 'cost') !== undefined)) {
-                            previousOrder['fee']['cost'] = this.sum (previousOrder['fee']['cost'], this.safeNumber (trade['fee'], 'cost'));
-                            const previousOrderFee = this.safeDict (previousOrder, 'fee');
+                        const previousOrderFee = this.safeDict (previousOrder, 'fee', {});
+                        if ((previousOrderFee['cost'] !== undefined) && (this.safeNumber (trade['fee'], 'cost') !== undefined)) {
+                            previousOrder['fee']['cost'] = this.sum (previousOrderFee['cost'], this.safeNumber (trade['fee'], 'cost'));
                             const tradeFee = this.safeDict (trade, 'fee');
                             previousOrder['fee']['cost'] = this.parseNumber (Precise.stringAdd (this.safeString (previousOrderFee, 'cost'), this.safeString (tradeFee, 'cost')));
                         }
@@ -739,7 +737,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                         orders.append (previousOrder);
                         client.resolve (orders, messageHash);
                     } else if ((type === 'received') || (type === 'done')) {
-                        const info = this.extend (previousOrder['info'], message);
+                        const info = this.extend (previousInfo, message);
                         const order: Dict = this.parseWsOrder (info);
                         const keys = Object.keys (order);
                         // update the reference

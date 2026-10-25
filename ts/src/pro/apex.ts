@@ -133,9 +133,8 @@ export default class apex extends apexRest {
         //         ]
         //     }
         //
-        const data = this.safeList (message, 'data', []);
+        const trades = this.safeList (message, 'data', []);
         const topic = this.safeString (message, 'topic');
-        const trades = data;
         const parts = (topic as string).split ('.');
         const marketId = this.safeString (parts, 2);
         const market = this.safeMarket (marketId, undefined, undefined);
@@ -621,7 +620,7 @@ export default class apex extends apexRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        let messageHash = 'myTrades';
+        let messageHash: string = 'myTrades';
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -655,7 +654,7 @@ export default class apex extends apexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let messageHash = '';
+        let messageHash: string = '';
         let symbolsNormalized2: Strings = undefined;
         if (this.isEmpty (symbols)) {
             symbolsNormalized2 = symbols;
@@ -698,7 +697,7 @@ export default class apex extends apexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let messageHash = 'orders';
+        let messageHash: string = 'orders';
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             symbolResolved = this.symbol (symbol);
@@ -748,7 +747,8 @@ export default class apex extends apexRest {
         }
         const keys = Object.keys (symbols);
         for (let i = 0; i < keys.length; i++) {
-            const currentMessageHash = 'myTrades:' + keys[i];
+            const key = keys[i];
+            const currentMessageHash = 'myTrades:' + key;
             client.resolve (trades, currentMessageHash);
         }
         // non-symbol specific
@@ -800,7 +800,8 @@ export default class apex extends apexRest {
         }
         const symbolsArray = Object.keys (symbols);
         for (let i = 0; i < symbolsArray.length; i++) {
-            const currentMessageHash = 'orders:' + symbolsArray[i];
+            const orderKey = symbolsArray[i];
+            const currentMessageHash = 'orders:' + orderKey;
             client.resolve (orders, currentMessageHash);
         }
         const messageHash = 'orders';

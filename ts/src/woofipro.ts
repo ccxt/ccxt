@@ -2716,7 +2716,7 @@ export default class woofipro extends Exchange {
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['balance_token'] = currency['id'];
+            request['balance_token'] = this.safeString (currency, 'id');
         }
         if (since !== undefined) {
             request['start_t'] = since;

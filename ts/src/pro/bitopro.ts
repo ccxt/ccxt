@@ -81,11 +81,12 @@ export default class bitopro extends bitoproRest {
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
         const messageHash = 'ORDER_BOOK' + ':' + symbolValue;
+        const marketIdValue = this.safeString (market, 'id', '');
         let endPart: Str = undefined;
         if (limit === undefined) {
-            endPart = market['id'];
+            endPart = marketIdValue;
         } else {
-            endPart = market['id'] + ':' + this.numberToString (limit);
+            endPart = marketIdValue + ':' + this.numberToString (limit);
         }
         const orderbook: WsOrderBook = await this.watchPublic ('order-books', messageHash, endPart);
         return orderbook.limit ();
@@ -216,7 +217,8 @@ export default class bitopro extends bitoproRest {
         let messageHash = 'USER_TRADE';
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            messageHash = messageHash + ':' + market['symbol'];
+            const symbolValue: string = market['symbol'];
+            messageHash = messageHash + ':' + symbolValue;
         }
         const wsUrl = this.safeString (this.urls['ws'], 'private');
         if (wsUrl === undefined) {

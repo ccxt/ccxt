@@ -724,7 +724,7 @@ export default class gemini extends Exchange {
         const result: List = [];
         const options = this.safeDict (this.options, 'fetchMarketsFromAPI', {});
         const brokenPairs = this.safeList (this.options, 'brokenPairs', []);
-        const marketIds: List = [];
+        const marketIds: string[] = [];
         let allMarketIds: string[] = [];
         if (Array.isArray (marketIdsRaw)) {
             allMarketIds = marketIdsRaw;
@@ -1035,12 +1035,12 @@ export default class gemini extends Exchange {
         const tickerPromiseB = this.fetchTickerV2 (symbol, params);
         const [ tickerA, tickerB ] = await Promise.all ([ tickerPromiseA, tickerPromiseB ]);
         return this.deepExtend (tickerA, {
-            'open': tickerB['open'],
-            'high': tickerB['high'],
-            'low': tickerB['low'],
-            'change': tickerB['change'],
-            'percentage': tickerB['percentage'],
-            'average': tickerB['average'],
+            'open': this.safeString (tickerB, 'open'),
+            'high': this.safeString (tickerB, 'high'),
+            'low': this.safeString (tickerB, 'low'),
+            'change': this.safeString (tickerB, 'change'),
+            'percentage': this.safeString (tickerB, 'percentage'),
+            'average': this.safeString (tickerB, 'average'),
             'info': tickerB['info'],
         }) as Ticker;
     }

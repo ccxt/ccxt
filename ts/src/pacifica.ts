@@ -1000,10 +1000,11 @@ export default class pacifica extends Exchange {
         }
         const settingsBySymbol: Dict = {};
         for (let i = 0; i < settings.length; i++) {
-            const marketId = settings[i]['symbol'];
+            const setting = settings[i];
+            const marketId = setting['symbol'];
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
-            settingsBySymbol[symbol] = settings[i];
+            settingsBySymbol[symbol] = setting;
         }
         return settingsBySymbol;
     }
@@ -2781,10 +2782,7 @@ export default class pacifica extends Exchange {
         const symbol = marketResolved['symbol'];
         const margin = this.safeString (position, 'margin');
         const rawIsolated = this.safeBool (position, 'isolated');
-        let isIsolated = (margin !== undefined && margin !== '0');
-        if (rawIsolated !== undefined) {
-            isIsolated = rawIsolated;
-        }
+        const isIsolated: Bool = (rawIsolated !== undefined) ? rawIsolated : (margin !== undefined && margin !== '0');
         const marginMode = isIsolated ? 'isolated' : 'cross';
         let side = this.safeString (position, 'side');
         if (side !== undefined) {
@@ -3773,7 +3771,10 @@ export default class pacifica extends Exchange {
     }
 
     prepareMessage (header: Dict, payload: Dict): string {
-        if (header['type'] === undefined || header['timestamp'] === undefined || header['expiry_window'] === undefined) {
+        const headerType = this.safeString (header, 'type');
+        const headerTimestamp = this.safeInteger (header, 'timestamp');
+        const headerExpiryWindow = this.safeInteger (header, 'expiry_window');
+        if (headerType === undefined || headerTimestamp === undefined || headerExpiryWindow === undefined) {
             throw new ArgumentsRequired (this.id + ' prepareMessage() requires type, timestamp, expiry_window in header');
         }
         const data = this.extend (header, { 'data': payload });

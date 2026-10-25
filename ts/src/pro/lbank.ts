@@ -1023,7 +1023,7 @@ export default class lbank extends lbankRest {
                     if (result !== 'true') {
                         throw new ExchangeError (this.id + ' failed to refresh the SubscribeKey');
                     }
-                    client['subscriptions']['authenticated']['expires'] = this.sum (now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
+                    client.subscriptions['authenticated']['expires'] = this.sum (now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
                 }
             }
             // settle the flight through the client so that every write to the

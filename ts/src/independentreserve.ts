@@ -334,7 +334,10 @@ export default class independentreserve extends Exchange {
         const quoteCurrenciesPromise = this.publicGetGetValidSecondaryCurrencyCodes (params);
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         const limitsPromise = this.publicGetGetOrderMinimumVolumes (params);
-        const [ baseCurrencies, quoteCurrencies, limits ] = await Promise.all ([ baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise ]);
+        const responses: List = await Promise.all ([ baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise ]);
+        const baseCurrencies = responses[0];
+        const quoteCurrencies = responses[1];
+        const limits = responses[2];
         //
         //     {
         //         "Xbt": 0.0001,
@@ -413,8 +416,9 @@ export default class independentreserve extends Exchange {
 
     override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict (response, i);
+        const accounts: List = this.toArray (response);
+        for (let i = 0; i < accounts.length; i++) {
+            const balance = this.safeDict (accounts, i);
             const currencyId = this.safeString (balance, 'CurrencyCode');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -801,7 +805,7 @@ export default class independentreserve extends Exchange {
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
-        const timestamp = this.parse8601 (trade['TradeTimestampUtc']);
+        const timestamp = this.parse8601 (this.safeString (trade, 'TradeTimestampUtc'));
         const id = this.safeString (trade, 'TradeGuid');
         const orderId = this.safeString (trade, 'OrderGuid');
         const priceString = this.safeString2 (trade, 'Price', 'SecondaryCurrencyTradePrice');
@@ -953,7 +957,7 @@ export default class independentreserve extends Exchange {
         }
         return this.safeOrder ({
             'info': response,
-            'id': response['OrderGuid'],
+            'id': this.safeString (response, 'OrderGuid'),
         }, market);
     }
 
@@ -1156,7 +1160,7 @@ export default class independentreserve extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0);
         const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');

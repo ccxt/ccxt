@@ -800,7 +800,7 @@ export default class cryptocom extends Exchange {
             const marginSellEnabled = this.safeBool (market, 'margin_sell_enabled');
             const expiryRaw = this.safeInteger (market, 'expiry_timestamp_ms');
             const expiry = (expiryRaw === 0) ? undefined : expiryRaw;
-            let symbol = base + '/' + quote;
+            let symbol: string = base + '/' + quote;
             let type: Str = undefined;
             let contract: Bool = undefined;
             if (inst_type === 'CCY_PAIR') {
@@ -1359,7 +1359,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (order as Dict, market);
     }
 
-    createOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -1370,7 +1370,7 @@ export default class cryptocom extends Exchange {
         const uppercaseType = type.toUpperCase ();
         const request: Dict = {
             'instrument_name': market['id'],
-            'side': (side as string).toUpperCase (),
+            'side': side.toUpperCase (),
             'quantity': this.amountToPrecision (symbol, amount),
         };
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
@@ -1729,7 +1729,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (result as Dict);
     }
 
-    editOrderRequest (id: string, symbol: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
+    editOrderRequest (id: Str, symbol: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         const request: Dict = {};
         if (id !== undefined) {
             request['order_id'] = id;
@@ -2020,7 +2020,9 @@ export default class cryptocom extends Exchange {
 
     parseAddress (addressString: Str): [Str, Str] {
         if (addressString !== undefined && addressString.indexOf ('?') > 0) {
-            const [ address, rawTag ] = addressString.split ('?');
+            const addressParts = addressString.split ('?');
+            const address = addressParts[0];
+            const rawTag = addressParts[1];
             const splitted = rawTag.split ('=');
             return [ address, splitted[1] ];
         }

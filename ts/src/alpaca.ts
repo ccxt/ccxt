@@ -2204,7 +2204,7 @@ export default class alpaca extends Exchange {
             } else {
                 // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
                 const baseLength = positionSymbol.length - 3;
-                if ((baseLength > 0) && (positionSymbol.slice (baseLength) === 'USD')) {
+                if ((baseLength > 0) && positionSymbol.endsWith ('USD')) {
                     baseId = positionSymbol.slice (0, baseLength);
                 }
             }

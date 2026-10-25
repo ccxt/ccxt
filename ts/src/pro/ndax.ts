@@ -59,7 +59,7 @@ export default class ndax extends ndaxRest {
         const market = this.market (symbol);
         const name = 'SubscribeLevel1';
         const messageHash = name + ':' + market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.safeDict (this.urls, 'api', {}), 'ws');
         const requestId = this.requestId ();
         const payload: Dict = {
             'OMSId': omsId,
@@ -134,7 +134,7 @@ export default class ndax extends ndaxRest {
         const symbolValue: string = market['symbol'];
         const name = 'SubscribeTrades';
         const messageHash = name + ':' + market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.safeDict (this.urls, 'api', {}), 'ws');
         const requestId = this.requestId ();
         const payload: Dict = {
             'OMSId': omsId,
@@ -226,7 +226,7 @@ export default class ndax extends ndaxRest {
         const symbolValue: string = market['symbol'];
         const name = 'SubscribeTicker';
         const messageHash = name + ':' + timeframe + ':' + market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.safeDict (this.urls, 'api', {}), 'ws');
         const requestId = this.requestId ();
         const payload: Dict = {
             'OMSId': omsId,
@@ -390,7 +390,7 @@ export default class ndax extends ndaxRest {
         const symbolValue: string = market['symbol'];
         const name = 'SubscribeLevel2';
         const messageHash = name + ':' + market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.safeDict (this.urls, 'api', {}), 'ws');
         const requestId = this.requestId ();
         const limitValue: Int = (limit === undefined) ? 100 : limit;
         const payload: Dict = {

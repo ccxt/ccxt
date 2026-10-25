@@ -2604,10 +2604,9 @@ export default class hyperliquid extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelTwapOrder() requires a symbol argument');
         }
         const market = this.market (symbol);
-        let vaultAddress: Str = undefined;
-        let params2 = undefined;
-        [ vaultAddress, params2 ] = this.handleOptionStringAndParams (params, 'cancelTwapOrder', 'vaultAddress');
-        vaultAddress = this.formatVaultAddress (vaultAddress);
+        const [ vaultAddressOption, paramsUnwrapped ] = this.handleOptionStringAndParams (params, 'cancelTwapOrder', 'vaultAddress');
+        const vaultAddress: Str = this.formatVaultAddress (vaultAddressOption);
+        let params2 = paramsUnwrapped;
         const action: Dict = {
             'type': 'twapCancel',
             'a': this.parseToInt (market['baseId']),
@@ -4547,7 +4546,7 @@ export default class hyperliquid extends Exchange {
             const payload: Dict = {
                 'hyperliquidChain': (isSandboxMode) ? 'Testnet' : 'Mainnet',
                 'destination': address,
-                'amount': amount.toString (),
+                'amount': this.numberToString (amount),
                 'time': nonce,
             };
             sig = this.buildWithdrawSig (payload);
@@ -4555,7 +4554,7 @@ export default class hyperliquid extends Exchange {
                 'hyperliquidChain': payload['hyperliquidChain'],
                 'signatureChainId': '0x66eee', // check this out
                 'destination': address,
-                'amount': amount.toString (),
+                'amount': this.numberToString (amount),
                 'time': nonce,
                 'type': 'withdraw3',
             };
@@ -5340,10 +5339,8 @@ export default class hyperliquid extends Exchange {
 
     parseCreateEditOrderArgs (id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): [Dict, Dict] {
         const market = this.market (symbol);
-        let vaultAddress: Str = undefined;
-        let params2 = undefined;
-        [ vaultAddress, params2 ] = this.handleOptionStringAndParams2 (params, 'createOrder', 'vaultAddress', 'subAccountAddress');
-        vaultAddress = this.formatVaultAddress (vaultAddress);
+        const [ vaultAddressOption, params2 ] = this.handleOptionStringAndParams2 (params, 'createOrder', 'vaultAddress', 'subAccountAddress');
+        const vaultAddress: Str = this.formatVaultAddress (vaultAddressOption);
         const symbolValue: string = market['symbol'];
         const order: Dict = {
             'symbol': symbolValue,

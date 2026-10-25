@@ -3532,7 +3532,7 @@ export default class gate extends Exchange {
         if (market['option'] === true) {
             return await this.fetchOptionOHLCV (symbol, timeframe, since, limit, paramsPaginate);
         }
-        const price = this.safeString (paramsPaginate, 'price');
+        const price: Str = this.safeString (paramsPaginate, 'price');
         const [ request, paramsRequest ] = this.prepareRequest (market, undefined, paramsPaginate);
         request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
         const maxLimit = (market['contract'] === true) ? 1999 : 1000;
@@ -4666,17 +4666,17 @@ export default class gate extends Exchange {
         }
         const market = this.market (symbol);
         const contract = market['contract'];
-        const trigger = this.safeValue (params, 'trigger');
-        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const trigger = this.safeBool (params, 'trigger');
+        const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber (params, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
         const isStopLossOrder = stopLossPrice !== undefined;
         const isTakeProfitOrder = takeProfitPrice !== undefined;
         const isTpsl = isStopLossOrder || isTakeProfitOrder;
         if (isStopLossOrder && isTakeProfitOrder) {
             throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const reduceOnly = this.safeBool (params, 'reduceOnly');
         const exchangeSpecificTimeInForce = this.safeStringLowerN (params, [ 'timeInForce', 'tif', 'time_in_force' ]);
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', exchangeSpecificTimeInForce === 'poc', params);
         let timeInForce = this.handleTimeInForce (paramsPostOnly);
@@ -4685,7 +4685,8 @@ export default class gate extends Exchange {
         }
         // we only omit the unified params here
         // this is because the other params will get extended into the request
-        let clientOrderId = this.safeString2 (paramsPostOnly, 'text', 'clientOrderId');
+        const clientOrderIdRaw: Str = this.safeString2 (paramsPostOnly, 'text', 'clientOrderId');
+        let clientOrderId: Str = clientOrderIdRaw;
         let query: Dict = this.omit (paramsPostOnly, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly', 'clientOrderId' ]);
         const isLimitOrder = (type === 'limit');
         const isMarketOrder = (type === 'market');
@@ -4801,17 +4802,17 @@ export default class gate extends Exchange {
                 }
             }
             const textIsRequired = this.safeBool (query, 'textIsRequired', false);
-            if (clientOrderId !== undefined) {
+            if (clientOrderIdRaw !== undefined) {
                 // user-defined, must follow the rules if not empty
                 //     prefixed with t-
                 //     no longer than 28 bytes without t- prefix
                 //     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
-                if (clientOrderId.length > 28) {
+                if (clientOrderIdRaw.length > 28) {
                     throw new BadRequest (this.id + ' createOrder () clientOrderId or text param must be up to 28 characters');
                 }
                 query = this.omit (query, 'textIsRequired');
-                if (clientOrderId[0] !== 't') {
-                    clientOrderId = 't-' + clientOrderId;
+                if (clientOrderIdRaw[0] !== 't') {
+                    clientOrderId = 't-' + clientOrderIdRaw;
                 }
                 request['text'] = clientOrderId;
             } else {
@@ -4826,28 +4827,38 @@ export default class gate extends Exchange {
             }
             if (contract === true) {
                 // contract conditional order
-                request = {
-                    'initial': {
-                        'contract': market['id'],
-                        // positive = buy, negative = sell, set to 0 to close the position
-                        // 'price': (price === 0) ? '0' : this.priceToPrecision (symbol, price), // set to 0 to use market price
-                        // 'close': false, // set to true if trying to close the position
-                        // 'tif': 'gtc', // gtc, ioc, if using market price, only ioc is supported
-                        // 'text': clientOrderId, // web, api, app
-                        // 'reduce_only': false,
-                    },
-                    'settle': market['settleId'],
+                const initial: Dict = {
+                    'contract': market['id'],
+                    // positive = buy, negative = sell, set to 0 to close the position
+                    // 'price': (price === 0) ? '0' : this.priceToPrecision (symbol, price), // set to 0 to use market price
+                    // 'close': false, // set to true if trying to close the position
+                    // 'tif': 'gtc', // gtc, ioc, if using market price, only ioc is supported
+                    // 'text': clientOrderId, // web, api, app
+                    // 'reduce_only': false,
                 };
                 if (useGateFuturesDecimalSize) {
-                    request['initial']['amount'] = signedAmount; // FuturesInitialOrder.amount takes precedence over size
+                    initial['amount'] = signedAmount; // FuturesInitialOrder.amount takes precedence over size
                 } else {
-                    request['initial']['size'] = amountResolved;
+                    initial['size'] = amountResolved;
                 }
                 if (type === 'market') {
-                    request['initial']['price'] = '0';
+                    initial['price'] = '0';
                 } else {
-                    request['initial']['price'] = (priceResolved === 0) ? '0' : this.priceToPrecision (symbol, priceResolved);
+                    initial['price'] = (priceResolved === 0) ? '0' : this.priceToPrecision (symbol, priceResolved);
                 }
+                if (reduceOnly !== undefined) {
+                    initial['reduce_only'] = reduceOnly;
+                }
+                if (timeInForce !== undefined) {
+                    initial['tif'] = timeInForce;
+                }
+                if (clientOrderId !== undefined) {
+                    initial['text'] = clientOrderId;
+                }
+                request = {
+                    'initial': initial,
+                    'settle': market['settleId'],
+                };
                 if (trigger === undefined) {
                     let rule: Int = undefined;
                     let triggerOrderPrice: Str = undefined;
@@ -4915,14 +4926,15 @@ export default class gate extends Exchange {
                         rule = (side === 'buy') ? '<=' : '>=';
                         triggerOrderPrice = this.priceToPrecision (symbol, takeProfitPrice);
                     }
-                    request['trigger'] = {
+                    const triggerRequest: Dict = {
                         'price': this.priceToPrecision (symbol, triggerOrderPrice),
                         'rule': rule, // >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
                         'expiration': expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
                     };
                     if (clientOrderId !== undefined) {
-                        request['trigger']['text'] = clientOrderId;
+                        triggerRequest['text'] = clientOrderId;
                     }
+                    request['trigger'] = triggerRequest;
                 }
             }
         }
@@ -4956,11 +4968,9 @@ export default class gate extends Exchange {
     editOrderRequest (id: string, symbol: Str, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('editOrder', market, params);
-        let account = this.convertTypeToAccount (marketType);
+        const accountParsed = this.convertTypeToAccount (marketType);
         const [ isUnifiedAccount, paramsUnifiedAccount ] = this.handleOptionBoolAndParams (paramsMarketType, 'editOrder', 'unifiedAccount', false);
-        if (isUnifiedAccount) {
-            account = 'unified';
-        }
+        const account: Str = isUnifiedAccount ? 'unified' : accountParsed;
         const isLimitOrder = (type === 'limit');
         if (account === 'spot') {
             if (!isLimitOrder) {
@@ -5398,9 +5408,10 @@ export default class gate extends Exchange {
         let clientOrderId = this.safeString (order, 'text');
         if (clientOrderId === undefined) {
             if ('initial' in order) {
-                clientOrderId = this.safeString (order['initial'], 'text');
+                clientOrderId = this.safeString (initial, 'text');
             } else if ('trigger' in order) {
-                clientOrderId = this.safeString (order['trigger'], 'text');
+                const triggerOrder: Dict = this.safeDict (order, 'trigger', {});
+                clientOrderId = this.safeString (triggerOrder, 'text');
             }
         }
         return this.safeOrder ({
@@ -5434,15 +5445,16 @@ export default class gate extends Exchange {
         const market = (symbol === undefined) ? undefined : this.market (symbol);
         const trigger = this.safeBoolN (params, [ 'trigger', 'is_stop_order', 'stop' ], false);
         const paramsOmitted = this.omit (params, [ 'is_stop_order', 'stop', 'trigger' ]);
-        let clientOrderId = this.safeString2 (paramsOmitted, 'text', 'clientOrderId');
+        const clientOrderIdRaw = this.safeString2 (paramsOmitted, 'text', 'clientOrderId');
         let orderId = id;
-        if (clientOrderId !== undefined) {
-            if (clientOrderId[0] !== 't') {
-                clientOrderId = 't-' + clientOrderId;
+        if (clientOrderIdRaw !== undefined) {
+            if (clientOrderIdRaw[0] !== 't') {
+                orderId = 't-' + clientOrderIdRaw;
+            } else {
+                orderId = clientOrderIdRaw;
             }
-            orderId = clientOrderId;
         }
-        const paramsOrder = (clientOrderId !== undefined) ? this.omit (paramsOmitted, [ 'text', 'clientOrderId' ]) : paramsOmitted;
+        const paramsOrder = (clientOrderIdRaw !== undefined) ? this.omit (paramsOmitted, [ 'text', 'clientOrderId' ]) : paramsOmitted;
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, paramsOrder);
         const contract = (type === 'swap') || (type === 'future') || (type === 'option');
         const [ request, requestParams ] = contract ? this.prepareRequest (market, type, query) : this.spotOrderPrepareRequest (market, trigger, query);

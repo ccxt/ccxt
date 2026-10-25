@@ -1134,7 +1134,7 @@ export default class backpack extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.rfqConversionMarket (fromCode, toCode);
-        const fromIsBase = fromCode === market['base'];
+        const fromIsBase = fromCode === this.safeString (market, 'base');
         const side: OrderSide = (fromIsBase) ? 'sell' : 'buy';
         if (!fromIsBase) {
             const initialQuote = await this.fetchStockIndicativeQuote (market['symbol'], side, 1, { 'stock': true });
@@ -1232,7 +1232,7 @@ export default class backpack extends Exchange {
         if ((amount === undefined) || !Precise.stringGt (this.numberToString (amount), '0')) {
             throw new ArgumentsRequired (this.id + ' createConvertTrade() requires a positive amount');
         }
-        const fromIsBase = fromCode === market['base'];
+        const fromIsBase = fromCode === this.safeString (market, 'base');
         const side: OrderSide = (fromIsBase) ? 'sell' : 'buy';
         let quantity = this.numberToString (amount);
         let price = this.safeNumber (query, 'price');

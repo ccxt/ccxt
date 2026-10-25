@@ -1146,10 +1146,12 @@ export default class whitebit extends Exchange {
             await this.loadMarkets ();
         }
         // Fetch both currencies and fees data for comprehensive funding limits
-        const [ currenciesData, feesData ] = await Promise.all ([
+        const responses = await Promise.all ([
             this.fetchCurrencies (),
             this.v4PublicGetFee (params),
         ]);
+        const currenciesData = this.safeDict (responses, 0, {});
+        const feesData = this.safeDict (responses, 1, {});
         //
         // Currencies response structure (from fetchCurrencies):
         //     {

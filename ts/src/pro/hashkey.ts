@@ -400,7 +400,7 @@ export default class hashkey extends hashkeyRest {
         let messageHash = 'orders';
         const symbolResolved = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
-            messageHash = messageHash + ':' + symbolResolved;
+            messageHash = 'orders' + ':' + symbolResolved;
         }
         const orders = await this.watchPrivate (messageHash);
         let limitResolved = limit;
@@ -525,7 +525,7 @@ export default class hashkey extends hashkeyRest {
         let messageHash = 'myTrades';
         const symbolResolved = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
-            messageHash += ':' + symbolResolved;
+            messageHash = 'myTrades' + ':' + symbolResolved;
         }
         const trades = await this.watchPrivate (messageHash);
         let limitResolved = limit;

@@ -535,12 +535,16 @@ export default class upbit extends Exchange {
         if (id === undefined) {
             throw new ExchangeError (this.id + ' parseMarket() missing id');
         }
-        const [ quoteId, baseId ] = id.split ('-');
+        const parts = id.split ('-');
+        const quoteId = this.safeString (parts, 0);
+        const baseId = this.safeString (parts, 1);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
+        const tradingFeesByQuoteCurrency: Dict = this.safeDict (this.options, 'tradingFeesByQuoteCurrency', {});
+        const tradingFees: Dict = this.safeDict (this.fees, 'trading', {});
         return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
@@ -560,8 +564,8 @@ export default class upbit extends Exchange {
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
-            'taker': this.safeNumber (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['taker']),
-            'maker': this.safeNumber (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['maker']),
+            'taker': this.safeNumber (tradingFeesByQuoteCurrency, quote, this.safeNumber (tradingFees, 'taker')),
+            'maker': this.safeNumber (tradingFeesByQuoteCurrency, quote, this.safeNumber (tradingFees, 'maker')),
             'contractSize': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -707,7 +711,7 @@ export default class upbit extends Exchange {
         const result: Dict = {};
         const orderbooks = this.toArray (response);
         for (let i = 0; i < orderbooks.length; i++) {
-            const orderbook = orderbooks[i];
+            const orderbook = this.safeDict (orderbooks, i, {});
             const marketId = this.safeString (orderbook, 'market');
             const symbol = this.safeSymbol (marketId, undefined, '-');
             const timestamp = this.safeInteger (orderbook, 'timestamp');
@@ -891,7 +895,7 @@ export default class upbit extends Exchange {
         let idsString = '';
         const queries: string[] = [];
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id = this.safeString (ids, i);
             if (idsString !== '') {
                 idsString = idsString + ',';
             }
@@ -1126,14 +1130,15 @@ export default class upbit extends Exchange {
         const fetchMarketResponse = await this.fetchMarkets (params);
         const response: Dict = {};
         for (let i = 0; i < fetchMarketResponse.length; i++) {
+            const item = this.safeDict (fetchMarketResponse, i);
             const element: Dict = {};
-            element['maker'] = this.safeNumber (fetchMarketResponse[i], 'maker');
-            element['taker'] = this.safeNumber (fetchMarketResponse[i], 'taker');
-            element['symbol'] = this.safeString (fetchMarketResponse[i], 'symbol');
+            element['maker'] = this.safeNumber (item, 'maker');
+            element['taker'] = this.safeNumber (item, 'taker');
+            element['symbol'] = this.safeString (item, 'symbol');
             element['percentage'] = true;
             element['tierBased'] = false;
-            element['info'] = fetchMarketResponse[i];
-            const feeSymbol = this.safeString (fetchMarketResponse[i], 'symbol');
+            element['info'] = item;
+            const feeSymbol = this.safeString (item, 'symbol');
             if (feeSymbol !== undefined) {
                 response[feeSymbol] = element;
             }
@@ -1947,7 +1952,8 @@ export default class upbit extends Exchange {
         const numTrades = trades.length;
         if (numTrades > 0) {
             // the timestamp in fetchOrder trades is missing
-            lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
+            const lastTrade = this.safeDict (trades, numTrades - 1, {});
+            lastTradeTimestamp = lastTrade['timestamp'];
             let getFeesFromTrades = false;
             if (feeCost === undefined) {
                 getFeesFromTrades = true;
@@ -1958,7 +1964,7 @@ export default class upbit extends Exchange {
                 const trade = this.safeDict (trades, i);
                 cost = Precise.stringAdd (cost, this.safeString (trade, 'cost'));
                 if (getFeesFromTrades) {
-                    const tradeFee = this.safeDict (trades[i], 'fee', {});
+                    const tradeFee = this.safeDict (trade, 'fee', {});
                     const tradeFeeCost = this.safeString (tradeFee, 'cost');
                     if (tradeFeeCost !== undefined) {
                         feeCost = Precise.stringAdd (feeCost, tradeFeeCost);
@@ -2434,7 +2440,7 @@ export default class upbit extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0);
         const baseApiUrl = this.safeString (this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
@@ -2444,8 +2450,9 @@ export default class upbit extends Exchange {
         });
         url += '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
+        const numQueryKeys = Object.keys (query).length;
         if (method !== 'POST') {
-            if (Object.keys (query).length > 0) {
+            if (numQueryKeys > 0) {
                 url += '?' + this.urlencode (query);
             }
         }
@@ -2463,12 +2470,11 @@ export default class upbit extends Exchange {
                 'access_key': this.apiKey,
                 'nonce': nonce,
             };
-            const hasQuery = Object.keys (query).length;
             let auth: Str = undefined;
             if (hasBody) {
                 privateHeaders['Content-Type'] = 'application/json';
             }
-            if (hasQuery !== 0) {
+            if (numQueryKeys !== 0) {
                 auth = this.rawencode (query);
             }
             if (auth !== undefined) {
