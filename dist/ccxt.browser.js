@@ -221584,8 +221584,15 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         const high = this.safeString(ticker, 'highPrice');
         const low = this.safeString(ticker, 'lowPrice');
         const close = this.safeString(ticker, 'lastPrice');
-        const quoteVolume = this.safeString(ticker, 'quoteVolume');
-        const baseVolume = this.safeString(ticker, 'volume');
+        let quoteVolume = this.safeString(ticker, 'quoteVolume');
+        let baseVolume = this.safeString(ticker, 'volume');
+        if (marketResolved['inverse'] === true) {
+            // Coin-M volume is in contracts; quoteVolume is in the base currency.
+            // read the resolved market: parseTickers and fetchTickers reach here with no market argument
+            const contractSize = this.safeString(marketResolved, 'contractSize');
+            baseVolume = quoteVolume;
+            quoteVolume = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(this.safeString(ticker, 'volume'), contractSize);
+        }
         let percentage = this.safeString(ticker, 'priceChangePercent');
         if (percentage !== undefined) {
             percentage = percentage.replace('%', '');
@@ -222327,7 +222334,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         const isTriggerOrder = triggerPrice !== undefined;
         const isStopLossPriceOrder = stopLossPrice !== undefined;
         const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
-        let exchangeClientOrderId = 'clientOrderID';
+        let exchangeClientOrderId = 'clientOrderId';
         if (isSpot) {
             exchangeClientOrderId = 'newClientOrderId';
         }
@@ -223339,15 +223346,20 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             };
             const clientOrderId = this.safeString2(paramsOmitted, 'clientOrderId', 'clientOrderID');
             const paramsOmitted2 = this.omit(paramsOmitted, [
-                'clientOrderId'
+                'clientOrderId',
+                'clientOrderID'
             ]);
+            const [type, paramsMarketType] = this.handleMarketTypeAndParams('cancelOrder', market, paramsOmitted2);
+            const [subType, paramsSubType] = this.handleSubTypeAndParams('cancelOrder', market, paramsMarketType);
             if (clientOrderId !== undefined) {
-                request['clientOrderID'] = clientOrderId;
+                let clientOrderIdRequest = 'clientOrderId';
+                if (type === 'spot') {
+                    clientOrderIdRequest = 'clientOrderID';
+                }
+                request[clientOrderIdRequest] = clientOrderId;
             } else {
                 request['orderId'] = id;
             }
-            const [type, paramsMarketType] = this.handleMarketTypeAndParams('cancelOrder', market, paramsOmitted2);
-            const [subType, paramsSubType] = this.handleSubTypeAndParams('cancelOrder', market, paramsMarketType);
             if (type === 'spot') {
                 response = await this.spotV1PrivatePostTradeCancel(this.extend(request, paramsSubType));
             } else {
@@ -223822,11 +223834,24 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             }
             market = this.market(symbol);
             const request = {
-                'symbol': market['id'],
-                'orderId': id
+                'symbol': market['id']
             };
-            const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrder', market, paramsOmitted);
+            const clientOrderId = this.safeString2(paramsOmitted, 'clientOrderId', 'clientOrderID');
+            const paramsOmitted2 = this.omit(paramsOmitted, [
+                'clientOrderId',
+                'clientOrderID'
+            ]);
+            const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrder', market, paramsOmitted2);
             const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchOrder', market, paramsMarketType);
+            if (clientOrderId !== undefined) {
+                let clientOrderIdRequest = 'clientOrderId';
+                if (type === 'spot') {
+                    clientOrderIdRequest = 'clientOrderID';
+                }
+                request[clientOrderIdRequest] = clientOrderId;
+            } else {
+                request['orderId'] = id;
+            }
             if (type === 'spot') {
                 response = await this.spotV1PrivateGetTradeQuery(this.extend(request, paramsSubType));
             //
@@ -225308,6 +225333,9 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             if (orderId === undefined) {
                 throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchMyTrades() requires an orderId argument for inverse swap trades');
             }
+            if (limit !== undefined) {
+                request['pageSize'] = Math.min(limit, 1000); // api maximum 1000
+            }
             response = await this.cswapV1PrivateGetTradeAllFillOrders(this.extend(request, paramsSubType));
             fills = this.safeList(response, 'data', []);
         //
@@ -225785,7 +225813,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
-     * @name bitget#closePositions
+     * @name bingx#closeAllPositions
      * @description closes open positions for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
@@ -225942,6 +225970,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.cancelClientOrderID] the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+     * @param {string} [params.cancelClientOrderId] the client order id of the order to cancel
      * @param {string} [params.cancelRestrictions] cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled
      * @param {string} [params.cancelReplaceMode] STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
      * @param {float} [params.quoteOrderQty] order amount
@@ -225959,9 +225988,22 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         if (market['inverse'] === true) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' editOrder() is not supported for inverse swap markets');
         }
-        const request = this.createOrderRequest(symbol, type, side, amount, price, params);
-        request['cancelOrderId'] = id;
-        request['cancelReplaceMode'] = this.safeString(params, 'cancelReplaceMode', 'STOP_ON_FAILURE');
+        const cancelClientOrderId = this.safeString2(params, 'cancelClientOrderId', 'cancelClientOrderID');
+        const paramsOmitted = this.omit(params, [
+            'cancelClientOrderId',
+            'cancelClientOrderID'
+        ]);
+        const request = this.createOrderRequest(symbol, type, side, amount, price, paramsOmitted);
+        if (cancelClientOrderId !== undefined) {
+            let cancelClientOrderIdRequest = 'cancelClientOrderId';
+            if (market['spot'] === true) {
+                cancelClientOrderIdRequest = 'cancelClientOrderID';
+            }
+            request[cancelClientOrderIdRequest] = cancelClientOrderId;
+        } else {
+            request['cancelOrderId'] = id;
+        }
+        request['cancelReplaceMode'] = this.safeString(paramsOmitted, 'cancelReplaceMode', 'STOP_ON_FAILURE');
         let response;
         if (market['swap'] === true) {
             response = await this.swapV1PrivatePostTradeCancelReplace(request);
@@ -267085,7 +267127,7 @@ class bitteam extends _abstract_bitteam_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
-     * @name betteam#fetchBalance
+     * @name bitteam#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -293713,7 +293755,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
-     * @name bybit#createMarkeSellOrderWithCost
+     * @name bybit#createMarketSellOrderWithCost
      * @description create a market sell order by providing the symbol and cost
      * @see https://bybit-exchange.github.io/docs/v5/order/create-order
      * @param {string} symbol unified symbol of the market to create an order in
@@ -302442,7 +302484,7 @@ class bydfi extends _abstract_bydfi_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
-     * @name budfi#transfer
+     * @name bydfi#transfer
      * @description transfer currency internally between wallets on the same account
      * @see https://developers.bydfi.com/en/account#asset-transfer-between-accounts
      * @param {string} code unified currency code
@@ -328255,7 +328297,7 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
     }
     /**
      * @method
-     * @name cryptocom#closePositions
+     * @name cryptocom#closePosition
      * @description closes open positions for a market
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
      * @param {string} symbol Unified CCXT market symbol
@@ -405623,7 +405665,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
     }
     /**
      * @method
-     * @name hyperliquid#createAccount
+     * @name hyperliquid#createSubAccount
      * @description creates a sub-account under the main account
      * @param {string} name the name of the sub-account
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -415375,10 +415417,7 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market(symbol);
-        }
+        const symbolResolved = symbol !== undefined ? this.symbol(symbol) : symbol;
         // todo: lastFillTime: this.iso8601(end)
         const response = await this.privateGetFills(params);
         //
@@ -415402,7 +415441,13 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
         //    }
         //
         const fills = this.safeList(response, 'fills', []);
-        return this.parseTrades(fills, market, since, limit);
+        // the endpoint returns the fills of every contract, each row resolves its own market
+        const trades = this.parseTrades(fills);
+        // a fill of a contract that is no longer listed in /instruments has no unified symbol,
+        // so safeMarket keeps the raw id (eg 'PF_XRPUSD') in trade['symbol']: it is filtered out
+        // whenever a symbol is requested and returned as-is when symbol is undefined, on purpose,
+        // because it is still the user's own fill and dropping it would hide real trades
+        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limit);
     }
     /**
      * @method
@@ -429872,6 +429917,7 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchClosedOrders': 'emulated',
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -430269,7 +430315,7 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
                         'selfTradePrevention': false,
                         'trailing': false,
                         'leverage': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                         'iceberg': false
                     },
@@ -430290,11 +430336,19 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'trigger': false,
+                        'trigger': true,
                         'trailing': false,
                         'symbolRequired': true
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false
+                    },
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
@@ -437247,7 +437301,7 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
-     * @name ligher#fetchBalance
+     * @name lighter#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://apidocs.lighter.xyz/reference/account-1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -475899,9 +475953,6 @@ class pacifica extends _abstract_pacifica_js__rspack_import_0/* ["default"] */.A
         if (since === undefined) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' fetchOHLCV() requires a "since" argument');
         }
-        if (symbol === undefined) {
-            throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' fetchOHLCV() requires a "symbol" argument');
-        }
         const defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -490048,6 +490099,14 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
             request['limit'] = limit;
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption(keyEnd, request, paramsPaginate);
+        if (since !== undefined && limit !== undefined && this.safeInteger(requestUntil, keyEnd) === undefined) {
+            // without an end time the exchange returns the latest candles, not the ones starting at since,
+            // so end the window at the start of the limit-th candle from the first one at or after since
+            const duration = this.parseTimeframe(timeframe) * 1000;
+            const firstCandle = this.parseToInt(Math.ceil(since / duration)) * duration;
+            const endTimeByLimit = this.sum(firstCandle, duration * (limit - 1));
+            requestUntil[keyEnd] = Math.min(endTimeByLimit, this.milliseconds());
+        }
         if (market['contract'] === true) {
             const responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(requestUntil, paramsUntil));
             //
@@ -662072,7 +662131,7 @@ class zebpay extends _abstract_zebpay_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
-     * @name zebpatspot#fetchOrderTrades
+     * @name zebpay#fetchOrderTrades
      * @description fetch all the trades made from a single order
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-fills
      * @param {string} id order id

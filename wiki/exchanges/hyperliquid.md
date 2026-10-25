@@ -62,7 +62,7 @@
 * [fetchOpenInterest](#fetchopeninterest)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [reserveRequestWeight](#reserverequestweight)
-* [createAccount](#createaccount)
+* [createSubAccount](#createsubaccount)
 * [createOrdersWs](#createordersws)
 * [createOrderWs](#createorderws)
 * [editOrderWs](#editorderws)
@@ -1468,9 +1468,9 @@ hyperliquid.reserveRequestWeight (weight, params?)
 ```
 
 
-<a name="createAccount" id="createaccount"></a>
+<a name="createSubAccount" id="createsubaccount"></a>
 
-### createAccount{docsify-ignore}
+### createSubAccount{docsify-ignore}
 creates a sub-account under the main account
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
@@ -1485,7 +1485,7 @@ creates a sub-account under the main account
 
 
 ```javascript
-hyperliquid.createAccount (name, params?)
+hyperliquid.createSubAccount (name, params?)
 ```
 
 
