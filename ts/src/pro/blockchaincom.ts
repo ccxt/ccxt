@@ -395,7 +395,7 @@ export default class blockchaincom extends blockchaincomRest {
         const parsed = this.parseWsTrade (message, market);
         stored.append (parsed);
         this.trades[symbol] = stored;
-        client.resolve (this.trades[symbol], messageHash);
+        client.resolve (stored, messageHash);
     }
 
     override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
@@ -716,11 +716,11 @@ export default class blockchaincom extends blockchaincomRest {
         //         "timestamp": "2022-08-08T22:03:19.014680Z"
         //     }
         //
-        const event = this.safeString (message, 'event');
+        const event = this.safeString (message, 'event', '');
         if (event === 'subscribed') {
             return;
         }
-        const type = this.safeString (message, 'channel');
+        const type = this.safeString (message, 'channel', '');
         const marketId = this.safeString (message, 'symbol');
         const symbol = this.safeSymbol (marketId);
         const messageHash = 'orderbook:' + symbol + ':' + type;

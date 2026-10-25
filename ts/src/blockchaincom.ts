@@ -1003,12 +1003,14 @@ export default class blockchaincom extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const state = this.safeString (transaction, 'state');
-        if ('depositId' in transaction) {
+        const depositId = this.safeString (transaction, 'depositId');
+        const withdrawalId = this.safeString (transaction, 'withdrawalId');
+        if (depositId !== undefined) {
             type = 'deposit';
-            id = this.safeString (transaction, 'depositId');
-        } else if ('withdrawalId' in transaction) {
+            id = depositId;
+        } else if (withdrawalId !== undefined) {
             type = 'withdrawal';
-            id = this.safeString (transaction, 'withdrawalId');
+            id = withdrawalId;
         }
         const feeCost = (type === 'withdrawal') ? this.safeNumber (transaction, 'fee') : undefined;
         let fee: Fee = undefined;
