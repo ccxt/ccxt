@@ -941,7 +941,7 @@ export default class krakenfutures extends krakenfuturesRest {
             messageHash = 'orders:verbose';
         }
         const symbols: Dict = {};
-        const cachedOrders = this.orders;
+        const cachedOrders = this.orders as ArrayCacheBySymbolById;
         // snapshots only contain open orders; an absent order may have filled
         // or been canceled, so rebuild the cache without inventing its status
         cachedOrders.clear ();
