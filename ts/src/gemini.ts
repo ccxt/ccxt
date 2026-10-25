@@ -893,7 +893,7 @@ export default class gemini extends Exchange {
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
         if (settleId !== undefined) {
-            symbol = symbol + ':' + settle;
+            symbol = base + '/' + quote + ':' + settle;
             swap = true;
             contractSize = tickSize; // always same
             linear = true; // always linear
@@ -2059,12 +2059,12 @@ export default class gemini extends Exchange {
         let headersSigned: NullableDict = undefined;
         if (apiName === 'private') {
             this.checkRequiredCredentials ();
-            const apiKey = this.apiKey;
-            if (apiKey.indexOf ('account') < 0) {
+            if (this.apiKey.indexOf ('account') < 0) {
                 throw new AuthenticationError (this.id + ' sign() requires an account-key, master-keys are not-supported');
             }
             // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
-            const nonce = this.incrementingNonce ().toString ();
+            const nonceValue = this.incrementingNonce ();
+            const nonce = this.numberToString (nonceValue);
             const finalUrl = url;
             const request = this.extend ({
                 'request': finalUrl,
