@@ -770,8 +770,8 @@ export default class btse extends Exchange {
             'contract': isSwap || isFuture,
             'linear': isSpot ? undefined : true,
             'inverse': isSpot ? undefined : false,
-            'taker': fees['taker'],
-            'maker': fees['maker'],
+            'taker': this.safeNumber (fees, 'taker'),
+            'maker': this.safeNumber (fees, 'maker'),
             'contractSize': this.parseNumber (contractSize),
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
@@ -1625,7 +1625,7 @@ export default class btse extends Exchange {
         let request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString (market, 'id');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2511,7 +2511,7 @@ export default class btse extends Exchange {
         let response = undefined;
         if (marketTypeOption === 'spot') {
             // the literal ALL value cancels every open order across all pairs
-            request['symbol'] = (market !== undefined) ? market['id'] : 'ALL';
+            request['symbol'] = (market !== undefined) ? this.safeString (market, 'id') : 'ALL';
             response = await this.privateDeleteSpotApiV4TradeOrdersAll (this.extend (request, paramsMarketType));
         } else {
             if (market === undefined) {
@@ -2579,7 +2579,7 @@ export default class btse extends Exchange {
         let response = undefined;
         if (marketTypeOption === 'spot') {
             if (market !== undefined) {
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString (market, 'id');
             }
             response = await this.privateGetSpotApiV4TradeOrders (this.extend (request, paramsMarketType));
         } else {
@@ -2826,7 +2826,7 @@ export default class btse extends Exchange {
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['asset'] = currency['id'];
+            request['asset'] = this.safeString (currency, 'id');
         } else if (walletType === 'SPOT') {
             // the exchange rejects spot wallet history queries without an asset,
             // verified live, and omitting walletType still defaults to spot
@@ -3043,7 +3043,7 @@ export default class btse extends Exchange {
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['asset'] = currency['id'];
+            request['asset'] = this.safeString (currency, 'id');
         } else if (walletType === 'SPOT') {
             // the exchange rejects spot wallet history queries without an asset,
             // verified live, and omitting walletType still defaults to spot
@@ -3734,7 +3734,7 @@ export default class btse extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params = {}) {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0);
         let requestBody: Str = undefined;
         let requestHeaders = undefined;
         const apiUrl = this.safeString (this.urls['api'], apiName);
@@ -3794,7 +3794,8 @@ export default class btse extends Exchange {
         // the futures v3 trading api identifies contracts by the short trade-currency
         // form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read
         // from the raw market info so that cached markets resolve it as well
-        return this.safeString (market['info'], 'tradeCurrency', market['id']);
+        const marketInfo = this.safeDict (market, 'info', {});
+        return this.safeString (marketInfo, 'tradeCurrency', this.safeString (market, 'id'));
     }
 
     cleanPath (path: string): string {
