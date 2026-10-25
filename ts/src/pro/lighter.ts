@@ -205,8 +205,9 @@ export default class lighter extends lighterRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
+        const marketId = this.safeString (market, 'id', '');
         const request: Dict = {
-            'channel': 'order_book/' + market['id'],
+            'channel': 'order_book/' + marketId,
         };
         const messageHash = this.getMessageHash ('orderbook', symbolValue);
         const orderbook: WsOrderBook = await this.subscribePublic (messageHash, this.extend (request, params));
@@ -228,8 +229,9 @@ export default class lighter extends lighterRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
+        const marketId = this.safeString (market, 'id', '');
         const request: Dict = {
-            'channel': 'order_book/' + market['id'],
+            'channel': 'order_book/' + marketId,
         };
         const subMessageHash = this.getMessageHash ('orderbook', symbolValue);
         const messageHash = 'unsubscribe:' + subMessageHash;
@@ -329,8 +331,9 @@ export default class lighter extends lighterRest {
         if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' watchTicker() is only supported for swap markets');
         }
+        const marketId = this.safeString (market, 'id', '');
         const request: Dict = {
-            'channel': 'market_stats/' + market['id'],
+            'channel': 'market_stats/' + marketId,
         };
         const messageHash = this.getMessageHash ('ticker', symbolValue);
         return await this.subscribePublic (messageHash, this.extend (request, params));
@@ -354,8 +357,9 @@ export default class lighter extends lighterRest {
         if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' unWatchTicker() is only supported for swap markets');
         }
+        const marketId = this.safeString (market, 'id', '');
         const request: Dict = {
-            'channel': 'market_stats/' + market['id'],
+            'channel': 'market_stats/' + marketId,
         };
         const subMessageHash = this.getMessageHash ('ticker', symbolValue);
         const messageHash = 'unsubscribe:' + subMessageHash;
@@ -597,7 +601,7 @@ export default class lighter extends lighterRest {
         }
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            const iReversed = dataLength - 1 - i;
+            const iReversed = this.parseToInt (dataLength - 1 - i);
             const trade = this.parseWsTrade (data[iReversed], market);
             stored.append (trade);
         }
@@ -621,8 +625,9 @@ export default class lighter extends lighterRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const marketId = this.safeString (market, 'id', '');
         const request: Dict = {
-            'channel': 'trade/' + market['id'],
+            'channel': 'trade/' + marketId,
         };
         const messageHash = this.getMessageHash ('trade', this.safeString (market, 'symbol'));
         const trades = await this.subscribePublic (messageHash, this.extend (request, params));
@@ -643,8 +648,9 @@ export default class lighter extends lighterRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const marketId = this.safeString (market, 'id', '');
         const request: Dict = {
-            'channel': 'trade/' + market['id'],
+            'channel': 'trade/' + marketId,
         };
         const subMessageHash = this.getMessageHash ('trade', this.safeString (market, 'symbol'));
         const messageHash = 'unsubscribe:' + subMessageHash;
@@ -978,7 +984,7 @@ export default class lighter extends lighterRest {
         }
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            const iReversed = dataLength - 1 - i;
+            const iReversed = this.parseToInt (dataLength - 1 - i);
             const liquidation = this.parseWsLiquidation (data[iReversed], market);
             stored.append (liquidation);
         }
@@ -1002,8 +1008,9 @@ export default class lighter extends lighterRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const marketId = this.safeString (market, 'id', '');
         const request: Dict = {
-            'channel': 'trade/' + market['id'],
+            'channel': 'trade/' + marketId,
         };
         const messageHash = this.getMessageHash ('liquidations', symbol);
         return await this.subscribePublic (messageHash, this.extend (request, params));
@@ -1148,8 +1155,9 @@ export default class lighter extends lighterRest {
         const request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
+            const marketId = this.safeString (market, 'id', '');
             messageHash = this.getMessageHash ('orders', this.safeString (market, 'symbol'));
-            request['channel'] = 'account_orders/' + market['id'] + '/' + this.numberToString (accountIndex);
+            request['channel'] = 'account_orders/' + marketId + '/' + this.numberToString (accountIndex);
         } else {
             messageHash = this.getMessageHash ('orders');
             request['channel'] = 'account_all_orders/' + this.numberToString (accountIndex);
@@ -1180,8 +1188,9 @@ export default class lighter extends lighterRest {
         const request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
+            const marketId = this.safeString (market, 'id', '');
             subMessageHash = this.getMessageHash ('orders', this.safeString (market, 'symbol'));
-            request['channel'] = 'account_orders/' + market['id'] + '/' + this.numberToString (accountIndex);
+            request['channel'] = 'account_orders/' + marketId + '/' + this.numberToString (accountIndex);
         } else {
             subMessageHash = this.getMessageHash ('orders');
             request['channel'] = 'account_all_orders/' + this.numberToString (accountIndex);
