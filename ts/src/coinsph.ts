@@ -678,12 +678,15 @@ export default class coinsph extends Exchange {
     }
 
     override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
-        if (('noSymbol' in config) && !('symbol' in params)) {
+        const hasSymbolParam = ('symbol' in params);
+        const hasSymbolsParam = ('symbols' in params);
+        const limit = this.safeInteger (params, 'limit');
+        if (('noSymbol' in config) && !hasSymbolParam) {
             return config['noSymbol'];
-        } else if (('noSymbolAndNoSymbols' in config) && !('symbol' in params) && !('symbols' in params)) {
+        } else if (('noSymbolAndNoSymbols' in config) && !hasSymbolParam && !hasSymbolsParam) {
             return config['noSymbolAndNoSymbols'];
-        } else if (('byNumberOfSymbols' in config) && ('symbols' in params)) {
-            const symbols = params['symbols'];
+        } else if (('byNumberOfSymbols' in config) && hasSymbolsParam) {
+            const symbols = this.safeList (params, 'symbols', []);
             const symbolsAmount = symbols.length;
             const byNumberOfSymbols = this.safeList (config, 'byNumberOfSymbols', []);
             for (let i = 0; i < byNumberOfSymbols.length; i++) {
@@ -693,13 +696,12 @@ export default class coinsph extends Exchange {
                     return entry[1];
                 }
             }
-        } else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = this.safeInteger (params, 'limit');
+        } else if (('byLimit' in config) && (limit !== undefined)) {
             const byLimit = this.safeList (config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 const threshold = this.safeInteger (entry, 0);
-                if (limit !== undefined && threshold !== undefined && limit >= threshold) {
+                if (threshold !== undefined && limit >= threshold) {
                     return entry[1];
                 }
             }
