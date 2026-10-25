@@ -1208,8 +1208,8 @@ export default class bitstamp extends Exchange {
         amountString = this.safeString (trade, this.safeString (marketResolved, 'baseId'), amountString);
         costString = this.safeString (trade, this.safeString (marketResolved, 'quoteId'), costString);
         // this endpoint is not aligned with "markets" endpoint
-        const baseIdLower = this.safeStringLower (marketResolved, 'baseId');
-        const quoteIdLower = this.safeStringLower (marketResolved, 'quoteId');
+        const baseIdLower = this.safeStringLower (marketResolved, 'baseId', '');
+        const quoteIdLower = this.safeStringLower (marketResolved, 'quoteId', '');
         const dashedIdLower = baseIdLower + '_' + quoteIdLower;
         if (priceString === undefined) {
             priceString = this.safeString (trade, dashedIdLower);
