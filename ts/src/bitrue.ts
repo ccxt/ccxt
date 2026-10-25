@@ -3265,17 +3265,17 @@ export default class bitrue extends Exchange {
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
         const type = this.safeString (api, 0);
-        const version = this.safeString (api, 1);
+        const version = this.safeString (api, 1, '');
         const access = this.safeString (api, 2);
         const apiUrl = this.safeString (this.urls['api'], type);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url: string = apiUrl;
+        const endpointPath = this.implodeParams (path, params);
+        let url: string = apiUrl + '/' + endpointPath;
         if (!((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf ('listenKey') >= 0))) {
-            url += '/' + version;
+            url = apiUrl + '/' + version + '/' + endpointPath;
         }
-        url += '/' + this.implodeParams (path, params);
         const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
         if (access === 'private') {
             this.checkRequiredCredentials ();
@@ -3298,13 +3298,13 @@ export default class bitrue extends Exchange {
                 }
             } else {
                 const timestamp = this.nonce ().toString ();
-                let signPath: Str = undefined;
+                let signPrefix: string = '';
                 if (type === 'fapi') {
-                    signPath = '/fapi';
+                    signPrefix = '/fapi';
                 } else if (type === 'dapi') {
-                    signPath = '/dapi';
+                    signPrefix = '/dapi';
                 }
-                signPath = signPath + '/' + version + '/' + path;
+                const signPath = signPrefix + '/' + version + '/' + path;
                 let signMessage = timestamp + method + signPath;
                 if (method === 'GET') {
                     const keys = Object.keys (paramsOmitted);

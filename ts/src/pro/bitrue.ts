@@ -333,14 +333,14 @@ export default class bitrue extends bitrueRest {
         let channel: Str = undefined;
         let cbId: Str = undefined;
         if (market['swap'] === true) {
-            const baseIdLower = this.safeStringLower (market, 'baseId');
-            const quoteIdLower = this.safeStringLower (market, 'quoteId');
+            const baseIdLower = this.safeStringLower (market, 'baseId', '');
+            const quoteIdLower = this.safeStringLower (market, 'quoteId', '');
             const wsId = 'e_' + baseIdLower + quoteIdLower;
             channel = 'market_' + wsId + '_depth_step0';
             cbId = wsId;
             url = wsUrls['futurePublic'];
         } else {
-            const marketIdLowercase = this.safeStringLower (market, 'id');
+            const marketIdLowercase = this.safeStringLower (market, 'id', '');
             channel = 'market_' + marketIdLowercase + '_simple_depth_step0';
             cbId = marketIdLowercase;
             url = wsUrls['public'];
@@ -496,8 +496,8 @@ export default class bitrue extends bitrueRest {
         if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' watchTrades is only supported for swap markets');
         }
-        const baseIdLower = this.safeStringLower (market, 'baseId');
-        const quoteIdLower = this.safeStringLower (market, 'quoteId');
+        const baseIdLower = this.safeStringLower (market, 'baseId', '');
+        const quoteIdLower = this.safeStringLower (market, 'quoteId', '');
         const wsId = 'e_' + baseIdLower + quoteIdLower;
         const channel = 'market_' + wsId + '_trade_ticker';
         const messageHash = 'trades:' + symbolValue;
@@ -621,8 +621,8 @@ export default class bitrue extends bitrueRest {
         if (interval === undefined) {
             throw new NotSupported (this.id + ' watchOHLCV does not support timeframe ' + timeframe);
         }
-        const baseIdLower = this.safeStringLower (market, 'baseId');
-        const quoteIdLower = this.safeStringLower (market, 'quoteId');
+        const baseIdLower = this.safeStringLower (market, 'baseId', '');
+        const quoteIdLower = this.safeStringLower (market, 'quoteId', '');
         const wsId = 'e_' + baseIdLower + quoteIdLower;
         const channel = 'market_' + wsId + '_kline_' + interval;
         const messageHash = 'ohlcv:' + symbolValue + ':' + timeframe;
@@ -726,8 +726,8 @@ export default class bitrue extends bitrueRest {
         if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' watchTicker is only supported for swap markets');
         }
-        const baseIdLower = this.safeStringLower (market, 'baseId');
-        const quoteIdLower = this.safeStringLower (market, 'quoteId');
+        const baseIdLower = this.safeStringLower (market, 'baseId', '');
+        const quoteIdLower = this.safeStringLower (market, 'quoteId', '');
         const wsId = 'e_' + baseIdLower + quoteIdLower;
         const channel = 'market_' + wsId + '_ticker';
         const messageHash = 'ticker:' + symbolValue;
