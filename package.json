@@ -102,7 +102,7 @@
     "pre-transpile-js-simple": "npm run export-exchanges-js && npm run emitAPITs && tsc && npm run validate-types",
     "pre-transpile-cs": "npm run export-exchanges-cs && npm run emitAPICs",
     "pre-transpile-java": "npm run export-exchanges-java && npm run emitAPIJava",
-    "pre-transpile": "npm run export-exchanges && npm run vss && npm run tsBuild && npm run emitAPI && npm run validate-types && npm run tsBuildExamples && npm run check-js-syntax && npm run bundle",
+    "pre-transpile": "npm run export-exchanges && npm run vss && npm run emitAPI && npm run tsBuild && npm run validate-types && npm run tsBuildExamples && npm run check-js-syntax && npm run bundle",
     "pre-transpile-pr": "npm run export-exchanges && npm run tsBuild && npm run emitAPI && npm run check-js-syntax",
     "post-transpile": "npm run check-python-syntax && npm run check-php-syntax",
     "cli.ts": "tsx ./cli/ts/cli.ts",

@@ -1,7 +1,11 @@
-import ccxt, { Dict, Exchange } from '../ts/ccxt.js';
+import type { Dict } from '../ts/src/base/types.js';
+import type { Exchange } from '../ts/src/base/Exchange.js';
 import fs from 'fs';
 import { writeFile, unlink } from 'fs/promises';
 import log from 'ololog'
+import { bootstrapImplicitApiAbstracts } from './bootstrap-implicit-api.mjs';
+
+let ccxt: typeof import('../ts/ccxt.js').default;
 
 // ---------------------------------------------------------------------------
 // Read declared Endpoint<Returns> shapes from describe().api leaves via the
@@ -1429,6 +1433,8 @@ async function main() {
     // const exchanges = ccxt.exchanges;
 
     const allExchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
+    bootstrapImplicitApiAbstracts(ROOT, allExchanges);
+    ccxt = (await import('../ts/ccxt.js')).default;
     // const exchanges = ['gate', 'gateio'];
 
     await generateImplicitAPIs (allExchanges.ids, shouldGenerateAll);
