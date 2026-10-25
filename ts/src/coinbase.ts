@@ -644,7 +644,7 @@ export default class coinbase extends Exchange {
         const data: Dict[] = this.safeList (response, 'data', []);
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'next_starting_after');
-        const accounts = this.safeList (response, 'data', []);
+        const accounts: Dict[] = this.safeList (response, 'data', []);
         const length = accounts.length;
         const lastIndex = length - 1;
         const last = this.safeDict (accounts, lastIndex, {});
@@ -697,7 +697,7 @@ export default class coinbase extends Exchange {
         //         "size": 9
         //     }
         //
-        const accounts = this.safeList (response, 'accounts', []);
+        const accounts: Dict[] = this.safeList (response, 'accounts', []);
         const accountsLength = accounts.length;
         const cursor = this.safeString (response, 'cursor');
         if ((accountsLength > 0) && (cursor !== undefined) && (cursor !== '')) {
@@ -2505,8 +2505,8 @@ export default class coinbase extends Exchange {
                         account['free'] = free;
                         account['total'] = total;
                     } else {
-                        account['free'] = Precise.stringAdd (account['free'], total);
-                        account['total'] = Precise.stringAdd (account['total'], total);
+                        account['free'] = Precise.stringAdd (this.safeString (account, 'free'), total);
+                        account['total'] = Precise.stringAdd (this.safeString (account, 'total'), total);
                     }
                     if (code !== undefined) {
                         result[code] = account;
@@ -2528,9 +2528,9 @@ export default class coinbase extends Exchange {
                         account['used'] = used;
                         account['total'] = total;
                     } else {
-                        account['free'] = Precise.stringAdd (account['free'], free);
-                        account['used'] = Precise.stringAdd (account['used'], used);
-                        account['total'] = Precise.stringAdd (account['total'], total);
+                        account['free'] = Precise.stringAdd (this.safeString (account, 'free'), free);
+                        account['used'] = Precise.stringAdd (this.safeString (account, 'used'), used);
+                        account['total'] = Precise.stringAdd (this.safeString (account, 'total'), total);
                     }
                     if (code !== undefined) {
                         result[code] = account;
@@ -3076,10 +3076,11 @@ export default class coinbase extends Exchange {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument');
             }
-            accountId = await this.findAccountId (code, paramsOmitted);
-            if (accountId === undefined) {
+            const foundAccountId: Str = await this.findAccountId (code, paramsOmitted);
+            if (foundAccountId === undefined) {
                 throw new ExchangeError (this.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code + '. You might try to generate the deposit address in the website for that coin first.');
             }
+            accountId = foundAccountId;
         }
         const request: Dict = {
             'account_id': accountId,
@@ -4557,10 +4558,11 @@ export default class coinbase extends Exchange {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' deposit() requires an account_id (or accountId) parameter OR a currency code argument');
             }
-            accountId = await this.findAccountId (code, paramsOmitted);
-            if (accountId === undefined) {
+            const foundAccountId: Str = await this.findAccountId (code, paramsOmitted);
+            if (foundAccountId === undefined) {
                 throw new ExchangeError (this.id + ' deposit() could not find account id for ' + code);
             }
+            accountId = foundAccountId;
         }
         const request: Dict = {
             'account_id': accountId,
@@ -4632,10 +4634,11 @@ export default class coinbase extends Exchange {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument');
             }
-            accountId = await this.findAccountId (code, paramsOmitted);
-            if (accountId === undefined) {
+            const foundAccountId: Str = await this.findAccountId (code, paramsOmitted);
+            if (foundAccountId === undefined) {
                 throw new ExchangeError (this.id + ' fetchDeposit() could not find account id for ' + code);
             }
+            accountId = foundAccountId;
         }
         const request: Dict = {
             'account_id': accountId,
@@ -5455,18 +5458,16 @@ export default class coinbase extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessageInner, feedback);
             throw new ExchangeError (feedback);
         }
-        const errors = this.safeList (response, 'errors');
+        const errors: Dict[] = this.safeList (response, 'errors', []);
         if (errors !== undefined) {
-            if (Array.isArray (errors)) {
-                const numErrors = errors.length;
-                if (numErrors > 0) {
-                    errorCode = this.safeString (errors[0], 'id');
-                    const errorMessage = this.safeString (errors[0], 'message');
-                    if (errorCode !== undefined) {
-                        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-                        this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
-                        throw new ExchangeError (feedback);
-                    }
+            const numErrors = errors.length;
+            if (numErrors > 0) {
+                errorCode = this.safeString (errors[0], 'id');
+                const errorMessage = this.safeString (errors[0], 'message');
+                if (errorCode !== undefined) {
+                    this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+                    this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+                    throw new ExchangeError (feedback);
                 }
             }
         }

@@ -83,7 +83,7 @@ export default class coinbase extends coinbaseRest {
             } else {
                 productIds = marketIds;
             }
-            messageHash = messageHash + '::' + symbols.join (',');
+            messageHash = name + '::' + symbols.join (',');
         } else if (symbol !== undefined) {
             market = this.market (symbol);
             messageHash = name + '::' + symbol;
@@ -135,12 +135,12 @@ export default class coinbase extends coinbaseRest {
             } else {
                 productIds = marketIds;
             }
-            watchMessageHash = watchMessageHash + '::' + symbols.join (',');
-            unWatchMessageHash = unWatchMessageHash + '::' + symbols.join (',');
+            watchMessageHash = name + '::' + symbols.join (',');
+            unWatchMessageHash = 'unsubscribe:' + name + '::' + symbols.join (',');
         } else if (symbol !== undefined) {
             market = this.market (symbol);
             watchMessageHash = name + '::' + symbol;
-            unWatchMessageHash = unWatchMessageHash + '::' + symbol;
+            unWatchMessageHash = 'unsubscribe:' + name + '::' + symbol;
             productIds = [ this.safeString (market, 'id') ];
         }
         const url = this.urls['api']['ws'];
@@ -274,7 +274,7 @@ export default class coinbase extends coinbaseRest {
                 throw new ArgumentsRequired (this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
             }
             const currentToken = this.safeString (this.options, 'wsToken');
-            const tokenTimestamp = this.safeInteger (this.options, 'wsTokenTimestamp', 0);
+            const tokenTimestamp = this.parseToInt (this.safeInteger (this.options, 'wsTokenTimestamp', 0));
             const seconds = this.seconds ();
             const tokenExpiry = tokenTimestamp + 120;
             if (currentToken === undefined || tokenExpiry < seconds) {
