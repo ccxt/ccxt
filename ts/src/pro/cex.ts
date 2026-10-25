@@ -967,7 +967,7 @@ export default class cex extends cexRest {
         //         "ok": "ok"
         //     }
         //
-        const symbol = this.safeString (message, 'oid'); // symbol is set as requestId in watchOrders
+        const symbol = this.safeString (message, 'oid', ''); // symbol is set as requestId in watchOrders
         const rawOrders: Dict[] = this.safeList (message, 'data', []);
         let myOrders = this.orders;
         if (myOrders === undefined) {
@@ -1160,11 +1160,13 @@ export default class cex extends cexRest {
         const symbolValue: string = market['symbol'];
         const messageHash = 'ohlcv:' + symbolValue;
         const url = this.urls['api']['ws'];
+        const baseId = this.safeString (market, 'baseId', '');
+        const quoteId = this.safeString (market, 'quoteId', '');
         const request: Dict = {
             'e': 'init-ohlcv',
             'i': timeframe,
             'rooms': [
-                'pair-' + market['baseId'] + '-' + market['quoteId'],
+                'pair-' + baseId + '-' + quoteId,
             ],
         };
         const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);

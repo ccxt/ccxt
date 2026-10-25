@@ -1864,7 +1864,7 @@ export default class cex extends Exchange {
         if (response === undefined) {
             if (body === undefined) {
                 throw new NullResponse (this.id + ' returned empty response');
-            } else if (body[0] === '{') {
+            } else if (body.startsWith ('{')) {
                 const fixed = this.fixStringifiedJsonMembers (body);
                 responseFixed = this.parseJson (fixed);
             } else {
