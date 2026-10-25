@@ -172,7 +172,7 @@ export default class backpack extends backpackRest {
                     topic = 'bookTicker.' + this.wsVenueMarketId (methodName, market, query);
                 }
             } else if (source === 'External') {
-                const externalBaseId = this.safeString (market, 'baseId');
+                const externalBaseId = this.safeString (market, 'baseId', '');
                 topic = 'externalTicker.' + externalBaseId + '_USDC';
             } else if ((this.safeString (market, 'executionModel') === 'rfq') && (market['stock'] !== true)) {
                 throw new NotSupported (this.id + ' ' + methodName + '() RFQ venue tickers are only mapped for stock data');
@@ -252,7 +252,7 @@ export default class backpack extends backpackRest {
         const wsUrls = this.safeDict (apiUrls, 'ws', {});
         const url = this.safeString (wsUrls, 'private', '');
         const instruction = 'subscribe';
-        const ts = this.nonce ().toString ();
+        const ts = this.numberToString (this.nonce ());
         let method: Str = 'SUBSCRIBE';
         if (unwatch) {
             method = 'UNSUBSCRIBE';
@@ -279,7 +279,7 @@ export default class backpack extends backpackRest {
         const client = this.client (url);
         this.watchMultiple (url, messageHashes, message, messageHashes);
         for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
+            const messageHash = this.safeString (messageHashes, i, '');
             const subMessageHash = messageHash.replace ('unsubscribe:', '');
             this.cleanUnsubscription (client, subMessageHash, messageHash);
             if (messageHash.indexOf ('ticker') >= 0) {

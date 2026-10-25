@@ -1314,7 +1314,8 @@ export default class backpack extends Exchange {
         const query = this.safeDict (selection, 1, {});
         const request: Dict = this.extend ({}, query);
         let source = this.safeString (query, 'source');
-        const isRfq = (market !== undefined) && (this.safeString (market['info'], 'marketType') === 'RFQ');
+        const marketInfo = this.safeDict (market, 'info', {});
+        const isRfq = (market !== undefined) && (this.safeString (marketInfo, 'marketType') === 'RFQ');
         if (source === undefined) {
             source = (isRfq) ? 'External' : 'Venue';
         }
@@ -1346,7 +1347,7 @@ export default class backpack extends Exchange {
         }
         if (market !== undefined) {
             let marketId = market['id'];
-            if (this.safeString (market['info'], 'marketType') === 'RFQ') {
+            if (this.safeString (marketInfo, 'marketType') === 'RFQ') {
                 marketId = market['baseId'] + '_' + market['quoteId'];
             }
             request['symbol'] = marketId;
@@ -3408,7 +3409,7 @@ export default class backpack extends Exchange {
         let bodySigned: Str = undefined;
         if (apiName === 'private') {
             this.checkRequiredCredentials ();
-            const ts = this.nonce ().toString ();
+            const ts = this.numberToString (this.nonce ());
             const recvWindow = this.safeString2 (this.options, 'recvWindow', 'X-Window', '5000');
             const optionInstructions = this.safeDict (this.options, 'instructions', {});
             const optionPathInstructions = this.safeDict (optionInstructions, path, {});
