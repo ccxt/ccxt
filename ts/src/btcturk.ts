@@ -749,15 +749,16 @@ export default class btcturk extends Exchange {
         } else if (since === undefined) {
             limitResolved = 100; // default value
         }
-        if (limitResolved !== undefined) {
+        if ((limit !== undefined) || (since === undefined)) {
             if (timeframe === '1y') { // difficult with leap years
                 throw new BadRequest (this.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             const seconds = this.parseTimeframe (timeframe);
             const limitCount: Int = (limit === undefined) ? 100 : Math.min (limit, 11000);
-            const limitSeconds: int = seconds * (limitCount - 1);
+            const limitSeconds: int = this.parseToInt (seconds * (limitCount - 1));
             if (since !== undefined) {
-                const to: int = this.parseToInt (since / 1000) + limitSeconds;
+                const sinceSeconds: int = this.parseToInt (since / 1000);
+                const to: int = sinceSeconds + limitSeconds;
                 if (to < untilSeconds) {
                     request['to'] = to;
                 }
@@ -1101,7 +1102,7 @@ export default class btcturk extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0);
         if (this.id === 'btctrader') {
             throw new ExchangeError (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         }
