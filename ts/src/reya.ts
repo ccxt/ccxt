@@ -7,7 +7,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, Exchange
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { int, Account, Balances, Dict, Endpoint, FundingRate, FundingRates, Int, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { int, Account, Balances, Currency, Dict, Endpoint, FundingRate, FundingRates, Int, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 
 /**
  * @class reya
@@ -39,6 +39,7 @@ export default class reya extends Exchange {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchCurrencies': false,
+                'fetchDeposits': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
@@ -53,6 +54,8 @@ export default class reya extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTransfers': true,
+                'fetchWithdrawals': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -94,6 +97,7 @@ export default class reya extends Exchange {
                         'wallet/{address}/openOrders': { 'cost': 1 } as Endpoint<Dict[]>,
                         'wallet/{address}/orderHistory': 1,
                         'wallet/{address}/perpExecutions': 1,
+                        'wallet/{address}/transfers': 1,
                     },
                     'post': { 'createOrder': 1, 'cancelOrder': 1, 'cancelAll': 1 },
                 },
@@ -515,6 +519,181 @@ export default class reya extends Exchange {
             }
         }
         return this.safeBalance (result);
+    }
+
+    /** @ignore */
+    async reyaTransferHistory (movementType: string, code: Str, since: Int, limit: Int, params: Dict): Promise<Dict[]> {
+        const accountId = this.numberToString (this.reyaAccountId (params));
+        const maxPages = this.safeInteger (params, 'paginationCalls', 10);
+        const maxResults = (limit === undefined) ? 100 : this.parseToInt (limit);
+        if (maxResults < 1 || maxPages < 1) {
+            throw new BadRequest (this.id + ' limit and paginationCalls must be positive integers');
+        }
+        const query = this.omit (params, [ 'paginationCalls', 'limit', 'address', 'type' ]);
+        const request: Dict = this.extend ({ 'address': this.reyaWalletAddress (), 'type': movementType }, this.reyaHistoryRequest (since, undefined, query));
+        const currencyCode = this.safeCurrencyCode (code);
+        const result = [];
+        let collected = 0;
+        const seenEntries: Dict = {};
+        const seenCursors: Dict = {};
+        const initialCursor = this.safeString (request, 'cursor');
+        if (initialCursor !== undefined) {
+            seenCursors[initialCursor] = true;
+        }
+        for (let page = 0; page < maxPages; page++) {
+            request['limit'] = 100;
+            const response = await this.privateGetWalletAddressTransfers (request);
+            const rows = this.safeList (response, 'data', []);
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const rowCode = this.safeCurrencyCode (this.safeString (row, 'asset'));
+                if (this.safeString (row, 'accountId') !== accountId || this.safeString (row, 'type') !== movementType || (currencyCode !== undefined && rowCode !== currencyCode)) {
+                    continue;
+                }
+                const timestamp = this.safeInteger (row, 'timestamp');
+                if (since !== undefined && timestamp !== undefined && timestamp < since) {
+                    continue;
+                }
+                const entryId = this.safeString (row, 'sequenceNumber');
+                if (entryId !== undefined && this.safeBool (seenEntries, entryId, false)) {
+                    continue;
+                }
+                if (entryId !== undefined) {
+                    seenEntries[entryId] = true;
+                }
+                result.push (row);
+                collected += 1;
+                if (collected >= maxResults) {
+                    break;
+                }
+            }
+            if (collected >= maxResults) {
+                break;
+            }
+            const meta = this.safeDict (response, 'meta', {});
+            const cursor = this.safeString (meta, 'nextCursor');
+            if (cursor === undefined) {
+                break;
+            }
+            if (this.safeBool (seenCursors, cursor, false)) {
+                throw new ExchangeError (this.id + ' transfers history cursor did not advance');
+            }
+            seenCursors[cursor] = true;
+            request['cursor'] = cursor;
+        }
+        return result;
+    }
+
+    /** @ignore */
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        const timestamp = this.safeInteger (transaction, 'timestamp');
+        const transactionType = this.safeStringLower (transaction, 'type');
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'sequenceNumber'),
+            'txid': this.safeString (transaction, 'transactionHash'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': transactionType,
+            'amount': this.parseNumber (Precise.stringAbs (this.safeString (transaction, 'amount'))),
+            'currency': this.safeCurrencyCode (this.safeString (transaction, 'asset'), currency),
+            // A settled Reya debit does not establish destination-chain arrival or pending status.
+            'status': (transactionType === 'deposit') ? 'ok' : undefined,
+            'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
+            'fee': undefined,
+        };
+    }
+
+    /** @ignore */
+    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        const timestamp = this.safeInteger (transfer, 'timestamp');
+        const amount = this.safeString (transfer, 'amount');
+        const outgoing = Precise.stringLt (amount, '0');
+        const accountId = this.safeString (transfer, 'accountId');
+        const counterparty = this.safeString (transfer, 'counterpartyAccountId');
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'sequenceNumber'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (this.safeString (transfer, 'asset'), currency),
+            'amount': this.parseNumber (Precise.stringAbs (amount)),
+            'fromAccount': (outgoing) ? accountId : counterparty,
+            'toAccount': (outgoing) ? counterparty : accountId,
+            'status': 'ok',
+        };
+    }
+
+    /**
+     * @method
+     * @name reya#fetchDeposits
+     * @description fetch settled deposits credited to one Reya account; IDs and transaction hashes identify Reya ledger settlement, with no source network or address metadata
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string} [code] unified currency code
+     * @param {int} [since] earliest timestamp in milliseconds
+     * @param {int} [limit] maximum entries to return, defaults to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] account id, defaults to options.accountId
+     * @param {string} [params.cursor] opaque cursor from the raw transfers response meta.nextCursor
+     * @param {int} [params.until] latest timestamp in milliseconds
+     * @param {int} [params.paginationCalls] maximum wallet pages to read, defaults to 10; pages containing only other accounts or assets are skipped
+     * @returns {object[]} a list of transaction structures
+     */
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        const rows = await this.reyaTransferHistory ('DEPOSIT', code, since, limit, params);
+        return this.parseTransactions (rows, undefined, since, limit);
+    }
+
+    /**
+     * @method
+     * @name reya#fetchWithdrawals
+     * @description fetch settled Reya-side withdrawal debits for one account; status is unknown because destination-chain arrival is not reported
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string} [code] unified currency code
+     * @param {int} [since] earliest timestamp in milliseconds
+     * @param {int} [limit] maximum entries to return, defaults to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] account id, defaults to options.accountId
+     * @param {string} [params.cursor] opaque cursor from the raw transfers response meta.nextCursor
+     * @param {int} [params.until] latest timestamp in milliseconds
+     * @param {int} [params.paginationCalls] maximum wallet pages to read, defaults to 10; pending and destination-completed bridge transactions are not distinguished
+     * @returns {object[]} a list of transaction structures with unknown destination status, network, addresses and fee
+     */
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        const rows = await this.reyaTransferHistory ('WITHDRAWAL', code, since, limit, params);
+        return this.parseTransactions (rows, undefined, since, limit);
+    }
+
+    /**
+     * @method
+     * @name reya#fetchTransfers
+     * @description fetch settled internal transfers for one account; each id identifies that account's ledger leg and local account filtering avoids counting both sides of a same-wallet transfer
+     * @see https://github.com/Reya-Labs/reya-api-specs/blob/main/openapi-trading-v2.yaml
+     * @param {string} [code] unified currency code
+     * @param {int} [since] earliest timestamp in milliseconds
+     * @param {int} [limit] maximum entries to return, defaults to 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.accountId] account id, defaults to options.accountId
+     * @param {string} [params.cursor] opaque cursor from the raw transfers response meta.nextCursor
+     * @param {int} [params.until] latest timestamp in milliseconds
+     * @param {int} [params.paginationCalls] maximum wallet pages to read, defaults to 10; identical movements sharing a transaction hash remain distinct
+     * @returns {object[]} a list of transfer structures with positive amounts and source/destination account IDs
+     */
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
+        await this.loadMarkets ();
+        const rows = await this.reyaTransferHistory ('TRANSFER', code, since, limit, params);
+        return this.parseTransfers (rows, undefined, since, limit);
     }
 
     /** @ignore */
