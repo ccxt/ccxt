@@ -1553,10 +1553,6 @@ public class Pacifica extends PacificaApi
             {
                 throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a \"since\" argument")) ;
             }
-            if (java.util.Objects.equals(symbol, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a \"symbol\" argument")) ;
-            }
             Long defaultMaxLimit = 3950L; // 4000 by docs, but in fact >~3960 returns error
             if (java.util.Objects.equals(this.markets, null))
             {
