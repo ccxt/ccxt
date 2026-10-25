@@ -308,8 +308,9 @@ export default class onetrading extends onetradingRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbolResolved = this.safeString (market, 'symbol');
-            messageHash += ':' + symbolResolved;
+            const symbolValue = this.safeString (market, 'symbol', '');
+            symbolResolved = symbolValue;
+            messageHash = 'myTrades:' + symbolValue;
         }
         await this.authenticate (params);
         const url = this.safeString (this.urls['api'], 'ws');
@@ -402,7 +403,7 @@ export default class onetrading extends onetradingRest {
         //         "time": "2022-06-23T15:38:02.751301Z"
         //     }
         //
-        const type = this.safeString (message, 'type');
+        const type = this.safeString (message, 'type', '');
         const marketId = this.safeString (message, 'instrument_code');
         const symbol = this.safeSymbol (marketId);
         const dateTime = this.safeString (message, 'time');
@@ -477,8 +478,9 @@ export default class onetrading extends onetradingRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbolResolved = this.safeString (market, 'symbol');
-            messageHash += ':' + symbolResolved;
+            const symbolValue = this.safeString (market, 'symbol', '');
+            symbolResolved = symbolValue;
+            messageHash = 'orders:' + symbolValue;
         }
         await this.authenticate (params);
         const url = this.safeString (this.urls['api'], 'ws');
