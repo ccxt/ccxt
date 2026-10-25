@@ -1458,8 +1458,9 @@ export default class btcmarkets extends Exchange {
                     request += '?' + this.urlencode (query);
                 }
             } else {
-                requestBody = this.json (query);
-                auth += requestBody;
+                const jsonBody = this.json (query);
+                requestBody = jsonBody;
+                auth = method + request + nonce + jsonBody;
             }
             const signature = this.hmac (this.encode (auth), secret, sha512, 'base64');
             requestHeaders = {
