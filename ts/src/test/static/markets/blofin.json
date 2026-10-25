@@ -338,5 +338,71 @@
             "settleCurrency": "BTC",
             "offTime": ""
         }
+    },
+    "CATI/USDT:USDT": {
+        "id": "CATI-USDT",
+        "symbol": "CATI/USDT:USDT",
+        "base": "CATI",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "CATI",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0006,
+        "maker": 0.0002,
+        "contractSize": 10,
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 50
+            },
+            "amount": {
+                "min": 1,
+                "max": 5000000
+            },
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "created": 1726835400000,
+        "info": {
+            "instId": "CATI-USDT",
+            "baseCurrency": "CATI",
+            "quoteCurrency": "USDT",
+            "contractValue": "10",
+            "listTime": "1726835400000",
+            "expireTime": "2515715800000",
+            "maxLeverage": "50",
+            "assetClass": "Crypto",
+            "minSize": "1",
+            "lotSize": "1",
+            "tickSize": "0.00001",
+            "instType": "SWAP",
+            "contractType": "linear",
+            "maxLimitSize": "5000000",
+            "maxMarketSize": "120000",
+            "state": "live",
+            "thresholdX": "0.04",
+            "thresholdY": "0.15",
+            "thresholdZ": "0.15",
+            "settleCurrency": "USDT",
+            "offTime": "",
+            "apiPermission": "full"
+        }
     }
 }
