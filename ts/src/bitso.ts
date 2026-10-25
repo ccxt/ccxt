@@ -498,7 +498,9 @@ export default class bitso extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'book');
-            const [ baseId, quoteId ] = (id as string).split ('_');
+            const parts = (id as string).split ('_');
+            const baseId = this.safeString (parts, 0, '');
+            const quoteId = this.safeString (parts, 1, '');
             const base = this.safeCurrencyCode (baseId.toUpperCase ());
             const quote = this.safeCurrencyCode (quoteId.toUpperCase ());
             if ((base === undefined) || (quote === undefined)) {
@@ -1413,12 +1415,10 @@ export default class bitso extends Exchange {
         const response = await this.privateGetOrdersOid ({
             'oid': id,
         });
-        const payload = this.safeList (response, 'payload');
-        if (Array.isArray (payload)) {
-            const numOrders = payload.length;
-            if (numOrders === 1) {
-                return this.parseOrder (payload[0]);
-            }
+        const payload: Dict[] = this.safeList (response, 'payload', []);
+        const numOrders = payload.length;
+        if (numOrders === 1) {
+            return this.parseOrder (payload[0]);
         }
         throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
     }
@@ -1845,7 +1845,7 @@ export default class bitso extends Exchange {
             'LTC': 'Litecoin',
         };
         const currency = this.currency (code);
-        const method = (code in methods) ? methods[code] : undefined;
+        const method = this.safeString (methods, code);
         if (method === undefined) {
             throw new ExchangeError (this.id + ' not valid withdraw coin: ' + code);
         }
@@ -1986,8 +1986,7 @@ export default class bitso extends Exchange {
             // bitso rejects a nonce that is not higher than the previous one (error 104)
             const nonce = this.incrementingNonce ().toString ();
             endpoint = '/api' + endpoint;
-            const content = [ nonce, method, endpoint ];
-            let request: string = content.join ('');
+            let request: string = nonce + method + endpoint;
             if (method !== 'GET' && method !== 'DELETE') {
                 if (Object.keys (query).length > 0) {
                     const jsonBody = this.json (query);
