@@ -4614,7 +4614,7 @@ func (this *Cryptocom) ParamsToString(object any, level any) any {
 
 /**
  * @method
- * @name cryptocom#closePositions
+ * @name cryptocom#closePosition
  * @description closes open positions for a market
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
  * @param {string} symbol Unified CCXT market symbol
@@ -5736,6 +5736,21 @@ func (this *Cryptocom) FetchPositions(options ...FetchPositionsOptions) ([]Posit
 	var res []Position = r.Value
 	return res, nil
 }
+
+/**
+ * @method
+ * @name cryptocom#closePosition
+ * @description closes open positions for a market
+ * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
+ * @param {string} symbol Unified CCXT market symbol
+ * @param {string} [side] not used by cryptocom.closePositions
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ *
+ * EXCHANGE SPECIFIC PARAMETERS
+ * @param {string} [params.type] LIMIT or MARKET
+ * @param {number} [params.price] for limit orders only
+ * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+ */
 func (this *Cryptocom) ClosePosition(symbol string, options ...ClosePositionOptions) (Order, error) {
 
 	opts := ClosePositionOptionsStruct{}

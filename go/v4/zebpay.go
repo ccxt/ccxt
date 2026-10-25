@@ -1272,7 +1272,7 @@ func (this *Zebpay) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 
 /**
  * @method
- * @name zebpatspot#fetchOrderTrades
+ * @name zebpay#fetchOrderTrades
  * @description fetch all the trades made from a single order
  * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-fills
  * @param {string} id order id
@@ -3109,6 +3109,19 @@ func (this *Zebpay) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
 	var res []Trade = r.Value
 	return res, nil
 }
+
+/**
+ * @method
+ * @name zebpay#fetchOrderTrades
+ * @description fetch all the trades made from a single order
+ * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-fills
+ * @param {string} id order id
+ * @param {string} symbol unified market symbol
+ * @param {int} [since] the earliest time in ms to fetch trades for
+ * @param {int} [limit] the maximum number of trades to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+ */
 func (this *Zebpay) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 
 	opts := FetchOrderTradesOptionsStruct{}

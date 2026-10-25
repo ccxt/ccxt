@@ -2557,7 +2557,7 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) Trade {
 
 /**
  * @method
- * @name betteam#fetchBalance
+ * @name bitteam#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3389,6 +3389,15 @@ func (this *Bitteam) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 	var res []Trade = r.Value
 	return res, nil
 }
+
+/**
+ * @method
+ * @name bitteam#fetchBalance
+ * @description query for balance and get the amount of funds available for trading or funds locked in orders
+ * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+ */
 func (this *Bitteam) FetchBalance(params ...any) (Balances, error) {
 	r := <-this.FetchBalanceAsync(params...)
 	if r.Err != nil {

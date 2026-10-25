@@ -1676,9 +1676,6 @@ func (this *Pacifica) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	if since == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a \"since\" argument"))
 	}
-	if false {
-		panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a \"symbol\" argument"))
-	}
 	var defaultMaxLimit int = 3950 // 4000 by docs, but in fact >~3960 returns error
 	if this.Markets == nil {
 
@@ -1695,11 +1692,11 @@ func (this *Pacifica) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes125419 []any = r1.Value
-		if retRes125419 == nil {
+		var retRes125119 []any = r1.Value
+		if retRes125119 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes125419)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes125119)}
 		}
 		return nil
 	}
@@ -1902,11 +1899,11 @@ func (this *Pacifica) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes139419 []any = r1.Value
-		if retRes139419 == nil {
+		var retRes139119 []any = r1.Value
+		if retRes139119 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes139419)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes139119)}
 		}
 		return nil
 	}
@@ -2915,11 +2912,11 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes211819 []any = r1.Value
-		if retRes211819 == nil {
+		var retRes211519 []any = r1.Value
+		if retRes211519 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes211819)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes211519)}
 		}
 		return nil
 	}
@@ -3350,11 +3347,11 @@ func (this *Pacifica) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes238219 []any = r1.Value
-		if retRes238219 == nil {
+		var retRes237919 []any = r1.Value
+		if retRes237919 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes238219)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes237919)}
 		}
 		return nil
 	}
@@ -4375,11 +4372,11 @@ func (this *Pacifica) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes312019 []any = r1.Value
-		if retRes312019 == nil {
+		var retRes311719 []any = r1.Value
+		if retRes311719 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes312019)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes311719)}
 		}
 		return nil
 	}
@@ -4689,11 +4686,11 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes333819 []any = r1.Value
-		if retRes333819 == nil {
+		var retRes333519 []any = r1.Value
+		if retRes333519 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes333819)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes333519)}
 		}
 		return nil
 	}

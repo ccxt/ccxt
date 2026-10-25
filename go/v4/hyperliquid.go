@@ -6894,7 +6894,7 @@ func (this *Hyperliquid) reserveRequestWeightBody(ch chan AsyncResult[map[string
 
 /**
  * @method
- * @name hyperliquid#createAccount
+ * @name hyperliquid#createSubAccount
  * @description creates a sub-account under the main account
  * @param {string} name the name of the sub-account
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -8330,6 +8330,16 @@ func (this *Hyperliquid) FetchFundingHistory(options ...FetchFundingHistoryOptio
 	var res []FundingHistory = r.Value
 	return res, nil
 }
+
+/**
+ * @method
+ * @name hyperliquid#createSubAccount
+ * @description creates a sub-account under the main account
+ * @param {string} name the name of the sub-account
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.expiresAfter] time in ms after which the sub-account will expire
+ * @returns {object} a response object
+ */
 func (this *Hyperliquid) CreateSubAccount(name string, options ...CreateSubAccountOptions) (map[string]any, error) {
 
 	opts := CreateSubAccountOptionsStruct{}
