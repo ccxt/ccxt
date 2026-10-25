@@ -713,11 +713,12 @@ export default class latoken extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        let maxTimestamp: Int = undefined;
         const types = this.safeDict (this.options, 'types', {});
         const accountType = this.safeString (types, type, type);
         const balancesByType = this.groupBy (response, 'type');
         const balances: Dict[] = this.safeList (balancesByType, accountType, []);
+        const firstBalance = this.safeDict (balances, 0);
+        let maxTimestamp = this.safeInteger (firstBalance, 'timestamp');
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict (balances, i);
             const currencyId = this.safeString (balance, 'currency');
@@ -1993,7 +1994,7 @@ export default class latoken extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const urlencodedQuery = this.urlencode (query);
         if (method === 'GET') {
-            if (Object.keys (query).length > 0) {
+            if (urlencodedQuery !== '') {
                 requestString += '?' + urlencodedQuery;
             }
         }
