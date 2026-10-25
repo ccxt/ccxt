@@ -990,6 +990,7 @@ export default class aster extends Exchange {
             return undefined;
         }
         const active = this.safeString (market, 'status') === 'TRADING';
+        const tradingFees = this.safeDict (this.fees, 'trading', {});
         let spot: Bool = undefined;
         let symbol: Str = undefined;
         let settle: Str = undefined;
@@ -1047,8 +1048,8 @@ export default class aster extends Exchange {
             'contract': isContract,
             'linear': linear,
             'inverse': inverse,
-            'taker': this.fees['trading']['taker'],
-            'maker': this.fees['trading']['maker'],
+            'taker': tradingFees['taker'],
+            'maker': tradingFees['maker'],
             'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -2714,7 +2715,8 @@ export default class aster extends Exchange {
         const orderSymbolsResolved = this.marketSymbols (orderSymbols, undefined, false, true, true);
         const market = this.market (orderSymbolsResolved[0]);
         if (market['spot'] === true) {
-            throw new NotSupported (this.id + ' createOrders() does not support ' + market['type'] + ' orders');
+            const marketType = this.safeString (market, 'type', '');
+            throw new NotSupported (this.id + ' createOrders() does not support ' + marketType + ' orders');
         }
         const request: Dict = {
             'batchOrders': ordersRequests,
@@ -2839,7 +2841,8 @@ export default class aster extends Exchange {
                 const quoteOrderQty = this.handleOption ('createOrder', 'quoteOrderQty', true);
                 if (quoteOrderQty === true) {
                     const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
-                    const precision = market['precision']['price'];
+                    const marketPrecision = this.safeDict (market, 'precision', {});
+                    const precision = marketPrecision['price'];
                     if (quoteOrderQtyNew !== undefined) {
                         request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
                     } else if (price !== undefined) {
@@ -3978,7 +3981,7 @@ export default class aster extends Exchange {
             }
             const pricePrecision = this.precisionFromString (this.safeString (marketResolved['precision'], 'price'));
             const pricePrecisionPlusOne = pricePrecision + 1;
-            const pricePrecisionPlusOneString = pricePrecisionPlusOne.toString ();
+            const pricePrecisionPlusOneString = this.numberToString (pricePrecisionPlusOne);
             // round half up
             const rounderString = '5e-' + pricePrecisionPlusOneString;
             const liquidationPriceRoundedString = Precise.stringAdd (rounderString, liquidationPriceStringRaw);
@@ -3986,7 +3989,7 @@ export default class aster extends Exchange {
             if (truncatedLiquidationPrice === undefined) {
                 throw new ExchangeError (this.id + ' method() missing truncatedLiquidationPrice');
             }
-            if (truncatedLiquidationPrice[0] === '-') {
+            if (truncatedLiquidationPrice.startsWith ('-')) {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
                 truncatedLiquidationPrice = undefined;
