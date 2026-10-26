@@ -4791,7 +4791,7 @@ export class BaseExchange {
         }
         const debtBalanceArray = Object.keys (debtBalance);
         const length = debtBalanceArray.length;
-        if ((length !== undefined) && (length !== 0)) {
+        if (length !== 0) {
             balance['debt'] = debtBalance;
         }
         return balance as any;
@@ -5239,10 +5239,10 @@ export class BaseExchange {
                 id += '-' + side;
             }
             if (amount !== undefined) {
-                id += '-' + this.numberToString (amount);
+                id += '-' + amount;
             }
             if (price !== undefined) {
-                id += '-' + this.numberToString (price);
+                id += '-' + price;
             }
             if (takerOrMaker !== undefined) {
                 id += '-' + takerOrMaker;
@@ -8897,9 +8897,7 @@ export class BaseExchange {
                     shouldBreak = true;
                     break;
                 }
-                if (response !== undefined) {
-                    result = this.arrayConcat (result, response);
-                }
+                result = this.arrayConcat (result, response);
                 const last = this.safeDict (response, responseLength - 1);
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = undefined; // search for the cursor
@@ -9019,27 +9017,17 @@ export class BaseExchange {
             const entry = input[i];
             let id = this.safeString (entry, 'id');
             if (id === undefined) {
-                const price = this.safeString (entry, 'price');
-                const amount = this.safeString (entry, 'amount');
+                const price = this.safeString (entry, 'price', '');
+                const amount = this.safeString (entry, 'amount', '');
                 const timestamp = this.safeString (entry, 'timestamp');
-                const side = this.safeString (entry, 'side');
+                const side = this.safeString (entry, 'side', '');
                 // unique trade identifier
                 if (timestamp === undefined) {
                     throw new ExchangeError (this.id + ' removeRepeatedTradesFromArray() missing timestamp');
                 }
-                // optional parts are appended only when present, separators keep positions distinct
-                id = 't_' + timestamp.toString () + '_';
-                if (side !== undefined) {
-                    id = id + side;
-                }
-                id = id + '_';
-                if (price !== undefined) {
-                    id = id + price;
-                }
-                id = id + '_';
-                if (amount !== undefined) {
-                    id = id + amount;
-                }
+                // optional parts are empty when absent, separators keep positions distinct
+                id = 't_' + timestamp.toString () + '_' + side + '_';
+                id = id + (price + '_' + amount);
             }
             if (id !== undefined && !(id in uniqueResult)) {
                 uniqueResult[id] = entry;
