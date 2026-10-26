@@ -4351,7 +4351,7 @@ public partial class mexc : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> response = await this.FetchAccountHelper(marketType, query);
+        object response = await this.FetchAccountHelper(marketType, query);
         List<object> data = this.safeList(response, "balances", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)

@@ -464,7 +464,7 @@ public partial class nado : Exchange
         this.checkRequiredCredentials();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        Dictionary<string, object> request = await this.CreateOrderRequest(symbol, type, side, amount, price, parameters);
+        object request = await this.CreateOrderRequest(symbol, type, side, amount, price, parameters);
         IDictionary<string, object> placeOrder = this.safeDict(request, "place_order", new Dictionary<string, object>() {});
         bool isTriggerOrder = (placeOrder.ContainsKey("trigger"));
         Dictionary<string, object> response = null;
@@ -656,7 +656,7 @@ public partial class nado : Exchange
         this.checkRequiredCredentials();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        Dictionary<string, object> request = await this.EditOrderRequest(id, symbol, type, side, amount, price, parameters);
+        object request = await this.EditOrderRequest(id, symbol, type, side, amount, price, parameters);
         Dictionary<string, object> response = await this.gatewayPrivatePostExecute(request);
         //
         //     {
@@ -833,7 +833,7 @@ public partial class nado : Exchange
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
-        Dictionary<string, object> request = await this.CancelAllOrdersRequest(symbol, paramsOmitted);
+        object request = await this.CancelAllOrdersRequest(symbol, paramsOmitted);
         Dictionary<string, object> response = null;
         if ((trigger == true))
         {
@@ -935,7 +935,7 @@ public partial class nado : Exchange
         Dictionary<string, object> market = this.market(symbol);
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
-        Dictionary<string, object> request = await this.CancelOrdersRequest(ids, symbol, paramsOmitted);
+        object request = await this.CancelOrdersRequest(ids, symbol, paramsOmitted);
         Dictionary<string, object> response = null;
         if ((trigger == true))
         {

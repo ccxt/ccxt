@@ -945,7 +945,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((this.id + " ws execute requires params.id")) ;
         }
-        Dictionary<string, object> request = await this.CreateOrderRequest(symbol, type, side, amount, price, paramsExtended);
+        object request = await this.CreateOrderRequest(symbol, type, side, amount, price, paramsExtended);
         IDictionary<string, object> placeOrder = this.safeDict(request, "place_order", new Dictionary<string, object>() {});
         if (placeOrder.ContainsKey("trigger"))
         {
@@ -1006,7 +1006,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((this.id + " ws execute requires params.id")) ;
         }
-        Dictionary<string, object> request = await this.EditOrderRequest(id, symbol, type, side, amount, price, paramsExtended);
+        object request = await this.EditOrderRequest(id, symbol, type, side, amount, price, paramsExtended);
         object response = await this.watchExecuteRequest(requestIdString, request);
         //
         //     {
@@ -1082,7 +1082,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((this.id + " ws execute requires params.id")) ;
         }
-        Dictionary<string, object> request = await this.CancelOrdersRequest(ids, symbol, paramsExtended);
+        object request = await this.CancelOrdersRequest(ids, symbol, paramsExtended);
         object response = await this.watchExecuteRequest(requestIdString, request);
         //
         //     {
@@ -1142,7 +1142,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((this.id + " ws execute requires params.id")) ;
         }
-        Dictionary<string, object> request = await this.CancelAllOrdersRequest(symbol, paramsExtended);
+        object request = await this.CancelAllOrdersRequest(symbol, paramsExtended);
         object response = await this.watchExecuteRequest(requestIdString, request);
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> cancelledOrders = this.safeList(data, "cancelled_orders", new List<object>() {});
@@ -1156,7 +1156,7 @@ public partial class nado : ccxt.nado
         return ccxt.BaseExchange.ToOrderList(result);
     }
 
-    public async virtual Task<object> watchExecuteRequest(string? requestIdString, IDictionary<string, object> request)
+    public async virtual Task<object> watchExecuteRequest(string? requestIdString, object request)
     {
         // the v2 gateway dispatches requests concurrently, so responses arrive
         // in completion order, not send order — every execute carries a unique

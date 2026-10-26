@@ -6727,7 +6727,7 @@ public partial class htx : Exchange
             {
                 throw new NotSupported ((this.id + " createOrder() does not support trailing orders for spot markets")) ;
             }
-            Dictionary<string, object> spotRequest = await this.CreateSpotOrderRequest(symbol, type, side, amount, price, parameters);
+            object spotRequest = await this.CreateSpotOrderRequest(symbol, type, side, amount, price, parameters);
             response = await this.spotPrivatePostV1OrderOrdersPlace(spotRequest);
         } else
         {

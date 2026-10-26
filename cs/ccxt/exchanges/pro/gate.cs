@@ -1295,8 +1295,8 @@ public partial class gate : ccxt.gate
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        object messageType = this.getTypeByMarket(market);
-        string? channel = ((string)add(messageType, ".candlesticks"));
+        string messageType = this.getTypeByMarket(market);
+        string channel = (messageType + ".candlesticks");
         string subMessageHash = ((("candles:" + interval) + ":") + symbolValue);
         string messageHash = ((("unsubscribe:candles:" + interval) + ":") + symbolValue);
         string? url = this.getUrlByMarket(market);

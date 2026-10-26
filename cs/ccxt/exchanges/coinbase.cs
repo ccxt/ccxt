@@ -1581,7 +1581,7 @@ public partial class coinbase : Exchange
     public async virtual Task<List<ccxt.MarketInterface>> FetchMarketsV2(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        Dictionary<string, object> response = await this.FetchCurrenciesFromCache(parameters);
+        object response = await this.FetchCurrenciesFromCache(parameters);
         IDictionary<string, object> currencies = this.safeDict(response, "currencies", new Dictionary<string, object>() {});
         IDictionary<string, object> exchangeRates = this.safeDict(response, "exchangeRates", new Dictionary<string, object>() {});
         List<object> data = this.safeList(currencies, "data", new List<object>() {});

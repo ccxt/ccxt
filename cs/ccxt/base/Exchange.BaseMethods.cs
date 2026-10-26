@@ -3979,7 +3979,7 @@ public partial class BaseExchange
         {
             if (reload == true || !(this.options.ContainsKey("limitsLoaded")))
             {
-                Dictionary<string, object> response = await this.FetchTradingLimits(symbols);
+                object response = await this.FetchTradingLimits(symbols);
                 object symbolsArray = this.requireValue(symbols, "loadTradingLimits() requires a symbols argument");
                 IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
                 if ((markets == null))
@@ -3989,7 +3989,7 @@ public partial class BaseExchange
                 for (int i = 0; i < getArrayLength(symbolsArray); i++)
                 {
                     object symbol = getValue(symbolsArray, i);
-                    markets[(string)symbol] = this.deepExtend((markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null), (response != null && symbol != null && response.ContainsKey((string)symbol) ? response[(string)symbol] : null));
+                    markets[(string)symbol] = this.deepExtend((markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null), getValue(response, symbol));
                 }
                 this.options["limitsLoaded"] = this.milliseconds();
             }

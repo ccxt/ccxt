@@ -354,7 +354,7 @@ public partial class binance : PredictionExchange
                 string? topicId = this.safeString(rawTopic, "marketTopicId");
                 if ((topicId != null))
                 {
-                    Dictionary<string, object> detail = await this.FetchRawTopicDetail(topicId);
+                    object detail = await this.FetchRawTopicDetail(topicId);
                     result.Add(detail);
                 }
             }
@@ -426,7 +426,7 @@ public partial class binance : PredictionExchange
             rawTopics = ccxt.BaseExchange.FromDictList(await this.FetchEventsByQuery(allQueries, fetchCap, rest));
         } else if ((eventId != null))
         {
-            Dictionary<string, object> detail = await this.FetchRawTopicDetail(eventId, rest);
+            object detail = await this.FetchRawTopicDetail(eventId, rest);
             rawTopics = new List<object>() {detail};
         } else
         {
@@ -1209,8 +1209,8 @@ public partial class binance : PredictionExchange
         {
             request["limit"] = limit;
         }
-        Dictionary<string, object> wallet = await this.FetchWallet("fetchOpenOrders", paramsMaxEntriesPerRequest);
-        request["walletAddress"] = (wallet != null && wallet.ContainsKey("walletAddress") ? wallet["walletAddress"] : null);
+        object wallet = await this.FetchWallet("fetchOpenOrders", paramsMaxEntriesPerRequest);
+        request["walletAddress"] = getValue(wallet, "walletAddress");
         Dictionary<string, object> response = await this.sapiPrivateGetOrderList(this.extend(request, paramsMaxEntriesPerRequest));
         //
         // {
@@ -1310,8 +1310,8 @@ public partial class binance : PredictionExchange
         {
             request["endDate"] = this.yyyymmdd(until);
         }
-        Dictionary<string, object> wallet = await this.FetchWallet("fetchOrders", paramsOmitted);
-        request["walletAddress"] = (wallet != null && wallet.ContainsKey("walletAddress") ? wallet["walletAddress"] : null);
+        object wallet = await this.FetchWallet("fetchOrders", paramsOmitted);
+        request["walletAddress"] = getValue(wallet, "walletAddress");
         Dictionary<string, object> response = await this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted));
         //
         // {
@@ -1378,9 +1378,9 @@ public partial class binance : PredictionExchange
                 requestedOutcomeSymbols[(string)requestedOutcome] = true;
             }
         }
-        Dictionary<string, object> wallet = await this.FetchWallet("fetchPositions", parameters);
+        object wallet = await this.FetchWallet("fetchPositions", parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "walletAddress", (wallet != null && wallet.ContainsKey("walletAddress") ? wallet["walletAddress"] : null) },
+            { "walletAddress", getValue(wallet, "walletAddress") },
         };
         Dictionary<string, object> response = await this.sapiPrivateGetPositionList(this.extend(request, parameters));
         //
@@ -1473,8 +1473,8 @@ public partial class binance : PredictionExchange
             Dictionary<string, object> market = this.market((outcomeObj != null && outcomeObj.ContainsKey("market") ? outcomeObj["market"] : null));
             request["marketTopicId"] = getValue((market.ContainsKey("info") ? market["info"] : null), "marketTopicId");
         }
-        Dictionary<string, object> wallet = await this.FetchWallet("fetchOrders", parameters);
-        request["walletAddress"] = (wallet != null && wallet.ContainsKey("walletAddress") ? wallet["walletAddress"] : null);
+        object wallet = await this.FetchWallet("fetchOrders", parameters);
+        request["walletAddress"] = getValue(wallet, "walletAddress");
         Dictionary<string, object> response = await this.sapiPrivateGetPositionFilter(this.extend(request, parameters));
         //
         //
@@ -1603,8 +1603,8 @@ public partial class binance : PredictionExchange
         {
             request["endDate"] = this.yyyymmdd(until);
         }
-        Dictionary<string, object> wallet = await this.FetchWallet("fetchMyTrades", paramsOmitted);
-        request["walletAddress"] = (wallet != null && wallet.ContainsKey("walletAddress") ? wallet["walletAddress"] : null);
+        object wallet = await this.FetchWallet("fetchMyTrades", paramsOmitted);
+        request["walletAddress"] = getValue(wallet, "walletAddress");
         Dictionary<string, object> response = await this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted));
         //
         // {
@@ -1887,13 +1887,13 @@ public partial class binance : PredictionExchange
         Dictionary<string, object> market = this.market(marketSymbol);
         string typeUpper = type.ToUpper();
         string sideUpper = side.ToUpper();
-        Dictionary<string, object> wallet = await this.FetchWallet("createOrder", parameters);
+        object wallet = await this.FetchWallet("createOrder", parameters);
         string? defaultSlippage = this.safeString(this.options, "defaultSlippage", "0.05");
         string? slippage = this.safeString(parameters, "slippage", defaultSlippage);
         string? cost = this.safeString(parameters, "cost");
         Int64? slippageBps = this.parseToInt(Precise.stringMul(slippage, "10000"));
         Dictionary<string, object> commonRequest = new Dictionary<string, object>() {
-            { "walletAddress", (wallet != null && wallet.ContainsKey("walletAddress") ? wallet["walletAddress"] : null) },
+            { "walletAddress", getValue(wallet, "walletAddress") },
             { "orderType", typeUpper },
             { "slippageBps", slippageBps },
         };
@@ -1946,10 +1946,10 @@ public partial class binance : PredictionExchange
             { "side", sideUpper },
             { "amountIn", Precise.stringMul(this.amountToPrecision(marketSymbol, amountStr), "1000000000000000000") },
         });
-        Dictionary<string, object> quote = await this.FetchQuote(quoteRequest, paramsOmitted);
+        object quote = await this.FetchQuote(quoteRequest, paramsOmitted);
         string? quoteId = this.safeString(quote, "quoteId");
         Dictionary<string, object> orderRequest = this.extend(commonRequest, new Dictionary<string, object>() {
-            { "walletId", (wallet != null && wallet.ContainsKey("walletId") ? wallet["walletId"] : null) },
+            { "walletId", getValue(wallet, "walletId") },
             { "quoteId", quoteId },
             { "timeInForce", timeInForce },
             { "accountType", accountType },
@@ -2015,10 +2015,10 @@ public partial class binance : PredictionExchange
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
         }
-        Dictionary<string, object> wallet = await this.FetchWallet("cancelOrders", parameters);
+        object wallet = await this.FetchWallet("cancelOrders", parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "walletAddress", (wallet != null && wallet.ContainsKey("walletAddress") ? wallet["walletAddress"] : null) },
-            { "walletId", (wallet != null && wallet.ContainsKey("walletId") ? wallet["walletId"] : null) },
+            { "walletAddress", getValue(wallet, "walletAddress") },
+            { "walletId", getValue(wallet, "walletId") },
         };
         // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
         for (int i = 0; i < (ids?.Count ?? 0); i++)
