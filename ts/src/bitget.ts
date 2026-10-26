@@ -4288,16 +4288,12 @@ export default class bitget extends Exchange {
         const feeStructure = isFeeStructure ? feeDetail[0] : feeDetail;
         if (feeStructure !== undefined) {
             const currencyCode = this.safeCurrencyCode (this.safeString (feeStructure, 'feeCoin'));
-            fee = {
-                'currency': currencyCode,
-            };
             const feeCostString = this.safeString2 (feeStructure, 'totalFee', 'fee');
             const deduction = this.safeString (feeStructure, 'deduction') === 'yes' ? true : false;
-            if (deduction) {
-                fee['cost'] = feeCostString;
-            } else {
-                fee['cost'] = Precise.stringNeg (feeCostString);
-            }
+            fee = {
+                'currency': currencyCode,
+                'cost': deduction ? feeCostString : Precise.stringNeg (feeCostString),
+            };
         }
         return this.safeTrade ({
             'info': trade,
@@ -6788,7 +6784,7 @@ export default class bitget extends Exchange {
         const productType = this.handleProductTypeAndParams (market, params)[0];
         const requestList: List = [];
         for (let i = 0; i < ids.length; i++) {
-            const individualId = ids[i];
+            const individualId = this.safeString (ids, i);
             const order: Dict = {
                 'orderId': individualId,
                 'symbol': market['id'],
@@ -6852,7 +6848,7 @@ export default class bitget extends Exchange {
         paramsUTA = this.omit (paramsUTA, [ 'stop', 'trigger' ]);
         const orderIdList: List = [];
         for (let i = 0; i < ids.length; i++) {
-            const individualId = ids[i];
+            const individualId = this.safeString (ids, i);
             const orderId: Dict = {
                 'orderId': individualId,
             };
@@ -12248,7 +12244,7 @@ export default class bitget extends Exchange {
 
     override sign (path: string, api: string[] = [], method: string = 'GET', params: Dict = {}): Dict {
         const signed = api[0] === 'private';
-        const endpoint = api[1];
+        const endpoint = this.safeString (api, 1);
         const pathPart = '/api';
         const request = '/' + this.implodeParams (path, params);
         const payload = pathPart + request;
