@@ -438,6 +438,7 @@ export default class bydfi extends bydfiRest {
         const interval = this.safeString (message, 'i');
         const timeframes = this.safeDict (this.options, 'timeframes', {});
         const timeframe = this.findTimeframe (interval, timeframes);
+        const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -449,7 +450,6 @@ export default class bydfi extends bydfiRest {
         const ohlcv = this.ohlcvs[symbol][timeframe as string];
         const parsed = this.parseWsOHLCV (message);
         ohlcv.append (parsed);
-        const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
         client.resolve ([ symbol, timeframe, ohlcv ], messageHash);
     }
 
@@ -569,13 +569,13 @@ export default class bydfi extends bydfiRest {
         const marketId = this.safeString (message, 's');
         const symbol = this.safeSymbol (marketId);
         const timestamp = this.safeInteger (message, 'E');
+        const messageHash = 'orderbook::' + symbol;
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];
         const parsed = this.parseOrderBook (message, symbol, timestamp, 'b', 'a');
         orderbook.reset (parsed);
-        const messageHash = 'orderbook::' + symbol;
         this.orderbooks[symbol] = orderbook;
         client.resolve (orderbook, messageHash);
     }
@@ -833,10 +833,8 @@ export default class bydfi extends bydfiRest {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache: ArrayCacheBySymbolBySide = this.positions;
-        const parsedPosition = this.parseWsPosition (rawPosition, market);
         const timestamp = this.safeInteger (message, 'T');
-        parsedPosition['timestamp'] = timestamp;
-        parsedPosition['datetime'] = this.iso8601 (timestamp);
+        const parsedPosition = this.extend (this.parseWsPosition (rawPosition, market), { 'timestamp': timestamp, 'datetime': this.iso8601 (timestamp) });
         cache.append (parsedPosition);
         client.resolve ([ parsedPosition ], messageHash);
         client.resolve ([ parsedPosition ], symbolMessageHash);

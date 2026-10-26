@@ -1603,8 +1603,7 @@ export default class bydfi extends Exchange {
             'wallet': walletOption,
         };
         let response: Dict;
-        const trigger = false;
-        const [ triggerOption, paramsTrigger ] = this.handleOptionBoolAndParams (paramsWallet, 'fetchOpenOrders', 'trigger', trigger);
+        const [ triggerOption, paramsTrigger ] = this.handleOptionBoolAndParams (paramsWallet, 'fetchOpenOrders', 'trigger', false);
         if (!triggerOption) {
             //
             //     {
@@ -1681,8 +1680,7 @@ export default class bydfi extends Exchange {
         const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (params, 'fetchOpenOrder', 'wallet', wallet);
         request['wallet'] = walletOption;
         let response: Dict;
-        const trigger = false;
-        const [ triggerOption, paramsTrigger ] = this.handleOptionBoolAndParams (paramsWallet, 'fetchOpenOrder', 'trigger', trigger);
+        const [ triggerOption, paramsTrigger ] = this.handleOptionBoolAndParams (paramsWallet, 'fetchOpenOrder', 'trigger', false);
         if (!triggerOption) {
             response = await this.privateGetV1FapiTradeOpenOrder (this.extend (request, paramsTrigger));
         } else {
@@ -2992,7 +2990,6 @@ export default class bydfi extends Exchange {
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = apiUrl;
         let endpoint = '/' + path;
         let query = '';
         const sortedParams = this.keysort (params);
@@ -3027,10 +3024,9 @@ export default class bydfi extends Exchange {
                 };
             }
         }
-        url = apiUrl + endpoint;
         const bodyResolved = requestBody;
         const headersResolved = requestHeaders;
-        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
+        return { 'url': apiUrl + endpoint, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
