@@ -2715,17 +2715,10 @@ export default class cryptocom extends Exchange {
         //
         const networkList: Dict[] = this.safeList (fee, 'network_list', []);
         const networkListLength = networkList.length;
-        const result: Dict = {
-            'info': fee,
-            'withdraw': {
-                'fee': undefined,
-                'percentage': undefined,
-            },
-            'deposit': {
-                'fee': undefined,
-                'percentage': undefined,
-            },
-            'networks': {},
+        const networks: Dict = {};
+        const withdrawFees: Dict = {
+            'fee': undefined,
+            'percentage': undefined,
         };
         if (networkList !== undefined) {
             for (let i = 0; i < networkListLength; i++) {
@@ -2734,17 +2727,26 @@ export default class cryptocom extends Exchange {
                 const currencyCode = this.safeString (currency, 'code');
                 const networkCode = this.networkIdToCode (networkId, currencyCode);
                 if (networkCode !== undefined) {
-                    result['networks'][networkCode] = {
+                    networks[networkCode] = {
                         'deposit': { 'fee': undefined, 'percentage': undefined },
                         'withdraw': { 'fee': this.safeNumber (networkInfo, 'withdrawal_fee'), 'percentage': false },
                     };
                 }
                 if (networkListLength === 1) {
-                    result['withdraw']['fee'] = this.safeNumber (networkInfo, 'withdrawal_fee');
-                    result['withdraw']['percentage'] = false;
+                    withdrawFees['fee'] = this.safeNumber (networkInfo, 'withdrawal_fee');
+                    withdrawFees['percentage'] = false;
                 }
             }
         }
+        const result: Dict = {
+            'info': fee,
+            'withdraw': withdrawFees,
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': networks,
+        };
         return result;
     }
 
@@ -3089,7 +3091,7 @@ export default class cryptocom extends Exchange {
         //
         const result: Dict[] = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push (this.parseSettlement (settlements[i], market));
+            result.push (this.parseSettlement (this.safeDict (settlements, i, {}), market));
         }
         return result;
     }
