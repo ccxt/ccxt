@@ -253,7 +253,7 @@ export default class gemini extends geminiRest {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const storesForSymbols: Dict = {};
             for (let i = 0; i < trades.length; i++) {
-                const rawTrade = trades[i];
+                const rawTrade = this.safeValue (trades, i);
                 const marketId = this.safeString (rawTrade, 'symbol', '').toLowerCase ();
                 const market = this.safeMarket (marketId);
                 const symbol = market['symbol'];
@@ -372,7 +372,7 @@ export default class gemini extends geminiRest {
         // reverse order of array to store candles in ascending order
         for (let i = 0; i < changesLength; i++) {
             const index = changesLength - i - 1;
-            const parsed = this.parseOHLCV (changes[index], market);
+            const parsed = this.parseOHLCV (this.safeValue (changes, index), market);
             stored.append (parsed);
         }
         const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
@@ -782,7 +782,7 @@ export default class gemini extends geminiRest {
         }
         const orders = this.orders;
         for (let i = 0; i < message.length; i++) {
-            const order = this.parseWsOrder (message[i]);
+            const order = this.parseWsOrder (this.safeValue (message, i));
             orders.append (order);
         }
         client.resolve (this.orders, messageHash);
