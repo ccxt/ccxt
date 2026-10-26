@@ -406,7 +406,7 @@ export default class lighter extends Exchange {
         if (lighterPrivateKeyIsSet && (libraryPath !== undefined) && (apiKeyIndex !== undefined) && (accountIndex !== undefined)) {
             // load lighter library, and create lighter client
             signer = await this.loadLighterLibrary (libraryPath, chainId, privateKey, this.parseToInt (apiKeyIndex), this.parseToInt (accountIndex), true);
-            this.options['auths'][accountIndex][apiKeyIndex]['signer'] = signer;
+            this.setAuthEntry (accountIndex, apiKeyIndex, { 'signer': signer });
             return signer;
         }
         const privateKeyIsSet = (this.privateKey !== undefined) && (this.privateKey !== '');
@@ -416,12 +416,16 @@ export default class lighter extends Exchange {
             }
             // load lighter library without creating lighter client
             signer = await this.loadLighterLibrary (libraryPath, chainId, '', this.parseToInt (apiKeyIndex), this.parseToInt (accountIndex), false);
-            this.options['auths'][accountIndex][apiKeyIndex]['signer'] = signer;
+            this.setAuthEntry (accountIndex, apiKeyIndex, { 'signer': signer });
             const res = await this.changeApiKey ();
             await this.handleBuilderFeeApproval (this.parseToInt (accountIndex), this.parseToInt (apiKeyIndex));
             return res;
         }
         return signer;
+    }
+
+    setAuthEntry (accIdx: string, keyIdx: string, entry: Dict) {
+        this.options['auths'][accIdx][keyIdx] = this.extend (this.safeDict (this.safeDict (this.safeDict (this.options, 'auths', {}), accIdx, {}), keyIdx, {}), entry);
     }
 
     initAuthObject (strAccountIndex: string, strApiKeyIndex: string) {
@@ -585,8 +589,7 @@ export default class lighter extends Exchange {
             'account_index': this.parseToInt (accountIndex),
         };
         const token = this.lighterCreateAuthToken (this.safeValue (cachedAuth, 'signer'), request);
-        this.options['auths'][(accountIndex as string)][(apiKeyIndex as string)]['deadline'] = deadline;
-        this.options['auths'][(accountIndex as string)][(apiKeyIndex as string)]['token'] = token;
+        this.setAuthEntry ((accountIndex as string), (apiKeyIndex as string), { 'deadline': deadline, 'token': token });
         return token;
     }
 
@@ -744,8 +747,7 @@ export default class lighter extends Exchange {
             'tx_info': newTxInfo,
         };
         await this.publicPostSendTx (request);
-        this.options['auths'][strAccountIndex][strApiKeyIndex]['lighterPrivateKey'] = privateKey;
-        this.options['auths'][strAccountIndex][strApiKeyIndex]['signer'] = signer; // reassign signer in go
+        this.setAuthEntry (strAccountIndex, strApiKeyIndex, { 'lighterPrivateKey': privateKey, 'signer': signer }); // reassign signer in go
         await this.handleBuilderFeeApproval ((accountIndex as number), (apiKeyIndex as number));
         return signer;
     }
@@ -2524,7 +2526,7 @@ export default class lighter extends Exchange {
             '1': 'good-till-time',
             '2': 'post-only',
         };
-        return this.safeString (timeInForces, tifInteger.toString ());
+        return this.safeString (timeInForces, this.numberToString (tifInteger));
     }
 
     /**
