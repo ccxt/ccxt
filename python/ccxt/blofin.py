@@ -415,7 +415,9 @@ class blofin(Exchange, ImplicitAPI):
                     'linear': {
                         'extends': 'forDerivatives',
                     },
-                    'inverse': None,
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
                 },
                 'future': {
                     'linear': None,
