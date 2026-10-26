@@ -923,7 +923,7 @@ export default class whitebit extends Exchange {
             const entry = currencyIds[i];
             const splitEntry = entry.split (' ');
             const currencyId = splitEntry[0];
-            const feeInfo = response[entry];
+            const feeInfo = this.safeValue (response, entry);
             const code = this.safeCurrencyCode (currencyId);
             if ((code !== undefined) && ((codesValue === undefined) || (this.inArray (code, codesValue)))) {
                 const depositWithdrawFee = this.safeDict (depositWithdrawFees, code);
@@ -1087,7 +1087,7 @@ export default class whitebit extends Exchange {
         const marketIds = Object.keys (markets);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = markets[marketId];
+            const market = this.safeValue (markets, marketId);
             const marketSymbol = this.safeString (market, 'symbol');
             if ((market === undefined) || (market === null) || (marketSymbol === undefined) || (marketSymbol === '')) {
                 continue; // Skip invalid markets silently
@@ -1632,7 +1632,7 @@ export default class whitebit extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const ticker = this.parseTicker (response[marketId], market);
+            const ticker = this.parseTicker (this.safeValue (response, marketId), market);
             const symbol = ticker['symbol'];
             result[(symbol as string)] = ticker;
         }
@@ -2378,7 +2378,7 @@ export default class whitebit extends Exchange {
         for (let i = 0; i < balanceKeys.length; i++) {
             const id = balanceKeys[i];
             const code = this.safeCurrencyCode (id);
-            const balance = response[id];
+            const balance = this.safeValue (response, id);
             if (balance !== undefined && this.isDictionary (balance)) {
                 const account = this.account ();
                 account['free'] = this.safeString2 (balance, 'available', 'main_balance');
@@ -4269,7 +4269,7 @@ export default class whitebit extends Exchange {
         const publicHeaders: Dict = {};
         publicHeaders['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         const pathWithParams = '/' + this.implodeParams (path, params);
-        const apiUrl = this.safeString (this.urls['api'][version], accessibility);
+        const apiUrl = this.safeString (this.safeValue (this.urls['api'], version), accessibility);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
