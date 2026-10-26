@@ -15,24 +15,8 @@ export default class bittrade extends Exchange {
      */
     fetchTime(params?: Dict): Promise<Int>;
     fetchTradingLimits(symbols?: Strings, params?: Dict): Promise<Dict>;
-    fetchTradingLimitsById(id: Str, params?: Dict): Promise<{
-        info: Dict;
-        limits: {
-            amount: {
-                min: Num;
-                max: Num;
-            };
-        };
-    }>;
-    parseTradingLimits(limits: Dict, symbol?: Str, params?: Dict): {
-        info: Dict;
-        limits: {
-            amount: {
-                min: Num;
-                max: Num;
-            };
-        };
-    };
+    fetchTradingLimitsById(id: Str, params?: Dict): Promise<Dict>;
+    parseTradingLimits(limits: Dict, symbol?: Str, params?: Dict): Dict;
     costToPrecision(symbol: Str, cost: any): Str;
     /**
      * @method

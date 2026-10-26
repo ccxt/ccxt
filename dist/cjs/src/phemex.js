@@ -1215,7 +1215,7 @@ class phemex extends phemex$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' customParseBidAsk() requires a market argument');
         }
         let amount = this.safeString(bidask, amountKey);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot') === true) {
             amount = this.fromEv(amount, market);
         }
         return [
@@ -1238,10 +1238,9 @@ class phemex extends phemex$1["default"] {
             for (let k = 0; k < bidasks.length; k++) {
                 orders.push(this.customParseBidAsk(bidasks[k], priceKey, amountKey, market));
             }
-            result[side] = orders;
+            const descending = (i === 0);
+            result[side] = this.sortBy(orders, 0, descending);
         }
-        result[bidsKey] = this.sortBy(result[bidsKey], 0, true);
-        result[asksKey] = this.sortBy(result[asksKey], 0);
         return result;
     }
     /**
@@ -1374,7 +1373,7 @@ class phemex extends phemex$1["default"] {
         //     ]
         //
         let baseVolume = undefined;
-        if ((market !== undefined) && (market['spot'] === true)) {
+        if ((market !== undefined) && (this.safeBool(market, 'spot') === true)) {
             baseVolume = this.parseNumber(this.fromEv(this.safeString(ohlcv, 7), market));
         }
         else {
@@ -1439,7 +1438,7 @@ class phemex extends phemex$1["default"] {
                     else {
                         // when since is defined 'to' is mandatory
                         const now = this.seconds();
-                        const to = this.parseToInt(fromSeconds + (maxLimit * candleDuration));
+                        const to = this.parseToInt(this.parseToInt(fromSeconds) + (maxLimit * candleDuration));
                         request['to'] = (to > now) ? now : to;
                     }
                 }
@@ -1939,7 +1938,8 @@ class phemex extends phemex$1["default"] {
             side = this.safeStringLower(trade, tradeLength - 3);
             priceString = this.safeString(trade, tradeLength - 2);
             amountString = this.safeString(trade, tradeLength - 1);
-            if (typeof trade[tradeLength - 2] === 'number') {
+            const priceAmount = trade[tradeLength - 2];
+            if (typeof priceAmount === 'number') {
                 priceString = this.fromEp(priceString, marketResolved);
                 amountString = this.fromEv(amountString, marketResolved);
             }
@@ -4768,7 +4768,7 @@ class phemex extends phemex$1["default"] {
         //
         const marketId = this.safeString(info, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const riskLimits = (marketResolved['info']['riskLimits']);
+        const riskLimits = this.safeList(marketResolved['info'], 'riskLimits', []);
         const tiers = [];
         let minNotional = 0;
         for (let i = 0; i < riskLimits.length; i++) {
@@ -4802,17 +4802,15 @@ class phemex extends phemex$1["default"] {
             }
         }
         let requestBody = undefined;
-        let privateHeaders = undefined;
+        const privateHeaders = {};
         if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.seconds();
             const xPhemexRequestExpiry = this.safeInteger(this.options, 'x-phemex-request-expiry', 60);
             const expiry = this.sum(timestamp, xPhemexRequestExpiry);
             const expiryString = expiry.toString();
-            privateHeaders = {
-                'x-phemex-access-token': this.apiKey,
-                'x-phemex-request-expiry': expiryString,
-            };
+            privateHeaders['x-phemex-access-token'] = this.apiKey;
+            privateHeaders['x-phemex-request-expiry'] = expiryString;
             let payload = '';
             if (method === 'POST') {
                 const isOrderPlacement = (path === 'g-orders') || (path === 'spot/orders') || (path === 'orders');
@@ -4970,16 +4968,16 @@ class phemex extends phemex$1["default"] {
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
-            if (transfer['fromAccount'] === undefined) {
+            if (this.safeString(transfer, 'fromAccount') === undefined) {
                 transfer['fromAccount'] = fromAccount;
             }
-            if (transfer['toAccount'] === undefined) {
+            if (this.safeString(transfer, 'toAccount') === undefined) {
                 transfer['toAccount'] = toAccount;
             }
-            if (transfer['amount'] === undefined) {
+            if (this.safeString(transfer, 'amount') === undefined) {
                 transfer['amount'] = amount;
             }
-            if (transfer['currency'] === undefined) {
+            if (this.safeString(transfer, 'currency') === undefined) {
                 transfer['currency'] = code;
             }
         }
@@ -5135,10 +5133,10 @@ class phemex extends phemex$1["default"] {
         }
         let customSymbol = undefined;
         if (isUsdtSettled) {
-            customSymbol = '.' + market['id'] + 'FR8H'; // phemex requires a custom symbol for funding rate history
+            customSymbol = '.' + this.safeString(market, 'id', '') + 'FR8H'; // phemex requires a custom symbol for funding rate history
         }
         else {
-            customSymbol = '.' + market['baseId'] + 'FR8H';
+            customSymbol = '.' + this.safeString(market, 'baseId', '') + 'FR8H';
         }
         const request = {
             'symbol': customSymbol,

@@ -307,7 +307,7 @@ export default class delta extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     reduceMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
-    modifyMarginHelper(symbol: string, amount: any, type: string, params?: Dict): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: number, type: string, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
      * @method

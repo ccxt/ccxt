@@ -218,8 +218,6 @@ export default class revolutx extends Exchange {
         let requestBody = undefined;
         const implodedPath = this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        const queryKeys = Object.keys(query);
-        const queryLength = queryKeys.length;
         const apiName = api[0];
         const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
@@ -232,14 +230,14 @@ export default class revolutx extends Exchange {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
             if (method === 'GET') {
-                if (queryLength > 0) {
-                    queryString = this.urlencode(query);
+                queryString = this.urlencode(query);
+                if (queryString !== '') {
                     url += '?' + queryString;
                 }
             }
             else if (method === 'DELETE') {
-                if (queryLength > 0) {
-                    queryString = this.urlencode(query);
+                queryString = this.urlencode(query);
+                if (queryString !== '') {
                     url += '?' + queryString;
                 }
             }
@@ -257,13 +255,13 @@ export default class revolutx extends Exchange {
                 'X-Revx-Signature': signature,
             };
             if (method === 'POST' || method === 'PUT') {
-                requestHeaders['Content-Type'] = 'application/json';
+                requestHeaders = this.extend(requestHeaders, { 'Content-Type': 'application/json' });
             }
         }
         else {
             if (method === 'GET') {
-                if (queryLength > 0) {
-                    queryString = this.urlencode(query);
+                queryString = this.urlencode(query);
+                if (queryString !== '') {
                     url += '?' + queryString;
                 }
             }
@@ -847,7 +845,11 @@ export default class revolutx extends Exchange {
         //         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
         //     ]
         //
-        const data = Array.isArray(response) ? response : this.safeList(response, 'data', []);
+        let payload = response;
+        if (Array.isArray(payload)) {
+            payload = { 'data': payload };
+        }
+        const data = this.safeList(payload, 'data', []);
         const result = { 'info': response };
         for (let i = 0; i < data.length; i++) {
             const balance = this.safeDict(data, i, {});

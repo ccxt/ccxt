@@ -53,7 +53,8 @@ class luno extends luno$1["default"] {
         }
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        const subscriptionHash = '/stream/' + market['id'];
+        const marketId = this.safeString(market, 'id', '');
+        const subscriptionHash = '/stream/' + marketId;
         const subscription = { 'symbol': symbolValue };
         const wsUrl = this.safeString(this.urls['api'], 'ws');
         if (wsUrl === undefined) {
@@ -96,20 +97,21 @@ class luno extends luno$1["default"] {
         }
         const symbol = subscription['symbol'];
         const market = this.market(symbol);
-        const messageHash = 'trades:' + symbol;
-        let stored = this.safeValue(this.trades, symbol);
+        const symbolValue = market['symbol'];
+        const messageHash = 'trades:' + symbolValue;
+        let stored = this.safeValue(this.trades, symbolValue);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             stored = new Cache.ArrayCache(limit);
-            this.trades[symbol] = stored;
+            this.trades[symbolValue] = stored;
         }
         for (let i = 0; i < rawTrades.length; i++) {
             const rawTrade = rawTrades[i];
             const trade = this.parseTrade(rawTrade, market);
             stored.append(trade);
         }
-        this.trades[symbol] = stored;
-        client.resolve(this.trades[symbol], messageHash);
+        this.trades[symbolValue] = stored;
+        client.resolve(stored, messageHash);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -165,7 +167,8 @@ class luno extends luno$1["default"] {
         }
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        const subscriptionHash = '/stream/' + market['id'];
+        const marketId = this.safeString(market, 'id', '');
+        const subscriptionHash = '/stream/' + marketId;
         const subscription = { 'symbol': symbolValue };
         const wsUrl = this.safeString(this.urls['api'], 'ws');
         if (wsUrl === undefined) {
@@ -215,7 +218,8 @@ class luno extends luno$1["default"] {
         //     }
         //
         const symbol = subscription['symbol'];
-        const messageHash = 'orderbook:' + symbol;
+        const symbolValue = this.safeString(subscription, 'symbol', '');
+        const messageHash = 'orderbook:' + symbolValue;
         const timestamp = this.safeInteger(message, 'timestamp');
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.indexedOrderBook({});
@@ -266,8 +270,7 @@ class luno extends luno$1["default"] {
         const amount = this.safeNumber(bidask, amountKey);
         const result = [price, amount];
         if (thirdKey !== undefined) {
-            const thirdValue = this.safeString(bidask, thirdKey);
-            result.push(thirdValue);
+            result.push(this.safeString(bidask, thirdKey));
         }
         return result;
     }
@@ -410,7 +413,7 @@ class luno extends luno$1["default"] {
             // an old or replayed frame, discard it
             return false;
         }
-        const expectedSequence = storedNonce + 1;
+        const expectedSequence = this.parseToInt(storedNonce) + 1;
         if (messageSequence !== expectedSequence) {
             // a gap in the sequence means a lost message and the book is
             // unrecoverable on a live connection, because luno only sends
@@ -423,13 +426,15 @@ class luno extends luno$1["default"] {
             // the cached book is kept so references returned by earlier
             // watchOrderBook calls stay live: clearing its nonce discards
             // deltas until the fresh snapshot resets the book in place
-            const error = new errors.InvalidNonce(this.id + ' watchOrderBook() received an out-of-sequence update for ' + symbol + ', expected ' + expectedSequence.toString() + ' but got ' + messageSequence.toString());
             orderbook['nonce'] = undefined;
             const market = this.market(symbol);
-            const subscriptionHash = '/stream/' + market['id'];
+            const symbolValue = this.safeString(market, 'symbol', '');
+            const marketId = this.safeString(market, 'id', '');
+            const subscriptionHash = '/stream/' + marketId;
             if (subscriptionHash in client.subscriptions) {
                 delete client.subscriptions[subscriptionHash];
             }
+            const error = new errors.InvalidNonce(this.id + ' watchOrderBook() received an out-of-sequence update for ' + symbolValue + ', expected ' + expectedSequence.toString() + ' but got ' + messageSequence.toString());
             client.reset(error);
             delete this.clients[client.url];
             return false;

@@ -888,8 +888,8 @@ export default class gemini extends Exchange {
         }
         const settle = this.safeCurrencyCode(settleId);
         let symbol = base + '/' + quote;
-        if (settleId !== undefined) {
-            symbol = symbol + ':' + settle;
+        if (settle !== undefined) {
+            symbol = base + '/' + quote + ':' + settle;
             swap = true;
             contractSize = tickSize; // always same
             linear = true; // always linear
@@ -1027,13 +1027,13 @@ export default class gemini extends Exchange {
         const tickerPromiseB = this.fetchTickerV2(symbol, params);
         const [tickerA, tickerB] = await Promise.all([tickerPromiseA, tickerPromiseB]);
         return this.deepExtend(tickerA, {
-            'open': tickerB['open'],
-            'high': tickerB['high'],
-            'low': tickerB['low'],
-            'change': tickerB['change'],
-            'percentage': tickerB['percentage'],
-            'average': tickerB['average'],
-            'info': tickerB['info'],
+            'open': this.safeString(tickerB, 'open'),
+            'high': this.safeString(tickerB, 'high'),
+            'low': this.safeString(tickerB, 'low'),
+            'change': this.safeString(tickerB, 'change'),
+            'percentage': this.safeString(tickerB, 'percentage'),
+            'average': this.safeString(tickerB, 'average'),
+            'info': this.safeValue(tickerB, 'info'),
         });
     }
     /**
@@ -2036,12 +2036,12 @@ export default class gemini extends Exchange {
         let headersSigned = undefined;
         if (apiName === 'private') {
             this.checkRequiredCredentials();
-            const apiKey = this.apiKey;
-            if (apiKey.indexOf('account') < 0) {
+            if (this.apiKey.indexOf('account') < 0) {
                 throw new AuthenticationError(this.id + ' sign() requires an account-key, master-keys are not-supported');
             }
             // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
-            const nonce = this.incrementingNonce().toString();
+            const nonceValue = this.incrementingNonce();
+            const nonce = this.numberToString(nonceValue);
             const finalUrl = url;
             const request = this.extend({
                 'request': finalUrl,
@@ -2058,7 +2058,7 @@ export default class gemini extends Exchange {
             };
         }
         else {
-            if (Object.keys(query).length > 0) {
+            if (!(this.isEmpty(query))) {
                 url += '?' + this.urlencode(query);
             }
         }

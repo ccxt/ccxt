@@ -141,7 +141,7 @@ export default class aster extends asterRest {
      */
     unWatchBidsAsks(symbols?: Strings, params?: Dict): Promise<any>;
     handleBidAsk(client: Client, message: Dict): void;
-    parseWsBidAsk(message: Dict, market?: Market): Ticker;
+    parseWsBidAsk(message: Dict, market: Market): Ticker;
     /**
      * @method
      * @name aster#watchTrades

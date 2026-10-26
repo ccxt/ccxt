@@ -574,7 +574,7 @@ export default class backpack extends Exchange {
         //
         const currencies = {};
         for (let i = 0; i < response.length; i++) {
-            const currency = this.parseCurrency(response[i]);
+            const currency = this.parseCurrency(this.safeDict(response, i, {}));
             if ((stock !== true) || (this.safeString(currency, 'type') === 'stock')) {
                 currencies[currency['code']] = currency;
             }
@@ -696,7 +696,7 @@ export default class backpack extends Exchange {
         const markets = [];
         const marketIds = {};
         for (let i = 0; i < response.length; i++) {
-            const rawMarket = response[i];
+            const rawMarket = this.safeDict(response, i, {});
             const rawType = this.safeString(rawMarket, 'marketType', '');
             if (!this.inArray(rawType, marketTypes)) {
                 continue;
@@ -710,7 +710,7 @@ export default class backpack extends Exchange {
                     continue;
                 }
                 marketIds[marketId] = true;
-                if ((stock !== true) || (market['stock'] === true)) {
+                if ((stock !== true) || this.safeBool(market, 'stock', false)) {
                     markets.push(market);
                 }
             }
@@ -925,7 +925,7 @@ export default class backpack extends Exchange {
             inverse = false;
             settleId = this.safeString(market, 'quoteSymbol');
             settle = this.safeCurrencyCode(settleId);
-            symbol += ':' + settle;
+            symbol = base + '/' + quote + ':' + settle;
             contractSize = 1;
         }
         else {
@@ -1098,7 +1098,7 @@ export default class backpack extends Exchange {
         const fee = this.safeDict(order, 'fee');
         const timestamp = this.safeInteger(order, 'timestamp');
         return {
-            'info': order['info'],
+            'info': this.safeDict(order, 'info'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'id': this.safeString(order, 'id'),
@@ -1129,7 +1129,7 @@ export default class backpack extends Exchange {
         }
         await this.loadMarkets();
         const market = this.rfqConversionMarket(fromCode, toCode);
-        const fromIsBase = fromCode === market['base'];
+        const fromIsBase = fromCode === this.safeString(market, 'base');
         const side = (fromIsBase) ? 'sell' : 'buy';
         if (!fromIsBase) {
             const initialQuote = await this.fetchStockIndicativeQuote(market['symbol'], side, 1, { 'stock': true });
@@ -1220,13 +1220,13 @@ export default class backpack extends Exchange {
         const quoteId = this.safeString(query, 'quoteId');
         if (quoteId !== undefined) {
             const acceptParams = this.omit(query, ['quoteId', 'price', 'baseAmount', 'clientOrderId']);
-            const accepted = await this.acceptRfqQuote(id, quoteId, market['symbol'], acceptParams);
+            const accepted = await this.acceptRfqQuote(id, quoteId, this.safeSymbol(undefined, market), acceptParams);
             return this.parseConversion(accepted, this.currency(fromCode), this.currency(toCode));
         }
         if ((amount === undefined) || !Precise.stringGt(this.numberToString(amount), '0')) {
             throw new ArgumentsRequired(this.id + ' createConvertTrade() requires a positive amount');
         }
-        const fromIsBase = fromCode === market['base'];
+        const fromIsBase = fromCode === this.safeString(market, 'base');
         const side = (fromIsBase) ? 'sell' : 'buy';
         let quantity = this.numberToString(amount);
         let price = this.safeNumber(query, 'price');
@@ -1237,7 +1237,7 @@ export default class backpack extends Exchange {
             }
             else {
                 if ((price === undefined) || !Precise.stringGt(this.numberToString(price), '0')) {
-                    const indicative = await this.fetchStockIndicativeQuote(market['symbol'], side, 1, { 'stock': true });
+                    const indicative = await this.fetchStockIndicativeQuote(this.safeSymbol(undefined, market), side, 1, { 'stock': true });
                     if (!this.safeBool(indicative, 'available', false)) {
                         throw new InvalidOrder(this.id + ' createConvertTrade() stock indicative quote unavailable: ' + this.safeString(indicative, 'reason', 'priceUnavailable'));
                     }
@@ -1247,14 +1247,14 @@ export default class backpack extends Exchange {
                     throw new InvalidOrder(this.id + ' createConvertTrade() buying stock requires a positive price bound');
                 }
                 const rawQuantity = Precise.stringDiv(this.numberToString(amount), this.numberToString(price), 18);
-                const preciseQuantity = this.amountToPrecision(market['symbol'], this.parseNumber(rawQuantity));
+                const preciseQuantity = this.amountToPrecision(this.safeSymbol(undefined, market), this.parseNumber(rawQuantity));
                 if (preciseQuantity === undefined) {
                     throw new InvalidOrder(this.id + ' createConvertTrade() could not determine a stock quantity');
                 }
                 quantity = preciseQuantity;
             }
             if ((price === undefined) || !Precise.stringGt(this.numberToString(price), '0')) {
-                const indicative = await this.fetchStockIndicativeQuote(market['symbol'], side, this.parseNumber(quantity), { 'stock': true });
+                const indicative = await this.fetchStockIndicativeQuote(this.safeSymbol(undefined, market), side, this.parseNumber(quantity), { 'stock': true });
                 if (!this.safeBool(indicative, 'available', false)) {
                     throw new InvalidOrder(this.id + ' createConvertTrade() stock indicative quote unavailable: ' + this.safeString(indicative, 'reason', 'priceUnavailable'));
                 }
@@ -1289,7 +1289,7 @@ export default class backpack extends Exchange {
         if (clientOrderId !== undefined) {
             orderParams['clientOrderId'] = clientOrderId;
         }
-        const order = await this.createRfqOrder(market['symbol'], 'market', side, this.parseNumber(quantity), price, this.extend(orderParams, { 'stock': true }));
+        const order = await this.createRfqOrder(this.safeSymbol(undefined, market), 'market', side, this.parseNumber(quantity), price, this.extend(orderParams, { 'stock': true }));
         return this.parseConversion(order, this.currency(fromCode), this.currency(toCode));
     }
     /**
@@ -1308,7 +1308,8 @@ export default class backpack extends Exchange {
         const query = this.safeDict(selection, 1, {});
         const request = this.extend({}, query);
         let source = this.safeString(query, 'source');
-        const isRfq = (market !== undefined) && (this.safeString(market['info'], 'marketType') === 'RFQ');
+        const marketInfo = this.safeDict(market, 'info', {});
+        const isRfq = (market !== undefined) && (this.safeString(marketInfo, 'marketType') === 'RFQ');
         if (source === undefined) {
             source = (isRfq) ? 'External' : 'Venue';
         }
@@ -1319,7 +1320,7 @@ export default class backpack extends Exchange {
             if (!stock) {
                 throw new BadRequest(this.id + ' ' + methodName + '() External provider data requires a stock market symbol or params.stock=true when no symbol is provided');
             }
-            if ((market !== undefined) && (market['stock'] !== true)) {
+            if ((market !== undefined) && !this.safeBool(market, 'stock', false)) {
                 throw new BadSymbol(this.id + ' ' + methodName + '() External data requires a stock market');
             }
             request['source'] = source;
@@ -1340,11 +1341,12 @@ export default class backpack extends Exchange {
             }
         }
         if (market !== undefined) {
-            let marketId = market['id'];
-            if (this.safeString(market['info'], 'marketType') === 'RFQ') {
-                marketId = market['baseId'] + '_' + market['quoteId'];
+            if (isRfq) {
+                request['symbol'] = this.safeString(market, 'baseId', '') + '_' + this.safeString(market, 'quoteId', '');
             }
-            request['symbol'] = marketId;
+            else {
+                request['symbol'] = this.safeString(market, 'id');
+            }
         }
         return request;
     }
@@ -1404,13 +1406,15 @@ export default class backpack extends Exchange {
         if (symbols !== undefined) {
             symbolsLength = symbols.length;
         }
-        const symbolsNormalized = (symbolsLength === 0) ? undefined : this.marketSymbols(symbols, undefined, false);
-        const symbolsResolved = (symbolsNormalized === undefined) ? Object.keys(this.markets) : symbolsNormalized;
+        let symbolsResolved = Object.keys(this.markets);
+        if (symbolsLength !== 0) {
+            symbolsResolved = this.marketSymbols(symbols, undefined, false);
+        }
         let hasRfqSymbol = false;
         let hasStockSymbol = false;
         if (symbols !== undefined) {
             for (let i = 0; i < symbolsResolved.length; i++) {
-                const market = this.market(symbolsResolved[i]);
+                const market = this.market(this.safeString(symbolsResolved, i));
                 if (market['stock'] === true) {
                     hasStockSymbol = true;
                 }
@@ -1449,7 +1453,7 @@ export default class backpack extends Exchange {
                 result[marketSymbol] = ticker;
             }
             else if (marketIsRfq) {
-                const underlyingId = market['baseId'] + '_' + market['quoteId'];
+                const underlyingId = this.safeString(market, 'baseId', '') + '_' + this.safeString(market, 'quoteId', '');
                 const useExternal = (source === 'External') || needsExternalRfqTickers;
                 const tickerSource = (useExternal) ? externalResponseById : responseById;
                 const underlyingTicker = this.safeDict(tickerSource, underlyingId);
@@ -1500,7 +1504,6 @@ export default class backpack extends Exchange {
         //
         const marketId = this.safeString(ticker, 'symbol');
         const marketResolved = (market === undefined) ? this.safeMarket(marketId) : market;
-        const symbol = marketResolved['symbol'];
         const open = this.safeString(ticker, 'firstPrice');
         const last = this.safeString(ticker, 'lastPrice');
         const high = this.safeString(ticker, 'high');
@@ -1515,7 +1518,7 @@ export default class backpack extends Exchange {
         }
         const change = this.safeString(ticker, 'priceChange');
         const parsedTicker = this.safeTicker({
-            'symbol': symbol,
+            'symbol': this.safeString(marketResolved, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,
             'high': high,
@@ -1906,7 +1909,7 @@ export default class backpack extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         const selection = this.handleStockParams('fetchMyTrades', params, market);
         const stock = this.safeBool(selection, 0, false);
@@ -1921,7 +1924,7 @@ export default class backpack extends Exchange {
         if (rfq || aggregate) {
             const rfqRequest = {};
             if (market !== undefined) {
-                rfqRequest['symbol'] = market['id'];
+                rfqRequest['symbol'] = this.safeString(market, 'id');
             }
             if (limit !== undefined) {
                 rfqRequest['limit'] = Math.min(limit, 1000);
@@ -2780,7 +2783,7 @@ export default class backpack extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         const selection = this.handleStockParams('fetchOpenOrders', params, market);
         const stock = this.safeBool(selection, 0, false);
@@ -2830,7 +2833,7 @@ export default class backpack extends Exchange {
         if (this.safeString(market['info'], 'marketType') === 'RFQ') {
             const rfqResponse = await this.privateGetApiV1Rfqs(this.extend(query, { 'symbol': market['id'], 'rfqId': id }));
             for (let i = 0; i < rfqResponse.length; i++) {
-                const order = this.parseOrder(rfqResponse[i], market);
+                const order = this.parseOrder(this.safeDict(rfqResponse, i, {}), market);
                 if (order['id'] === id) {
                     return order;
                 }
@@ -2881,7 +2884,7 @@ export default class backpack extends Exchange {
             response = await this.privateGetWapiV1HistoryOrders(this.extend(query, request));
         }
         for (let i = 0; i < response.length; i++) {
-            const order = this.parseOrder(response[i], market);
+            const order = this.parseOrder(this.safeDict(response, i, {}), market);
             if (order['id'] === id) {
                 return order;
             }
@@ -2986,7 +2989,7 @@ export default class backpack extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -3310,7 +3313,7 @@ export default class backpack extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -3362,11 +3365,11 @@ export default class backpack extends Exchange {
         }
         const requestParams = Array.isArray(params) ? params : this.omit(params, ['stock', 'defaultStock', 'rfq', 'callerMethodName']);
         const sortedParams = Array.isArray(requestParams) ? requestParams : this.keysort(requestParams);
-        let headersSigned = undefined;
+        let headersSigned = {};
         let bodySigned = undefined;
         if (apiName === 'private') {
             this.checkRequiredCredentials();
-            const ts = this.nonce().toString();
+            const ts = this.numberToString(this.nonce());
             const recvWindow = this.safeString2(this.options, 'recvWindow', 'X-Window', '5000');
             const optionInstructions = this.safeDict(this.options, 'instructions', {});
             const optionPathInstructions = this.safeDict(optionInstructions, path, {});
@@ -3413,12 +3416,13 @@ export default class backpack extends Exchange {
     }
     generateBatchPayload(params, ts, recvWindow, instruction) {
         let payload = '';
-        for (let i = 0; i < params.length; i++) {
+        const paramsLength = params.length;
+        for (let i = 0; i < paramsLength; i++) {
             const order = this.safeDict(params, i, {});
             const sortedOrder = this.keysort(order);
             const orderQuery = this.urlencode(sortedOrder);
             payload += 'instruction=' + instruction + '&' + orderQuery + '&';
-            if (i === (params.length - 1)) {
+            if (i === (paramsLength - 1)) {
                 payload += 'timestamp=' + ts + '&window=' + recvWindow;
             }
         }

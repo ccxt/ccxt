@@ -69,8 +69,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         const productIds = [];
         if (symbol !== undefined) {
             market = this.market(symbol);
-            messageHash += ':' + market['id'];
-            productIds.push(market['id']);
+            const marketId = this.safeString(market, 'id', '');
+            messageHash += ':' + marketId;
+            productIds.push(marketId);
         }
         let url = this.safeString(this.urls['api'], 'ws');
         if (url === undefined) {
@@ -104,8 +105,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             market = this.market(symbol);
-            productIds.push(market['id']);
-            messageHashes.push(messageHashStart + ':' + market['symbol']);
+            const marketId = this.safeString(market, 'id', '');
+            productIds.push(marketId);
+            messageHashes.push(messageHashStart + ':' + this.safeString(market, 'symbol', ''));
         }
         let url = this.safeString(this.urls['api'], 'ws');
         if (url === undefined) {
@@ -354,8 +356,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         const marketIds = this.marketIds(symbolsNormalized);
         const messageHashes = [];
         for (let i = 0; i < symbolsLength; i++) {
-            const marketId = marketIds[i];
-            messageHashes.push(name + ':' + marketId);
+            messageHashes.push(name + ':' + this.safeString(marketIds, i, ''));
         }
         const url = this.urls['api']['ws'];
         const subscribe = {
@@ -392,7 +393,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         }
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        const messageHash = name + ':' + market['id'];
+        const messageHash = name + ':' + this.safeString(market, 'id', '');
         const url = this.urls['api']['ws'];
         const subscribe = {
             'type': 'subscribe',
@@ -532,7 +533,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             feeRate = this.safeString(trade, 'taker_fee_rate');
             // side always represents the maker side of the trade
             // so if we're taker, we invert it
-            const currentSide = parsed['side'];
+            const currentSide = this.safeString(parsed, 'side');
             parsed['side'] = this.safeString({
                 'buy': 'sell',
                 'sell': 'buy',
@@ -543,11 +544,12 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             idKey = 'maker_order_id';
         }
         parsed['order'] = this.safeString(trade, idKey);
-        const marketResolved = this.market(parsed['symbol']);
+        const parsedSymbol = parsed['symbol'];
+        const marketResolved = this.market(parsedSymbol);
         const feeCurrency = marketResolved['quote'];
         let feeCost = undefined;
-        if ((parsed['cost'] !== undefined) && (feeRate !== undefined)) {
-            const cost = this.safeString(parsed, 'cost');
+        const cost = this.safeString(parsed, 'cost');
+        if ((cost !== undefined) && (feeRate !== undefined)) {
             feeCost = Precise["default"].stringMul(cost, feeRate);
         }
         parsed['fee'] = {
@@ -643,11 +645,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         //         "reason": "filled"
         //     }
         //
-        let currentOrders = this.orders;
-        if (currentOrders === undefined) {
+        if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
-            currentOrders = new Cache.ArrayCacheBySymbolById(limit);
-            this.orders = currentOrders;
+            this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
         const type = this.safeString(message, 'type');
         const marketId = this.safeString(message, 'product_id');
@@ -657,10 +657,10 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             const orderId = this.safeString(message, 'order_id');
             const makerOrderId = this.safeString(message, 'maker_order_id');
             const takerOrderId = this.safeString(message, 'taker_order_id');
-            const orders = this.orders;
-            if (orders === undefined) {
+            if (this.orders === undefined) {
                 return;
             }
+            const orders = this.orders;
             const previousOrders = this.safeDict(orders.hashmap, symbol, {});
             let previousOrder = this.safeDict(previousOrders, orderId);
             if (previousOrder === undefined) {
@@ -681,16 +681,14 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                 if ((previousSequence === undefined) || (sequence > previousSequence)) {
                     if (type === 'match') {
                         const trade = this.parseWsTrade(message);
-                        if (previousOrder['trades'] === undefined) {
-                            previousOrder['trades'] = [];
-                        }
-                        previousOrder['trades'].push(trade);
+                        const previousTrades = this.safeList(previousOrder, 'trades', []);
+                        previousTrades.push(trade);
+                        previousOrder['trades'] = previousTrades;
                         previousOrder['lastTradeTimestamp'] = trade['timestamp'];
                         let totalCost = '0';
                         let totalAmount = '0';
-                        const trades = previousOrder['trades'];
-                        for (let i = 0; i < trades.length; i++) {
-                            const tradeEntry = this.safeDict(trades, i);
+                        for (let i = 0; i < previousTrades.length; i++) {
+                            const tradeEntry = this.safeDict(previousTrades, i);
                             totalCost = this.safeString(tradeEntry, 'cost', '0');
                             totalAmount = this.safeString(tradeEntry, 'amount', '0');
                         }
@@ -701,19 +699,19 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                         const previousOrderFilled = this.safeString(previousOrder, 'filled');
                         if (previousOrderFilled !== undefined) {
                             previousOrder['filled'] = this.parseNumber(Precise["default"].stringAdd(previousOrderFilled, this.safeString(trade, 'amount')));
-                            if (previousOrder['amount'] !== undefined) {
+                            if (this.safeString(previousOrder, 'amount') !== undefined) {
                                 previousOrder['remaining'] = this.parseNumber(Precise["default"].stringSub(this.safeString(previousOrder, 'amount'), this.safeString(previousOrder, 'filled')));
                             }
                         }
-                        if (previousOrder['fee'] === undefined) {
+                        if (this.safeDict(previousOrder, 'fee') === undefined) {
                             previousOrder['fee'] = {
                                 'cost': 0,
                                 'currency': this.safeString(trade['fee'], 'currency'),
                             };
                         }
-                        if ((previousOrder['fee']['cost'] !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {
-                            previousOrder['fee']['cost'] = this.sum(previousOrder['fee']['cost'], this.safeNumber(trade['fee'], 'cost'));
-                            const previousOrderFee = this.safeDict(previousOrder, 'fee');
+                        const previousOrderFee = this.safeDict(previousOrder, 'fee', {});
+                        if ((previousOrderFee['cost'] !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {
+                            previousOrder['fee']['cost'] = this.sum(previousOrderFee['cost'], this.safeNumber(trade['fee'], 'cost'));
                             const tradeFee = this.safeDict(trade, 'fee');
                             previousOrder['fee']['cost'] = this.parseNumber(Precise["default"].stringAdd(this.safeString(previousOrderFee, 'cost'), this.safeString(tradeFee, 'cost')));
                         }
@@ -722,7 +720,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                         client.resolve(orders, messageHash);
                     }
                     else if ((type === 'received') || (type === 'done')) {
-                        const info = this.extend(previousOrder['info'], message);
+                        const info = this.extend(previousInfo, message);
                         const order = this.parseWsOrder(info);
                         const keys = Object.keys(order);
                         // update the reference
@@ -733,7 +731,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                             }
                         }
                         // update the newUpdates count
-                        if (orders === undefined) {
+                        if (this.orders === undefined) {
                             return;
                         }
                         orders.append(previousOrder);
@@ -921,7 +919,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = market['symbol'];
         const name = 'level2';
-        const messageHash = name + ':' + marketId;
+        const messageHash = name + ':' + this.safeString(market, 'id', '');
         const subscription = this.safeDict(client.subscriptions, messageHash, {});
         const limit = this.safeInteger(subscription, 'limit');
         if (type === 'snapshot') {

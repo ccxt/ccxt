@@ -84,10 +84,10 @@ export default class alpaca extends alpacaRest {
     handleOrder(client: Client, message: Dict): void;
     handleMyTrade(client: Client, message: Dict): void;
     parseMyTrade(trade: Dict, market?: Market): Trade | undefined;
-    authenticate(url: string, params?: Dict): Promise<any>;
+    authenticate(url: Str, params?: Dict): Promise<any>;
     handleErrorMessage(client: Client, message: Dict): Bool;
     handleConnected(client: Client, message: Dict): Dict;
-    handleCryptoMessage(client: Client, message: any[]): void;
+    handleCryptoMessage(client: Client, message: Dict[]): void;
     handleTradingMessage(client: Client, message: Dict): void;
     handleMessage(client: Client, message: any): void;
     handleAuthenticate(client: Client, message: Dict): void;

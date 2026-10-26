@@ -16,7 +16,7 @@ export default class coinsph extends Exchange {
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): CurrencyInterface;
-    calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: Dict): any;
+    calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: Dict): any;
     /**
      * @method
      * @name coinsph#fetchStatus

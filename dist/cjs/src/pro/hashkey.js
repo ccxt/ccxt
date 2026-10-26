@@ -223,7 +223,7 @@ class hashkey extends hashkey$1["default"] {
         //
         const data = this.safeList(message, 'data', []);
         const ticker = this.parseTicker(this.safeDict(data, 0, {}));
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString(ticker, 'symbol', '');
         const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = ticker;
         client.resolve(this.tickers[symbol], messageHash);
@@ -385,7 +385,7 @@ class hashkey extends hashkey$1["default"] {
         let messageHash = 'orders';
         const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
-            messageHash = messageHash + ':' + symbolResolved;
+            messageHash = 'orders' + ':' + symbolResolved;
         }
         const orders = await this.watchPrivate(messageHash);
         let limitResolved = limit;
@@ -439,7 +439,7 @@ class hashkey extends hashkey$1["default"] {
         orders.append(parsed);
         const messageHash = 'orders';
         client.resolve(orders, messageHash);
-        const symbol = parsed['symbol'];
+        const symbol = this.safeString(parsed, 'symbol', '');
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve(orders, symbolSpecificMessageHash);
     }
@@ -507,7 +507,7 @@ class hashkey extends hashkey$1["default"] {
         let messageHash = 'myTrades';
         const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
-            messageHash += ':' + symbolResolved;
+            messageHash = 'myTrades' + ':' + symbolResolved;
         }
         const trades = await this.watchPrivate(messageHash);
         let limitResolved = limit;
@@ -543,7 +543,7 @@ class hashkey extends hashkey$1["default"] {
         this.myTrades = tradesArray;
         const messageHash = 'myTrades';
         client.resolve(tradesArray, messageHash);
-        const symbol = parsed['symbol'];
+        const symbol = this.safeString(parsed, 'symbol', '');
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve(tradesArray, symbolSpecificMessageHash);
     }
@@ -672,7 +672,7 @@ class hashkey extends hashkey$1["default"] {
         positions.append(parsed);
         const messageHash = 'positions';
         client.resolve(parsed, messageHash);
-        const symbol = parsed['symbol'];
+        const symbol = this.safeString(parsed, 'symbol', '');
         client.resolve(parsed, messageHash + ':' + symbol);
     }
     parseWsPosition(position, market = undefined) {

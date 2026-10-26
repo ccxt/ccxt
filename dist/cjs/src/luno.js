@@ -481,7 +481,7 @@ class luno extends luno$1["default"] {
         return this.parseCurrencies(values);
     }
     parseCurrency(rawCurrency) {
-        const id = this.safeString(rawCurrency[0], 'native_currency'); // first item is guaranteed
+        const id = this.safeString(this.safeDict(rawCurrency, 0), 'native_currency'); // first item is guaranteed
         const code = this.safeCurrencyCode(id);
         const networks = {};
         for (let i = 0; i < rawCurrency.length; i++) {
@@ -702,8 +702,10 @@ class luno extends luno$1["default"] {
             const reservedUnconfirmed = Precise["default"].stringAdd(reserved, unconfirmed);
             const balanceUnconfirmed = Precise["default"].stringAdd(balance, unconfirmed);
             if ((code !== undefined) && (code in result)) {
-                result[code]['used'] = Precise["default"].stringAdd(result[code]['used'], reservedUnconfirmed);
-                result[code]['total'] = Precise["default"].stringAdd(result[code]['total'], balanceUnconfirmed);
+                result[code] = this.extend(result[code], {
+                    'used': Precise["default"].stringAdd(this.safeString(result[code], 'used'), reservedUnconfirmed),
+                    'total': Precise["default"].stringAdd(this.safeString(result[code], 'total'), balanceUnconfirmed),
+                });
             }
             else if (code !== undefined) {
                 const account = this.account();
@@ -794,8 +796,7 @@ class luno extends luno$1["default"] {
         //     }
         //
         const timestamp = this.safeInteger(order, 'creation_timestamp');
-        let status = this.parseOrderStatus(this.safeString(order, 'state'));
-        status = (status === 'open') ? status : status;
+        const status = this.parseOrderStatus(this.safeString(order, 'state'));
         let side = undefined;
         const orderType = this.safeString(order, 'type');
         if ((orderType === 'ASK') || (orderType === 'SELL')) {
@@ -1354,9 +1355,10 @@ class luno extends luno$1["default"] {
         if (response === undefined) {
             throw new errors.NullResponse(this.id + ' createOrder() returned empty response');
         }
+        const orderId = this.safeString(response, 'order_id');
         return this.safeOrder({
             'info': response,
-            'id': response['order_id'],
+            'id': orderId,
         }, market);
     }
     /**
@@ -1436,7 +1438,10 @@ class luno extends luno$1["default"] {
         const minRowBase = this.safeInteger(params, 'min_row', -1000); // Maximum number of records supported
         const limitApplies = (limit !== undefined) && (maxRowBase - minRowBase > limit);
         const min_row = (limitApplies && (limit !== undefined) && maxRowBase <= 0) ? maxRowBase - limit : minRowBase;
-        const max_row = (limitApplies && maxRowBase > 0 && minRowBase > 0) ? minRowBase + limit : maxRowBase;
+        let max_row = maxRowBase;
+        if (limitApplies && maxRowBase > 0 && minRowBase > 0) {
+            max_row = minRowBase + limit;
+        }
         const limitAdjusts = limitApplies && (maxRowBase <= 0 || minRowBase > 0); // max_row - min_row becomes limit
         if ((limitAdjusts && limit > 1000) || (!limitAdjusts && maxRowBase - minRowBase > 1000)) {
             throw new errors.ExchangeError(this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000");
@@ -1492,12 +1497,12 @@ class luno extends luno$1["default"] {
         const available_delta = this.safeString(entry, 'available_delta');
         const balance_delta = this.safeString(entry, 'balance_delta');
         const after = this.safeString(entry, 'balance');
-        const comment = this.safeString(entry, 'description');
+        const comment = this.safeString(entry, 'description', '');
         let before = after;
         let amount = '0.0';
         const result = this.parseLedgerComment(comment);
-        const type = result['type'];
-        const referenceId = result['referenceId'];
+        const resultType = this.safeString(result, 'type');
+        const resultReferenceId = this.safeString(result, 'referenceId');
         let direction = undefined;
         let status = undefined;
         if (!Precise["default"].stringEquals(balance_delta, '0.0')) {
@@ -1524,9 +1529,9 @@ class luno extends luno$1["default"] {
             'id': id,
             'direction': direction,
             'account': account_id,
-            'referenceId': referenceId,
+            'referenceId': resultReferenceId,
             'referenceAccount': undefined,
-            'type': type,
+            'type': resultType,
             'currency': code,
             'amount': this.parseToNumeric(amount),
             'timestamp': timestamp,

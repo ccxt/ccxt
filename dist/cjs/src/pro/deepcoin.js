@@ -110,7 +110,7 @@ class deepcoin extends deepcoin$1["default"] {
         return newValue;
     }
     createPublicRequest(market, requestId, topicID, suffix = '', unWatch = false) {
-        let marketId = this.safeString(market, 'symbol'); // spot markets use symbol with slash
+        let marketId = this.safeString(market, 'symbol', ''); // spot markets use symbol with slash
         if (this.safeString(market, 'type') === 'swap') {
             marketId = this.safeString(market, 'baseId', '') + this.safeString(market, 'quoteId', ''); // swap markets use symbol without slash
         }
@@ -130,7 +130,8 @@ class deepcoin extends deepcoin$1["default"] {
         return request;
     }
     async watchPublic(market, messageHash, topicID, params = {}, suffix = '') {
-        const url = this.urls['api']['ws']['public'][market['type']];
+        const marketType = this.safeString(market, 'type', '');
+        const url = this.safeString(this.urls['api']['ws']['public'], marketType, '');
         const requestId = this.requestId();
         const request = this.createPublicRequest(market, requestId, topicID, suffix);
         const subscription = {
@@ -140,7 +141,8 @@ class deepcoin extends deepcoin$1["default"] {
         return await this.watch(url, messageHash, this.deepExtend(request, params), messageHash, subscription);
     }
     async unWatchPublic(market, messageHash, topicID, params = {}, subscription = {}, suffix = '') {
-        const url = this.urls['api']['ws']['public'][market['type']];
+        const marketType = this.safeString(market, 'type', '');
+        const url = this.safeString(this.urls['api']['ws']['public'], marketType, '');
         const requestId = this.requestId();
         const client = this.client(url);
         const existingSubscription = this.safeDict(client.subscriptions, messageHash);
@@ -160,8 +162,7 @@ class deepcoin extends deepcoin$1["default"] {
     }
     async watchPrivate(messageHash, params = {}) {
         const listenKey = await this.authenticate();
-        const url = this.safeString(this.urls['api']['ws'], 'private') + '?listenKey=' + listenKey;
-        return await this.watch(url, messageHash, undefined, 'private', params);
+        return await this.watch(this.safeString(this.urls['api']['ws'], 'private', '') + '?listenKey=' + listenKey, messageHash, undefined, 'private', params);
     }
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
@@ -247,7 +248,7 @@ class deepcoin extends deepcoin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const messageHash = 'ticker' + '::' + market['symbol'];
+        const messageHash = 'ticker' + '::' + this.safeString(market, 'symbol', '');
         return await this.watchPublic(market, messageHash, '7', params);
     }
     /**
@@ -264,7 +265,7 @@ class deepcoin extends deepcoin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const messageHash = 'ticker' + '::' + market['symbol'];
+        const messageHash = 'ticker' + '::' + this.safeString(market, 'symbol', '');
         const subscription = {
             'topic': 'ticker',
         };
@@ -388,7 +389,7 @@ class deepcoin extends deepcoin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const messageHash = 'trades' + '::' + market['symbol'];
+        const messageHash = 'trades' + '::' + this.safeString(market, 'symbol', '');
         const trades = await this.watchPublic(market, messageHash, '2', params);
         let limitResolved = limit;
         if (this.newUpdates) {
@@ -410,7 +411,7 @@ class deepcoin extends deepcoin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const messageHash = 'trades' + '::' + market['symbol'];
+        const messageHash = 'trades' + '::' + this.safeString(market, 'symbol', '');
         const subscription = {
             'topic': 'trades',
         };
@@ -547,7 +548,7 @@ class deepcoin extends deepcoin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const timeframes = this.safeDict(this.options, 'timeframes', {});
         const interval = this.safeString(timeframes, timeframe, timeframe);
         const messageHash = 'ohlcv' + '::' + symbolValue + '::' + timeframe;
@@ -574,7 +575,7 @@ class deepcoin extends deepcoin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const timeframes = this.safeDict(this.options, 'timeframes', {});
         const interval = this.safeString(timeframes, timeframe, timeframe);
         const messageHash = 'ohlcv' + '::' + symbolValue + '::' + timeframe;
@@ -671,7 +672,7 @@ class deepcoin extends deepcoin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const messageHash = 'orderbook' + '::' + market['symbol'];
+        const messageHash = 'orderbook' + '::' + this.safeString(market, 'symbol', '');
         const [suffix, paramsValue] = this.orderBookSuffix(market, 'watchOrderBook', params);
         const orderbook = await this.watchPublic(market, messageHash, '25', paramsValue, suffix);
         return orderbook.limit();
@@ -691,7 +692,7 @@ class deepcoin extends deepcoin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const messageHash = 'orderbook' + '::' + market['symbol'];
+        const messageHash = 'orderbook' + '::' + this.safeString(market, 'symbol', '');
         const [suffix, paramsValue] = this.orderBookSuffix(market, 'unWatchOrderBook', params);
         const subscription = {
             'topic': 'orderbook',
@@ -776,10 +777,8 @@ class deepcoin extends deepcoin$1["default"] {
         const market = this.safeMarket(marketId, undefined, '/');
         const symbol = this.safeSymbol(marketId, market);
         const orderbook = this.orderbooks[symbol];
-        const orderedEntries = {
-            'bids': [],
-            'asks': [],
-        };
+        const bids = [];
+        const asks = [];
         for (let i = 0; i < entries.length; i++) {
             const entry = this.safeDict(entries, i);
             const entryData = this.safeDict(entry, 'd', {});
@@ -788,13 +787,17 @@ class deepcoin extends deepcoin$1["default"] {
             const volume = this.safeNumber(entryData, 'V');
             if (side === '0') {
                 // bid
-                orderedEntries['bids'].push([price, volume]);
+                bids.push([price, volume]);
             }
             else if (side === '1') {
                 // ask
-                orderedEntries['asks'].push([price, volume]);
+                asks.push([price, volume]);
             }
         }
+        const orderedEntries = {
+            'bids': bids,
+            'asks': asks,
+        };
         const timestamp = this.safeInteger(message, 'mt', 0);
         const snapshot = this.parseOrderBook(orderedEntries, symbol, timestamp);
         orderbook.reset(snapshot);
@@ -866,7 +869,7 @@ class deepcoin extends deepcoin$1["default"] {
         }
         const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : undefined;
         if (symbolResolved !== undefined) {
-            messageHash += '::' + symbolResolved;
+            messageHash = 'myTrades' + '::' + symbolResolved;
         }
         const trades = await this.watchPrivate(messageHash, params);
         let limitResolved = limit;
@@ -944,7 +947,7 @@ class deepcoin extends deepcoin$1["default"] {
         }
         const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : undefined;
         if (symbolResolved !== undefined) {
-            messageHash += '::' + symbolResolved;
+            messageHash = 'orders' + '::' + symbolResolved;
         }
         const orders = await this.watchPrivate(messageHash, params);
         let limitResolved = limit;
@@ -1094,7 +1097,7 @@ class deepcoin extends deepcoin$1["default"] {
         else {
             messageHashes.push(messageHash);
         }
-        const url = this.safeString(this.urls['api']['ws'], 'private') + '?listenKey=' + listenKey;
+        const url = this.safeString(this.urls['api']['ws'], 'private', '') + '?listenKey=' + listenKey;
         const positions = await this.watchMultiple(url, messageHashes, params, ['private']);
         if (this.newUpdates) {
             return positions;
@@ -1277,7 +1280,7 @@ class deepcoin extends deepcoin$1["default"] {
             const subscriptionsById = this.indexBy(client.subscriptions, 'id');
             const subId = this.safeInteger(data, 'L');
             const subscription = this.safeDict(subscriptionsById, subId, {}); // original watch subscription
-            const subHash = this.safeString(subscription, 'subHash');
+            const subHash = this.safeString(subscription, 'subHash', '');
             const unsubHash = 'unsubscribe::' + subHash;
             const unsubsciption = this.safeDict(client.subscriptions, unsubHash, {}); // unWatch subscription
             this.handleUnSubscription(client, unsubsciption);

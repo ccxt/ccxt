@@ -110,7 +110,7 @@ export default class bitstamp extends Exchange {
      */
     fetchTradingFee(symbol: string, params?: Dict): Promise<TradingFeeInterface>;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
-    parseTradingFees(fees: any[]): Dict;
+    parseTradingFees(fees: Dict[]): Dict;
     /**
      * @method
      * @name bitstamp#fetchTradingFees

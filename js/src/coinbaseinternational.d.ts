@@ -443,7 +443,7 @@ export default class coinbaseinternational extends Exchange {
      * @returns {string|undefined} the access token
      */
     getV2AccessToken(): Str;
-    sign(path: string, api?: string[] | string, method?: string, params?: Dict): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     /**
      * @ignore
      * @method

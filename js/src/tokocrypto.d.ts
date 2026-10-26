@@ -272,5 +272,5 @@ export default class tokocrypto extends Exchange {
     withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: Dict): any;
+    calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: Dict): Int;
 }

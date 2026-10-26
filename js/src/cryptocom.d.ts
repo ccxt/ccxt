@@ -121,7 +121,7 @@ export default class cryptocom extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
-    createOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): Dict;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
     /**
      * @method
      * @name cryptocom#createOrder
@@ -169,7 +169,7 @@ export default class cryptocom extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
-    editOrderRequest(id: string, symbol: Str, amount: Num, price?: Num, params?: Dict): Dict;
+    editOrderRequest(id: Str, symbol: Str, amount: Num, price?: Num, params?: Dict): Dict;
     /**
      * @method
      * @name cryptocom#cancelAllOrders
@@ -307,7 +307,7 @@ export default class cryptocom extends Exchange {
     parseDepositStatus(status: Str): Str;
     parseWithdrawalStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    customHandleMarginModeAndParams(methodName: any, params?: Dict): [Str, Dict];
+    customHandleMarginModeAndParams(methodName: string, params?: Dict): [Str, Dict];
     parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method

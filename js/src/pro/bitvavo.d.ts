@@ -383,7 +383,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarketsWs(params?: {}): Promise<any>;
+    fetchMarketsWs(params?: Dict): Promise<any>;
     /**
      * @method
      * @name bitvavo#fetchCurrenciesWs

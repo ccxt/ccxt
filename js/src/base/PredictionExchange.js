@@ -133,7 +133,7 @@ export default class PredictionExchange extends BaseExchange {
         if ((eventId !== undefined) || (slug !== undefined)) {
             const filtered = [];
             for (let i = 0; i < result.length; i++) {
-                const event = result[i];
+                const event = this.safeValue(result, i);
                 const idMatch = (eventId !== undefined) && (this.safeString(event, 'id') === eventId);
                 const slugMatch = (slug !== undefined) && (this.safeString(event, 'slug') === slug);
                 if (idMatch || slugMatch) {
@@ -196,7 +196,7 @@ export default class PredictionExchange extends BaseExchange {
         const wantActive = (status === 'active');
         const result = [];
         for (let i = 0; i < events.length; i++) {
-            const event = events[i];
+            const event = this.safeValue(events, i);
             const isActive = this.safeBool(event, 'active');
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if ((isActive === undefined) || (isActive === wantActive)) {
@@ -212,19 +212,19 @@ export default class PredictionExchange extends BaseExchange {
         if (queries !== undefined) {
             queriesLength = queries.length;
         }
-        if ((searchIn === undefined) || (queries === undefined) || (queriesLength === 0)) {
+        if ((searchIn === undefined) || (queriesLength === 0)) {
             return events;
         }
         const checkTitle = (searchIn === 'title') || (searchIn === 'both');
         const checkDescription = (searchIn === 'description') || (searchIn === 'both');
         const result = [];
         for (let i = 0; i < events.length; i++) {
-            const event = events[i];
+            const event = this.safeValue(events, i);
             const title = this.safeStringLower(event, 'title', '');
             const description = this.safeStringLower(event, 'description', '');
             let matched = false;
-            for (let qi = 0; qi < queries.length; qi++) {
-                const q = queries[qi].toLowerCase();
+            for (let qi = 0; qi < queriesLength; qi++) {
+                const q = this.safeString(queries, qi, '').toLowerCase();
                 if (title === undefined) {
                     throw new ExchangeError(this.id + ' filterEventsBySearchIn() missing title');
                 }
@@ -275,12 +275,16 @@ export default class PredictionExchange extends BaseExchange {
     filterEventsByTags(events, tags = undefined) {
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
-        if ((tags === undefined) || (tags.length === 0)) {
+        let tagsLength = 0;
+        if (tags !== undefined) {
+            tagsLength = tags.length;
+        }
+        if (tagsLength === 0) {
             return events;
         }
         const wanted = [];
-        for (let i = 0; i < tags.length; i++) {
-            const wantedKey = this.normalizeTagKey(tags[i]);
+        for (let i = 0; i < tagsLength; i++) {
+            const wantedKey = this.normalizeTagKey(this.safeString(tags, i, ''));
             if (wantedKey !== '') {
                 // an empty normalized key would substring-match every tag
                 wanted.push(wantedKey);
@@ -288,7 +292,7 @@ export default class PredictionExchange extends BaseExchange {
         }
         const result = [];
         for (let i = 0; i < events.length; i++) {
-            const event = events[i];
+            const event = this.safeValue(events, i);
             const eventTags = this.safeList(event, 'tags', []);
             let matched = false;
             for (let ti = 0; ti < eventTags.length; ti++) {
@@ -336,7 +340,7 @@ export default class PredictionExchange extends BaseExchange {
             this.events_by_slug = {};
         }
         for (let i = 0; i < events.length; i++) {
-            const event = events[i];
+            const event = this.safeValue(events, i);
             const id = this.safeString(event, 'id');
             const slug = this.safeString(event, 'slug');
             const handle = this.safeString(event, 'event');
@@ -391,10 +395,10 @@ export default class PredictionExchange extends BaseExchange {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
         // through fetchEvents; this never fetches
         if ((this.events !== undefined) && (eventIdOrSlug in this.events)) {
-            return this.events[eventIdOrSlug];
+            return this.safeValue(this.events, eventIdOrSlug);
         }
         if ((this.events_by_slug !== undefined) && (eventIdOrSlug in this.events_by_slug)) {
-            return this.events_by_slug[eventIdOrSlug];
+            return this.safeValue(this.events_by_slug, eventIdOrSlug);
         }
         throw new BadSymbol(this.id + ' has no cached event ' + eventIdOrSlug + " - call fetchEvents ({ 'query': ... }) first");
     }
@@ -406,10 +410,10 @@ export default class PredictionExchange extends BaseExchange {
             throw new ExchangeError(this.id + ' outcomes not loaded - call loadOutcomes () or an outcome-addressed method first');
         }
         if (outcomeSymbol in this.outcomes) {
-            return this.outcomes[outcomeSymbol];
+            return this.safeValue(this.outcomes, outcomeSymbol);
         }
         if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
-            return this.outcomes_by_id[outcomeSymbol];
+            return this.safeValue(this.outcomes_by_id, outcomeSymbol);
         }
         throw new BadSymbol(this.id + ' does not have outcome ' + outcomeSymbol + ' - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first');
     }
@@ -431,10 +435,10 @@ export default class PredictionExchange extends BaseExchange {
     safeOutcome(outcomeIdOrSymbol, outcomeObj = undefined) {
         if (outcomeIdOrSymbol !== undefined) {
             if ((this.outcomes !== undefined) && (outcomeIdOrSymbol in this.outcomes)) {
-                return this.outcomes[outcomeIdOrSymbol];
+                return this.safeValue(this.outcomes, outcomeIdOrSymbol);
             }
             if ((this.outcomes_by_id !== undefined) && (outcomeIdOrSymbol in this.outcomes_by_id)) {
-                return this.outcomes_by_id[outcomeIdOrSymbol];
+                return this.safeValue(this.outcomes_by_id, outcomeIdOrSymbol);
             }
         }
         if (outcomeObj !== undefined) {
@@ -584,7 +588,7 @@ export default class PredictionExchange extends BaseExchange {
         const marketKeys = Object.keys(stored);
         for (let i = 0; i < marketKeys.length; i++) {
             const key = marketKeys[i];
-            stored[key] = this.omit(stored[key], 'symbol');
+            stored[key] = this.omit(this.safeDict(stored, key, {}), 'symbol');
         }
         this.populateOutcomes();
         return stored;
@@ -1282,24 +1286,26 @@ export default class PredictionExchange extends BaseExchange {
             const reduced = this.reduceFeesByCurrency(feeList);
             const reducedLength = reduced.length;
             if (reducedLength > 0) {
-                fee = reduced[0];
+                fee = this.safeDict(reduced, 0);
             }
         }
         // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         const orderType = this.safeString(outcomeOrder, 'type');
         let timeInForce = this.safeString(outcomeOrder, 'timeInForce');
-        let postOnly = this.safeBool(outcomeOrder, 'postOnly');
+        // the venue flag and the derived one are each written once, so neither local widens
+        const postOnlyValue = this.safeBool(outcomeOrder, 'postOnly');
+        let derivedPostOnly = undefined;
         if (timeInForce === undefined) {
             if (orderType === 'market') {
                 timeInForce = 'IOC';
             }
-            if (postOnly === true) {
+            if (postOnlyValue === true) {
                 timeInForce = 'PO';
             }
         }
-        else if (postOnly === undefined) {
-            postOnly = (timeInForce === 'PO');
+        else if (postOnlyValue === undefined) {
+            derivedPostOnly = (timeInForce === 'PO');
         }
         const timestamp = this.safeInteger(outcomeOrder, 'timestamp');
         let datetime = this.safeString(outcomeOrder, 'datetime');
@@ -1325,7 +1331,7 @@ export default class PredictionExchange extends BaseExchange {
             'cost': this.parseNumber(cost),
             'fee': fee,
             'reduceOnly': this.safeBool(outcomeOrder, 'reduceOnly'),
-            'postOnly': postOnly,
+            'postOnly': (postOnlyValue !== undefined) ? postOnlyValue : derivedPostOnly,
             'trades': trades,
             'outcome': this.safeString(outcomeOrder, 'outcome'),
             'outcomeId': this.safeString(outcomeOrder, 'outcomeId'),
@@ -1632,7 +1638,7 @@ export default class PredictionExchange extends BaseExchange {
     rlpEncodeList(items) {
         let concatenated = '';
         for (let i = 0; i < items.length; i++) {
-            concatenated = concatenated + items[i];
+            concatenated = concatenated + this.safeString(items, i, '');
         }
         const byteLength = this.parseToInt(concatenated.length / 2);
         if (byteLength < 56) {
@@ -1661,18 +1667,15 @@ export default class PredictionExchange extends BaseExchange {
         if (hexValue === undefined) {
             return '';
         }
-        let h = this.remove0xPrefix(hexValue);
-        let start = 0;
+        const h = this.remove0xPrefix(hexValue);
         const total = h.length;
-        while ((start < total) && (h.slice(start, start + 1) === '0')) {
-            start = start + 1;
+        for (let i = 0; i < total; i++) {
+            if (h.slice(i, i + 1) === '0') {
+                continue;
+            }
+            return this.padHexToEven(h.slice(i));
         }
-        h = h.slice(start);
-        if (h === '') {
-            return '';
-        }
-        h = this.padHexToEven(h);
-        return h;
+        return '';
     }
     // eslint-disable-next-line no-unused-vars
     signEvmTransaction(tx, privateKey) {

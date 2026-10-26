@@ -991,8 +991,9 @@ class coincheck extends coincheck$1["default"] {
         }
         let url = apiUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
+        const hasQuery = Object.keys(query).length > 0;
         if (apiName === 'public') {
-            if (Object.keys(query).length > 0) {
+            if (hasQuery) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -1001,14 +1002,14 @@ class coincheck extends coincheck$1["default"] {
             const nonce = this.nonce().toString();
             let queryString = '';
             if (method === 'GET') {
-                if (Object.keys(query).length > 0) {
+                if (hasQuery) {
                     url += '?' + this.urlencode(this.keysort(query));
                 }
             }
             else {
-                if (Object.keys(query).length > 0) {
-                    bodySigned = this.urlencode(this.keysort(query));
-                    queryString = bodySigned;
+                if (hasQuery) {
+                    queryString = this.urlencode(this.keysort(query));
+                    bodySigned = queryString;
                 }
             }
             const auth = nonce + url + queryString;
@@ -1037,7 +1038,7 @@ class coincheck extends coincheck$1["default"] {
             const feedback = this.id + ' ' + this.json(response);
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
-            throw new errors.ExchangeError(this.id + ' ' + this.json(response));
+            throw new errors.ExchangeError(feedback);
         }
         return undefined;
     }

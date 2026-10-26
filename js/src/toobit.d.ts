@@ -125,7 +125,7 @@ export default class toobit extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    parseBidsAsksCustom(tickers: Dict[], symbols?: Strings, params?: Dict): Tickers;
+    parseBidsAsksCustom(tickers: Dict[], symbols: Strings, params: Dict): Tickers;
     parseBidAskCustom(ticker: Dict): Dict;
     /**
      * @method

@@ -104,7 +104,7 @@ class weex extends weex$1["default"] {
         if (isContract) {
             type = 'contract';
         }
-        const url = this.safeString(this.urls['api']['ws'], type) + '/public';
+        const url = this.safeString(this.urls['api']['ws'], type, '') + '/public';
         return await this.watchMultiple(url, messageHashes, this.deepExtend(message, params), messageHashes, subscriptionExtended);
     }
     async subscribePrivate(messageHash, subscribeHash, channel, isContract = false, params = {}, subscription = {}) {
@@ -112,7 +112,7 @@ class weex extends weex$1["default"] {
         if (isContract) {
             type = 'contract';
         }
-        const url = this.safeString(this.urls['api']['ws'], type) + '/private';
+        const url = this.safeString(this.urls['api']['ws'], type, '') + '/private';
         this.authenticate(url);
         let method = 'SUBSCRIBE';
         const unsubscribe = this.safeBool(subscription, 'unsubscribe', false);
@@ -134,7 +134,7 @@ class weex extends weex$1["default"] {
             return;
         }
         const timestamp = this.nonce();
-        const payload = timestamp.toString() + '/v3/ws/private';
+        const payload = this.numberToString(timestamp) + '/v3/ws/private';
         const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'base64');
         const originalHeaders = this.safeDict(this.options['ws']['options'], 'headers');
         const userAgent = this.safeString(originalHeaders, 'User-Agent', 'ccxt');
@@ -208,7 +208,8 @@ class weex extends weex$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const channelName = market['id'] + '@' + topic;
+            const marketId = this.safeString(market, 'id', '');
+            const channelName = marketId + '@' + topic;
             const messageHash = topic + '::' + symbol;
             messageHashes.push(messageHash);
             channels.push(channelName);
@@ -261,7 +262,8 @@ class weex extends weex$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const channelName = market['id'] + '@' + topic;
+            const marketId = this.safeString(market, 'id', '');
+            const channelName = marketId + '@' + topic;
             const messageHash = topic + '::' + symbol;
             const unSubMessageHash = 'unsubscribe::' + messageHash;
             subHashes.push(messageHash);
@@ -310,7 +312,7 @@ class weex extends weex$1["default"] {
         const tickers = this.safeList(message, 'd', []);
         const data = this.safeDict(tickers, 0, {});
         const ticker = this.parseWsTicker(data, market);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'ticker::' + symbol;
         this.tickers[symbol] = ticker;
         client.resolve(this.tickers[symbol], messageHash);
@@ -409,7 +411,8 @@ class weex extends weex$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const channelName = market['id'] + '@' + topic;
+            const marketId = this.safeString(market, 'id', '');
+            const channelName = marketId + '@' + topic;
             const messageHash = topic + '::' + symbol;
             messageHashes.push(messageHash);
             channels.push(channelName);
@@ -460,7 +463,8 @@ class weex extends weex$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const channelName = market['id'] + '@' + topic;
+            const marketId = this.safeString(market, 'id', '');
+            const channelName = marketId + '@' + topic;
             const messageHash = topic + '::' + symbol;
             const unSubMessageHash = 'unsubscribe::' + messageHash;
             subHashes.push(messageHash);
@@ -498,7 +502,7 @@ class weex extends weex$1["default"] {
         if (market === undefined) {
             return;
         }
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'trade::' + symbol;
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -613,15 +617,16 @@ class weex extends weex$1["default"] {
         }
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = this.safeList(symbolsAndTimeframes, i);
-            let symbolString = this.safeString(data, 0);
+            let symbolString = this.safeString(data, 0, '');
             const market = this.market(symbolString);
             if (market['type'] !== firstMarket['type']) {
                 throw new errors.BadRequest(this.id + ' ' + callerMethodName + ' market symbols must be of the same type');
             }
-            symbolString = this.safeString(market, 'symbol');
+            symbolString = this.safeString(market, 'symbol', '');
             const unifiedTimeframe = this.safeString(data, 1, '1');
             const interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
-            const channel = market['id'] + '@kline_' + interval + '_' + priceType;
+            const marketId = this.safeString(market, 'id', '');
+            const channel = marketId + '@kline_' + interval + '_' + priceType;
             const messageHash = 'ohlcv::' + symbolString + '::' + unifiedTimeframe;
             channels.push(channel);
             messageHashes.push(messageHash);
@@ -679,15 +684,16 @@ class weex extends weex$1["default"] {
         }
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = this.safeList(symbolsAndTimeframes, i);
-            let symbolString = this.safeString(data, 0);
+            let symbolString = this.safeString(data, 0, '');
             const market = this.market(symbolString);
             if (market['type'] !== firstMarket['type']) {
                 throw new errors.BadRequest(this.id + ' ' + callerMethodName + ' market symbols must be of the same type');
             }
-            symbolString = this.safeString(market, 'symbol');
+            symbolString = this.safeString(market, 'symbol', '');
             const unifiedTimeframe = this.safeString(data, 1, '1');
             const interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
-            const channel = market['id'] + '@kline_' + interval + '_' + priceType;
+            const marketId = this.safeString(market, 'id', '');
+            const channel = marketId + '@kline_' + interval + '_' + priceType;
             const messageHash = 'ohlcv::' + symbolString + '::' + unifiedTimeframe;
             const unSubMessageHash = 'unsubscribe::' + messageHash;
             channels.push(channel);
@@ -733,7 +739,7 @@ class weex extends weex$1["default"] {
         if (market === undefined) {
             return;
         }
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -830,7 +836,8 @@ class weex extends weex$1["default"] {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
             const messageHash = 'orderbook::' + symbol;
-            const channel = market['id'] + '@depth' + depthOption;
+            const marketId = this.safeString(market, 'id', '');
+            const channel = marketId + '@depth' + depthOption;
             messageHashes.push(messageHash);
             channels.push(channel);
         }
@@ -884,7 +891,8 @@ class weex extends weex$1["default"] {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
             const messageHash = 'orderbook::' + symbol;
-            const channel = market['id'] + '@depth' + depthOption;
+            const marketId = this.safeString(market, 'id', '');
+            const channel = marketId + '@depth' + depthOption;
             const unSubMessageHash = 'unsubscribe::' + messageHash;
             subHashes.push(messageHash);
             channels.push(channel);
@@ -917,7 +925,7 @@ class weex extends weex$1["default"] {
         if (market === undefined) {
             return;
         }
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'orderbook::' + symbol;
         if (!(symbol in this.orderbooks)) {
             const subscription = this.safeDict(client.subscriptions, messageHash, {});
@@ -968,7 +976,7 @@ class weex extends weex$1["default"] {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true);
         const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        if (firstMarket['contract'] === true) {
+        if (this.safeBool(firstMarket, 'contract', false)) {
             throw new errors.NotSupported(this.id + ' watchBidsAsks is supported for spot markets only');
         }
         const messageHashes = [];
@@ -976,7 +984,8 @@ class weex extends weex$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const channelName = market['id'] + '@' + 'bookTicker';
+            const marketId = this.safeString(market, 'id', '');
+            const channelName = marketId + '@' + 'bookTicker';
             const messageHash = 'bidask::' + symbol;
             messageHashes.push(messageHash);
             channels.push(channelName);
@@ -1007,7 +1016,7 @@ class weex extends weex$1["default"] {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true);
         const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        if (firstMarket['contract'] === true) {
+        if (this.safeBool(firstMarket, 'contract', false)) {
             throw new errors.NotSupported(this.id + ' unWatchBidsAsks is supported for spot markets only');
         }
         const subHashes = [];
@@ -1016,7 +1025,8 @@ class weex extends weex$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const channelName = market['id'] + '@' + 'bookTicker';
+            const marketId = this.safeString(market, 'id', '');
+            const channelName = marketId + '@' + 'bookTicker';
             const messageHash = 'bidask::' + symbol;
             const unSubMessageHash = 'unsubscribe::' + messageHash;
             subHashes.push(messageHash);
@@ -1206,7 +1216,7 @@ class weex extends weex$1["default"] {
         for (let i = 0; i < data.length; i++) {
             const trade = this.safeDict(data, i, {});
             const parsed = this.parseWsMyTrade(trade);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol');
             if (symbol !== undefined) {
                 symbols[symbol] = true;
             }
@@ -1215,7 +1225,7 @@ class weex extends weex$1["default"] {
         let messageHash = 'myTrades';
         const symbolKeys = Object.keys(symbols);
         const market = this.getMarketFromSymbols(symbolKeys);
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             messageHash = 'myContractTrades';
         }
         for (let j = 0; j < symbolKeys.length; j++) {
@@ -1416,7 +1426,7 @@ class weex extends weex$1["default"] {
             const rawOrder = this.safeDict(data, i, {});
             const parsed = this.parseWsOrder(rawOrder);
             orders.append(parsed);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol');
             if (symbol !== undefined) {
                 symbols[symbol] = true;
             }
@@ -1424,7 +1434,7 @@ class weex extends weex$1["default"] {
         let messageHash = 'orders';
         const symbolKeys = Object.keys(symbols);
         const market = this.getMarketFromSymbols(symbolKeys);
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             messageHash = 'contractOrders';
         }
         for (let i = 0; i < symbolKeys.length; i++) {
@@ -1607,7 +1617,7 @@ class weex extends weex$1["default"] {
         if (isContract) {
             urlType = 'contract';
         }
-        const url = this.safeString(this.urls['api']['ws'], urlType) + '/private';
+        const url = this.safeString(this.urls['api']['ws'], urlType, '') + '/private';
         this.authenticate(url);
         const client = this.client(url);
         this.setBalanceCache(client, type);
@@ -1617,8 +1627,7 @@ class weex extends weex$1["default"] {
         if ((fetchBalanceSnapshot) && (awaitBalanceSnapshot)) {
             await client.future(type + ':fetchBalanceSnapshot');
         }
-        const messageHash = type + ':' + 'balance';
-        return await this.subscribePrivate(messageHash, type, 'account', isContract, paramsMarketType);
+        return await this.subscribePrivate(type + ':balance', type, 'account', isContract, paramsMarketType);
     }
     setBalanceCache(client, type) {
         if ((type in client.subscriptions) && (type in this.balance)) {
@@ -1753,7 +1762,7 @@ class weex extends weex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const url = this.safeString(this.urls['api']['ws'], 'contract') + '/private';
+        const url = this.safeString(this.urls['api']['ws'], 'contract', '') + '/private';
         this.authenticate(url);
         const client = this.client(url);
         const symbolsNormalized = this.marketSymbols(symbols, 'swap', true);

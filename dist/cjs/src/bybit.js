@@ -1584,10 +1584,11 @@ class bybit extends bybit$1["default"] {
         let settle = undefined;
         const optionParts = symbol.split('-');
         const symbolBase = symbol.split('/');
-        let base = undefined;
         let expiry = undefined;
-        if (symbol.indexOf('/') > -1) {
-            base = this.safeString(symbolBase, 0);
+        const hasSlash = symbol.indexOf('/') > -1;
+        let baseName = undefined;
+        if (hasSlash) {
+            baseName = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);
             const symbolQuoteAndSettle = this.safeString(symbolBase, 1);
             if (symbolQuoteAndSettle === undefined) {
@@ -1599,7 +1600,7 @@ class bybit extends bybit$1["default"] {
             settle = quoteAndSettle;
         }
         else {
-            base = this.safeString(optionParts, 0);
+            baseName = this.safeString(optionParts, 0);
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
             if (symbol.endsWith('-USDT')) {
                 quote = 'USDT';
@@ -1617,33 +1618,33 @@ class bybit extends bybit$1["default"] {
         let amountPrecision = undefined;
         let pricePrecision = undefined;
         // hard coded amount and price precisions from fetchOptionMarkets
-        if (base === 'BTC') {
+        if (baseName === 'BTC') {
             amountPrecision = this.parseNumber('0.01');
             pricePrecision = this.parseNumber('5');
         }
-        else if (base === 'ETH') {
+        else if (baseName === 'ETH') {
             amountPrecision = this.parseNumber('0.1');
             pricePrecision = this.parseNumber('0.1');
         }
-        else if (base === 'SOL') {
+        else if (baseName === 'SOL') {
             amountPrecision = this.parseNumber('1');
             pricePrecision = this.parseNumber('0.01');
         }
         const convertedExpireDate = this.convertExpireDateToMarketIdDate(expiry);
         return {
-            'id': base + '-' + convertedExpireDate + '-' + strike + '-' + optionType,
-            'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
-            'base': base,
+            'id': baseName + '-' + convertedExpireDate + '-' + strike + '-' + optionType,
+            'symbol': baseName + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': baseName,
             'quote': quote,
             'settle': settle,
-            'baseId': base,
+            'baseId': baseName,
             'quoteId': quote,
             'settleId': settle,
             'active': false,
             'type': 'option',
-            'subType': (base === settle) ? 'inverse' : 'linear',
-            'linear': (base !== settle),
-            'inverse': (base === settle),
+            'subType': (baseName === settle) ? 'inverse' : 'linear',
+            'linear': (baseName !== settle),
+            'inverse': (baseName === settle),
             'spot': false,
             'swap': false,
             'future': false,
@@ -2249,7 +2250,7 @@ class bybit extends bybit$1["default"] {
                 }
             }
             const expiryDatetime = this.iso8601(expiry);
-            symbol = symbol + ':' + settle;
+            symbol = base + '/' + quote + ':' + settle;
             if (expiry !== undefined) {
                 symbol = symbol + '-' + this.yymmdd(expiry);
             }
@@ -2404,8 +2405,8 @@ class bybit extends bybit$1["default"] {
                 throw new errors.ExchangeError(this.id + ' method() missing id');
             }
             const splitId = id.split('-');
-            const strike = this.safeString(splitId, 2);
-            const optionLetter = this.safeString(splitId, 3);
+            const strike = this.safeString(splitId, 2, '');
+            const optionLetter = this.safeString(splitId, 3, '');
             const isActive = (status === 'Trading');
             const isInverse = base === settle;
             const loadExpiredOptions = this.handleOption('fetchMarkets', 'loadExpiredOptions');
@@ -3013,10 +3014,11 @@ class bybit extends bybit$1["default"] {
         const request = {};
         const symbolsNormalized = this.marketSymbols(symbols);
         if (symbolsNormalized !== undefined) {
-            market = this.market(symbolsNormalized[0]);
+            const symbolMarket = this.market(symbolsNormalized[0]);
+            market = symbolMarket;
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
-                request['symbol'] = market['id'];
+                request['symbol'] = symbolMarket['id'];
             }
         }
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchFundingRates', market, params);
@@ -3738,7 +3740,9 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const request = {};
-        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
+        const unifiedEnabled = await this.isUnifiedEnabled();
+        const enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
+        const enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         // don't use getBybitType here
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
@@ -5228,13 +5232,16 @@ class bybit extends bybit$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
+        const unifiedEnabled = await this.isUnifiedEnabled();
+        const enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
+        const enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('cancelAllOrders', market, params);
         request['category'] = type;
@@ -5340,7 +5347,9 @@ class bybit extends bybit$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
+        const unifiedEnabled = await this.isUnifiedEnabled();
+        const enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
+        const enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         if (!isUnifiedAccount) {
             return await this.fetchOrderClassic(id, symbol, params);
@@ -5454,8 +5463,9 @@ class bybit extends bybit$1["default"] {
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchOrdersClassic', market, paramsPaginate);
         if (type === 'spot') {
@@ -5634,8 +5644,9 @@ class bybit extends bybit$1["default"] {
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchCanceledAndClosedOrders', market, paramsPaginate);
         request['category'] = type;
@@ -5808,8 +5819,9 @@ class bybit extends bybit$1["default"] {
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchOpenOrders', market, paramsPaginate);
         if (type === 'linear' || type === 'inverse') {
@@ -5948,8 +5960,9 @@ class bybit extends bybit$1["default"] {
         };
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchMyTrades', market, paramsPaginate);
         request['category'] = type;
@@ -6390,10 +6403,11 @@ class bybit extends bybit$1["default"] {
         // 'limit': 0, Limit for data size per page. [1, 50]. Default: 20
         // 'cursor': '', Cursor. Used for pagination
         };
-        const enableUnified = await this.isUnifiedEnabled();
+        const unifiedEnabled = await this.isUnifiedEnabled();
+        const enableUnified = this.safeBool(unifiedEnabled, 1, false);
         let currency = undefined;
         let currencyKey = 'coin';
-        if (enableUnified[1] === true) {
+        if (enableUnified === true) {
             currencyKey = 'currency';
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -6413,7 +6427,7 @@ class bybit extends bybit$1["default"] {
         }
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchLedger', undefined, paramsPaginate);
         let response;
-        if (enableUnified[1] === true) {
+        if (enableUnified === true) {
             const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
             if (subType === 'inverse' && (unifiedMarginStatus < 5)) {
                 response = await this.privateGetV5AccountContractTransactionLog(this.extend(request, paramsSubType));
@@ -6811,9 +6825,10 @@ class bybit extends bybit$1["default"] {
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            symbol = market['symbol'];
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            symbol = symbolMarket['symbol'];
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchPositions', market, paramsPaginate);
         if (type === 'linear' || type === 'inverse') {
@@ -7206,7 +7221,9 @@ class bybit extends bybit$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
+        const unifiedEnabled = await this.isUnifiedEnabled();
+        const enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
+        const enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         let market = undefined;
         let response;
@@ -8111,8 +8128,7 @@ class bybit extends bybit$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let market = undefined;
-        market = this.market(symbol);
+        const market = this.market(symbol);
         if ((market['spot'] === true) || (market['option'] === true)) {
             throw new errors.BadRequest(this.id + ' fetchMarketLeverageTiers() symbol does not support market ' + symbol);
         }
@@ -8219,8 +8235,8 @@ class bybit extends bybit$1["default"] {
         //         "time": 1676360412576
         //     }
         //
-        let fees = this.safeDict(response, 'result', {});
-        fees = this.safeList(fees, 'list', []);
+        const feeRates = this.safeDict(response, 'result', {});
+        const fees = this.safeList(feeRates, 'list', []);
         const result = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee(fees[i]);
@@ -8355,8 +8371,9 @@ class bybit extends bybit$1["default"] {
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchSettlementHistory', market, params);
         if (type === 'spot') {
@@ -8412,8 +8429,9 @@ class bybit extends bybit$1["default"] {
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchMySettlementHistory', market, params);
         if (type === 'spot') {
@@ -8666,12 +8684,11 @@ class bybit extends bybit$1["default"] {
             'category': 'option',
             'baseCoin': baseCoin,
         };
-        let market = undefined;
         if (symbolsNormalized !== undefined) {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
-                market = this.market(symbolsNormalized[0]);
-                request['symbol'] = market['id'];
+                const symbolMarket = this.market(symbolsNormalized[0]);
+                request['symbol'] = symbolMarket['id'];
             }
         }
         const response = await this.publicGetV5MarketTickers(this.extend(request, params));
@@ -8800,8 +8817,9 @@ class bybit extends bybit$1["default"] {
         };
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchMyLiquidations', market, paramsPaginate);
         request['category'] = type;
@@ -8948,10 +8966,9 @@ class bybit extends bybit$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let market = undefined;
         let symbol = undefined;
         if (symbols !== undefined) {
-            market = this.market(symbols[0]);
+            const market = this.market(symbols[0]);
             if (market['spot'] === true) {
                 throw new errors.NotSupported(this.id + ' fetchLeverageTiers() is not supported for spot market');
             }
@@ -9055,8 +9072,9 @@ class bybit extends bybit$1["default"] {
         };
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         const [type, paramsValue] = this.getBybitType('fetchFundingHistory', market, paramsPaginate);
         request['category'] = type;
@@ -9408,7 +9426,9 @@ class bybit extends bybit$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
+        const unifiedEnabled = await this.isUnifiedEnabled();
+        const enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
+        const enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         let accountTypeDefault = 'eb_convert_spot';
         if (isUnifiedAccount) {
@@ -9511,7 +9531,9 @@ class bybit extends bybit$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
+        const unifiedEnabled = await this.isUnifiedEnabled();
+        const enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
+        const enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         let accountTypeDefault = 'eb_convert_spot';
         if (isUnifiedAccount) {
@@ -9603,7 +9625,9 @@ class bybit extends bybit$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
+        const unifiedEnabled = await this.isUnifiedEnabled();
+        const enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
+        const enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
         const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
         let accountTypeDefault = 'eb_convert_spot';
         if (isUnifiedAccount) {
@@ -10035,7 +10059,7 @@ class bybit extends bybit$1["default"] {
         let url = this.implodeHostname(apiUrl) + '/' + path;
         if (apiName === 'public') {
             if (Object.keys(params).length > 0) {
-                url += '?' + this.rawencode(params);
+                url = this.implodeHostname(apiUrl) + '/' + path + '?' + this.rawencode(params);
             }
         }
         else if (apiName === 'private') {
@@ -10068,7 +10092,7 @@ class bybit extends bybit$1["default"] {
                     'Content-Type': 'application/json',
                     'X-BAPI-API-KEY': this.apiKey,
                     'X-BAPI-TIMESTAMP': timestamp,
-                    'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString(),
+                    'X-BAPI-RECV-WINDOW': this.numberToString(this.options['recvWindow']),
                 };
                 if (isV3UnifiedMargin || isV3Contract) {
                     requestHeaders['X-BAPI-SIGN-TYPE'] = '2';
@@ -10083,7 +10107,7 @@ class bybit extends bybit$1["default"] {
                 }
                 else {
                     authFull = auth_base + queryEncoded;
-                    url += '?' + queryEncoded;
+                    url = this.implodeHostname(apiUrl) + '/' + path + '?' + queryEncoded;
                 }
                 let signature = undefined;
                 if (this.secret.indexOf('PRIVATE KEY') > -1) {
@@ -10128,7 +10152,7 @@ class bybit extends bybit$1["default"] {
                     }
                 }
                 else {
-                    url += '?' + this.rawencode(sortedQuery, true);
+                    url = this.implodeHostname(apiUrl) + '/' + path + '?' + this.rawencode(sortedQuery, true);
                     url += '&sign=' + signature;
                 }
             }

@@ -396,7 +396,7 @@ export default class lighter extends Exchange {
     }
     async loadAccount(chainId, privateKey, apiKeyIndex, accountIndex, params = {}) {
         this.initAuthObject(accountIndex, apiKeyIndex);
-        const cachedAuths = this.safeDict(this.options['auths'][accountIndex], apiKeyIndex);
+        const cachedAuths = this.safeDict(this.safeDict(this.safeDict(this.options, 'auths', {}), accountIndex, {}), apiKeyIndex);
         let signer = this.safeValue(cachedAuths, 'signer');
         if (signer !== undefined) {
             return signer;
@@ -406,7 +406,7 @@ export default class lighter extends Exchange {
         if (lighterPrivateKeyIsSet && (libraryPath !== undefined) && (apiKeyIndex !== undefined) && (accountIndex !== undefined)) {
             // load lighter library, and create lighter client
             signer = await this.loadLighterLibrary(libraryPath, chainId, privateKey, this.parseToInt(apiKeyIndex), this.parseToInt(accountIndex), true);
-            this.options['auths'][accountIndex][apiKeyIndex]['signer'] = signer;
+            this.setAuthEntry(accountIndex, apiKeyIndex, { 'signer': signer });
             return signer;
         }
         const privateKeyIsSet = (this.privateKey !== undefined) && (this.privateKey !== '');
@@ -416,12 +416,15 @@ export default class lighter extends Exchange {
             }
             // load lighter library without creating lighter client
             signer = await this.loadLighterLibrary(libraryPath, chainId, '', this.parseToInt(apiKeyIndex), this.parseToInt(accountIndex), false);
-            this.options['auths'][accountIndex][apiKeyIndex]['signer'] = signer;
+            this.setAuthEntry(accountIndex, apiKeyIndex, { 'signer': signer });
             const res = await this.changeApiKey();
             await this.handleBuilderFeeApproval(this.parseToInt(accountIndex), this.parseToInt(apiKeyIndex));
             return res;
         }
         return signer;
+    }
+    setAuthEntry(accIdx, keyIdx, entry) {
+        this.options['auths'][accIdx][keyIdx] = this.extend(this.safeDict(this.safeDict(this.safeDict(this.options, 'auths', {}), accIdx, {}), keyIdx, {}), entry);
     }
     initAuthObject(strAccountIndex, strApiKeyIndex) {
         if (!('auths' in this.options)) {
@@ -462,7 +465,7 @@ export default class lighter extends Exchange {
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
         this.initAuthObject(strAccountIndex, strApiKeyIndex);
-        let signer = this.safeDict(this.options['auths'][strAccountIndex][strApiKeyIndex], 'signer');
+        let signer = this.safeDict(this.safeDict(this.safeDict(this.safeDict(this.options, 'auths', {}), strAccountIndex, {}), strApiKeyIndex, {}), 'signer');
         if (signer !== undefined) {
             return true;
         }
@@ -577,9 +580,8 @@ export default class lighter extends Exchange {
             'api_key_index': this.parseToInt(apiKeyIndex),
             'account_index': this.parseToInt(accountIndex),
         };
-        const token = this.lighterCreateAuthToken(this.options['auths'][accountIndex][apiKeyIndex]['signer'], request);
-        this.options['auths'][accountIndex][apiKeyIndex]['deadline'] = deadline;
-        this.options['auths'][accountIndex][apiKeyIndex]['token'] = token;
+        const token = this.lighterCreateAuthToken(this.safeValue(cachedAuth, 'signer'), request);
+        this.setAuthEntry(accountIndex, apiKeyIndex, { 'deadline': deadline, 'token': token });
         return token;
     }
     pow(n, m) {
@@ -618,7 +620,7 @@ export default class lighter extends Exchange {
     signL1AndPrepareTxInfo(txInfo, message, privateKey) {
         const hashMessage = this.hashMessage(message);
         const signature = this.signHash(hashMessage, privateKey);
-        const decTxInfo = this.parseJson(txInfo);
+        const decTxInfo = this.extend({}, this.parseJson(txInfo));
         decTxInfo['L1Sig'] = signature;
         return this.json(decTxInfo);
     }
@@ -713,7 +715,7 @@ export default class lighter extends Exchange {
         const [accountIndex, paramsAccountIndex] = await this.handleAccountIndex(paramsApiKeyIndex, 'changeApiKey', 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        const signerNotLoad = this.options['auths'][strAccountIndex][strApiKeyIndex]['signer'];
+        const signerNotLoad = this.safeValue(this.safeDict(this.safeDict(this.safeDict(this.options, 'auths', {}), strAccountIndex, {}), strApiKeyIndex, {}), 'signer');
         const [privateKey, publicKey] = this.lighterGenerateApiKey(signerNotLoad);
         const nonce = await this.fetchNonce(accountIndex, apiKeyIndex, this.extend(paramsAccountIndex, { 'skipNonce': false }));
         const signRaw = {
@@ -731,8 +733,7 @@ export default class lighter extends Exchange {
             'tx_info': newTxInfo,
         };
         await this.publicPostSendTx(request);
-        this.options['auths'][strAccountIndex][strApiKeyIndex]['lighterPrivateKey'] = privateKey;
-        this.options['auths'][strAccountIndex][strApiKeyIndex]['signer'] = signer; // reassign signer in go
+        this.setAuthEntry(strAccountIndex, strApiKeyIndex, { 'lighterPrivateKey': privateKey, 'signer': signer }); // reassign signer in go
         await this.handleBuilderFeeApproval(accountIndex, apiKeyIndex);
         return signer;
     }
@@ -763,7 +764,7 @@ export default class lighter extends Exchange {
          * @param {int} [params.apiKeyIndex] apiKeyIndex
          * @param {int} [params.accountIndex] accountIndex
          * @param {int} [params.orderExpiry] orderExpiry
-         * @returns {any[]} request to be sent to the exchange
+         * @returns {object[]} request to be sent to the exchange
          */
         if (price === undefined) {
             throw new ArgumentsRequired(this.id + ' createOrder() requires a price argument');
@@ -875,10 +876,11 @@ export default class lighter extends Exchange {
             request['integrator_maker_fee'] = this.options['integratorMakerFee'];
         }
         const orders = [];
-        orders.push(this.extend(request, paramsRequest));
+        const firstOrder = this.extend(request, paramsRequest);
+        orders.push(firstOrder);
         if (hasStopLoss || hasTakeProfit) {
             // group order
-            orders[0]['client_order_index'] = 0; // client order index should be 0
+            firstOrder['client_order_index'] = 0; // client order index should be 0
             let triggerOrderSide = '';
             if (orderSide === 'BUY') {
                 triggerOrderSide = 'sell';
@@ -894,18 +896,18 @@ export default class lighter extends Exchange {
             const takeProfitOrderLimitPrice = this.safeNumber2(takeProfit, 'price', 'takeProfitPrice', takeProfitOrderTriggerPrice);
             // amount should be 0 for child orders
             if (stopLoss !== undefined) {
-                const orderObj = this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.extend(paramsRequest, {
+                const orderObj = this.safeDict(this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.extend(paramsRequest, {
                     'stopLossPrice': stopLossOrderTriggerPrice,
                     'reduceOnly': true,
-                }))[0];
+                })), 0, {});
                 orderObj['client_order_index'] = 0;
                 orders.push(orderObj);
             }
             if (takeProfit !== undefined) {
-                const orderObj = this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, this.extend(paramsRequest, {
+                const orderObj = this.safeDict(this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, this.extend(paramsRequest, {
                     'takeProfitPrice': takeProfitOrderTriggerPrice,
                     'reduceOnly': true,
-                }))[0];
+                })), 0, {});
                 orderObj['client_order_index'] = 0;
                 orders.push(orderObj);
             }
@@ -983,14 +985,14 @@ export default class lighter extends Exchange {
             const signingPayload = {
                 'grouping_type': groupingType,
                 'orders': orderRequests,
-                'nonce': order['nonce'],
+                'nonce': this.safeInteger(order, 'nonce'),
                 'api_key_index': apiKeyIndex,
                 'account_index': accountIndex,
             };
             if (this.safeBool(this.options, 'builderFee', true)) {
-                signingPayload['integrator_account_index'] = order['integrator_account_index'];
-                signingPayload['integrator_taker_fee'] = order['integrator_taker_fee'];
-                signingPayload['integrator_maker_fee'] = order['integrator_maker_fee'];
+                signingPayload['integrator_account_index'] = this.safeInteger(order, 'integrator_account_index');
+                signingPayload['integrator_taker_fee'] = this.safeInteger(order, 'integrator_taker_fee');
+                signingPayload['integrator_maker_fee'] = this.safeInteger(order, 'integrator_maker_fee');
             }
             [txType, txInfo] = this.lighterSignCreateGroupedOrders(signer, signingPayload);
         }
@@ -1247,7 +1249,8 @@ export default class lighter extends Exchange {
             const marketSymbol = this.safeString(market, 'symbol');
             let baseId = marketSymbol;
             if (marketSymbol !== undefined && marketSymbol.indexOf('/') !== -1) {
-                baseId = marketSymbol.split('/')[0];
+                const symbolParts = marketSymbol.split('/');
+                baseId = symbolParts[0];
             }
             const quoteId = 'USDC';
             const settleId = (type === 'swap') ? 'USDC' : undefined;
@@ -1357,7 +1360,7 @@ export default class lighter extends Exchange {
     parseCurrency(rawCurrency) {
         const id = this.safeString(rawCurrency, 'asset_id');
         const code = this.safeCurrencyCode(this.safeString(rawCurrency, 'symbol'));
-        const decimals = this.safeString(rawCurrency, 'decimals');
+        const decimals = this.safeString(rawCurrency, 'decimals', '');
         const isUSDC = (code === 'USDC');
         let depositMin = undefined;
         let withdrawMin = undefined;
@@ -1889,7 +1892,7 @@ export default class lighter extends Exchange {
                     const asset = this.safeDict(assets, j);
                     const codeId = this.safeString(asset, 'symbol');
                     const code = this.safeCurrencyCode(codeId);
-                    const balance = this.safeDict(result, code, this.account());
+                    const balance = this.extend(this.account(), this.safeDict(result, code, {}));
                     balance['total'] = Precise.stringAdd(balance['total'], this.safeString(asset, 'balance'));
                     balance['used'] = Precise.stringAdd(balance['used'], this.safeString(asset, 'locked_balance'));
                     if (code !== undefined) {
@@ -1898,7 +1901,7 @@ export default class lighter extends Exchange {
                 }
             }
             else {
-                const perpBalance = this.safeDict(result, 'USDC', this.account());
+                const perpBalance = this.extend(this.account(), this.safeDict(result, 'USDC', {}));
                 const perpTotal = this.safeString(perpBalance, 'total', '0');
                 const perpFree = this.safeString(perpBalance, 'free', '0');
                 const perpUSDCTotal = this.safeString(account, 'collateral', '0');
@@ -2494,7 +2497,7 @@ export default class lighter extends Exchange {
             '1': 'good-till-time',
             '2': 'post-only',
         };
-        return this.safeString(timeInForces, tifInteger.toString());
+        return this.safeString(timeInForces, this.numberToString(tifInteger));
     }
     /**
      * @method

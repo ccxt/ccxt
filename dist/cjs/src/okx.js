@@ -1514,28 +1514,27 @@ class okx extends okx$1["default"] {
         const quote = 'USD';
         const optionParts = symbol.split('-');
         const symbolBase = symbol.split('/');
-        let base = undefined;
+        let base;
         if (symbol.indexOf('/') > -1) {
-            base = this.safeString(symbolBase, 0);
+            base = this.safeString(symbolBase, 0, '');
         }
         else {
-            base = this.safeString(optionParts, 0);
+            base = this.safeString(optionParts, 0, '');
         }
-        const settle = base;
-        const expiry = this.safeString(optionParts, 2);
-        const strike = this.safeString(optionParts, 3);
-        const optionType = this.safeString(optionParts, 4);
-        const datetime = (expiry === undefined) ? undefined : this.convertExpireDate(expiry);
+        const expiry = this.safeString(optionParts, 2, '');
+        const strike = this.safeString(optionParts, 3, '');
+        const optionType = this.safeString(optionParts, 4, '');
+        const datetime = (expiry === '') ? undefined : this.convertExpireDate(expiry);
         const timestamp = this.parse8601(datetime);
         return {
             'id': base + '-' + quote + '-' + expiry + '-' + strike + '-' + optionType,
-            'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'symbol': base + '/' + quote + ':' + base + '-' + expiry + '-' + strike + '-' + optionType,
             'base': base,
             'quote': quote,
-            'settle': settle,
+            'settle': base,
             'baseId': base,
             'quoteId': quote,
-            'settleId': settle,
+            'settleId': base,
             'active': false,
             'type': 'option',
             'linear': undefined,
@@ -1767,7 +1766,7 @@ class okx extends okx$1["default"] {
         const promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
-            promises.push(this.fetchMarketsByType(types[i], params));
+            promises.push(this.fetchMarketsByType(this.safeString(types, i, ''), params));
         }
         const responses = await Promise.all(promises);
         for (let i = 0; i < responses.length; i++) {
@@ -2767,7 +2766,8 @@ class okx extends okx$1["default"] {
             }
         }
         else if (priceType === 'index') {
-            request['instId'] = market['info']['instFamily']; // okx index candles require instFamily instead of instId
+            const marketInfo = this.safeDict(market, 'info', {});
+            request['instId'] = marketInfo['instFamily']; // okx index candles require instFamily instead of instId
             if (isHistoryCandles) {
                 response = await this.publicGetMarketHistoryIndexCandles(this.extend(request, paramsType));
             }
@@ -2977,7 +2977,7 @@ class okx extends okx$1["default"] {
             request['instId'] = market['id'];
         }
         else if ((market['swap'] === true) || (market['future'] === true) || (market['option'] === true)) {
-            request['uly'] = market['baseId'] + '-' + market['quoteId'];
+            request['uly'] = this.safeString(market, 'baseId', '') + '-' + this.safeString(market, 'quoteId', '');
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchTradingFee() supports spot, swap, future or option markets only');
@@ -3225,8 +3225,8 @@ class okx extends okx$1["default"] {
         if (!shouldOmitSize) {
             request['sz'] = this.amountToPrecision(symbol, amount);
         }
-        const spot = market['spot'];
-        const contract = market['contract'];
+        const spot = this.safeBool(market, 'spot');
+        const contract = this.safeBool(market, 'contract');
         const triggerPrice = this.safeValueN(params, ['triggerPrice', 'stopPrice', 'triggerPx']);
         const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
@@ -4003,7 +4003,7 @@ class okx extends okx$1["default"] {
             if (algoIds !== undefined) {
                 for (let i = 0; i < algoIds.length; i++) {
                     request.push({
-                        'algoId': algoIds[i],
+                        'algoId': this.safeString(algoIds, i),
                         'instId': market['id'],
                     });
                 }
@@ -4011,13 +4011,13 @@ class okx extends okx$1["default"] {
             for (let i = 0; i < orderIds.length; i++) {
                 if ((trailing) || isTrigger) {
                     request.push({
-                        'algoId': orderIds[i],
+                        'algoId': this.safeString(orderIds, i),
                         'instId': market['id'],
                     });
                 }
                 else {
                     request.push({
-                        'ordId': orderIds[i],
+                        'ordId': this.safeString(orderIds, i),
                         'instId': market['id'],
                     });
                 }
@@ -4028,13 +4028,13 @@ class okx extends okx$1["default"] {
                 if ((trailing) || isTrigger) {
                     request.push({
                         'instId': market['id'],
-                        'algoClOrdId': clientOrderIds[i],
+                        'algoClOrdId': this.safeString(clientOrderIds, i),
                     });
                 }
                 else {
                     request.push({
                         'instId': market['id'],
-                        'clOrdId': clientOrderIds[i],
+                        'clOrdId': this.safeString(clientOrderIds, i),
                     });
                 }
             }
@@ -6883,7 +6883,7 @@ class okx extends okx$1["default"] {
         let jsonBody = undefined;
         // const type = this.getPathAuthenticationType (path);
         if (apiName === 'public') {
-            if (Object.keys(query).length > 0) {
+            if (!this.isEmpty(query)) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -6911,7 +6911,7 @@ class okx extends okx$1["default"] {
                     }
                 }
             }
-            hasJsonBody = (method !== 'GET') && (isArray || (Object.keys(query).length > 0));
+            hasJsonBody = (method !== 'GET') && (isArray || (!this.isEmpty(query)));
             jsonBody = hasJsonBody ? this.json(query) : undefined;
             const timestamp = this.iso8601(this.nonce());
             privateHeaders = {
@@ -6924,7 +6924,7 @@ class okx extends okx$1["default"] {
             };
             let auth = timestamp + method + request;
             if (method === 'GET') {
-                if (Object.keys(query).length > 0) {
+                if (!this.isEmpty(query)) {
                     const urlencodedQuery = '?' + this.urlencode(query);
                     url += urlencodedQuery;
                     auth += urlencodedQuery;
@@ -7094,7 +7094,7 @@ class okx extends okx$1["default"] {
                 const ruleType = this.safeString(marketInfo, 'ruleType');
                 const isExtendedPerpetual = (ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
                 if ((market['swap'] !== true) && !isExtendedPerpetual) {
-                    throw new errors.BadRequest(this.id + ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' + symbolsNormalized[i] + ' is not');
+                    throw new errors.BadRequest(this.id + ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' + this.safeString(symbolsNormalized, i, '') + ' is not');
                 }
             }
         }
@@ -7211,7 +7211,7 @@ class okx extends okx$1["default"] {
             // "limit": "100", // default 100, max 100
         };
         if (limit !== undefined) {
-            request['limit'] = limit.toString(); // default 100, max 100
+            request['limit'] = this.numberToString(limit); // default 100, max 100
         }
         let market = undefined;
         if (symbol !== undefined) {
@@ -8667,9 +8667,10 @@ class okx extends okx$1["default"] {
             'type': '3', // delivery
         };
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['instId'] = market['id'];
-            request['instType'] = this.convertToInstrumentType(market['type']);
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['instId'] = symbolMarket['id'];
+            request['instType'] = this.convertToInstrumentType(symbolMarket['type']);
         }
         if (since !== undefined) {
             request['begin'] = since;
@@ -8816,9 +8817,10 @@ class okx extends okx$1["default"] {
         const market = this.market(symbol);
         const marketId = this.safeString(market, 'id', '');
         const optionParts = marketId.split('-');
+        const marketInfo = this.safeDict(market, 'info', {});
         const request = {
-            'uly': market['info']['uly'],
-            'instFamily': market['info']['instFamily'],
+            'uly': marketInfo['uly'],
+            'instFamily': marketInfo['instFamily'],
             'expTime': this.safeString(optionParts, 2),
         };
         const response = await this.publicGetPublicOptSummary(this.extend(request, params));
@@ -8898,8 +8900,9 @@ class okx extends okx$1["default"] {
                 market = this.market(symbolsNormalized[0]);
                 const marketId = this.safeString(market, 'id', '');
                 const optionParts = marketId.split('-');
-                request['uly'] = market['info']['uly'];
-                request['instFamily'] = market['info']['instFamily'];
+                const marketInfo = this.safeDict(market, 'info', {});
+                request['uly'] = marketInfo['uly'];
+                request['instFamily'] = marketInfo['instFamily'];
                 request['expTime'] = this.safeString(optionParts, 2);
             }
         }

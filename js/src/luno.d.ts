@@ -215,10 +215,7 @@ export default class luno extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
-    parseLedgerComment(comment: any): {
-        type: Str;
-        referenceId: Str;
-    };
+    parseLedgerComment(comment: string): Dict;
     parseLedgerEntry(entry: Dict, currency?: Currency): LedgerEntry;
     /**
      * @method

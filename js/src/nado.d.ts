@@ -468,7 +468,7 @@ export default class nado extends Exchange {
     isArchiveOrderClosed(order: Dict): boolean;
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderTimeInForce(timeInForce: Str): Str;
-    convertToX18(value: Str): string | undefined;
+    convertToX18(value: Str): Str;
     parseX18(value: Str): number | undefined;
     createOrderNonce(recvWindow: Int): Str;
     createOrderAppendix(isTriggerOrder: boolean, params?: Dict): Str;

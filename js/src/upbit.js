@@ -534,12 +534,16 @@ export default class upbit extends Exchange {
         if (id === undefined) {
             throw new ExchangeError(this.id + ' parseMarket() missing id');
         }
-        const [quoteId, baseId] = id.split('-');
+        const parts = id.split('-');
+        const quoteId = this.safeString(parts, 0);
+        const baseId = this.safeString(parts, 1);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
+        const tradingFeesByQuoteCurrency = this.safeDict(this.options, 'tradingFeesByQuoteCurrency', {});
+        const tradingFees = this.safeDict(this.fees, 'trading', {});
         return this.safeMarketStructure({
             'id': id,
             'symbol': base + '/' + quote,
@@ -559,8 +563,8 @@ export default class upbit extends Exchange {
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
-            'taker': this.safeNumber(this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['taker']),
-            'maker': this.safeNumber(this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['maker']),
+            'taker': this.safeNumber(tradingFeesByQuoteCurrency, quote, this.safeNumber(tradingFees, 'taker')),
+            'maker': this.safeNumber(tradingFeesByQuoteCurrency, quote, this.safeNumber(tradingFees, 'maker')),
             'contractSize': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -656,9 +660,8 @@ export default class upbit extends Exchange {
         }
         let ids = undefined;
         if (symbols === undefined) {
-            const allIds = this.ids;
-            if (allIds !== undefined) {
-                ids = allIds.join(',');
+            if (this.ids !== undefined) {
+                ids = this.ids.join(',');
             }
         }
         else {
@@ -704,7 +707,7 @@ export default class upbit extends Exchange {
         const result = {};
         const orderbooks = this.toArray(response);
         for (let i = 0; i < orderbooks.length; i++) {
-            const orderbook = orderbooks[i];
+            const orderbook = this.safeDict(orderbooks, i, {});
             const marketId = this.safeString(orderbook, 'market');
             const symbol = this.safeSymbol(marketId, undefined, '-');
             const timestamp = this.safeInteger(orderbook, 'timestamp');
@@ -830,7 +833,7 @@ export default class upbit extends Exchange {
                 if (quoteCurrencies !== '') {
                     quoteCurrencies = quoteCurrencies + ',';
                 }
-                quoteCurrencies = quoteCurrencies + sortedQuoteIds[i];
+                quoteCurrencies = quoteCurrencies + this.safeString(sortedQuoteIds, i, '');
             }
             const request = {
                 'quote_currencies': quoteCurrencies,
@@ -885,11 +888,10 @@ export default class upbit extends Exchange {
         let idsString = '';
         const queries = [];
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
             if (idsString !== '') {
                 idsString = idsString + ',';
             }
-            idsString = idsString + id;
+            idsString = idsString + this.safeString(ids, i, '');
             if (idsString.length >= maxQueryLength) {
                 queries.push(idsString);
                 idsString = '';
@@ -951,7 +953,7 @@ export default class upbit extends Exchange {
             timestamp = this.parse8601(this.safeString(trade, 'created_at'));
         }
         let side = undefined;
-        const askOrBid = this.safeStringLower2(trade, 'ask_bid', 'side');
+        const askOrBid = this.safeStringLower2(trade, 'ask_bid', 'side', '');
         if (askOrBid === 'ask') {
             side = 'sell';
         }
@@ -1116,14 +1118,15 @@ export default class upbit extends Exchange {
         const fetchMarketResponse = await this.fetchMarkets(params);
         const response = {};
         for (let i = 0; i < fetchMarketResponse.length; i++) {
+            const item = this.safeDict(fetchMarketResponse, i);
             const element = {};
-            element['maker'] = this.safeNumber(fetchMarketResponse[i], 'maker');
-            element['taker'] = this.safeNumber(fetchMarketResponse[i], 'taker');
-            element['symbol'] = this.safeString(fetchMarketResponse[i], 'symbol');
+            element['maker'] = this.safeNumber(item, 'maker');
+            element['taker'] = this.safeNumber(item, 'taker');
+            element['symbol'] = this.safeString(item, 'symbol');
             element['percentage'] = true;
             element['tierBased'] = false;
-            element['info'] = fetchMarketResponse[i];
-            const feeSymbol = this.safeString(fetchMarketResponse[i], 'symbol');
+            element['info'] = item;
+            const feeSymbol = this.safeString(item, 'symbol');
             if (feeSymbol !== undefined) {
                 response[feeSymbol] = element;
             }
@@ -1940,7 +1943,8 @@ export default class upbit extends Exchange {
         const numTrades = trades.length;
         if (numTrades > 0) {
             // the timestamp in fetchOrder trades is missing
-            lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
+            const lastTrade = this.safeDict(trades, numTrades - 1, {});
+            lastTradeTimestamp = lastTrade['timestamp'];
             let getFeesFromTrades = false;
             if (feeCost === undefined) {
                 getFeesFromTrades = true;
@@ -1951,7 +1955,7 @@ export default class upbit extends Exchange {
                 const trade = this.safeDict(trades, i);
                 cost = Precise.stringAdd(cost, this.safeString(trade, 'cost'));
                 if (getFeesFromTrades) {
-                    const tradeFee = this.safeDict(trades[i], 'fee', {});
+                    const tradeFee = this.safeDict(trade, 'fee', {});
                     const tradeFeeCost = this.safeString(tradeFee, 'cost');
                     if (tradeFeeCost !== undefined) {
                         feeCost = Precise.stringAdd(feeCost, tradeFeeCost);
@@ -2427,8 +2431,9 @@ export default class upbit extends Exchange {
         });
         url += '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
+        const numQueryKeys = Object.keys(query).length;
         if (method !== 'POST') {
-            if (Object.keys(query).length > 0) {
+            if (numQueryKeys > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -2437,21 +2442,19 @@ export default class upbit extends Exchange {
         if (hasBody) {
             requestBody = this.json(params);
         }
-        let privateHeaders = undefined;
+        const headers = {};
         if (apiName === 'private') {
             this.checkRequiredCredentials();
-            privateHeaders = {};
             const nonce = this.uuid();
             const request = {
                 'access_key': this.apiKey,
                 'nonce': nonce,
             };
-            const hasQuery = Object.keys(query).length;
             let auth = undefined;
             if (hasBody) {
-                privateHeaders['Content-Type'] = 'application/json';
+                headers['Content-Type'] = 'application/json';
             }
-            if (hasQuery !== 0) {
+            if (numQueryKeys !== 0) {
                 auth = this.rawencode(query);
             }
             if (auth !== undefined) {
@@ -2460,9 +2463,9 @@ export default class upbit extends Exchange {
                 request['query_hash_alg'] = 'SHA512';
             }
             const token = jwt(request, this.encode(this.secret), sha256);
-            privateHeaders['Authorization'] = 'Bearer ' + token;
+            headers['Authorization'] = 'Bearer ' + token;
         }
-        const requestHeaders = (apiName === 'private') ? privateHeaders : undefined;
+        const requestHeaders = (apiName === 'private') ? headers : undefined;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

@@ -290,11 +290,11 @@ export default class hibachi extends Exchange {
         const quoteId = this.safeString(market, 'settlementSymbol');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        if ((base === undefined) || (quote === undefined)) {
-            return undefined;
-        }
         const settleId = this.safeString(market, 'settlementSymbol');
         const settle = this.safeCurrencyCode(settleId);
+        if ((base === undefined) || (quote === undefined) || (settle === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote + ':' + settle;
         const created = this.safeIntegerProduct(market, 'marketCreationTimestamp', 1000);
         return this.safeMarketStructure({
@@ -842,8 +842,7 @@ export default class hibachi extends Exchange {
         const amountStr = this.amountToPrecision(this.safeString(market, 'symbol'), amount);
         const feeRateStr = this.numberToString(feeRate);
         const info = this.safeDict(market, 'info');
-        const underlying = '1e' + this.safeString(info, 'underlyingDecimals');
-        const settlement = '1e' + this.safeString(info, 'settlementDecimals');
+        const underlying = '1e' + this.safeString(info, 'underlyingDecimals', '');
         const one = '1';
         const feeRateFactor = '100000000'; // 10^8
         const priceFactor = '4294967296'; // 2^32
@@ -868,7 +867,7 @@ export default class hibachi extends Exchange {
         let encodedPrice = this.binaryConcat();
         if (type === 'limit') {
             const priceStr = this.priceToPrecision(this.safeString(market, 'symbol'), price);
-            const priceInternal = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(Precise.stringMul(priceStr, priceFactor), settlement), underlying), one, 0);
+            const priceInternal = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(Precise.stringMul(priceStr, priceFactor), '1e' + this.safeString(info, 'settlementDecimals', '')), underlying), one, 0);
             const price16 = this.intToBase16(this.parseToInt(priceInternal));
             const pricePadded = price16.padStart(16, '0');
             // @ts-expect-error
@@ -976,7 +975,8 @@ export default class hibachi extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const nonce = this.incrementingNonce();
+        const nonceValue = this.incrementingNonce();
+        const nonce = this.parseToInt(nonceValue);
         const requestOrders = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict(orders, i);
@@ -1079,7 +1079,8 @@ export default class hibachi extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const nonce = this.incrementingNonce();
+        const nonceValue = this.incrementingNonce();
+        const nonce = this.parseToInt(nonceValue);
         const requestOrders = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict(orders, i);
@@ -1162,7 +1163,7 @@ export default class hibachi extends Exchange {
     async cancelOrders(ids, symbol = undefined, params = {}) {
         const orders = [];
         for (let i = 0; i < ids.length; i++) {
-            const orderRequest = this.cancelOrderRequest(ids[i]);
+            const orderRequest = this.cancelOrderRequest(this.safeString(ids, i, ''));
             orderRequest['action'] = 'cancel';
             orders.push(orderRequest);
         }
@@ -1330,8 +1331,8 @@ export default class hibachi extends Exchange {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             const hash = this.hash(message, sha256, 'hex');
             const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
-            const r = signature['r'];
-            const s = signature['s'];
+            const r = this.safeString(signature, 'r', '');
+            const s = this.safeString(signature, 's', '');
             const v = this.intToBase16(signature['v']);
             return r.padStart(64, '0') + s.padStart(64, '0') + v.padStart(2, '0');
         }
@@ -1816,11 +1817,11 @@ export default class hibachi extends Exchange {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
-        if ('status' in response) {
-            //
-            //     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
-            //
-            const status = this.safeString(response, 'status');
+        const status = this.safeString(response, 'status');
+        //
+        //     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
+        //
+        if (status !== undefined) {
             if (status === 'failed') {
                 const code = this.safeString(response, 'errorCode');
                 const feedback = this.id + ' ' + body;

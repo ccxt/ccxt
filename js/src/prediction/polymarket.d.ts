@@ -33,7 +33,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.limit] page size per search query, defaults to 50
      * @returns {object[]} an array of raw gamma event objects
      */
-    fetchRawEventsBySearch(queries: string[], params?: Dict): Promise<any[]>;
+    fetchRawEventsBySearch(queries: string[], params?: Dict): Promise<Dict[]>;
     /**
      * @ignore
      * @method
@@ -54,7 +54,7 @@ export default class polymarket extends Exchange {
      * @param {int} [params.limit] max number of events to fetch (default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
      * @returns {object[]} an array of raw gamma event objects
      */
-    fetchRawEventsList(params?: Dict): Promise<any[]>;
+    fetchRawEventsList(params?: Dict): Promise<Dict[]>;
     parseEventToMarkets(event: Dict): Market[];
     /**
      * @ignore

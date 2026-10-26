@@ -159,8 +159,7 @@ class grvt extends grvt$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' watchTickers requires a symbols argument');
         }
         const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchTickers', 'channel', 'v1.ticker.s');
-        const interval = 500;
-        const [intervalOption, paramsInterval] = this.handleOptionIntegerAndParams(paramsChannel, 'watchTickers', 'interval', interval);
+        const [intervalOption, paramsInterval] = this.handleOptionIntegerAndParams(paramsChannel, 'watchTickers', 'interval', 500);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -170,8 +169,7 @@ class grvt extends grvt$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const marketId = market['id'];
-            rawHashes.push(marketId + '@' + intervalOption.toString());
+            rawHashes.push(this.safeString(market, 'id', '') + '@' + intervalOption.toString());
             messageHashes.push('ticker::' + market['symbol']);
         }
         const request = {
@@ -271,7 +269,7 @@ class grvt extends grvt$1["default"] {
         const parts = selector.split('@');
         const marketId = this.safeString(parts, 0);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const ticker = this.parseWsTicker(data, market);
         this.tickers[symbol] = ticker;
         client.resolve(ticker, 'ticker::' + symbol);
@@ -316,9 +314,8 @@ class grvt extends grvt$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const marketId = market['id'];
             const limitRaw = this.safeInteger(params, 'limit', 50); // 50, 200, 500, 1000
-            rawHashes.push(marketId + '@' + limitRaw.toString());
+            rawHashes.push(this.safeString(market, 'id', '') + '@' + limitRaw.toString());
             messageHashes.push('trade::' + market['symbol']);
         }
         const request = {
@@ -362,7 +359,7 @@ class grvt extends grvt$1["default"] {
         const parts = selector.split('@');
         const marketId = this.safeString(parts, 0);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new Cache.ArrayCache(limit);
@@ -418,10 +415,9 @@ class grvt extends grvt$1["default"] {
             const data = this.safeList(symbolsAndTimeframes, i);
             const symbolString = this.safeString(data, 0);
             const market = this.market(symbolString);
-            const marketId = market['id'];
             const unfiedTimeframe = this.safeString(data, 1, '1');
             const timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
-            rawHashes.push(marketId + '@' + timeframeId + '-TRADE');
+            rawHashes.push(this.safeString(market, 'id', '') + '@' + timeframeId + '-TRADE');
             messageHashes.push('ohlcv::' + market['symbol'] + '::' + unfiedTimeframe);
         }
         const request = {
@@ -462,7 +458,7 @@ class grvt extends grvt$1["default"] {
         const parts = selector.split('@');
         const marketId = this.safeString(parts, 0);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const secondPart = this.safeString(parts, 1, '');
         const timeframeId = secondPart.replace('-TRADE', '');
         const timeframe = this.findTimeframe(timeframeId);
@@ -542,8 +538,7 @@ class grvt extends grvt$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const marketId = market['id'];
-            rawHashes.push(marketId + '@' + extraPart);
+            rawHashes.push(this.safeString(market, 'id', '') + '@' + extraPart);
             messageHashes.push('orderbook::' + market['symbol']);
         }
         const request = {
@@ -585,7 +580,7 @@ class grvt extends grvt$1["default"] {
         const parts = selector.split('@');
         const marketId = this.safeString(parts, 0);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const timestamp = this.safeIntegerProduct(data, 'event_time', 0.000001);
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook();
@@ -728,7 +723,7 @@ class grvt extends grvt$1["default"] {
         }
         const trade = this.parseWsMyTrade(data);
         this.myTrades.append(trade);
-        client.resolve(this.myTrades, 'myTrades::' + trade['symbol']);
+        client.resolve(this.myTrades, 'myTrades::' + this.safeString(trade, 'symbol', ''));
         client.resolve(this.myTrades, 'myTrades');
     }
     parseWsMyTrade(trade, market = undefined) {
@@ -810,11 +805,10 @@ class grvt extends grvt$1["default"] {
         }
         const data = this.safeDict(message, 'feed');
         const position = this.parseWsPosition(data);
-        const symbol = this.safeString(position, 'symbol');
         this.positions.append(position);
         const newPositions = [];
         newPositions.push(position);
-        client.resolve(newPositions, 'positions::' + symbol);
+        client.resolve(newPositions, 'positions::' + this.safeString(position, 'symbol', ''));
         client.resolve(newPositions, 'positions');
     }
     parseWsPosition(position, market = undefined) {
@@ -933,7 +927,7 @@ class grvt extends grvt$1["default"] {
         const order = this.parseWsOrder(data);
         this.orders.append(order);
         client.resolve(this.orders, 'orders');
-        client.resolve(this.orders, 'order::' + order['symbol']);
+        client.resolve(this.orders, 'order::' + this.safeString(order, 'symbol', ''));
     }
     parseWsOrder(order, market = undefined) {
         // same as REST api

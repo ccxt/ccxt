@@ -79,8 +79,7 @@ export default class whitebit extends whitebitRest {
         }
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        const timeframes = this.safeDict(this.options, 'timeframes', {});
-        const interval = this.safeInteger(timeframes, timeframe);
+        const interval = this.safeInteger(this.options['timeframes'], timeframe);
         const marketId = market['id'];
         // currently there is no way of knowing
         // the interval upon getting an update
@@ -123,11 +122,9 @@ export default class whitebit extends whitebitRest {
             const symbol = market['symbol'];
             const messageHash = 'candles' + ':' + symbol;
             const parsed = this.parseOHLCV(data, market);
-            // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
             if (!(symbol in this.ohlcvs)) {
                 this.ohlcvs[symbol] = {};
             }
-            // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
             if (!('unknown' in this.ohlcvs[symbol])) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 const stored = new ArrayCacheByTimestamp(limit);
@@ -157,8 +154,7 @@ export default class whitebit extends whitebitRest {
         const limitValue = (limit === undefined) ? 10 : limit;
         const messageHash = 'orderbook' + ':' + market['symbol'];
         const method = 'depth_subscribe';
-        const options = this.safeDict(this.options, 'watchOrderBook', {});
-        const defaultPriceInterval = this.safeString(options, 'priceInterval', '0');
+        const defaultPriceInterval = this.safeString(this.options['watchOrderBook'], 'priceInterval', '0');
         const priceInterval = this.safeString(params, 'priceInterval', defaultPriceInterval);
         const paramsOmitted = this.omit(params, 'priceInterval');
         const reqParams = [
@@ -280,7 +276,7 @@ export default class whitebit extends whitebitRest {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
         const method = 'market_subscribe';
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const id = this.incrementingNonce();
         const messageHashes = [];
         const args = [];
@@ -413,7 +409,7 @@ export default class whitebit extends whitebitRest {
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append(parsedTrades[j]);
         }
-        const messageHash = 'trades:' + market['symbol'];
+        const messageHash = 'trades:' + symbol;
         client.resolve(stored, messageHash);
     }
     /**
@@ -474,7 +470,7 @@ export default class whitebit extends whitebitRest {
         const stored = this.myTrades;
         const parsed = this.parseWsTrade(trade);
         stored.append(parsed);
-        const symbol = parsed['symbol'];
+        const symbol = this.safeString(parsed, 'symbol', '');
         const messageHash = 'myTrades:' + symbol;
         client.resolve(stored, messageHash);
     }
@@ -616,7 +612,7 @@ export default class whitebit extends whitebitRest {
         const status = this.safeInteger(params, 0);
         const parsed = this.parseWsOrder(this.extend(data, { 'status': status }));
         stored.append(parsed);
-        const symbol = parsed['symbol'];
+        const symbol = this.safeString(parsed, 'symbol', '');
         const messageHash = 'orders:' + symbol;
         client.resolve(this.orders, messageHash);
     }
@@ -758,7 +754,7 @@ export default class whitebit extends whitebitRest {
             method = 'balanceMargin_subscribe';
             messageHash += 'margin';
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const client = this.client(url);
         this.setBalanceCache(client, type, messageHash);
         const [fetchBalanceSnapshot, paramsFetchBalanceSnapshot] = this.handleOptionBoolAndParams(paramsMarketType, 'watchBalance', 'fetchBalanceSnapshot', true);
@@ -838,7 +834,7 @@ export default class whitebit extends whitebitRest {
         const data = this.safeList(message, 'params', []);
         for (let i = 0; i < data.length; i++) {
             const balanceDict = this.safeDict(data, i, {});
-            this.balance['info'] = balanceDict;
+            this.balance['info'] = this.safeDict(data, i, {});
             if (isMargin) {
                 const currencyId = this.safeString(balanceDict, 'a');
                 const code = this.safeCurrencyCode(currencyId);
@@ -876,7 +872,7 @@ export default class whitebit extends whitebitRest {
         client.resolve(this.balance, messageHash);
     }
     async watchPublic(messageHash, method, reqParams = [], params = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const id = this.incrementingNonce();
         const request = {
             'id': id,
@@ -890,7 +886,7 @@ export default class whitebit extends whitebitRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const id = this.incrementingNonce();
         const client = this.safeValue(this.clients, url);
         let request = undefined;
@@ -952,7 +948,7 @@ export default class whitebit extends whitebitRest {
     async watchPrivate(messageHash, method, reqParams = [], params = {}) {
         this.checkRequiredCredentials();
         await this.authenticate();
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const id = this.incrementingNonce();
         const request = {
             'id': id,
@@ -964,7 +960,7 @@ export default class whitebit extends whitebitRest {
     }
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const client = this.client(url);
         const subscribeHash = 'authenticated';
         // handleAuthenticate () resolves the handshake future with 1, so 1 is

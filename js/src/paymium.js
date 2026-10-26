@@ -169,9 +169,8 @@ export default class paymium extends Exchange {
             const free = 'balance_' + currencyId;
             if (free in response) {
                 const account = this.account();
-                const used = 'locked_' + currencyId;
                 account['free'] = this.safeString(response, free);
-                account['used'] = this.safeString(response, used);
+                account['used'] = this.safeString(response, 'locked_' + currencyId);
                 result[code] = account;
             }
         }
@@ -305,7 +304,8 @@ export default class paymium extends Exchange {
         const marketResolved = this.safeMarket(undefined, market);
         const side = this.safeString(trade, 'side');
         const price = this.safeString(trade, 'price');
-        const amountField = 'traded_' + marketResolved['base'].toLowerCase();
+        const baseId = this.safeString(marketResolved, 'base', '');
+        const amountField = 'traded_' + baseId.toLowerCase();
         const amount = this.safeString(trade, amountField);
         return this.safeTrade({
             'info': trade,
@@ -627,8 +627,9 @@ export default class paymium extends Exchange {
         const baseUrl = baseApiUrl;
         let url = baseUrl + '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
+        const hasQuery = Object.keys(query).length > 0;
         if (api[0] === 'public') {
-            if (Object.keys(query).length > 0) {
+            if (hasQuery) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -641,7 +642,6 @@ export default class paymium extends Exchange {
                 'Api-Key': this.apiKey,
                 'Api-Nonce': nonce,
             };
-            const hasQuery = Object.keys(query).length > 0;
             let signedBody = undefined;
             if (method === 'POST' && hasQuery) {
                 signedBody = this.json(query);
@@ -655,7 +655,7 @@ export default class paymium extends Exchange {
             else {
                 if (hasQuery) {
                     const queryString = this.urlencode(query);
-                    auth += queryString;
+                    auth = nonce + url + queryString;
                     url += '?' + queryString;
                 }
             }

@@ -804,6 +804,58 @@ class tokocrypto extends tokocrypto$1["default"] {
                 }
             }
             const marginTradingEnable = this.safeString(market, 'marginTradingEnable');
+            let costMin = undefined;
+            const precision = {
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityPrecision'))),
+                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'pricePrecision'))),
+                'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
+                'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
+            };
+            const limits = {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': costMin,
+                    'max': undefined,
+                },
+            };
+            if ('PRICE_FILTER' in filtersByType) {
+                const filter = this.safeDict(filtersByType, 'PRICE_FILTER', {});
+                // PRICE_FILTER reports zero values for maxPrice
+                // since they updated filter types in November 2018
+                // https://github.com/ccxt/ccxt/issues/4286
+                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+                limits['price'] = {
+                    'min': this.safeNumber(filter, 'minPrice'),
+                    'max': this.safeNumber(filter, 'maxPrice'),
+                };
+                precision['price'] = filter['tickSize'];
+            }
+            if ('LOT_SIZE' in filtersByType) {
+                const filter = this.safeDict(filtersByType, 'LOT_SIZE', {});
+                precision['amount'] = this.safeNumber(filter, 'stepSize');
+                limits['amount'] = {
+                    'min': this.safeNumber(filter, 'minQty'),
+                    'max': this.safeNumber(filter, 'maxQty'),
+                };
+            }
+            if ('MARKET_LOT_SIZE' in filtersByType) {
+                const filter = this.safeDict(filtersByType, 'MARKET_LOT_SIZE', {});
+                limits['market'] = {
+                    'min': this.safeNumber(filter, 'minQty'),
+                    'max': this.safeNumber(filter, 'maxQty'),
+                };
+            }
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -829,64 +881,14 @@ class tokocrypto extends tokocrypto$1["default"] {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityPrecision'))),
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'pricePrecision'))),
-                    'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
-                    'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
+                'precision': precision,
+                'limits': limits,
                 'created': undefined,
                 'info': market,
             };
-            if ('PRICE_FILTER' in filtersByType) {
-                const filter = this.safeDict(filtersByType, 'PRICE_FILTER', {});
-                entry['precision']['price'] = this.safeNumber(filter, 'tickSize');
-                // PRICE_FILTER reports zero values for maxPrice
-                // since they updated filter types in November 2018
-                // https://github.com/ccxt/ccxt/issues/4286
-                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-                entry['limits']['price'] = {
-                    'min': this.safeNumber(filter, 'minPrice'),
-                    'max': this.safeNumber(filter, 'maxPrice'),
-                };
-                entry['precision']['price'] = filter['tickSize'];
-            }
-            if ('LOT_SIZE' in filtersByType) {
-                const filter = this.safeDict(filtersByType, 'LOT_SIZE', {});
-                entry['precision']['amount'] = this.safeNumber(filter, 'stepSize');
-                entry['limits']['amount'] = {
-                    'min': this.safeNumber(filter, 'minQty'),
-                    'max': this.safeNumber(filter, 'maxQty'),
-                };
-            }
-            if ('MARKET_LOT_SIZE' in filtersByType) {
-                const filter = this.safeDict(filtersByType, 'MARKET_LOT_SIZE', {});
-                entry['limits']['market'] = {
-                    'min': this.safeNumber(filter, 'minQty'),
-                    'max': this.safeNumber(filter, 'maxQty'),
-                };
-            }
             if ('MIN_NOTIONAL' in filtersByType) {
                 const filter = this.safeDict(filtersByType, 'MIN_NOTIONAL', {});
-                entry['limits']['cost']['min'] = this.safeNumber2(filter, 'minNotional', 'notional');
+                costMin = this.safeNumber2(filter, 'minNotional', 'notional');
             }
             result.push(entry);
         }
@@ -1836,7 +1838,10 @@ class tokocrypto extends tokocrypto$1["default"] {
         const isPostOnlyTimeInForce = (requestedTimeInForce === 'GTX');
         const [postOnly, paramsPostOnly] = this.handlePostOnly(isMarketOrder, isPostOnlyTimeInForce, params);
         // only supported for spot/margin api
-        const typeResolved = (postOnly) ? 'LIMIT_MAKER' : type;
+        let typeResolved = type;
+        if (postOnly) {
+            typeResolved = 'LIMIT_MAKER';
+        }
         // post only is expressed by the order type here, not by a time force
         let timeInForceResolved = requestedTimeInForce;
         if (postOnly) {
@@ -1876,8 +1881,10 @@ class tokocrypto extends tokocrypto$1["default"] {
             'TAKE_PROFIT_LIMIT': 6,
             'LIMIT_MAKER': 7,
         };
+        const baseId = this.safeString(market, 'baseId', '');
+        const quoteId = this.safeString(market, 'quoteId', '');
         const request = {
-            'symbol': market['baseId'] + '_' + market['quoteId'],
+            'symbol': baseId + '_' + quoteId,
             'type': this.safeString(reverseOrderTypeMapping, uppercaseType),
         };
         if (side === 'buy') {
@@ -1916,7 +1923,8 @@ class tokocrypto extends tokocrypto$1["default"] {
         //
         if (uppercaseType === 'MARKET') {
             if (side === 'buy') {
-                const precision = market['precision']['price'];
+                const marketPrecision = this.safeDict(market, 'precision', {});
+                const precision = marketPrecision['price'];
                 let quoteAmount = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
                 [createMarketBuyOrderRequiresPrice, paramsRequest] = this.handleOptionBoolAndParams(paramsRequest, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -2666,15 +2674,15 @@ class tokocrypto extends tokocrypto$1["default"] {
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
-        if (!(apiName in this.urls['api']['rest'])) {
+        const restUrls = this.extend({}, this.urls['api']['rest']);
+        if (!(apiName in restUrls)) {
             throw new errors.NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
         const baseApiUrl = this.safeString(this.urls['api']['rest'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = baseApiUrl;
-        url += '/' + path;
+        let url = baseApiUrl + '/' + path;
         if (apiName === 'wapi') {
             url += '.html';
         }
@@ -2695,7 +2703,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         }
         else if ((apiName === 'private') || (apiName === 'sapi' && path !== 'system/status') || (apiName === 'sapiV3') || (apiName === 'wapi' && path !== 'systemStatus') || (apiName === 'dapiPrivate') || (apiName === 'dapiPrivateV2') || (apiName === 'fapiPrivate') || (apiName === 'fapiPrivateV2')) {
             this.checkRequiredCredentials();
-            let query = undefined;
+            let query = '';
             const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
             const extendedParams = this.extend({
                 'timestamp': this.nonce(),
@@ -2722,14 +2730,12 @@ class tokocrypto extends tokocrypto$1["default"] {
                 'X-MBX-APIKEY': this.apiKey,
             };
             const queryInUrl = (method === 'GET') || (method === 'DELETE') || (apiName === 'wapi');
-            let bodySigned = query;
-            if (queryInUrl) {
-                bodySigned = undefined;
-            }
+            let bodySigned = undefined;
             if (queryInUrl) {
                 url += '?' + query;
             }
             else {
+                bodySigned = query;
                 headersSigned['Content-Type'] = 'application/x-www-form-urlencoded';
             }
             return { 'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned };
@@ -2816,23 +2822,24 @@ class tokocrypto extends tokocrypto$1["default"] {
         return undefined;
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
-        if (('noCoin' in config) && !('coin' in params)) {
-            return config['noCoin'];
+        const paramsDict = this.extend({}, params);
+        if (('noCoin' in paramsDict) && !('coin' in paramsDict)) {
+            return this.safeInteger(config, 'noCoin');
         }
-        else if (('noSymbol' in config) && !('symbol' in params)) {
-            return config['noSymbol'];
+        else if (('noSymbol' in paramsDict) && !('symbol' in paramsDict)) {
+            return this.safeInteger(config, 'noSymbol');
         }
-        else if (('noPoolId' in config) && !('poolId' in params)) {
-            return config['noPoolId'];
+        else if (('noPoolId' in paramsDict) && !('poolId' in paramsDict)) {
+            return this.safeInteger(config, 'noPoolId');
         }
-        else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = this.safeInteger(params, 'limit');
+        else if (('byLimit' in config) && ('limit' in paramsDict)) {
+            const limit = this.safeInteger(paramsDict, 'limit');
             const byLimit = this.safeList(config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 const entryLimit = this.safeInteger(entry, 0);
                 if ((limit !== undefined) && (entryLimit !== undefined) && (limit <= entryLimit)) {
-                    return entry[1];
+                    return this.safeInteger(entry, 1);
                 }
             }
         }

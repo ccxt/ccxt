@@ -527,8 +527,7 @@ class nado extends nado$1["default"] {
         const isTriggerOrder = isStopOrder || isStopLossOrder || isTakeProfitOrder;
         if (isStopOrder) {
             // the final omit drops triggerDirection from the request
-            const triggerDirectionAndParams = this.handleTriggerDirectionAndParams(paramsRecvWindow);
-            const triggerDirection = triggerDirectionAndParams[0];
+            const triggerDirection = this.safeString(this.handleTriggerDirectionAndParams(paramsRecvWindow), 0);
             let directionSuffix = 'below';
             if (triggerDirection === 'ascending') {
                 directionSuffix = 'above';
@@ -1220,10 +1219,10 @@ class nado extends nado$1["default"] {
         if (market !== undefined) {
             ordersRequest['product_ids'] = [this.parseToInt(market['id'])];
         }
-        const [ordersRequestUntil, paramsUntil] = this.handleUntilOption('max_time', ordersRequest, paramsSubaccount, 0.001);
         if (limit !== undefined) {
-            ordersRequestUntil['limit'] = Math.min(limit, 500);
+            ordersRequest['limit'] = Math.min(limit, 500);
         }
+        const [ordersRequestUntil, paramsUntil] = this.handleUntilOption('max_time', ordersRequest, paramsSubaccount, 0.001);
         const request = {
             'orders': ordersRequestUntil,
         };
@@ -1326,10 +1325,10 @@ class nado extends nado$1["default"] {
         if (market !== undefined) {
             matchesRequest['product_ids'] = [this.parseToInt(market['id'])];
         }
-        const [matchesRequestUntil, paramsUntil] = this.handleUntilOption('max_time', matchesRequest, paramsSubaccount, 0.001);
         if (limit !== undefined) {
-            matchesRequestUntil['limit'] = Math.min(limit, 500);
+            matchesRequest['limit'] = Math.min(limit, 500);
         }
+        const [matchesRequestUntil, paramsUntil] = this.handleUntilOption('max_time', matchesRequest, paramsSubaccount, 0.001);
         const request = {
             'matches': matchesRequestUntil,
         };
@@ -1752,7 +1751,7 @@ class nado extends nado$1["default"] {
             const settle = contract ? quote : undefined;
             let symbol = base + '/' + quote;
             if (contract) {
-                symbol += ':' + settle;
+                symbol = base + '/' + quote + ':' + quote;
             }
             const tradingStatus = this.safeString(market, 'trading_status');
             const active = (tradingStatus !== 'not_tradable');
@@ -1832,7 +1831,7 @@ class nado extends nado$1["default"] {
         const result = {};
         const assets = this.toArray(response);
         for (let i = 0; i < assets.length; i++) {
-            const currency = assets[i];
+            const currency = this.safeValue(assets, i);
             const parsed = this.parseCurrency(currency);
             const code = this.safeString(parsed, 'code');
             if (code === undefined) {
@@ -1896,7 +1895,7 @@ class nado extends nado$1["default"] {
     async fetchTicker(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const tickers = await this.fetchTickers([symbolValue], params);
         const ticker = this.safeDict(tickers, symbolValue);
         if (ticker === undefined) {
@@ -2240,18 +2239,19 @@ class nado extends nado$1["default"] {
         const market = this.market(symbol);
         const until = this.safeInteger(params, 'until');
         const paramsOmitted = this.omit(params, 'until');
-        const request = {
-            'candlesticks': {
-                'product_id': this.parseToInt(market['id']),
-                'granularity': this.safeInteger(this.timeframes, timeframe, this.parseTimeframe(timeframe)),
-            },
+        const candlesticks = {
+            'product_id': this.parseToInt(market['id']),
+            'granularity': this.safeInteger(this.timeframes, timeframe, this.parseTimeframe(timeframe)),
         };
         if (limit !== undefined) {
-            request['candlesticks']['limit'] = Math.min(limit, 500);
+            candlesticks['limit'] = Math.min(limit, 500);
         }
         if (until !== undefined) {
-            request['candlesticks']['max_time'] = this.parseToInt(until / 1000);
+            candlesticks['max_time'] = this.parseToInt(until / 1000);
         }
+        const request = {
+            'candlesticks': candlesticks,
+        };
         const response = await this.archivePost(this.deepExtend(request, paramsOmitted));
         //
         //     {
@@ -3051,7 +3051,8 @@ class nado extends nado$1["default"] {
         return '0x' + address + this.padHex(encoded, 24, false);
     }
     async queryContracts(params = {}) {
-        if (this.safeDict(this.options, 'gatewayContracts') === undefined) {
+        const gatewayContracts = this.safeDict(this.options, 'gatewayContracts');
+        if (gatewayContracts === undefined) {
             const request = {
                 'type': 'contracts',
             };
@@ -3177,7 +3178,10 @@ class nado extends nado$1["default"] {
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        const pathSuffix = (path !== '') ? ('/' + this.implodeParams(path, params)) : '';
+        let pathSuffix = '';
+        if (path !== '') {
+            pathSuffix = '/' + this.implodeParams(path, params);
+        }
         let url = baseApiUrl + pathSuffix;
         const query = this.omit(params, this.extractParams(path));
         const headersValue = {};
@@ -3186,7 +3190,7 @@ class nado extends nado$1["default"] {
         }
         if (method === 'GET') {
             if (Object.keys(query).length > 0) {
-                url += '?' + this.urlencode(query);
+                url = baseApiUrl + pathSuffix + '?' + this.urlencode(query);
             }
         }
         else {

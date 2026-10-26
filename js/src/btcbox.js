@@ -383,7 +383,7 @@ export default class btcbox extends Exchange {
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             const currency = this.currency(code);
-            const currencyId = currency['id'];
+            const currencyId = this.safeString(currency, 'id', '');
             const free = currencyId + '_balance';
             if (free in response) {
                 const account = this.account();
@@ -805,15 +805,15 @@ export default class btcbox extends Exchange {
         let url = apiUrl + '/' + this.version + '/' + path;
         if (apiName === 'public') {
             if (Object.keys(params).length > 0) {
-                url += '?' + this.urlencode(params);
+                url = apiUrl + '/' + this.version + '/' + path + '?' + this.urlencode(params);
             }
         }
         else if (apiName === 'webApi') {
-            url = this.urls['www'] + '/' + path;
+            url = this.safeString(this.urls, 'www', '') + '/' + path;
         }
         else {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            const nonce = this.numberToString(this.nonce());
             const query = this.extend({
                 'key': this.apiKey,
                 'nonce': nonce,
@@ -850,11 +850,11 @@ export default class btcbox extends Exchange {
         let response = await this.fetch2(path, api, method, params, config);
         if (typeof response === 'string') {
             // sometimes the exchange returns whitespace prepended to json
-            response = this.strip(response);
-            if (!this.isJsonEncodedObject(response)) {
-                throw new ExchangeError(this.id + ' ' + response);
+            const strippedResponse = this.strip(response);
+            if (!this.isJsonEncodedObject(strippedResponse)) {
+                throw new ExchangeError(this.id + ' ' + strippedResponse);
             }
-            response = JSON.parse(response);
+            response = JSON.parse(strippedResponse);
         }
         return response;
     }

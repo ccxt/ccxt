@@ -292,7 +292,7 @@ class phemex extends phemex$1["default"] {
         }
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString(ticker, 'symbol', '');
             const messageHash = 'ticker:' + symbol;
             const timestamp = this.safeIntegerProduct(message, 'timestamp', 0.000001);
             ticker['timestamp'] = timestamp;
@@ -318,8 +318,10 @@ class phemex extends phemex$1["default"] {
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
         const usePerpetualApi = this.safeString(paramsMarketType, 'settle') === 'USDT';
-        let messageHash = ':balance';
-        messageHash = usePerpetualApi ? 'perpetual' + messageHash : type + messageHash;
+        let messageHash = 'perpetual:balance';
+        if (!usePerpetualApi) {
+            messageHash = type + ':balance';
+        }
         return await this.subscribePrivate(type, messageHash, paramsMarketType);
     }
     handleBalance(type, client, message) {
@@ -827,7 +829,7 @@ class phemex extends phemex$1["default"] {
         const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            messageHash = messageHash + market['symbol'];
+            messageHash = 'trades:' + this.safeString(market, 'symbol', '');
         }
         const isUsdtMarket = (market !== undefined) && (market['settle'] === 'USDT');
         let settleRequest = {};
@@ -837,7 +839,12 @@ class phemex extends phemex$1["default"] {
         const [type, paramsType] = this.handleMarketTypeAndParams('watchMyTrades', market, this.extend(params, settleRequest));
         if (symbolResolved === undefined) {
             const settle = this.safeString(paramsType, 'settle');
-            messageHash = (settle === 'USDT') ? (messageHash + 'perpetual') : (messageHash + type);
+            if (settle === 'USDT') {
+                messageHash = 'trades:perpetual';
+            }
+            else {
+                messageHash = 'trades:' + type;
+            }
         }
         const trades = await this.subscribePrivate(type, messageHash, paramsType);
         let limitResolved = limit;
@@ -952,7 +959,7 @@ class phemex extends phemex$1["default"] {
         }
         const marketIds = {};
         let type = undefined;
-        for (let i = 0; i < message.length; i++) {
+        for (let i = 0; i < tradesLength; i++) {
             const rawTrade = message[i];
             const marketId = this.safeString(rawTrade, 'symbol');
             const market = this.safeMarket(marketId);
@@ -996,7 +1003,7 @@ class phemex extends phemex$1["default"] {
         const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            messageHash = messageHash + market['symbol'];
+            messageHash = 'orders:' + this.safeString(market, 'symbol', '');
         }
         const isUsdtMarket = (market !== undefined) && (market['settle'] === 'USDT');
         let settleRequest = {};
@@ -1006,7 +1013,12 @@ class phemex extends phemex$1["default"] {
         const [type, paramsType] = this.handleMarketTypeAndParams('watchOrders', market, this.extend(params, settleRequest));
         const isUSDTSettled = this.safeString(paramsType, 'settle') === 'USDT';
         if (symbolResolved === undefined) {
-            messageHash = (isUSDTSettled) ? (messageHash + 'perpetual') : (messageHash + type);
+            if (isUSDTSettled) {
+                messageHash = 'orders:perpetual';
+            }
+            else {
+                messageHash = 'orders:' + type;
+            }
         }
         const orders = await this.subscribePrivate(type, messageHash, paramsType);
         let limitResolved = limit;
@@ -1196,7 +1208,7 @@ class phemex extends phemex$1["default"] {
             if (messageLength === 0) {
                 return;
             }
-            for (let i = 0; i < message.length; i++) {
+            for (let i = 0; i < messageLength; i++) {
                 const update = message[i];
                 const action = this.safeString(update, 'action');
                 if ((action !== undefined) && (action !== 'Cancel')) {

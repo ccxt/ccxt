@@ -2298,8 +2298,8 @@ export default class sxbet extends Exchange {
     async watchOrderBook(outcome, limit = undefined, params = {}) {
         await this.loadOutcome(outcome);
         const outcomeObj = this.outcome(outcome);
-        const sym = this.safeString(outcomeObj, 'outcome');
-        const marketHash = this.safeString(outcomeObj['info'], 'marketHash');
+        const sym = this.safeString(outcomeObj, 'outcome', '');
+        const marketHash = this.safeString(outcomeObj['info'], 'marketHash', '');
         const channel = 'orderbook_v3:' + marketHash;
         const messageHash = 'orderbook::' + sym;
         const url = this.safeString(this.urls['api'], 'ws');
@@ -2417,7 +2417,7 @@ export default class sxbet extends Exchange {
     async watchTicker(outcome, params = {}) {
         await this.loadOutcome(outcome);
         const outcomeObj = this.outcome(outcome);
-        const sym = this.safeString(outcomeObj, 'outcome');
+        const sym = this.safeString(outcomeObj, 'outcome', '');
         const marketHash = this.safeString(outcomeObj['info'], 'marketHash');
         const messageHash = 'ticker::' + sym;
         const watchedTickers = this.safeDict(this.options, 'wsWatchedTickers');
@@ -2503,7 +2503,7 @@ export default class sxbet extends Exchange {
     async watchTrades(outcome, since = undefined, limit = undefined, params = {}) {
         await this.loadOutcome(outcome);
         const outcomeObj = this.outcome(outcome);
-        const sym = this.safeString(outcomeObj, 'outcome');
+        const sym = this.safeString(outcomeObj, 'outcome', '');
         const messageHash = 'trades::' + sym;
         const trades = await this.subscribeSxbetChannel(messageHash, 'recent_trades_v3:global');
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
@@ -2600,7 +2600,7 @@ export default class sxbet extends Exchange {
         if (outcome !== undefined) {
             await this.loadOutcome(outcome);
             const outcomeObj = this.outcome(outcome);
-            const sym = this.safeString(outcomeObj, 'outcome');
+            const sym = this.safeString(outcomeObj, 'outcome', '');
             messageHash = 'myTrades::' + sym;
         }
         const channel = 'account:fills_v3_#' + this.walletAddress;
@@ -2649,7 +2649,7 @@ export default class sxbet extends Exchange {
         if (outcome !== undefined) {
             await this.loadOutcome(outcome);
             const outcomeObj = this.outcome(outcome);
-            const sym = this.safeString(outcomeObj, 'outcome');
+            const sym = this.safeString(outcomeObj, 'outcome', '');
             messageHash = 'orders::' + sym;
         }
         const channel = 'account:orders_v3_#' + this.walletAddress;

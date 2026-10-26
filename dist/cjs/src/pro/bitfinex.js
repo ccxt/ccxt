@@ -52,7 +52,7 @@ class bitfinex extends bitfinex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const marketId = market['id'];
+        const marketId = this.safeString(market, 'id', '');
         const url = this.urls['api']['ws']['public'];
         const client = this.client(url);
         const messageHash = channel + ':' + marketId;
@@ -81,13 +81,13 @@ class bitfinex extends bitfinex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const marketId = market['id'];
+        const marketId = this.safeString(market, 'id', '');
         const url = this.urls['api']['ws']['public'];
         const client = this.client(url);
         const subMessageHash = channel + ':' + marketId;
         const messageHash = 'unsubscribe:' + channel + ':' + marketId;
         const unSubTopic = 'unsubscribe' + ':' + topic + ':' + symbol;
-        const channelId = this.safeString(client.subscriptions, unSubTopic);
+        const channelId = this.safeString(client.subscriptions, unSubTopic, '');
         const request = {
             'event': 'unsubscribe',
             'chanId': channelId,
@@ -130,8 +130,9 @@ class bitfinex extends bitfinex$1["default"] {
         const symbolValue = market['symbol'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const channel = 'candles';
-        const key = 'trade:' + interval + ':' + market['id'];
-        const messageHash = channel + ':' + interval + ':' + market['id'];
+        const marketId = this.safeString(market, 'id', '');
+        const key = 'trade:' + interval + ':' + marketId;
+        const messageHash = channel + ':' + interval + ':' + marketId;
         const request = {
             'event': 'subscribe',
             'channel': channel,
@@ -163,12 +164,13 @@ class bitfinex extends bitfinex$1["default"] {
         const symbolValue = market['symbol'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const channel = 'candles';
-        const subMessageHash = channel + ':' + interval + ':' + market['id'];
+        const marketId = this.safeString(market, 'id', '');
+        const subMessageHash = channel + ':' + interval + ':' + marketId;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
         const client = this.client(url);
-        const subId = 'unsubscribe:trade:' + interval + ':' + market['id']; // trade here because we use the key
-        const channelId = this.safeString(client.subscriptions, subId);
+        const subId = 'unsubscribe:trade:' + interval + ':' + marketId; // trade here because we use the key
+        const channelId = this.safeString(client.subscriptions, subId, '');
         const request = {
             'event': 'unsubscribe',
             'chanId': channelId,
@@ -241,13 +243,11 @@ class bitfinex extends bitfinex$1["default"] {
             // update
             ohlcvs = [data];
         }
-        const channel = this.safeString(subscription, 'channel');
+        const channel = this.safeString(subscription, 'channel', '');
         const key = this.safeString(subscription, 'key', '');
         const keyParts = key.split(':');
-        const interval = this.safeString(keyParts, 1);
-        let marketId = key;
-        marketId = marketId.replace('trade:', '');
-        marketId = marketId.replace(interval + ':', '');
+        const interval = this.safeString(keyParts, 1, '');
+        const marketId = this.safeString(keyParts, 2, '');
         const market = this.safeMarket(marketId);
         const timeframe = this.findTimeframe(interval);
         const symbol = market['symbol'];
@@ -261,8 +261,7 @@ class bitfinex extends bitfinex$1["default"] {
         }
         const ohlcvsLength = ohlcvs.length;
         for (let i = 0; i < ohlcvsLength; i++) {
-            const ohlcv = ohlcvs[ohlcvsLength - i - 1];
-            const parsed = this.parseOHLCV(ohlcv, market);
+            const parsed = this.parseOHLCV(this.safeList(ohlcvs, ohlcvsLength - i - 1), market);
             stored.append(parsed);
         }
         client.resolve(stored, messageHash);
@@ -313,7 +312,8 @@ class bitfinex extends bitfinex$1["default"] {
         let messageHash = 'myTrade';
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            messageHash += ':' + market['id'];
+            const marketId = this.safeString(market, 'id', '');
+            messageHash = 'myTrade:' + marketId;
         }
         const trades = await this.subscribePrivate(messageHash);
         let limitResolved = limit;
@@ -371,7 +371,8 @@ class bitfinex extends bitfinex$1["default"] {
         const trade = this.parseWsTrade({ 'result': data });
         const symbol = trade['symbol'];
         const market = this.market(symbol);
-        const messageHash = name + ':' + market['id'];
+        const marketId = this.safeString(market, 'id', '');
+        const messageHash = name + ':' + marketId;
         if (this.myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.myTrades = new Cache.ArrayCacheBySymbolById(limit);
@@ -416,7 +417,7 @@ class bitfinex extends bitfinex$1["default"] {
         //
         //
         const channel = this.safeString(subscription, 'channel');
-        const marketId = this.safeString(subscription, 'symbol');
+        const marketId = this.safeString(subscription, 'symbol', '');
         const market = this.safeMarket(marketId);
         const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
         const symbol = market['symbol'];
@@ -433,7 +434,7 @@ class bitfinex extends bitfinex$1["default"] {
             const length = trades.length;
             for (let i = 0; i < length; i++) {
                 const index = length - i - 1;
-                const parsed = this.parseWsTrade({ 'result': trades[index] }, market);
+                const parsed = this.parseWsTrade({ 'result': this.safeList(trades, index) }, market);
                 stored.append(parsed);
             }
         }
@@ -582,7 +583,7 @@ class bitfinex extends bitfinex$1["default"] {
         //  ]
         //
         const ticker = this.safeList(message, 1);
-        const marketId = this.safeString(subscription, 'symbol');
+        const marketId = this.safeString(subscription, 'symbol', '');
         const market = this.safeMarket(marketId);
         const symbol = this.safeSymbol(marketId);
         const parsed = this.parseWsTicker(ticker, market);
@@ -688,7 +689,7 @@ class bitfinex extends bitfinex$1["default"] {
         //         ]
         //     ]
         //
-        const marketId = this.safeString(subscription, 'symbol');
+        const marketId = this.safeString(subscription, 'symbol', '');
         const symbol = this.safeSymbol(marketId);
         const channel = 'book';
         const messageHash = channel + ':' + marketId;
@@ -769,7 +770,7 @@ class bitfinex extends bitfinex$1["default"] {
         //
         // [ 173904, "cs", -890884919 ]
         //
-        const marketId = this.safeString(subscription, 'symbol');
+        const marketId = this.safeString(subscription, 'symbol', '');
         const symbol = this.safeSymbol(marketId);
         const channel = 'book';
         const messageHash = channel + ':' + marketId;
@@ -789,11 +790,11 @@ class bitfinex extends bitfinex$1["default"] {
             const bid = this.safeList(bids, i);
             const ask = this.safeList(asks, i);
             if (bid !== undefined) {
-                stringArray.push(this.numberToString(bids[i][idToCheck]));
-                stringArray.push(this.numberToString(bids[i][1]));
+                stringArray.push(this.numberToString(this.safeNumber(bid, idToCheck)));
+                stringArray.push(this.numberToString(this.safeNumber(bid, 1)));
             }
             if (ask !== undefined) {
-                stringArray.push(this.numberToString(asks[i][idToCheck]));
+                stringArray.push(this.numberToString(this.safeNumber(ask, idToCheck)));
                 const aski1 = this.safeNumber(ask, 1);
                 if (aski1 !== undefined) {
                     stringArray.push(this.numberToString(-aski1));
@@ -962,9 +963,9 @@ class bitfinex extends bitfinex$1["default"] {
         //     "chanId": CHANNEL_ID
         // }
         //
-        const channelId = this.safeString(message, 'chanId');
+        const channelId = this.safeString(message, 'chanId', '');
         const unSubChannel = 'unsubscribe:' + channelId;
-        const subMessageHash = this.safeString(client.subscriptions, unSubChannel);
+        const subMessageHash = this.safeString(client.subscriptions, unSubChannel, '');
         const subscription = this.safeDict(client.subscriptions, 'unsubscribe:' + subMessageHash);
         delete client.subscriptions[unSubChannel];
         const messageHashes = this.safeList(subscription, 'messageHashes', []);
@@ -997,7 +998,7 @@ class bitfinex extends bitfinex$1["default"] {
         //       key: 'trade:1m:tBTCUST'
         //  }
         //
-        const channelId = this.safeString(message, 'chanId');
+        const channelId = this.safeString(message, 'chanId', '');
         client.subscriptions[channelId] = message;
         // store the opposite direction too for unWatch
         const mappings = {
@@ -1009,7 +1010,7 @@ class bitfinex extends bitfinex$1["default"] {
         const unifiedChannel = this.safeString(mappings, this.safeString(message, 'channel'));
         if ('key' in message) {
             // handle ohlcv differently because the message is different
-            const key = this.safeString(message, 'key');
+            const key = this.safeString(message, 'key', '');
             const subKeyId = 'unsubscribe:' + key;
             client.subscriptions[subKeyId] = channelId;
         }
@@ -1081,7 +1082,8 @@ class bitfinex extends bitfinex$1["default"] {
         let messageHash = 'orders';
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            messageHash += ':' + market['id'];
+            const marketId = this.safeString(market, 'id', '');
+            messageHash = 'orders:' + marketId;
         }
         const orders = await this.subscribePrivate(messageHash);
         let limitResolved = limit;
@@ -1147,7 +1149,7 @@ class bitfinex extends bitfinex$1["default"] {
             for (let i = 0; i < data.length; i++) {
                 const value = data[i];
                 const parsed = this.parseWsOrder(value);
-                const symbol = parsed['symbol'];
+                const symbol = this.safeString(parsed, 'symbol', '');
                 symbolIds[symbol] = true;
                 orders.append(parsed);
             }
@@ -1155,7 +1157,7 @@ class bitfinex extends bitfinex$1["default"] {
         else {
             const parsed = this.parseWsOrder(data);
             orders.append(parsed);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol', '');
             symbolIds[symbol] = true;
         }
         const name = 'orders';
@@ -1164,7 +1166,8 @@ class bitfinex extends bitfinex$1["default"] {
         for (let i = 0; i < keys.length; i++) {
             const symbol = keys[i];
             const market = this.market(symbol);
-            const messageHash = name + ':' + market['id'];
+            const marketId = this.safeString(market, 'id', '');
+            const messageHash = name + ':' + marketId;
             client.resolve(this.orders, messageHash);
         }
     }

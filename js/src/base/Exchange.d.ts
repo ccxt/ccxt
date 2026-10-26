@@ -14,7 +14,7 @@ export declare class BaseExchange {
     static ccxtVersion: string;
     options: Dict;
     isSandboxModeEnabled: boolean;
-    api: Dictionary<any>;
+    api: Dictionary<Dict>;
     certified: boolean;
     pro: boolean;
     countries: Strings;
@@ -101,7 +101,7 @@ export declare class BaseExchange {
     positions: any;
     urls: {
         logo?: string;
-        api: NestedDictionary;
+        api: Dict;
         test: NestedDictionary;
         www?: string;
         doc?: string[];
@@ -122,7 +122,7 @@ export declare class BaseExchange {
     enableLastHttpResponse: boolean;
     enableLastResponseHeaders: boolean;
     last_http_response: string | undefined;
-    last_json_response: any;
+    last_json_response: Dict | undefined;
     last_response_headers: Dictionary<string> | undefined;
     last_request_headers: Dictionary<string> | undefined;
     last_request_body: any;
@@ -196,7 +196,7 @@ export declare class BaseExchange {
     hostname: Str;
     precisionMode: Int;
     paddingMode: Int;
-    exceptions: Dict;
+    exceptions: Dictionary<Dict>;
     timeframes: Dictionary<number | string>;
     version: Str;
     name: Str;
@@ -212,7 +212,7 @@ export declare class BaseExchange {
     alias: boolean;
     clients: Dictionary<WsClient>;
     newUpdates: boolean;
-    streaming: Dictionary<any>;
+    streaming: Dictionary<Dict>;
     sleep: typeof functions.sleep;
     deepExtend: typeof functions.deepExtend;
     deepExtendSafe: typeof functions.deepExtend;
@@ -569,12 +569,12 @@ export declare class BaseExchange {
     safeList2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue?: any[]): any[] | undefined;
     safeList(dictionaryOrList: any, key: NullableIndexType, defaultValue: any[]): any[];
     safeList(dictionaryOrList: any, key: NullableIndexType, defaultValue?: any[]): any[] | undefined;
-    storeByKey(dict: any, key: NullableIndexType, value: any): void;
+    storeByKey(dict: Dict, key: NullableIndexType, value: any): void;
     handleDeltas(bookside: any, deltas: any[]): void;
     handleDelta(bookside: any, delta: any): void;
     handleBookDeltas(orderbook: WsOrderBook, deltas: any): void;
     handleBookDelta(orderbook: WsOrderBook, delta: any): void;
-    handleDeltasWithKeys(bookSide: any, deltas: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): void;
+    handleDeltasWithKeys(bookSide: any, deltas: any[], priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): void;
     getCacheIndex(orderbook: any, deltas: any): number;
     arraysConcat(arraysOfArrays: any[]): any[];
     findTimeframe(timeframe: any, timeframes?: NullableDict): Str;
@@ -582,7 +582,7 @@ export declare class BaseExchange {
     urlEncoderForProxyUrl(targetUrl: string): string;
     checkProxySettings(url?: Str, method?: Str, headers?: any, body?: any): Str[];
     checkWsProxySettings(): Str[];
-    checkConflictingProxies(proxyAgentSet: any, proxyUrlSet: any): void;
+    checkConflictingProxies(proxyAgentSet: Str, proxyUrlSet: Str): void;
     checkAddress(address?: Str, code?: Str, tag?: Str): Str;
     findMessageHashes(client: any, element: string): string[];
     filterByLimit(array: any[], limit?: Int, key?: IndexType, fromStart?: boolean): any[];
@@ -879,7 +879,7 @@ export declare class BaseExchange {
     throwBroadlyMatchedException(broad: any, string: any, message: any): void;
     findBroadlyMatchedKey(broad: any, string: Str): Str;
     handleErrors(statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: Dict): any;
+    calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: Dict): any;
     fetchSpotTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     fetchContractTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     fetchOrderBooks(symbols?: Strings, limit?: Int, params?: Dict): Promise<OrderBooks>;
@@ -968,8 +968,8 @@ export declare class BaseExchange {
     parseFundingRates(response: any, symbols?: Strings): FundingRates;
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
     parseLongShortRatioHistory(response: any, market?: Market, since?: Int, limit?: Int): LongShortRatio[];
-    handleTriggerPricesAndParams(symbol: any, params: any, omitParams?: boolean): [Str, Str, Str, Dict];
-    handleTriggerDirectionAndParams(params: any, exchangeSpecificKey?: Str, allowEmpty?: Bool): [Str, Dict];
+    handleTriggerPricesAndParams(symbol: any, params: Dict, omitParams?: boolean): [Str, Str, Str, Dict];
+    handleTriggerDirectionAndParams(params: Dict, exchangeSpecificKey?: Str, allowEmpty?: Bool): [Str, Dict];
     handleTriggerAndParams(params: any): [Bool, Dict];
     isTriggerOrder(params: any): [Bool, Dict];
     isPostOnly(isMarketOrder: boolean, exchangeSpecificParam: any, params?: Dict): boolean;
@@ -992,13 +992,13 @@ export declare class BaseExchange {
     checkRequiredMarginArgument(methodName: string, symbol: Str, marginMode: string): void;
     parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: Str): Dict;
     parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
-    depositWithdrawFee(info: any): any;
-    assignDefaultDepositWithdrawFees(fee: any, currency?: Currency): any;
+    depositWithdrawFee(info: NullableDict): Dict;
+    assignDefaultDepositWithdrawFees(fee: Dict, currency?: Currency): Dict;
     parseIncome(info: Dict, market?: Market): object;
     parseIncomes(incomes: any, market?: Market, since?: Int, limit?: Int): FundingHistory[];
     getMarketFromSymbols(symbols: string[]): MarketInterface;
     getMarketFromSymbols(symbols?: Strings): Market;
-    parseWsOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
+    parseWsOHLCVs(ohlcvs: object[], market?: Market, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
     fetchTransactions(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     filterByArrayPositions(objects: any, key: IndexType, values?: any): Position[];
     filterByArrayTickers(objects: any, key: IndexType, values?: any): Dictionary<Ticker>;
@@ -1103,7 +1103,7 @@ export default class Exchange extends BaseExchange {
     fetchTickerWs(symbol: string, params?: Dict): Promise<Ticker>;
     fetchTickersWs(symbols?: Strings, params?: Dict): Promise<Tickers>;
     fetchTradesWs(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    loadOrderBook(client: any, messageHash: string, symbol: string, limit?: Int, params?: {}): Promise<void>;
+    loadOrderBook(client: any, messageHash: string, symbol: string, limit?: Int, params?: Dict): Promise<void>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;

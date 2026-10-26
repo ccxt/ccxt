@@ -1065,8 +1065,8 @@ class bingx extends bingx$1["default"] {
     parseMarket(market) {
         const id = this.safeString(market, 'symbol');
         const symbolParts = id.split('-');
-        const baseId = symbolParts[0];
-        const quoteId = symbolParts[1];
+        const baseId = this.safeString(symbolParts, 0);
+        const quoteId = this.safeString(symbolParts, 1);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         if ((base === undefined) || (quote === undefined)) {
@@ -2215,7 +2215,7 @@ class bingx extends bingx$1["default"] {
         const symbolsLength = (symbolsNormalized === undefined) ? 0 : symbolsNormalized.length;
         if (type === 'spot') {
             if ((market !== undefined) && (symbolsLength === 1)) {
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString(market, 'id');
             }
             const response = await this.spotV2PublicGetQuoteBookTicker(this.extend(request, paramsMarketType));
             rows = this.safeList(response, 'data', []);
@@ -2224,7 +2224,7 @@ class bingx extends bingx$1["default"] {
             if ((market === undefined) || (market['inverse'] === true) || (symbolsLength !== 1)) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchBidsAsks() requires exactly one linear swap symbol for contract markets');
             }
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
             const response = await this.swapV2PublicGetQuoteBookTicker(this.extend(request, paramsMarketType));
             const data = this.safeDict(response, 'data', {});
             rows = [this.safeDict(data, 'book_ticker', {})];
@@ -2490,7 +2490,7 @@ class bingx extends bingx$1["default"] {
             type = market['type'];
         }
         const marketResolved = this.safeMarket(marketId, market, undefined, type);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const open = this.safeString(ticker, 'openPrice');
         const high = this.safeString(ticker, 'highPrice');
         const low = this.safeString(ticker, 'lowPrice');
@@ -4560,7 +4560,7 @@ class bingx extends bingx$1["default"] {
         }
         const parsedIds = [];
         for (let i = 0; i < idsToParse.length; i++) {
-            const id = idsToParse[i];
+            const id = this.safeString(idsToParse, i, '');
             const stringId = id.toString();
             parsedIds.push(stringId);
         }
@@ -5423,27 +5423,12 @@ class bingx extends bingx$1["default"] {
         const currency = this.currency(code);
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const [subType, paramsSubType] = this.handleSubTypeAndParams('transfer', undefined, params);
-        let fromId = this.safeString(accountsByType, fromAccount, fromAccount);
-        let toId = this.safeString(accountsByType, toAccount, toAccount);
-        if (fromAccount === 'swap') {
-            if (subType === 'inverse') {
-                fromId = 'coinMPerp';
-            }
-            else {
-                fromId = 'USDTMPerp';
-            }
-        }
-        if (toAccount === 'swap') {
-            if (subType === 'inverse') {
-                toId = 'coinMPerp';
-            }
-            else {
-                toId = 'USDTMPerp';
-            }
-        }
+        const fromIdMapped = this.safeString(accountsByType, fromAccount, fromAccount);
+        const toIdMapped = this.safeString(accountsByType, toAccount, toAccount);
+        const swapId = (subType === 'inverse') ? 'coinMPerp' : 'USDTMPerp';
         const request = {
-            'fromAccount': fromId,
-            'toAccount': toId,
+            'fromAccount': (fromAccount === 'swap') ? swapId : fromIdMapped,
+            'toAccount': (toAccount === 'swap') ? swapId : toIdMapped,
             'asset': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
         };
@@ -5662,7 +5647,7 @@ class bingx extends bingx$1["default"] {
         const tag = this.safeString(depositAddress, 'tag');
         const currencyId = this.safeString(depositAddress, 'coin');
         const currencyResolved = this.safeCurrency(currencyId, currency);
-        const code = currencyResolved['code'];
+        const code = this.safeString(currencyResolved, 'code');
         const rawAddress = this.safeString2(depositAddress, 'addressWithPrefix', 'address');
         const networkId = this.safeString(depositAddress, 'network');
         const networkCode = this.networkIdToCode(networkId, code);
@@ -6375,15 +6360,17 @@ class bingx extends bingx$1["default"] {
         };
         if (networksLength !== 0) {
             for (let i = 0; i < networksLength; i++) {
-                const networkCode = networkCodes[i];
+                const networkCode = this.safeString(networkCodes, i, '');
                 const network = this.safeDict(networks, networkCode);
                 result['networks'][networkCode] = {
                     'deposit': { 'fee': undefined, 'percentage': undefined },
                     'withdraw': { 'fee': this.safeNumber(network, 'fee'), 'percentage': false },
                 };
                 if (networksLength === 1) {
-                    result['withdraw']['fee'] = this.safeNumber(network, 'withdrawFee');
-                    result['withdraw']['percentage'] = false;
+                    result['withdraw'] = {
+                        'fee': this.safeNumber(network, 'withdrawFee'),
+                        'percentage': false,
+                    };
                 }
             }
         }
@@ -6470,13 +6457,13 @@ class bingx extends bingx$1["default"] {
         return this.parseTransaction(data);
     }
     parseParams(params) {
-        // const sortedParams = this.keysort (params);
         const copied = this.clone(params);
-        const rawKeys = Object.keys(params);
-        const keys = this.sort(rawKeys);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const value = params[key];
+        const sortedParams = this.keysort(params);
+        const rawKeys = Object.keys(sortedParams);
+        const rawKeysLength = rawKeys.length;
+        for (let i = 0; i < rawKeysLength; i++) {
+            const key = rawKeys[i];
+            const value = sortedParams[key];
             if (Array.isArray(value)) {
                 let arrStr = '[';
                 for (let j = 0; j < value.length; j++) {
@@ -7148,14 +7135,14 @@ class bingx extends bingx$1["default"] {
         };
     }
     customEncode(params) {
-        // const sortedParams = this.keysort (params);
-        const rawKeys = Object.keys(params);
-        const keys = this.sort(rawKeys);
+        const sortedParams = this.keysort(params);
+        const rawKeys = Object.keys(sortedParams);
+        const rawKeysLength = rawKeys.length;
         let adjustedValue = undefined;
         let result = undefined;
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            let value = params[key];
+        for (let i = 0; i < rawKeysLength; i++) {
+            const key = rawKeys[i];
+            let value = sortedParams[key];
             if (Array.isArray(value)) {
                 let arrStr = undefined;
                 for (let j = 0; j < value.length; j++) {

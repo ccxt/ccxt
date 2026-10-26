@@ -85,7 +85,7 @@ export default class onetrading extends onetradingRest {
      */
     async watchBalance(params = {}) {
         await this.authenticate(params);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const messageHash = 'balance';
         const subscribeHash = 'ACCOUNT_HISTORY';
         const bpRemainingQuota = this.safeInteger(this.options, 'bp_remaining_quota', 200);
@@ -234,11 +234,12 @@ export default class onetrading extends onetradingRest {
             const ticker = tickers[i];
             const marketId = this.safeString(ticker, 'instrument');
             const symbol = this.safeSymbol(marketId);
-            this.tickers[symbol] = this.parseWSTicker(ticker);
+            const parsedTicker = this.parseWSTicker(ticker);
+            this.tickers[symbol] = parsedTicker;
             const timestamp = this.parse8601(datetime);
-            this.tickers[symbol]['timestamp'] = timestamp;
-            this.tickers[symbol]['datetime'] = this.iso8601(timestamp);
-            client.resolve(this.tickers[symbol], 'ticker.' + symbol);
+            parsedTicker['timestamp'] = timestamp;
+            parsedTicker['datetime'] = this.iso8601(timestamp);
+            client.resolve(parsedTicker, 'ticker.' + symbol);
         }
         client.resolve(this.tickers, 'tickers');
     }
@@ -297,11 +298,12 @@ export default class onetrading extends onetradingRest {
         let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbolResolved = this.safeString(market, 'symbol');
-            messageHash += ':' + symbolResolved;
+            const symbolValue = this.safeString(market, 'symbol', '');
+            symbolResolved = symbolValue;
+            messageHash = 'myTrades:' + symbolValue;
         }
         await this.authenticate(params);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const subscribeHash = 'ACCOUNT_HISTORY';
         const bpRemainingQuota = this.safeInteger(this.options, 'bp_remaining_quota', 200);
         const subscribe = {
@@ -389,7 +391,7 @@ export default class onetrading extends onetradingRest {
         //         "time": "2022-06-23T15:38:02.751301Z"
         //     }
         //
-        const type = this.safeString(message, 'type');
+        const type = this.safeString(message, 'type', '');
         const marketId = this.safeString(message, 'instrument_code');
         const symbol = this.safeSymbol(marketId);
         const dateTime = this.safeString(message, 'time');
@@ -465,11 +467,12 @@ export default class onetrading extends onetradingRest {
         let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbolResolved = this.safeString(market, 'symbol');
-            messageHash += ':' + symbolResolved;
+            const symbolValue = this.safeString(market, 'symbol', '');
+            symbolResolved = symbolValue;
+            messageHash = 'orders:' + symbolValue;
         }
         await this.authenticate(params);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const subscribeHash = this.safeString(params, 'channel', 'ACCOUNT_HISTORY');
         const bpRemainingQuota = this.safeInteger(this.options, 'bp_remaining_quota', 200);
         const subscribe = {
@@ -546,7 +549,8 @@ export default class onetrading extends onetradingRest {
         const order = this.parseTradingOrder(message);
         const orders = this.orders;
         orders.append(order);
-        client.resolve(this.orders, 'orders:' + order['symbol']);
+        const orderSymbol = this.safeString(order, 'symbol', '');
+        client.resolve(this.orders, 'orders:' + orderSymbol);
         client.resolve(this.orders, 'orders');
     }
     parseTradingOrder(order, market = undefined) {
@@ -1085,7 +1089,7 @@ export default class onetrading extends onetradingRest {
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
         const marketId = market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const timeframes = this.safeDict(this.options, 'timeframes', {});
         const timeframeId = this.safeDict(timeframes, timeframe);
         if (timeframeId === undefined) {
@@ -1122,7 +1126,8 @@ export default class onetrading extends onetradingRest {
         const properties = [];
         const marketIds = Object.keys(subscription);
         for (let i = 0; i < marketIds.length; i++) {
-            const marketIdtimeframes = Object.keys(subscription[marketIds[i]]);
+            const marketSubscription = this.safeDict(subscription, marketIds[i], {});
+            const marketIdtimeframes = Object.keys(marketSubscription);
             for (let ii = 0; ii < marketIdtimeframes.length; ii++) {
                 const marketTimeframeId = this.safeDict(timeframes, timeframe);
                 const property = {
@@ -1198,15 +1203,16 @@ export default class onetrading extends onetradingRest {
             this.safeNumber(message, 'close'),
             this.safeNumber(message, 'volume'),
         ];
-        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
+        const symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = symbolOhlcvs;
+        let stored = this.safeValue(symbolOhlcvs, timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp(limit);
         }
         stored.append(parsed);
         if (symbol !== undefined && timeframe !== undefined) {
-            this.ohlcvs[symbol][timeframe] = stored;
+            symbolOhlcvs[timeframe] = stored;
         }
         client.resolve(stored, channel);
     }
@@ -1218,7 +1224,8 @@ export default class onetrading extends onetradingRest {
         const keys = Object.keys(timeframesResolved);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (timeframesResolved[key]['unit'] === timeframe['unit'] && timeframesResolved[key]['period'] === timeframe['period']) {
+            const timeframeResolved = this.safeDict(timeframesResolved, key, {});
+            if (timeframeResolved['unit'] === timeframe['unit'] && timeframeResolved['period'] === timeframe['period']) {
                 return key;
             }
         }
@@ -1346,7 +1353,7 @@ export default class onetrading extends onetradingRest {
         else {
             marketIds = this.marketIds(symbols);
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const client = this.safeValue(this.clients, url);
         let type = 'SUBSCRIBE';
         let subscription = {};
@@ -1375,7 +1382,7 @@ export default class onetrading extends onetradingRest {
         return await this.watch(url, messageHash, this.deepExtend(request, params), subscriptionHash, subscription);
     }
     async authenticate(params = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const client = this.client(url);
         const messageHash = 'authenticated';
         const future = client.reusableFuture('authenticated');

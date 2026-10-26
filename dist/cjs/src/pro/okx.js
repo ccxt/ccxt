@@ -114,7 +114,7 @@ class okx extends okx$1["default"] {
         }
         const isBusiness = (access === 'business');
         const isPublic = (access === 'public');
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws', '');
         if (isBusiness || (channel.indexOf('candle') > -1) || (channel === 'orders-algo')) {
             return url + '/business' + sandboxSuffix;
         }
@@ -170,7 +170,7 @@ class okx extends okx$1["default"] {
         let messageHashResolved = messageHash;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            messageHashResolved += ':' + market['id'];
+            messageHashResolved = messageHash + ':' + this.safeString(market, 'id', '');
             firstArgument['instId'] = market['id'];
         }
         const request = {
@@ -368,7 +368,7 @@ class okx extends okx$1["default"] {
         }
         const symbolValue = this.symbol(symbol);
         const fr = await this.watchFundingRates([symbolValue], params);
-        return fr[symbolValue];
+        return this.safeValue(fr, symbolValue);
     }
     /**
      * @method
@@ -444,7 +444,7 @@ class okx extends okx$1["default"] {
             if (symbol !== undefined) {
                 this.fundingRates[symbol] = fundingRate;
             }
-            client.resolve(fundingRate, 'funding-rate' + ':' + fundingRate['symbol']);
+            client.resolve(fundingRate, 'funding-rate' + ':' + this.safeString(fundingRate, 'symbol', ''));
         }
     }
     /**
@@ -522,7 +522,7 @@ class okx extends okx$1["default"] {
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
         const ticker = await this.watchMarkPrices([symbolValue], paramsChannel);
-        return ticker[symbolValue];
+        return this.safeValue(ticker, symbolValue);
     }
     /**
      * @method
@@ -720,7 +720,7 @@ class okx extends okx$1["default"] {
         const data = this.safeList(message, 'data', []);
         const ticker = this.safeDict(data, 0, {});
         const parsedTicker = this.parseWsBidAsk(ticker, market);
-        const symbol = parsedTicker['symbol'];
+        const symbol = this.safeString(parsedTicker, 'symbol');
         if (symbol !== undefined) {
             this.bidsasks[symbol] = parsedTicker;
         }
@@ -1216,8 +1216,7 @@ class okx extends okx$1["default"] {
                 }
             }
             stored.append(parsed);
-            const messageHash = channel + ':' + market['id'];
-            client.resolve(stored, messageHash);
+            client.resolve(stored, channel + ':' + this.safeString(market, 'id', ''));
             // for multiOHLCV we need special object, as opposed to other "multi"
             // methods, because OHLCV response item does not contain symbol
             // or timeframe, thus otherwise it would be unrecognizable
@@ -1306,7 +1305,7 @@ class okx extends okx$1["default"] {
             if (this.safeString(client.subscriptions, messageHashes[i]) === 'resync') {
                 // okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
                 resyncTopics.push(topics[i]);
-                resyncHashes.push('unsubscribe:orderbook:' + symbolsNormalized[i]);
+                resyncHashes.push('unsubscribe:orderbook:' + this.safeString(symbolsNormalized, i, ''));
                 resyncNeeded = true;
             }
         }
@@ -1435,7 +1434,7 @@ class okx extends okx$1["default"] {
         const symbol = this.safeSymbol(marketId, market);
         const seqId = this.safeInteger(message, 'seqId');
         const prevSeqId = this.safeInteger(message, 'prevSeqId');
-        const nonce = orderbook['nonce'];
+        const nonce = this.safeInteger(orderbook, 'nonce');
         if (prevSeqId !== undefined && prevSeqId !== -1 && nonce !== prevSeqId) {
             const error = new errors.InvalidNonce(this.id + ' watchOrderBook received invalid nonce');
             delete client.subscriptions[messageHash];
@@ -1778,7 +1777,7 @@ class okx extends okx$1["default"] {
             if (this.inArray(key, reserved)) {
                 continue;
             }
-            this.balance[key] = balance[key];
+            this.balance[key] = this.safeValue(balance, key);
         }
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, channel);
@@ -2240,7 +2239,7 @@ class okx extends okx$1["default"] {
             const rawTrade = filteredOrders[i];
             const trade = this.orderToTrade(rawTrade);
             myTrades.append(trade);
-            const symbol = trade['symbol'];
+            const symbol = this.safeString(trade, 'symbol');
             if (symbol !== undefined) {
                 symbols[symbol] = true;
             }
@@ -2447,7 +2446,7 @@ class okx extends okx$1["default"] {
         };
         for (let i = 0; i < idsLength; i++) {
             const arg = this.extend(instParams, {
-                'ordId': ids[i],
+                'ordId': this.safeString(ids, i),
             });
             args.push(arg);
         }

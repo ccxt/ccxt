@@ -1009,14 +1009,8 @@ export default class coinone extends Exchange {
         const id = this.safeString2(order, 'orderId', 'order_id');
         const baseId = this.safeString2(order, 'baseCurrency', 'target_currency');
         const quoteId = this.safeString2(order, 'targetCurrency', 'quote_currency');
-        let base = undefined;
-        let quote = undefined;
-        if (baseId !== undefined) {
-            base = this.safeCurrencyCode(baseId);
-        }
-        if (quoteId !== undefined) {
-            quote = this.safeCurrencyCode(quoteId);
-        }
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
         let symbol = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
@@ -1326,7 +1320,7 @@ export default class coinone extends Exchange {
                 nonce = this.uuid();
             }
             else {
-                nonce = this.nonce().toString();
+                nonce = this.numberToString(this.nonce());
             }
             const json = this.json(this.extend({
                 'access_token': this.apiKey,

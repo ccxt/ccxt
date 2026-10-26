@@ -68,14 +68,13 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'orderbook:' + symbolValue;
-        const channel = 'diff_order_book_' + market['id'];
         const url = this.urls['api']['ws'];
         const request = {
             'event': 'bts:subscribe',
             'data': {
-                'channel': channel,
+                'channel': 'diff_order_book_' + this.safeString(market, 'id', ''),
             },
         };
         const message = this.extend(request, params);
@@ -96,8 +95,8 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
-        const channel = 'diff_order_book_' + market['id'];
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const channel = 'diff_order_book_' + this.safeString(market, 'id', '');
         const subHash = 'orderbook:' + symbolValue;
         return await this.unWatchChannel(channel, subHash, 'orderbook', [symbolValue], params);
     }
@@ -168,10 +167,10 @@ export default class bitstamp extends bitstampRest {
         }
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
+            const cacheLength = this.parseToInt(storedOrderBook.cache.length);
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
-            const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 6);
+            const snapshotDelay = this.parseToInt(this.handleOption('watchOrderBook', 'snapshotDelay', 6));
             if (cacheLength === snapshotDelay) {
                 this.spawn(this.loadOrderBook, client, messageHash, symbol, null, {});
             }
@@ -191,10 +190,8 @@ export default class bitstamp extends bitstampRest {
         orderbook['nonce'] = this.safeInteger(delta, 'microtimestamp');
         const bids = this.safeList(delta, 'bids', []);
         const asks = this.safeList(delta, 'asks', []);
-        const storedBids = orderbook['bids'];
-        const storedAsks = orderbook['asks'];
-        this.handleBidAsks(storedBids, bids);
-        this.handleBidAsks(storedAsks, asks);
+        this.handleBidAsks(orderbook['bids'], bids);
+        this.handleBidAsks(orderbook['asks'], asks);
     }
     handleBidAsks(bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
@@ -237,14 +234,13 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'trades:' + symbolValue;
         const url = this.urls['api']['ws'];
-        const channel = 'live_trades_' + market['id'];
         const request = {
             'event': 'bts:subscribe',
             'data': {
-                'channel': channel,
+                'channel': 'live_trades_' + this.safeString(market, 'id', ''),
             },
         };
         const message = this.extend(request, params);
@@ -269,8 +265,8 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
-        const channel = 'live_trades_' + market['id'];
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const channel = 'live_trades_' + this.safeString(market, 'id', '');
         const subHash = 'trades:' + symbolValue;
         return await this.unWatchChannel(channel, subHash, 'trades', [symbolValue], params);
     }
@@ -372,14 +368,13 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'fundingRate:' + symbolValue;
         const url = this.urls['api']['ws'];
-        const channel = 'funding_rate_' + market['id'];
         const request = {
             'event': 'bts:subscribe',
             'data': {
-                'channel': channel,
+                'channel': 'funding_rate_' + this.safeString(market, 'id', ''),
             },
         };
         const message = this.extend(request, params);
@@ -433,14 +428,13 @@ export default class bitstamp extends bitstampRest {
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
         const channel = 'private-my_orders';
-        const messageHash = channel + '_' + market['id'];
         const subscription = {
             'symbol': symbolValue,
             'limit': limit,
             'type': channel,
             'params': params,
         };
-        const orders = await this.subscribePrivate(subscription, messageHash, params);
+        const orders = await this.subscribePrivate(subscription, channel + '_' + this.safeString(market, 'id', ''), params);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit(symbolValue, limit);
@@ -470,7 +464,7 @@ export default class bitstamp extends bitstampRest {
         if (userId === undefined) {
             throw new AuthenticationError(this.id + ' unWatchOrders() requires a userId from authenticate()');
         }
-        const channel = 'private-my_orders_' + market['id'] + '-' + userId;
+        const channel = 'private-my_orders_' + this.safeString(market, 'id', '') + '-' + userId;
         return await this.unWatchChannel(channel, channel, 'orders', [symbolValue], params);
     }
     /**
@@ -494,7 +488,7 @@ export default class bitstamp extends bitstampRest {
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
         const channel = 'private-my_trades';
-        const messageHash = channel + '_' + market['id'];
+        const messageHash = channel + '_' + this.safeString(market, 'id', '');
         const subscription = {
             'symbol': symbolValue,
             'limit': limit,
@@ -531,7 +525,7 @@ export default class bitstamp extends bitstampRest {
         if (userId === undefined) {
             throw new AuthenticationError(this.id + ' unWatchMyTrades() requires a userId from authenticate()');
         }
-        const channel = 'private-my_trades_' + market['id'] + '-' + userId;
+        const channel = 'private-my_trades_' + this.safeString(market, 'id', '') + '-' + userId;
         return await this.unWatchChannel(channel, channel, 'myTrades', [symbolValue], params);
     }
     handleMyTrades(client, message) {

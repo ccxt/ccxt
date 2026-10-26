@@ -524,6 +524,9 @@ class dydx extends dydx$1["default"] {
         }
         const settleId = 'USDC';
         const settle = this.safeCurrencyCode(settleId);
+        if (settle === undefined) {
+            return undefined;
+        }
         const symbol = base + '/' + quote + ':' + settle;
         const contract = true;
         const swap = true;
@@ -1092,7 +1095,6 @@ class dydx extends dydx$1["default"] {
         //
         const marketId = this.safeString(position, 'market');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
         const side = this.safeStringLower(position, 'side');
         let quantity = this.safeString(position, 'size');
         if (side !== 'long') {
@@ -1102,7 +1104,7 @@ class dydx extends dydx$1["default"] {
         return this.safePosition({
             'info': position,
             'id': undefined,
-            'symbol': symbol,
+            'symbol': this.safeString(marketResolved, 'symbol'),
             'entryPrice': this.safeNumber(position, 'entryPrice'),
             'markPrice': undefined,
             'notional': undefined,
@@ -1195,8 +1197,8 @@ class dydx extends dydx$1["default"] {
     }
     signHash(hash, privateKey) {
         const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         return {
             'r': r.padStart(64, '0'),
             's': s.padStart(64, '0'),
@@ -1228,19 +1230,23 @@ class dydx extends dydx$1["default"] {
     signDydxTx(privateKey, message, memo, chainId, account, authenticators, fee = undefined) {
         const [encodedTx, signDoc] = this.encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee);
         const signature = this.signHash(encodedTx, privateKey);
-        return this.encodeDydxTxRaw(signDoc, signature['r'] + signature['s']);
+        const signatureR = this.safeString(signature, 'r', '');
+        const signatureS = this.safeString(signature, 's', '');
+        return this.encodeDydxTxRaw(signDoc, signatureR + signatureS);
     }
     retrieveCredentials() {
         let credentials = this.safeDict(this.options, 'dydxCredentials');
         if (credentials !== undefined) {
             return credentials;
         }
-        let privateKey = this.safeString(this.options, 'privateKey');
-        if (privateKey === undefined) {
-            const signature = this.signOnboardingAction();
-            privateKey = this.hashMessage(this.base16ToBinary(signature['r'] + signature['s']));
+        const privateKeyOption = this.safeString(this.options, 'privateKey');
+        if (privateKeyOption !== undefined) {
+            credentials = this.retrieveDydxCredentials(privateKeyOption);
         }
-        credentials = this.retrieveDydxCredentials(privateKey);
+        else {
+            const signature = this.signOnboardingAction();
+            credentials = this.retrieveDydxCredentials(this.hashMessage(this.base16ToBinary(this.safeString(signature, 'r', '') + this.safeString(signature, 's', ''))));
+        }
         credentials['privateKey'] = this.binaryToBase16(credentials['privateKey']);
         credentials['publicKey'] = this.binaryToBase16(credentials['publicKey']);
         this.options['dydxCredentials'] = credentials;
@@ -1277,9 +1283,10 @@ class dydx extends dydx$1["default"] {
         //
         const response = await this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request);
         const account = this.safeDict(response, 'info', {});
+        const pubKey = this.safeDict(account, 'pub_key', {});
         account['pub_key'] = {
             // encode with binary key would fail in python
-            'key': account['pub_key']['key'],
+            'key': pubKey['key'],
         };
         this.options['dydxAccount'] = account;
         return this.safeDict(this.options, 'dydxAccount', {});
@@ -1380,7 +1387,8 @@ class dydx extends dydx$1["default"] {
         let goodTillBlock = this.safeInteger(paramsSubAccountId, 'goodTillBlock');
         let goodTillBlockTime = undefined;
         const goodTillBlockTimeInSeconds = 2592000;
-        const [goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds] = this.handleOptionIntegerAndParams(paramsSubAccountId, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
+        // default is 30 days
+        const [goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds] = this.handleOptionIntegerAndParams(paramsSubAccountId, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds);
         if (orderFlag === 0) {
             if (goodTillBlock === undefined) {
                 // short term order
@@ -1439,7 +1447,7 @@ class dydx extends dydx$1["default"] {
     }
     createOrderIdFromParts(address, subAccountNumber, clientOrderId, orderFlags, clobPairId) {
         const nameSp = this.safeString(this.options, 'namespace', '0f9da948-a6fb-4c45-9edc-4685c3f3317d');
-        const prefixAddress = address + '-' + subAccountNumber.toString();
+        const prefixAddress = address + '-' + this.numberToString(subAccountNumber);
         const prefix = this.uuid5(nameSp, prefixAddress);
         const orderInfo = prefix + '-' + this.numberToString(clientOrderId) + '-' + this.numberToString(clobPairId) + '-' + this.numberToString(orderFlags);
         return this.uuid5(nameSp, orderInfo);
@@ -1503,7 +1511,7 @@ class dydx extends dydx$1["default"] {
         const orderId = orderRequestRes[0];
         const orderRequest = orderRequestRes[1];
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(credentials['privateKey'], orderRequest, '', chainName, account, undefined);
+        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), orderRequest, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1523,10 +1531,13 @@ class dydx extends dydx$1["default"] {
         // }
         //
         const result = this.safeDict(response, 'result');
+        const requestValue = this.safeDict(orderRequest, 'value', {});
+        const requestOrder = this.safeDict(requestValue, 'order', {});
+        const requestOrderId = this.safeDict(requestOrder, 'orderId', {});
         return this.safeOrder({
             'info': result,
             'id': orderId,
-            'clientOrderId': orderRequest['value']['order']['orderId']['clientId'],
+            'clientOrderId': this.safeString(requestOrderId, 'clientId'),
         });
     }
     /**
@@ -1559,19 +1570,20 @@ class dydx extends dydx$1["default"] {
         if (clientOrderId === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.');
         }
-        const idString = id.toString();
+        const idString = this.numberToString(id);
         if (idString.indexOf('-') > -1) {
             throw new errors.NotSupported(this.id + ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.');
         }
         const goodTillBlockOption = this.safeInteger(paramsOmitted, 'goodTillBlock');
         let goodTillBlock = goodTillBlockOption;
         const goodTillBlockTimeInSeconds = 2592000;
-        const [goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds] = this.handleOptionIntegerAndParams(paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
+        // default is 30 days
+        const [goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds] = this.handleOptionIntegerAndParams(paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds);
         let goodTillBlockTime = undefined;
         const defaultOrderFlags = (isTrigger) ? 32 : 64;
         const orderFlags = this.safeInteger(paramsGoodTillBlockTimeInSeconds, 'orderFlags', defaultOrderFlags);
         const subAccountId = 0;
-        const subAccountIdOption = this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId)[0];
+        const [subAccountIdOption] = this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId);
         if (orderFlags !== 0 && orderFlags !== 64 && orderFlags !== 32) {
             throw new errors.InvalidOrder(this.id + ' invalid orderFlags, allowed values are (0, 64, 32).');
         }
@@ -1592,6 +1604,7 @@ class dydx extends dydx$1["default"] {
         }
         const credentials = this.retrieveCredentials();
         const account = await this.fetchDydxAccount();
+        const marketInfo = this.safeDict(market, 'info', {});
         const cancelPayload = {
             'orderId': {
                 'subaccountId': {
@@ -1600,7 +1613,7 @@ class dydx extends dydx$1["default"] {
                 },
                 'clientId': clientOrderId,
                 'orderFlags': orderFlags,
-                'clobPairId': market['info']['clobPairId'],
+                'clobPairId': marketInfo['clobPairId'],
             },
             'goodTilBlock': goodTillBlock,
             'goodTilBlockTime': goodTillBlockTime,
@@ -1610,7 +1623,7 @@ class dydx extends dydx$1["default"] {
             'value': cancelPayload,
         };
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(credentials['privateKey'], signingPayload, '', chainName, account, undefined);
+        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), signingPayload, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1663,9 +1676,10 @@ class dydx extends dydx$1["default"] {
         }
         const credentials = this.retrieveCredentials();
         const account = await this.fetchDydxAccount();
+        const marketInfo = this.safeDict(market, 'info', {});
         const cancelOrders = {
             'clientIds': clientOrderIds,
-            'clobPairId': market['info']['clobPairId'],
+            'clobPairId': marketInfo['clobPairId'],
         };
         const cancelPayload = {
             'subaccountId': {
@@ -1680,7 +1694,7 @@ class dydx extends dydx$1["default"] {
             'value': cancelPayload,
         };
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(credentials['privateKey'], signingPayload, '', chainName, account, undefined);
+        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), signingPayload, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1830,7 +1844,7 @@ class dydx extends dydx$1["default"] {
         return this.parseLedger(response, currency, since, limit);
     }
     async estimateTxFee(message, memo, account) {
-        const txBytes = this.encodeDydxTxForSimulation(message, memo, account['sequence'], account['pub_key']);
+        const txBytes = this.encodeDydxTxForSimulation(message, memo, this.safeString(account, 'sequence'), this.safeDict(account, 'pub_key', {}));
         const request = {
             'txBytes': txBytes,
         };
@@ -1957,7 +1971,7 @@ class dydx extends dydx$1["default"] {
         }
         const txFee = await this.estimateTxFee(signingPayload, '', account);
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(credentials['privateKey'], signingPayload, '', chainName, account, undefined, txFee);
+        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), signingPayload, '', chainName, account, undefined, txFee);
         const request = {
             'tx': signedTx,
         };
@@ -2142,7 +2156,7 @@ class dydx extends dydx$1["default"] {
         };
         const txFee = await this.estimateTxFee(signingPayload, tag, account);
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(credentials['privateKey'], signingPayload, tag, chainName, account, undefined, txFee);
+        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), signingPayload, tag, chainName, account, undefined, txFee);
         const request = {
             'tx': signedTx,
         };
@@ -2471,13 +2485,12 @@ class dydx extends dydx$1["default"] {
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = apiUrl;
+        let url = apiUrl + '/' + pathWithParams;
         const paramsOmitted = this.omit(params, this.extractParams(path));
         const paramsSorted = this.keysort(paramsOmitted);
-        url += '/' + pathWithParams;
         if (method === 'GET') {
             if (Object.keys(paramsSorted).length > 0) {
-                url += '?' + this.urlencode(paramsSorted);
+                url = apiUrl + '/' + pathWithParams + '?' + this.urlencode(paramsSorted);
             }
         }
         else {

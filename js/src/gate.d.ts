@@ -1,5 +1,5 @@
 import Exchange from './abstract/gate.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, CurrencyInterface, DepositWithdrawFees, MarginLoan, DepositAddresses, Liquidation } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, CurrencyInterface, DepositWithdrawFees, MarginLoan, DepositAddresses, Liquidation } from './base/types.js';
 /**
  * @class gate
  * @augments Exchange
@@ -163,7 +163,7 @@ export default class gate extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseFundingHistories(response: any, symbol: Str, since: Int, limit: Int): FundingHistory[];
+    parseFundingHistories(response: List, symbol: Str, since: Int, limit: Int): FundingHistory[];
     parseFundingHistory(info: NullableDict, market?: Market): FundingHistory;
     /**
      * @method

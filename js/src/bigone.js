@@ -1128,8 +1128,8 @@ export default class bigone extends Exchange {
         return result;
     }
     parseContractOrderBook(orderbook, symbol, limit = undefined) {
-        const responseBids = this.safeDict(orderbook, 'bids');
-        const responseAsks = this.safeDict(orderbook, 'asks');
+        const responseBids = this.safeDict(orderbook, 'bids', {});
+        const responseAsks = this.safeDict(orderbook, 'asks', {});
         const bids = this.parseContractBidsAsks(responseBids);
         const asks = this.parseContractBidsAsks(responseAsks);
         return {
@@ -1997,7 +1997,7 @@ export default class bigone extends Exchange {
         }
         else {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            const nonce = this.numberToString(this.nonce());
             const request = {
                 'type': 'OpenAPIV2',
                 'sub': this.apiKey,

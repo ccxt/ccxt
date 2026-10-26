@@ -34,7 +34,7 @@ export default class binance extends Exchange {
      * @param {object} [rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
      * @returns {object[]} raw market topic objects
      */
-    fetchRawTopics(maxTopics: Int, rest?: Dict): Promise<any[]>;
+    fetchRawTopics(maxTopics: Int, rest?: Dict): Promise<Dict[]>;
     /**
      * @ignore
      * @method
@@ -44,7 +44,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra params forwarded verbatim to the detail endpoint
      * @returns {object} the raw market topic object
      */
-    fetchRawTopicDetail(topicId: string, params?: Dict): Promise<any>;
+    fetchRawTopicDetail(topicId: string, params?: Dict): Promise<Dict>;
     /**
      * @ignore
      * @method
@@ -53,7 +53,7 @@ export default class binance extends Exchange {
      * @param {object[]} rawTopics raw market topic objects
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    completeRawTopics(rawTopics: any[]): Promise<any[]>;
+    completeRawTopics(rawTopics: Dict[]): Promise<Dict[]>;
     /**
      * @method
      * @name binance#fetchEvents
@@ -85,7 +85,7 @@ export default class binance extends Exchange {
      * @param {object} [rest] extra params forwarded verbatim to the search endpoint
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    fetchEventsByQuery(queries: string[], limit: Int, rest?: Dict): Promise<any[]>;
+    fetchEventsByQuery(queries: string[], limit: Int, rest?: Dict): Promise<Dict[]>;
     /**
      * @method
      * @name binance#fetchEvent
@@ -290,7 +290,7 @@ export default class binance extends Exchange {
      * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
      * @returns {object} a quote
      */
-    fetchQuote(request: Dict, params?: Dict): Promise<any>;
+    fetchQuote(request: Dict, params?: Dict): Promise<Dict>;
     priceToPrecision(outcome: Str, price: any): string;
     amountToPrecision(outcome: Str, amount: any): string;
     /**

@@ -334,7 +334,8 @@ export default class independentreserve extends Exchange {
         const quoteCurrenciesPromise = this.publicGetGetValidSecondaryCurrencyCodes(params);
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         const limitsPromise = this.publicGetGetOrderMinimumVolumes(params);
-        const [baseCurrencies, quoteCurrencies, limits] = await Promise.all([baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise]);
+        const responses = await Promise.all([baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise]);
+        const limits = this.safeValue(responses, 2);
         //
         //     {
         //         "Xbt": 0.0001,
@@ -344,14 +345,14 @@ export default class independentreserve extends Exchange {
         //     }
         //
         const result = [];
-        const baseCurrencyIds = this.toArray(baseCurrencies);
-        const quoteCurrencyIds = this.toArray(quoteCurrencies);
+        const baseCurrencyIds = this.toArray(this.safeValue(responses, 0));
+        const quoteCurrencyIds = this.toArray(this.safeValue(responses, 1));
         for (let i = 0; i < baseCurrencyIds.length; i++) {
-            const baseId = baseCurrencyIds[i];
+            const baseId = this.safeString(baseCurrencyIds, i, '');
             const base = this.safeCurrencyCode(baseId);
             const minAmount = this.safeNumber(limits, baseId);
             for (let j = 0; j < quoteCurrencyIds.length; j++) {
-                const quoteId = quoteCurrencyIds[j];
+                const quoteId = this.safeString(quoteCurrencyIds, j, '');
                 const quote = this.safeCurrencyCode(quoteId);
                 if ((base === undefined) || (quote === undefined)) {
                     continue;
@@ -412,8 +413,9 @@ export default class independentreserve extends Exchange {
     }
     parseBalance(response) {
         const result = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict(response, i);
+        const accounts = this.toArray(response);
+        for (let i = 0; i < accounts.length; i++) {
+            const balance = this.safeDict(accounts, i);
             const currencyId = this.safeString(balance, 'CurrencyCode');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -604,8 +606,8 @@ export default class independentreserve extends Exchange {
             }
         }
         else if (market !== undefined) {
-            symbol = market['symbol'];
-            base = market['base'];
+            symbol = this.safeString(market, 'symbol');
+            base = this.safeString(market, 'base');
             quote = this.safeString(market, 'quote');
         }
         let orderType = this.safeString2(order, 'Type', 'OrderType');
@@ -791,7 +793,7 @@ export default class independentreserve extends Exchange {
         return this.parseTrades(data, market, since, limitResolved);
     }
     parseTrade(trade, market = undefined) {
-        const timestamp = this.parse8601(trade['TradeTimestampUtc']);
+        const timestamp = this.parse8601(this.safeString(trade, 'TradeTimestampUtc'));
         const id = this.safeString(trade, 'TradeGuid');
         const orderId = this.safeString(trade, 'OrderGuid');
         const priceString = this.safeString2(trade, 'Price', 'SecondaryCurrencyTradePrice');
@@ -942,7 +944,7 @@ export default class independentreserve extends Exchange {
         }
         return this.safeOrder({
             'info': response,
-            'id': response['OrderGuid'],
+            'id': this.safeString(response, 'OrderGuid'),
         }, market);
     }
     /**
@@ -1152,16 +1154,18 @@ export default class independentreserve extends Exchange {
         else {
             this.checkRequiredCredentials();
             // independentreserve requires an increasing nonce
-            const nonce = this.incrementingNonce();
+            const rawNonce = this.incrementingNonce();
+            const nonce = this.parseToInt(rawNonce);
             const auth = [
                 url,
                 'apiKey=' + this.apiKey,
                 'nonce=' + nonce.toString(),
             ];
-            const keys = Object.keys(params);
+            const paramsDict = this.extend({}, params);
+            const keys = Object.keys(paramsDict);
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
-                const value = params[key].toString();
+                const value = paramsDict[key].toString();
                 auth.push(key + '=' + value);
             }
             const message = auth.join(',');
@@ -1172,7 +1176,7 @@ export default class independentreserve extends Exchange {
             query['signature'] = signature.toUpperCase();
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
-                query[key] = params[key];
+                query[key] = paramsDict[key];
             }
             const signedBody = this.json(query);
             const signedHeaders = { 'Content-Type': 'application/json' };

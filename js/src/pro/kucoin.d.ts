@@ -381,5 +381,5 @@ export default class kucoin extends kucoinRest {
     handlePong(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: Dict): Bool;
     handleMessage(client: Client, message: Dict): void;
-    getMessageHash(elementName: string, symbol?: Str): string;
+    getMessageHash(elementName: Str, symbol?: Str): string;
 }

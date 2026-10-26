@@ -17,7 +17,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw request frame to send
      */
-    sendSubscription(action: string, channels: string[], messageHashes: string[], subMessageHashes: string[], context?: Dict, params?: Dict, checkHashes?: Strings): any;
+    sendSubscription(action: string, channels: string[], messageHashes: string[], subMessageHashes: string[], context?: Dict, params?: Dict, checkHashes?: Strings): Dict;
     /**
      * @method
      * @name polymarket#watchOrderBook
@@ -28,7 +28,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name polymarket#unWatchOrderBook
@@ -38,7 +38,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
     handleOrderBook(client: Client, message: Dict): void;
     /**
      * @method
@@ -49,7 +49,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name polymarket#unWatchTicker
@@ -59,7 +59,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name polymarket#watchTickers
@@ -69,7 +69,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     handleTicker(client: Client, message: Dict): void;
     /**
      * @method
@@ -80,7 +80,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
     handleBidAsk(client: Client, message: Dict): void;
     /**
      * @method
@@ -93,7 +93,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name polymarket#unWatchTrades
@@ -103,7 +103,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
     handleTrades(client: Client, message: Dict): void;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     /**
@@ -118,7 +118,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name polymarket#unWatchOHLCV
@@ -129,7 +129,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     handleOHLCV(client: Client, message: Dict): void;
     /**
      * @method
@@ -151,7 +151,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     handleOrder(client: Client, message: Dict): void;
     /**
      * @method
@@ -164,7 +164,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     handleMyTrades(client: Client, message: Dict): void;
     /**
      * @method
@@ -177,7 +177,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     setPositionsCache(client: Client, symbols?: Strings): void;
     loadPositionsSnapshot(client: Client, messageHash: string): Promise<void>;
     /**
@@ -188,7 +188,7 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
+    watchBalance(params?: Dict): Promise<Balances>;
     setBalanceCache(client: Client): void;
     loadBalanceSnapshot(client: Client, messageHash: string): Promise<void>;
     handlePortfolio(client: Client, message: Dict): void;

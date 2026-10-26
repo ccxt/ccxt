@@ -268,8 +268,8 @@ class myriad extends myriad$1["default"] {
             const found = (responseIsArray) ? response : this.safeList(response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
-                const networkId = this.safeString(raw, 'networkId');
-                const marketId = this.safeString(raw, 'id');
+                const networkId = this.safeString(raw, 'networkId', '');
+                const marketId = this.safeString(raw, 'id', '');
                 const key = networkId + ':' + marketId;
                 if (!(key in seen)) {
                     seen[key] = true;
@@ -2646,8 +2646,8 @@ class myriad extends myriad$1["default"] {
     async fetchOHLCV(outcome, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
         const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
-        const networkId = this.safeString(outcomeObj['info'], 'networkId');
-        const marketId = this.safeString(outcomeObj['info'], 'marketId');
+        const networkId = this.safeString(outcomeInfo, 'networkId');
+        const marketId = this.safeString(outcomeInfo, 'marketId');
         const outcomeId = this.safeString(outcomeInfo, 'outcomeId', this.safeString(outcomeInfo, 'id'));
         const outcomeTitle = this.safeString(outcomeInfo, 'outcomeLabel', this.safeString(outcomeInfo, 'label', this.safeString(outcomeInfo, 'title')));
         const bucketKey = this.safeString(this.timeframes, timeframe, '30d');
@@ -2720,7 +2720,7 @@ class myriad extends myriad$1["default"] {
         }
         else {
             const chartsDict = this.safeDict(selectedOutcome, 'price_charts', {});
-            chart = this.safeValue(chartsDict, bucketKey);
+            chart = this.safeDict(chartsDict, bucketKey);
         }
         const pointsList = this.safeList(chart, 'prices', this.safeList(chart, 'data', chart));
         let points = (pointsList !== undefined) ? pointsList : [];
@@ -2798,8 +2798,8 @@ class myriad extends myriad$1["default"] {
         for (let i = 0; i < outcomes.length; i++) {
             const outcomeObj = this.outcome(outcomes[i]);
             const info = this.safeDict(outcomeObj, 'info', {});
-            const networkId = this.safeString(info, 'networkId');
-            const marketId = this.safeString(info, 'marketId');
+            const networkId = this.safeString(info, 'networkId', '');
+            const marketId = this.safeString(info, 'marketId', '');
             const key = networkId + ':' + marketId;
             if (!(key in outcomesByMarket)) {
                 outcomesByMarket[key] = [];
@@ -3246,8 +3246,8 @@ class myriad extends myriad$1["default"] {
     async watchOrderBook(outcome, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
         const info = this.safeDict(outcomeObj, 'info', {});
-        const networkId = this.safeString(info, 'networkId');
-        const marketId = this.safeString(info, 'marketId');
+        const networkId = this.safeString(info, 'networkId', '');
+        const marketId = this.safeString(info, 'marketId', '');
         const sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         const channel = 'orderbook:' + networkId + ':' + marketId;
         const messageHash = 'orderbook::' + sym;
@@ -3326,8 +3326,8 @@ class myriad extends myriad$1["default"] {
     async watchTrades(outcome, since = undefined, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
         const info = this.safeDict(outcomeObj, 'info', {});
-        const networkId = this.safeString(info, 'networkId');
-        const marketId = this.safeString(info, 'marketId');
+        const networkId = this.safeString(info, 'networkId', '');
+        const marketId = this.safeString(info, 'marketId', '');
         const sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         const channel = 'trades:' + networkId + ':' + marketId;
         const messageHash = 'trades::' + sym;
@@ -3352,8 +3352,8 @@ class myriad extends myriad$1["default"] {
         }
         const outcomeObj = await this.loadOutcome(outcome);
         const info = this.safeDict(outcomeObj, 'info', {});
-        const networkId = this.safeString(info, 'networkId');
-        const marketId = this.safeString(info, 'marketId');
+        const networkId = this.safeString(info, 'networkId', '');
+        const marketId = this.safeString(info, 'marketId', '');
         const sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         const channel = 'trades:' + networkId + ':' + marketId;
         const messageHash = 'myTrades';
@@ -3485,8 +3485,8 @@ class myriad extends myriad$1["default"] {
     async watchTicker(outcome, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
         const info = this.safeDict(outcomeObj, 'info', {});
-        const networkId = this.safeString(info, 'networkId');
-        const marketId = this.safeString(info, 'marketId');
+        const networkId = this.safeString(info, 'networkId', '');
+        const marketId = this.safeString(info, 'marketId', '');
         const sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         const channel = 'prices:' + networkId + ':' + marketId;
         const messageHash = 'ticker::' + sym;
@@ -3515,8 +3515,8 @@ class myriad extends myriad$1["default"] {
         for (let i = 0; i < symbolsLength; i++) {
             const outcomeObj = this.outcome(outcomes[i]);
             const info = this.safeDict(outcomeObj, 'info', {});
-            const networkId = this.safeString(info, 'networkId');
-            const marketId = this.safeString(info, 'marketId');
+            const networkId = this.safeString(info, 'networkId', '');
+            const marketId = this.safeString(info, 'marketId', '');
             const channel = 'prices:' + networkId + ':' + marketId;
             resolvedSymbols.push(this.safeOutcomeSymbol(outcomes[i], outcomeObj));
             if (!(channel in seenChannels)) {

@@ -123,7 +123,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         };
         const marketIds = [];
         let messageHash = name;
-        const symbolsValue = (symbols === undefined) ? [] : symbols;
+        const symbolsValue = symbols;
         for (let i = 0; i < symbolsValue.length; i++) {
             const symbol = symbolsValue[i];
             marketIds.push(this.marketId(symbol));
@@ -131,7 +131,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         const length = symbolsValue.length;
         if (length === 1) {
             const market = this.market(marketIds[0]);
-            messageHash = messageHash + ':' + market['symbol'];
+            messageHash += ':' + market['symbol'];
         }
         subscribe['product_ids'] = marketIds;
         const request = this.extend(subscribe, params);
@@ -344,10 +344,8 @@ class krakenfutures extends krakenfutures$1["default"] {
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
-            const position = this.parseWsPosition(rawPosition);
             const timestamp = this.safeInteger(message, 'timestamp');
-            position['timestamp'] = timestamp;
-            position['datetime'] = this.iso8601(timestamp);
+            const position = this.parseWsPosition(rawPosition, undefined, timestamp);
             newPositions.push(position);
             cache.append(position);
         }
@@ -364,7 +362,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         client.resolve(newPositions, 'positions');
     }
-    parseWsPosition(position, market = undefined) {
+    parseWsPosition(position, market = undefined, timestamp = undefined) {
         //
         //        {
         //            instrument: 'PF_LTCUSD',
@@ -408,8 +406,8 @@ class krakenfutures extends krakenfutures$1["default"] {
             'markPrice': this.safeNumber(position, 'mark_price'),
             'side': side,
             'hedged': hedged,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'maintenanceMargin': this.safeNumber(position, 'maintenance_margin'),
             'maintenanceMarginPercentage': undefined,
             'collateral': undefined,
@@ -481,7 +479,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            messageHash += ':' + market['symbol'];
+            messageHash = 'myTrades' + ':' + market['symbol'];
         }
         const trades = await this.subscribePrivate(name, messageHash, params);
         let limitResolved = limit;
@@ -569,8 +567,8 @@ class krakenfutures extends krakenfutures$1["default"] {
                 const trades = this.safeList(message, 'trades', []);
                 const length = trades.length;
                 for (let i = 0; i < length; i++) {
-                    const index = length - 1 - i; // need reverse to correct chronology
-                    const item = trades[index];
+                    // need reverse to correct chronology
+                    const item = trades[length - 1 - i];
                     const trade = this.parseWsTrade(item);
                     tradesArray.append(trade);
                 }
@@ -788,7 +786,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 previousOrder['lastTradeTimestamp'] = trade['timestamp'];
                 let totalCost = '0';
                 let totalAmount = '0';
-                const trades = previousOrder['trades'];
+                const trades = this.safeList(previousOrder, 'trades', []);
                 for (let i = 0; i < trades.length; i++) {
                     const currentTrade = trades[i];
                     totalCost = Precise["default"].stringAdd(totalCost, this.numberToString(currentTrade['cost']));
@@ -812,8 +810,9 @@ class krakenfutures extends krakenfutures$1["default"] {
                         'currency': this.numberToString(this.safeString(trade['fee'], 'currency')),
                     };
                 }
-                if ((previousOrder['fee']['cost'] !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {
-                    const stringOrderCost = this.numberToString(previousOrder['fee']['cost']);
+                const previousFee = this.safeDict(previousOrder, 'fee', {});
+                if ((previousFee['cost'] !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {
+                    const stringOrderCost = this.numberToString(previousFee['cost']);
                     const stringTradeCost = this.numberToString(this.safeNumber(trade['fee'], 'cost'));
                     previousOrder['fee']['cost'] = Precise["default"].stringAdd(stringOrderCost, stringTradeCost);
                 }
@@ -854,7 +853,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                             'info': info,
                         });
                         client.resolve(orders, messageHash);
-                        client.resolve(orders, messageHash + ':' + currentOrder['symbol']);
+                        client.resolve(orders, messageHash + ':' + this.safeString(currentOrder, 'symbol', ''));
                         break;
                     }
                 }
@@ -928,7 +927,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const parsed = this.parseWsOrder(order);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol');
             if (symbol !== undefined) {
                 symbols[symbol] = true;
             }
@@ -1020,7 +1019,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         let unparsedOrder = order;
         let status = undefined;
         if (isCancelled !== undefined) {
-            unparsedOrder = this.safeValue(order, 'order');
+            unparsedOrder = this.safeDict(order, 'order');
             if (isCancelled) {
                 status = 'cancelled';
             }
@@ -1092,7 +1091,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         const marketId = this.safeString(message, 'product_id');
         if (marketId !== undefined) {
             const ticker = this.parseWsTicker(message);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 this.tickers[symbol] = ticker;
             }
@@ -1120,7 +1119,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         const marketId = this.safeString(message, 'product_id');
         if (marketId !== undefined) {
             const ticker = this.parseWsTicker(message);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 this.bidsasks[symbol] = ticker;
             }

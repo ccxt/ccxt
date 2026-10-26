@@ -1621,7 +1621,8 @@ export default class opinion extends Exchange {
         this.options['apiKey'] = creds['apiKey'];
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
-        this.apiKey = creds['apiKey'];
+        // an empty string, not undefined: the strict base types the credential as string
+        this.apiKey = this.safeString(creds, 'apiKey', '');
         return creds;
     }
     /**

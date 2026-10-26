@@ -1198,7 +1198,7 @@ export default class xt extends Exchange {
     parseMarkets(markets) {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const parsed = this.parseMarket(markets[i]);
+            const parsed = this.parseMarket(this.safeValue(markets, i));
             if (parsed !== undefined) {
                 result.push(parsed);
             }
@@ -1782,10 +1782,11 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        const ticker = this.safeValue(response, 'result');
         if (market['spot'] === true) {
-            return this.parseTicker(ticker[0], market);
+            const tickers = this.safeList(response, 'result', []);
+            return this.parseTicker(tickers[0], market);
         }
+        const ticker = this.safeDict(response, 'result', {});
         return this.parseTicker(ticker, market);
     }
     /**
@@ -4729,7 +4730,7 @@ export default class xt extends Exchange {
                 }
             }
             else {
-                result[symbol] = this.parseMarketLeverageTiers(response[i], market);
+                result[symbol] = this.parseMarketLeverageTiers(entry, market);
             }
         }
         return result;
@@ -5261,8 +5262,7 @@ export default class xt extends Exchange {
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            const key = this.safeString(breakEntry, 'symbol') + '_' + this.safeString(breakEntry, 'positionSide');
-            breakBySymbolSide[key] = breakEntry;
+            breakBySymbolSide[this.safeString(breakEntry, 'symbol', '') + '_' + this.safeString(breakEntry, 'positionSide', '')] = breakEntry;
         }
         return breakBySymbolSide;
     }
@@ -5273,9 +5273,7 @@ export default class xt extends Exchange {
      * @param {object} breakBySymbolSide the result of indexPositionBreakList()
      */
     mergePositionBreakInfo(entry, breakBySymbolSide) {
-        const marketId = this.safeString(entry, 'symbol');
-        const key = marketId + '_' + this.safeString(entry, 'positionSide');
-        const breakEntry = this.safeDict(breakBySymbolSide, key);
+        const breakEntry = this.safeDict(breakBySymbolSide, this.safeString(entry, 'symbol', '') + '_' + this.safeString(entry, 'positionSide', ''));
         if (breakEntry === undefined) {
             return entry;
         }
@@ -5927,7 +5925,7 @@ export default class xt extends Exchange {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + payload;
-        const query = this.omit(params, this.extractParams(path));
+        const query = this.extend(this.omit(params, this.extractParams(path)));
         const urlencoded = this.urlencode(this.keysort(query));
         const headersValue = {
             'Content-Type': 'application/json',
@@ -5957,7 +5955,7 @@ export default class xt extends Exchange {
                 payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
                 if (isUndefinedBody) {
                     if (urlencoded !== '') {
-                        url += '?' + urlencoded;
+                        url = apiUrl + payload + '?' + urlencoded;
                         payloadString += '#' + method + '#' + payload + '#' + this.rawencode(this.keysort(query));
                     }
                     else {
@@ -5974,7 +5972,7 @@ export default class xt extends Exchange {
                 payloadString = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp; // we can't glue timestamp, breaks in php
                 if (method === 'GET') {
                     if (urlencoded !== '') {
-                        url += '?' + urlencoded;
+                        url = apiUrl + payload + '?' + urlencoded;
                         payloadString += '#' + payload + '#' + urlencoded;
                     }
                     else {
@@ -5992,7 +5990,7 @@ export default class xt extends Exchange {
         }
         else {
             if (urlencoded !== '') {
-                url += '?' + urlencoded;
+                url = apiUrl + payload + '?' + urlencoded;
             }
         }
         let bodyValue = undefined;

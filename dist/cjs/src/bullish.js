@@ -825,7 +825,7 @@ class bullish extends bullish$1["default"] {
         }
         else {
             contractSize = this.safeNumber(market, 'contractMultiplier');
-            symbol += ':' + settle;
+            symbol = base + '/' + quote + ':' + settle;
             linear = settle === quote;
             inverse = !linear;
             if (type === 'swap') {
@@ -848,6 +848,7 @@ class bullish extends bullish$1["default"] {
                 }
             }
         }
+        const tradingFees = this.safeDict(this.fees, 'trading', {});
         return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
@@ -866,8 +867,8 @@ class bullish extends bullish$1["default"] {
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
-            'taker': this.fees['trading']['taker'],
-            'maker': this.fees['trading']['maker'],
+            'taker': tradingFees['taker'],
+            'maker': tradingFees['maker'],
             'contractSize': contractSize,
             'expiry': this.parse8601(expiryDatetime),
             'expiryDatetime': expiryDatetime,
@@ -1144,13 +1145,13 @@ class bullish extends bullish$1["default"] {
         //
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(trade, 'createdAtTimestamp');
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'quantity');
         const side = this.safeStringLower(trade, 'side');
         const isTaker = this.safeBool(trade, 'isTaker');
-        const currency = marketResolved['quote'];
+        const currency = this.safeString(marketResolved, 'quote');
         const code = this.safeCurrencyCode(currency);
         const feeCost = this.safeNumber(trade, 'quoteFee');
         let fee = undefined;
@@ -1310,7 +1311,7 @@ class bullish extends bullish$1["default"] {
         if ((method !== 'fetchOHLCV') && (method !== 'fetchFundingRateHistory') && (method !== 'fetchTrades')) {
             throw new errors.NotSupported(this.id + ' safeDeterministicCall() does not support the ' + method + ' method');
         }
-        let errors$1 = 0;
+        let errors$1 = this.parseToInt(0);
         const paramsOmitted = this.omit(paramsMaxRetries, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
@@ -1330,7 +1331,7 @@ class bullish extends bullish$1["default"] {
                 if (e instanceof errors.RateLimitExceeded) {
                     throw e; // if we are rate limited, we should not retry and fail fast
                 }
-                errors$1 += 1;
+                errors$1 = this.parseToInt(errors$1 + 1);
                 if (errors$1 > maxRetries) {
                     throw e;
                 }
@@ -1388,9 +1389,9 @@ class bullish extends bullish$1["default"] {
         else if (untilParam === undefined) {
             until = this.sum(startTime, maxDelta);
         }
-        requestUntil['createdAtDatetime[gte]'] = this.iso8601(startTime);
-        requestUntil['createdAtDatetime[lte]'] = this.iso8601(until);
-        const response = await this.publicGetV1MarketsSymbolCandle(this.extend(requestUntil, paramsUntil));
+        request['createdAtDatetime[gte]'] = this.iso8601(startTime);
+        request['createdAtDatetime[lte]'] = this.iso8601(until);
+        const response = await this.publicGetV1MarketsSymbolCandle(this.extend(request, paramsUntil));
         //
         //     [
         //         {
@@ -1520,11 +1521,9 @@ class bullish extends bullish$1["default"] {
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit(limit);
         }
-        let method = 'privateGetV2HistoryOrders';
-        let paramsMethod = undefined;
-        [method, paramsMethod] = this.handleOptionStringAndParams(paramsSinceAndUntil, 'fetchOrders', 'method', method);
+        const [methodResolved, paramsMethod] = this.handleOptionStringAndParams(paramsSinceAndUntil, 'fetchOrders', 'method', 'privateGetV2HistoryOrders');
         let response = [];
-        if (method === 'privateGetV2Orders') {
+        if (methodResolved === 'privateGetV2Orders') {
             //
             //     [
             //         {
@@ -1556,7 +1555,7 @@ class bullish extends bullish$1["default"] {
             //
             response = await this.privateGetV2Orders(this.extend(request, paramsMethod));
         }
-        else if (method === 'privateGetV2HistoryOrders') {
+        else if (methodResolved === 'privateGetV2HistoryOrders') {
             response = await this.privateGetV2HistoryOrders(this.extend(request, paramsMethod));
         }
         else {
@@ -1586,10 +1585,7 @@ class bullish extends bullish$1["default"] {
             until = untilParam;
         }
         const sinceFromUntil = (since === undefined) && (untilParam !== undefined);
-        let paramsResult = params;
-        if (sinceFromUntil) {
-            paramsResult = this.omit(params, 'until');
-        }
+        const paramsResult = sinceFromUntil ? this.omit(params, 'until') : params;
         if ((since !== undefined) || (untilParam !== undefined)) {
             const timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
             let sinceResolved = since;
@@ -1606,10 +1602,8 @@ class bullish extends bullish$1["default"] {
                     until = this.sum(since, timeDelta);
                 }
             }
-            const sinceDate = this.iso8601(sinceResolved);
-            const untilDate = this.iso8601(until);
-            paramsResult[sinceKey] = sinceDate;
-            paramsResult[untilKey] = untilDate;
+            paramsResult[sinceKey] = this.iso8601(sinceResolved);
+            paramsResult[untilKey] = this.iso8601(until);
         }
         return paramsResult;
     }
@@ -1792,8 +1786,8 @@ class bullish extends bullish$1["default"] {
         if (postOnly) {
             orderType = 'POST_ONLY';
         }
-        const [timeInForce, paramsTimeInForce] = this.handleOptionStringAndParams(paramsPostOnly, 'createOrder', 'timeInForce', 'GTC'); // is mandatory
-        paramsTimeInForce['timeInForce'] = timeInForce.toUpperCase();
+        const [timeInForce, paramsTimeInForceRaw] = this.handleOptionStringAndParams(paramsPostOnly, 'createOrder', 'timeInForce', 'GTC'); // is mandatory
+        const paramsTimeInForce = this.extend(paramsTimeInForceRaw, { 'timeInForce': timeInForce.toUpperCase() });
         if (!isMarketOrder) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
@@ -2072,12 +2066,12 @@ class bullish extends bullish$1["default"] {
         const [requestUntil, paramsUntil] = this.handleUntilOption('createdAtDatetime[lte]', request, params);
         const until = this.safeInteger(requestUntil, 'createdAtDatetime[lte]');
         if (until !== undefined) {
-            requestUntil['createdAtDatetime[lte]'] = this.iso8601(until);
+            request['createdAtDatetime[lte]'] = this.iso8601(until);
         }
         if (since !== undefined) {
-            requestUntil['createdAtDatetime[gte]'] = this.iso8601(since);
+            request['createdAtDatetime[gte]'] = this.iso8601(since);
         }
-        const response = await this.privateGetV1WalletsTransactions(this.extend(requestUntil, paramsUntil));
+        const response = await this.privateGetV1WalletsTransactions(this.extend(request, paramsUntil));
         //
         //     {
         //         "data": [
@@ -2503,8 +2497,9 @@ class bullish extends bullish$1["default"] {
         const result = {
             'info': response,
         };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict(response, i);
+        const rows = this.toArray(response);
+        for (let i = 0; i < rows.length; i++) {
+            const balance = this.safeDict(rows, i);
             const symbol = this.safeString(balance, 'assetSymbol');
             const code = this.safeCurrencyCode(symbol);
             const account = this.account();
@@ -2580,7 +2575,7 @@ class bullish extends bullish$1["default"] {
         //     ]
         //
         const marketResolved = this.safeMarket(this.safeString(position, 'symbol'), market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(position, 'createdAtTimestamp');
         const side = this.safeString(position, 'side');
         return this.safePosition({
@@ -2802,9 +2797,9 @@ class bullish extends bullish$1["default"] {
         if (until === undefined) {
             until = now;
         }
-        requestUntil['createdAtDatetime[gte]'] = this.iso8601(startTimestamp);
-        requestUntil['createdAtDatetime[lte]'] = this.iso8601(until);
-        const response = await this.privateGetV1HistoryBorrowInterest(this.extend(requestUntil, paramsUntil));
+        request['createdAtDatetime[gte]'] = this.iso8601(startTimestamp);
+        request['createdAtDatetime[lte]'] = this.iso8601(until);
+        const response = await this.privateGetV1HistoryBorrowInterest(this.extend(request, paramsUntil));
         //
         //     [
         //         {
@@ -2968,10 +2963,11 @@ class bullish extends bullish$1["default"] {
             this.checkRequiredCredentials();
             const nonce = this.microseconds().toString();
             const timestamp = this.getTimestamp().toString();
+            let headers = {};
             if (method === 'GET') {
                 const payload = timestamp + nonce + method + '/trading-api/' + path;
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'hex');
-                requestHeaders = {
+                headers = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,
                     'BX-SIGNATURE': signature,
@@ -2982,31 +2978,29 @@ class bullish extends bullish$1["default"] {
                 const payload = timestamp + nonce + method + '/trading-api/' + path + requestBody;
                 const digest = this.hash(this.encode(payload), sha2_js.sha256, 'hex');
                 const signature = this.hmac(this.encode(digest), this.encode(this.secret), sha2_js.sha256, 'hex');
-                requestHeaders = {
+                headers = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,
                     'BX-SIGNATURE': signature,
                     'Content-Type': 'application/json',
                 };
-                requestHeaders['Content-Type'] = 'application/json';
                 const rateLimitToken = this.safeString(request, 'rateLimitToken');
                 if (rateLimitToken !== undefined) {
-                    requestHeaders['BX-RATE-LIMIT-TOKEN'] = rateLimitToken;
+                    headers['BX-RATE-LIMIT-TOKEN'] = rateLimitToken;
                 }
             }
             if (path === 'v1/users/hmac/login') {
-                requestHeaders = (requestHeaders === undefined) ? {} : requestHeaders;
-                requestHeaders['BX-PUBLIC-KEY'] = this.apiKey;
+                headers['BX-PUBLIC-KEY'] = this.apiKey;
             }
             else {
                 const token = this.token;
                 if ((token === undefined)) {
                     throw new errors.AuthenticationError(this.id + ' requires a token, please call signIn() first');
                 }
-                requestHeaders = (requestHeaders === undefined) ? {} : requestHeaders;
-                requestHeaders['Authorization'] = 'Bearer ' + token;
+                headers['Authorization'] = 'Bearer ' + token;
                 // headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
             }
+            requestHeaders = headers;
         }
         if (method === 'GET') {
             const query = this.urlencode(request);

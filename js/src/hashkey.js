@@ -1035,7 +1035,7 @@ export default class hashkey extends Exchange {
             isSpot = false;
             isSwap = true;
             baseId = this.safeString(market, 'underlying');
-            suffix += ':' + settleId;
+            suffix = ':' + settleId;
         }
         const base = this.safeCurrencyCode(baseId);
         if ((base === undefined) || (quote === undefined)) {
@@ -1081,7 +1081,9 @@ export default class hashkey extends Exchange {
                 let minInitialMargin = this.safeString(first, 'initialMargin');
                 let maxInitialMargin = this.safeString(last, 'initialMargin');
                 if (Precise.stringGt(minInitialMargin, maxInitialMargin)) {
-                    [minInitialMargin, maxInitialMargin] = [maxInitialMargin, minInitialMargin];
+                    const initialMarginsSwapped = minInitialMargin;
+                    minInitialMargin = maxInitialMargin;
+                    maxInitialMargin = initialMarginsSwapped;
                 }
                 minLeverage = this.parseToInt(Precise.stringDiv('1', maxInitialMargin));
                 maxLeverage = this.parseToInt(Precise.stringDiv('1', minInitialMargin));
@@ -1708,9 +1710,10 @@ export default class hashkey extends Exchange {
         const symbol = marketResolved['symbol'];
         const last = this.safeString(ticker, 'c');
         let baseVolume = this.safeString(ticker, 'v');
-        if ((marketResolved['contract'] === true) && (marketResolved['contractSize'] !== undefined)) {
+        const contractSizeValue = this.safeString(marketResolved, 'contractSize');
+        if ((marketResolved['contract'] === true) && (contractSizeValue !== undefined)) {
             // 'v' counts contracts, and a ticker reports base volume
-            baseVolume = Precise.stringMul(baseVolume, this.numberToString(marketResolved['contractSize']));
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(contractSizeValue));
         }
         return this.safeTicker({
             'symbol': symbol,
@@ -2507,7 +2510,8 @@ export default class hashkey extends Exchange {
             return await this.createSwapOrder(symbol, type, side, amount, price, params);
         }
         else {
-            throw new NotSupported(this.id + ' createOrder() is not supported for ' + market['type'] + ' type of markets');
+            const marketTypeValue = this.safeString(market, 'type', '');
+            throw new NotSupported(this.id + ' createOrder() is not supported for ' + marketTypeValue + ' type of markets');
         }
     }
     /**
@@ -2671,7 +2675,8 @@ export default class hashkey extends Exchange {
             return this.createSwapOrderRequest(symbol, type, side, amount, price, params);
         }
         else {
-            throw new NotSupported(this.id + ' ' + 'createOrderRequest() is not supported for ' + market['type'] + ' type of markets');
+            const marketTypeValue = this.safeString(market, 'type', '');
+            throw new NotSupported(this.id + ' ' + 'createOrderRequest() is not supported for ' + marketTypeValue + ' type of markets');
         }
     }
     createSpotOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
@@ -2942,7 +2947,8 @@ export default class hashkey extends Exchange {
             //
         }
         else {
-            throw new NotSupported(this.id + ' ' + 'createOrderRequest() is not supported for ' + market['type'] + ' type of markets');
+            const marketTypeValue = this.safeString(market, 'type', '');
+            throw new NotSupported(this.id + ' ' + 'createOrderRequest() is not supported for ' + marketTypeValue + ' type of markets');
         }
         const result = this.safeList(response, 'result', []);
         const responseOrders = [];
@@ -3087,7 +3093,8 @@ export default class hashkey extends Exchange {
             //
         }
         else {
-            throw new NotSupported(this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
+            const marketTypeValue = this.safeString(market, 'type', '');
+            throw new NotSupported(this.id + ' ' + methodName + '() is not supported for ' + marketTypeValue + ' type of markets');
         }
         const order = this.safeOrder(response);
         order['info'] = response;
@@ -3118,7 +3125,7 @@ export default class hashkey extends Exchange {
             market = this.market(symbol);
         }
         const marketType = 'spot';
-        const marketTypeOption = this.handleMarketTypeAndParams(methodName, market, params, marketType)[0];
+        const [marketTypeOption] = this.handleMarketTypeAndParams(methodName, market, params, marketType);
         let response;
         if (marketTypeOption === 'spot') {
             response = await this.privateDeleteApiV1SpotCancelOrderByIds(request);
@@ -3771,17 +3778,14 @@ export default class hashkey extends Exchange {
     parseOrderSideAndReduceOnly(unparsed) {
         const parts = unparsed.split('_');
         const side = parts[0];
-        let reduceOnly = undefined;
         const secondPart = this.safeString(parts, 1);
-        if (secondPart !== undefined) {
-            if (secondPart === 'open') {
-                reduceOnly = false;
-            }
-            else if ((secondPart === 'close')) {
-                reduceOnly = true;
-            }
+        if (secondPart === 'open') {
+            return [side, false];
         }
-        return [side, reduceOnly];
+        if (secondPart === 'close') {
+            return [side, true];
+        }
+        return [side, undefined];
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -3798,17 +3802,16 @@ export default class hashkey extends Exchange {
         return this.safeString(statuses, status, status);
     }
     parseOrderTypeTimeInForceAndPostOnly(type, timeInForce) {
-        let postOnly = undefined;
         const isMakerTimeInForce = (timeInForce === 'LIMIT_MAKER') || (timeInForce === 'MAKER');
-        if ((type === 'LIMIT_MAKER') || isMakerTimeInForce) {
-            postOnly = true;
-        }
         let timeInForceParsed = timeInForce;
         if ((type !== 'LIMIT_MAKER') && isMakerTimeInForce) {
             timeInForceParsed = 'PO';
         }
         const typeValue = this.parseOrderType(type);
-        return [typeValue, timeInForceParsed, postOnly];
+        if ((type === 'LIMIT_MAKER') || isMakerTimeInForce) {
+            return [typeValue, timeInForceParsed, true];
+        }
+        return [typeValue, timeInForceParsed, undefined];
     }
     parseOrderType(type) {
         const types = {
@@ -4413,7 +4416,8 @@ export default class hashkey extends Exchange {
             //
         }
         else {
-            throw new NotSupported(this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
+            const marketTypeValue = this.safeString(market, 'type', '');
+            throw new NotSupported(this.id + ' ' + methodName + '() is not supported for ' + marketTypeValue + ' type of markets');
         }
     }
     /**
@@ -4522,7 +4526,7 @@ export default class hashkey extends Exchange {
                 bodySigned = this.json(this.safeList(params, 'orders'));
                 signature = this.hmac(this.encode(this.customUrlencode(additionalParams)), this.encode(this.secret), sha256);
                 query = this.customUrlencode(this.extend(additionalParams, { 'signature': signature }));
-                url += '?' + query;
+                url = apiUrl + '/' + path + '?' + query;
             }
             else {
                 const totalParams = this.extend(additionalParams, params);
@@ -4530,7 +4534,7 @@ export default class hashkey extends Exchange {
                 totalParams['signature'] = signature;
                 query = this.customUrlencode(totalParams);
                 if (method === 'GET') {
-                    url += '?' + query;
+                    url = apiUrl + '/' + path + '?' + query;
                 }
                 else {
                     bodySigned = query;
@@ -4544,7 +4548,7 @@ export default class hashkey extends Exchange {
         else {
             query = this.urlencode(params);
             if (query.length !== 0) {
-                url += '?' + query;
+                url = apiUrl + '/' + path + '?' + query;
             }
         }
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };

@@ -194,7 +194,7 @@ export default class kraken extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
-    findMarketByAltnameOrId(id: any): any;
+    findMarketByAltnameOrId(id: any): MarketInterface;
     resolveMarketByAltnameOrId(marketId: Str, market?: Market): Market;
     getDelistedMarketById(id: Str): any;
     parseOrderStatus(status: Str): Str;
@@ -350,7 +350,7 @@ export default class kraken extends Exchange {
     parseTransactionStatus(status: Str): Str;
     parseNetwork(network: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionsByType(type: string, transactions: any, code?: Str, since?: Int, limit?: Int): any[];
+    parseTransactionsByType(type: string, transactions: any, code?: Str, since?: Int, limit?: Int): Transaction[];
     /**
      * @method
      * @name kraken#fetchDeposits

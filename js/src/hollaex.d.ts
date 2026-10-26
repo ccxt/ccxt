@@ -126,7 +126,7 @@ export default class hollaex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOpenOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name hollaex#fetchOpenOrders
@@ -258,7 +258,7 @@ export default class hollaex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
+    fetchWithdrawal(id: string, code?: Str, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name hollaex#fetchWithdrawals

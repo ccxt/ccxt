@@ -130,7 +130,7 @@ class bullish extends bullish$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const messageHash = 'trades::' + market['symbol'];
+        const messageHash = 'trades::' + this.safeString(market, 'symbol', '');
         const url = '/trading-api/v1/market-data/trades';
         const request = {
             'topic': 'anonymousTrades',
@@ -180,11 +180,12 @@ class bullish extends bullish$1["default"] {
             this.trades[symbol] = tradesArrayCache;
         }
         const tradesArray = this.trades[symbol];
-        for (let i = 0; i < trades.length; i++) {
-            tradesArray.append(trades[i]);
+        const tradesList = this.toArray(trades);
+        for (let i = 0; i < tradesList.length; i++) {
+            tradesArray.append(tradesList[i]);
         }
         this.trades[symbol] = tradesArray;
-        const messageHash = 'trades::' + market['symbol'];
+        const messageHash = 'trades::' + this.safeString(market, 'symbol', '');
         client.resolve(tradesArray, messageHash);
     }
     /**
@@ -201,14 +202,13 @@ class bullish extends bullish$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const wsUrl = this.safeString(this.urls['api']['ws'], 'public');
         if (wsUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' watchTicker() has no public websocket url');
         }
-        const url = wsUrl + '/trading-api/v1/market-data/tick/' + market['id'];
         const messageHash = 'ticker::' + symbolValue;
-        return await this.watch(url, messageHash, params, messageHash); // no need to send a subscribe message, the server sends a ticker update on connect
+        return await this.watch(wsUrl + '/trading-api/v1/market-data/tick/' + this.safeString(market, 'id', ''), messageHash, params, messageHash); // no need to send a subscribe message, the server sends a ticker update on connect
     }
     handleTicker(client, message) {
         //
@@ -287,7 +287,7 @@ class bullish extends bullish$1["default"] {
         }
         const market = this.market(symbol);
         const url = '/trading-api/v1/market-data/orderbook';
-        const messageHash = 'orderbook::' + market['symbol'];
+        const messageHash = 'orderbook::' + this.safeString(market, 'symbol', '');
         const request = {
             'topic': 'l2Orderbook', // 'l2Orderbook' returns only snapshots while 'l1Orderbook' returns only updates
             'symbol': market['id'],
@@ -348,13 +348,13 @@ class bullish extends bullish$1["default"] {
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
-        for (let i = 0; i < entry.length; i++) {
+        const entries = this.toArray(entry);
+        for (let i = 0; i < entries.length; i++) {
             if (i % 2 !== 0) {
                 continue;
             }
-            const price = this.safeString(entry, i);
-            const amount = this.safeString(entry, i + 1);
-            result.push([price, amount]);
+            const price = this.safeString(entries, i);
+            result.push([price, this.safeString(entries, i + 1)]);
         }
         return result;
     }
@@ -379,7 +379,7 @@ class bullish extends bullish$1["default"] {
         let symbolResolved = undefined;
         if (symbol !== undefined) {
             symbolResolved = this.symbol(symbol);
-            messageHash = messageHash + '::' + symbolResolved;
+            messageHash = subscribeHash + '::' + symbolResolved;
         }
         const request = {
             'topic': 'orders',
@@ -498,7 +498,7 @@ class bullish extends bullish$1["default"] {
         let symbolResolved = undefined;
         if (symbol !== undefined) {
             symbolResolved = this.symbol(symbol);
-            messageHash += '::' + symbolResolved;
+            messageHash = subscribeHash + '::' + symbolResolved;
         }
         const request = {
             'topic': 'trades',

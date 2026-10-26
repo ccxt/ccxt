@@ -38,7 +38,7 @@ export default class bitfinex extends Exchange {
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrenciesCustom(ids: any[], indexed: Dict, indexedNetworks: Dict): Dict;
-    parseCurrencyCustom(id: any, indexed: Dict, indexedNetworks: Dict): Currency;
+    parseCurrencyCustom(id: string, indexed: Dict, indexedNetworks: Dict): Currency;
     /**
      * @method
      * @name bitfinex#fetchBalance

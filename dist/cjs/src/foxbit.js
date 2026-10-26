@@ -1010,7 +1010,7 @@ class foxbit extends foxbit$1["default"] {
             const order = this.safeDict(orders, i);
             const symbol = this.safeString(order, 'symbol');
             const market = this.market(symbol);
-            const type = this.safeStringUpper(order, 'type');
+            const type = this.safeStringUpper(order, 'type', '');
             const orderParams = this.safeDict(order, 'params', {});
             if (type !== 'LIMIT' && type !== 'MARKET' && type !== 'STOP_MARKET' && type !== 'STOP_LIMIT' && type !== 'INSTANT') {
                 throw new errors.InvalidOrder('Invalid order type: ' + type + '. Must be one of: limit, market, stop_market, stop_limit, instant.');
@@ -1519,31 +1519,32 @@ class foxbit extends foxbit$1["default"] {
         }
         const market = this.market(symbol);
         this.checkRequiredArgument('editOrder', side, 'side');
+        const createRequest = {
+            'type': typeValue,
+            'side': side.toUpperCase(),
+            'market_symbol': market['id'],
+        };
+        if (typeValue === 'LIMIT' || typeValue === 'MARKET') {
+            createRequest['quantity'] = this.amountToPrecision(symbol, amount);
+            if (typeValue === 'LIMIT') {
+                createRequest['price'] = this.priceToPrecision(symbol, price);
+            }
+        }
+        if (typeValue === 'STOP_MARKET') {
+            createRequest['stop_price'] = this.priceToPrecision(symbol, price);
+            createRequest['quantity'] = this.amountToPrecision(symbol, amount);
+        }
+        if (typeValue === 'INSTANT') {
+            createRequest['amount'] = this.priceToPrecision(symbol, amount);
+        }
         const request = {
             'mode': 'ALLOW_FAILURE',
             'cancel': {
                 'type': 'ID',
                 'id': this.parseNumber(id),
             },
-            'create': {
-                'type': typeValue,
-                'side': side.toUpperCase(),
-                'market_symbol': market['id'],
-            },
+            'create': createRequest,
         };
-        if (typeValue === 'LIMIT' || typeValue === 'MARKET') {
-            request['create']['quantity'] = this.amountToPrecision(symbol, amount);
-            if (typeValue === 'LIMIT') {
-                request['create']['price'] = this.priceToPrecision(symbol, price);
-            }
-        }
-        if (typeValue === 'STOP_MARKET') {
-            request['create']['stop_price'] = this.priceToPrecision(symbol, price);
-            request['create']['quantity'] = this.amountToPrecision(symbol, amount);
-        }
-        if (typeValue === 'INSTANT') {
-            request['create']['amount'] = this.priceToPrecision(symbol, amount);
-        }
         const response = await this.v3PrivatePostOrdersCancelReplace(this.extend(request, params));
         // {
         //     "cancel": {
@@ -1801,10 +1802,11 @@ class foxbit extends foxbit$1["default"] {
     parseOrder(order, market = undefined) {
         let symbol = this.safeString(order, 'market_symbol');
         let marketResolved = market;
-        if ((market === undefined) && (symbol !== undefined)) {
-            marketResolved = this.market(symbol);
+        if (market !== undefined) {
+            symbol = this.safeString(market, 'symbol');
         }
-        if (marketResolved !== undefined) {
+        else if (symbol !== undefined) {
+            marketResolved = this.market(symbol);
             symbol = this.safeString(marketResolved, 'symbol');
         }
         const timestamp = this.parseDate(this.safeString(order, 'created_at'));
@@ -1895,7 +1897,7 @@ class foxbit extends foxbit$1["default"] {
         const address = this.safeString2(cryptoDetails, 'receiving_address', 'destination_address');
         const sn = this.safeString(transaction, 'sn');
         let type = 'withdrawal';
-        if (sn !== undefined && sn[0] === 'D') {
+        if (sn !== undefined && sn.startsWith('D')) {
             type = 'deposit';
         }
         const fee = this.safeString(transaction, 'fee', '0');
@@ -2060,10 +2062,10 @@ class foxbit extends foxbit$1["default"] {
         };
         if (urlPath === 'private') {
             this.checkRequiredCredentials();
-            const preHash = this.numberToString(timestamp) + method + fullPath + signatureQuery + bodyToSignature;
+            const preHash = timestamp.toString() + method + fullPath + signatureQuery + bodyToSignature;
             const signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha2_js.sha256, 'hex');
             headersValue['X-FB-ACCESS-KEY'] = this.apiKey;
-            headersValue['X-FB-ACCESS-TIMESTAMP'] = this.numberToString(timestamp);
+            headersValue['X-FB-ACCESS-TIMESTAMP'] = timestamp.toString();
             headersValue['X-FB-ACCESS-SIGNATURE'] = signature;
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': headersValue };
@@ -2075,7 +2077,7 @@ class foxbit extends foxbit$1["default"] {
         const error = this.safeDict(response, 'error');
         const code = this.safeString(error, 'code');
         const details = this.safeList(error, 'details');
-        const message = this.safeString(error, 'message');
+        const message = this.safeString(error, 'message', '');
         let detailsString = '';
         if (details !== undefined) {
             for (let i = 0; i < details.length; i++) {

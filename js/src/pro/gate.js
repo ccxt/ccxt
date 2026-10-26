@@ -437,8 +437,8 @@ export default class gate extends gateRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
-        const marketId = market['id'];
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const marketId = this.safeString(market, 'id', '');
         const url = this.getUrlByMarket(market);
         const isEuUrl = url.indexOf('gateeu') >= 0;
         const isNonEuSpot = (market['spot'] === true) && !isEuUrl;
@@ -472,7 +472,7 @@ export default class gate extends gateRest {
             if (limitResolved === 400) {
                 finalInterval = '400';
             }
-            payload = ['ob.' + market['id'] + '.' + finalInterval];
+            payload = ['ob.' + marketId + '.' + finalInterval];
         }
         else {
             channel = messageType + '.order_book_update';
@@ -501,8 +501,8 @@ export default class gate extends gateRest {
         }
         const market = this.market(symbol);
         const url = this.getUrlByMarket(market);
-        const symbolValue = market['symbol'];
-        const marketId = market['id'];
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const marketId = this.safeString(market, 'id', '');
         const isEuUrl = url.indexOf('gateeu') >= 0;
         const isNonEuSpot = (market['spot'] === true) && !isEuUrl;
         let intervalDefault = '100ms';
@@ -531,7 +531,7 @@ export default class gate extends gateRest {
             if (limit === 400) {
                 finalInterval = '400';
             }
-            payload = ['ob.' + market['id'] + '.' + finalInterval];
+            payload = ['ob.' + marketId + '.' + finalInterval];
         }
         else {
             channel = messageType + '.order_book_update';
@@ -746,8 +746,8 @@ export default class gate extends gateRest {
                 bookSide.storeArray(this.parseOrderBookBidAsk(bidAsk));
             }
             else {
-                const price = this.safeFloat(bidAsk, 'p');
-                const amount = this.safeFloat(bidAsk, 's');
+                const price = this.safeNumber(bidAsk, 'p');
+                const amount = this.safeNumber(bidAsk, 's');
                 bookSide.store(price, amount);
             }
         }
@@ -780,7 +780,7 @@ export default class gate extends gateRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         params['callerMethodName'] = 'watchTicker';
         const result = await this.watchTickers([symbolValue], params);
         return this.safeDict(result, symbolValue);
@@ -1084,7 +1084,7 @@ export default class gate extends gateRest {
         }
         // todo add options support
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const marketId = market['id'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const messageType = this.getTypeByMarket(market);

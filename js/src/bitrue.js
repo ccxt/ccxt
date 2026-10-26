@@ -861,8 +861,8 @@ export default class bitrue extends Exchange {
         }
         const promises = await Promise.all(promisesRaw);
         const spotMarkets = this.safeList(this.safeDict(promises, 0), 'symbols', []);
-        const futureMarkets = this.safeValue(promises, 1);
-        const deliveryMarkets = this.safeValue(promises, 2);
+        const futureMarkets = this.safeList(promises, 1, []);
+        const deliveryMarkets = this.safeList(promises, 2, []);
         let markets = spotMarkets;
         markets = this.arrayConcat(markets, futureMarkets);
         markets = this.arrayConcat(markets, deliveryMarkets);
@@ -2144,7 +2144,7 @@ export default class bitrue extends Exchange {
         else if (market['spot'] === true) {
             request['symbol'] = market['id'];
             request['quantity'] = this.amountToPrecision(symbol, amount);
-            const validOrderTypes = this.safeValue(market['info'], 'orderTypes');
+            const validOrderTypes = this.safeList(market['info'], 'orderTypes', []);
             if (!this.inArray(uppercaseType, validOrderTypes)) {
                 throw new InvalidOrder(this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
             }
@@ -2995,6 +2995,7 @@ export default class bitrue extends Exchange {
         //
         const chainDetails = this.safeList(fee, 'chainDetail', []);
         const chainDetailLength = chainDetails.length;
+        const networks = {};
         const result = {
             'info': fee,
             'withdraw': {
@@ -3005,7 +3006,6 @@ export default class bitrue extends Exchange {
                 'fee': undefined,
                 'percentage': undefined,
             },
-            'networks': {},
         };
         if (chainDetailLength !== 0) {
             for (let i = 0; i < chainDetailLength; i++) {
@@ -3014,17 +3014,17 @@ export default class bitrue extends Exchange {
                 const currencyCode = this.safeString(currency, 'code');
                 const networkCode = this.networkIdToCode(networkId, currencyCode);
                 if (networkCode !== undefined) {
-                    result['networks'][networkCode] = {
+                    networks[networkCode] = {
                         'deposit': { 'fee': undefined, 'percentage': undefined },
                         'withdraw': { 'fee': this.safeNumber(chainDetail, 'withdrawFee'), 'percentage': false },
                     };
                 }
                 if (chainDetailLength === 1) {
-                    result['withdraw']['fee'] = this.safeNumber(chainDetail, 'withdrawFee');
-                    result['withdraw']['percentage'] = false;
+                    result['withdraw'] = { 'fee': this.safeNumber(chainDetail, 'withdrawFee'), 'percentage': false };
                 }
             }
         }
+        result['networks'] = networks;
         return result;
     }
     /**
@@ -3279,17 +3279,17 @@ export default class bitrue extends Exchange {
         let requestBody = undefined;
         let requestHeaders = undefined;
         const type = this.safeString(api, 0);
-        const version = this.safeString(api, 1);
+        const version = this.safeString(api, 1, '');
         const access = this.safeString(api, 2);
         const apiUrl = this.safeString(this.urls['api'], type);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = apiUrl;
+        const endpointPath = this.implodeParams(path, params);
+        let url = apiUrl + '/' + endpointPath;
         if (!((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf('listenKey') >= 0))) {
-            url += '/' + version;
+            url = apiUrl + '/' + version + '/' + endpointPath;
         }
-        url += '/' + this.implodeParams(path, params);
         const paramsOmitted = this.omit(params, this.extractParams(path));
         if (access === 'private') {
             this.checkRequiredCredentials();
@@ -3301,28 +3301,30 @@ export default class bitrue extends Exchange {
                 }, paramsOmitted));
                 const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
                 query += '&' + 'signature=' + signature;
-                requestHeaders = {
-                    'X-MBX-APIKEY': this.apiKey,
-                };
                 if ((method === 'GET') || (method === 'DELETE')) {
                     url += '?' + query;
+                    requestHeaders = {
+                        'X-MBX-APIKEY': this.apiKey,
+                    };
                 }
                 else {
                     requestBody = query;
-                    requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
+                    requestHeaders = {
+                        'X-MBX-APIKEY': this.apiKey,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    };
                 }
             }
             else {
                 const timestamp = this.nonce().toString();
-                let signPath = undefined;
+                let signPrefix = '';
                 if (type === 'fapi') {
-                    signPath = '/fapi';
+                    signPrefix = '/fapi';
                 }
                 else if (type === 'dapi') {
-                    signPath = '/dapi';
+                    signPrefix = '/dapi';
                 }
-                signPath = signPath + '/' + version + '/' + path;
-                let signMessage = timestamp + method + signPath;
+                let signMessage = timestamp + method + (signPrefix + '/' + version + '/' + path);
                 if (method === 'GET') {
                     const keys = Object.keys(paramsOmitted);
                     const keysLength = keys.length;
@@ -3364,7 +3366,7 @@ export default class bitrue extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 418) || (code === 429)) {
-            throw new DDoSProtection(this.id + ' ' + code.toString() + ' ' + reason + ' ' + body);
+            throw new DDoSProtection(this.id + ' ' + code.toString() + ' ' + reason + (' ' + body));
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
@@ -3440,7 +3442,7 @@ export default class bitrue extends Exchange {
                 const entry = byLimit[i];
                 const threshold = this.safeInteger(entry, 0);
                 if (limit !== undefined && threshold !== undefined && limit <= threshold) {
-                    return entry[1];
+                    return this.safeNumber(entry, 1);
                 }
             }
         }

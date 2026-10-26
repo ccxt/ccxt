@@ -525,50 +525,50 @@ export default class deribit extends Exchange {
     createExpiredOptionMarket(symbol) {
         // support expired option contracts
         let quote = 'USD';
-        let settle = undefined;
+        let settle = '';
         const optionParts = symbol.split('-');
         const symbolBase = symbol.split('/');
+        const hasSlash = symbol.indexOf('/') > -1;
+        const hasUsdc = symbol.indexOf('USDC') > -1;
         let base = undefined;
         let expiry = undefined;
-        if (symbol.indexOf('/') > -1) {
-            base = this.safeString(symbolBase, 0);
+        if (hasSlash) {
+            base = this.safeString(symbolBase, 0, '');
             expiry = this.safeString(optionParts, 1);
-            if (symbol.indexOf('USDC') > -1) {
-                base = base + '_USDC';
-            }
         }
         else {
-            base = this.safeString(optionParts, 0);
+            base = this.safeString(optionParts, 0, '');
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
         }
-        if (symbol.indexOf('USDC') > -1) {
+        if (base === undefined) {
+            throw new ExchangeError(this.id + ' createExpiredOptionMarket() missing base');
+        }
+        // the slash form of a usdc instrument carries its settlement currency in the base
+        let baseSuffix = '';
+        if (hasSlash && hasUsdc) {
+            baseSuffix = '_USDC';
+        }
+        const baseResolved = base + baseSuffix;
+        if (hasUsdc) {
             quote = 'USDC';
             settle = 'USDC';
         }
         else {
-            settle = base;
+            // no usdc suffix on this path, so the resolved base is the settle currency
+            settle = baseResolved;
         }
-        let splitBase = base;
-        if (base === undefined) {
-            throw new ExchangeError(this.id + ' createExpiredOptionMarket() missing base');
-        }
-        if (base.indexOf('_') > -1) {
-            const splitSymbol = base.split('_');
-            splitBase = this.safeString(splitSymbol, 0);
-        }
-        const strike = this.safeString(optionParts, 2);
-        const optionType = this.safeString(optionParts, 3);
+        // the part of the base before the first underscore, or the whole base when it has none
+        const splitBase = this.safeString(baseResolved.split('_'), 0, '');
+        const strike = this.safeString(optionParts, 2, '');
+        const optionType = this.safeString(optionParts, 3, '');
         const datetime = this.convertExpireDate(expiry);
-        const timestamp = this.parse8601(datetime);
-        const id = base + '-' + this.convertExpireDateToMarketIdDate(expiry) + '-' + strike + '-' + optionType;
-        const symbolExpired = splitBase + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType;
         return {
-            'id': id,
-            'symbol': symbolExpired,
-            'base': base,
+            'id': baseResolved + '-' + this.convertExpireDateToMarketIdDate(expiry) + ('-' + strike + '-' + optionType),
+            'symbol': splitBase + '/' + quote + ':' + settle + '-' + expiry + ('-' + strike + '-' + optionType),
+            'base': baseResolved,
             'quote': quote,
             'settle': settle,
-            'baseId': base,
+            'baseId': baseResolved,
             'quoteId': quote,
             'settleId': settle,
             'active': false,
@@ -582,7 +582,7 @@ export default class deribit extends Exchange {
             'margin': false,
             'contract': true,
             'contractSize': undefined,
-            'expiry': timestamp,
+            'expiry': this.parse8601(datetime),
             'expiryDatetime': datetime,
             'optionType': (optionType === 'C') ? 'call' : 'put',
             'strike': this.parseNumber(strike),
@@ -2252,9 +2252,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        const order = this.safeValue(result, 'order');
-        const trades = this.safeList(result, 'trades', []);
-        order['trades'] = trades;
+        const order = this.extend(this.safeValue(result, 'order'), { 'trades': this.safeList(result, 'trades', []) });
         return this.parseOrder(order, market);
     }
     /**
@@ -2302,9 +2300,7 @@ export default class deribit extends Exchange {
         }
         const response = await this.privateGetEdit(this.extend(request, paramsOmitted));
         const result = this.safeDict(response, 'result', {});
-        const order = this.safeValue(result, 'order');
-        const trades = this.safeList(result, 'trades', []);
-        order['trades'] = trades;
+        const order = this.extend(this.safeValue(result, 'order'), { 'trades': this.safeList(result, 'trades', []) });
         return this.parseOrder(order);
     }
     /**
@@ -3317,7 +3313,7 @@ export default class deribit extends Exchange {
         const month = 30 * 24 * 60 * 60 * 1000;
         const defaultSince = now - month;
         const sinceResolved = (since === undefined) ? defaultSince : since;
-        const time = (since === undefined) ? now : since + month;
+        const time = (since === undefined) ? now : this.parseToInt(since + month);
         const request = {
             'instrument_name': market['id'],
             'start_timestamp': sinceResolved - 1,
@@ -3428,7 +3424,7 @@ export default class deribit extends Exchange {
         }
         const market = this.market(symbol);
         if (market['spot'] === true) {
-            throw new NotSupported(this.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets');
+            throw new NotSupported(this.id + ' fetchLiquidations() does not support ' + this.safeString(market, 'type', '') + ' markets');
         }
         const request = {
             'instrument_name': market['id'],
@@ -3505,7 +3501,7 @@ export default class deribit extends Exchange {
         }
         const market = this.market(symbol);
         if (market['spot'] === true) {
-            throw new NotSupported(this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets');
+            throw new NotSupported(this.id + ' fetchMyLiquidations() does not support ' + this.safeString(market, 'type', '') + ' markets');
         }
         const request = {
             'instrument_name': market['id'],

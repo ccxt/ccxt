@@ -1,25 +1,33 @@
+import { Int, IndexType } from '../types.js';
 interface IOrderBookSide<T> extends Array<T> {
-    store(price: any, size: any): any;
-    storeArray(array: any[]): any;
-    limit(): any;
+    store(price: IndexType | undefined, size: IndexType | undefined): void;
+    storeArray(array: (IndexType | undefined)[]): void;
+    limit(): void;
 }
 declare class OrderBookSide extends Array implements IOrderBookSide<any> {
-    constructor(deltas?: object[], depth?: number | undefined);
-    storeArray(delta: any): void;
-    store(price: any, size: any): void;
+    index: Float64Array;
+    depth: number;
+    side: boolean;
+    constructor(deltas?: Array<(IndexType | undefined)[]>, depth?: Int);
+    storeArray(delta: (IndexType | undefined)[]): void;
+    store(price: IndexType | undefined, size: IndexType | undefined): void;
     limit(): void;
-    copy(): any;
+    copy(): OrderBookSide;
 }
 declare class CountedOrderBookSide extends OrderBookSide {
-    store(price: any, size: any): void;
-    storeArray(delta: any): void;
+    store(price: IndexType | undefined, size: IndexType | undefined): void;
+    storeArray(delta: (IndexType | undefined)[]): void;
 }
 declare class IndexedOrderBookSide extends Array implements IOrderBookSide<any> {
-    constructor(deltas?: object[], depth?: number);
-    store(price: any, size: any): void;
-    storeArray(delta: any): void;
+    index: Float64Array;
+    depth: number;
+    hashmap: Map<any, any>;
+    side: boolean;
+    constructor(deltas?: Array<(IndexType | undefined)[]>, depth?: Int);
+    store(price: IndexType | undefined, size: IndexType | undefined): void;
+    storeArray(delta: (IndexType | undefined)[]): void;
     limit(): void;
-    copy(): any;
+    copy(): OrderBookSide;
 }
 declare class Asks extends OrderBookSide {
     get side(): boolean;

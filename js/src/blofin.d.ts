@@ -345,7 +345,7 @@ export default class blofin extends Exchange {
     parseTransactionDepositStatus(status: Str): Str;
     parseLedgerEntryType(type: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    parseIds(ids: any): any;
+    parseIds(ids: any): Strings;
     /**
      * @method
      * @name blofin#cancelOrders

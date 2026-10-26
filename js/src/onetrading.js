@@ -1117,7 +1117,9 @@ export default class onetrading extends Exchange {
         if (periodUnit === undefined) {
             throw new ExchangeError(this.id + ' fetchOHLCV() missing periodUnit');
         }
-        const [period, unit] = periodUnit.split('/');
+        const periodUnitParts = periodUnit.split('/');
+        const period = periodUnitParts[0];
+        const unit = periodUnitParts[1];
         const durationInSeconds = this.parseTimeframe(timeframe);
         const duration = durationInSeconds * 1000;
         const limitResolved = (limit === undefined) ? 1500 : limit;

@@ -1184,7 +1184,7 @@ export default class kucoin extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
-    calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: Dict): any;
+    calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: Dict): any;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: Str;
         rate: number;

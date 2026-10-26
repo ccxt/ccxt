@@ -575,7 +575,9 @@ class kraken extends kraken$1["default"] {
         });
     }
     feeToPrecision(symbol, fee) {
-        return this.decimalToPrecision(fee, number.TRUNCATE, this.market(symbol)['precision']['amount'], this.precisionMode);
+        const market = this.market(symbol);
+        const marketPrecision = this.safeDict(market, 'precision', {});
+        return this.decimalToPrecision(fee, number.TRUNCATE, marketPrecision['amount'], this.precisionMode);
     }
     /**
      * @method
@@ -707,7 +709,7 @@ class kraken extends kraken$1["default"] {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'altname': market['altname'],
+                'altname': this.safeString(market, 'altname'),
                 'type': 'spot',
                 'spot': spot,
                 'margin': (leverageBuyLength > 0),
@@ -2008,9 +2010,9 @@ class kraken extends kraken$1["default"] {
         const orderDescriptionObj = this.safeDict(orderOmitted, 'descr'); // can be null
         const orderDescription = (orderDescriptionObj !== undefined) ? this.safeString(orderDescriptionObj, 'order') : this.safeString(orderOmitted, 'descr');
         let side = undefined;
-        let rawType = undefined;
+        let descriptionType = undefined;
         let marketId = undefined;
-        let price = undefined;
+        let price = this.safeString(description, 'price');
         let amount = undefined;
         let cost = undefined;
         let triggerPrice = undefined;
@@ -2027,38 +2029,49 @@ class kraken extends kraken$1["default"] {
             const part4 = this.safeString(parts, 4);
             const part5 = this.safeString(parts, 5);
             if (part4 === 'limit' || part4 === 'market') {
-                rawType = part4; // eg, limit, market
+                descriptionType = part4; // eg, limit, market
             }
             else {
-                rawType = part4 + ' ' + part5; // eg. stop loss, take profit, trailing stop
+                descriptionType = part4 + ' ' + part5; // eg. stop loss, take profit, trailing stop
             }
-            if (rawType === 'stop loss' || rawType === 'take profit') {
+            if (descriptionType === 'stop loss' || descriptionType === 'take profit') {
                 triggerPrice = this.safeString(parts, 6);
                 price = this.safeString(parts, 9);
             }
-            else if (rawType === 'limit') {
+            else if (descriptionType === 'limit') {
                 price = this.safeString(parts, 5);
             }
         }
-        side = this.safeString(description, 'type', side);
-        rawType = this.safeString(description, 'ordertype', rawType); // orderType has dash, e.g. trailing-stop
+        const descriptionSide = this.safeString(description, 'type');
+        if (descriptionSide !== undefined) {
+            side = descriptionSide;
+        }
+        const rawType = this.safeString(description, 'ordertype', descriptionType); // orderType has dash, e.g. trailing-stop
         marketId = this.safeString(description, 'pair', marketId);
         const marketResolved = this.resolveMarketByAltnameOrId(marketId, market);
         let symbol = undefined;
         const timestamp = this.safeTimestamp(orderOmitted, 'opentm');
-        amount = this.safeString(orderOmitted, 'vol', amount);
+        const orderAmount = this.safeString(orderOmitted, 'vol');
+        if (orderAmount !== undefined) {
+            amount = orderAmount;
+        }
         const filled = this.safeString(orderOmitted, 'vol_exec');
         let fee = undefined;
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         // const cost = this.safeString (order, 'cost');
-        price = this.safeString(description, 'price', price);
+        // the guarded write keeps `price` a proven string local: a defaulted safeString returns `any`
+        if (this.safeString(description, 'price') !== undefined) {
+            price = this.safeString(description, 'price');
+        }
         // when type = trailing stop returns price = '+50.0000%'
         if ((price !== undefined) && (price.endsWith('%') || Precise["default"].stringEquals(price, '0.00000') || Precise["default"].stringEquals(price, '0'))) {
             price = undefined; // this is not the price we want
         }
         if (price === undefined) {
             price = this.safeString(description, 'price2');
-            price = this.safeString2(orderOmitted, 'limitprice', 'price', price);
+            if (this.safeString2(orderOmitted, 'limitprice', 'price') !== undefined) {
+                price = this.safeString2(orderOmitted, 'limitprice', 'price');
+            }
         }
         const flags = this.safeString(orderOmitted, 'oflags', '');
         let isPostOnly = flags.indexOf('post') > -1;
@@ -2072,10 +2085,10 @@ class kraken extends kraken$1["default"] {
                     'rate': undefined,
                 };
                 if (flags.indexOf('fciq') >= 0) {
-                    fee['currency'] = marketResolved['quote'];
+                    fee['currency'] = this.safeString(marketResolved, 'quote');
                 }
                 else if (flags.indexOf('fcib') >= 0) {
-                    fee['currency'] = marketResolved['base'];
+                    fee['currency'] = this.safeString(marketResolved, 'base');
                 }
             }
         }
@@ -2107,11 +2120,17 @@ class kraken extends kraken$1["default"] {
         if (rawType !== undefined) {
             if (rawType.startsWith('take-profit')) {
                 takeProfitPrice = this.safeString(description, 'price');
-                price = this.omitZero(this.safeString(description, 'price2'));
+                price = this.safeString(description, 'price2');
+                if ((price !== undefined) && ((price === '') || Precise["default"].stringEquals(price, '0'))) {
+                    price = undefined; // kraken pads an absent price with zeros, so the omit-zero rule applies
+                }
             }
             else if (rawType.startsWith('stop-loss')) {
                 stopLossPrice = this.safeString(description, 'price');
-                price = this.omitZero(this.safeString(description, 'price2'));
+                price = this.safeString(description, 'price2');
+                if ((price !== undefined) && ((price === '') || Precise["default"].stringEquals(price, '0'))) {
+                    price = undefined; // kraken pads an absent price with zeros, so the omit-zero rule applies
+                }
             }
             else if (rawType === 'take profit') {
                 takeProfitPrice = triggerPrice;
@@ -2323,7 +2342,7 @@ class kraken extends kraken$1["default"] {
         }
         const market = this.market(symbol);
         if (market['spot'] !== true) {
-            throw new errors.NotSupported(this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+            throw new errors.NotSupported(this.id + ' editOrder() does not support ' + this.safeString(market, 'type', '') + ' orders, only spot orders are accepted');
         }
         let request = {
             'txid': id,
@@ -2346,13 +2365,12 @@ class kraken extends kraken$1["default"] {
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision(symbol, price);
         }
-        let allTriggerPrices = this.safeStringN(paramsOmitted, ['stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent']);
+        const allTriggerPrices = this.safeStringN(paramsOmitted, ['stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent']);
         if (allTriggerPrices !== undefined) {
             const offset = this.safeString(paramsOmitted, 'offset');
             paramsOmitted = this.omit(paramsOmitted, ['stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent', 'offset']);
             if (offset !== undefined) {
-                allTriggerPrices = offset + allTriggerPrices;
-                request['trigger_price'] = allTriggerPrices;
+                request['trigger_price'] = offset + allTriggerPrices;
             }
             else {
                 request['trigger_price'] = this.priceToPrecision(symbol, allTriggerPrices);
@@ -2452,7 +2470,7 @@ class kraken extends kraken$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orderTrades = this.safeValue(params, 'trades');
+        const orderTrades = this.safeList(params, 'trades');
         const tradeIds = [];
         if (orderTrades === undefined) {
             throw new errors.ArgumentsRequired(this.id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)");
@@ -2464,7 +2482,7 @@ class kraken extends kraken$1["default"] {
                     tradeIds.push(orderTrade);
                 }
                 else {
-                    tradeIds.push(orderTrade['id']);
+                    tradeIds.push(this.safeString(orderTrade, 'id'));
                 }
             }
         }
@@ -3728,11 +3746,12 @@ class kraken extends kraken$1["default"] {
         if (body[0] === '{') {
             if (typeof response !== 'string') {
                 const message = this.id + ' ' + body;
-                if ('error' in response) {
-                    const numErrors = response['error'].length;
+                const errors$1 = this.safeList(response, 'error');
+                if (errors$1 !== undefined) {
+                    const numErrors = errors$1.length;
                     if (numErrors > 0) {
-                        for (let i = 0; i < response['error'].length; i++) {
-                            const error = response['error'][i];
+                        for (let i = 0; i < numErrors; i++) {
+                            const error = errors$1[i];
                             this.throwExactlyMatchedException(this.exceptions['exact'], error, message);
                             this.throwBroadlyMatchedException(this.exceptions['broad'], error, message);
                         }

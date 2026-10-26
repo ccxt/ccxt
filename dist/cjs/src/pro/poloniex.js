@@ -90,7 +90,7 @@ class poloniex extends poloniex$1["default"] {
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const timestamp = this.numberToString(this.milliseconds());
-        const url = this.urls['api']['ws']['private'];
+        const url = this.safeString(this.urls['api']['ws'], 'private', '');
         const messageHash = 'authenticated';
         const client = this.client(url);
         let future = this.safeValue(client.subscriptions, messageHash);
@@ -194,8 +194,8 @@ class poloniex extends poloniex$1["default"] {
      * @returns {object} data from the websocket stream
      */
     async tradeRequest(name, params = {}) {
-        const url = this.urls['api']['ws']['private'];
-        const messageHash = this.nonce().toString();
+        const url = this.safeString(this.urls['api']['ws'], 'private', '');
+        const messageHash = this.numberToString(this.nonce());
         const subscribe = {
             'id': messageHash,
             'event': name,
@@ -458,7 +458,7 @@ class poloniex extends poloniex$1["default"] {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, true);
         const name = 'trades';
-        const url = this.urls['api']['ws']['public'];
+        const url = this.safeString(this.urls['api']['ws'], 'public', '');
         const marketIds = this.marketIds(symbolsNormalized);
         const subscribe = {
             'event': 'subscribe',
@@ -574,7 +574,7 @@ class poloniex extends poloniex$1["default"] {
         // balance from a rest snapshot once per subscription - otherwise the
         // first resolves would only list the currencies that changed since
         // subscribing
-        const url = this.urls['api']['ws']['private'];
+        const url = this.safeString(this.urls['api']['ws'], 'private', '');
         const client = this.client(url);
         this.setBalanceCache(client, name);
         const options = this.safeDict(this.options, 'watchBalance');
@@ -726,9 +726,9 @@ class poloniex extends poloniex$1["default"] {
             const marketId = this.safeString(item, 'symbol');
             if (marketId !== undefined) {
                 const trade = this.parseWsTrade(item);
-                const symbol = trade['symbol'];
+                const symbol = this.safeString(trade, 'symbol');
                 const type = 'trades';
-                const messageHash = type + '::' + symbol;
+                const messageHash = type + '::' + this.safeString(trade, 'symbol', '');
                 let tradesArray = (symbol === undefined) ? undefined : this.safeValue(this.trades, symbol);
                 if (tradesArray === undefined) {
                     const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -910,12 +910,11 @@ class poloniex extends poloniex$1["default"] {
         //    }
         //
         const data = this.safeList(message, 'data', []);
-        let orders = this.orders;
-        if (orders === undefined) {
+        if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit');
-            orders = new Cache.ArrayCacheBySymbolById(limit);
-            this.orders = orders;
+            this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
+        const orders = this.orders;
         const marketIds = [];
         for (let i = 0; i < data.length; i++) {
             const order = this.safeDict(data, i);
@@ -948,9 +947,9 @@ class poloniex extends poloniex$1["default"] {
                     previousOrder['lastTradeTimestamp'] = trade['timestamp'];
                     let totalCost = '0';
                     let totalAmount = '0';
-                    const previousOrderTrades = previousOrder['trades'];
+                    const previousOrderTrades = this.safeList(previousOrder, 'trades', []);
                     for (let j = 0; j < previousOrderTrades.length; j++) {
-                        const previousOrderTrade = previousOrderTrades[j];
+                        const previousOrderTrade = this.safeDict(previousOrderTrades, j, {});
                         const cost = this.numberToString(previousOrderTrade['cost']);
                         const amount = this.numberToString(previousOrderTrade['amount']);
                         totalCost = Precise["default"].stringAdd(totalCost, cost);
@@ -994,7 +993,7 @@ class poloniex extends poloniex$1["default"] {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.market(marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const messageHash = 'orders::' + symbol;
             client.resolve(orders, messageHash);
         }
@@ -1101,7 +1100,7 @@ class poloniex extends poloniex$1["default"] {
             const marketId = this.safeString(item, 'symbol');
             if (marketId !== undefined) {
                 const ticker = this.parseTicker(item);
-                const symbol = ticker['symbol'];
+                const symbol = this.safeString(ticker, 'symbol');
                 if (symbol !== undefined) {
                     this.tickers[symbol] = ticker;
                 }
@@ -1262,7 +1261,7 @@ class poloniex extends poloniex$1["default"] {
         if (this.balance === undefined) {
             this.balance = {};
         }
-        this.balance['info'] = data;
+        this.balance['info'] = this.safeList(message, 'data', []);
         const firstBalance = this.safeDict(data, 0, {});
         const timestamp = this.safeInteger(firstBalance, 'ts');
         this.balance['timestamp'] = timestamp;
@@ -1284,7 +1283,7 @@ class poloniex extends poloniex$1["default"] {
     handleMyTrades(client, parsedTrade) {
         // emulated using the orders' stream
         const messageHash = 'myTrades';
-        const symbol = parsedTrade['symbol'];
+        const symbol = this.safeString(parsedTrade, 'symbol', '');
         if (this.myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.myTrades = new Cache.ArrayCacheBySymbolById(limit);

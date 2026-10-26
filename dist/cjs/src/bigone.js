@@ -1127,8 +1127,8 @@ class bigone extends bigone$1["default"] {
         return result;
     }
     parseContractOrderBook(orderbook, symbol, limit = undefined) {
-        const responseBids = this.safeDict(orderbook, 'bids');
-        const responseAsks = this.safeDict(orderbook, 'asks');
+        const responseBids = this.safeDict(orderbook, 'bids', {});
+        const responseAsks = this.safeDict(orderbook, 'asks', {});
         const bids = this.parseContractBidsAsks(responseBids);
         const asks = this.parseContractBidsAsks(responseAsks);
         return {
@@ -1996,7 +1996,7 @@ class bigone extends bigone$1["default"] {
         }
         else {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            const nonce = this.numberToString(this.nonce());
             const request = {
                 'type': 'OpenAPIV2',
                 'sub': this.apiKey,

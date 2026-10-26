@@ -100,7 +100,7 @@ export default class binance extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
-    parseCurrenciesCustom(responseCurrencies: any, marginablesById: NullableDict): Currencies;
+    parseCurrenciesCustom(responseCurrencies: Dict[], marginablesById: NullableDict): Currencies;
     parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
@@ -183,7 +183,7 @@ export default class binance extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
-    checkNoStockSymbols(symbols: Strings, methodName: string): void;
+    checkNoStockSymbols(symbols: string[], methodName: string): void;
     /**
      * @method
      * @name binance#fetchBidsAsks
@@ -456,7 +456,7 @@ export default class binance extends Exchange {
      * @param {string} method HTTP method
      * @returns {object} params with the injected client order id
      */
-    handleClientOrderId(params: Dict, api: Str, path: Str, method: Str): Dict;
+    handleClientOrderId(params: Dict, api: Str, path: Str, method: string): Dict;
     /**
      * @method
      * @ignore
@@ -966,7 +966,7 @@ export default class binance extends Exchange {
      * @param {float} params.recvWindow
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=futures-transfer-structure}
      */
-    futuresTransfer(code: string, amount: any, type: number, params?: Dict): Promise<TransferEntry>;
+    futuresTransfer(code: string, amount: number, type: number, params?: Dict): Promise<TransferEntry>;
     /**
      * @method
      * @name binance#fetchFundingRate
@@ -1205,7 +1205,7 @@ export default class binance extends Exchange {
      */
     fetchMySettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
     parseSettlement(settlement: Dict, market: Market): Dict;
-    parseSettlements(settlements: any[], market: Market): List;
+    parseSettlements(settlements: Dict[], market: Market): List;
     /**
      * @method
      * @name binance#fetchLedgerEntry
@@ -1242,11 +1242,11 @@ export default class binance extends Exchange {
     getNetworkCodeByNetworkUrl(currencyCode: Str, depositUrl?: Str): Str;
     getBaseDomainFromUrl(url: Str): Str;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    getExceptionsByUrl(url: Str, exactOrBroad: string): Dict;
+    getExceptionsByUrl(url: string, exactOrBroad: string): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
+    calculateRateLimiterCost(api: any, method: string, path: string, params: any, config?: Dict): any;
     request(path: string, api?: string[], method?: any, params?: Dict, config?: Dict): Promise<any>;
-    modifyMarginHelper(symbol: string, amount: any, addOrReduce: any, params?: Dict): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: number, addOrReduce: number, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
      * @method
@@ -1339,7 +1339,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} The gift code id, code, currency and amount
      */
-    createGiftCode(code: string, amount: any, params?: Dict): Promise<Dict>;
+    createGiftCode(code: string, amount: Num, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name binance#redeemGiftCode
@@ -1349,7 +1349,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    redeemGiftCode(giftcardCode: any, params?: Dict): Promise<Dict>;
+    redeemGiftCode(giftcardCode: string, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name binance#verifyGiftCode

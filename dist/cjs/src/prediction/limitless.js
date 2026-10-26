@@ -279,8 +279,8 @@ class limitless extends limitless$1["default"] {
                     if (pageMarketsLength === 0) {
                         break;
                     }
-                    for (let i = 0; i < page_markets.length; i++) {
-                        const raw = page_markets[i];
+                    for (let i = 0; i < pageMarketsLength; i++) {
+                        const raw = this.safeValue(page_markets, i);
                         allRaw.push(raw);
                     }
                     const allRawCount = allRaw.length;
@@ -1191,8 +1191,8 @@ class limitless extends limitless$1["default"] {
         for (let i = 0; i < slugs.length; i++) {
             const slug = slugs[i];
             const detailIndex = i * 2;
-            const detail = responses[detailIndex];
-            const book = responses[this.sum(detailIndex, 1)];
+            const detail = this.safeValue(responses, detailIndex);
+            const book = this.safeValue(responses, this.sum(detailIndex, 1));
             const tickerInput = { 'market': detail, 'book': book };
             const grouped = this.safeList(outcomesBySlug, slug, []);
             for (let j = 0; j < grouped.length; j++) {
@@ -1319,22 +1319,22 @@ class limitless extends limitless$1["default"] {
         const bids = [];
         const asks = [];
         for (let bi = 0; bi < bidsSource.length; bi++) {
-            let priceStr = this.safeString(bidsSource[bi], 'price');
+            let priceStr = this.safeString(this.safeValue(bidsSource, bi), 'price');
             if (!isYes && (priceStr !== undefined)) {
                 priceStr = Precise["default"].stringSub('1', priceStr);
             }
-            let sizeStr = this.safeString(bidsSource[bi], 'size');
+            let sizeStr = this.safeString(this.safeValue(bidsSource, bi), 'size');
             if (sizeStr !== undefined) {
                 sizeStr = Precise["default"].stringDiv(sizeStr, scaleStr);
             }
             bids.push([this.parseNumber(priceStr), this.parseNumber(sizeStr)]);
         }
         for (let ai = 0; ai < asksSource.length; ai++) {
-            let priceStr = this.safeString(asksSource[ai], 'price');
+            let priceStr = this.safeString(this.safeValue(asksSource, ai), 'price');
             if (!isYes && (priceStr !== undefined)) {
                 priceStr = Precise["default"].stringSub('1', priceStr);
             }
-            let sizeStr = this.safeString(asksSource[ai], 'size');
+            let sizeStr = this.safeString(this.safeValue(asksSource, ai), 'size');
             if (sizeStr !== undefined) {
                 sizeStr = Precise["default"].stringDiv(sizeStr, scaleStr);
             }
@@ -1416,7 +1416,7 @@ class limitless extends limitless$1["default"] {
             const firstPrices = this.safeList(first, 'prices');
             if (firstPrices !== undefined) {
                 let selectedSeries = first;
-                for (let i = 0; i < rawHistory.length; i++) {
+                for (let i = 0; i < rawHistoryLength; i++) {
                     const series = this.safeDict(rawHistory, i, {});
                     const title = this.safeStringUpper(series, 'title', '');
                     if (title === undefined) {
@@ -1491,7 +1491,7 @@ class limitless extends limitless$1["default"] {
         }
         const result = [];
         for (let i = 0; i < bucketOrder.length; i++) {
-            result.push(candles[bucketOrder[i]]);
+            result.push(this.safeValue(candles, bucketOrder[i]));
         }
         return this.filterBySinceLimit(result, since, limit, 0);
     }
@@ -3014,7 +3014,7 @@ class limitless extends limitless$1["default"] {
         const eventKeys = Object.keys(eventGroups);
         const eventKeysLength = eventKeys.length;
         for (let i = 0; i < eventKeysLength; i++) {
-            const g = eventGroups[eventKeys[i]];
+            const g = this.safeValue(eventGroups, eventKeys[i]);
             const ev = this.parseEvent(g);
             result.push(ev);
         }

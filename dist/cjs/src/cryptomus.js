@@ -515,10 +515,9 @@ class cryptomus extends cryptomus$1["default"] {
         //
         const marketId = this.safeString(ticker, 'currency_pair');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
         const last = this.safeString(ticker, 'last_price');
         return this.safeTicker({
-            'symbol': symbol,
+            'symbol': marketResolved['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
             'high': undefined,
@@ -744,7 +743,8 @@ class cryptomus extends cryptomus$1["default"] {
         const sideBuy = side === 'buy';
         const amountToString = this.numberToString(amount);
         const priceToString = this.numberToString(price);
-        const [costParam, paramsCost] = this.handleParamString(paramsOmitted, 'cost');
+        const paramsCost = this.omit(paramsOmitted, 'cost');
+        const costParam = this.safeString(paramsOmitted, 'cost');
         let cost = costParam;
         let response;
         if (type === 'market') {
@@ -756,15 +756,15 @@ class cryptomus extends cryptomus$1["default"] {
             if (sideBuy) {
                 const createMarketBuyOrderRequiresPrice = requiresPriceAndParams[0];
                 if (createMarketBuyOrderRequiresPrice) {
-                    if ((price === undefined) && (cost === undefined)) {
+                    if ((price === undefined) && (costParam === undefined)) {
                         throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument');
                     }
-                    else if (cost === undefined) {
+                    else if (costParam === undefined) {
                         cost = Precise["default"].stringMul(amountToString, priceToString);
                     }
                 }
                 else {
-                    cost = (cost !== undefined && cost !== '') ? cost : amountToString;
+                    cost = (costParam !== undefined && costParam !== '') ? costParam : amountToString;
                 }
                 request['value'] = cost;
             }
@@ -1210,17 +1210,17 @@ class cryptomus extends cryptomus$1["default"] {
         if (response === undefined) {
             return undefined;
         }
-        if ('code' in response) {
-            const code = this.safeString(response, 'code');
+        const code = this.safeString(response, 'code');
+        const message = this.safeString(response, 'message');
+        if (code !== undefined) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
             throw new errors.ExchangeError(feedback);
         }
-        else if ('message' in response) {
+        else if (message !== undefined) {
             //
             //      {"message":"Minimum amount 15 USDT","state":1}
             //
-            const message = this.safeString(response, 'message');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);

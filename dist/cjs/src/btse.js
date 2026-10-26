@@ -764,8 +764,8 @@ class btse extends btse$1["default"] {
             'contract': isSwap || isFuture,
             'linear': isSpot ? undefined : true,
             'inverse': isSpot ? undefined : false,
-            'taker': fees['taker'],
-            'maker': fees['maker'],
+            'taker': this.safeNumber(fees, 'taker'),
+            'maker': this.safeNumber(fees, 'maker'),
             'contractSize': this.parseNumber(contractSize),
             'expiry': expiry,
             'expiryDatetime': this.iso8601(expiry),
@@ -1604,7 +1604,7 @@ class btse extends btse$1["default"] {
         let request = {};
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -1654,8 +1654,8 @@ class btse extends btse$1["default"] {
         else {
             // the futures endpoint does not support a count parameter, the limit is applied client-side
             request = this.omit(request, 'count');
-            if (market !== undefined) {
-                request['symbol'] = this.futuresRequestId(market);
+            if (symbol !== undefined) {
+                request['symbol'] = this.futuresRequestId(this.market(symbol));
             }
             //
             //     {
@@ -2010,17 +2010,22 @@ class btse extends btse$1["default"] {
                 let triggerPriceToSend = undefined;
                 if (isStopLossOrder) {
                     triggerOrderType = 'STOP_LOSS';
+                    if (isLimitOrder) {
+                        triggerOrderType = 'STOP_LOSS_LIMIT';
+                    }
                     triggerPriceToSend = stopLossPrice;
                 }
                 else {
                     triggerOrderType = 'TAKE_PROFIT';
+                    if (isLimitOrder) {
+                        triggerOrderType = 'TAKE_PROFIT_LIMIT';
+                    }
                     triggerPriceToSend = triggerPrice;
                     if (triggerPriceToSend === undefined) {
                         triggerPriceToSend = takeProfitPrice;
                     }
                 }
                 if (isLimitOrder) {
-                    triggerOrderType = triggerOrderType + '_LIMIT';
                     request['orderPrice'] = this.priceToPrecision(symbol, price);
                 }
                 request['triggerOrderType'] = triggerOrderType;
@@ -2511,17 +2516,17 @@ class btse extends btse$1["default"] {
         let response = undefined;
         if (marketTypeOption === 'spot') {
             // the literal ALL value cancels every open order across all pairs
-            request['symbol'] = (market !== undefined) ? market['id'] : 'ALL';
+            request['symbol'] = (symbol !== undefined) ? this.safeString(market, 'id') : 'ALL';
             response = await this.privateDeleteSpotApiV4TradeOrdersAll(this.extend(request, paramsMarketType));
         }
         else {
-            if (market === undefined) {
+            if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument for contract markets');
             }
             // the unified futures api has no cancel all endpoint, the legacy
             // endpoint cancels every order for the symbol when no order id is
             // sent, and it identifies contracts by the short symbol form
-            request['symbol'] = this.futuresRequestId(market);
+            request['symbol'] = this.futuresRequestId(this.market(symbol));
             response = await this.privateDeleteFuturesApiV23Order(this.extend(request, paramsMarketType));
         }
         return this.parseOrders(response, market);
@@ -2578,14 +2583,14 @@ class btse extends btse$1["default"] {
         const [marketTypeOption, paramsMarketType] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params, marketType);
         let response = undefined;
         if (marketTypeOption === 'spot') {
-            if (market !== undefined) {
-                request['symbol'] = market['id'];
+            if (symbol !== undefined) {
+                request['symbol'] = this.safeString(market, 'id');
             }
             response = await this.privateGetSpotApiV4TradeOrders(this.extend(request, paramsMarketType));
         }
         else {
-            if (market !== undefined) {
-                request['symbol'] = this.futuresRequestId(market);
+            if (symbol !== undefined) {
+                request['symbol'] = this.futuresRequestId(this.market(symbol));
             }
             response = await this.privateGetFuturesApiV3TradeOrders(this.extend(request, paramsMarketType));
         }
@@ -2788,7 +2793,7 @@ class btse extends btse$1["default"] {
         const responseList = this.arrayConcat([], rows);
         const result = {};
         for (let i = 0; i < responseList.length; i++) {
-            const feeInfo = responseList[i];
+            const feeInfo = this.safeDict(responseList, i, {});
             const marketId = this.safeString(feeInfo, 'symbol');
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
@@ -2822,7 +2827,7 @@ class btse extends btse$1["default"] {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
-            request['asset'] = currency['id'];
+            request['asset'] = this.safeString(currency, 'id');
         }
         else if (walletType === 'SPOT') {
             // the exchange rejects spot wallet history queries without an asset,
@@ -2872,19 +2877,19 @@ class btse extends btse$1["default"] {
         // filter and returned the whole mixed ledger
         const allowed = {};
         for (let i = 0; i < typesList.length; i++) {
-            const historyType = typesList[i];
+            const historyType = this.safeString(typesList, i, '');
             allowed[historyType] = true;
             allowed[this.capitalize(historyType.toLowerCase())] = true;
         }
         const rows = [];
         for (let i = 0; i < rawRows.length; i++) {
-            const entry = rawRows[i];
+            const entry = this.safeDict(rawRows, i, {});
             const type = this.safeString(entry, 'type', '');
             if (type in allowed) {
                 rows.push(entry);
             }
         }
-        return [rows, currency];
+        return this.parseTransactions(rows, currency, since, limit);
     }
     /**
      * @method
@@ -2900,8 +2905,7 @@ class btse extends btse$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        const [rows, currency] = await this.requestWalletHistoryRows('fetchDepositsWithdrawals', ['DEPOSIT', 'WITHDRAW'], code, since, limit, params);
-        return this.parseTransactions(rows, currency, since, limit);
+        return await this.requestWalletHistoryRows('fetchDepositsWithdrawals', ['DEPOSIT', 'WITHDRAW'], code, since, limit, params);
     }
     /**
      * @method
@@ -2917,8 +2921,7 @@ class btse extends btse$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        const [rows, currency] = await this.requestWalletHistoryRows('fetchDeposits', ['DEPOSIT'], code, since, limit, params);
-        return this.parseTransactions(rows, currency, since, limit);
+        return await this.requestWalletHistoryRows('fetchDeposits', ['DEPOSIT'], code, since, limit, params);
     }
     /**
      * @method
@@ -2934,8 +2937,7 @@ class btse extends btse$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        const [rows, currency] = await this.requestWalletHistoryRows('fetchWithdrawals', ['WITHDRAW'], code, since, limit, params);
-        return this.parseTransactions(rows, currency, since, limit);
+        return await this.requestWalletHistoryRows('fetchWithdrawals', ['WITHDRAW'], code, since, limit, params);
     }
     parseTransaction(transaction, currency = undefined) {
         //
@@ -3033,7 +3035,7 @@ class btse extends btse$1["default"] {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
-            request['asset'] = currency['id'];
+            request['asset'] = this.safeString(currency, 'id');
         }
         else if (walletType === 'SPOT') {
             // the exchange rejects spot wallet history queries without an asset,
@@ -3761,7 +3763,7 @@ class btse extends btse$1["default"] {
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha384);
             requestHeaders = {
                 'request-api': this.apiKey,
-                'request-nonce': nonce.toString(),
+                'request-nonce': this.numberToString(nonce),
                 'request-sign': signature,
                 'Content-Type': 'application/json',
                 'BROKER-ID': 'ccxt',
@@ -3775,7 +3777,8 @@ class btse extends btse$1["default"] {
         // the futures v3 trading api identifies contracts by the short trade-currency
         // form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read
         // from the raw market info so that cached markets resolve it as well
-        return this.safeString(market['info'], 'tradeCurrency', market['id']);
+        const marketInfo = this.safeDict(market, 'info', {});
+        return this.safeString(marketInfo, 'tradeCurrency', this.safeString(market, 'id'));
     }
     cleanPath(path) {
         let result = path.replace('spot', '');

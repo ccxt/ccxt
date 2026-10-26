@@ -20,7 +20,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the subscription result
      */
-    subscribe(channels: string[], messageHashes: string[], isPrivate?: boolean, params?: {}): Promise<any>;
+    subscribe(channels: string[], messageHashes: string[], isPrivate?: boolean, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -34,7 +34,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {boolean} true when unsubscription has been requested
      */
-    unSubscribe(channels: string[], isPrivate?: boolean, params?: {}): Promise<boolean>;
+    unSubscribe(channels: string[], isPrivate?: boolean, params?: Dict): Promise<boolean>;
     /**
      * @method
      * @name coinbaseinternational#watchBalance
@@ -501,7 +501,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the authentication response
      */
-    authenticate(params?: {}): Promise<any>;
+    authenticate(params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -513,7 +513,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {boolean} [isPrivate] whether to authenticate before sending the request
      * @returns {object} the exchange response
      */
-    requestWs(method: string, params?: {}, isPrivate?: boolean): Promise<any>;
+    requestWs(method: string, params?: Dict, isPrivate?: boolean): Promise<any>;
     /**
      * @method
      * @name coinbaseinternational#createOrderWs
@@ -668,7 +668,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    setHeartbeat(interval?: Int, params?: {}): Promise<any>;
+    setHeartbeat(interval?: Int, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -680,7 +680,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    disableHeartbeat(params?: {}): Promise<any>;
+    disableHeartbeat(params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -696,7 +696,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.scope] connection or account, default connection
      * @returns {object} the exchange response
      */
-    setCancelOnDisconnect(enabled: Bool, params?: {}): Promise<any>;
+    setCancelOnDisconnect(enabled: Bool, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -709,7 +709,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.scope] connection or account, default connection
      * @returns {object} the exchange response
      */
-    getCancelOnDisconnect(params?: {}): Promise<any>;
+    getCancelOnDisconnect(params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -724,7 +724,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    unsubscribeAllWs(isPrivate?: boolean, params?: {}): Promise<any>;
+    unsubscribeAllWs(isPrivate?: boolean, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -737,5 +737,5 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {bool} [params.invalidate_token] whether to invalidate session tokens, default true
      * @returns {object} the exchange response
      */
-    logoutWs(params?: {}): Promise<undefined>;
+    logoutWs(params?: Dict): Promise<undefined>;
 }

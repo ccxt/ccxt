@@ -736,15 +736,16 @@ class btcturk extends btcturk$1["default"] {
         else if (since === undefined) {
             limitResolved = 100; // default value
         }
-        if (limitResolved !== undefined) {
+        if ((limit !== undefined) || (since === undefined)) {
             if (timeframe === '1y') { // difficult with leap years
                 throw new errors.BadRequest(this.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             const seconds = this.parseTimeframe(timeframe);
             const limitCount = (limit === undefined) ? 100 : Math.min(limit, 11000);
-            const limitSeconds = seconds * (limitCount - 1);
+            const limitSeconds = this.parseToInt(seconds * (limitCount - 1));
             if (since !== undefined) {
-                const to = this.parseToInt(since / 1000) + limitSeconds;
+                const sinceSeconds = this.parseToInt(since / 1000);
+                const to = sinceSeconds + limitSeconds;
                 if (to < untilSeconds) {
                     request['to'] = to;
                 }
@@ -1091,8 +1092,9 @@ class btcturk extends btcturk$1["default"] {
         let url = apiUrl + '/' + path;
         const isQueryMethod = (method === 'GET') || (method === 'DELETE');
         if (isQueryMethod) {
-            if (Object.keys(params).length > 0) {
-                url += '?' + this.urlencode(params);
+            const query = this.urlencode(params);
+            if (query.length > 0) {
+                url += '?' + query;
             }
         }
         let requestBody = undefined;
@@ -1115,8 +1117,7 @@ class btcturk extends btcturk$1["default"] {
                 'Content-Type': 'application/json',
             };
         }
-        const requestHeaders = privateHeaders;
-        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString(response, 'code', '0');

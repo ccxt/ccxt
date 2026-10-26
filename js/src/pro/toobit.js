@@ -189,22 +189,17 @@ export default class toobit extends toobitRest {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
         const messageHashes = [];
-        const subParams = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
-            const market = this.market(symbol);
             messageHashes.push('trade::' + symbol);
-            const rawHash = market['id'];
-            subParams.push(rawHash);
         }
         const marketIds = this.marketIds(symbolsNormalized);
-        const url = this.safeString(this.urls['api']['ws'], 'common') + '/quote/ws/v1';
         const request = {
             'symbol': marketIds.join(','),
             'topic': 'trade',
             'event': 'sub',
         };
-        const trades = await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
+        const trades = await this.watchMultiple(this.safeString(this.urls['api']['ws'], 'common', '') + '/quote/ws/v1', messageHashes, this.extend(request, params), messageHashes);
         const first = this.safeDict(trades, 0);
         const tradeSymbol = this.safeString(first, 'symbol');
         let limitResolved = limit;
@@ -239,18 +234,16 @@ export default class toobit extends toobitRest {
         //
         const marketId = this.safeString(message, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new ArrayCache(limit);
         }
         const stored = this.trades[symbol];
         const data = this.safeList(message, 'data', []);
-        const parsed = this.parseWsTrades(data, market);
-        for (let i = 0; i < parsed.length; i++) {
-            const trade = parsed[i];
-            trade['symbol'] = symbol;
-            stored.append(trade);
+        const parsedTrades = this.arrayConcat(this.parseWsTrades(data, market), []);
+        for (let i = 0; i < parsedTrades.length; i++) {
+            stored.append(parsedTrades[i]);
         }
         const messageHash = 'trade::' + symbol;
         client.resolve(stored, messageHash);
@@ -292,14 +285,14 @@ export default class toobit extends toobitRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const url = this.safeString(this.urls['api']['ws'], 'common') + '/quote/ws/v1';
+        const url = this.safeString(this.urls['api']['ws'], 'common', '') + '/quote/ws/v1';
         const messageHashes = [];
         const timeframes = this.safeDict(this.options['ws'], 'timeframes', {});
         const marketIds = [];
         let selectedTimeframe = undefined;
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = this.safeList(symbolsAndTimeframes, i);
-            const symbolStr = this.safeString(data, 0);
+            const symbolStr = this.safeString(data, 0, '');
             const market = this.market(symbolStr);
             const marketId = market['id'];
             const unfiedTimeframe = this.safeString(data, 1, '1m');
@@ -354,7 +347,7 @@ export default class toobit extends toobitRest {
         //
         const marketId = this.safeString(message, 'symbol');
         const market = this.market(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const params = this.safeDict(message, 'params', {});
         const timeframeId = this.safeString(params, 'klineType');
         const timeframe = this.findTimeframe(timeframeId);
@@ -429,22 +422,17 @@ export default class toobit extends toobitRest {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
         const messageHashes = [];
-        const subParams = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
-            const market = this.market(symbol);
             messageHashes.push('ticker::' + symbol);
-            const rawHash = market['id'];
-            subParams.push(rawHash);
         }
         const marketIds = this.marketIds(symbolsNormalized);
-        const url = this.safeString(this.urls['api']['ws'], 'common') + '/quote/ws/v1';
         const request = {
             'symbol': marketIds.join(','),
             'topic': 'realtimes',
             'event': 'sub',
         };
-        const ticker = await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
+        const ticker = await this.watchMultiple(this.safeString(this.urls['api']['ws'], 'common', '') + '/quote/ws/v1', messageHashes, this.extend(request, params), messageHashes);
         if (this.newUpdates) {
             const result = {};
             const tickerSymbol = this.safeString(ticker, 'symbol');
@@ -497,7 +485,7 @@ export default class toobit extends toobitRest {
         }
         const newTickers = {};
         for (let i = 0; i < data.length; i++) {
-            const ticker = data[i];
+            const ticker = this.safeDict(data, i, {});
             const parsed = this.parseWsTicker(ticker);
             const symbol = parsed['symbol'];
             if (symbol !== undefined) {
@@ -506,8 +494,7 @@ export default class toobit extends toobitRest {
             if (symbol !== undefined) {
                 newTickers[symbol] = parsed;
             }
-            const messageHash = 'ticker::' + symbol;
-            client.resolve(parsed, messageHash);
+            client.resolve(parsed, 'ticker::' + this.safeString(parsed, 'symbol', ''));
         }
         client.resolve(newTickers, 'tickers');
     }
@@ -550,16 +537,12 @@ export default class toobit extends toobitRest {
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
         const [channel, paramsChannel] = this.handleOptionStringAndParams(params, 'watchOrderBookForSymbols', 'channel', 'depth');
         const messageHashes = [];
-        const subParams = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
-            const market = this.market(symbol);
             messageHashes.push('orderBook::' + symbol + '::' + channel);
-            const rawHash = market['id'];
-            subParams.push(rawHash);
         }
         const marketIds = this.marketIds(symbolsNormalized);
-        const url = this.safeString(this.urls['api']['ws'], 'common') + '/quote/ws/v1';
+        const url = this.safeString(this.urls['api']['ws'], 'common', '') + '/quote/ws/v1';
         const request = {
             'symbol': marketIds.join(','),
             'topic': channel,
@@ -764,7 +747,7 @@ export default class toobit extends toobitRest {
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
-        this.balance[type]['info'] = data;
+        this.balance[type]['info'] = this.safeList(message, 'B', []);
         this.balance[type]['timestamp'] = timestamp;
         this.balance[type]['datetime'] = this.iso8601(timestamp);
         for (let i = 0; i < data.length; i++) {
@@ -818,7 +801,7 @@ export default class toobit extends toobitRest {
         const symbolValue = this.safeString(market, 'symbol', symbol);
         let messageHash = 'orders';
         if (symbolValue !== undefined) {
-            messageHash = messageHash + ':' + symbolValue;
+            messageHash = 'orders' + ':' + symbolValue;
         }
         const url = this.getUserStreamUrl();
         const orders = await this.watch(url, messageHash, params, messageHash);
@@ -869,7 +852,7 @@ export default class toobit extends toobitRest {
         orders.append(order);
         let messageHash = 'orders';
         client.resolve(orders, messageHash);
-        messageHash = 'orders:' + this.safeString(order, 'symbol');
+        messageHash = 'orders:' + this.safeString(order, 'symbol', '');
         client.resolve(orders, messageHash);
     }
     parseWsOrder(order, market = undefined) {
@@ -940,7 +923,7 @@ export default class toobit extends toobitRest {
         const symbolValue = this.safeString(market, 'symbol', symbol);
         let messageHash = 'myTrades';
         if (symbolValue !== undefined) {
-            messageHash = messageHash + ':' + symbolValue;
+            messageHash = 'myTrades' + ':' + symbolValue;
         }
         const url = this.getUserStreamUrl();
         const trades = await this.watch(url, messageHash, params, messageHash);
@@ -974,7 +957,7 @@ export default class toobit extends toobitRest {
         }
         const trade = this.parseMyTrade(message);
         myTrades.append(trade);
-        let messageHash = 'myTrades:' + trade['symbol'];
+        let messageHash = 'myTrades:' + this.safeString(trade, 'symbol', '');
         client.resolve(myTrades, messageHash);
         messageHash = 'myTrades';
         client.resolve(myTrades, messageHash);
@@ -1124,9 +1107,6 @@ export default class toobit extends toobitRest {
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parseWsPosition(rawPosition);
-            const timestamp = this.safeInteger(rawPosition, 'E');
-            position['timestamp'] = timestamp;
-            position['datetime'] = this.iso8601(timestamp);
             newPositions.push(position);
             cache.append(position);
         }
@@ -1149,6 +1129,7 @@ export default class toobit extends toobitRest {
     }
     parseWsPosition(position, market = undefined) {
         const marketId = this.safeString(position, 's');
+        const timestamp = this.safeInteger(position, 'E');
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -1165,8 +1146,8 @@ export default class toobit extends toobitRest {
             'markPrice': this.safeString(position, 'mp'),
             'side': this.safeStringLower(position, 'S'),
             'hedged': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'maintenanceMargin': this.safeString(position, 'mm'),
             'maintenanceMarginPercentage': undefined,
             'collateral': undefined,
@@ -1254,7 +1235,9 @@ export default class toobit extends toobitRest {
         this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
     }
     getUserStreamUrl() {
-        return this.safeString(this.urls['api']['ws'], 'common') + '/api/v1/ws/' + this.safeString(this.options['ws'], 'listenKey');
+        const wsBaseUrl = this.safeString(this.urls['api']['ws'], 'common', '');
+        const listenKey = this.safeString(this.options['ws'], 'listenKey', '');
+        return wsBaseUrl + '/api/v1/ws/' + listenKey;
     }
     handleErrorMessage(client, message) {
         //
@@ -1265,7 +1248,7 @@ export default class toobit extends toobitRest {
         //
         const code = this.safeString(message, 'code');
         if (code !== undefined) {
-            const desc = this.safeString(message, 'desc');
+            const desc = this.safeString(message, 'desc', '');
             const msg = this.id + ' code: ' + code + ' message: ' + desc;
             const exception = new ExchangeError(msg); // c# fix
             client.reject(exception);

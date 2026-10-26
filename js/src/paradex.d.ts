@@ -163,7 +163,7 @@ export default class paradex extends Exchange {
     parseTimeInForce(timeInForce: Str): Str;
     parseOrderStatus(status: Str): Str;
     parseOrderType(type: Str): Str;
-    scaleNumber(num: string): Str;
+    scaleNumber(num: Str): Str;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
     signOrderRequest(request: Dict, modify?: boolean): Promise<Dict>;
     /**

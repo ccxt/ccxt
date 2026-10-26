@@ -149,22 +149,14 @@ export default class dydx extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     hashMessage(message: any): string;
-    signHash(hash: any, privateKey: any): {
-        r: string;
-        s: string;
-        v: any;
-    };
-    signMessage(message: any, privateKey: any): {
-        r: string;
-        s: string;
-        v: any;
-    };
+    signHash(hash: any, privateKey: any): Dict;
+    signMessage(message: any, privateKey: any): Dict;
     signOnboardingAction(): object;
     signDydxTx(privateKey: Str, message: any, memo: Str, chainId: Str, account: any, authenticators: any, fee?: any): string;
     retrieveCredentials(): Dict;
     fetchDydxAccount(): Promise<Dict>;
     pow(n: string, m: Str): Str;
-    createOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: {}): any[];
+    createOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): [string, Dict];
     createOrderIdFromParts(address: string, subAccountNumber: number, clientOrderId: number, orderFlags: number, clobPairId: number): string;
     fetchLatestBlockHeight(params?: Dict): Promise<int>;
     /**
@@ -246,7 +238,7 @@ export default class dydx extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
-    estimateTxFee(message: any, memo: Str, account: any): Promise<Dict>;
+    estimateTxFee(message: Dict, memo: Str, account: Dict): Promise<Dict>;
     /**
      * @method
      * @name dydx#transfer

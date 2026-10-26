@@ -558,7 +558,7 @@ export default class bitbank extends Exchange {
             const pair = pairs[i];
             const marketId = this.safeString(pair, 'name');
             const market = this.safeMarket(marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             result[symbol] = {
                 'info': pair,
                 'symbol': symbol,
@@ -995,7 +995,7 @@ export default class bitbank extends Exchange {
         const tagWithdrawTag = tagAndParams[0];
         const paramsWithdrawTag = tagAndParams[1];
         this.checkAddress(address, code, tagWithdrawTag);
-        if (!('uuid' in paramsWithdrawTag)) {
+        if (!('uuid' in params)) {
             throw new ExchangeError(this.id + ' uuid is required for withdrawal');
         }
         if (this.markets === undefined) {
@@ -1074,7 +1074,7 @@ export default class bitbank extends Exchange {
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
-        const query = this.omit(params, this.extractParams(path));
+        const query = this.extend({}, this.omit(params, this.extractParams(path)));
         const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
@@ -1123,11 +1123,10 @@ export default class bitbank extends Exchange {
                 'ACCESS-SIGNATURE': this.hmac(this.encode(auth), this.encode(this.secret), sha256),
             };
             if (isTimeWindow) {
-                requestHeaders['ACCESS-REQUEST-TIME'] = requestTime;
-                requestHeaders['ACCESS-TIME-WINDOW'] = timeWindow;
+                requestHeaders = this.extend(requestHeaders, { 'ACCESS-REQUEST-TIME': requestTime, 'ACCESS-TIME-WINDOW': timeWindow });
             }
             else {
-                requestHeaders['ACCESS-NONCE'] = nonce;
+                requestHeaders = this.extend(requestHeaders, { 'ACCESS-NONCE': nonce });
             }
         }
         const bodyResolved = requestBody;

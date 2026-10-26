@@ -666,15 +666,13 @@ export default class woo extends Exchange {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        let status = this.safeString(data, 'status');
-        if (status === undefined) {
+        const statusCode = this.safeString(data, 'status');
+        let status = 'maintenance';
+        if (statusCode === undefined) {
             status = 'error';
         }
-        else if (status === '0') {
+        else if (statusCode === '0') {
             status = 'ok';
-        }
-        else {
-            status = 'maintenance';
         }
         return {
             'status': status,
@@ -934,15 +932,11 @@ export default class woo extends Exchange {
         }
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const price = this.safeString2(trade, 'executed_price', 'executedPrice');
         const amount = this.safeString2(trade, 'executed_quantity', 'executedQuantity');
         const order_id = this.safeString2(trade, 'order_id', 'orderId');
         const fee = this.parseTokenAndFeeTemp(trade, ['fee_asset', 'feeAsset'], ['fee']);
-        const feeCost = this.safeString(fee, 'cost');
-        if ((fee !== undefined) && (feeCost !== undefined)) {
-            fee['cost'] = feeCost;
-        }
         const cost = Precise.stringMul(price, amount);
         const side = this.safeStringLower(trade, 'side');
         const id = this.safeString(trade, 'id');
@@ -1405,7 +1399,7 @@ export default class woo extends Exchange {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
-        const isConditional = isTrailing || triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeValue(paramsMarginMode, 'childOrders') !== undefined);
+        const isConditional = isTrailing || triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeList(paramsMarginMode, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(paramsMarginMode, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, paramsMarginMode);
@@ -1637,7 +1631,7 @@ export default class woo extends Exchange {
         }
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         const paramsOmitted = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent', 'trigger', 'stop']);
-        const isConditional = (isTrigger) || isTrailing || (triggerPrice !== undefined) || (this.safeValue(paramsOmitted, 'childOrders') !== undefined);
+        const isConditional = (isTrigger) || isTrailing || (triggerPrice !== undefined) || (this.safeList(paramsOmitted, 'childOrders') !== undefined);
         let response = undefined;
         if (isConditional) {
             if (isByClientOrder) {
@@ -2226,7 +2220,7 @@ export default class woo extends Exchange {
         const clientOrderId = this.omitZero(this.safeString2(order, 'clientOrderId', 'clientAlgoOrderId')); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const price = this.safeString(order, 'price');
         const amount = this.safeString(order, 'quantity'); // This is base amount
         const orderType = this.safeStringLower(order, 'type');
@@ -2890,10 +2884,12 @@ export default class woo extends Exchange {
     }
     getDedicatedNetworkId(currency, params) {
         const [networkCodeRaw, paramsNetworkCode] = this.handleNetworkCodeAndParams(params);
-        const networkCode = this.networkIdToCode(networkCodeRaw, currency['code']);
-        const networkEntry = (networkCode === undefined) ? undefined : this.safeDict(currency['networks'], networkCode);
+        const networks = this.safeDict(currency, 'networks', {});
+        const currencyCode = this.safeString(currency, 'code', '');
+        const networkCode = this.networkIdToCode(networkCodeRaw, currencyCode);
+        const networkEntry = (networkCode === undefined) ? undefined : this.safeDict(networks, networkCode);
         if (networkEntry === undefined) {
-            const supportedNetworks = Object.keys(currency['networks']);
+            const supportedNetworks = Object.keys(networks);
             throw new BadRequest(this.id + '  can not determine a network code, please provide unified "network" param, one from the following: ' + this.json(supportedNetworks));
         }
         const currentyNetworkId = this.safeString(networkEntry, 'currencyNetworkId');
@@ -3061,7 +3057,7 @@ export default class woo extends Exchange {
             const firstPart = this.safeString(parts, 0);
             let currencyId = this.safeString(parts, 1, firstPart);
             if (partsLength > 2) {
-                currencyId += '_' + this.safeString(parts, 2);
+                currencyId += '_' + this.safeString(parts, 2, '');
             }
             return this.safeCurrency(currencyId);
         }
@@ -3145,7 +3141,7 @@ export default class woo extends Exchange {
         //
         const networkizedCode = this.safeString(transaction, 'token');
         const currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
-        const code = currencyDefined['code'];
+        const code = this.safeString(currencyDefined, 'code');
         let movementDirection = this.safeStringLowerN(transaction, ['token_side', 'tokenSide', 'type']);
         if (movementDirection === 'withdraw') {
             movementDirection = 'withdrawal';
@@ -3468,26 +3464,27 @@ export default class woo extends Exchange {
     sign(path, section = ['public'], method = 'GET', params = {}) {
         let requestHeaders = undefined;
         let requestBody = undefined;
-        const version = this.safeString(section, 0);
+        const version = section[0];
         const access = this.safeString(section, 1);
         const pathWithParams = this.implodeParams(path, params);
         const baseApiUrl = this.safeString(this.urls['api'], access);
         if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = this.implodeHostname(baseApiUrl);
-        url += '/' + version + '/';
+        const urlPrefix = this.implodeHostname(baseApiUrl) + '/' + version + '/';
         const paramsSorted = this.keysort(this.omit(params, this.extractParams(path)));
+        let url = urlPrefix;
         if (access === 'public') {
-            url += 'public/' + pathWithParams;
+            const publicUrl = urlPrefix + 'public/' + pathWithParams;
+            url = publicUrl;
             if (Object.keys(paramsSorted).length > 0) {
-                url += '?' + this.urlencode(paramsSorted);
+                url = publicUrl + '?' + this.urlencode(paramsSorted);
             }
         }
         else if (access === 'pub') {
-            url += pathWithParams;
+            url = urlPrefix + pathWithParams;
             if (Object.keys(paramsSorted).length > 0) {
-                url += '?' + this.urlencode(paramsSorted);
+                url = urlPrefix + pathWithParams + '?' + this.urlencode(paramsSorted);
             }
         }
         else {
@@ -3509,44 +3506,46 @@ export default class woo extends Exchange {
             const paramsSigned = this.keysort(paramsSorted);
             let auth = '';
             const ts = this.nonce().toString();
-            url += pathWithParams;
-            requestHeaders = {
+            const authBase = ts + method + '/' + version + '/' + pathWithParams;
+            url = urlPrefix + pathWithParams;
+            const signedHeaders = {
                 'x-api-key': this.apiKey,
                 'x-api-timestamp': ts,
             };
             if (version === 'v3') {
-                auth = ts + method + '/' + version + '/' + pathWithParams;
+                auth = authBase;
                 if (method === 'POST' || method === 'PUT') {
-                    requestBody = this.json(paramsSigned);
-                    auth += requestBody;
-                    requestHeaders['content-type'] = 'application/json';
+                    const jsonBody = this.json(paramsSigned);
+                    requestBody = jsonBody;
+                    auth = authBase + jsonBody;
+                    signedHeaders['content-type'] = 'application/json';
                 }
                 else {
                     if (Object.keys(paramsSigned).length > 0) {
                         const query = this.urlencode(paramsSigned);
-                        url += '?' + query;
-                        auth += '?' + query;
+                        url = urlPrefix + pathWithParams + '?' + query;
+                        auth = authBase + '?' + query;
                     }
                 }
             }
             else {
-                auth = this.urlencode(paramsSigned);
+                const encodedParams = this.urlencode(paramsSigned);
+                auth = encodedParams;
                 if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-                    requestBody = auth;
+                    requestBody = encodedParams;
                 }
                 else {
                     if (Object.keys(paramsSigned).length > 0) {
-                        url += '?' + auth;
+                        url = urlPrefix + pathWithParams + '?' + encodedParams;
                     }
                 }
-                auth += '|' + ts;
-                requestHeaders['content-type'] = 'application/x-www-form-urlencoded';
+                auth = encodedParams + '|' + ts;
+                signedHeaders['content-type'] = 'application/x-www-form-urlencoded';
             }
-            requestHeaders['x-api-signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            signedHeaders['x-api-signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            requestHeaders = signedHeaders;
         }
-        const headersResult = requestHeaders;
-        const bodyResult = requestBody;
-        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
@@ -3840,7 +3839,7 @@ export default class woo extends Exchange {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol');
         const request = {
             'symbol': market['id'],
         };
@@ -4018,7 +4017,8 @@ export default class woo extends Exchange {
             //
         }
         else {
-            throw new NotSupported(this.id + ' fetchLeverage() is not supported for ' + market['type'] + ' markets');
+            const marketType = this.safeString(market, 'type', '');
+            throw new NotSupported(this.id + ' fetchLeverage() is not supported for ' + marketType + ' markets');
         }
         const data = this.safeDict(response, 'data', {});
         return this.parseLeverage(data, market);
@@ -4091,7 +4091,8 @@ export default class woo extends Exchange {
             return await this.v3PrivatePutFuturesLeverage(this.extend(request, paramsMarginMode));
         }
         else {
-            throw new NotSupported(this.id + ' fetchLeverage() is not supported for ' + this.safeString(market, 'type') + ' markets');
+            const marketType = this.safeString(market, 'type', '');
+            throw new NotSupported(this.id + ' fetchLeverage() is not supported for ' + marketType + ' markets');
         }
     }
     /**

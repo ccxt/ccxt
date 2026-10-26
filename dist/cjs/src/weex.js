@@ -1307,7 +1307,7 @@ class weex extends weex$1["default"] {
         const marketId = this.safeString(ticker, 'symbol');
         const markPrice = this.safeString(ticker, 'markPrice');
         let marketType = 'spot';
-        if ((markPrice !== undefined) || ((market !== undefined) && (market['contract'] === true))) {
+        if ((markPrice !== undefined) || ((market !== undefined) && (this.safeBool(market, 'contract', false)))) {
             // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = 'swap';
         }
@@ -1919,8 +1919,7 @@ class weex extends weex$1["default"] {
         let interval = undefined;
         const collectCycle = this.safeString(contract, 'collectCycle');
         if (collectCycle !== undefined) {
-            interval = Precise["default"].stringDiv(collectCycle, '60');
-            interval = interval + 'h';
+            interval = Precise["default"].stringDiv(collectCycle, '60') + 'h';
         }
         return {
             'info': contract,
@@ -2221,7 +2220,8 @@ class weex extends weex$1["default"] {
         }
         const market = this.market(symbol);
         const request = this.createSpotOrderRequest(symbol, type, side, amount, price, params);
-        const response = await this.privatePostApiV3Order(request);
+        let response = undefined;
+        response = await this.privatePostApiV3Order(request);
         //
         //     {
         //         "symbol": "DOGEUSDT",
@@ -4337,8 +4337,7 @@ class weex extends weex$1["default"] {
             return marketId; // a live market id, not a demo one
         }
         if (marketId.endsWith('SUSDT')) {
-            const baseLength = marketId.length - 5;
-            return marketId.slice(0, baseLength) + 'USDT';
+            return marketId.slice(0, -5) + 'USDT';
         }
         return marketId;
     }
@@ -4352,7 +4351,7 @@ class weex extends weex$1["default"] {
         const query = this.omit(params, this.extractParams(path));
         const isBatch = (path.indexOf('batch') >= 0);
         if (!isBatch && ((method === 'GET') || (method === 'DELETE'))) {
-            if (Object.keys(query).length > 0) {
+            if (!this.isEmpty(query)) {
                 endpoint += '?' + this.urlencode(query);
             }
         }
@@ -4362,7 +4361,7 @@ class weex extends weex$1["default"] {
         if (hasJsonBody) {
             requestBody = this.json(query);
         }
-        let requestHeaders = undefined;
+        let requestHeaders = {};
         if (isPrivate) {
             const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
             if ((sandboxMode) && (path.indexOf('capi/v3/sim/') !== 0)) {

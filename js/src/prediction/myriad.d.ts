@@ -32,7 +32,7 @@ export default class myriad extends Exchange {
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
      * @returns {object[]} an array of raw myriad market objects
      */
-    fetchRawMarketsBySearch(queries: any[], params?: Dict): Promise<any[]>;
+    fetchRawMarketsBySearch(queries: string[], params?: Dict): Promise<Dict[]>;
     /**
      * @ignore
      * @method
@@ -43,7 +43,7 @@ export default class myriad extends Exchange {
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
      * @returns {object[]} an array of raw myriad market objects
      */
-    fetchRawMarketsList(params?: Dict): Promise<any[]>;
+    fetchRawMarketsList(params?: Dict): Promise<Dict[]>;
     /**
      * @method
      * @name myriad#fetchEvent
@@ -63,7 +63,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw myriad market object
      */
-    fetchRawMarketById(id: string, params?: Dict): Promise<any>;
+    fetchRawMarketById(id: string, params?: Dict): Promise<Dict>;
     /**
      * @ignore
      * @method
@@ -73,7 +73,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw question object
      */
-    fetchRawQuestionById(id: string, params?: Dict): Promise<any>;
+    fetchRawQuestionById(id: string, params?: Dict): Promise<Dict>;
     /**
      * @ignore
      * @method
@@ -83,7 +83,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of raw myriad question objects
      */
-    fetchRawQuestionsBySearch(queries: string[], params?: Dict): Promise<any[]>;
+    fetchRawQuestionsBySearch(queries: string[], params?: Dict): Promise<Dict[]>;
     /**
      * @ignore
      * @method
@@ -93,7 +93,7 @@ export default class myriad extends Exchange {
      * @param {string} [params.state] optional question state filter when supported by the backend
      * @returns {object[]} an array of raw myriad question objects
      */
-    fetchRawQuestionsList(params?: Dict): Promise<any[]>;
+    fetchRawQuestionsList(params?: Dict): Promise<Dict[]>;
     /**
      * @method
      * @name myriad#fetchPositions
@@ -137,7 +137,7 @@ export default class myriad extends Exchange {
      * @param {object} [market] the outcome the quote belongs to
      * @returns {object} a quote object
      */
-    parseTradeQuote(quote: Dict, market?: any): Dict;
+    parseTradeQuote(quote: Dict, market?: NullableDict): Dict;
     signEvmTransaction(tx: Dict, privateKey: string): string;
     ethRpc(rpcUrl: Str, method: string, rpcParams: any[]): Promise<any>;
     ensureErc20Allowance(rpcUrl: Str, networkId: Str, token: Str, owner: Str, spender: Str): Promise<any>;
@@ -433,7 +433,7 @@ export default class myriad extends Exchange {
     fetchBalance(params?: Dict): Promise<Balances>;
     hexToDecimalString(hexValue: string): Str;
     fromWeiWithDecimals(hexValue: string, decimals: Int): Str;
-    parseTradeTx(txHash: Str, quote: Dict, market: any, side: Str): PredictionOrder;
+    parseTradeTx(txHash: Str, quote: Dict, market: Dict, side: Str): PredictionOrder;
     /**
      * @ignore
      * @method
@@ -588,7 +588,7 @@ export default class myriad extends Exchange {
     fromWei(wei: Str): Num;
     marketOutcomeToSymbol(networkId: Str, marketId: Str, outcomeId: Str): Str;
     connectCentrifugo(url: Str): Promise<any>;
-    pong(client: Client, message?: any): Promise<void>;
+    pong(client: Client, message?: NullableDict): Promise<void>;
     subscribeMyriadChannel(messageHash: string, channel: string, params?: Dict): Promise<any>;
     handleMessage(client: any, message: any): void;
     handleCentrifugoFrame(client: Client, msg: Dict): void;
@@ -709,7 +709,7 @@ export default class myriad extends Exchange {
     sign(path: string, api?: string[], method?: string, params?: Dict): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: Str;
+        headers: Dict;
     };
 }

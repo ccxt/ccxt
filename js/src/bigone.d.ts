@@ -65,7 +65,7 @@ export default class bigone extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
-    parseContractBidsAsks(bidsAsks: any): Dict[];
+    parseContractBidsAsks(bidsAsks: Dict): Dict[];
     parseContractOrderBook(orderbook: Dict, symbol: string, limit?: Int): OrderBook;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**

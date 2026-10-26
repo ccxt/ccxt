@@ -123,7 +123,9 @@ export default class backpack extends backpackRest {
         const symbolsResolved = [];
         const topics = [];
         const messageHashes = [];
-        const url = this.urls['api']['ws']['public'];
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public', '');
         const client = this.client(url);
         const kind = (bidAsk) ? 'bidask' : 'ticker';
         for (let i = 0; i < normalized.length; i++) {
@@ -141,7 +143,8 @@ export default class backpack extends backpackRest {
             }
             const requestParams = this.extend(marketParams, { 'stock': marketStock, 'source': source });
             const request = this.stockDataRequest(methodName, requestParams, market);
-            let topic = 'ticker.' + this.safeString(request, 'symbol');
+            const tickerSymbol = this.safeString(request, 'symbol', '');
+            let topic = 'ticker.' + tickerSymbol;
             if (channel !== undefined) {
                 if ((channel !== 'stockPrice') && (channel !== 'stockIndicativeQuote')) {
                     throw new BadRequest(this.id + ' ' + methodName + '() channel must be stockPrice or stockIndicativeQuote');
@@ -168,7 +171,8 @@ export default class backpack extends backpackRest {
                 }
             }
             else if (source === 'External') {
-                topic = 'externalTicker.' + market['baseId'] + '_USDC';
+                const externalBaseId = this.safeString(market, 'baseId', '');
+                topic = 'externalTicker.' + externalBaseId + '_USDC';
             }
             else if ((this.safeString(market, 'executionModel') === 'rfq') && (market['stock'] !== true)) {
                 throw new NotSupported(this.id + ' ' + methodName + '() RFQ venue tickers are only mapped for stock data');
@@ -225,7 +229,9 @@ export default class backpack extends backpackRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const url = this.urls['api']['ws']['public'];
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public', '');
         let method = 'SUBSCRIBE';
         if (unwatch) {
             method = 'UNSUBSCRIBE';
@@ -243,9 +249,11 @@ export default class backpack extends backpackRest {
     }
     async watchPrivate(topics, messageHashes, params = {}, unwatch = false) {
         this.checkRequiredCredentials();
-        const url = this.urls['api']['ws']['private'];
+        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'private', '');
         const instruction = 'subscribe';
-        const ts = this.nonce().toString();
+        const ts = this.numberToString(this.nonce());
         let method = 'SUBSCRIBE';
         if (unwatch) {
             method = 'UNSUBSCRIBE';
@@ -271,7 +279,7 @@ export default class backpack extends backpackRest {
         const client = this.client(url);
         this.watchMultiple(url, messageHashes, message, messageHashes);
         for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
+            const messageHash = this.safeString(messageHashes, i, '');
             const subMessageHash = messageHash.replace('unsubscribe:', '');
             this.cleanUnsubscription(client, subMessageHash, messageHash);
             if (messageHash.indexOf('ticker') >= 0) {
@@ -311,7 +319,7 @@ export default class backpack extends backpackRest {
             else if (messageHash.indexOf('orders') >= 0) {
                 if (messageHash === 'unsubscribe:orders') {
                     const cache = this.orders;
-                    if (cache !== undefined) {
+                    if (this.orders !== undefined) {
                         const keys = Object.keys(cache);
                         for (let j = 0; j < keys.length; j++) {
                             const symbol = keys[j];
@@ -322,15 +330,14 @@ export default class backpack extends backpackRest {
                 else {
                     const symbol = messageHash.replace('unsubscribe:orders:', '');
                     const cache = this.orders;
-                    if ((cache !== undefined) && (symbol in cache)) {
+                    if ((this.orders !== undefined) && (symbol in cache)) {
                         delete cache[symbol];
                     }
                 }
             }
             else if (messageHash.indexOf('positions') >= 0) {
                 if (messageHash === 'unsubscribe:positions') {
-                    const cache = this.positions;
-                    const keys = Object.keys(cache);
+                    const keys = Object.keys(this.positions);
                     for (let j = 0; j < keys.length; j++) {
                         const symbol = keys[j];
                         delete this.positions[symbol];
@@ -716,7 +723,7 @@ export default class backpack extends backpackRest {
         }
         const topics = [];
         const messageHashes = [];
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+        for (let i = 0; i < symbolsLength; i++) {
             const symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             const marketId = this.safeString(symbolAndTimeframe, 0);
             const market = this.market(marketId);
@@ -755,7 +762,7 @@ export default class backpack extends backpackRest {
         }
         const topics = [];
         const messageHashes = [];
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+        for (let i = 0; i < symbolsLength; i++) {
             const symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             const marketId = this.safeString(symbolAndTimeframe, 0);
             const market = this.market(marketId);
@@ -1246,9 +1253,9 @@ export default class backpack extends backpackRest {
         let topic = 'account.orderUpdate';
         let messageHash = 'orders';
         if (market !== undefined) {
-            topic = 'account.orderUpdate.' + market['id'];
+            topic = 'account.orderUpdate.' + this.safeString(market, 'id', '');
             if (this.safeString(market, 'executionModel') === 'rfq') {
-                topic = 'account.rfqUpdate.' + market['id'];
+                topic = 'account.rfqUpdate.' + this.safeString(market, 'id', '');
             }
             messageHash = 'orders:' + symbolResolved;
         }
@@ -1291,9 +1298,9 @@ export default class backpack extends backpackRest {
         let topic = 'account.orderUpdate';
         let messageHash = 'unsubscribe:orders';
         if (market !== undefined) {
-            topic = 'account.orderUpdate.' + market['id'];
+            topic = 'account.orderUpdate.' + this.safeString(market, 'id', '');
             if (this.safeString(market, 'executionModel') === 'rfq') {
-                topic = 'account.rfqUpdate.' + market['id'];
+                topic = 'account.rfqUpdate.' + this.safeString(market, 'id', '');
             }
             messageHash = 'unsubscribe:orders:' + symbolResolved;
         }
@@ -1663,7 +1670,7 @@ export default class backpack extends backpackRest {
         parsedPosition['timestamp'] = timestamp;
         parsedPosition['datetime'] = this.iso8601(timestamp);
         cache.append(parsedPosition);
-        const symbolSpecificMessageHash = messageHash + ':' + parsedPosition['symbol'];
+        const symbolSpecificMessageHash = messageHash + ':' + this.safeString(parsedPosition, 'symbol', '');
         client.resolve([parsedPosition], messageHash);
         client.resolve([parsedPosition], symbolSpecificMessageHash);
     }

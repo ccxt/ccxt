@@ -323,7 +323,7 @@ export default class zebpay extends Exchange {
         const defaultMarkets = ['spot', 'swap'];
         const types = this.safeList(fetchMarketsOptions, 'types', defaultMarkets);
         for (let i = 0; i < types.length; i++) {
-            const type = this.safeString(types, i);
+            const type = this.safeString(types, i, '');
             if (type === 'spot') {
                 promisesUnresolved.push(this.fetchSpotMarkets(params));
             }
@@ -400,20 +400,39 @@ export default class zebpay extends Exchange {
             const networkId = this.safeString(chain, 'chainId');
             const networkCode = this.networkIdToCode(networkId, code);
             const depositAllowed = this.safeBool(chain, 'isDepositEnabled', false);
-            deposit = (depositAllowed) ? depositAllowed : deposit;
+            if (depositAllowed) {
+                deposit = true;
+            }
             const withdrawAllowed = this.safeBool(chain, 'isWithdrawEnabled', false);
-            withdraw = (withdrawAllowed) ? withdrawAllowed : withdraw;
+            if (withdrawAllowed) {
+                withdraw = true;
+            }
             const withdrawFeeString = this.safeString(chain, 'withdrawalFee');
             if (withdrawFeeString !== undefined) {
-                minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise.stringMin(withdrawFeeString, minWithdrawFeeString);
+                if (minWithdrawFeeString === undefined) {
+                    minWithdrawFeeString = withdrawFeeString;
+                }
+                else {
+                    minWithdrawFeeString = Precise.stringMin(withdrawFeeString, minWithdrawFeeString);
+                }
             }
             const minNetworkWithdrawString = this.safeString(chain, 'withdrawalMinSize');
             if (minNetworkWithdrawString !== undefined) {
-                minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise.stringMin(minNetworkWithdrawString, minWithdrawString);
+                if (minWithdrawString === undefined) {
+                    minWithdrawString = minNetworkWithdrawString;
+                }
+                else {
+                    minWithdrawString = Precise.stringMin(minNetworkWithdrawString, minWithdrawString);
+                }
             }
             const minNetworkDepositString = this.safeString(chain, 'depositMinSize');
             if (minNetworkDepositString !== undefined) {
-                minDepositString = (minDepositString === undefined) ? minNetworkDepositString : Precise.stringMin(minNetworkDepositString, minDepositString);
+                if (minDepositString === undefined) {
+                    minDepositString = minNetworkDepositString;
+                }
+                else {
+                    minDepositString = Precise.stringMin(minNetworkDepositString, minDepositString);
+                }
             }
             if (networkCode !== undefined) {
                 networks[networkCode] = {
@@ -1041,16 +1060,16 @@ export default class zebpay extends Exchange {
         const upperCaseType = type.toUpperCase();
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
-        let query = this.omit(params, ['marginAsset', 'takeProfitPrice', 'takeProfitPrice']);
+        const query = this.omit(params, ['marginAsset', 'takeProfitPrice', 'takeProfitPrice']);
         this.checkRequiredArgument('createOrder', side, 'side');
-        let request = {
+        const request = {
             'symbol': market['id'],
             'side': side.toUpperCase(),
         };
         let response = undefined;
         if (market['spot'] === true) {
-            [request, query] = this.orderRequest(symbol, type, amount, request, price, query);
-            response = await this.privateSpotPostV2ExOrders(this.extend(request, query));
+            const orderRequestResult = this.orderRequest(symbol, type, amount, request, price, query);
+            response = await this.privateSpotPostV2ExOrders(this.extend(orderRequestResult[0], orderRequestResult[1]));
         }
         else {
             const marginAsset = this.safeString(query, 'marginAsset', 'INR');
@@ -1712,12 +1731,11 @@ export default class zebpay extends Exchange {
             if ((base === undefined) || (quote === undefined)) {
                 continue;
             }
-            const settle = this.safeCurrencyCode(quoteId);
             const status = this.safeString(market, 'status');
             const symbol = base + '/' + quote;
             result.push(this.safeMarketStructure({
                 'id': id,
-                'symbol': symbol + ':' + settle,
+                'symbol': symbol + ':' + quote,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
@@ -1932,9 +1950,8 @@ export default class zebpay extends Exchange {
         if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = baseApiUrl;
         const tail = '/api/' + this.implodeParams(path, paramsOmitted);
-        url += tail;
+        let suffix = '';
         const timestamp = this.milliseconds().toString();
         let signature = '';
         const query = this.omit(paramsOmitted, this.extractParams(path));
@@ -1943,16 +1960,16 @@ export default class zebpay extends Exchange {
         if (access === 'public') {
             if (method === 'GET' || method === 'DELETE') {
                 if (queryLength !== 0) {
-                    url += '?' + this.urlencode(query);
+                    suffix = '?' + this.urlencode(query);
                 }
             }
             else {
                 const priceType = this.safeString(paramsOmitted, 'priceType');
                 const paramsBody = this.omit(paramsOmitted, 'priceType');
                 if (priceType !== undefined) {
-                    url += '?' + this.urlencode({ 'priceType': priceType });
+                    suffix = '?' + this.urlencode({ 'priceType': priceType });
                 }
-                bodySigned = JSON.stringify(paramsBody);
+                bodySigned = this.json(paramsBody);
                 headersSigned = {
                     'Referrer': 'ccxt',
                     'Content-Type': 'application/json',
@@ -1967,7 +1984,7 @@ export default class zebpay extends Exchange {
                 // For GET/DELETE: Append params to URL and sign the query string
                 const queryString = this.urlencode(paramsOmitted);
                 signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha256, 'hex');
-                url += '?' + queryString;
+                suffix = '?' + queryString;
             }
             else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
@@ -1978,9 +1995,10 @@ export default class zebpay extends Exchange {
                 'Referrer': 'ccxt',
                 'X-AUTH-APIKEY': this.apiKey,
                 'X-AUTH-SIGNATURE': signature,
+                'Content-Type': 'application/json',
             };
-            headersSigned['Content-Type'] = 'application/json';
         }
+        const url = baseApiUrl + tail + suffix;
         const headersResolved = headersSigned;
         const bodyResolved = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
@@ -1998,7 +2016,7 @@ export default class zebpay extends Exchange {
         // {"statusDescription":"Order quantity is out of range","data":{},"statusCode":400,"customMessage":["Order quantity is out of range"]}
         //
         const errorCode = this.safeString2(response, 'code', 'statusCode');
-        const message = this.safeString2(response, 'msg', 'statusDescription');
+        const message = this.safeString2(response, 'msg', 'statusDescription', '');
         const feedback = this.id + ' ' + message;
         this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
         this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);

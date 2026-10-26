@@ -725,7 +725,7 @@ export default class predictfun extends Exchange {
     sign(path: string, api?: string[], method?: string, params?: Dict): {
         url: string;
         method: string;
-        body: any;
+        body: Str;
         headers: any;
     };
 }

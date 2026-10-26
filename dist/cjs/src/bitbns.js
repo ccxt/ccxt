@@ -524,11 +524,12 @@ class bitbns extends bitbns$1["default"] {
             const parts = key.split('availableorder');
             const numParts = parts.length;
             if (numParts > 1) {
+                const usedCurrencyId = this.safeString(parts, 1, '');
                 let currencyId = this.safeString(parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 const account = this.account();
                 account['free'] = this.safeString(data, key);
-                account['used'] = this.safeString(data, 'inorder' + currencyId);
+                account['used'] = this.safeString(data, 'inorder' + usedCurrencyId);
                 if (currencyId === 'Money') {
                     currencyId = 'INR';
                 }
@@ -1275,18 +1276,17 @@ class bitbns extends bitbns$1["default"] {
         return this.milliseconds();
     }
     sign(path, api = ['www'], method = 'GET', params = {}) {
-        const urls = this.urls;
         const apiName = api[0];
-        if (!(apiName in urls['api'])) {
+        if (!(apiName in this.urls['api'])) {
             throw new errors.ExchangeError(this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
         if (apiName !== 'www') {
             this.checkRequiredCredentials();
         }
-        const apiKeyHeaders = {
-            'X-BITBNS-APIKEY': this.apiKey,
-        };
-        let requestHeaders = (apiName !== 'www') ? apiKeyHeaders : undefined;
+        const requestHeaders = {};
+        if (apiName !== 'www') {
+            requestHeaders['X-BITBNS-APIKEY'] = this.apiKey;
+        }
         const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
@@ -1294,7 +1294,7 @@ class bitbns extends bitbns$1["default"] {
         const baseUrl = this.implodeHostname(baseApiUrl);
         let url = baseUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        const nonce = this.nonce().toString();
+        const nonce = this.numberToString(this.nonce());
         const queryLength = Object.keys(query).length;
         let postBody = '{}';
         if (queryLength > 0) {
@@ -1313,7 +1313,6 @@ class bitbns extends bitbns$1["default"] {
             };
             const payload = this.stringToBase64(this.json(auth));
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha512);
-            requestHeaders = (requestHeaders === undefined) ? {} : requestHeaders;
             requestHeaders['X-BITBNS-PAYLOAD'] = payload;
             requestHeaders['X-BITBNS-SIGNATURE'] = signature;
             requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';

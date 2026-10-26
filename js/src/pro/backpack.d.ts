@@ -68,7 +68,7 @@ export default class backpack extends backpackRest {
      * @param {string} [params.channel] stockPrice or stockIndicativeQuote, matching the subscription
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name backpack#watchTickers
@@ -165,7 +165,7 @@ export default class backpack extends backpackRest {
      * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name backpack#watchOHLCVForSymbols
@@ -219,7 +219,7 @@ export default class backpack extends backpackRest {
      * @param {string} [params.source] Venue only
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name backpack#watchTradesForSymbols
@@ -285,7 +285,7 @@ export default class backpack extends backpackRest {
      * @param {string} [params.source] Venue only
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name backpack#unWatchOrderBookForSymbols

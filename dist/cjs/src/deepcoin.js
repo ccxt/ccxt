@@ -524,7 +524,7 @@ class deepcoin extends deepcoin$1["default"] {
             isLinear = (quoteId !== 'USD');
             settleId = isLinear ? quoteId : baseId;
             settle = this.safeCurrencyCode(settleId);
-            symbol = symbol + ':' + settle;
+            symbol = base + '/' + quote + ':' + settle;
         }
         const fees = this.safeDict2(this.fees, type, 'trading', {});
         let maxLeverage = this.safeString(market, 'lever', '1');
@@ -590,8 +590,9 @@ class deepcoin extends deepcoin$1["default"] {
         const symbols = Object.keys(result);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const market = result[symbol];
-            if ((market !== undefined) && (market['swap'] === true)) {
+            const market = this.safeDict(result, symbol, {});
+            const isSwap = this.safeBool(market, 'swap', false);
+            if (isSwap) {
                 const additionalId = this.safeString(market, 'baseId', '') + this.safeString(market, 'quoteId', '');
                 if (this.markets_by_id !== undefined) {
                     this.markets_by_id[additionalId] = [market]; // some endpoints return swap market id as base+quote
@@ -3064,7 +3065,7 @@ class deepcoin extends deepcoin$1["default"] {
         if (method === 'GET') {
             const query = this.urlencode(params);
             if (query.length > 0) {
-                requestPath += '?' + query;
+                requestPath = path + '?' + query;
             }
         }
         const apiUrl = this.safeString(this.urls['api'], apiName);

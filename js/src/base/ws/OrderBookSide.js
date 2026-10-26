@@ -4,8 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-/* eslint-disable max-classes-per-file */
-// @ts-nocheck
 // ----------------------------------------------------------------------------
 //
 // Upto 10x faster after initializing memory for the floating point array

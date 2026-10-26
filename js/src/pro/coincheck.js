@@ -64,7 +64,7 @@ export default class coincheck extends coincheckRest {
         const url = this.urls['api']['ws'];
         const request = {
             'type': 'subscribe',
-            'channel': market['id'] + '-orderbook',
+            'channel': this.safeString(market, 'id', '') + '-orderbook',
         };
         const message = this.extend(request, params);
         const orderbook = await this.watch(url, messageHash, message, messageHash);
@@ -101,7 +101,6 @@ export default class coincheck extends coincheckRest {
             this.orderbooks[symbol] = orderbook;
         }
         else {
-            orderbook = this.orderbooks[symbol];
             orderbook.reset(snapshot);
         }
         const messageHash = 'orderbook:' + symbol;
@@ -123,18 +122,17 @@ export default class coincheck extends coincheckRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
         const messageHash = 'trade:' + market['symbol'];
         const url = this.urls['api']['ws'];
         const request = {
             'type': 'subscribe',
-            'channel': market['id'] + '-trades',
+            'channel': this.safeString(market, 'id', '') + '-trades',
         };
         const message = this.extend(request, params);
         const trades = await this.watch(url, messageHash, message, messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = trades.getLimit(symbolValue, limit);
+            limitResolved = trades.getLimit(market['symbol'], limit);
         }
         return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }

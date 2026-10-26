@@ -511,7 +511,7 @@ class apex extends apex$1["default"] {
         const code = this.safeCurrencyCode(currencyId);
         const name = this.safeString(currency, 'displayName');
         const networks = {};
-        const chains = this.options['_temp_currencies_chains'];
+        const chains = this.safeList(this.options, '_temp_currencies_chains', []);
         for (let j = 0; j < chains.length; j++) {
             const chain = this.safeDict(chains, j);
             const tokens = this.safeList(chain, 'tokens', []);
@@ -1261,17 +1261,16 @@ class apex extends apex$1["default"] {
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         let marketResolved = market;
         if (market === undefined && marketId !== undefined) {
-            const marketsById = this.markets_by_id;
             if ((this.markets !== undefined) && (marketId in this.markets)) {
                 marketResolved = this.markets[marketId];
             }
-            else if ((marketsById !== undefined) && (marketId in marketsById)) {
-                marketResolved = marketsById[marketId];
+            else if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
+                marketResolved = this.markets_by_id[marketId];
             }
             else {
                 const newMarketId = this.addHyphenBeforeUsdt(marketId);
-                if ((marketsById !== undefined) && (newMarketId in marketsById)) {
-                    const markets = marketsById[newMarketId];
+                if ((this.markets_by_id !== undefined) && (newMarketId in this.markets_by_id)) {
+                    const markets = this.markets_by_id[newMarketId];
                     const numMarkets = markets.length;
                     if (numMarkets > 0) {
                         if (markets[0]['id2'] === marketId) {
@@ -1284,9 +1283,8 @@ class apex extends apex$1["default"] {
         return super.safeMarket(marketId, marketResolved, delimiter, marketType);
     }
     generateRandomClientIdOmni(_accountId) {
-        const hasAccountId = (_accountId !== undefined) && (_accountId !== '');
-        let accountId = undefined;
-        if (hasAccountId) {
+        let accountId = '';
+        if ((_accountId !== undefined) && (_accountId !== '')) {
             accountId = _accountId;
         }
         else {
@@ -1354,7 +1352,8 @@ class apex extends apex$1["default"] {
         const fees = this.safeDict(this.fees, 'swap', {});
         const taker = this.safeString(fees, 'taker', '0.0005');
         const maker = this.safeString(fees, 'maker', '0.0002');
-        const limitFee = this.decimalToPrecision(Precise["default"].stringAdd(Precise["default"].stringMul(Precise["default"].stringMul(orderPrice, orderSize), taker), this.numberToString(market['precision']['price'])), number.TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
+        const pricePrecision = market['precision']['price'];
+        const limitFee = this.decimalToPrecision(Precise["default"].stringAdd(Precise["default"].stringMul(Precise["default"].stringMul(orderPrice, orderSize), taker), this.numberToString(pricePrecision)), number.TRUNCATE, pricePrecision, this.precisionMode, this.paddingMode);
         const timeNow = this.milliseconds();
         let triggerPrice = this.safeString(params, 'triggerPrice');
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
@@ -1467,17 +1466,14 @@ class apex extends apex$1["default"] {
         const ethAddress = this.safeString(accountData, 'ethereumAddress', '');
         const accountId = this.safeString(accountData, 'id', '');
         let currency = {};
-        let assets = [];
         const isContract = fromAccount.toLowerCase() === 'contract';
+        let assets = spotAssets;
         if (isContract) {
             assets = contractAssets;
         }
-        else {
-            assets = spotAssets;
-        }
         for (let i = 0; i < assets.length; i++) {
-            if (this.safeString(assets[i], 'token', '') === code) {
-                currency = assets[i];
+            if (this.safeString(this.safeDict(assets, i, {}), 'token', '') === code) {
+                currency = this.safeDict(assets, i, {});
             }
         }
         const tokenId = this.safeString(currency, 'tokenId', '');
@@ -1541,10 +1537,9 @@ class apex extends apex$1["default"] {
                 'timestampSeconds': timestampSeconds,
             };
             const signature = await this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign);
-            const amountStr = amount.toString();
             const ts = timestampSeconds; // java req
             const request = {
-                'amount': amountStr,
+                'amount': this.numberToString(amount),
                 'timestamp': ts,
                 'clientTransferId': finalClientOrderId,
                 'signature': signature,

@@ -48,7 +48,7 @@ export default class upbit extends upbitRest {
         const symbolsMarket = this.marketSymbols(symbolsRequested);
         const symbolsNormalized = (symbolsMarket === undefined) ? [] : symbolsMarket;
         const marketIds = this.marketIds(symbolsNormalized);
-        const url = this.implodeParams(this.urls['api']['ws'], {
+        const url = this.implodeParams(this.safeString(this.urls['api'], 'ws'), {
             'hostname': this.hostname,
         });
         const client = this.client(url);
@@ -56,11 +56,11 @@ export default class upbit extends upbitRest {
         if (!(subscriptionsKey in client.subscriptions)) {
             client.subscriptions[subscriptionsKey] = this.createSafeDictionary(true);
         }
-        const subscriptions = client.subscriptions[subscriptionsKey];
+        const subscriptions = this.safeDict(client.subscriptions, subscriptionsKey, {});
         const messageHashes = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
-            const marketId = marketIds[i];
-            const symbol = symbolsNormalized[i];
+            const marketId = this.safeString(marketIds, i, '');
+            const symbol = this.safeString(symbolsNormalized, i, '');
             const messageHash = channel + ':' + symbol;
             messageHashes.push(messageHash);
             if (!(messageHash in subscriptions)) {
@@ -359,34 +359,26 @@ export default class upbit extends upbitRest {
         const request = {
             'type': channel,
         };
-        let symbolResolved = undefined;
+        let messageHashResolved = messageHash;
+        let channelKey = channel;
         if (symbol !== undefined) {
             await this.loadMarkets();
             const market = this.market(symbol);
-            symbolResolved = market['symbol'];
-            const symbols = [symbolResolved];
-            const marketIds = this.marketIds(symbols);
-            request['codes'] = marketIds;
-        }
-        let messageHashResolved = messageHash;
-        if (symbolResolved !== undefined) {
+            const symbolResolved = this.safeString(market, 'symbol', '');
+            request['codes'] = this.marketIds([symbolResolved]);
             messageHashResolved = messageHash + ':' + symbolResolved;
+            channelKey = channel + ':' + symbolResolved;
         }
-        let url = this.implodeParams(this.urls['api']['ws'], {
+        const url = this.implodeParams(this.safeString(this.urls['api'], 'ws'), {
             'hostname': this.hostname,
-        });
-        url += '/private';
+        }) + '/private';
         const client = this.client(url);
         // Track private channel subscriptions to support multiple concurrent watches
         const subscriptionsKey = 'upbitPrivateSubscriptions';
         if (!(subscriptionsKey in client.subscriptions)) {
             client.subscriptions[subscriptionsKey] = this.createSafeDictionary(true);
         }
-        let channelKey = channel;
-        if (symbolResolved !== undefined) {
-            channelKey = channel + ':' + symbolResolved;
-        }
-        const subscriptions = client.subscriptions[subscriptionsKey];
+        const subscriptions = this.safeDict(client.subscriptions, subscriptionsKey, {});
         const isNewChannel = !(channelKey in subscriptions);
         if (isNewChannel) {
             subscriptions[channelKey] = request;
@@ -620,10 +612,9 @@ export default class upbit extends upbitRest {
         const myTrades = this.myTrades;
         const trade = this.parseWsTrade(message);
         myTrades.append(trade);
-        let messageHash = 'myTrades';
+        const messageHash = 'myTrades';
         client.resolve(myTrades, messageHash);
-        messageHash = 'myTrades:' + trade['symbol'];
-        client.resolve(myTrades, messageHash);
+        client.resolve(myTrades, 'myTrades:' + this.safeString(trade, 'symbol', ''));
     }
     handleOrder(client, message) {
         const parsed = this.parseWsOrder(message);
@@ -673,10 +664,9 @@ export default class upbit extends upbitRest {
             }
         }
         cachedOrders.append(parsed);
-        let messageHash = 'myOrder';
+        const messageHash = 'myOrder';
         client.resolve(this.orders, messageHash);
-        messageHash = messageHash + ':' + symbol;
-        client.resolve(this.orders, messageHash);
+        client.resolve(this.orders, messageHash + ':' + this.safeString(parsed, 'symbol', ''));
     }
     /**
      * @method

@@ -385,7 +385,7 @@ export default class nado extends nadoRest {
     handlePosition(client: Client, message: Dict): void;
     parseWsBidAsk(bidask: Dict, market?: Market): Ticker;
     handleBidAsk(client: Client, message: Dict): void;
-    parseWsAllBidsAsks(message: Dict): Tickers;
+    parseWsAllBidsAsks(message: Dict): Dict;
     handleAllBidsAsks(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
     handleOrderBook(client: Client, message: Dict): void;
@@ -393,7 +393,7 @@ export default class nado extends nadoRest {
     handleSubscription(client: Client, message: Dict): void;
     handleAuthentication(client: Client, message: Dict): void;
     handleUnsubscription(client: Client, message: Dict): void;
-    handleUnsubscriptionCache(messageHash: Str): void;
+    handleUnsubscriptionCache(messageHash: string): void;
     ping(client: Client): {
         method: string;
         id: Int;

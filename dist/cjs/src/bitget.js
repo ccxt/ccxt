@@ -2053,8 +2053,8 @@ class bitget extends bitget$1["default"] {
         }
         let productType = this.safeString2(paramsSubType, 'productType', 'category', defaultProductType);
         if ((productType === undefined) && (market !== undefined)) {
-            const settle = market['settle'];
-            if (market['spot'] === true) {
+            const settle = this.safeString(market, 'settle');
+            if (this.safeBool(market, 'spot', false)) {
                 let marginMode = undefined;
                 [marginMode, paramsSubType] = this.handleMarginModeAndParams('handleProductTypeAndParams', paramsSubType);
                 if (marginMode !== undefined) {
@@ -2336,7 +2336,7 @@ class bitget extends bitget$1["default"] {
                 if (symbolType === 'perpetual') {
                     type = 'swap';
                     swap = true;
-                    symbol = symbol + ':' + settle;
+                    symbol = base + '/' + quote + ':' + settle;
                 }
                 else if (symbolType === 'delivery') {
                     expiry = this.safeInteger(market, 'deliveryTime');
@@ -2346,12 +2346,13 @@ class bitget extends bitget$1["default"] {
                     const yearPart = this.safeString(expiryParts, 0, '');
                     const dayPart = this.safeString(expiryParts, 2, '');
                     const year = yearPart.slice(2, 4);
-                    const month = this.safeString(expiryParts, 1);
+                    const month = expiryParts[1];
                     const day = dayPart.slice(0, 2);
-                    const expiryString = year + month + day;
+                    const monthDay = month + day;
+                    const expiryString = year + monthDay;
                     type = 'future';
                     future = true;
-                    symbol = symbol + ':' + settle + '-' + expiryString;
+                    symbol = base + '/' + quote + ':' + settle + '-' + expiryString;
                 }
                 contract = true;
                 inverse = (base === settle);
@@ -2612,7 +2613,7 @@ class bitget extends bitget$1["default"] {
                 if (symbolType === 'perpetual') {
                     type = 'swap';
                     swap = true;
-                    symbol = symbol + ':' + settle;
+                    symbol = base + '/' + quote + ':' + settle;
                 }
                 else if (symbolType === 'delivery') {
                     expiry = this.safeInteger(market, 'deliveryTime');
@@ -2622,12 +2623,13 @@ class bitget extends bitget$1["default"] {
                     const yearPart = this.safeString(expiryParts, 0, '');
                     const dayPart = this.safeString(expiryParts, 2, '');
                     const year = yearPart.slice(2, 4);
-                    const month = this.safeString(expiryParts, 1);
+                    const month = expiryParts[1];
                     const day = dayPart.slice(0, 2);
-                    const expiryString = year + month + day;
+                    const monthDay = month + day;
+                    const expiryString = year + monthDay;
                     type = 'future';
                     future = true;
-                    symbol = symbol + ':' + settle + '-' + expiryString;
+                    symbol = base + '/' + quote + ':' + settle + '-' + expiryString;
                 }
                 contract = true;
                 inverse = (base === settle);
@@ -4037,8 +4039,9 @@ class bitget extends bitget$1["default"] {
         if (isStock && (symbols === undefined)) {
             // for returning only tokenized stock symbols
             symbolsResolved = [];
-            for (let i = 0; i < this.symbols.length; i++) {
-                const symbol = this.symbols[i];
+            const allSymbols = this.symbols;
+            for (let i = 0; i < allSymbols.length; i++) {
+                const symbol = allSymbols[i];
                 const entry = this.market(symbol);
                 const isStockMarket = this.safeBool(entry, 'stock', false);
                 if (isStockMarket) {
@@ -4294,17 +4297,12 @@ class bitget extends bitget$1["default"] {
         const feeStructure = isFeeStructure ? feeDetail[0] : feeDetail;
         if (feeStructure !== undefined) {
             const currencyCode = this.safeCurrencyCode(this.safeString(feeStructure, 'feeCoin'));
-            fee = {
-                'currency': currencyCode,
-            };
             const feeCostString = this.safeString2(feeStructure, 'totalFee', 'fee');
             const deduction = this.safeString(feeStructure, 'deduction') === 'yes' ? true : false;
-            if (deduction) {
-                fee['cost'] = feeCostString;
-            }
-            else {
-                fee['cost'] = Precise["default"].stringNeg(feeCostString);
-            }
+            fee = {
+                'currency': currencyCode,
+                'cost': deduction ? feeCostString : Precise["default"].stringNeg(feeCostString),
+            };
         }
         return this.safeTrade({
             'info': trade,
@@ -4835,12 +4833,12 @@ class bitget extends bitget$1["default"] {
         const isStock = (stock === true);
         const isStockOrUta = (isStock || (uta === true));
         if (isStockOrUta) {
-            timeframes = timeframesOption['uta'];
+            timeframes = this.safeDict(timeframesOption, 'uta');
             request['interval'] = this.safeString(timeframes, timeframe, timeframe);
         }
         else {
             marketType = (market['spot'] === true) ? 'spot' : 'swap';
-            timeframes = timeframesOption[marketType];
+            timeframes = this.safeDict(timeframesOption, marketType);
             request['granularity'] = this.safeString(timeframes, timeframe, timeframe);
         }
         const msInDay = 86400000;
@@ -6169,11 +6167,8 @@ class bitget extends bitget$1["default"] {
                 }
             }
             if (!isStopLossOrTakeProfitTrigger) {
-                if (marginMode === undefined) {
-                    marginMode = 'cross';
-                }
                 let marginModeRequest = 'isolated';
-                if (marginMode === 'cross') {
+                if ((marginMode === undefined) || (marginMode === 'cross')) {
                     marginModeRequest = 'crossed';
                 }
                 request['marginMode'] = marginModeRequest;
@@ -6383,11 +6378,8 @@ class bitget extends bitget$1["default"] {
         };
         let response = undefined;
         if ((market['swap'] === true) || (market['future'] === true)) {
-            if (marginMode === undefined) {
-                marginMode = 'cross';
-            }
             let marginModeRequest = 'isolated';
-            if (marginMode === 'cross') {
+            if ((marginMode === undefined) || (marginMode === 'cross')) {
                 marginModeRequest = 'crossed';
             }
             request['marginMode'] = marginModeRequest;
@@ -6596,7 +6588,7 @@ class bitget extends bitget$1["default"] {
         }
         else {
             if ((market['swap'] !== true) && (market['future'] !== true)) {
-                throw new errors.NotSupported(this.id + ' editOrder() does not support ' + market['type'] + ' orders');
+                throw new errors.NotSupported(this.id + ' editOrder() does not support ' + this.safeString(market, 'type', '') + ' orders');
             }
             request['symbol'] = market['id'];
             request['productType'] = productType;
@@ -6808,7 +6800,7 @@ class bitget extends bitget$1["default"] {
             }
         }
         else {
-            throw new errors.NotSupported(this.id + ' cancelOrder() does not support ' + market['type'] + ' orders');
+            throw new errors.NotSupported(this.id + ' cancelOrder() does not support ' + this.safeString(market, 'type', '') + ' orders');
         }
         //
         // spot, swap, future, spot margin and tokenized stock
@@ -6887,7 +6879,7 @@ class bitget extends bitget$1["default"] {
         const productType = this.handleProductTypeAndParams(market, params)[0];
         const requestList = [];
         for (let i = 0; i < ids.length; i++) {
-            const individualId = ids[i];
+            const individualId = this.safeString(ids, i);
             const order = {
                 'orderId': individualId,
                 'symbol': market['id'],
@@ -6950,7 +6942,7 @@ class bitget extends bitget$1["default"] {
         paramsUTA = this.omit(paramsUTA, ['stop', 'trigger']);
         const orderIdList = [];
         for (let i = 0; i < ids.length; i++) {
-            const individualId = ids[i];
+            const individualId = this.safeString(ids, i);
             const orderId = {
                 'orderId': individualId,
             };
@@ -7191,7 +7183,7 @@ class bitget extends bitget$1["default"] {
             response = await this.privateMixGetV2MixOrderDetail(this.extend(request, paramsProductType));
         }
         else {
-            throw new errors.NotSupported(this.id + ' fetchOrder() does not support ' + market['type'] + ' orders');
+            throw new errors.NotSupported(this.id + ' fetchOrder() does not support ' + this.safeString(market, 'type', '') + ' orders');
         }
         //
         // spot
@@ -10753,17 +10745,19 @@ class bitget extends bitget$1["default"] {
         //
         const chains = this.safeList(fee, 'chains', []);
         const chainsLength = chains.length;
+        const networks = {};
+        const withdraw = {
+            'fee': undefined,
+            'percentage': undefined,
+        };
         const result = {
             'info': fee,
-            'withdraw': {
-                'fee': undefined,
-                'percentage': undefined,
-            },
+            'withdraw': withdraw,
             'deposit': {
                 'fee': undefined,
                 'percentage': undefined,
             },
-            'networks': {},
+            'networks': networks,
         };
         for (let i = 0; i < chainsLength; i++) {
             const chain = this.safeDict(chains, i);
@@ -10771,14 +10765,14 @@ class bitget extends bitget$1["default"] {
             const currencyCode = this.safeString(currency, 'code');
             const networkCode = this.networkIdToCode(networkId, currencyCode);
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'deposit': { 'fee': undefined, 'percentage': undefined },
                     'withdraw': { 'fee': this.safeNumber(chain, 'withdrawFee'), 'percentage': false },
                 };
             }
             if (chainsLength === 1) {
-                result['withdraw']['fee'] = this.safeNumber(chain, 'withdrawFee');
-                result['withdraw']['percentage'] = false;
+                withdraw['fee'] = this.safeNumber(chain, 'withdrawFee');
+                withdraw['percentage'] = false;
             }
         }
         return result;
@@ -12384,7 +12378,7 @@ class bitget extends bitget$1["default"] {
         let requestHeaders = undefined;
         if (signed) {
             this.checkRequiredCredentials();
-            const timestamp = this.nonce().toString();
+            const timestamp = this.numberToString(this.nonce());
             let auth = timestamp + method + payload;
             if (method === 'POST') {
                 requestBody = this.json(params);

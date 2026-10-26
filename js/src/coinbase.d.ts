@@ -638,7 +638,7 @@ export default class coinbase extends Exchange {
      */
     fetchPortfolioDetails(portfolioUuid: string, params?: Dict): Promise<any[]>;
     parsePortfolioDetails(portfolioData: Dict): Dict[];
-    createAuthToken(seconds: Int, method?: Str, url?: Str, useEddsa?: boolean): string;
+    createAuthToken(seconds: int, method?: Str, url?: Str, useEddsa?: boolean): string;
     nonce(): number;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
