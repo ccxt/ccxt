@@ -9,7 +9,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, Inva
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { ecdsa, eddsa } from './base/functions/crypto.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Fee, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, List, Market, FeeString, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, Status, Endpoint } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Fee, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, List, Market, NullableDict, FeeString, Num, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, Status, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -87,7 +87,9 @@ export default class modetrade extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': true,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -1230,6 +1232,89 @@ export default class modetrade extends Exchange {
             result.push (this.parseTicker (ticker));
         }
         return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
+    }
+
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 81559.8,
+        //         "mark_price": 81542.2,
+        //         "open_interest": 42.65602,
+        //         "24h_open": 81606.8,
+        //         "24h_close": 81518.1,
+        //         "24h_high": 81706.7,
+        //         "24h_low": 81069.9,
+        //         "24h_volume": 65.48965,
+        //         "24h_amount": 5333323.390584
+        //     }
+        //
+        const marketId = this.safeString (interest, 'symbol');
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (interest, 'timestamp');
+        return this.safeOpenInterest ({
+            'symbol': marketResolved['symbol'],
+            'openInterestAmount': this.safeNumber (interest, 'open_interest'),
+            'openInterestValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        }, marketResolved);
+    }
+
+    /**
+     * @method
+     * @name modetrade#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PublicGetPublicFuturesSymbol (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        const timestamp = this.safeInteger (response, 'timestamp');
+        const interest = this.extend ({ 'timestamp': timestamp }, data);
+        return this.parseOpenInterest (interest, market);
+    }
+
+    /**
+     * @method
+     * @name modetrade#fetchOpenInterests
+     * @description retrieves the open interest for a list of contract trading pairs
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    override async fetchOpenInterests (symbols: Strings = undefined, params: Dict = {}): Promise<OpenInterests> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        const response = await this.v1PublicGetPublicFutures (params);
+        const data = this.safeDict (response, 'data', {});
+        const rows: Dict[] = this.safeList (data, 'rows', []);
+        const timestamp = this.safeInteger (response, 'timestamp');
+        const result: Dict[] = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const marketId = this.safeString (row, 'symbol', '');
+            if ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id)) {
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            }
+            const interest = this.extend ({ 'timestamp': timestamp }, row);
+            result.push (this.parseOpenInterest (interest));
+        }
+        return this.indexBy (this.filterByArray (result, 'symbol', symbolsNormalized, false), 'symbol');
     }
 
     override parseIncome (income: Dict, market: Market = undefined): Dict {

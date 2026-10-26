@@ -4,6 +4,315 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchOpenInterests": [
+            {
+                "description": "all swap open interests",
+                "method": "fetchOpenInterests",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_SOL_USDC",
+                                "display_symbol_name": "SOL",
+                                "broker_id": null,
+                                "status": "ACTIVE",
+                                "index_price": 100.462,
+                                "mark_price": 100.455,
+                                "sum_unitary_funding": 65.198,
+                                "est_funding_rate": 5.321e-05,
+                                "last_funding_rate": 5.208e-05,
+                                "next_funding_time": 1793059200000,
+                                "open_interest": 16730.01,
+                                "is_pretge": false,
+                                "24h_open": 101.67,
+                                "24h_close": 100.418,
+                                "24h_high": 102.512,
+                                "24h_low": 99.775,
+                                "24h_volume": 23660.81,
+                                "24h_amount": 2389344.99865
+                            },
+                            {
+                                "symbol": "PERP_BTC_USDC",
+                                "display_symbol_name": "BTC",
+                                "broker_id": null,
+                                "status": "ACTIVE",
+                                "index_price": 79952.7,
+                                "mark_price": 79963.6,
+                                "sum_unitary_funding": 27870.3,
+                                "est_funding_rate": 0.0001,
+                                "last_funding_rate": 9.959e-05,
+                                "next_funding_time": 1793059200000,
+                                "open_interest": 196.03739,
+                                "is_pretge": false,
+                                "24h_open": 80534.4,
+                                "24h_close": 79964.5,
+                                "24h_high": 80730.3,
+                                "24h_low": 79314.7,
+                                "24h_volume": 105.49022,
+                                "24h_amount": 8445956.617299
+                            },
+                            {
+                                "symbol": "PERP_ETH_USDC",
+                                "display_symbol_name": "ETH",
+                                "broker_id": null,
+                                "status": "ACTIVE",
+                                "index_price": 2316.74,
+                                "mark_price": 2317.51,
+                                "sum_unitary_funding": 1392.72,
+                                "est_funding_rate": 0.0001,
+                                "last_funding_rate": 9.89e-05,
+                                "next_funding_time": 1793059200000,
+                                "open_interest": 10948.1701,
+                                "is_pretge": false,
+                                "24h_open": 2350.43,
+                                "24h_close": 2316.42,
+                                "24h_high": 2350.74,
+                                "24h_low": 2290.79,
+                                "24h_volume": 6116.9504,
+                                "24h_amount": 14189080.738293
+                            }
+                        ]
+                    },
+                    "timestamp": 1793043903781
+                },
+                "parsedResponse": {
+                    "BTC/USDC:USDC": {
+                        "symbol": "BTC/USDC:USDC",
+                        "openInterestAmount": 196.03739,
+                        "openInterestValue": null,
+                        "timestamp": 1793043903781,
+                        "datetime": "2026-10-26T19:45:03.781Z",
+                        "info": {
+                            "timestamp": 1793043903781,
+                            "symbol": "PERP_BTC_USDC",
+                            "display_symbol_name": "BTC",
+                            "broker_id": null,
+                            "status": "ACTIVE",
+                            "index_price": 79952.7,
+                            "mark_price": 79963.6,
+                            "sum_unitary_funding": 27870.3,
+                            "est_funding_rate": 0.0001,
+                            "last_funding_rate": 9.959e-05,
+                            "next_funding_time": 1793059200000,
+                            "open_interest": 196.03739,
+                            "is_pretge": false,
+                            "24h_open": 80534.4,
+                            "24h_close": 79964.5,
+                            "24h_high": 80730.3,
+                            "24h_low": 79314.7,
+                            "24h_volume": 105.49022,
+                            "24h_amount": 8445956.617299
+                        },
+                        "baseVolume": null,
+                        "quoteVolume": null
+                    },
+                    "ETH/USDC:USDC": {
+                        "symbol": "ETH/USDC:USDC",
+                        "openInterestAmount": 10948.1701,
+                        "openInterestValue": null,
+                        "timestamp": 1793043903781,
+                        "datetime": "2026-10-26T19:45:03.781Z",
+                        "info": {
+                            "timestamp": 1793043903781,
+                            "symbol": "PERP_ETH_USDC",
+                            "display_symbol_name": "ETH",
+                            "broker_id": null,
+                            "status": "ACTIVE",
+                            "index_price": 2316.74,
+                            "mark_price": 2317.51,
+                            "sum_unitary_funding": 1392.72,
+                            "est_funding_rate": 0.0001,
+                            "last_funding_rate": 9.89e-05,
+                            "next_funding_time": 1793059200000,
+                            "open_interest": 10948.1701,
+                            "is_pretge": false,
+                            "24h_open": 2350.43,
+                            "24h_close": 2316.42,
+                            "24h_high": 2350.74,
+                            "24h_low": 2290.79,
+                            "24h_volume": 6116.9504,
+                            "24h_amount": 14189080.738293
+                        },
+                        "baseVolume": null,
+                        "quoteVolume": null
+                    }
+                }
+            },
+            {
+                "description": "open interests filtered by symbol",
+                "method": "fetchOpenInterests",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ]
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_SOL_USDC",
+                                "display_symbol_name": "SOL",
+                                "broker_id": null,
+                                "status": "ACTIVE",
+                                "index_price": 100.484,
+                                "mark_price": 100.478,
+                                "sum_unitary_funding": 65.198,
+                                "est_funding_rate": 5.321e-05,
+                                "last_funding_rate": 5.208e-05,
+                                "next_funding_time": 1793059200000,
+                                "open_interest": 16730.01,
+                                "is_pretge": false,
+                                "24h_open": 101.67,
+                                "24h_close": 100.418,
+                                "24h_high": 102.512,
+                                "24h_low": 99.775,
+                                "24h_volume": 23660.81,
+                                "24h_amount": 2389344.99865
+                            },
+                            {
+                                "symbol": "PERP_BTC_USDC",
+                                "display_symbol_name": "BTC",
+                                "broker_id": null,
+                                "status": "ACTIVE",
+                                "index_price": 79956.8,
+                                "mark_price": 79967.4,
+                                "sum_unitary_funding": 27870.3,
+                                "est_funding_rate": 0.0001,
+                                "last_funding_rate": 9.959e-05,
+                                "next_funding_time": 1793059200000,
+                                "open_interest": 196.02739,
+                                "is_pretge": false,
+                                "24h_open": 80534.4,
+                                "24h_close": 79964.5,
+                                "24h_high": 80730.3,
+                                "24h_low": 79314.7,
+                                "24h_volume": 105.49022,
+                                "24h_amount": 8445956.617299
+                            },
+                            {
+                                "symbol": "PERP_ETH_USDC",
+                                "display_symbol_name": "ETH",
+                                "broker_id": null,
+                                "status": "ACTIVE",
+                                "index_price": 2317.06,
+                                "mark_price": 2317.92,
+                                "sum_unitary_funding": 1392.72,
+                                "est_funding_rate": 0.0001,
+                                "last_funding_rate": 9.89e-05,
+                                "next_funding_time": 1793059200000,
+                                "open_interest": 10948.1701,
+                                "is_pretge": false,
+                                "24h_open": 2350.43,
+                                "24h_close": 2316.42,
+                                "24h_high": 2350.74,
+                                "24h_low": 2290.79,
+                                "24h_volume": 6116.9504,
+                                "24h_amount": 14189080.738293
+                            }
+                        ]
+                    },
+                    "timestamp": 1793043900725
+                },
+                "parsedResponse": {
+                    "BTC/USDC:USDC": {
+                        "symbol": "BTC/USDC:USDC",
+                        "openInterestAmount": 196.02739,
+                        "openInterestValue": null,
+                        "timestamp": 1793043900725,
+                        "datetime": "2026-10-26T19:45:00.725Z",
+                        "info": {
+                            "timestamp": 1793043900725,
+                            "symbol": "PERP_BTC_USDC",
+                            "display_symbol_name": "BTC",
+                            "broker_id": null,
+                            "status": "ACTIVE",
+                            "index_price": 79956.8,
+                            "mark_price": 79967.4,
+                            "sum_unitary_funding": 27870.3,
+                            "est_funding_rate": 0.0001,
+                            "last_funding_rate": 9.959e-05,
+                            "next_funding_time": 1793059200000,
+                            "open_interest": 196.02739,
+                            "is_pretge": false,
+                            "24h_open": 80534.4,
+                            "24h_close": 79964.5,
+                            "24h_high": 80730.3,
+                            "24h_low": 79314.7,
+                            "24h_volume": 105.49022,
+                            "24h_amount": 8445956.617299
+                        },
+                        "baseVolume": null,
+                        "quoteVolume": null
+                    }
+                }
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "single swap open interest",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "symbol": "PERP_BTC_USDC",
+                        "display_symbol_name": "BTC",
+                        "broker_id": null,
+                        "status": "ACTIVE",
+                        "index_price": 79953.3,
+                        "mark_price": 79963.7,
+                        "sum_unitary_funding": 27870.3,
+                        "est_funding_rate": 0.0001,
+                        "last_funding_rate": 0.00009959,
+                        "next_funding_time": 1793059200000,
+                        "open_interest": 196.02739,
+                        "is_pretge": false,
+                        "24h_open": 80534.4,
+                        "24h_close": 79964.5,
+                        "24h_high": 80730.3,
+                        "24h_low": 79314.7,
+                        "24h_volume": 105.49022,
+                        "24h_amount": 8445956.617299
+                    },
+                    "timestamp": 1793043898484
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC",
+                    "openInterestAmount": 196.02739,
+                    "openInterestValue": null,
+                    "timestamp": 1793043898484,
+                    "datetime": "2026-10-26T19:44:58.484Z",
+                    "info": {
+                        "timestamp": 1793043898484,
+                        "symbol": "PERP_BTC_USDC",
+                        "display_symbol_name": "BTC",
+                        "broker_id": null,
+                        "status": "ACTIVE",
+                        "index_price": 79953.3,
+                        "mark_price": 79963.7,
+                        "sum_unitary_funding": 27870.3,
+                        "est_funding_rate": 0.0001,
+                        "last_funding_rate": 0.00009959,
+                        "next_funding_time": 1793059200000,
+                        "open_interest": 196.02739,
+                        "is_pretge": false,
+                        "24h_open": 80534.4,
+                        "24h_close": 79964.5,
+                        "24h_high": 80730.3,
+                        "24h_low": 79314.7,
+                        "24h_volume": 105.49022,
+                        "24h_amount": 8445956.617299
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
+            }
+        ],
         "fetchTickers": [
             {
                 "description": "all swap tickers",
