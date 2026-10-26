@@ -4892,7 +4892,7 @@ func (this *Extended) Sign(path string, optionalArgs ...any) any {
 	_ = params
 	var requestHeaders map[string]any = nil
 	var requestBody *string = nil
-	var accessibility *string = this.SafeString(api, 1)
+	var accessibility string = api[1]
 	var endpoint string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var queryPost bool = (path == "user/deadmanswitch")
@@ -4900,7 +4900,7 @@ func (this *Extended) Sign(path string, optionalArgs ...any) any {
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	if accessibility != nil && *accessibility == "private" {
+	if accessibility == "private" {
 		// this.checkRequiredCredentials ();
 		if this.ApiKey == "" {
 			panic(AuthenticationError(this.Id + " sign() requires an apiKey for private endpoints"))

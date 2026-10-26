@@ -8257,28 +8257,28 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 	_ = params
 	var requestHeaders any = nil
 	var requestBody *string = nil
-	var section *string = this.SafeString(api, 0)
-	var access *string = this.SafeString(api, 1)
+	var section string = api[0]
+	var access string = api[1]
 	var pathValue string = this.ImplodeParams(path, params)
 	var paramsValue any = this.Omit(params, this.ExtractParams(path))
 	var url any = nil
-	if (section != nil && *section == "spot") || (section != nil && *section == "broker") {
-		if section != nil && *section == "broker" {
-			var apiUrl *string = this.SafeString(GetValue(this.Urls["api"], section), access)
+	if (section == "spot") || (section == "broker") {
+		if section == "broker" {
+			var apiUrl *string = this.SafeString(this.UrlsApi[section], access)
 			if apiUrl == nil {
 				panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 			}
 			url = *apiUrl + "/" + pathValue
 		} else {
-			var apiUrl *string = this.SafeString(GetValue(this.Urls["api"], section), access)
+			var apiUrl *string = this.SafeString(this.UrlsApi[section], access)
 			if apiUrl == nil {
 				panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 			}
 			url = *apiUrl + "/api/" + this.Version + "/" + pathValue
 		}
 		var urlParams map[string]any = this.Extend(paramsValue, map[string]any{})
-		if access != nil && *access == "private" {
-			if (section != nil && *section == "broker") && ((method == "POST") || (method == "PUT") || (method == "DELETE")) {
+		if access == "private" {
+			if (section == "broker") && ((method == "POST") || (method == "PUT") || (method == "DELETE")) {
 				urlParams = map[string]any{
 					"timestamp":  this.Nonce(),
 					"recvWindow": this.SafeInteger(this.Options, "recvWindow", 5000),
@@ -8294,7 +8294,7 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 			paramsEncoded = this.Urlencode(urlParams)
 			url = Add(url, "?"+paramsEncoded)
 		}
-		if access != nil && *access == "private" {
+		if access == "private" {
 			this.CheckRequiredCredentials()
 			var signature string = this.Hmac(this.Encode(paramsEncoded), this.Encode(this.Secret), sha256)
 			url = Add(url, "&"+"signature="+signature)
@@ -8309,14 +8309,14 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 			}
 			AddElementToObject(requestHeaders, "Content-Type", "application/json")
 		}
-	} else if (section != nil && *section == "contract") || (section != nil && *section == "spot2") {
-		var apiUrl *string = this.SafeString(GetValue(this.Urls["api"], section), access)
+	} else if (section == "contract") || (section == "spot2") {
+		var apiUrl *string = this.SafeString(this.UrlsApi[section], access)
 		if apiUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
 		url = *apiUrl + "/" + this.ImplodeParams(pathValue, paramsValue)
 		var paramsOmitted any = this.Omit(paramsValue, this.ExtractParams(pathValue))
-		if access != nil && *access == "public" {
+		if access == "public" {
 			if len(ObjectKeys(paramsOmitted)) > 0 {
 				url = Add(url, "?"+this.Urlencode(paramsOmitted))
 			}
