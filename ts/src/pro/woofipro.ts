@@ -640,8 +640,8 @@ export default class woofipro extends woofiproRest {
             const ts = this.nonce ().toString ();
             const auth = ts;
             let secret = this.secret;
-            if (secret.indexOf ('ed25519:') >= 0) {
-                const parts = secret.split ('ed25519:');
+            if (this.secret.indexOf ('ed25519:') >= 0) {
+                const parts = this.secret.split ('ed25519:');
                 secret = parts[1];
             }
             const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);

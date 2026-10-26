@@ -2951,8 +2951,8 @@ export default class woofipro extends Exchange {
 
     signHash (hash: string, privateKey: string): string {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString (signature, 'r', '');
+        const s = this.safeString (signature, 's', '');
         const v = this.intToBase16 (this.sum (27, signature['v']));
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
@@ -3493,8 +3493,8 @@ export default class woofipro extends Exchange {
     }
 
     override sign (path: string, section: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const version = section[0];
-        const access = section[1];
+        const version = this.safeString (section, 0, '');
+        const access = this.safeString (section, 1);
         const pathWithParams = this.implodeParams (path, params);
         const apiUrl = this.safeString (this.urls['api'], access);
         if (apiUrl === undefined) {
@@ -3530,8 +3530,8 @@ export default class woofipro extends Exchange {
             const ts = this.nonce ().toString ();
             url += pathWithParams;
             let apiKey = this.apiKey;
-            if (apiKey.indexOf ('ed25519:') < 0) {
-                apiKey = 'ed25519:' + apiKey;
+            if (this.apiKey.indexOf ('ed25519:') < 0) {
+                apiKey = 'ed25519:' + this.apiKey;
             }
             requestHeaders = {
                 'orderly-account-id': this.accountId,
@@ -3554,9 +3554,8 @@ export default class woofipro extends Exchange {
                 }
             }
             let secret = this.secret;
-            const rawSecret: string = this.secret;
-            if (rawSecret.indexOf ('ed25519:') >= 0) {
-                const parts = rawSecret.split ('ed25519:');
+            if (this.secret.indexOf ('ed25519:') >= 0) {
+                const parts = this.secret.split ('ed25519:');
                 secret = parts[1];
             }
             const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);
