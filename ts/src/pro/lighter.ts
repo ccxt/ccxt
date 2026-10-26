@@ -802,7 +802,7 @@ export default class lighter extends lighterRest {
                 tradeRaw['accountIndex'] = accountIndex;
                 const trade = this.parseWsOrderTrade (tradeRaw, market);
                 stored.append (trade);
-                const symbol = trade['symbol'];
+                const symbol = this.safeString (trade, 'symbol');
                 if (symbol !== undefined) {
                     const symbolSpecificMessageHash = this.getMessageHash ('myTrades', symbol);
                     client.resolve (stored, symbolSpecificMessageHash);

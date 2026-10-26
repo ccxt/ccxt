@@ -990,14 +990,14 @@ export default class lighter extends Exchange {
             const signingPayload: Dict = {
                 'grouping_type': groupingType,
                 'orders': orderRequests,
-                'nonce': (order as Dict)['nonce'],
+                'nonce': this.safeInteger (order, 'nonce'),
                 'api_key_index': apiKeyIndex,
                 'account_index': accountIndex,
             };
             if (this.safeBool (this.options, 'builderFee', true)) {
-                signingPayload['integrator_account_index'] = (order as Dict)['integrator_account_index'];
-                signingPayload['integrator_taker_fee'] = (order as Dict)['integrator_taker_fee'];
-                signingPayload['integrator_maker_fee'] = (order as Dict)['integrator_maker_fee'];
+                signingPayload['integrator_account_index'] = this.safeInteger (order, 'integrator_account_index');
+                signingPayload['integrator_taker_fee'] = this.safeInteger (order, 'integrator_taker_fee');
+                signingPayload['integrator_maker_fee'] = this.safeInteger (order, 'integrator_maker_fee');
             }
             [ txType, txInfo ] = this.lighterSignCreateGroupedOrders (signer, signingPayload);
         }
@@ -1371,7 +1371,7 @@ export default class lighter extends Exchange {
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'asset_id');
         const code = this.safeCurrencyCode (this.safeString (rawCurrency, 'symbol'));
-        const decimals = this.safeString (rawCurrency, 'decimals');
+        const decimals = this.safeString (rawCurrency, 'decimals', '');
         const isUSDC = (code === 'USDC');
         let depositMin: Num = undefined;
         let withdrawMin: Num = undefined;
