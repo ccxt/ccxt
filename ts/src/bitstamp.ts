@@ -691,7 +691,7 @@ export default class bitstamp extends Exchange {
             } else if (marketTypeRaw === 'PERPETUAL') {
                 type = 'swap';
                 settleId = quoteId;
-                symbol = base + '/' + quote + ':' + settleId;
+                symbol = base + '/' + quote + ':' + this.safeString (market, 'counter_currency', '');
                 const payoffType = this.safeString (market, 'payoff_type');
                 if (payoffType === 'Linear') {
                     subType = 'linear';
@@ -869,7 +869,7 @@ export default class bitstamp extends Exchange {
         const result: Dict = {};
         const arr = this.toArray (rawCurrencies);
         for (let i = 0; i < arr.length; i++) {
-            const market = arr[i];
+            const market = this.safeDict (arr, i, {});
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'counter_currency');
             const base = this.safeCurrencyCode (baseId);
@@ -1175,7 +1175,6 @@ export default class bitstamp extends Exchange {
         let side: Str = undefined;
         let priceString = this.safeString (trade, 'price');
         let amountString = this.safeString (trade, 'amount');
-        const orderId = this.safeString (trade, 'order_id');
         const type = undefined;
         let costString = this.safeString (trade, 'cost');
         let rawMarketId: Str = undefined;
@@ -1270,7 +1269,7 @@ export default class bitstamp extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': orderId,
+            'order': this.safeString (trade, 'order_id'),
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
@@ -1654,8 +1653,7 @@ export default class bitstamp extends Exchange {
         const code = this.safeString (currency, 'code');
         for (let j = 0; j < fee.length; j++) {
             const networkEntry = this.safeDict (fee, j);
-            const networkId = this.safeString (networkEntry, 'network');
-            const networkCode = this.networkIdToCode (networkId, code);
+            const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'network'), code);
             const withdrawFee = this.safeNumber (networkEntry, 'fee');
             result['withdraw'] = {
                 'fee': withdrawFee,
@@ -2207,13 +2205,13 @@ export default class bitstamp extends Exchange {
             type = 'withdrawal';
         }
         let tag: Str = undefined;
-        let address = this.safeString (transaction, 'address');
-        if (address !== undefined) {
+        let address: Str = undefined;
+        const addressRaw = this.safeString (transaction, 'address');
+        if (addressRaw !== undefined) {
             // dt (destination tag) is embedded into the address field
-            const addressParts = address.split ('?dt=');
-            const numParts = addressParts.length;
-            if (numParts > 1) {
-                address = addressParts[0];
+            const addressParts = addressRaw.split ('?dt=');
+            address = addressParts[0];
+            if (addressParts.length > 1) {
                 tag = addressParts[1];
             }
         }
@@ -2738,7 +2736,7 @@ export default class bitstamp extends Exchange {
         //
         //    { status: 'ok' }
         //
-        const transfer = this.parseTransfer (response, currency);
+        const transfer: Dict = this.parseTransfer (response, currency);
         transfer['amount'] = amount;
         transfer['fromAccount'] = fromAccount;
         transfer['toAccount'] = toAccount;
@@ -2801,7 +2799,7 @@ export default class bitstamp extends Exchange {
         if (isPrivatePost) {
             requestBody = postBody;
         }
-        let privateHeaders: NullableDict = undefined;
+        let privateHeaders: NullableDict = {};
         if (apiName === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
