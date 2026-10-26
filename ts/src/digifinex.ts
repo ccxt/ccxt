@@ -1866,9 +1866,8 @@ export default class digifinex extends Exchange {
         const market = this.market (symbol);
         const [ marketTypeRaw, paramsMarketType ] = this.handleMarketTypeAndParams ('createOrderRequest', market, params);
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('createOrderRequest', paramsMarketType);
-        const marketType = (marginMode !== undefined) ? 'margin' : marketTypeRaw;
         const request: Dict = {};
-        const swap = (marketType === 'swap');
+        const swap = ((marginMode === undefined) && (marketTypeRaw === 'swap'));
         const isMarketOrder = (type === 'market');
         const isLimitOrder = (type === 'limit');
         let marketIdRequest: Str = 'symbol';
@@ -1910,7 +1909,7 @@ export default class digifinex extends Exchange {
             paramsRequest = this.omit (paramsMarginMode, [ 'reduceOnly', 'timeInForce', 'postOnly' ]);
         } else {
             postOnlyParsed = (postOnly) ? 1 : 2;
-            request['market'] = marketType;
+            request['market'] = (marginMode !== undefined) ? 'margin' : marketTypeRaw;
             let suffix = '';
             if (type === 'market') {
                 suffix = '_market';
