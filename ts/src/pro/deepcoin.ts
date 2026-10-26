@@ -3,7 +3,7 @@
 
 import deepcoinRest from '../deepcoin.js';
 import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
-import type { Dict, FeeString, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Dict, FeeString, Int, List, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -801,10 +801,8 @@ export default class deepcoin extends deepcoinRest {
         const market = this.safeMarket (marketId, undefined, '/');
         const symbol = this.safeSymbol (marketId, market);
         const orderbook = this.orderbooks[symbol];
-        const orderedEntries: Dict = {
-            'bids': [],
-            'asks': [],
-        };
+        const bids: List = [];
+        const asks: List = [];
         for (let i = 0; i < entries.length; i++) {
             const entry = this.safeDict (entries, i);
             const entryData = this.safeDict (entry, 'd', {});
@@ -813,12 +811,16 @@ export default class deepcoin extends deepcoinRest {
             const volume = this.safeNumber (entryData, 'V');
             if (side === '0') {
                 // bid
-                orderedEntries['bids'].push ([ price, volume ]);
+                bids.push ([ price, volume ]);
             } else if (side === '1') {
                 // ask
-                orderedEntries['asks'].push ([ price, volume ]);
+                asks.push ([ price, volume ]);
             }
         }
+        const orderedEntries: Dict = {
+            'bids': bids,
+            'asks': asks,
+        };
         const timestamp = this.safeInteger (message, 'mt', 0);
         const snapshot = this.parseOrderBook (orderedEntries, symbol, timestamp);
         orderbook.reset (snapshot);
@@ -892,7 +894,7 @@ export default class deepcoin extends deepcoinRest {
         }
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
         if (symbolResolved !== undefined) {
-            messageHash += '::' + symbolResolved;
+            messageHash = 'myTrades' + '::' + symbolResolved;
         }
         const trades = await this.watchPrivate (messageHash, params);
         let limitResolved: Int = limit;
@@ -972,7 +974,7 @@ export default class deepcoin extends deepcoinRest {
         }
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
         if (symbolResolved !== undefined) {
-            messageHash += '::' + symbolResolved;
+            messageHash = 'orders' + '::' + symbolResolved;
         }
         const orders = await this.watchPrivate (messageHash, params);
         let limitResolved: Int = limit;
