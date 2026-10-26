@@ -2288,10 +2288,8 @@ export default class grvt extends Exchange {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['base'] = [];
-            request['base'].push (market['baseId']);
-            request['quote'] = [];
-            request['quote'].push (market['quoteId']);
+            request['base'] = [ market['baseId'] ];
+            request['quote'] = [ market['quoteId'] ];
         }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
@@ -2627,10 +2625,8 @@ export default class grvt extends Exchange {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['base'] = [];
-            request['base'].push (market['baseId']);
-            request['quote'] = [];
-            request['quote'].push (market['quoteId']);
+            request['base'] = [ market['baseId'] ];
+            request['quote'] = [ market['quoteId'] ];
         }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
@@ -2706,10 +2702,8 @@ export default class grvt extends Exchange {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['base'] = [];
-            request['base'].push (market['baseId']);
-            request['quote'] = [];
-            request['quote'].push (market['quoteId']);
+            request['base'] = [ market['baseId'] ];
+            request['quote'] = [ market['quoteId'] ];
         }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
@@ -3136,10 +3130,8 @@ export default class grvt extends Exchange {
         };
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            request['base'] = [];
-            request['base'].push (market['baseId']);
-            request['quote'] = [];
-            request['quote'].push (market['quoteId']);
+            request['base'] = [ market['baseId'] ];
+            request['quote'] = [ market['quoteId'] ];
         }
         const response = await this.privateTradingPostFullV1CancelAllOrders (this.extend (request, params));
         //
@@ -3264,10 +3256,15 @@ export default class grvt extends Exchange {
         const secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         const privateKeyWithoutZero = this.remove0xPrefix (secretOrPrivkey);
         const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, undefined);
-        request['signature']['r'] = this.formatSignatureRS (signature['r']);
-        request['signature']['s'] = this.formatSignatureRS (signature['s']);
-        request['signature']['v'] = this.sum (27, signature['v']);
-        request['signature']['signer'] = (signerAddress === undefined) ? this.ethGetAddressFromPrivateKey ('0x' + privateKeyWithoutZero) : signerAddress;
+        request['signature'] = {
+            'signer': (signerAddress === undefined) ? this.ethGetAddressFromPrivateKey ('0x' + privateKeyWithoutZero) : signerAddress,
+            'r': this.formatSignatureRS (signature['r']),
+            's': this.formatSignatureRS (signature['s']),
+            'v': this.sum (27, signature['v']),
+            'expiration': requestSignature['expiration'],
+            'nonce': requestSignature['nonce'],
+            'chain_id': requestSignature['chain_id'],
+        };
         return request;
     }
 
@@ -3346,7 +3343,7 @@ export default class grvt extends Exchange {
         if (isPrivate) {
             this.checkRequiredCredentials ();
             if (queryString !== '') {
-                requestPath = requestPath + '?' + queryString;
+                requestPath = path + '?' + queryString;
             }
             requestHeaders = {
                 'Content-Type': 'application/json',
