@@ -995,7 +995,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const parts = messageHash.split ('.');
         const marketId = this.safeString (parts, 2);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const resolution = this.safeString (parts, 3);
         const wsOptions = this.safeDict (this.options, 'ws', {});
         const timeframes = this.safeDict (wsOptions, 'timeframes', {});
@@ -1128,11 +1128,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const parts = channel.split ('.');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        if (!((symbol as string) in this.trades)) {
+        const symbol = this.safeString (market, 'symbol', '');
+        if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const tradesArrayCache = new ArrayCache (limit);
-            this.trades[(symbol as string)] = tradesArrayCache;
+            this.trades[symbol] = tradesArrayCache;
         }
         const tradesArray = this.trades[(symbol as string)];
         const dataLength = data.length;
