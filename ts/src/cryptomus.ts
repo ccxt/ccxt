@@ -521,10 +521,9 @@ export default class cryptomus extends Exchange {
         //
         const marketId = this.safeString (ticker, 'currency_pair');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
         const last = this.safeString (ticker, 'last_price');
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': marketResolved['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
             'high': undefined,
@@ -757,7 +756,8 @@ export default class cryptomus extends Exchange {
         const amountToString = this.numberToString (amount);
         const priceToString = this.numberToString (price);
         const paramsCost: Dict = this.omit (paramsOmitted, 'cost');
-        let cost: Str = this.safeString (paramsOmitted, 'cost');
+        const costParam = this.safeString (paramsOmitted, 'cost');
+        let cost: Str = costParam;
         let response: Dict;
         if (type === 'market') {
             const requiresPriceAndParams = this.handleOptionBoolAndParams (paramsCost, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -768,13 +768,13 @@ export default class cryptomus extends Exchange {
             if (sideBuy) {
                 const createMarketBuyOrderRequiresPrice = requiresPriceAndParams[0];
                 if (createMarketBuyOrderRequiresPrice) {
-                    if ((price === undefined) && (cost === undefined)) {
+                    if ((price === undefined) && (costParam === undefined)) {
                         throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument');
-                    } else if (cost === undefined) {
+                    } else if (costParam === undefined) {
                         cost = Precise.stringMul (amountToString, priceToString);
                     }
                 } else {
-                    cost = (cost !== undefined && cost !== '') ? cost : amountToString;
+                    cost = (costParam !== undefined && costParam !== '') ? costParam : amountToString;
                 }
                 request['value'] = cost;
             } else {
