@@ -2501,9 +2501,7 @@ export default class coinbase extends Exchange {
                     const free = total;
                     let account = this.safeDict (result, code);
                     if (account === undefined) {
-                        account = this.account ();
-                        account['free'] = free;
-                        account['total'] = total;
+                        account = this.extend (this.account (), { 'free': free, 'total': total });
                     } else {
                         account['free'] = Precise.stringAdd (this.safeString (account, 'free'), total);
                         account['total'] = Precise.stringAdd (this.safeString (account, 'total'), total);
@@ -2523,10 +2521,7 @@ export default class coinbase extends Exchange {
                     const total = Precise.stringAdd (used, free);
                     let account = this.safeDict (result, code);
                     if (account === undefined) {
-                        account = this.account ();
-                        account['free'] = free;
-                        account['used'] = used;
-                        account['total'] = total;
+                        account = this.extend (this.account (), { 'free': free, 'used': used, 'total': total });
                     } else {
                         account['free'] = Precise.stringAdd (this.safeString (account, 'free'), free);
                         account['used'] = Precise.stringAdd (this.safeString (account, 'used'), used);
@@ -2579,7 +2574,10 @@ export default class coinbase extends Exchange {
                     page = await this.v3PrivateGetBrokerageAccounts (this.extend (request, paramsMarketType));
                     accounts = this.arrayConcat (accounts, this.safeList (page, 'accounts', []));
                     const nextCursor = this.safeString (page, 'cursor');
-                    cursor = (nextCursor === cursor) ? undefined : nextCursor;
+                    if (nextCursor === cursor) {
+                        break;
+                    }
+                    cursor = nextCursor;
                 }
                 response['accounts'] = accounts;
                 response['has_next'] = this.safeBool (page, 'has_next', false);
@@ -3070,8 +3068,14 @@ export default class coinbase extends Exchange {
     }
 
     async prepareAccountRequestWithCurrencyCode (code: Str = undefined, limit: Int = undefined, params: Dict = {}): Promise<[Dict, Dict]> {
-        let accountId: Str = this.safeString2 (params, 'account_id', 'accountId');
+        const accountId: Str = this.safeString2 (params, 'account_id', 'accountId');
         const paramsOmitted: Dict = this.omit (params, [ 'account_id', 'accountId' ]);
+        const request: Dict = {
+            'account_id': accountId,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         if (accountId === undefined) {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument');
@@ -3080,13 +3084,7 @@ export default class coinbase extends Exchange {
             if (foundAccountId === undefined) {
                 throw new ExchangeError (this.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code + '. You might try to generate the deposit address in the website for that coin first.');
             }
-            accountId = foundAccountId;
-        }
-        const request: Dict = {
-            'account_id': accountId,
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit;
+            request['account_id'] = foundAccountId;
         }
         return [ request, paramsOmitted ];
     }
@@ -4628,8 +4626,12 @@ export default class coinbase extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let accountId: Str = this.safeString2 (params, 'account_id', 'accountId');
+        const accountId: Str = this.safeString2 (params, 'account_id', 'accountId');
         const paramsOmitted: Dict = this.omit (params, [ 'account_id', 'accountId' ]);
+        const request: Dict = {
+            'account_id': accountId,
+            'deposit_id': id,
+        };
         if (accountId === undefined) {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument');
@@ -4638,12 +4640,8 @@ export default class coinbase extends Exchange {
             if (foundAccountId === undefined) {
                 throw new ExchangeError (this.id + ' fetchDeposit() could not find account id for ' + code);
             }
-            accountId = foundAccountId;
+            request['account_id'] = foundAccountId;
         }
-        const request: Dict = {
-            'account_id': accountId,
-            'deposit_id': id,
-        };
         const response = await this.v2PrivateGetAccountsAccountIdDepositsDepositId (this.extend (request, paramsOmitted));
         //
         //     {
