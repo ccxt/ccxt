@@ -7093,6 +7093,7 @@ class okx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch funding history for
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch funding history for
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
          */
         if ($this->markets === null) {
@@ -7180,6 +7181,7 @@ class okx extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $request['instId'] = $market['id'];
             if ($market['contract'] === true) {
                 if ($market['linear'] === true) {
                     $request['ctType'] = 'linear';
@@ -7190,13 +7192,17 @@ class okx extends Exchange {
                 }
             }
         }
+        if ($since !== null) {
+            $request['begin'] = $since;
+        }
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end', $request, $params);
         $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
-        list($type, $query) = $this->handle_market_type_and_params('fetchFundingHistory', $market, $params);
+        list($type, $query) = $this->handle_market_type_and_params('fetchFundingHistory', $market, $paramsUntil);
         if ($type === 'swap') {
-            $request['instType'] = $this->convert_to_instrument_type($type);
+            $requestUntil['instType'] = $this->convert_to_instrument_type($type);
         }
         // AccountBillsArchive has the same cost as AccountBills but supports three months of data
-        $response = $this->privateGetAccountBillsArchive($this->extend($request, $query));
+        $response = $this->privateGetAccountBillsArchive($this->extend($requestUntil, $query));
         //
         //    {
         //        "bal": "0.0242946200998573",

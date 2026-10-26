@@ -5108,7 +5108,7 @@ class hyperliquid extends hyperliquid$1["default"] {
     }
     /**
      * @method
-     * @name hyperliquid#createAccount
+     * @name hyperliquid#createSubAccount
      * @description creates a sub-account under the main account
      * @param {string} name the name of the sub-account
      * @param {object} [params] extra parameters specific to the exchange API endpoint

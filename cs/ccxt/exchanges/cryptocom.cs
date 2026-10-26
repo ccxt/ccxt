@@ -4037,7 +4037,7 @@ public partial class cryptocom : Exchange
 
     /**
      * @method
-     * @name cryptocom#closePositions
+     * @name cryptocom#closePosition
      * @description closes open positions for a market
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
      * @param {string} symbol Unified CCXT market symbol

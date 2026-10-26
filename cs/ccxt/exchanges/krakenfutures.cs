@@ -2791,11 +2791,7 @@ public partial class krakenfutures : Exchange
         {
             await this.loadMarkets();
         }
-        IDictionary<string, object> market = null;
-        if ((symbol != null))
-        {
-            market = this.market(symbol);
-        }
+        object symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
         // todo: lastFillTime: this.iso8601(end)
         Dictionary<string, object> response = await this.privateGetFills(parameters);
         //
@@ -2819,7 +2815,13 @@ public partial class krakenfutures : Exchange
         //    }
         //
         List<object> fills = this.safeList(response, "fills", new List<object>() {});
-        return this.parseTrades(fills, market, since, limit);
+        // the endpoint returns the fills of every contract, each row resolves its own market
+        IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(fills));
+        // a fill of a contract that is no longer listed in /instruments has no unified symbol,
+        // so safeMarket keeps the raw id (eg 'PF_XRPUSD') in trade['symbol']: it is filtered out
+        // whenever a symbol is requested and returned as-is when symbol is undefined, on purpose,
+        // because it is still the user's own fill and dropping it would hide real trades
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limit));
     }
 
     /**

@@ -2907,11 +2907,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = null;
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                market = this.market(symbol);
-            }
+            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
             // todo: lastFillTime: this.iso8601(end)
             Map<String, Object> response = (this.privateGetFills(parameters)).join();
             //
@@ -2935,7 +2931,13 @@ public class Krakenfutures extends KrakenfuturesApi
             //    }
             //
             List<Object> fills = (List<Object>) this.safeList(response, "fills", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(fills, market, since, limit, new HashMap<String, Object>() {{}});
+            // the endpoint returns the fills of every contract, each row resolves its own market
+            List<Object> trades = this.parseTrades(fills, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            // a fill of a contract that is no longer listed in /instruments has no unified symbol,
+            // so safeMarket keeps the raw id (eg 'PF_XRPUSD') in trade['symbol']: it is filtered out
+            // whenever a symbol is requested and returned as-is when symbol is undefined, on purpose,
+            // because it is still the user's own fill and dropping it would hide real trades
+            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

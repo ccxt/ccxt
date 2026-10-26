@@ -720,19 +720,19 @@ helper method for cancelling uta orders
 <a name="closeAllPositions" id="closeallpositions"></a>
 
 ## closeAllPositions
-closes all open positions for a market type
+closes open positions for a market
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - A list of [position structures](https://docs.ccxt.com/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - [a list of position structures](https://docs.ccxt.com/?id=position-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.productType | <code>string</code> | No | 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
-| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.recvWindow | <code>string</code> | No | request valid time window value |
 
 ##### Supported exchanges
+* [bingx](/exchanges/bingx.md#closeallpositions)
 * [bitget](/exchanges/bitget.md#closeallpositions)
 * [delta](/exchanges/delta.md#closeallpositions)
 * [mexc](/exchanges/mexc.md#closeallpositions)
@@ -762,6 +762,7 @@ closes open positions for a market
 * [blofin](/exchanges/blofin.md#closeposition)
 * [btse](/exchanges/btse.md#closeposition)
 * [coinbase](/exchanges/coinbase.md#closeposition)
+* [cryptocom](/exchanges/cryptocom.md#closeposition)
 * [deepcoin](/exchanges/deepcoin.md#closeposition)
 * [gate](/exchanges/gate.md#closeposition)
 * [hitbtc](/exchanges/hitbtc.md#closeposition)
@@ -771,46 +772,6 @@ closes open positions for a market
 * [okx](/exchanges/okx.md#closeposition)
 * [weex](/exchanges/weex.md#closeposition)
 * [zebpay](/exchanges/zebpay.md#closeposition)
-
----
-
-<a name="closePositions" id="closepositions"></a>
-
-## closePositions
-closes open positions for a market
-
-**Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - [a list of position structures](https://docs.ccxt.com/?id=position-structure)
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.recvWindow | <code>string</code> | No | request valid time window value |
-
-##### Supported exchanges
-* [bitget](/exchanges/bitget.md#closepositions)
-* [cryptocom](/exchanges/cryptocom.md#closepositions)
-
----
-
-<a name="createAccount" id="createaccount"></a>
-
-## createAccount
-creates a sub-account under the main account
-
-**Kind**: instance   
-**Returns**: <code>object</code> - a response object
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| name | <code>string</code> | Yes | the name of the sub-account |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.expiresAfter | <code>int</code> | No | time in ms after which the sub-account will expire |
-
-##### Supported exchanges
-* [hyperliquid](/exchanges/hyperliquid.md#createaccount)
 
 ---
 
@@ -986,26 +947,6 @@ create gift code
 
 ---
 
-<a name="createMarkeSellOrderWithCost" id="createmarkesellorderwithcost"></a>
-
-## createMarkeSellOrderWithCost
-create a market sell order by providing the symbol and cost
-
-**Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
-| cost | <code>float</code> | Yes | how much you want to trade in units of the quote currency |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-##### Supported exchanges
-* [bybit](/exchanges/bybit.md#createmarkesellorderwithcost)
-
----
-
 <a name="createMarketBuyOrderWithCost" id="createmarketbuyorderwithcost"></a>
 
 ## createMarketBuyOrderWithCost
@@ -1094,6 +1035,7 @@ create a market sell order by providing the symbol and cost
 * [alpaca](/exchanges/alpaca.md#createmarketsellorderwithcost)
 * [binance](/exchanges/binance.md#createmarketsellorderwithcost)
 * [bingx](/exchanges/bingx.md#createmarketsellorderwithcost)
+* [bybit](/exchanges/bybit.md#createmarketsellorderwithcost)
 * [deepcoin](/exchanges/deepcoin.md#createmarketsellorderwithcost)
 * [kucoin](/exchanges/kucoin.md#createmarketsellorderwithcost)
 * [mexc](/exchanges/mexc.md#createmarketsellorderwithcost)
@@ -1422,7 +1364,7 @@ helper method for creating spot orders in batch
 <a name="createSubAccount" id="createsubaccount"></a>
 
 ## createSubAccount
-creates a sub-account under the main account, privateKey must be the main account key, the exchange rejects agent-signed requests (an agent_wallet header with a main-key signature is accepted)
+creates a sub-account under the main account
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a response object
@@ -1430,13 +1372,12 @@ creates a sub-account under the main account, privateKey must be the main accoun
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| name | <code>string</code> | Yes | unused argument |
+| name | <code>string</code> | Yes | the name of the sub-account |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.expiryWindow | <code>int</code> | No | time to live in milliseconds |
-| params.subAccountAddress | <code>string</code> | No | The public key (address) of the sub-account to use for creation |
-| params.subAccountPrivateKey | <code>string</code> | No | The private key of the sub-account to use for creation |
+| params.expiresAfter | <code>int</code> | No | time in ms after which the sub-account will expire |
 
 ##### Supported exchanges
+* [hyperliquid](/exchanges/hyperliquid.md#createsubaccount)
 * [pacifica](/exchanges/pacifica.md#createsubaccount)
 
 ---
@@ -2011,7 +1952,7 @@ before crypto positions were included — read `info['account']['cash']` where `
 * [bitrue](/exchanges/bitrue.md#fetchbalance)
 * [bitso](/exchanges/bitso.md#fetchbalance)
 * [bitstamp](/exchanges/bitstamp.md#fetchbalance)
-* [betteam](/exchanges/betteam.md#fetchbalance)
+* [bitteam](/exchanges/bitteam.md#fetchbalance)
 * [bittrade](/exchanges/bittrade.md#fetchbalance)
 * [bitvavo](/exchanges/bitvavo.md#fetchbalance)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchbalance)
@@ -2058,7 +1999,7 @@ before crypto positions were included — read `info['account']['cash']` where `
 * [kucoin](/exchanges/kucoin.md#fetchbalance)
 * [latoken](/exchanges/latoken.md#fetchbalance)
 * [lbank](/exchanges/lbank.md#fetchbalance)
-* [ligher](/exchanges/ligher.md#fetchbalance)
+* [lighter](/exchanges/lighter.md#fetchbalance)
 * [luno](/exchanges/luno.md#fetchbalance)
 * [mercado](/exchanges/mercado.md#fetchbalance)
 * [mexc](/exchanges/mexc.md#fetchbalance)
@@ -4990,6 +4931,7 @@ fetches information on an order made by the user
 * [bittrade](/exchanges/bittrade.md#fetchorder)
 * [bitvavo](/exchanges/bitvavo.md#fetchorder)
 * [blockchaincom](/exchanges/blockchaincom.md#fetchorder)
+* [blofin](/exchanges/blofin.md#fetchorder)
 * [btcbox](/exchanges/btcbox.md#fetchorder)
 * [btcmarkets](/exchanges/btcmarkets.md#fetchorder)
 * [bullish](/exchanges/bullish.md#fetchorder)
@@ -5272,7 +5214,7 @@ fetch all the trades made from a single order
 * [whitebit](/exchanges/whitebit.md#fetchordertrades)
 * [woo](/exchanges/woo.md#fetchordertrades)
 * [woofipro](/exchanges/woofipro.md#fetchordertrades)
-* [zebpatspot](/exchanges/zebpatspot.md#fetchordertrades)
+* [zebpay](/exchanges/zebpay.md#fetchordertrades)
 
 ---
 
@@ -7577,7 +7519,7 @@ transfer currency internally between wallets on the same account
 * [blofin](/exchanges/blofin.md#transfer)
 * [bullish](/exchanges/bullish.md#transfer)
 * [bybit](/exchanges/bybit.md#transfer)
-* [budfi](/exchanges/budfi.md#transfer)
+* [bydfi](/exchanges/bydfi.md#transfer)
 * [cex](/exchanges/cex.md#transfer)
 * [coinbase](/exchanges/coinbase.md#transfer)
 * [deepcoin](/exchanges/deepcoin.md#transfer)
@@ -7875,6 +7817,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 * [cryptocom](/exchanges/cryptocom.md#unwatchohlcv)
 * [deepcoin](/exchanges/deepcoin.md#unwatchohlcv)
 * [dydx](/exchanges/dydx.md#unwatchohlcv)
+* [gate](/exchanges/gate.md#unwatchohlcv)
 * [htx](/exchanges/htx.md#unwatchohlcv)
 * [hyperliquid](/exchanges/hyperliquid.md#unwatchohlcv)
 * [kucoin](/exchanges/kucoin.md#unwatchohlcv)

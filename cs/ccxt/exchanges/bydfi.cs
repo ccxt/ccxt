@@ -3011,7 +3011,7 @@ public partial class bydfi : Exchange
 
     /**
      * @method
-     * @name budfi#transfer
+     * @name bydfi#transfer
      * @description transfer currency internally between wallets on the same account
      * @see https://developers.bydfi.com/en/account#asset-transfer-between-accounts
      * @param {string} code unified currency code

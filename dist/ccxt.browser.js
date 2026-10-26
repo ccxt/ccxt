@@ -221587,8 +221587,15 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         const high = this.safeString(ticker, 'highPrice');
         const low = this.safeString(ticker, 'lowPrice');
         const close = this.safeString(ticker, 'lastPrice');
-        const quoteVolume = this.safeString(ticker, 'quoteVolume');
-        const baseVolume = this.safeString(ticker, 'volume');
+        let quoteVolume = this.safeString(ticker, 'quoteVolume');
+        let baseVolume = this.safeString(ticker, 'volume');
+        if (marketResolved['inverse'] === true) {
+            // Coin-M volume is in contracts; quoteVolume is in the base currency.
+            // read the resolved market: parseTickers and fetchTickers reach here with no market argument
+            const contractSize = this.safeString(marketResolved, 'contractSize');
+            baseVolume = quoteVolume;
+            quoteVolume = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(this.safeString(ticker, 'volume'), contractSize);
+        }
         let percentage = this.safeString(ticker, 'priceChangePercent');
         if (percentage !== undefined) {
             percentage = percentage.replace('%', '');
@@ -222330,7 +222337,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         const isTriggerOrder = triggerPrice !== undefined;
         const isStopLossPriceOrder = stopLossPrice !== undefined;
         const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
-        let exchangeClientOrderId = 'clientOrderID';
+        let exchangeClientOrderId = 'clientOrderId';
         if (isSpot) {
             exchangeClientOrderId = 'newClientOrderId';
         }
@@ -223342,15 +223349,20 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             };
             const clientOrderId = this.safeString2(paramsOmitted, 'clientOrderId', 'clientOrderID');
             const paramsOmitted2 = this.omit(paramsOmitted, [
-                'clientOrderId'
+                'clientOrderId',
+                'clientOrderID'
             ]);
+            const [type, paramsMarketType] = this.handleMarketTypeAndParams('cancelOrder', market, paramsOmitted2);
+            const [subType, paramsSubType] = this.handleSubTypeAndParams('cancelOrder', market, paramsMarketType);
             if (clientOrderId !== undefined) {
-                request['clientOrderID'] = clientOrderId;
+                let clientOrderIdRequest = 'clientOrderId';
+                if (type === 'spot') {
+                    clientOrderIdRequest = 'clientOrderID';
+                }
+                request[clientOrderIdRequest] = clientOrderId;
             } else {
                 request['orderId'] = id;
             }
-            const [type, paramsMarketType] = this.handleMarketTypeAndParams('cancelOrder', market, paramsOmitted2);
-            const [subType, paramsSubType] = this.handleSubTypeAndParams('cancelOrder', market, paramsMarketType);
             if (type === 'spot') {
                 response = await this.spotV1PrivatePostTradeCancel(this.extend(request, paramsSubType));
             } else {
@@ -223825,11 +223837,24 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             }
             market = this.market(symbol);
             const request = {
-                'symbol': market['id'],
-                'orderId': id
+                'symbol': market['id']
             };
-            const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrder', market, paramsOmitted);
+            const clientOrderId = this.safeString2(paramsOmitted, 'clientOrderId', 'clientOrderID');
+            const paramsOmitted2 = this.omit(paramsOmitted, [
+                'clientOrderId',
+                'clientOrderID'
+            ]);
+            const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrder', market, paramsOmitted2);
             const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchOrder', market, paramsMarketType);
+            if (clientOrderId !== undefined) {
+                let clientOrderIdRequest = 'clientOrderId';
+                if (type === 'spot') {
+                    clientOrderIdRequest = 'clientOrderID';
+                }
+                request[clientOrderIdRequest] = clientOrderId;
+            } else {
+                request['orderId'] = id;
+            }
             if (type === 'spot') {
                 response = await this.spotV1PrivateGetTradeQuery(this.extend(request, paramsSubType));
             //
@@ -225298,6 +225323,9 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             if (orderId === undefined) {
                 throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchMyTrades() requires an orderId argument for inverse swap trades');
             }
+            if (limit !== undefined) {
+                request['pageSize'] = Math.min(limit, 1000); // api maximum 1000
+            }
             response = await this.cswapV1PrivateGetTradeAllFillOrders(this.extend(request, paramsSubType));
             fills = this.safeList(response, 'data', []);
         //
@@ -225777,7 +225805,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
-     * @name bitget#closePositions
+     * @name bingx#closeAllPositions
      * @description closes open positions for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
@@ -225934,6 +225962,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.cancelClientOrderID] the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+     * @param {string} [params.cancelClientOrderId] the client order id of the order to cancel
      * @param {string} [params.cancelRestrictions] cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled
      * @param {string} [params.cancelReplaceMode] STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
      * @param {float} [params.quoteOrderQty] order amount
@@ -225951,9 +225980,22 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         if (market['inverse'] === true) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' editOrder() is not supported for inverse swap markets');
         }
-        const request = this.createOrderRequest(symbol, type, side, amount, price, params);
-        request['cancelOrderId'] = id;
-        request['cancelReplaceMode'] = this.safeString(params, 'cancelReplaceMode', 'STOP_ON_FAILURE');
+        const cancelClientOrderId = this.safeString2(params, 'cancelClientOrderId', 'cancelClientOrderID');
+        const paramsOmitted = this.omit(params, [
+            'cancelClientOrderId',
+            'cancelClientOrderID'
+        ]);
+        const request = this.createOrderRequest(symbol, type, side, amount, price, paramsOmitted);
+        if (cancelClientOrderId !== undefined) {
+            let cancelClientOrderIdRequest = 'cancelClientOrderId';
+            if (market['spot'] === true) {
+                cancelClientOrderIdRequest = 'cancelClientOrderID';
+            }
+            request[cancelClientOrderIdRequest] = cancelClientOrderId;
+        } else {
+            request['cancelOrderId'] = id;
+        }
+        request['cancelReplaceMode'] = this.safeString(paramsOmitted, 'cancelReplaceMode', 'STOP_ON_FAILURE');
         let response;
         if (market['swap'] === true) {
             response = await this.swapV1PrivatePostTradeCancelReplace(request);
@@ -267062,7 +267104,7 @@ class bitteam extends _abstract_bitteam_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
-     * @name betteam#fetchBalance
+     * @name bitteam#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -274160,7 +274202,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
-                'fetchOrder': undefined,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
@@ -274609,7 +274651,12 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
                         'untilDays': 100000,
                         'symbolRequired': false
                     },
-                    'fetchOrder': undefined,
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true
+                    },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
@@ -274668,7 +274715,9 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
                     'linear': {
                         'extends': 'forDerivatives'
                     },
-                    'inverse': undefined
+                    'inverse': {
+                        'extends': 'forDerivatives'
+                    }
                 },
                 'future': {
                     'linear': undefined,
@@ -276068,6 +276117,55 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         const response = await this.privatePostTradeBatchOrders(ordersRequests);
         const data = this.safeList(response, 'data', []);
         return this.parseOrders(data);
+    }
+    /**
+     * @method
+     * @name blofin#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.blofin.com/index.html#get-order-detail
+     * @see https://docs.blofin.com/index.html#get-tpsl-order-detail
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @param {boolean} [params.tpsl] True if fetching a tpsl order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */ async fetchOrder(id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'instId': market['id']
+        };
+        const isTpsl = this.safeBool2(params, 'tpsl', 'TPSL', false);
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        } else if (isTpsl === true) {
+            request['tpslId'] = id;
+        } else {
+            request['orderId'] = id;
+        }
+        const query = this.omit(params, [
+            'clientOrderId',
+            'tpsl',
+            'TPSL'
+        ]);
+        let response;
+        if (isTpsl === true) {
+            response = await this.privateGetTradeOrderTpslDetail(this.extend(request, query));
+        } else {
+            response = await this.privateGetTradeOrderDetail(this.extend(request, query));
+        }
+        const data = this.safeDict(response, 'data');
+        if (data === undefined) {
+            throw new _base_errors_js__rspack_import_1.OrderNotFound(this.id + ' fetchOrder() could not find order ' + id);
+        }
+        return this.parseOrder(data, market);
     }
     /**
      * @method
@@ -293678,7 +293776,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
-     * @name bybit#createMarkeSellOrderWithCost
+     * @name bybit#createMarketSellOrderWithCost
      * @description create a market sell order by providing the symbol and cost
      * @see https://bybit-exchange.github.io/docs/v5/order/create-order
      * @param {string} symbol unified symbol of the market to create an order in
@@ -302427,7 +302525,7 @@ class bydfi extends _abstract_bydfi_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
-     * @name budfi#transfer
+     * @name bydfi#transfer
      * @description transfer currency internally between wallets on the same account
      * @see https://developers.bydfi.com/en/account#asset-transfer-between-accounts
      * @param {string} code unified currency code
@@ -328255,7 +328353,7 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
     }
     /**
      * @method
-     * @name cryptocom#closePositions
+     * @name cryptocom#closePosition
      * @description closes open positions for a market
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
      * @param {string} symbol Unified CCXT market symbol
@@ -337492,7 +337590,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
                 },
                 'www': 'https://www.deribit.com',
                 'doc': [
-                    'https://docs.deribit.com/v2',
+                    'https://docs.deribit.com',
                     'https://github.com/deribit'
                 ],
                 'fees': 'https://www.deribit.com/pages/information/fees',
@@ -338273,7 +338371,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.deribit.com/#public-get_time
+     * @see https://docs.deribit.com/api-reference/supporting/public-get_time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */ async fetchTime(params = {}) {
@@ -338294,7 +338392,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://docs.deribit.com/#public-get_currencies
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */ async fetchCurrencies(params = {}) {
@@ -338367,7 +338465,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://docs.deribit.com/#public-status
+     * @see https://docs.deribit.com/api-reference/supporting/public-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */ async fetchStatus(params = {}) {
@@ -338399,7 +338497,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchAccounts
      * @description fetch all the accounts associated with a profile
-     * @see https://docs.deribit.com/#private-get_subaccounts
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_subaccounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */ async fetchAccounts(params = {}) {
@@ -338470,8 +338568,8 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchMarkets
      * @description retrieves data on all markets for deribit
-     * @see https://docs.deribit.com/#public-get_currencies
-     * @see https://docs.deribit.com/#public-get_instruments
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */ async fetchMarkets(params = {}) {
@@ -338745,8 +338843,8 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.deribit.com/#private-get_account_summary
-     * @see https://docs.deribit.com/#private-get_account_summaries
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -338815,7 +338913,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#createDepositAddress
      * @description create a currency deposit address
-     * @see https://docs.deribit.com/#private-create_deposit_address
+     * @see https://docs.deribit.com/api-reference/wallet/private-create_deposit_address
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -338855,7 +338953,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
-     * @see https://docs.deribit.com/#private-get_current_deposit_address
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_current_deposit_address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -338977,7 +339075,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.deribit.com/#public-ticker
+     * @see https://docs.deribit.com/api-reference/market-data/public-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -339025,7 +339123,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
@@ -339045,7 +339143,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
                 const market = this.market(symbolsNormalized[i]);
                 const marketBase = this.safeString(market, 'base');
                 if (code !== undefined && code !== marketBase) {
-                    throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency');
+                    throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency');
                 }
                 if (code === undefined) {
                     code = this.safeString(market, 'base');
@@ -339119,7 +339217,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.deribit.com/#public-get_tradingview_chart_data
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_tradingview_chart_data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -339280,8 +339378,8 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name deribit#fetchTrades
-     * @see https://docs.deribit.com/#public-get_last_trades_by_instrument
-     * @see https://docs.deribit.com/#public-get_last_trades_by_instrument_and_time
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument_and_time
      * @description get the list of most recent trades for a particular symbol.
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -339350,7 +339448,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://docs.deribit.com/#private-get_account_summary
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */ async fetchTradingFees(params = {}) {
@@ -339469,7 +339567,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.deribit.com/#public-get_order_book
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_order_book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -339659,7 +339757,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://docs.deribit.com/#private-get_order_state
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_state
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -339711,8 +339809,8 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#createOrder
      * @description create a trade order
-     * @see https://docs.deribit.com/#private-buy
-     * @see https://docs.deribit.com/#private-sell
+     * @see https://docs.deribit.com/api-reference/trading/private-buy
+     * @see https://docs.deribit.com/api-reference/trading/private-sell
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -339881,7 +339979,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#editOrder
      * @description edit a trade order
-     * @see https://docs.deribit.com/#private-edit
+     * @see https://docs.deribit.com/api-reference/trading/private-edit
      * @param {string} id edit order id
      * @param {string} [symbol] unified symbol of the market to edit an order in
      * @param {string} [type] 'market' or 'limit'
@@ -339925,7 +340023,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#cancelOrder
      * @description cancels an open order
-     * @see https://docs.deribit.com/#private-cancel
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel
      * @param {string} id order id
      * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -339945,8 +340043,8 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#cancelAllOrders
      * @description cancel all open orders
-     * @see https://docs.deribit.com/#private-cancel_all
-     * @see https://docs.deribit.com/#private-cancel_all_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
      * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -339983,8 +340081,8 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://docs.deribit.com/#private-get_open_orders_by_currency
-     * @see https://docs.deribit.com/#private-get_open_orders_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_currency
+     * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -340014,8 +340112,8 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.deribit.com/#private-get_order_history_by_currency
-     * @see https://docs.deribit.com/#private-get_order_history_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_currency
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_instrument
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -340050,7 +340148,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://docs.deribit.com/#private-get_user_trades_by_order
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_order
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -340105,10 +340203,10 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.deribit.com/#private-get_user_trades_by_currency
-     * @see https://docs.deribit.com/#private-get_user_trades_by_currency_and_time
-     * @see https://docs.deribit.com/#private-get_user_trades_by_instrument
-     * @see https://docs.deribit.com/#private-get_user_trades_by_instrument_and_time
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency_and_time
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -340187,7 +340285,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://docs.deribit.com/#private-get_deposits
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_deposits
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -340236,7 +340334,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://docs.deribit.com/#private-get_withdrawals
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_withdrawals
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -340432,7 +340530,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchPosition
      * @description fetch data on a single open contract trade position
-     * @see https://docs.deribit.com/#private-get_position
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_position
      * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -340478,7 +340576,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchPositions
      * @description fetch all open positions
-     * @see https://docs.deribit.com/#private-get_positions
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.currency] currency code filter for positions
@@ -340533,7 +340631,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchVolatilityHistory
      * @description fetch the historical volatility of an option market based on an underlying asset
-     * @see https://docs.deribit.com/#public-get_historical_volatility
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_historical_volatility
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
@@ -340595,7 +340693,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchTransfers
      * @description fetch a history of internal transfers made on an account
-     * @see https://docs.deribit.com/#private-get_transfers
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_transfers
      * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -340657,8 +340755,8 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://docs.deribit.com/#private-submit_transfer_to_user
-     * @see https://docs.deribit.com/#private-submit_transfer_to_subaccount
+     * @see https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_user
+     * @see https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_subaccount
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -340751,7 +340849,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#withdraw
      * @description make a withdrawal
-     * @see https://docs.deribit.com/#private-withdraw
+     * @see https://docs.deribit.com/api-reference/wallet/private-withdraw
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -340806,7 +340904,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchDepositWithdrawFees
      * @description fetch deposit and withdraw fees
-     * @see https://docs.deribit.com/#public-get_currencies
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -340844,7 +340942,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://docs.deribit.com/#public-get_funding_rate_value
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_value
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.start_timestamp] fetch funding rate starting from this timestamp
@@ -340878,7 +340976,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchFundingRateHistory
      * @description fetch the current funding rate
-     * @see https://docs.deribit.com/#public-get_funding_rate_history
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding rate history for
      * @param {int} [limit] the maximum number of entries to retrieve
@@ -341001,7 +341099,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchLiquidations
      * @description retrieves the public liquidations of a trading pair
-     * @see https://docs.deribit.com/#public-get_last_settlements_by_currency
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_last_settlements_by_currency
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -341079,7 +341177,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchMyLiquidations
      * @description retrieves the users liquidated positions
-     * @see https://docs.deribit.com/#private-get_settlement_history_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_settlement_history_by_instrument
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -341165,7 +341263,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchGreeks
      * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
-     * @see https://docs.deribit.com/#public-ticker
+     * @see https://docs.deribit.com/api-reference/market-data/public-ticker
      * @param {string} symbol unified symbol of the market to fetch greeks for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
@@ -341297,7 +341395,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchOption
      * @description fetches option data that is commonly found in an option chain
-     * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
@@ -341350,7 +341448,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchOptionChain
      * @description fetches data for an underlying asset that is commonly found in an option chain
-     * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency
      * @param {string} code base currency to fetch an option chain for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
@@ -341452,7 +341550,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchOpenInterest
      * @description Retrieves the open interest of a symbol
-     * @see https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -405730,7 +405828,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
     }
     /**
      * @method
-     * @name hyperliquid#createAccount
+     * @name hyperliquid#createSubAccount
      * @description creates a sub-account under the main account
      * @param {string} name the name of the sub-account
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -415510,10 +415608,7 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market(symbol);
-        }
+        const symbolResolved = symbol !== undefined ? this.symbol(symbol) : symbol;
         // todo: lastFillTime: this.iso8601(end)
         const response = await this.privateGetFills(params);
         //
@@ -415537,7 +415632,13 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
         //    }
         //
         const fills = this.safeList(response, 'fills', []);
-        return this.parseTrades(fills, market, since, limit);
+        // the endpoint returns the fills of every contract, each row resolves its own market
+        const trades = this.parseTrades(fills);
+        // a fill of a contract that is no longer listed in /instruments has no unified symbol,
+        // so safeMarket keeps the raw id (eg 'PF_XRPUSD') in trade['symbol']: it is filtered out
+        // whenever a symbol is requested and returned as-is when symbol is undefined, on purpose,
+        // because it is still the user's own fill and dropping it would hide real trades
+        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limit);
     }
     /**
      * @method
@@ -430024,6 +430125,7 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchClosedOrders': 'emulated',
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -430421,7 +430523,7 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
                         'selfTradePrevention': false,
                         'trailing': false,
                         'leverage': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                         'iceberg': false
                     },
@@ -430442,11 +430544,19 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'trigger': false,
+                        'trigger': true,
                         'trailing': false,
                         'symbolRequired': true
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false
+                    },
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
@@ -437420,7 +437530,7 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
-     * @name ligher#fetchBalance
+     * @name lighter#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://apidocs.lighter.xyz/reference/account-1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -468435,6 +468545,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch funding history for
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */ async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -468453,6 +468564,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
+            request['instId'] = market['id'];
             if (market['contract'] === true) {
                 if (market['linear'] === true) {
                     request['ctType'] = 'linear';
@@ -468463,13 +468575,17 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                 }
             }
         }
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, params);
         const symbolResolved = market !== undefined ? this.safeString(market, 'symbol') : symbol;
-        const [type, query] = this.handleMarketTypeAndParams('fetchFundingHistory', market, params);
+        const [type, query] = this.handleMarketTypeAndParams('fetchFundingHistory', market, paramsUntil);
         if (type === 'swap') {
-            request['instType'] = this.convertToInstrumentType(type);
+            requestUntil['instType'] = this.convertToInstrumentType(type);
         }
         // AccountBillsArchive has the same cost as AccountBills but supports three months of data
-        const response = await this.privateGetAccountBillsArchive(this.extend(request, query));
+        const response = await this.privateGetAccountBillsArchive(this.extend(requestUntil, query));
         //
         //    {
         //        "bal": "0.0242946200998573",
@@ -476094,9 +476210,6 @@ class pacifica extends _abstract_pacifica_js__rspack_import_0/* ["default"] */.A
      */ async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (since === undefined) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' fetchOHLCV() requires a "since" argument');
-        }
-        if (symbol === undefined) {
-            throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' fetchOHLCV() requires a "symbol" argument');
         }
         const defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
         if (this.markets === undefined) {
@@ -490243,6 +490356,14 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
             request['limit'] = limit;
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption(keyEnd, request, paramsPaginate);
+        if (since !== undefined && limit !== undefined && this.safeInteger(requestUntil, keyEnd) === undefined) {
+            // without an end time the exchange returns the latest candles, not the ones starting at since,
+            // so end the window at the start of the limit-th candle from the first one at or after since
+            const duration = this.parseTimeframe(timeframe) * 1000;
+            const firstCandle = this.parseToInt(Math.ceil(since / duration)) * duration;
+            const endTimeByLimit = this.sum(firstCandle, duration * (limit - 1));
+            requestUntil[keyEnd] = Math.min(endTimeByLimit, this.milliseconds());
+        }
         if (market['contract'] === true) {
             const responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(requestUntil, paramsUntil));
             //
@@ -565583,7 +565704,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name deribit#watchBalance
-     * @see https://docs.deribit.com/#user-portfolio-currency
+     * @see https://docs.deribit.com/subscriptions/user/userportfoliocurrency
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -565667,7 +565788,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name deribit#watchTicker
-     * @see https://docs.deribit.com/#ticker-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @description watches a price ticker, a statistical calculation with the information for a specific market.
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -565705,7 +565826,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name deribit#watchTickers
-     * @see https://docs.deribit.com/#ticker-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -565792,7 +565913,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name deribit#watchBidsAsks
-     * @see https://docs.deribit.com/#quote-instrument_name
+     * @see https://docs.deribit.com/subscriptions/market-data/quoteinstrument_name
      * @description watches best bid & ask for symbols
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -565874,7 +565995,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.deribit.com/#trades-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -565891,7 +566012,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#watchTradesForSymbols
      * @description get the list of most recent trades for a list of symbols
-     * @see https://docs.deribit.com/#trades-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -565959,7 +566080,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#watchMyTrades
      * @description get the list of trades associated with the user
-     * @see https://docs.deribit.com/#user-trades-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/user/usertradesinstrument_nameinterval
      * @param {string} symbol unified symbol of the market to fetch trades for. Use 'any' to watch all trades
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -566044,7 +566165,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name deribit#watchOrderBook
-     * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -566061,7 +566182,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -566214,7 +566335,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name deribit#watchOrders
-     * @see https://docs.deribit.com/#user-orders-instrument_name-raw
+     * @see https://docs.deribit.com/subscriptions/user/userordersinstrument_nameraw
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -566311,7 +566432,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name deribit#watchOHLCV
-     * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
+     * @see https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -566336,7 +566457,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#watchOHLCVForSymbols
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
+     * @see https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
@@ -569187,7 +569308,7 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
                 'watchPositions': true,
                 'unWatchTicker': false,
                 'unWatchTickers': false,
-                'unWatchOHLCV': false,
+                'unWatchOHLCV': true,
                 'unWatchOHLCVForSymbols': false,
                 'unWatchOrderBook': true,
                 'unWatchOrderBookForSymbols': false,
@@ -570245,6 +570366,77 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
             limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
         return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
+    }
+    /**
+     * @method
+     * @name gate#unWatchOHLCV
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-channel
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unsubscription request
+     */ async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const symbolValue = market['symbol'];
+        const marketId = market['id'];
+        const interval = this.safeString(this.timeframes, timeframe, timeframe);
+        const messageType = this.getTypeByMarket(market);
+        const channel = messageType + '.candlesticks';
+        const subMessageHash = 'candles:' + interval + ':' + symbolValue;
+        const messageHash = 'unsubscribe:candles:' + interval + ':' + symbolValue;
+        const url = this.getUrlByMarket(market);
+        const requestId = this.requestId();
+        const request = {
+            'id': requestId,
+            'time': this.seconds(),
+            'channel': channel,
+            'event': 'unsubscribe',
+            'payload': [
+                interval,
+                marketId
+            ]
+        };
+        // mirrors the subscription shape base cleanCache() expects for ohlcv
+        // (same pattern as binance unWatchOHLCVForSymbols), so the ohlcvs
+        // cache entry is dropped when the unsubscribe is acknowledged;
+        // handleOHLCV keys the cache by findTimeframe (interval), so the
+        // exchange interval id is mapped back to the cache key here -
+        // this matters for aliased timeframes such as gate's '1w': '7d';
+        // an unsupported timeframe falls back to the caller's key, matching
+        // the previous no-op cleanup instead of an undefined cache key
+        const cacheTimeframe = this.findTimeframe(interval);
+        const subscription = {
+            'id': requestId.toString(),
+            'topic': 'ohlcv',
+            'unsubscribe': true,
+            'symbols': [
+                symbolValue
+            ],
+            'symbolsAndTimeframes': [
+                [
+                    symbolValue,
+                    cacheTimeframe !== undefined ? cacheTimeframe : timeframe
+                ]
+            ],
+            'messageHashes': [
+                messageHash
+            ],
+            'subMessageHashes': [
+                subMessageHash
+            ]
+        };
+        const message = this.extend(request, params);
+        return await this.watchMultiple(url, [
+            messageHash
+        ], message, [
+            messageHash
+        ], subscription);
     }
     handleOHLCV(client, message) {
         //
@@ -637754,7 +637946,7 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] whether to automatically paginate requests until the required number of candles is returned
-     * @param {boolean} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
+     * @param {boolean} [params.historical] whether to fetch historical klines (default is false, forced to true when since or until is set because the recent klines endpoints ignore time filters). If false, will fetch last price klines
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */ async fetchContractOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -637786,23 +637978,27 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
         let response = undefined;
         // hardcap threshold
         const limitResolved = limit === undefined ? undefined : Math.min(limit, 1000);
-        if (historical) {
+        // the recent-klines endpoints ignore startTime and endTime and only ever return the
+        // latest candles, so a request bounded by since or until has to go through the history
+        // endpoint, which honours both (endTime = since + limit * timeframe when until is absent)
+        const useHistory = historical || since !== undefined || until !== undefined;
+        if (useHistory) {
             if (priceType !== undefined) {
                 request['priceType'] = priceType;
             }
             let startTime = since;
             let endTime = until;
+            const now = this.milliseconds();
             if (since === undefined || until === undefined) {
-                const now = this.milliseconds();
                 const duration = this.parseTimeframe(timeframe) * 1000;
-                let timeDelta = maxHistoricalLimit * duration;
+                // the history endpoint returns at most maxHistoricalLimit candles and serves the
+                // newest ones inside the window, so a wider window would silently drop the candles
+                // right after since, keep the window at what one call can return
+                let historyLimit = maxHistoricalLimit;
                 if (limit !== undefined && limit !== null && limit !== 0) {
-                    if (limit > 1000) {
-                        timeDelta = 1000 * duration;
-                    } else {
-                        timeDelta = limit * duration;
-                    }
+                    historyLimit = Math.min(limit, maxHistoricalLimit);
                 }
+                const timeDelta = historyLimit * duration;
                 if (since === undefined && until === undefined) {
                     endTime = now;
                     startTime = now - timeDelta;
@@ -637812,8 +638008,13 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
                     }
                     startTime = until - timeDelta;
                 } else {
-                    endTime = since + timeDelta;
+                    // this.sum, a bare + is string concatenation in the php port
+                    endTime = this.sum(since, timeDelta);
                 }
+            }
+            // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
+            if (endTime !== undefined && endTime > now) {
+                endTime = now;
             }
             request['startTime'] = startTime;
             request['endTime'] = endTime;
@@ -662560,7 +662761,7 @@ class zebpay extends _abstract_zebpay_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
-     * @name zebpatspot#fetchOrderTrades
+     * @name zebpay#fetchOrderTrades
      * @description fetch all the trades made from a single order
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-fills
      * @param {string} id order id

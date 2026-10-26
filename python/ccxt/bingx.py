@@ -2397,6 +2397,12 @@ class bingx(Exchange, ImplicitAPI):
         close = self.safe_string(ticker, 'lastPrice')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         baseVolume = self.safe_string(ticker, 'volume')
+        if marketResolved['inverse'] is True:
+            # Coin-M volume is in contracts; quoteVolume is in the base currency.
+            # read the resolved market: parseTickers and fetchTickers reach here with no market argument
+            contractSize = self.safe_string(marketResolved, 'contractSize')
+            baseVolume = quoteVolume
+            quoteVolume = Precise.string_mul(self.safe_string(ticker, 'volume'), contractSize)
         percentage = self.safe_string(ticker, 'priceChangePercent')
         if percentage is not None:
             percentage = percentage.replace('%', '')
@@ -3105,7 +3111,7 @@ class bingx(Exchange, ImplicitAPI):
         isTriggerOrder = triggerPrice is not None
         isStopLossPriceOrder = stopLossPrice is not None
         isTakeProfitPriceOrder = takeProfitPrice is not None
-        exchangeClientOrderId = 'clientOrderID'
+        exchangeClientOrderId = 'clientOrderId'
         if isSpot:
             exchangeClientOrderId = 'newClientOrderId'
         clientOrderId = self.safe_string_2(paramsMarketType, exchangeClientOrderId, 'clientOrderId')
@@ -4008,13 +4014,16 @@ class bingx(Exchange, ImplicitAPI):
                 'symbol': market['id'],
             }
             clientOrderId = self.safe_string_2(paramsOmitted, 'clientOrderId', 'clientOrderID')
-            paramsOmitted2 = self.omit(paramsOmitted, ['clientOrderId'])
-            if clientOrderId is not None:
-                request['clientOrderID'] = clientOrderId
-            else:
-                request['orderId'] = id
+            paramsOmitted2 = self.omit(paramsOmitted, ['clientOrderId', 'clientOrderID'])
             type, paramsMarketType = self.handle_market_type_and_params('cancelOrder', market, paramsOmitted2)
             subType, paramsSubType = self.handle_sub_type_and_params('cancelOrder', market, paramsMarketType)
+            if clientOrderId is not None:
+                clientOrderIdRequest = 'clientOrderId'
+                if type == 'spot':
+                    clientOrderIdRequest = 'clientOrderID'
+                request[clientOrderIdRequest] = clientOrderId
+            else:
+                request['orderId'] = id
             if type == 'spot':
                 response = self.spotV1PrivatePostTradeCancel(self.extend(request, paramsSubType))
             else:
@@ -4474,10 +4483,18 @@ class bingx(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request = {
                 'symbol': market['id'],
-                'orderId': id,
             }
-            type, paramsMarketType = self.handle_market_type_and_params('fetchOrder', market, paramsOmitted)
+            clientOrderId = self.safe_string_2(paramsOmitted, 'clientOrderId', 'clientOrderID')
+            paramsOmitted2 = self.omit(paramsOmitted, ['clientOrderId', 'clientOrderID'])
+            type, paramsMarketType = self.handle_market_type_and_params('fetchOrder', market, paramsOmitted2)
             subType, paramsSubType = self.handle_sub_type_and_params('fetchOrder', market, paramsMarketType)
+            if clientOrderId is not None:
+                clientOrderIdRequest = 'clientOrderId'
+                if type == 'spot':
+                    clientOrderIdRequest = 'clientOrderID'
+                request[clientOrderIdRequest] = clientOrderId
+            else:
+                request['orderId'] = id
             if type == 'spot':
                 response = self.spotV1PrivateGetTradeQuery(self.extend(request, paramsSubType))
                 #
@@ -5868,6 +5885,8 @@ class bingx(Exchange, ImplicitAPI):
             orderId = self.safe_string(paramsSubType, 'orderId')
             if orderId is None:
                 raise ArgumentsRequired(self.id + ' fetchMyTrades() requires an orderId argument for inverse swap trades')
+            if limit is not None:
+                request['pageSize'] = min(limit, 1000)  # api maximum 1000
             response = self.cswapV1PrivateGetTradeAllFillOrders(self.extend(request, paramsSubType))
             fills = self.safe_list(response, 'data', [])
             #
@@ -6463,6 +6482,7 @@ class bingx(Exchange, ImplicitAPI):
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str [params.cancelClientOrderID]: the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+        :param str [params.cancelClientOrderId]: the client order id of the order to cancel
         :param str [params.cancelRestrictions]: cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled
         :param str [params.cancelReplaceMode]: STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
         :param float [params.quoteOrderQty]: order amount
@@ -6478,9 +6498,17 @@ class bingx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['inverse'] is True:
             raise NotSupported(self.id + ' editOrder() is not supported for inverse swap markets')
-        request = self.create_order_request(symbol, type, side, amount, price, params)
-        request['cancelOrderId'] = id
-        request['cancelReplaceMode'] = self.safe_string(params, 'cancelReplaceMode', 'STOP_ON_FAILURE')
+        cancelClientOrderId = self.safe_string_2(params, 'cancelClientOrderId', 'cancelClientOrderID')
+        paramsOmitted = self.omit(params, ['cancelClientOrderId', 'cancelClientOrderID'])
+        request = self.create_order_request(symbol, type, side, amount, price, paramsOmitted)
+        if cancelClientOrderId is not None:
+            cancelClientOrderIdRequest = 'cancelClientOrderId'
+            if market['spot'] is True:
+                cancelClientOrderIdRequest = 'cancelClientOrderID'
+            request[cancelClientOrderIdRequest] = cancelClientOrderId
+        else:
+            request['cancelOrderId'] = id
+        request['cancelReplaceMode'] = self.safe_string(paramsOmitted, 'cancelReplaceMode', 'STOP_ON_FAILURE')
         response: dict
         if market['swap'] is True:
             response = self.swapV1PrivatePostTradeCancelReplace(request)

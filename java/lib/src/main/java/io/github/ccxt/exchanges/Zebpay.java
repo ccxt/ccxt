@@ -1140,7 +1140,7 @@ public class Zebpay extends ZebpayApi
 
     /**
      * @method
-     * @name zebpatspot#fetchOrderTrades
+     * @name zebpay#fetchOrderTrades
      * @description fetch all the trades made from a single order
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-fills
      * @param {string} id order id

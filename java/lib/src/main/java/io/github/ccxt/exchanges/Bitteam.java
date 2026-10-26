@@ -2336,7 +2336,7 @@ public class Bitteam extends BitteamApi
 
     /**
      * @method
-     * @name betteam#fetchBalance
+     * @name bitteam#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
      * @param {object} [params] extra parameters specific to the exchange API endpoint

@@ -2583,7 +2583,7 @@ func (this *Lighter) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundin
 
 /**
  * @method
- * @name ligher#fetchBalance
+ * @name lighter#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://apidocs.lighter.xyz/reference/account-1
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -5495,6 +5495,18 @@ func (this *Lighter) FetchFundingRates(options ...FetchFundingRatesOptions) (Fun
 	var res FundingRates = FundingRates{FundingRates: r.Value}
 	return res, nil
 }
+
+/**
+ * @method
+ * @name lighter#fetchBalance
+ * @description query for balance and get the amount of funds available for trading or funds locked in orders
+ * @see https://apidocs.lighter.xyz/reference/account-1
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.by] fetch balance by 'index' or 'l1_address', defaults to 'index'
+ * @param {string} [params.value] fetch balance value, account index or l1 address
+ * @param {string} [params.type] 'spot', 'swap', default is 'swap'
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+ */
 func (this *Lighter) FetchBalance(params ...any) (Balances, error) {
 	r := <-this.FetchBalanceAsync(params...)
 	if r.Err != nil {

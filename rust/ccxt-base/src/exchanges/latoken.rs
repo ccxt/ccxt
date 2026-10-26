@@ -171,6 +171,7 @@ impl LatokenCore {
         m.insert("fetchBorrowRateHistory".to_string(), Value::Bool(false));
         m.insert("fetchBorrowRates".to_string(), Value::Bool(false));
         m.insert("fetchBorrowRatesPerSymbol".to_string(), Value::Bool(false));
+        m.insert("fetchClosedOrders".to_string(), Value::Str("emulated".into()));
         m.insert("fetchCrossBorrowRate".to_string(), Value::Bool(false));
         m.insert("fetchCrossBorrowRates".to_string(), Value::Bool(false));
         m.insert("fetchCurrencies".to_string(), Value::Bool(true));
@@ -722,7 +723,7 @@ impl LatokenCore {
         m.insert("selfTradePrevention".to_string(), Value::Bool(false));
         m.insert("trailing".to_string(), Value::Bool(false));
         m.insert("leverage".to_string(), Value::Bool(false));
-        m.insert("marketBuyByCost".to_string(), Value::Bool(true));
+        m.insert("marketBuyByCost".to_string(), Value::Bool(false));
         m.insert("marketBuyRequiresPrice".to_string(), Value::Bool(false));
         m.insert("iceberg".to_string(), Value::Bool(false));
     m
@@ -749,12 +750,22 @@ impl LatokenCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("limit".to_string(), Value::Null);
-        m.insert("trigger".to_string(), Value::Bool(false));
+        m.insert("trigger".to_string(), Value::Bool(true));
         m.insert("trailing".to_string(), Value::Bool(false));
         m.insert("symbolRequired".to_string(), Value::Bool(true));
     m
 }));
-        m.insert("fetchOrders".to_string(), Value::Null);
+        m.insert("fetchOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("marginMode".to_string(), Value::Bool(false));
+        m.insert("limit".to_string(), Value::Null);
+        m.insert("daysBack".to_string(), Value::Null);
+        m.insert("untilDays".to_string(), Value::Null);
+        m.insert("trigger".to_string(), Value::Bool(true));
+        m.insert("trailing".to_string(), Value::Bool(false));
+        m.insert("symbolRequired".to_string(), Value::Bool(false));
+    m
+}));
         m.insert("fetchClosedOrders".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));

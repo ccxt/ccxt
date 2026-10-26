@@ -5558,7 +5558,7 @@ func (this *Bybit) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], 
 
 /**
  * @method
- * @name bybit#createMarkeSellOrderWithCost
+ * @name bybit#createMarketSellOrderWithCost
  * @description create a market sell order by providing the symbol and cost
  * @see https://bybit-exchange.github.io/docs/v5/order/create-order
  * @param {string} symbol unified symbol of the market to create an order in
@@ -14071,6 +14071,17 @@ func (this *Bybit) CreateMarketBuyOrderWithCost(symbol string, cost float64, opt
 	var res Order = r.Value
 	return res, nil
 }
+
+/**
+ * @method
+ * @name bybit#createMarketSellOrderWithCost
+ * @description create a market sell order by providing the symbol and cost
+ * @see https://bybit-exchange.github.io/docs/v5/order/create-order
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {float} cost how much you want to trade in units of the quote currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
 func (this *Bybit) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
 
 	opts := CreateMarketSellOrderWithCostOptionsStruct{}

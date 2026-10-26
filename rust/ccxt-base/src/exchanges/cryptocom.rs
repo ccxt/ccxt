@@ -4860,7 +4860,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
 /*
  * @method
- * @name cryptocom#closePositions
+ * @name cryptocom#closePosition
  * @description closes open positions for a market
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
  * @param {string} symbol Unified CCXT market symbol

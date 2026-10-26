@@ -65,7 +65,7 @@ class gate(ccxt.async_support.gate):
                 'watchPositions': True,
                 'unWatchTicker': False,
                 'unWatchTickers': False,
-                'unWatchOHLCV': False,
+                'unWatchOHLCV': True,
                 'unWatchOHLCVForSymbols': False,
                 'unWatchOrderBook': True,
                 'unWatchOrderBookForSymbols': False,
@@ -1016,6 +1016,59 @@ class gate(ccxt.async_support.gate):
         if self.newUpdates:
             limitResolved = ohlcv.getLimit(symbolValue, limit)
         return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
+        """
+
+        https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-channel
+        https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api
+        https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api
+
+        unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unsubscription request
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        symbolValue = market['symbol']
+        marketId = market['id']
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
+        messageType = self.get_type_by_market(market)
+        channel = messageType + '.candlesticks'
+        subMessageHash = 'candles:' + interval + ':' + symbolValue
+        messageHash = 'unsubscribe:candles:' + interval + ':' + symbolValue
+        url = self.get_url_by_market(market)
+        requestId = self.request_id()
+        request = {
+            'id': requestId,
+            'time': self.seconds(),
+            'channel': channel,
+            'event': 'unsubscribe',
+            'payload': [interval, marketId],
+        }
+        # mirrors the subscription shape base cleanCache() expects for ohlcv
+        # (same pattern as binance unWatchOHLCVForSymbols), so the ohlcvs
+        # cache entry is dropped when the unsubscribe is acknowledged;
+        # handleOHLCV keys the cache by findTimeframe (interval), so the
+        # exchange interval id is mapped back to the cache key here -
+        # this matters for aliased timeframes such as gate's '1w': '7d';
+        # an unsupported timeframe falls back to the caller's key, matching
+        # the previous no-op cleanup instead of an undefined cache key
+        cacheTimeframe = self.find_timeframe(interval)
+        subscription = {
+            'id': str(requestId),
+            'topic': 'ohlcv',
+            'unsubscribe': True,
+            'symbols': [symbolValue],
+            'symbolsAndTimeframes': [[symbolValue, cacheTimeframe if (cacheTimeframe is not None) else timeframe]],
+            'messageHashes': [messageHash],
+            'subMessageHashes': [subMessageHash],
+        }
+        message = self.extend(request, params)
+        return await self.watch_multiple(url, [messageHash], message, [messageHash], subscription)
 
     def handle_ohlcv(self, client: Client, message: dict):
         #

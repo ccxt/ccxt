@@ -3039,6 +3039,14 @@ public partial class bingx : Exchange
         string? close = this.safeString(ticker, "lastPrice");
         string? quoteVolume = this.safeString(ticker, "quoteVolume");
         string? baseVolume = this.safeString(ticker, "volume");
+        if ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true))
+        {
+            // Coin-M volume is in contracts; quoteVolume is in the base currency.
+            // read the resolved market: parseTickers and fetchTickers reach here with no market argument
+            string? contractSize = this.safeString(marketResolved, "contractSize");
+            baseVolume = quoteVolume;
+            quoteVolume = Precise.stringMul(this.safeString(ticker, "volume"), contractSize);
+        }
         string? percentage = this.safeString(ticker, "priceChangePercent");
         if ((percentage != null))
         {
@@ -3619,7 +3627,7 @@ public partial class bingx : Exchange
         return await this.CreateOrder(symbol, "market", "sell", cost, null, parameters);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -3671,7 +3679,7 @@ public partial class bingx : Exchange
         bool isTriggerOrder = (triggerPrice != null);
         bool isStopLossPriceOrder = (stopLossPrice != null);
         bool isTakeProfitPriceOrder = (takeProfitPrice != null);
-        string exchangeClientOrderId = "clientOrderID";
+        string exchangeClientOrderId = "clientOrderId";
         if (isSpot)
         {
             exchangeClientOrderId = "newClientOrderId";
@@ -4733,20 +4741,25 @@ public partial class bingx : Exchange
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             };
             string? clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "clientOrderID");
-            Dictionary<string, object> paramsOmitted2 = this.omit(paramsOmitted, new List<object>() {"clientOrderId"});
-            if ((clientOrderId != null))
-            {
-                request["clientOrderID"] = clientOrderId;
-            } else
-            {
-                request["orderId"] = id;
-            }
+            Dictionary<string, object> paramsOmitted2 = this.omit(paramsOmitted, new List<object>() {"clientOrderId", "clientOrderID"});
             IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrder", market, paramsOmitted2);
             string? type = (string)typeparamsMarketTypeVariable[0];
             IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
             IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("cancelOrder", market, paramsMarketType);
             string? subType = (string)subTypeparamsSubTypeVariable[0];
             IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
+            if ((clientOrderId != null))
+            {
+                string clientOrderIdRequest = "clientOrderId";
+                if ((type == "spot"))
+                {
+                    clientOrderIdRequest = "clientOrderID";
+                }
+                request[(string)clientOrderIdRequest] = clientOrderId;
+            } else
+            {
+                request["orderId"] = id;
+            }
             if ((type == "spot"))
             {
                 response = await this.spotV1PrivatePostTradeCancel(this.extend(request, paramsSubType));
@@ -5090,14 +5103,27 @@ public partial class bingx : Exchange
             market = this.market(symbol);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-                { "orderId", id },
             };
-            IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOrder", market, paramsOmitted);
+            string? clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "clientOrderID");
+            Dictionary<string, object> paramsOmitted2 = this.omit(paramsOmitted, new List<object>() {"clientOrderId", "clientOrderID"});
+            IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOrder", market, paramsOmitted2);
             string? type = (string)typeparamsMarketTypeVariable[0];
             IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
             IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchOrder", market, paramsMarketType);
             string? subType = (string)subTypeparamsSubTypeVariable[0];
             IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
+            if ((clientOrderId != null))
+            {
+                string clientOrderIdRequest = "clientOrderId";
+                if ((type == "spot"))
+                {
+                    clientOrderIdRequest = "clientOrderID";
+                }
+                request[(string)clientOrderIdRequest] = clientOrderId;
+            } else
+            {
+                request["orderId"] = id;
+            }
             if ((type == "spot"))
             {
                 response = await this.spotV1PrivateGetTradeQuery(this.extend(request, paramsSubType));
@@ -6419,6 +6445,10 @@ public partial class bingx : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires an orderId argument for inverse swap trades")) ;
             }
+            if ((limit != null))
+            {
+                request["pageSize"] = Math.Min(limit.Value, 1000); // api maximum 1000
+            }
             response = await this.cswapV1PrivateGetTradeAllFillOrders(this.extend(request, paramsSubType));
             fills = this.safeList(response, "data", new List<object>() {});
         } else
@@ -6852,7 +6882,7 @@ public partial class bingx : Exchange
 
     /**
      * @method
-     * @name bitget#closePositions
+     * @name bingx#closeAllPositions
      * @description closes open positions for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
@@ -7013,6 +7043,7 @@ public partial class bingx : Exchange
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.cancelClientOrderID] the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+     * @param {string} [params.cancelClientOrderId] the client order id of the order to cancel
      * @param {string} [params.cancelRestrictions] cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled
      * @param {string} [params.cancelReplaceMode] STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
      * @param {float} [params.quoteOrderQty] order amount
@@ -7035,9 +7066,22 @@ public partial class bingx : Exchange
         {
             throw new NotSupported ((this.id + " editOrder() is not supported for inverse swap markets")) ;
         }
-        Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-        request["cancelOrderId"] = id;
-        request["cancelReplaceMode"] = this.safeString(parameters, "cancelReplaceMode", "STOP_ON_FAILURE");
+        string? cancelClientOrderId = this.safeString2(parameters, "cancelClientOrderId", "cancelClientOrderID");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"cancelClientOrderId", "cancelClientOrderID"}));
+        Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, paramsOmitted);
+        if ((cancelClientOrderId != null))
+        {
+            string cancelClientOrderIdRequest = "cancelClientOrderId";
+            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+            {
+                cancelClientOrderIdRequest = "cancelClientOrderID";
+            }
+            request[(string)cancelClientOrderIdRequest] = cancelClientOrderId;
+        } else
+        {
+            request["cancelOrderId"] = id;
+        }
+        request["cancelReplaceMode"] = this.safeString(paramsOmitted, "cancelReplaceMode", "STOP_ON_FAILURE");
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
         {
