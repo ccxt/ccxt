@@ -6638,8 +6638,8 @@ class mexc extends Exchange {
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $requestHeaders = null;
         $requestBody = null;
-        $section = $this->safe_string($api, 0);
-        $access = $this->safe_string($api, 1);
+        $section = $api[0];
+        $access = $api[1];
         $pathValue = $this->implode_params($path, $params);
         $paramsValue = $this->omit($params, $this->extract_params($path));
         $url = null;

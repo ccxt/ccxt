@@ -3588,7 +3588,7 @@ class extended extends Exchange {
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $requestHeaders = null;
         $requestBody = null;
-        $accessibility = $this->safe_string($api, 1);
+        $accessibility = $api[1];
         $endpoint = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $queryPost = ($path === 'user/deadmanswitch');
