@@ -2027,16 +2027,21 @@ export default class btse extends Exchange {
                 let triggerPriceToSend: Str = undefined;
                 if (isStopLossOrder) {
                     triggerOrderType = 'STOP_LOSS';
+                    if (isLimitOrder) {
+                        triggerOrderType = 'STOP_LOSS_LIMIT';
+                    }
                     triggerPriceToSend = stopLossPrice;
                 } else {
                     triggerOrderType = 'TAKE_PROFIT';
+                    if (isLimitOrder) {
+                        triggerOrderType = 'TAKE_PROFIT_LIMIT';
+                    }
                     triggerPriceToSend = triggerPrice;
                     if (triggerPriceToSend === undefined) {
                         triggerPriceToSend = takeProfitPrice;
                     }
                 }
                 if (isLimitOrder) {
-                    triggerOrderType = triggerOrderType + '_LIMIT';
                     request['orderPrice'] = this.priceToPrecision (symbol, price);
                 }
                 request['triggerOrderType'] = triggerOrderType;
@@ -2511,7 +2516,7 @@ export default class btse extends Exchange {
         let response = undefined;
         if (marketTypeOption === 'spot') {
             // the literal ALL value cancels every open order across all pairs
-            request['symbol'] = (market !== undefined) ? this.safeString (market, 'id') : 'ALL';
+            request['symbol'] = (symbol !== undefined) ? this.safeString (market, 'id') : 'ALL';
             response = await this.privateDeleteSpotApiV4TradeOrdersAll (this.extend (request, paramsMarketType));
         } else {
             if (market === undefined) {
@@ -2578,7 +2583,7 @@ export default class btse extends Exchange {
         const [ marketTypeOption, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params, marketType);
         let response = undefined;
         if (marketTypeOption === 'spot') {
-            if (market !== undefined) {
+            if (symbol !== undefined) {
                 request['symbol'] = this.safeString (market, 'id');
             }
             response = await this.privateGetSpotApiV4TradeOrders (this.extend (request, paramsMarketType));
