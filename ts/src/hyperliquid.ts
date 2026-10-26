@@ -800,9 +800,9 @@ export default class hyperliquid extends Exchange {
             // Get the part after the decimal separator
             const decimalPart = this.safeString (priceSplitted, 1, '');
             // Count the number of leading zeros in the decimal part
-            let leadingZeros: int = 0;
+            let leadingZeros = this.parseToInt (0);
             while ((leadingZeros <= decimalPart.length) && (decimalPart[leadingZeros] === '0')) {
-                leadingZeros = leadingZeros + 1;
+                leadingZeros = this.parseToInt (leadingZeros + 1);
             }
             // Calculate price precision based on leading zeros and significant digits
             pricePrecision = leadingZeros + significantDigits;
@@ -1726,8 +1726,7 @@ export default class hyperliquid extends Exchange {
     actionHash (action: any, vaultAddress: Str, nonce: any, expiresAfter: Int = undefined) {
         const dataBinary = this.packb (action);
         const dataHex = this.binaryToBase16 (dataBinary);
-        let data: string = dataHex;
-        data += '00000' + this.intToBase16 (nonce);
+        let data: string = dataHex + '00000' + this.intToBase16 (nonce);
         if (vaultAddress === undefined) {
             data += '00';
         } else {
