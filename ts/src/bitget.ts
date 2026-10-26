@@ -6108,11 +6108,8 @@ export default class bitget extends Exchange {
                 }
             }
             if (!isStopLossOrTakeProfitTrigger) {
-                if (marginMode === undefined) {
-                    marginMode = 'cross';
-                }
                 let marginModeRequest: Str = 'isolated';
-                if (marginMode === 'cross') {
+                if ((marginMode === undefined) || (marginMode === 'cross')) {
                     marginModeRequest = 'crossed';
                 }
                 request['marginMode'] = marginModeRequest;
@@ -6310,11 +6307,8 @@ export default class bitget extends Exchange {
         };
         let response = undefined;
         if ((market['swap'] === true) || (market['future'] === true)) {
-            if (marginMode === undefined) {
-                marginMode = 'cross';
-            }
             let marginModeRequest: Str = 'isolated';
-            if (marginMode === 'cross') {
+            if ((marginMode === undefined) || (marginMode === 'cross')) {
                 marginModeRequest = 'crossed';
             }
             request['marginMode'] = marginModeRequest;
@@ -6510,7 +6504,7 @@ export default class bitget extends Exchange {
             }
         } else {
             if ((market['swap'] !== true) && (market['future'] !== true)) {
-                throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders');
+                throw new NotSupported (this.id + ' editOrder() does not support ' + this.safeString (market, 'type', '') + ' orders');
             }
             request['symbol'] = market['id'];
             request['productType'] = productType;
@@ -6706,7 +6700,7 @@ export default class bitget extends Exchange {
                 }
             }
         } else {
-            throw new NotSupported (this.id + ' cancelOrder() does not support ' + market['type'] + ' orders');
+            throw new NotSupported (this.id + ' cancelOrder() does not support ' + this.safeString (market, 'type', '') + ' orders');
         }
         //
         // spot, swap, future, spot margin and tokenized stock
@@ -7076,7 +7070,7 @@ export default class bitget extends Exchange {
             request['productType'] = productType;
             response = await this.privateMixGetV2MixOrderDetail (this.extend (request, paramsProductType));
         } else {
-            throw new NotSupported (this.id + ' fetchOrder() does not support ' + market['type'] + ' orders');
+            throw new NotSupported (this.id + ' fetchOrder() does not support ' + this.safeString (market, 'type', '') + ' orders');
         }
         //
         // spot

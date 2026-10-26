@@ -1727,7 +1727,7 @@ export default class bitget extends bitgetRest {
         } else if (productType === 'USDC-FUTURES') {
             messageHash = messageHash + ':usdcfutures'; // non unified channel
         }
-        const useSpotInstType = (market === undefined && type === 'spot');
+        const useSpotInstType = (symbol === undefined && type === 'spot');
         let instType: Str = 'SPOT';
         let paramsInstType: Dict = paramsSubType;
         if (!useSpotInstType) {
@@ -2241,7 +2241,7 @@ export default class bitget extends bitgetRest {
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (paramsMarketType, 'watchMyTrades', 'uta', false);
-        const useSpotInstType = (market === undefined && type === 'spot');
+        const useSpotInstType = (symbol === undefined && type === 'spot');
         let instType: Str = 'SPOT';
         let paramsInstType: Dict = paramsUta;
         if (!useSpotInstType) {
@@ -2979,7 +2979,7 @@ export default class bitget extends bitgetRest {
         const instId = this.safeString2 (arg, 'instId', 'symbol');
         const market = this.safeMarket (instId, undefined, undefined, type);
         const symbol = market['symbol'];
-        const messageHash = 'unsubscribe:orderbook:' + market['symbol'];
+        const messageHash = 'unsubscribe:orderbook:' + this.safeString (market, 'symbol', '');
         const subMessageHash = 'orderbook:' + symbol;
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
@@ -3010,7 +3010,7 @@ export default class bitget extends bitgetRest {
         const instId = this.safeString2 (arg, 'instId', 'symbol');
         const market = this.safeMarket (instId, undefined, undefined, type);
         const symbol = market['symbol'];
-        const messageHash = 'unsubscribe:trade:' + market['symbol'];
+        const messageHash = 'unsubscribe:trade:' + this.safeString (market, 'symbol', '');
         const subMessageHash = 'trade:' + symbol;
         if (symbol in this.trades) {
             delete this.trades[symbol];
@@ -3041,7 +3041,7 @@ export default class bitget extends bitgetRest {
         const instId = this.safeString2 (arg, 'instId', 'symbol');
         const market = this.safeMarket (instId, undefined, undefined, type);
         const symbol = market['symbol'];
-        const messageHash = 'unsubscribe:ticker:' + market['symbol'];
+        const messageHash = 'unsubscribe:ticker:' + this.safeString (market, 'symbol', '');
         const subMessageHash = 'ticker:' + symbol;
         if (symbol in this.tickers) {
             delete this.tickers[symbol];
