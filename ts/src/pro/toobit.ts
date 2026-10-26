@@ -240,7 +240,7 @@ export default class toobit extends toobitRest {
         //
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new ArrayCache (limit);
@@ -249,9 +249,7 @@ export default class toobit extends toobitRest {
         const data = this.safeList (message, 'data', []);
         const parsedTrades = this.arrayConcat (this.parseWsTrades (data, market), []);
         for (let i = 0; i < parsedTrades.length; i++) {
-            const trade = parsedTrades[i];
-            trade['symbol'] = symbol;
-            stored.append (trade);
+            stored.append (parsedTrades[i]);
         }
         const messageHash = 'trade::' + symbol;
         client.resolve (stored, messageHash);
@@ -358,7 +356,7 @@ export default class toobit extends toobitRest {
         //
         const marketId = this.safeString (message, 'symbol');
         const market = this.market (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const params = this.safeDict (message, 'params', {});
         const timeframeId = this.safeString (params, 'klineType');
         const timeframe = this.findTimeframe (timeframeId);
@@ -1141,9 +1139,6 @@ export default class toobit extends toobitRest {
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parseWsPosition (rawPosition);
-            const timestamp = this.safeInteger (rawPosition, 'E');
-            position['timestamp'] = timestamp;
-            position['datetime'] = this.iso8601 (timestamp);
             newPositions.push (position);
             cache.append (position);
         }
@@ -1167,6 +1162,7 @@ export default class toobit extends toobitRest {
 
     parseWsPosition (position: Dict, market: Market = undefined): Position {
         const marketId = this.safeString (position, 's');
+        const timestamp = this.safeInteger (position, 'E');
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -1183,8 +1179,8 @@ export default class toobit extends toobitRest {
             'markPrice': this.safeString (position, 'mp'),
             'side': this.safeStringLower (position, 'S'),
             'hedged': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'maintenanceMargin': this.safeString (position, 'mm'),
             'maintenanceMarginPercentage': undefined,
             'collateral': undefined,

@@ -966,7 +966,7 @@ export default class toobit extends Exchange {
         const baseId = this.safeString (market, 'baseAsset', '');
         const quoteId = this.safeString (market, 'quoteAsset');
         const baseParts = baseId.split ('-');
-        const baseIdClean = baseParts[0];
+        const baseIdClean = this.safeString (baseParts, 0);
         const base = this.safeCurrencyCode (baseIdClean);
         const quote = this.safeCurrencyCode (quoteId);
         if ((base === undefined) || (quote === undefined)) {
@@ -2798,10 +2798,10 @@ export default class toobit extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
         if (limit !== undefined) {
-            requestUntil['limit'] = limit;
+            request['limit'] = limit;
         }
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, params);
         let response: List = [];
         if (type === 'deposits') {
             response = await this.privateGetApiV1AccountDepositOrders (this.extend (requestUntil, paramsUntil));
@@ -3289,7 +3289,7 @@ export default class toobit extends Exchange {
         if (apiName !== 'private') {
             // Public endpoints
             if (!isPost) {
-                if (Object.keys (query).length > 0) {
+                if (!this.isEmpty (query)) {
                     url += '?' + this.urlencode (query);
                 }
             }
@@ -3301,7 +3301,7 @@ export default class toobit extends Exchange {
             extraQuery['timestamp'] = timestamp.toString ();
             const queryExtended = this.extend (query, extraQuery);
             let queryString = '';
-            let privateBody: Str = undefined;
+            let privateBody = '';
             if (isPost || isDelete) {
                 // everything else except Batch-Orders
                 if (!Array.isArray (params)) {
@@ -3313,13 +3313,9 @@ export default class toobit extends Exchange {
             } else {
                 queryString = this.urlencode (queryExtended);
             }
-            let payloadBody = undefined;
-            if (isPost || isDelete) {
-                payloadBody = privateBody;
-            }
             let payload = queryString;
-            if (payloadBody !== undefined) {
-                payload = payloadBody + payload;
+            if (isPost || isDelete) {
+                payload = privateBody + queryString;
             }
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
             if (queryString !== '') {
