@@ -3354,7 +3354,7 @@ export class BaseExchange {
 
     handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i]);
+            this.handleDelta (bookside, this.safeValue (deltas, i));
         }
     }
 
@@ -3364,7 +3364,7 @@ export class BaseExchange {
 
     handleBookDeltas (orderbook: WsOrderBook, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleBookDelta (orderbook, deltas[i]);
+            this.handleBookDelta (orderbook, this.safeValue (deltas, i));
         }
     }
 
@@ -3374,7 +3374,7 @@ export class BaseExchange {
 
     handleDeltasWithKeys (bookSide: any, deltas: any[], priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         for (let i = 0; i < deltas.length; i++) {
-            const bidAsk = this.parseOrderBookBidAsk (deltas[i], priceKey, amountKey, countOrIdKey);
+            const bidAsk = this.parseOrderBookBidAsk (this.safeValue (deltas, i), priceKey, amountKey, countOrIdKey);
             bookSide.storeArray (bidAsk);
         }
     }
@@ -8592,7 +8592,7 @@ export class BaseExchange {
     parseWsOHLCVs (ohlcvs: object[], market: Market = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined): OHLCV[] {
         const results: OHLCV[] = [];
         for (let i = 0; i < ohlcvs.length; i++) {
-            results.push (this.parseWsOHLCV (ohlcvs[i], market));
+            results.push (this.parseWsOHLCV (this.safeValue (ohlcvs, i), market));
         }
         return results;
     }
@@ -9436,28 +9436,30 @@ export class BaseExchange {
         if ((unsubHash !== undefined) && (unsubHash in client.subscriptions)) {
             delete client.subscriptions[unsubHash];
         }
-        if (!subHashIsPrefix) {
-            if ((subHash !== undefined) && (subHash in client.subscriptions)) {
-                delete client.subscriptions[subHash];
-            }
-            if ((subHash !== undefined) && (subHash in client.futures)) {
-                const error = new UnsubscribeError (this.id + ' ' + subHash);
-                client.reject (error, subHash);
-            }
-        } else {
-            const clientSubscriptions = Object.keys (client.subscriptions);
-            for (let i = 0; i < clientSubscriptions.length; i++) {
-                const sub = clientSubscriptions[i];
-                if ((sub !== undefined) && (subHash !== undefined) && sub.startsWith (subHash)) {
-                    delete client.subscriptions[sub];
+        if (subHash !== undefined) {
+            if (!subHashIsPrefix) {
+                if (subHash in client.subscriptions) {
+                    delete client.subscriptions[subHash];
                 }
-            }
-            const clientFutures = Object.keys (client.futures);
-            for (let i = 0; i < clientFutures.length; i++) {
-                const future = clientFutures[i];
-                if ((future !== undefined) && (subHash !== undefined) && future.startsWith (subHash)) {
-                    const error = new UnsubscribeError (this.id + ' ' + future);
-                    client.reject (error, future);
+                if (subHash in client.futures) {
+                    const error = new UnsubscribeError (this.id + ' ' + subHash);
+                    client.reject (error, subHash);
+                }
+            } else {
+                const clientSubscriptions = Object.keys (client.subscriptions);
+                for (let i = 0; i < clientSubscriptions.length; i++) {
+                    const sub = clientSubscriptions[i];
+                    if (sub.startsWith (subHash)) {
+                        delete client.subscriptions[sub];
+                    }
+                }
+                const clientFutures = Object.keys (client.futures);
+                for (let i = 0; i < clientFutures.length; i++) {
+                    const future = clientFutures[i];
+                    if (future.startsWith (subHash)) {
+                        const error = new UnsubscribeError (this.id + ' ' + future);
+                        client.reject (error, future);
+                    }
                 }
             }
         }
@@ -9488,7 +9490,7 @@ export class BaseExchange {
             }
         } else if (symbolsLength > 0) {
             for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+                const symbol = this.safeString (symbols, i, '');
                 if (topic === 'trades') {
                     if (symbol in this.trades) {
                         delete this.trades[symbol];
@@ -9508,9 +9510,9 @@ export class BaseExchange {
                 }
             }
         } else {
-            if (topic === 'myTrades' && (this.myTrades !== undefined)) {
+            if (topic === 'myTrades') {
                 this.myTrades = undefined;
-            } else if (topic === 'orders' && (this.orders !== undefined)) {
+            } else if (topic === 'orders') {
                 this.orders = undefined;
             } else if (topic === 'positions' && (this.positions !== undefined)) {
                 this.positions = undefined;
