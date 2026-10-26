@@ -1591,8 +1591,9 @@ export default class bybit extends Exchange {
         const symbolBase = symbol.split ('/');
         let expiry: Str = undefined;
         const hasSlash = symbol.indexOf ('/') > -1;
-        const baseName: Str = (hasSlash) ? this.safeString (symbolBase, 0) : this.safeString (optionParts, 0);
+        let baseName: Str = undefined;
         if (hasSlash) {
+            baseName = this.safeString (symbolBase, 0);
             expiry = this.safeString (optionParts, 1);
             const symbolQuoteAndSettle = this.safeString (symbolBase, 1);
             if (symbolQuoteAndSettle === undefined) {
@@ -1603,6 +1604,7 @@ export default class bybit extends Exchange {
             quote = quoteAndSettle;
             settle = quoteAndSettle;
         } else {
+            baseName = this.safeString (optionParts, 0);
             expiry = this.convertMarketIdExpireDate (this.safeString (optionParts, 1));
             if (symbol.endsWith ('-USDT')) {
                 quote = 'USDT';
@@ -2404,8 +2406,8 @@ export default class bybit extends Exchange {
                 throw new ExchangeError (this.id + ' method() missing id');
             }
             const splitId = id.split ('-');
-            const strike = this.safeString (splitId, 2);
-            const optionLetter = this.safeString (splitId, 3);
+            const strike = this.safeString (splitId, 2, '');
+            const optionLetter = this.safeString (splitId, 3, '');
             const isActive = (status === 'Trading');
             const isInverse = base === settle;
             const loadExpiredOptions = this.handleOption ('fetchMarkets', 'loadExpiredOptions');
@@ -10122,7 +10124,7 @@ export default class bybit extends Exchange {
                     'Content-Type': 'application/json',
                     'X-BAPI-API-KEY': this.apiKey,
                     'X-BAPI-TIMESTAMP': timestamp,
-                    'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString (),
+                    'X-BAPI-RECV-WINDOW': this.numberToString (this.options['recvWindow']),
                 };
                 if (isV3UnifiedMargin || isV3Contract) {
                     requestHeaders['X-BAPI-SIGN-TYPE'] = '2';

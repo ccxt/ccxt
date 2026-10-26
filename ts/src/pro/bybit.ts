@@ -281,7 +281,7 @@ export default class bybit extends bybitRest {
             ],
             'header': {
                 'X-BAPI-TIMESTAMP': this.milliseconds ().toString (),
-                'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString (),
+                'X-BAPI-RECV-WINDOW': this.numberToString (this.options['recvWindow']),
             },
         };
         return await this.watch (url, requestId, request, requestId, true) as Order;
@@ -328,7 +328,7 @@ export default class bybit extends bybitRest {
             ],
             'header': {
                 'X-BAPI-TIMESTAMP': this.milliseconds ().toString (),
-                'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString (),
+                'X-BAPI-RECV-WINDOW': this.numberToString (this.options['recvWindow']),
             },
         };
         return await this.watch (url, requestId, request, requestId, true) as Order;
@@ -369,7 +369,7 @@ export default class bybit extends bybitRest {
             ],
             'header': {
                 'X-BAPI-TIMESTAMP': this.milliseconds ().toString (),
-                'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString (),
+                'X-BAPI-RECV-WINDOW': this.numberToString (this.options['recvWindow']),
             },
         };
         return await this.watch (url, requestId, request, requestId, true) as Order;
@@ -737,7 +737,8 @@ export default class bybit extends bybitRest {
             const symbolString = market['symbol'];
             const unfiedTimeframe = data[1];
             const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
-            rawHashes.push ('kline.' + timeframeId + '.' + market['id']);
+            const marketId = this.safeString (market, 'id', '');
+            rawHashes.push ('kline.' + timeframeId + '.' + marketId);
             messageHashes.push ('ohlcv::' + symbolString + '::' + unfiedTimeframe);
         }
         const [ symbol, timeframe, stored ] = await this.watchTopics (url, messageHashes, rawHashes, params);
@@ -776,7 +777,8 @@ export default class bybit extends bybitRest {
             const symbolString = market['symbol'];
             const unfiedTimeframe = data[1];
             const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
-            rawHashes.push ('kline.' + timeframeId + '.' + market['id']);
+            const marketId = this.safeString (market, 'id', '');
+            rawHashes.push ('kline.' + timeframeId + '.' + marketId);
             subMessageHashes.push ('ohlcv::' + symbolString + '::' + unfiedTimeframe);
             messageHashes.push ('unsubscribe::ohlcv::' + symbolString + '::' + unfiedTimeframe);
         }
@@ -945,7 +947,7 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const marketId = this.marketId (symbol);
-            const topic = 'orderbook.' + limitResolved.toString () + '.' + marketId;
+            const topic = 'orderbook.' + this.numberToString (limitResolved) + '.' + marketId;
             topics.push (topic);
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push (messageHash);
@@ -1138,7 +1140,8 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const topic = 'publicTrade.' + market['id'];
+            const marketId = this.safeString (market, 'id', '');
+            const topic = 'publicTrade.' + marketId;
             topics.push (topic);
             const messageHash = 'trade:' + symbol;
             messageHashes.push (messageHash);
@@ -1174,7 +1177,8 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const topic = 'publicTrade.' + market['id'];
+            const marketId = this.safeString (market, 'id', '');
+            const topic = 'publicTrade.' + marketId;
             topics.push (topic);
             const messageHash = 'unsubscribe:trade:' + symbol;
             messageHashes.push (messageHash);
@@ -1765,7 +1769,8 @@ export default class bybit extends bybitRest {
         const url = await this.getUrlByMarketType (symbolValue, false, 'watchLiquidations', params);
         const [ method, paramsMethod ] = this.handleOptionStringAndParams (this.cleanParams (params), 'watchLiquidations', 'method', 'allLiquidation');
         const messageHash = 'liquidations::' + symbolValue;
-        const topic = method + '.' + market['id'];
+        const marketId = this.safeString (market, 'id', '');
+        const topic = method + '.' + marketId;
         const newLiquidation: Liquidation[] = await this.watchTopics (url, [ messageHash ], [ topic ], paramsMethod);
         if (this.newUpdates) {
             return newLiquidation;
@@ -2311,7 +2316,7 @@ export default class bybit extends bybitRest {
                 account = this.safeStringLower (result, 'accountType');
                 rawBalances = this.arrayConcat (rawBalances, this.safeList (result, 'coin', []));
             }
-            info = data;
+            info = this.safeList (message, 'data', []);
         }
         for (let i = 0; i < rawBalances.length; i++) {
             this.parseWsBalance (rawBalances[i], account);
@@ -2546,7 +2551,7 @@ export default class bybit extends bybitRest {
             }
             const success = this.safeBool (message, 'success');
             if ((success !== undefined) && (!success)) {
-                const ret_msg = this.safeString (message, 'ret_msg');
+                const ret_msg = this.safeString (message, 'ret_msg', '');
                 const request = this.safeDict (message, 'request', {});
                 const op = this.safeString (request, 'op');
                 if (op === 'auth') {
