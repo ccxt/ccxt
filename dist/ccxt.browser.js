@@ -357827,7 +357827,7 @@ class extended extends _abstract_extended_js__rspack_import_0/* ["default"] */.A
     ], method = 'GET', params = {}) {
         let requestHeaders = undefined;
         let requestBody = undefined;
-        const accessibility = this.safeString(api, 1);
+        const accessibility = api[1];
         const endpoint = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const queryPost = path === 'user/deadmanswitch';
@@ -448848,8 +448848,8 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
     ], method = 'GET', params = {}) {
         let requestHeaders = undefined;
         let requestBody = undefined;
-        const section = this.safeString(api, 0);
-        const access = this.safeString(api, 1);
+        const section = api[0];
+        const access = api[1];
         const pathValue = this.implodeParams(path, params);
         const paramsValue = this.omit(params, this.extractParams(path));
         let url = undefined;

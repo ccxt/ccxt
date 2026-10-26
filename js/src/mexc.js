@@ -6388,8 +6388,8 @@ export default class mexc extends Exchange {
     sign(path, api = ['public'], method = 'GET', params = {}) {
         let requestHeaders = undefined;
         let requestBody = undefined;
-        const section = this.safeString(api, 0);
-        const access = this.safeString(api, 1);
+        const section = api[0];
+        const access = api[1];
         const pathValue = this.implodeParams(path, params);
         const paramsValue = this.omit(params, this.extractParams(path));
         let url = undefined;
