@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.zebpay import ImplicitAPI
 import hashlib
-import json
 from ccxt.base.types import Balances, Currencies, CurrencyInterface, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -328,7 +327,7 @@ class zebpay(Exchange, ImplicitAPI):
         defaultMarkets = ['spot', 'swap']
         types = self.safe_list(fetchMarketsOptions, 'types', defaultMarkets)
         for i in range(0, len(types)):
-            type = self.safe_string(types, i)
+            type = self.safe_string(types, i, '')
             if type == 'spot':
                 promisesUnresolved.append(self.fetch_spot_markets(params))
             elif type == 'swap':
@@ -401,18 +400,29 @@ class zebpay(Exchange, ImplicitAPI):
             networkId = self.safe_string(chain, 'chainId')
             networkCode = self.network_id_to_code(networkId, code)
             depositAllowed = self.safe_bool(chain, 'isDepositEnabled', False)
-            deposit = depositAllowed if (depositAllowed) else deposit
+            if depositAllowed:
+                deposit = True
             withdrawAllowed = self.safe_bool(chain, 'isWithdrawEnabled', False)
-            withdraw = withdrawAllowed if (withdrawAllowed) else withdraw
+            if withdrawAllowed:
+                withdraw = True
             withdrawFeeString = self.safe_string(chain, 'withdrawalFee')
             if withdrawFeeString is not None:
-                minWithdrawFeeString = withdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(withdrawFeeString, minWithdrawFeeString)
+                if minWithdrawFeeString is None:
+                    minWithdrawFeeString = withdrawFeeString
+                else:
+                    minWithdrawFeeString = Precise.string_min(withdrawFeeString, minWithdrawFeeString)
             minNetworkWithdrawString = self.safe_string(chain, 'withdrawalMinSize')
             if minNetworkWithdrawString is not None:
-                minWithdrawString = minNetworkWithdrawString if (minWithdrawString is None) else Precise.string_min(minNetworkWithdrawString, minWithdrawString)
+                if minWithdrawString is None:
+                    minWithdrawString = minNetworkWithdrawString
+                else:
+                    minWithdrawString = Precise.string_min(minNetworkWithdrawString, minWithdrawString)
             minNetworkDepositString = self.safe_string(chain, 'depositMinSize')
             if minNetworkDepositString is not None:
-                minDepositString = minNetworkDepositString if (minDepositString is None) else Precise.string_min(minNetworkDepositString, minDepositString)
+                if minDepositString is None:
+                    minDepositString = minNetworkDepositString
+                else:
+                    minDepositString = Precise.string_min(minNetworkDepositString, minDepositString)
             if networkCode is not None:
                 networks[networkCode] = {
                     'info': chain,
@@ -1004,8 +1014,8 @@ class zebpay(Exchange, ImplicitAPI):
         }
         response = None
         if market['spot'] is True:
-            request, query = self.order_request(symbol, type, amount, request, price, query)
-            response = self.privateSpotPostV2ExOrders(self.extend(request, query))
+            orderRequestResult = self.order_request(symbol, type, amount, request, price, query)
+            response = self.privateSpotPostV2ExOrders(self.extend(orderRequestResult[0], orderRequestResult[1]))
         else:
             marginAsset = self.safe_string(query, 'marginAsset', 'INR')
             formType = self.safe_string_upper(query, 'formType', 'ORDER_FORM')
@@ -1628,12 +1638,11 @@ class zebpay(Exchange, ImplicitAPI):
             quote = self.safe_currency_code(quoteId)
             if (base is None) or (quote is None):
                 continue
-            settle = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'status')
             symbol = base + '/' + quote
             result.append(self.safe_market_structure({
                 'id': id,
-                'symbol': symbol + ':' + settle,
+                'symbol': symbol + ':' + quote,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
@@ -1842,9 +1851,8 @@ class zebpay(Exchange, ImplicitAPI):
         baseApiUrl = self.safe_string(self.urls['api'], marketType)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = baseApiUrl
         tail = '/api/' + self.implode_params(path, paramsOmitted)
-        url += tail
+        suffix = ''
         timestamp = str(self.milliseconds())
         signature = ''
         query = self.omit(paramsOmitted, self.extract_params(path))
@@ -1853,13 +1861,13 @@ class zebpay(Exchange, ImplicitAPI):
         if access == 'public':
             if method == 'GET' or method == 'DELETE':
                 if queryLength != 0:
-                    url += '?' + self.urlencode(query)
+                    suffix = '?' + self.urlencode(query)
             else:
                 priceType = self.safe_string(paramsOmitted, 'priceType')
                 paramsBody = self.omit(paramsOmitted, 'priceType')
                 if priceType is not None:
-                    url += '?' + self.urlencode({'priceType': priceType})
-                bodySigned = json.dumps(paramsBody)
+                    suffix = '?' + self.urlencode({'priceType': priceType})
+                bodySigned = self.json(paramsBody)
                 headersSigned = {
                     'Referrer': 'ccxt',
                     'Content-Type': 'application/json',
@@ -1872,7 +1880,7 @@ class zebpay(Exchange, ImplicitAPI):
                 # For GET/DELETE: Append params to URL and sign the query string
                 queryString = self.urlencode(paramsOmitted)
                 signature = self.hmac(self.encode(queryString), self.encode(self.secret), hashlib.sha256, 'hex')
-                url += '?' + queryString
+                suffix = '?' + queryString
             else:
                 # For POST/PUT: Convert body to JSON and sign the stringified payload
                 bodySigned = self.json(paramsOmitted)
@@ -1881,8 +1889,9 @@ class zebpay(Exchange, ImplicitAPI):
                 'Referrer': 'ccxt',
                 'X-AUTH-APIKEY': self.apiKey,
                 'X-AUTH-SIGNATURE': signature,
+                'Content-Type': 'application/json',
             }
-            headersSigned['Content-Type'] = 'application/json'
+        url = baseApiUrl + tail + suffix
         headersResolved = headersSigned
         bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
@@ -1899,7 +1908,7 @@ class zebpay(Exchange, ImplicitAPI):
         # {"statusDescription":"Order quantity is out of range","data":{},"statusCode":400,"customMessage":["Order quantity is out of range"]}
         #
         errorCode = self.safe_string_2(response, 'code', 'statusCode')
-        message = self.safe_string_2(response, 'msg', 'statusDescription')
+        message = self.safe_string_2(response, 'msg', 'statusDescription', '')
         feedback = self.id + ' ' + message
         self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)

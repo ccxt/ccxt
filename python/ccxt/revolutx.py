@@ -223,8 +223,6 @@ class revolutx(Exchange, ImplicitAPI):
         requestBody = None
         implodedPath = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        queryKeys = list(query.keys())
-        queryLength = len(queryKeys)
         apiName = api[0]
         baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
@@ -236,12 +234,12 @@ class revolutx(Exchange, ImplicitAPI):
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
             if method == 'GET':
-                if queryLength > 0:
-                    queryString = self.urlencode(query)
+                queryString = self.urlencode(query)
+                if queryString != '':
                     url += '?' + queryString
             elif method == 'DELETE':
-                if queryLength > 0:
-                    queryString = self.urlencode(query)
+                queryString = self.urlencode(query)
+                if queryString != '':
                     url += '?' + queryString
             else:
                 requestBody = self.json(query)
@@ -256,11 +254,11 @@ class revolutx(Exchange, ImplicitAPI):
                 'X-Revx-Signature': signature,
             }
             if method == 'POST' or method == 'PUT':
-                requestHeaders['Content-Type'] = 'application/json'
+                requestHeaders = self.extend(requestHeaders, {'Content-Type': 'application/json'})
         else:
             if method == 'GET':
-                if queryLength > 0:
-                    queryString = self.urlencode(query)
+                queryString = self.urlencode(query)
+                if queryString != '':
                     url += '?' + queryString
             else:
                 requestBody = self.json(query)
@@ -792,7 +790,10 @@ class revolutx(Exchange, ImplicitAPI):
         #         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
         #     ]
         #
-        data = response if isinstance(response, list) else self.safe_list(response, 'data', [])
+        payload = response
+        if isinstance(payload, list):
+            payload = {'data': payload}
+        data = self.safe_list(payload, 'data', [])
         result = {'info': response}
         for i in range(0, len(data)):
             balance = self.safe_dict(data, i, {})

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1563,7 +1563,7 @@ class mexc(Exchange, ImplicitAPI):
             swapOrderbook = self.parse_order_book(data, symbol, timestamp)
             swapOrderbook['nonce'] = self.safe_integer(data, 'version')
             return swapOrderbook
-        raise NotSupported(self.id + ' fetchOrderBook() does not support ' + market['type'] + ' markets')
+        raise NotSupported(self.id + ' fetchOrderBook() does not support ' + self.safe_string(market, 'type', '') + ' markets')
 
     def parse_order_book_bid_ask(self, bidask: object, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         countKey = 2
@@ -1954,8 +1954,7 @@ class mexc(Exchange, ImplicitAPI):
         if symbols is not None:
             length = len(symbols)
             isSingularMarket = length == 1
-            firstSymbol = self.safe_string(symbols, 0)
-            market = self.market(firstSymbol)
+            market = self.market(symbols[0])
         marketType, query = self.handle_market_type_and_params('fetchTickers', market, params)
         tickers = None
         if isSingularMarket:
@@ -2340,8 +2339,8 @@ class mexc(Exchange, ImplicitAPI):
         else:
             return self.create_swap_order(market, type, side, amount, price, marginMode, query)
 
-    def create_spot_order_request(self, market: object, type: Str, side: Str, amount: object, price: Num = None, marginMode: Str = None, params: dict = {}):
-        symbol = market['symbol']
+    def create_spot_order_request(self, market: MarketInterface, type: Str, side: Str, amount: Num, price: Num = None, marginMode: Str = None, params: dict = {}) -> dict:
+        symbol = self.safe_string(market, 'symbol', '')
         if (type is None) or (side is None):
             raise ArgumentsRequired(self.id + ' createOrder() requires a type and a side argument')
         orderSide = side.upper()
@@ -2386,7 +2385,7 @@ class mexc(Exchange, ImplicitAPI):
                 request['type'] = 'FILL_OR_KILL'
         return self.extend(request, paramsWithoutTif)
 
-    def create_spot_order(self, market: object, type: OrderType, side: object, amount: object, price: Num = None, marginMode: Str = None, params: dict = {}) -> Order:
+    def create_spot_order(self, market: MarketInterface, type: OrderType, side: OrderSide, amount: Num, price: Num = None, marginMode: Str = None, params: dict = {}) -> Order:
         """
  @ignore
         create a trade order
@@ -2441,7 +2440,7 @@ class mexc(Exchange, ImplicitAPI):
             order['amount'] = amount
         return order
 
-    def create_swap_order(self, market: object, type: object, side: OrderSide, amount: object, price: Num = None, marginMode: Str = None, params: dict = {}) -> Order:
+    def create_swap_order(self, market: MarketInterface, type: object, side: OrderSide, amount: Num, price: Num = None, marginMode: Str = None, params: dict = {}) -> Order:
         """
  @ignore
         create a trade order
@@ -2470,34 +2469,34 @@ class mexc(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         openType = self.safe_integer(params, 'openType', 2)  # defaulting to cross margin
         if marginMode is not None:
             if marginMode == 'cross':
-                openType = self.parse_to_int(2)
+                openType = 2
             elif marginMode == 'isolated':
-                openType = self.parse_to_int(1)
+                openType = 1
             else:
                 raise ArgumentsRequired(self.id + ' createSwapOrder() marginMode parameter should be either "cross" or "isolated"')
-        if (type != 'limit') and (type != 'market') and (type != 1) and (type != 2) and (type != 3) and (type != 4) and (type != 5) and (type != 6):
+        if (type != 'limit') and (type != 'market') and (not self.in_array(type, [1, 2, 3, 4, 5, 6])):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
         postOnly, paramsPostOnly = self.handle_post_only(type == 'market', type == 2, params)
-        orderType = None
+        orderType = self.parse_to_int(0)  # typed seed, every branch below assigns it
         if postOnly:
-            orderType = 2
+            orderType = self.parse_to_int(2)
         elif type == 'limit':
-            orderType = 1
+            orderType = self.parse_to_int(1)
         elif type == 'market':
-            orderType = 6
+            orderType = self.parse_to_int(6)
         else:
-            orderType = type
+            orderType = self.parse_to_int(type)
         volString = self.amount_to_precision(symbol, amount)
         if volString is None:
             volString = '0'
         request = {
             'symbol': market['id'],
             # 'price': parseFloat (this.priceToPrecision (symbol, price)),
-            'vol': float(volString),
+            'vol': self.parse_number(volString),
             # 'leverage': int, // required for isolated margin
             # 'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
             # order types: 1 limit, 2 post only (PO), 3 IOC, 4 FOK, 5 market, 6 convert market price to current price
@@ -2511,11 +2510,11 @@ class mexc(Exchange, ImplicitAPI):
             # 'trend': 1, // Required for trigger order 1: latest price, 2: fair price, 3: index price
             # 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         }
-        if (orderType != 5) and (orderType != 6) and (orderType != 'market'):
+        if (orderType != 5) and (orderType != 6):
             priceString = self.price_to_precision(symbol, price)
             if priceString is None:
                 priceString = '0'
-            request['price'] = float(priceString)
+            request['price'] = self.parse_number(priceString)
         if openType == 1:
             leverage = self.safe_integer(paramsPostOnly, 'leverage')
             if leverage is None:
@@ -2780,7 +2779,7 @@ class mexc(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         until = self.safe_integer(params, 'until')
         paramsOmitted = self.omit(params, 'until')
         marketType, query = self.handle_market_type_and_params('fetchOrders', market, paramsOmitted)
@@ -2953,7 +2952,7 @@ class mexc(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         marketType, query = self.handle_market_type_and_params('fetchOrdersByIds', market, params)
         if marketType == 'spot':
             raise NotSupported(self.id + ' fetchOrdersByIds() is not supported for ' + marketType)
@@ -3162,7 +3161,7 @@ class mexc(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         marketType, paramsMarketType = self.handle_market_type_and_params('cancelOrder', market, params)
         marginMode, query = self.handle_margin_mode_and_params('cancelOrder', paramsMarketType)
         data: dict
@@ -4255,12 +4254,14 @@ class mexc(Exchange, ImplicitAPI):
         if positionId is None:
             openType = self.safe_number(params, 'openType')  # 1 or 2
             positionType = self.safe_number(params, 'positionType')  # 1 or 2
-            market = self.market(symbol) if (symbol is not None) else None
+            market = None
+            if symbol is not None:
+                market = self.market(symbol)
             if (openType is None) or (positionType is None) or (market is None):
                 raise ArgumentsRequired(self.id + ' setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions')
             else:
                 request['openType'] = openType
-                request['symbol'] = market['id']
+                request['symbol'] = self.safe_string(market, 'id')
                 request['positionType'] = positionType
         else:
             request['positionId'] = positionId
@@ -4289,7 +4290,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         if limit is not None:
             request['page_size'] = limit
         response = self.contractPrivateGetPositionFundingRecords(self.extend(request, params))
@@ -4816,11 +4817,12 @@ class mexc(Exchange, ImplicitAPI):
             rawNetwork = self.safe_string(params, 'network')
         if code is not None:
             currency = self.currency(code)
-            request['coin'] = currency['id']
+            currencyId = currency['id']
+            request['coin'] = currencyId
             # currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
             # due to that I'm applying the network parameter directly so the user can control it on its side
             if rawNetwork is not None:
-                request['coin'] = currency['id'] + '-' + rawNetwork
+                request['coin'] = currencyId + '-' + rawNetwork
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -5187,7 +5189,7 @@ class mexc(Exchange, ImplicitAPI):
         #    }
         #
         marketResolved = self.safe_market(self.safe_string(position, 'symbol'), market, None, 'swap')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         contracts = self.safe_string(position, 'holdVol')
         entryPrice = self.safe_number(position, 'openAvgPrice')
         initialMargin = self.omit_zero(self.safe_string(position, 'im'))
@@ -6035,7 +6037,7 @@ class mexc(Exchange, ImplicitAPI):
                 if apiUrl is None:
                     raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
                 url = apiUrl + '/api/' + self.version + '/' + pathValue
-            urlParams = paramsValue
+            urlParams = self.extend(paramsValue, {})
             if access == 'private':
                 if section == 'broker' and ((method == 'POST') or (method == 'PUT') or (method == 'DELETE')):
                     urlParams = {

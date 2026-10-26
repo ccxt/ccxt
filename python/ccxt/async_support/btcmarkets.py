@@ -435,18 +435,17 @@ class btcmarkets(Exchange, ImplicitAPI):
             type = 'withdrawal'
         cryptoPaymentDetail = self.safe_dict(transaction, 'paymentDetail', {})
         txid = self.safe_string(cryptoPaymentDetail, 'txId')
-        address = self.safe_string(cryptoPaymentDetail, 'address')
+        addressRaw = self.safe_string(cryptoPaymentDetail, 'address')
+        address = None
         tag = None
-        if address is not None:
-            addressParts = address.split('?dt=')
+        if addressRaw is not None:
+            addressParts = addressRaw.split('?dt=')
             numParts = len(addressParts)
             if numParts > 1:
                 address = addressParts[0]
                 tag = addressParts[1]
-        addressTo = address
-        tagTo = tag
-        addressFrom = None
-        tagFrom = None
+            else:
+                address = addressRaw
         fee = self.safe_string(transaction, 'fee')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         currencyId = self.safe_string(transaction, 'assetName')
@@ -461,11 +460,11 @@ class btcmarkets(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'network': None,
             'address': address,
-            'addressTo': addressTo,
-            'addressFrom': addressFrom,
+            'addressTo': address,
+            'addressFrom': None,
             'tag': tag,
-            'tagTo': tagTo,
-            'tagFrom': tagFrom,
+            'tagTo': tag,
+            'tagFrom': None,
             'type': type,
             'amount': self.parse_number(amount),
             'currency': code,
@@ -738,7 +737,6 @@ class btcmarkets(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'marketId')
         marketResolved = self.safe_market(marketId, market, '-')
-        symbol = marketResolved['symbol']
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
         last = self.safe_string(ticker, 'lastPrice')
         baseVolume = self.safe_string(ticker, 'volume24h')
@@ -746,7 +744,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         change = self.safe_string(ticker, 'price24h')
         percentage = self.safe_string(ticker, 'pricePct24h')
         return self.safe_ticker({
-            'symbol': symbol,
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_string(ticker, 'high24h'),
@@ -1019,7 +1017,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         numericIds = []
         for i in range(0, len(ids)):
             # numericIds[i] = parseInt (ids[i]);
-            numericIds.append(int(ids[i]))
+            numericIds.append(self.parse_to_int(self.safe_string(ids, i)))
         request = {
             'ids': numericIds,
         }
@@ -1105,7 +1103,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             'type': takerOrMaker,
             'currency': currency,
             'rate': rate,
-            'cost': float(feeCost),
+            'cost': self.parse_number(feeCost),
         }
 
     def parse_order_status(self, status: Str) -> Str:
@@ -1376,8 +1374,9 @@ class btcmarkets(Exchange, ImplicitAPI):
                 if len(query) > 0:
                     request += '?' + self.urlencode(query)
             else:
-                requestBody = self.json(query)
-                auth += requestBody
+                jsonBody = self.json(query)
+                requestBody = jsonBody
+                auth = method + request + nonce + jsonBody
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             requestHeaders = {
                 'Accept': 'application/json',

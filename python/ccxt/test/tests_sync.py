@@ -1917,7 +1917,8 @@ class testMainClass:
             exchange.walletAddress = str(wallet_address)
         accounts = exchange.safe_list(exchange_data, 'accounts')
         if accounts is not None and accounts is not None:
-            exchange.accounts = accounts
+            # the field is a List<object>: assign the call, not the untyped local
+            exchange.accounts = exchange.safe_list(exchange_data, 'accounts')
         # exchange.options = exchange.deepExtend (exchange.options, globalOptions); # custom options to be used in the tests
         exchange.extend_exchange_options(global_options)
         methods = exchange.safe_value(exchange_data, 'methods', {})

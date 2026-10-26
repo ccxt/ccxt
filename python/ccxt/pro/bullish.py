@@ -131,7 +131,7 @@ class bullish(ccxt.async_support.bullish):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        messageHash = 'trades::' + market['symbol']
+        messageHash = 'trades::' + self.safe_string(market, 'symbol', '')
         url = '/trading-api/v1/market-data/trades'
         request = {
             'topic': 'anonymousTrades',
@@ -179,10 +179,11 @@ class bullish(ccxt.async_support.bullish):
             tradesArrayCache = ArrayCache(limit)
             self.trades[symbol] = tradesArrayCache
         tradesArray = self.trades[symbol]
-        for i in range(0, len(trades)):
-            tradesArray.append(trades[i])
+        tradesList = self.to_array(trades)
+        for i in range(0, len(tradesList)):
+            tradesArray.append(tradesList[i])
         self.trades[symbol] = tradesArray
-        messageHash = 'trades::' + market['symbol']
+        messageHash = 'trades::' + self.safe_string(market, 'symbol', '')
         client.resolve(tradesArray, messageHash)
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
@@ -198,13 +199,12 @@ class bullish(ccxt.async_support.bullish):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         wsUrl = self.safe_string(self.urls['api']['ws'], 'public')
         if wsUrl is None:
             raise ExchangeError(self.id + ' watchTicker() has no public websocket url')
-        url = wsUrl + '/trading-api/v1/market-data/tick/' + market['id']
         messageHash = 'ticker::' + symbolValue
-        return await self.watch(url, messageHash, params, messageHash)  # no need to send a subscribe message, the server sends a ticker update on connect
+        return await self.watch(wsUrl + '/trading-api/v1/market-data/tick/' + self.safe_string(market, 'id', ''), messageHash, params, messageHash)  # no need to send a subscribe message, the server sends a ticker update on connect
 
     def handle_ticker(self, client: Client, message: dict):
         #
@@ -281,7 +281,7 @@ class bullish(ccxt.async_support.bullish):
             await self.load_markets()
         market = self.market(symbol)
         url = '/trading-api/v1/market-data/orderbook'
-        messageHash = 'orderbook::' + market['symbol']
+        messageHash = 'orderbook::' + self.safe_string(market, 'symbol', '')
         request = {
             'topic': 'l2Orderbook',  # 'l2Orderbook' returns only snapshots while 'l1Orderbook' returns only updates
             'symbol': market['id'],
@@ -340,12 +340,12 @@ class bullish(ccxt.async_support.bullish):
         # 300 = '54885.0000000'
         # 301 = '0.06141566'
         # 302 ='53714.0000000'
-        for i in range(0, len(entry)):
+        entries = self.to_array(entry)
+        for i in range(0, len(entries)):
             if i % 2 != 0:
                 continue
-            price = self.safe_string(entry, i)
-            amount = self.safe_string(entry, i + 1)
-            result.append([price, amount])
+            price = self.safe_string(entries, i)
+            result.append([price, self.safe_string(entries, i + 1)])
         return result
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -368,7 +368,7 @@ class bullish(ccxt.async_support.bullish):
         symbolResolved = None
         if symbol is not None:
             symbolResolved = self.symbol(symbol)
-            messageHash = messageHash + '::' + symbolResolved
+            messageHash = subscribeHash + '::' + symbolResolved
         request = {
             'topic': 'orders',
         }
@@ -476,7 +476,7 @@ class bullish(ccxt.async_support.bullish):
         symbolResolved = None
         if symbol is not None:
             symbolResolved = self.symbol(symbol)
-            messageHash += '::' + symbolResolved
+            messageHash = subscribeHash + '::' + symbolResolved
         request = {
             'topic': 'trades',
         }

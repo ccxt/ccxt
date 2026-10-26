@@ -556,7 +556,7 @@ class bitbank(Exchange, ImplicitAPI):
             pair = pairs[i]
             marketId = self.safe_string(pair, 'name')
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             result[symbol] = {
                 'info': pair,
                 'symbol': symbol,
@@ -975,7 +975,7 @@ class bitbank(Exchange, ImplicitAPI):
         tagWithdrawTag = tagAndParams[0]
         paramsWithdrawTag = tagAndParams[1]
         self.check_address(address, code, tagWithdrawTag)
-        if not ('uuid' in paramsWithdrawTag):
+        if not ('uuid' in params):
             raise ExchangeError(self.id + ' uuid is required for withdrawal')
         if self.markets is None:
             self.load_markets()
@@ -1052,7 +1052,7 @@ class bitbank(Exchange, ImplicitAPI):
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
-        query = self.omit(params, self.extract_params(path))
+        query = self.extend({}, self.omit(params, self.extract_params(path)))
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
@@ -1094,10 +1094,9 @@ class bitbank(Exchange, ImplicitAPI):
                 'ACCESS-SIGNATURE': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
             }
             if isTimeWindow:
-                requestHeaders['ACCESS-REQUEST-TIME'] = requestTime
-                requestHeaders['ACCESS-TIME-WINDOW'] = timeWindow
+                requestHeaders = self.extend(requestHeaders, {'ACCESS-REQUEST-TIME': requestTime, 'ACCESS-TIME-WINDOW': timeWindow})
             else:
-                requestHeaders['ACCESS-NONCE'] = nonce
+                requestHeaders = self.extend(requestHeaders, {'ACCESS-NONCE': nonce})
         bodyResolved = requestBody
         headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}

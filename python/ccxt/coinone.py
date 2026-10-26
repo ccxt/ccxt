@@ -986,12 +986,8 @@ class coinone(Exchange, ImplicitAPI):
         id = self.safe_string_2(order, 'orderId', 'order_id')
         baseId = self.safe_string_2(order, 'baseCurrency', 'target_currency')
         quoteId = self.safe_string_2(order, 'targetCurrency', 'quote_currency')
-        base = None
-        quote = None
-        if baseId is not None:
-            base = self.safe_currency_code(baseId)
-        if quoteId is not None:
-            quote = self.safe_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         symbol = None
         if (base is not None) and (quote is not None):
             symbol = base + '/' + quote
@@ -1260,7 +1256,7 @@ class coinone(Exchange, ImplicitAPI):
             if apiName == 'v2_1Private':
                 nonce = self.uuid()
             else:
-                nonce = str(self.nonce())
+                nonce = self.number_to_string(self.nonce())
             json = self.json(self.extend({
                 'access_token': self.apiKey,
                 'nonce': nonce,

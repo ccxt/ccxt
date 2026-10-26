@@ -98,7 +98,7 @@ class poloniex(ccxt.async_support.poloniex):
         """
         self.check_required_credentials()
         timestamp = self.number_to_string(self.milliseconds())
-        url = self.urls['api']['ws']['private']
+        url = self.safe_string(self.urls['api']['ws'], 'private', '')
         messageHash = 'authenticated'
         client = self.client(url)
         future = self.safe_value(client.subscriptions, messageHash)
@@ -191,8 +191,8 @@ class poloniex(ccxt.async_support.poloniex):
         :param dict [params]: extra parameters specific to the poloniex api
         :returns dict: data from the websocket stream
         """
-        url = self.urls['api']['ws']['private']
-        messageHash = str(self.nonce())
+        url = self.safe_string(self.urls['api']['ws'], 'private', '')
+        messageHash = self.number_to_string(self.nonce())
         subscribe = {
             'id': messageHash,
             'event': name,
@@ -433,7 +433,7 @@ class poloniex(ccxt.async_support.poloniex):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, False, True, True)
         name = 'trades'
-        url = self.urls['api']['ws']['public']
+        url = self.safe_string(self.urls['api']['ws'], 'public', '')
         marketIds = self.market_ids(symbolsNormalized)
         subscribe = {
             'event': 'subscribe',
@@ -540,7 +540,7 @@ class poloniex(ccxt.async_support.poloniex):
         # balance from a rest snapshot once per subscription - otherwise the
         # first resolves would only list the currencies that changed since
         # subscribing
-        url = self.urls['api']['ws']['private']
+        url = self.safe_string(self.urls['api']['ws'], 'private', '')
         client = self.client(url)
         self.set_balance_cache(client, name)
         options = self.safe_dict(self.options, 'watchBalance')
@@ -679,9 +679,9 @@ class poloniex(ccxt.async_support.poloniex):
             marketId = self.safe_string(item, 'symbol')
             if marketId is not None:
                 trade = self.parse_ws_trade(item)
-                symbol = trade['symbol']
+                symbol = self.safe_string(trade, 'symbol')
                 type = 'trades'
-                messageHash = type + '::' + symbol
+                messageHash = type + '::' + self.safe_string(trade, 'symbol', '')
                 tradesArray = None if (symbol is None) else self.safe_value(self.trades, symbol)
                 if tradesArray is None:
                     tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -859,11 +859,10 @@ class poloniex(ccxt.async_support.poloniex):
         #    }
         #
         data = self.safe_list(message, 'data', [])
-        orders = self.orders
-        if orders is None:
+        if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit')
-            orders = ArrayCacheBySymbolById(limit)
-            self.orders = orders
+            self.orders = ArrayCacheBySymbolById(limit)
+        orders = self.orders
         marketIds = []
         for i in range(0, len(data)):
             order = self.safe_dict(data, i)
@@ -893,9 +892,9 @@ class poloniex(ccxt.async_support.poloniex):
                     previousOrder['lastTradeTimestamp'] = trade['timestamp']
                     totalCost = '0'
                     totalAmount = '0'
-                    previousOrderTrades = previousOrder['trades']
+                    previousOrderTrades = self.safe_list(previousOrder, 'trades', [])
                     for j in range(0, len(previousOrderTrades)):
-                        previousOrderTrade = previousOrderTrades[j]
+                        previousOrderTrade = self.safe_dict(previousOrderTrades, j, {})
                         cost = self.number_to_string(previousOrderTrade['cost'])
                         amount = self.number_to_string(previousOrderTrade['amount'])
                         totalCost = Precise.string_add(totalCost, cost)
@@ -930,7 +929,7 @@ class poloniex(ccxt.async_support.poloniex):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             messageHash = 'orders::' + symbol
             client.resolve(orders, messageHash)
         client.resolve(orders, 'orders')
@@ -1035,7 +1034,7 @@ class poloniex(ccxt.async_support.poloniex):
             marketId = self.safe_string(item, 'symbol')
             if marketId is not None:
                 ticker = self.parse_ticker(item)
-                symbol = ticker['symbol']
+                symbol = self.safe_string(ticker, 'symbol')
                 if symbol is not None:
                     self.tickers[symbol] = ticker
                 if symbol is not None:
@@ -1180,7 +1179,7 @@ class poloniex(ccxt.async_support.poloniex):
         messageHash = 'balances'
         if self.balance is None:
             self.balance = {}
-        self.balance['info'] = data
+        self.balance['info'] = self.safe_list(message, 'data', [])
         firstBalance = self.safe_dict(data, 0, {})
         timestamp = self.safe_integer(firstBalance, 'ts')
         self.balance['timestamp'] = timestamp
@@ -1200,7 +1199,7 @@ class poloniex(ccxt.async_support.poloniex):
     def handle_my_trades(self, client: Client, parsedTrade: Trade):
         # emulated using the orders' stream
         messageHash = 'myTrades'
-        symbol = parsedTrade['symbol']
+        symbol = self.safe_string(parsedTrade, 'symbol', '')
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)

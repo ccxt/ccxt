@@ -267,8 +267,8 @@ class limitless(PredictionExchange, ImplicitAPI):
                     pageMarketsLength = len(page_markets)
                     if pageMarketsLength == 0:
                         break
-                    for i in range(0, len(page_markets)):
-                        raw = page_markets[i]
+                    for i in range(0, pageMarketsLength):
+                        raw = self.safe_value(page_markets, i)
                         allRaw.append(raw)
                     allRawCount = len(allRaw)
                     if pageMarketsLength < pageSize or allRawCount >= maxMarkets:
@@ -1130,8 +1130,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         for i in range(0, len(slugs)):
             slug = slugs[i]
             detailIndex = i * 2
-            detail = responses[detailIndex]
-            book = responses[self.sum(detailIndex, 1)]
+            detail = self.safe_value(responses, detailIndex)
+            book = self.safe_value(responses, self.sum(detailIndex, 1))
             tickerInput = {'market': detail, 'book': book}
             grouped = self.safe_list(outcomesBySlug, slug, [])
             for j in range(0, len(grouped)):
@@ -1250,18 +1250,18 @@ class limitless(PredictionExchange, ImplicitAPI):
         bids = []
         asks = []
         for bi in range(0, len(bidsSource)):
-            priceStr = self.safe_string(bidsSource[bi], 'price')
+            priceStr = self.safe_string(self.safe_value(bidsSource, bi), 'price')
             if not isYes and (priceStr is not None):
                 priceStr = Precise.string_sub('1', priceStr)
-            sizeStr = self.safe_string(bidsSource[bi], 'size')
+            sizeStr = self.safe_string(self.safe_value(bidsSource, bi), 'size')
             if sizeStr is not None:
                 sizeStr = Precise.string_div(sizeStr, scaleStr)
             bids.append([self.parse_number(priceStr), self.parse_number(sizeStr)])
         for ai in range(0, len(asksSource)):
-            priceStr = self.safe_string(asksSource[ai], 'price')
+            priceStr = self.safe_string(self.safe_value(asksSource, ai), 'price')
             if not isYes and (priceStr is not None):
                 priceStr = Precise.string_sub('1', priceStr)
-            sizeStr = self.safe_string(asksSource[ai], 'size')
+            sizeStr = self.safe_string(self.safe_value(asksSource, ai), 'size')
             if sizeStr is not None:
                 sizeStr = Precise.string_div(sizeStr, scaleStr)
             asks.append([self.parse_number(priceStr), self.parse_number(sizeStr)])
@@ -1340,7 +1340,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             firstPrices = self.safe_list(first, 'prices')
             if firstPrices is not None:
                 selectedSeries = first
-                for i in range(0, len(rawHistory)):
+                for i in range(0, rawHistoryLength):
                     series = self.safe_dict(rawHistory, i, {})
                     title = self.safe_string_upper(series, 'title', '')
                     if title is None:
@@ -1399,7 +1399,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 candles[key] = candle  # php arrays are value types - write the mutation back
         result = []
         for i in range(0, len(bucketOrder)):
-            result.append(candles[bucketOrder[i]])
+            result.append(self.safe_value(candles, bucketOrder[i]))
         return self.filter_by_since_limit(result, since, limit, 0)
 
     async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionOrder]:
@@ -2802,7 +2802,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         eventKeys = list(eventGroups.keys())
         eventKeysLength = len(eventKeys)
         for i in range(0, eventKeysLength):
-            g = eventGroups[eventKeys[i]]
+            g = self.safe_value(eventGroups, eventKeys[i])
             ev = self.parse_event(g)
             result.append(ev)
         # setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache

@@ -134,22 +134,22 @@ class kraken(ccxt.async_support.kraken):
             },
         })
 
-    def order_request_ws(self, method: str, symbol: str, type: str, request: dict, amount: Num, price: Num = None, params: dict = {}) -> list:
+    def order_request_ws(self, method: str, symbol: str, type: str, request: dict, orderParams: dict, amount: Num, price: Num = None, params: dict = {}) -> list:
         isLimitOrder = type.endswith('limit')  # supporting limit, stop-loss-limit, take-profit-limit, etc
         if isLimitOrder:
             if price is None:
                 raise ArgumentsRequired(self.id + ' limit orders require a price argument')
-            request['params']['limit_price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
+            orderParams['limit_price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
         isMarket = (type == 'market')
         postOnly, paramsPostOnly = self.handle_post_only(isMarket, False, params)
         if postOnly:
-            request['params']['post_only'] = True
+            orderParams['post_only'] = True
         clientOrderId = self.safe_string(paramsPostOnly, 'clientOrderId')
         if clientOrderId is not None:
-            request['params']['cl_ord_id'] = clientOrderId
+            orderParams['cl_ord_id'] = clientOrderId
         cost = self.safe_string(paramsPostOnly, 'cost')
         if cost is not None:
-            request['params']['order_qty'] = self.parse_to_numeric(self.cost_to_precision(symbol, cost))
+            orderParams['order_qty'] = self.parse_to_numeric(self.cost_to_precision(symbol, cost))
         stopLoss = self.safe_dict(paramsPostOnly, 'stopLoss', {})
         takeProfit = self.safe_dict(paramsPostOnly, 'takeProfit', {})
         presetStopLoss = self.safe_string(stopLoss, 'triggerPrice')
@@ -189,76 +189,80 @@ class kraken(ccxt.async_support.kraken):
         if method == 'createOrderWs':
             reduceOnly = self.safe_bool(paramsPostOnly, 'reduceOnly')
             if reduceOnly is True:
-                request['params']['reduce_only'] = True
+                orderParams['reduce_only'] = True
             timeInForce = self.safe_string_lower(paramsPostOnly, 'timeInForce')
             if timeInForce is not None:
-                request['params']['time_in_force'] = timeInForce
-            if isStopLossPriceOrder or isTakeProfitPriceOrder or isTrailingAmountOrder or isTrailingPercentOrder or isTrailingLimitAmountOrder or isTrailingLimitPercentOrder:
-                request['params']['triggers'] = {}
+                orderParams['time_in_force'] = timeInForce
+            triggers = {}
+            conditional = {}
             if isPresetStopLoss or isPresetTakeProfit:
-                request['params']['conditional'] = {}
                 if isPresetStopLoss:
-                    request['params']['conditional']['order_type'] = 'stop-loss'
-                    request['params']['conditional']['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetStopLoss))
+                    conditional['order_type'] = 'stop-loss'
+                    conditional['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetStopLoss))
                 elif isPresetTakeProfit:
-                    request['params']['conditional']['order_type'] = 'take-profit'
-                    request['params']['conditional']['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetTakeProfit))
+                    conditional['order_type'] = 'take-profit'
+                    conditional['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetTakeProfit))
                 if presetStopLossLimit is not None:
-                    request['params']['conditional']['order_type'] = 'stop-loss-limit'
-                    request['params']['conditional']['limit_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetStopLossLimit))
+                    conditional['order_type'] = 'stop-loss-limit'
+                    conditional['limit_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetStopLossLimit))
                 elif presetTakeProfitLimit is not None:
-                    request['params']['conditional']['order_type'] = 'take-profit-limit'
-                    request['params']['conditional']['limit_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetTakeProfitLimit))
+                    conditional['order_type'] = 'take-profit-limit'
+                    conditional['limit_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetTakeProfitLimit))
             elif isStopLossPriceOrder or isTakeProfitPriceOrder:
                 if isStopLossPriceOrder:
-                    request['params']['triggers']['price'] = self.parse_to_numeric(self.price_to_precision(symbol, stopLossPrice))
+                    triggers['price'] = self.parse_to_numeric(self.price_to_precision(symbol, stopLossPrice))
                     if isLimitOrder:
-                        request['params']['order_type'] = 'stop-loss-limit'
+                        orderParams['order_type'] = 'stop-loss-limit'
                     else:
-                        request['params']['order_type'] = 'stop-loss'
+                        orderParams['order_type'] = 'stop-loss'
                 else:
-                    request['params']['triggers']['price'] = self.parse_to_numeric(self.price_to_precision(symbol, takeProfitPrice))
+                    triggers['price'] = self.parse_to_numeric(self.price_to_precision(symbol, takeProfitPrice))
                     if isLimitOrder:
-                        request['params']['order_type'] = 'take-profit-limit'
+                        orderParams['order_type'] = 'take-profit-limit'
                     else:
-                        request['params']['order_type'] = 'take-profit'
+                        orderParams['order_type'] = 'take-profit'
             elif isTrailingAmountOrder or isTrailingPercentOrder or isTrailingLimitAmountOrder or isTrailingLimitPercentOrder:
-                request['params']['triggers']['price_type'] = priceType
+                triggers['price_type'] = priceType
                 if not isLimitOrder and (isTrailingAmountOrder or isTrailingPercentOrder):
-                    request['params']['order_type'] = 'trailing-stop'
+                    orderParams['order_type'] = 'trailing-stop'
                     if isTrailingAmountOrder:
-                        request['params']['triggers']['price'] = self.parse_to_numeric(trailingAmountString)
+                        triggers['price'] = self.parse_to_numeric(trailingAmountString)
                     else:
-                        request['params']['triggers']['price'] = self.parse_to_numeric(trailingPercentString)
+                        triggers['price'] = self.parse_to_numeric(trailingPercentString)
                 else:
                     # trailing limit orders are not conventionally supported because the static limit_price_type param is not available for trailing-stop-limit orders
-                    request['params']['limit_price_type'] = priceType
-                    request['params']['order_type'] = 'trailing-stop-limit'
+                    orderParams['limit_price_type'] = priceType
+                    orderParams['order_type'] = 'trailing-stop-limit'
                     if isTrailingLimitAmountOrder:
-                        request['params']['triggers']['price'] = self.parse_to_numeric(trailingLimitAmountString)
+                        triggers['price'] = self.parse_to_numeric(trailingLimitAmountString)
                     else:
-                        request['params']['triggers']['price'] = self.parse_to_numeric(trailingLimitPercentString)
+                        triggers['price'] = self.parse_to_numeric(trailingLimitPercentString)
+            # attach after the writes so a copy-semantics port sees the filled dict
+            if isStopLossPriceOrder or isTakeProfitPriceOrder or isTrailingAmountOrder or isTrailingPercentOrder or isTrailingLimitAmountOrder or isTrailingLimitPercentOrder:
+                orderParams['triggers'] = triggers
+            if isPresetStopLoss or isPresetTakeProfit:
+                orderParams['conditional'] = conditional
         elif method == 'editOrderWs':
             if isPresetStopLoss or isPresetTakeProfit:
                 raise NotSupported(self.id + ' editing the stopLoss and takeProfit on existing orders is currently not supported')
             if isStopLossPriceOrder or isTakeProfitPriceOrder:
                 if isStopLossPriceOrder:
-                    request['params']['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, stopLossPrice))
+                    orderParams['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, stopLossPrice))
                 else:
-                    request['params']['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, takeProfitPrice))
+                    orderParams['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, takeProfitPrice))
             elif isTrailingAmountOrder or isTrailingPercentOrder or isTrailingLimitAmountOrder or isTrailingLimitPercentOrder:
-                request['params']['trigger_price_type'] = priceType
+                orderParams['trigger_price_type'] = priceType
                 if not isLimitOrder and (isTrailingAmountOrder or isTrailingPercentOrder):
                     if isTrailingAmountOrder:
-                        request['params']['trigger_price'] = self.parse_to_numeric(trailingAmountString)
+                        orderParams['trigger_price'] = self.parse_to_numeric(trailingAmountString)
                     else:
-                        request['params']['trigger_price'] = self.parse_to_numeric(trailingPercentString)
+                        orderParams['trigger_price'] = self.parse_to_numeric(trailingPercentString)
                 else:
-                    request['params']['limit_price_type'] = priceType
+                    orderParams['limit_price_type'] = priceType
                     if isTrailingLimitAmountOrder:
-                        request['params']['trigger_price'] = self.parse_to_numeric(trailingLimitAmountString)
+                        orderParams['trigger_price'] = self.parse_to_numeric(trailingLimitAmountString)
                     else:
-                        request['params']['trigger_price'] = self.parse_to_numeric(trailingLimitPercentString)
+                        orderParams['trigger_price'] = self.parse_to_numeric(trailingLimitPercentString)
         isCreateOrder = (method == 'createOrderWs')
         paramsCreate = paramsPostOnly
         if isCreateOrder:
@@ -267,6 +271,7 @@ class kraken(ccxt.async_support.kraken):
         if isCreateOrder and (isPresetStopLoss or isPresetTakeProfit):
             paramsPreset = self.omit(paramsCreate, ['stopLoss', 'takeProfit'])
         paramsOmitted = self.omit(paramsPreset, ['clientOrderId', 'cost', 'offset', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent'])
+        request['params'] = orderParams
         return [request, paramsOmitted]
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
@@ -289,18 +294,19 @@ class kraken(ccxt.async_support.kraken):
         url = (self.urls['api'])['ws']['privateV2']
         requestId = self.request_id()
         messageHash = self.number_to_string(requestId)
+        orderParams = {
+            'order_type': type,
+            'side': side,
+            'order_qty': self.parse_to_numeric(self.amount_to_precision(symbol, amount)),
+            'symbol': market['symbol'],
+            'token': token,
+        }
         request = {
             'method': 'add_order',
-            'params': {
-                'order_type': type,
-                'side': side,
-                'order_qty': self.parse_to_numeric(self.amount_to_precision(symbol, amount)),
-                'symbol': market['symbol'],
-                'token': token,
-            },
+            'params': orderParams,
             'req_id': requestId,
         }
-        requestValue, paramsValue = self.order_request_ws('createOrderWs', symbol, type, request, amount, price, params)
+        requestValue, paramsValue = self.order_request_ws('createOrderWs', symbol, type, request, orderParams, amount, price, params)
         return await self.watch(url, messageHash, self.extend(requestValue, paramsValue), messageHash)
 
     def handle_create_edit_order(self, client: Client, message: dict):
@@ -355,16 +361,17 @@ class kraken(ccxt.async_support.kraken):
         url = (self.urls['api'])['ws']['privateV2']
         requestId = self.request_id()
         messageHash = self.number_to_string(requestId)
+        orderParams = {
+            'order_id': id,
+            'order_qty': self.parse_to_numeric(self.amount_to_precision(symbol, amount)),
+            'token': token,
+        }
         request = {
             'method': 'amend_order',
-            'params': {
-                'order_id': id,
-                'order_qty': self.parse_to_numeric(self.amount_to_precision(symbol, amount)),
-                'token': token,
-            },
+            'params': orderParams,
             'req_id': requestId,
         }
-        requestValue, paramsValue = self.order_request_ws('editOrderWs', symbol, type, request, amount, price, params)
+        requestValue, paramsValue = self.order_request_ws('editOrderWs', symbol, type, request, orderParams, amount, price, params)
         return await self.watch(url, messageHash, self.extend(requestValue, paramsValue), messageHash)
 
     async def cancel_orders_ws(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
@@ -957,11 +964,11 @@ class kraken(ccxt.async_support.kraken):
                 # const checkAsks = asks.map ((elem) => [ elem['price'], elem['qty'] ]);
                 # const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
                 for i in range(0, 10):
-                    currentAsk = self.safe_value(checkAsks, i, {})
+                    currentAsk = self.safe_list(checkAsks, i, [])
                     formattedAsk = self.format_number(currentAsk[0]) + self.format_number(currentAsk[1])
                     payloadArray.append(formattedAsk)
                 for i in range(0, 10):
-                    currentBid = self.safe_value(checkBids, i, {})
+                    currentBid = self.safe_list(checkBids, i, [])
                     formattedBid = self.format_number(currentBid[0]) + self.format_number(currentBid[1])
                     payloadArray.append(formattedBid)
             payload = ''.join(payloadArray)
@@ -1096,7 +1103,7 @@ class kraken(ccxt.async_support.kraken):
         messageHash = name
         symbolResolved = self.symbol(symbol) if (symbol is not None) else None
         if symbolResolved is not None:
-            messageHash += ':' + symbolResolved
+            messageHash = name + ':' + symbolResolved
         url = (self.urls['api'])['ws']['privateV2']
         requestId = self.request_id()
         subscribe = {
@@ -1299,7 +1306,7 @@ class kraken(ccxt.async_support.kraken):
                 previousOrder = self.safe_dict(previousOrders, id)
                 newOrder = parsed
                 if previousOrder is not None:
-                    newRawOrder = self.extend(previousOrder['info'], newOrder['info'])
+                    newRawOrder = self.extend(previousOrder['info'], parsed['info'])
                     newOrder = self.parse_ws_order(newRawOrder)
                 length = len(stored)
                 if length == limit and (previousOrder is None):

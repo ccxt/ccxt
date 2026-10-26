@@ -3246,7 +3246,7 @@ class BaseExchange(object):
             return value
         return defaultValue
 
-    def store_by_key(self, dict: object, key: NullableIndexType, value: object):
+    def store_by_key(self, dict: dict, key: NullableIndexType, value: object):
         """
  @ignore
         store value under key if key is defined(no-op on None)
@@ -3269,7 +3269,7 @@ class BaseExchange(object):
     def handle_book_delta(self, orderbook: object, delta: object):
         raise NotSupported(self.id + ' handleBookDelta not supported yet')
 
-    def handle_deltas_with_keys(self, bookSide: object, deltas: object, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+    def handle_deltas_with_keys(self, bookSide: object, deltas: list[object], priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         for i in range(0, len(deltas)):
             bidAsk = self.parse_order_book_bid_ask(deltas[i], priceKey, amountKey, countOrIdKey)
             bookSide.storeArray(bidAsk)
@@ -3402,7 +3402,7 @@ class BaseExchange(object):
             raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy, wsSocksProxy')
         return [wsProxy, wssProxy, wsSocksProxy]
 
-    def check_conflicting_proxies(self, proxyAgentSet: object, proxyUrlSet: object):
+    def check_conflicting_proxies(self, proxyAgentSet: Str, proxyUrlSet: Str):
         proxyAgentIsSet = (proxyAgentSet is not None) and (proxyAgentSet is not None) and (proxyAgentSet != '')
         proxyUrlIsSet = (proxyUrlSet is not None) and (proxyUrlSet is not None) and (proxyUrlSet != '')
         if proxyAgentIsSet and proxyUrlIsSet:
@@ -4094,7 +4094,7 @@ class BaseExchange(object):
         if length != 0:
             for i in range(0, length):
                 key = keys[i]
-                network = networks[key]
+                network = self.safe_dict(networks, key, {})
                 deposit = self.safe_bool(network, 'deposit')
                 currencyDeposit = self.safe_bool(currency, 'deposit')
                 if currencyDeposit is None or (deposit is True):
@@ -4261,7 +4261,7 @@ class BaseExchange(object):
         # we insert spot markets first
         marketValues = self.sort_by(self.to_array(markets), 'spot', True, True)
         for i in range(0, len(marketValues)):
-            value = marketValues[i]
+            value = self.safe_dict(marketValues, i, {})
             if value['id'] in marketsById:
                 marketsByIdArray = (marketsById[value['id']])
                 marketsByIdArray.append(value)
@@ -4417,7 +4417,7 @@ class BaseExchange(object):
                 debtBalance[code] = balance[code]['debt']
         debtBalanceArray = list(debtBalance.keys())
         length = len(debtBalanceArray)
-        if (length is not None) and (length != 0):
+        if length != 0:
             balance['debt'] = debtBalance
         return balance
 
@@ -4500,7 +4500,7 @@ class BaseExchange(object):
                         else:
                             lastTradeTimeTimestamp = max(lastTradeTimeTimestamp, tradeTimestamp)
                     if shouldParseFees:
-                        tradeFees = self.safe_value(trade, 'fees')
+                        tradeFees = self.safe_list(trade, 'fees')
                         if tradeFees is not None:
                             for j in range(0, len(tradeFees)):
                                 tradeFee = tradeFees[j]
@@ -4696,7 +4696,7 @@ class BaseExchange(object):
         markets = self.markets
         if markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
-        market = markets[symbol]
+        market = self.safe_dict(markets, symbol, {})
         feeSide = self.safe_string(market, 'feeSide', 'quote')
         useQuote = None
         if feeSide == 'get':
@@ -4791,9 +4791,9 @@ class BaseExchange(object):
             if side is not None:
                 id += '-' + side
             if amount is not None:
-                id += '-' + self.number_to_string(amount)
+                id += '-' + amount
             if price is not None:
-                id += '-' + self.number_to_string(price)
+                id += '-' + price
             if takerOrMaker is not None:
                 id += '-' + takerOrMaker
         return id
@@ -5856,9 +5856,10 @@ class BaseExchange(object):
     def currency_id(self, code: Str):
         if code is None:
             return code
-        currency = self.safe_dict(self.currencies, code)
-        if currency is None:
-            currency = self.safe_currency(code)
+        currencyById = self.safe_dict(self.currencies, code)
+        if currencyById is not None:
+            return currencyById['id']
+        currency = self.safe_currency(code)
         if currency is not None:
             return currency['id']
         return code
@@ -5912,9 +5913,7 @@ class BaseExchange(object):
         ]
 
     def get_list_from_object_values(self, objects: object, key: IndexType):
-        newArray = objects
-        if not isinstance(objects, list):
-            newArray = self.to_array(objects)
+        newArray = self.to_array(objects)
         results = []
         for i in range(0, len(newArray)):
             results.append(newArray[i][key])
@@ -6045,7 +6044,7 @@ class BaseExchange(object):
         options = self.safe_dict(self.options, 'buildOHLCVC', {})
         skipZeroPrices = self.safe_bool(options, 'skipZeroPrices', True)
         for i in range(0, oldest):
-            trade = trades[i]
+            trade = self.safe_dict(trades, i, {})
             ts = self.safe_integer(trade, 'timestamp')
             price = trade['price']
             if (ts is None) or (price is None):
@@ -6141,7 +6140,7 @@ class BaseExchange(object):
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None):
         if marketId is not None:
             if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
-                markets = self.markets_by_id[marketId]
+                markets = self.safe_list(self.markets_by_id, marketId, [])
                 numMarkets = len(markets)
                 if numMarkets == 1:
                     return markets[0]
@@ -6448,7 +6447,7 @@ class BaseExchange(object):
         # throw new NotSupported (this.id + ' handleErrors() not implemented yet');
         return None
 
-    def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
         return self.safe_value(config, 'cost', 1)
 
     def fetch_spot_tickers(self, symbols: Strings = None, params: dict = {}):
@@ -7036,7 +7035,7 @@ class BaseExchange(object):
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def handle_trigger_prices_and_params(self, symbol: object, params: object, omitParams=True):
+    def handle_trigger_prices_and_params(self, symbol: object, params: dict, omitParams=True):
         #
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         triggerPriceStr = None
@@ -7063,7 +7062,7 @@ class BaseExchange(object):
         paramsOmitted = self.omit(params, keysToOmit) if (keysToOmitLength > 0) else params
         return [triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, paramsOmitted]
 
-    def handle_trigger_direction_and_params(self, params: object, exchangeSpecificKey: Str = None, allowEmpty: Bool = False):
+    def handle_trigger_direction_and_params(self, params: dict, exchangeSpecificKey: Str = None, allowEmpty: Bool = False):
         """
  @ignore
         :returns [str, dict]: the trigger-direction value and omited params
@@ -7135,7 +7134,7 @@ class BaseExchange(object):
             elif isMarketOrder:
                 raise InvalidOrder(self.id + ' market orders cannot be postOnly')
             else:
-                keysToOmit = None
+                keysToOmit = []
                 if po:
                     keysToOmit = ['timeInForce', 'postOnly']
                 else:
@@ -7354,7 +7353,7 @@ class BaseExchange(object):
     def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None):
         raise NotSupported(self.id + ' parseDepositWithdrawFee() is not supported yet')
 
-    def deposit_withdraw_fee(self, info: object):
+    def deposit_withdraw_fee(self, info: dict):
         return {
             'info': info,
             'withdraw': {
@@ -7368,7 +7367,7 @@ class BaseExchange(object):
             'networks': {},
         }
 
-    def assign_default_deposit_withdraw_fees(self, fee: object, currency: Currency = None):
+    def assign_default_deposit_withdraw_fees(self, fee: dict, currency: Currency = None):
         """
  @ignore
         Takes a depositWithdrawFee structure and assigns the default values for withdraw and deposit
@@ -7428,7 +7427,7 @@ class BaseExchange(object):
         market = self.market(firstMarket)
         return market
 
-    def parse_ws_ohlcvs(self, ohlcvs: list[object], market: object = None, timeframe: str = '1m', since: Int = None, limit: Int = None):
+    def parse_ws_ohlcvs(self, ohlcvs: list[object], market: Market = None, timeframe: str = '1m', since: Int = None, limit: Int = None):
         results = []
         for i in range(0, len(ohlcvs)):
             results.append(self.parse_ws_ohlcv(ohlcvs[i], market))
@@ -7520,7 +7519,7 @@ class BaseExchange(object):
                         break
                     errors = 0
                     result = self.array_concat(result, response)
-                    firstElement = self.safe_value(response, 0)
+                    firstElement = self.safe_dict(response, 0)
                     paginationTimestamp = self.safe_integer_2(firstElement, 'timestamp', 0)
                     if paginationTimestamp is None:
                         shouldBreak = True
@@ -7542,7 +7541,7 @@ class BaseExchange(object):
                         break
                     errors = 0
                     result = self.array_concat(result, response)
-                    last = self.safe_value(response, responseLength - 1)
+                    last = self.safe_dict(response, responseLength - 1)
                     lastTimestamp = self.safe_integer(last, 'timestamp', 0)
                     if lastTimestamp is None:
                         shouldBreak = True
@@ -7676,8 +7675,7 @@ class BaseExchange(object):
                 if responseLength == 0:
                     shouldBreak = True
                     break
-                if response is not None:
-                    result = self.array_concat(result, response)
+                result = self.array_concat(result, response)
                 last = self.safe_dict(response, responseLength - 1)
                 # cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = None  # search for the cursor
@@ -7772,23 +7770,16 @@ class BaseExchange(object):
             entry = input[i]
             id = self.safe_string(entry, 'id')
             if id is None:
-                price = self.safe_string(entry, 'price')
-                amount = self.safe_string(entry, 'amount')
+                price = self.safe_string(entry, 'price', '')
+                amount = self.safe_string(entry, 'amount', '')
                 timestamp = self.safe_string(entry, 'timestamp')
-                side = self.safe_string(entry, 'side')
+                side = self.safe_string(entry, 'side', '')
                 # unique trade identifier
                 if timestamp is None:
                     raise ExchangeError(self.id + ' removeRepeatedTradesFromArray() missing timestamp')
-                # optional parts are appended only when present, separators keep positions distinct
-                id = 't_' + str(timestamp) + '_'
-                if side is not None:
-                    id = id + side
-                id = id + '_'
-                if price is not None:
-                    id = id + price
-                id = id + '_'
-                if amount is not None:
-                    id = id + amount
+                # optional parts are empty when absent, separators keep positions distinct
+                id = 't_' + str(timestamp) + '_' + side + '_'
+                id = id + (price + '_' + amount)
             if id is not None and not (id in uniqueResult):
                 uniqueResult[id] = entry
         values = list(uniqueResult.values())

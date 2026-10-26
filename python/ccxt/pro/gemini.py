@@ -236,28 +236,28 @@ class gemini(ccxt.async_support.gemini):
             client.resolve(stored, messageHash)
 
     def handle_trades_for_multidata(self, client: Client, trades: list[object], timestamp: Int):
-        if trades is not None:
-            tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            storesForSymbols = {}
-            for i in range(0, len(trades)):
-                marketId = self.safe_string(trades[i], 'symbol', '').lower()
-                market = self.safe_market(marketId)
-                symbol = market['symbol']
-                trade = self.parse_ws_trade(trades[i], market)
-                trade['timestamp'] = timestamp
-                trade['datetime'] = self.iso8601(timestamp)
-                stored = self.safe_value(self.trades, symbol)
-                if stored is None:
-                    stored = ArrayCache(tradesLimit)
-                    self.trades[symbol] = stored
-                stored.append(trade)
-                storesForSymbols[symbol] = stored
-            symbols = list(storesForSymbols.keys())
-            for i in range(0, len(symbols)):
-                symbol = symbols[i]
-                stored = storesForSymbols[symbol]
-                messageHash = 'trades:' + symbol
-                client.resolve(stored, messageHash)
+        tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
+        storesForSymbols = {}
+        for i in range(0, len(trades)):
+            rawTrade = self.safe_value(trades, i)
+            marketId = self.safe_string(rawTrade, 'symbol', '').lower()
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
+            trade = self.parse_ws_trade(rawTrade, market)
+            trade['timestamp'] = timestamp
+            trade['datetime'] = self.iso8601(timestamp)
+            stored = self.safe_value(self.trades, symbol)
+            if stored is None:
+                stored = ArrayCache(tradesLimit)
+                self.trades[symbol] = stored
+            stored.append(trade)
+            storesForSymbols[symbol] = stored
+        symbols = list(storesForSymbols.keys())
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            stored = storesForSymbols[symbol]
+            messageHash = 'trades:' + symbol
+            client.resolve(stored, messageHash)
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
@@ -346,7 +346,7 @@ class gemini(ccxt.async_support.gemini):
         # reverse order of array to store candles in ascending order
         for i in range(0, changesLength):
             index = changesLength - i - 1
-            parsed = self.parse_ohlcv(changes[index], market)
+            parsed = self.parse_ohlcv(self.safe_value(changes, index), market)
             stored.append(parsed)
         messageHash = 'ohlcv:' + symbol + ':' + timeframeId
         client.resolve(stored, messageHash)
@@ -717,7 +717,7 @@ class gemini(ccxt.async_support.gemini):
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
         for i in range(0, len(message)):
-            order = self.parse_ws_order(message[i])
+            order = self.parse_ws_order(self.safe_value(message, i))
             orders.append(order)
         client.resolve(self.orders, messageHash)
 
@@ -927,7 +927,9 @@ class gemini(ccxt.async_support.gemini):
         }
         # this.options = this.extend (defaultOptions, this.options);
         self.extend_exchange_options(defaultOptions)
-        originalHeaders = self.options['ws']['options']['headers']
+        wsOptions = self.safe_dict(self.options, 'ws', {})
+        wsSubOptions = self.safe_dict(wsOptions, 'options', {})
+        originalHeaders = self.safe_dict(wsSubOptions, 'headers', {})
         headers = {
             'X-GEMINI-APIKEY': self.apiKey,
             'X-GEMINI-PAYLOAD': b64,

@@ -348,8 +348,8 @@ class bitflyer(Exchange, ImplicitAPI):
             if (base is None) or (quote is None):
                 continue
             symbol = base + '/' + quote
-            taker = self.fees['trading']['taker']
-            maker = self.fees['trading']['maker']
+            taker = self.safe_number(self.fees['trading'], 'taker')
+            maker = self.safe_number(self.fees['trading'], 'maker')
             contract = swap or future
             if contract:
                 maker = 0.0
@@ -556,9 +556,7 @@ class bitflyer(Exchange, ImplicitAPI):
                 side = None
         order = None
         if side is not None:
-            idInner = side + '_child_order_acceptance_id'
-            if idInner in trade:
-                order = self.safe_string(trade, idInner)
+            order = self.safe_string(trade, side + '_child_order_acceptance_id')
         if order is None:
             order = self.safe_string(trade, 'child_order_acceptance_id')
         timestamp = self.parse8601(self.safe_string(trade, 'exec_date'))
@@ -837,8 +835,8 @@ class bitflyer(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         orders = self.fetch_orders(symbol)
         ordersById = self.index_by(orders, 'id')
-        if id in ordersById:
-            found = self.safe_dict(ordersById, id)
+        found = self.safe_dict(ordersById, id)
+        if found is not None:
             return found
         raise OrderNotFound(self.id + ' No order found with id ' + id)
 
@@ -1194,8 +1192,7 @@ class bitflyer(Exchange, ImplicitAPI):
         if apiName == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
-            content = [nonce, method, request]
-            auth = ''.join(content)
+            auth = nonce + method + request
             if len(params) > 0:
                 if method != 'GET':
                     body = self.json(params)

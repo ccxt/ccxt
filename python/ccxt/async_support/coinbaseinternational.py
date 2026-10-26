@@ -842,12 +842,12 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         if self.is_native_deribit_credentials() and self.safe_bool_2(marketInfo, 'is_cbe_routed', 'is_csr', False):
             raise NotSupported(self.id + ' fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments')
         limitResolved = limit
-        duration = self.parse_timeframe(timeframe)
+        duration = self.parse_to_int(self.parse_timeframe(timeframe))
         now = self.milliseconds()
         if since is None:
             if limitResolved is None:
                 limitResolved = 100
-            request['start_timestamp'] = self.sum(now, -limitResolved * duration * 1000)
+            request['start_timestamp'] = self.sum(now, self.parse_to_int(limitResolved) * duration * -1000)
             request['end_timestamp'] = now
         else:
             sinceResolved = max(since - 1, 0)
@@ -855,7 +855,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             if limitResolved is None:
                 request['end_timestamp'] = now
             else:
-                request['end_timestamp'] = self.sum(sinceResolved, limitResolved * duration * 1000)
+                request['end_timestamp'] = self.sum(sinceResolved, self.parse_to_int(limitResolved) * duration * 1000)
         until = self.safe_integer(paramsPaginate, 'until')
         if until is not None:
             request['end_timestamp'] = until
@@ -928,7 +928,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         duration = self.parse_timeframe('1h') * 1000
         now = self.milliseconds()
         sinceResolved = since
-        if sinceResolved is None:
+        if since is None:
             sinceResolved = now - (30 * 24 * 60 * 60 * 1000)
         request = {
             'instrument_name': market['id'],
@@ -1175,8 +1175,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 if (limit < 1) or (limit > 10000):
                     raise BadRequest(self.id + ' fetchOrderBook() limit must be between 1 and 10000')
                 for i in range(0, len(depths)):
-                    if limit <= depths[i]:
-                        request['depth'] = depths[i]
+                    if limit <= self.parse_to_int(depths[i]):
+                        request['depth'] = self.parse_to_int(depths[i])
                         break
         response = await self.publicGetGetOrderBook(self.extend(request, paramsResolved))
         #
@@ -1552,7 +1552,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         currency = self.currency(code)
         now = self.milliseconds()
         sinceResolved = since
-        if sinceResolved is None:
+        if since is None:
             sinceResolved = now - (30 * 24 * 60 * 60 * 1000)
         request = {
             'currency': currency['id'],
@@ -1864,7 +1864,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         currency = self.currency(code)
         now = self.milliseconds()
         sinceResolved = since
-        if sinceResolved is None:
+        if since is None:
             sinceResolved = now - (30 * 24 * 60 * 60 * 1000)
         request = {
             'currency': currency['id'],
@@ -2973,7 +2973,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         return response
 
-    def create_auth_token(self, seconds: Int, method: Str = None, url: Str = None, useEddsa=False):
+    def create_auth_token(self, seconds: Int, method: Str = None, url: Str = None, useEddsa: bool = False):
         """
  @ignore
         signs a short-lived CDP JWT that public/auth exchanges for a gateway access token
@@ -3012,7 +3012,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'sub': self.apiKey,
             'iss': iss,
             'nbf': seconds,
-            'exp': seconds + 120,
+            'exp': self.parse_to_int(seconds) + 120,
             'iat': seconds,
         }
         if uri is not None:
@@ -3090,8 +3090,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             return None
         return self.token
 
-    def sign(self, path: str, api: list[str] | str = 'public', method: str = 'GET', params: dict = {}) -> dict:
-        access = api[0] if isinstance(api, list) else api
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        access = api[0]
         rpcMethod = access + '/' + path
         requestParams = self.handle_route_and_params('sign', params)
         isNativeDeribit = self.is_native_deribit_credentials()
@@ -3173,7 +3173,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param str [params.route]: auto(default), deribit, or coinbase; overrides options.route
         :returns dict: cleaned parameters; options.route persists the selection for nested calls and Pro
         """
-        route, paramsResolved = self.handle_option_and_params(params, methodName, 'route', 'auto')
+        route, paramsResolved = self.handle_option_string_and_params(params, methodName, 'route', 'auto')
         deribit = self.resolve_route(route)
         previousBackend = self.safe_bool(self.options, 'routeBackend')
         configuredBackend = self.is_native_deribit_credentials()

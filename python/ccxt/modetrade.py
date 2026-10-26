@@ -563,10 +563,10 @@ class modetrade(Exchange, ImplicitAPI):
         quoteId = self.safe_string(parts, 2)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        if (base is None) or (quote is None):
-            return None
         settleId = self.safe_string(parts, 2)
         settle = self.safe_currency_code(settleId)
+        if (base is None) or (quote is None) or (settle is None):
+            return None
         symbol = base + '/' + quote + ':' + settle
         return self.safe_market_structure({
             'id': marketId,
@@ -1068,8 +1068,7 @@ class modetrade(Exchange, ImplicitAPI):
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             })
-        sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbolResolved, since, limit)
+        return self.filter_by_symbol_since_limit(self.sort_by(rates, 'timestamp'), symbolResolved, since, limit)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -1667,7 +1666,7 @@ class modetrade(Exchange, ImplicitAPI):
                 'algo_type': 'POSITIONAL_TP_SL',
                 'child_orders': [],
             }
-            childOrders = outterOrder['child_orders']
+            childOrders = []
             closeSide = 'BUY'
             if orderSide == 'BUY':
                 closeSide = 'SELL'
@@ -1691,6 +1690,7 @@ class modetrade(Exchange, ImplicitAPI):
                     'reduce_only': True,
                 }
                 childOrders.append(takeProfitOrder)
+            outterOrder['child_orders'] = childOrders
             request['child_orders'] = [outterOrder]
         paramsOmitted = self.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit'])
         return self.extend(request, paramsOmitted)
@@ -2421,7 +2421,7 @@ class modetrade(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['token'] = currency['id']
+            request['token'] = self.safe_string(currency, 'id')
         if since is not None:
             request['start_t'] = since
         if limit is not None:
@@ -2675,16 +2675,15 @@ class modetrade(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_dict(response, 'data', {})
-        return self.safe_number(data, 'withdraw_nonce')
+        return self.safe_number(self.safe_dict(response, 'data', {}), 'withdraw_nonce')
 
     def hash_message(self, message: object):
         return '0x' + self.hash(message, 'keccak', 'hex')
 
     def sign_hash(self, hash: str, privateKey: str) -> str:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
-        r = signature['r']
-        s = signature['s']
+        r = self.safe_string(signature, 'r', '')
+        s = self.safe_string(signature, 's', '')
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
@@ -2742,7 +2741,7 @@ class modetrade(Exchange, ImplicitAPI):
             'chainId': self.parse_to_int(chainId),
             'receiver': address,
             'token': codeUpper,
-            'amount': str(amount),
+            'amount': self.number_to_string(amount),
             'withdrawNonce': withdrawNonce,
             'timestamp': nonce,
         }
@@ -3041,14 +3040,15 @@ class modetrade(Exchange, ImplicitAPI):
                     brokerId = self.safe_string(self.options, 'brokerId', 'CCXTMODE')
                     if path == 'batch-order':
                         ordersList = self.safe_list(paramsSorted, 'orders', [])
+                        taggedOrders = []
                         for i in range(0, len(ordersList)):
-                            paramsSorted['orders'][i]['order_tag'] = brokerId
+                            taggedOrders.append(self.extend(self.safe_dict(ordersList, i, {}), {'order_tag': brokerId}))
+                        paramsSorted['orders'] = taggedOrders
                     else:
                         paramsSorted['order_tag'] = brokerId
             paramsSigned = paramsSorted
             if isPostOrPut and isOrder:
                 paramsSigned = self.keysort(paramsSorted)
-            auth = ''
             ts = str(self.nonce())
             url += pathWithParams
             apiKey = self.apiKey
@@ -3072,8 +3072,8 @@ class modetrade(Exchange, ImplicitAPI):
                 signedHeaders['content-type'] = 'application/x-www-form-urlencoded'
                 signedBody = '' if (method == 'DELETE') else None
             secret = self.secret
-            if secret.find('ed25519:') >= 0:
-                parts = secret.split('ed25519:')
+            if self.secret.find('ed25519:') >= 0:
+                parts = self.secret.split('ed25519:')
                 secret = parts[1]
             signature = self.eddsa(self.encode(auth), self.base58_to_binary(secret), 'ed25519')
             signedHeaders['orderly-signature'] = self.urlencode_base64(self.base64_to_binary(signature))

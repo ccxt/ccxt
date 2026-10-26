@@ -1104,7 +1104,7 @@ class cex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         request = {
-            'orderId': int(id),
+            'orderId': self.parse_to_int(id),
         }
         result = self.fetch_open_orders(symbol, None, None, self.extend(request, params))
         order = self.safe_dict(result, 0)
@@ -1124,7 +1124,7 @@ class cex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         request = {
-            'orderId': int(id),
+            'orderId': self.parse_to_int(id),
         }
         result = self.fetch_closed_orders(symbol, None, None, self.extend(request, params))
         order = self.safe_dict(result, 0)
@@ -1328,7 +1328,7 @@ class cex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         request = {
-            'orderId': int(id),
+            'orderId': self.parse_to_int(id),
             'cancelRequestId': 'c_' + str((self.milliseconds())),
             'timestamp': self.milliseconds(),
         }
@@ -1757,7 +1757,7 @@ class cex(Exchange, ImplicitAPI):
         if response is None:
             if body is None:
                 raise NullResponse(self.id + ' returned empty response')
-            elif body[0] == '{':
+            elif body.startswith('{'):
                 fixed = self.fix_stringified_json_members(body)
                 responseFixed = self.parse_json(fixed)
             else:

@@ -65,7 +65,7 @@ class coincheck(ccxt.async_support.coincheck):
         url = self.urls['api']['ws']
         request = {
             'type': 'subscribe',
-            'channel': market['id'] + '-orderbook',
+            'channel': self.safe_string(market, 'id', '') + '-orderbook',
         }
         message = self.extend(request, params)
         orderbook = await self.watch(url, messageHash, message, messageHash)
@@ -101,7 +101,6 @@ class coincheck(ccxt.async_support.coincheck):
             orderbook = self.order_book(snapshot)
             self.orderbooks[symbol] = orderbook
         else:
-            orderbook = self.orderbooks[symbol]
             orderbook.reset(snapshot)
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
@@ -121,18 +120,17 @@ class coincheck(ccxt.async_support.coincheck):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
         messageHash = 'trade:' + market['symbol']
         url = self.urls['api']['ws']
         request = {
             'type': 'subscribe',
-            'channel': market['id'] + '-trades',
+            'channel': self.safe_string(market, 'id', '') + '-trades',
         }
         message = self.extend(request, params)
         trades = await self.watch(url, messageHash, message, messageHash)
         limitResolved = limit
         if self.newUpdates:
-            limitResolved = trades.getLimit(symbolValue, limit)
+            limitResolved = trades.getLimit(market['symbol'], limit)
         return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
     def handle_trades(self, client: Client, message: list[object]):

@@ -855,7 +855,7 @@ class bydfi(Exchange, ImplicitAPI):
         untilParam, paramsUntil = self.handle_option_integer_and_params(paramsPaginate, 'fetchOHLCV', 'until')
         now = self.milliseconds()
         duration = self.parse_timeframe(timeframe) * 1000
-        timeDelta = duration * numberOfCandles
+        timeDelta = self.parse_to_int(duration * numberOfCandles)
         startTime = since
         until = untilParam
         if since is None and untilParam is None:
@@ -1336,7 +1336,7 @@ class bydfi(Exchange, ImplicitAPI):
         if length > 5:
             raise BadRequest(self.id + ' createOrders() accepts a maximum of 5 orders')
         ordersRequests = []
-        for i in range(0, len(orders)):
+        for i in range(0, length):
             rawOrder = self.safe_dict(orders, i)
             symbol = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
@@ -1400,7 +1400,7 @@ class bydfi(Exchange, ImplicitAPI):
         if length > 5:
             raise BadRequest(self.id + ' editOrders() accepts a maximum of 5 orders')
         ordersRequests = []
-        for i in range(0, len(orders)):
+        for i in range(0, length):
             rawOrder = self.safe_dict(orders, i)
             id = self.safe_string(rawOrder, 'id')
             symbol = self.safe_string(rawOrder, 'symbol')
@@ -1522,8 +1522,7 @@ class bydfi(Exchange, ImplicitAPI):
             'wallet': walletOption,
         }
         response: dict
-        trigger = False
-        triggerOption, paramsTrigger = self.handle_option_bool_and_params(paramsWallet, 'fetchOpenOrders', 'trigger', trigger)
+        triggerOption, paramsTrigger = self.handle_option_bool_and_params(paramsWallet, 'fetchOpenOrders', 'trigger', False)
         if not triggerOption:
             #
             #     {
@@ -1595,8 +1594,7 @@ class bydfi(Exchange, ImplicitAPI):
         walletOption, paramsWallet = self.handle_option_string_and_params(params, 'fetchOpenOrder', 'wallet', wallet)
         request['wallet'] = walletOption
         response: dict
-        trigger = False
-        triggerOption, paramsTrigger = self.handle_option_bool_and_params(paramsWallet, 'fetchOpenOrder', 'trigger', trigger)
+        triggerOption, paramsTrigger = self.handle_option_bool_and_params(paramsWallet, 'fetchOpenOrder', 'trigger', False)
         if not triggerOption:
             response = self.privateGetV1FapiTradeOpenOrder(self.extend(request, paramsTrigger))
         else:
@@ -1692,13 +1690,14 @@ class bydfi(Exchange, ImplicitAPI):
     def handle_since_and_until(self, methodName: str, since: Int = None, params: dict = {}) -> dict:
         untilParam, paramsUntil = self.handle_option_integer_and_params_2(params, methodName, 'until', 'endTime')
         now = self.milliseconds()
-        sevenDays = 7 * 24 * 60 * 60 * 1000  # the maximum range is 7 days
+        sevenDays = 604800000  # the maximum range is 7 days, 7 * 24 * 60 * 60 * 1000
         startTime = since
         until = untilParam
         if since is None:
             if untilParam is not None:
                 # since is undefined but until is defined
-                startTime = untilParam - sevenDays
+                untilInt = self.parse_to_int(untilParam)
+                startTime = untilInt - sevenDays
             else:
                 # both since and until are undefined
                 startTime = now - sevenDays
@@ -2485,7 +2484,8 @@ class bydfi(Exchange, ImplicitAPI):
             'timestamp': None,
             'datetime': None,
         }
-        for i in range(0, len(response)):
+        responseLength = len(response)
+        for i in range(0, responseLength):
             balance = self.safe_dict(response, i)
             symbol = self.safe_string(balance, 'asset')
             code = self.safe_currency_code(symbol)
@@ -2695,13 +2695,14 @@ class bydfi(Exchange, ImplicitAPI):
         }
         untilParam, paramsUntil = self.handle_option_integer_and_params_2(params, 'fetchTransfers', 'until', 'endTime')
         now = self.milliseconds()
-        sevenDays = 7 * 24 * 60 * 60 * 1000  # the maximum range is 7 days
+        sevenDays = 604800000  # the maximum range is 7 days, 7 * 24 * 60 * 60 * 1000
         startTime = since
         until = untilParam
         if since is None:
             if untilParam is not None:
                 # since is undefined but until is defined
-                startTime = untilParam - sevenDays
+                untilInt = self.parse_to_int(untilParam)
+                startTime = untilInt - sevenDays
             else:
                 # both since and until are undefined
                 startTime = now - sevenDays
@@ -2817,7 +2818,6 @@ class bydfi(Exchange, ImplicitAPI):
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = apiUrl
         endpoint = '/' + path
         query = ''
         sortedParams = self.keysort(params)
@@ -2848,10 +2848,9 @@ class bydfi(Exchange, ImplicitAPI):
                     'X-API-TIMESTAMP': timestamp,
                     'X-API-SIGNATURE': signature,
                 }
-        url += endpoint
         bodyResolved = requestBody
         headersResolved = requestHeaders
-        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
+        return {'url': apiUrl + endpoint, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

@@ -1293,7 +1293,7 @@ class weex(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'symbol')
         markPrice = self.safe_string(ticker, 'markPrice')
         marketType = 'spot'
-        if (markPrice is not None) or ((market is not None) and (market['contract'] is True)):
+        if (markPrice is not None) or ((market is not None) and (self.safe_bool(market, 'contract', False))):
             # 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = 'swap'
         marketResolved = self.safe_market(marketId, market, None, marketType)
@@ -1852,8 +1852,7 @@ class weex(Exchange, ImplicitAPI):
         interval = None
         collectCycle = self.safe_string(contract, 'collectCycle')
         if collectCycle is not None:
-            interval = Precise.string_div(collectCycle, '60')
-            interval = interval + 'h'
+            interval = Precise.string_div(collectCycle, '60') + 'h'
         return {
             'info': contract,
             'symbol': symbol,
@@ -2130,6 +2129,7 @@ class weex(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         request = self.create_spot_order_request(symbol, type, side, amount, price, params)
+        response = None
         response = self.privatePostApiV3Order(request)
         #
         #     {
@@ -4034,8 +4034,7 @@ class weex(Exchange, ImplicitAPI):
         if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
             return marketId  # a live market id, not a demo one
         if marketId.endswith('SUSDT'):
-            baseLength = len(marketId) - 5
-            return marketId[0:baseLength] + 'USDT'
+            return marketId[0:-5] + 'USDT'
         return marketId
 
     def set_sandbox_mode(self, enable: bool):
@@ -4048,14 +4047,14 @@ class weex(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         isBatch = (path.find('batch') >= 0)
         if not isBatch and ((method == 'GET') or (method == 'DELETE')):
-            if len(query) > 0:
+            if not self.is_empty(query):
                 endpoint += '?' + self.urlencode(query)
         isPrivate = (apiName == 'private') or (apiName == 'contractPrivate')
         hasJsonBody = isPrivate and ((method == 'POST') or isBatch)
         requestBody = None
         if hasJsonBody:
             requestBody = self.json(query)
-        requestHeaders = None
+        requestHeaders = {}
         if isPrivate:
             sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
             if (sandboxMode) and (path.find('capi/v3/sim/') != 0):

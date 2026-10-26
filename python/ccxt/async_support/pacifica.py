@@ -731,7 +731,7 @@ class pacifica(Exchange, ImplicitAPI):
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote
         if isSwap:
-            symbol = symbol + ':' + settle
+            symbol = base + '/' + quote + ':' + quote
         fees = self.safe_dict(self.fees, type, {})
         taker = self.safe_number(fees, 'taker')
         maker = self.safe_number(fees, 'maker')
@@ -885,9 +885,8 @@ class pacifica(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         userAccount, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('fetchLeverage', params)
-        cacheAddress = self.walletAddress
         settings = None
-        if userAccount == cacheAddress:
+        if userAccount == self.walletAddress:
             settings = self.handle_option('fetchLeverage', 'settings')
         else:
             request = {
@@ -979,11 +978,12 @@ class pacifica(Exchange, ImplicitAPI):
         if settingsLen == 0:
             return {}
         settingsBySymbol = {}
-        for i in range(0, len(settings)):
-            marketId = settings[i]['symbol']
+        for i in range(0, settingsLen):
+            setting = settings[i]
+            marketId = self.safe_string(setting, 'symbol')
             market = self.safe_market(marketId)
             symbol = market['symbol']
-            settingsBySymbol[symbol] = settings[i]
+            settingsBySymbol[symbol] = setting
         return settingsBySymbol
 
     async def fetch_margin_mode(self, symbol: str, params: dict = {}) -> MarginMode:
@@ -999,9 +999,8 @@ class pacifica(Exchange, ImplicitAPI):
         """
         await self.load_account_settings()
         userAccount, paramsOriginAndSingleAddress = self.handle_origin_and_single_address('fetchMarginMode', params)
-        cacheAddress = self.walletAddress
         settings = None
-        if userAccount == cacheAddress:
+        if userAccount == self.walletAddress:
             settings = self.handle_option('fetchMarginMode', 'settings')
         else:
             request = {
@@ -1555,7 +1554,7 @@ class pacifica(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'side': self.map_side(side),
         }
-        operationType = None
+        operationType = 'create_order'
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only', False)
         orderType = type.upper()
         triggerPrice = self.safe_string(params, 'triggerPrice')
@@ -1793,7 +1792,7 @@ class pacifica(Exchange, ImplicitAPI):
     def cancel_orders_request(self, ids: list[Str], symbol: Str = None, params: dict = {}) -> dict:
         actions = []
         for i in range(0, len(ids)):
-            id = ids[i]
+            id = self.safe_string(ids, i)
             request = self.cancel_order_request(id, symbol, params)
             action = {
                 'type': 'Cancel',
@@ -1907,11 +1906,9 @@ class pacifica(Exchange, ImplicitAPI):
     def cancel_order_request(self, id: object, symbol: Str = None, params: dict = {}) -> dict:
         market = self.market(symbol)
         isStopOrder = self.safe_bool_2(params, 'trigger', 'stop', False)
-        operationType = None
+        operationType = 'cancel_order'
         if isStopOrder:
             operationType = 'cancel_stop_order'
-        else:
-            operationType = 'cancel_order'
         clientOrderId = self.safe_string(params, 'clientOrderId')
         sigPayload = {
             'symbol': market['id'],
@@ -2628,9 +2625,9 @@ class pacifica(Exchange, ImplicitAPI):
         symbol = marketResolved['symbol']
         margin = self.safe_string(position, 'margin')
         rawIsolated = self.safe_bool(position, 'isolated')
-        isIsolated = (margin is not None and margin != '0')
+        isIsolated = (margin is not None) and (margin != '0')
         if rawIsolated is not None:
-            isIsolated = rawIsolated
+            isIsolated = (rawIsolated is True)
         marginMode = 'isolated' if isIsolated else 'cross'
         side = self.safe_string(position, 'side')
         if side is not None:
@@ -3502,7 +3499,7 @@ class pacifica(Exchange, ImplicitAPI):
             headersValue['PF-API-KEY'] = self.options['apiKey']
         return {'url': url, 'method': method, 'body': requestBody, 'headers': headersValue}
 
-    def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
         cost = self.safe_string(config, 'cost', '1')
         costNumber = self.parse_number(cost)
         # 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
@@ -3522,19 +3519,22 @@ class pacifica(Exchange, ImplicitAPI):
             keys = list(value.keys())
             sortedKeys = self.sort(keys)
             for i in range(0, len(sortedKeys)):
-                key = sortedKeys[i]
+                key = self.safe_string(sortedKeys, i, '')
                 result[key] = self.sort_json_keys(value[key])
             return result
         elif isinstance(value, list):
-            result = []
+            sortedList = []
             for i in range(0, len(value)):
-                result.append(self.sort_json_keys(value[i]))
-            return result
+                sortedList.append(self.sort_json_keys(value[i]))
+            return sortedList
         else:
             return value
 
     def prepare_message(self, header: dict, payload: dict) -> str:
-        if header['type'] is None or header['timestamp'] is None or header['expiry_window'] is None:
+        headerType = self.safe_string(header, 'type')
+        headerTimestamp = self.safe_integer(header, 'timestamp')
+        headerExpiryWindow = self.safe_integer(header, 'expiry_window')
+        if headerType is None or headerTimestamp is None or headerExpiryWindow is None:
             raise ArgumentsRequired(self.id + ' prepareMessage() requires type, timestamp, expiry_window in header')
         data = self.extend(header, {'data': payload})
         sorted = self.sort_json_keys(data)
@@ -3550,7 +3550,7 @@ class pacifica(Exchange, ImplicitAPI):
         signatureBase58 = self.binary_to_base58(signatureBinary)
         return signatureBase58
 
-    def post_action_request(self, operationType: Str, sigPayload: dict, params: dict) -> dict:
+    def post_action_request(self, operationType: str, sigPayload: dict, params: dict) -> dict:
         self.check_required_credentials()  # check credentials every post action
         if operationType == 'None':
             raise ArgumentsRequired(self.id + ' action: ' + operationType + ' postActionRequest() requires "operationType"')

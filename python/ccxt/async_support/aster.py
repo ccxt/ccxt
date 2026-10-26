@@ -1004,6 +1004,7 @@ class aster(Exchange, ImplicitAPI):
         if (base is None) or (quote is None):
             return None
         active = self.safe_string(market, 'status') == 'TRADING'
+        tradingFees = self.safe_dict(self.fees, 'trading', {})
         spot = None
         symbol = None
         settle = None
@@ -1059,8 +1060,8 @@ class aster(Exchange, ImplicitAPI):
             'contract': isContract,
             'linear': linear,
             'inverse': inverse,
-            'taker': self.fees['trading']['taker'],
-            'maker': self.fees['trading']['maker'],
+            'taker': tradingFees['taker'],
+            'maker': tradingFees['maker'],
             'contractSize': contractSize,
             'expiry': None,
             'expiryDatetime': None,
@@ -1185,13 +1186,13 @@ class aster(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsUntil, 'price')
         response: dict | List
         if isMark:
-            requestUntil['symbol'] = market['id']
+            requestUntil['symbol'] = self.safe_string(market, 'id', '')
             response = await self.fapiPublicGetV3MarkPriceKlines(self.extend(requestUntil, paramsOmitted))
         elif isIndex:
-            requestUntil['pair'] = market['id']
+            requestUntil['pair'] = self.safe_string(market, 'id', '')
             response = await self.fapiPublicGetV3IndexPriceKlines(self.extend(requestUntil, paramsOmitted))
         else:
-            requestUntil['symbol'] = market['id']
+            requestUntil['symbol'] = self.safe_string(market, 'id', '')
             if market['linear'] is True:
                 response = await self.fapiPublicGetV3Klines(self.extend(requestUntil, paramsOmitted))
             else:
@@ -2028,8 +2029,9 @@ class aster(Exchange, ImplicitAPI):
 
     def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
-        for i in range(0, len(response)):
-            balance = self.safe_dict(response, i)
+        rows = self.to_array(response)
+        for i in range(0, len(rows)):
+            balance = self.safe_dict(rows, i)
             currencyId = self.safe_string(balance, 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -2102,7 +2104,7 @@ class aster(Exchange, ImplicitAPI):
         :returns dict: response from the exchange
         """
         strValue = 'false'
-        if hedged:
+        if hedged is True:
             strValue = 'true'
         request = {
             'dualSidePosition': strValue,
@@ -2604,9 +2606,10 @@ class aster(Exchange, ImplicitAPI):
         await self.load_markets_and_sign_in()
         ordersRequests = []
         orderSymbols = []
-        if len(orders) > 5:
+        ordersLength = len(orders)
+        if ordersLength > 5:
             raise InvalidOrder(self.id + ' createOrders() order list max 5 orders')
-        for i in range(0, len(orders)):
+        for i in range(0, ordersLength):
             rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
             currentMarket = self.market(marketId)
@@ -2621,7 +2624,7 @@ class aster(Exchange, ImplicitAPI):
         orderSymbolsResolved = self.market_symbols(orderSymbols, None, False, True, True)
         market = self.market(orderSymbolsResolved[0])
         if market['spot'] is True:
-            raise NotSupported(self.id + ' createOrders() does not support ' + market['type'] + ' orders')
+            raise NotSupported(self.id + ' createOrders() does not support ' + self.safe_string(market, 'type', '') + ' orders')
         request = {
             'batchOrders': ordersRequests,
         }
@@ -2733,7 +2736,8 @@ class aster(Exchange, ImplicitAPI):
                 quoteOrderQty = self.handle_option('createOrder', 'quoteOrderQty', True)
                 if quoteOrderQty is True:
                     quoteOrderQtyNew = self.safe_string_2(params, 'quoteOrderQty', 'cost')
-                    precision = market['precision']['price']
+                    marketPrecision = self.safe_dict(market, 'precision', {})
+                    precision = marketPrecision['price']
                     if quoteOrderQtyNew is not None:
                         request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQtyNew, TRUNCATE, precision, self.precisionMode)
                     elif price is not None:
@@ -3649,8 +3653,8 @@ class aster(Exchange, ImplicitAPI):
             isPositionOpen = (maintenanceMargin != '0') and (maintenanceMargin != '0.00000000')
             if not filterClosed or isPositionOpen:
                 # sometimes not all the codes are correctly returned...
-                if code in balances:
-                    balance = self.safe_dict(balances, code)
+                balance = self.safe_dict(balances, code)
+                if balance is not None:
                     parsed = self.parse_account_position(self.extend(position, {
                         'crossMargin': self.safe_string(balance, 'crossMargin'),
                         'crossWalletBalance': self.safe_string(balance, 'crossWalletBalance'),
@@ -3771,14 +3775,14 @@ class aster(Exchange, ImplicitAPI):
                 liquidationPriceStringRaw = Precise.string_div(leftSide, rightSide)
             pricePrecision = self.precision_from_string(self.safe_string(marketResolved['precision'], 'price'))
             pricePrecisionPlusOne = pricePrecision + 1
-            pricePrecisionPlusOneString = str(pricePrecisionPlusOne)
             # round half up
+            pricePrecisionPlusOneString = self.number_to_string(pricePrecisionPlusOne)
             rounderString = '5e-' + pricePrecisionPlusOneString
             liquidationPriceRoundedString = Precise.string_add(rounderString, liquidationPriceStringRaw)
             truncatedLiquidationPrice = Precise.string_div(liquidationPriceRoundedString, '1', pricePrecision)
             if truncatedLiquidationPrice is None:
                 raise ExchangeError(self.id + ' method() missing truncatedLiquidationPrice')
-            if truncatedLiquidationPrice[0] == '-':
+            if truncatedLiquidationPrice.startswith('-'):
                 # user cannot be liquidated
                 # since he has more collateral than the size of the position
                 truncatedLiquidationPrice = None
@@ -4210,7 +4214,7 @@ class aster(Exchange, ImplicitAPI):
         #        }
         #    ]
         #
-        approvedBuilders = result
+        approvedBuilders = self.to_array(result)
         length = len(approvedBuilders)
         found = False
         builderAddress = self.safe_string(self.options, 'builder')

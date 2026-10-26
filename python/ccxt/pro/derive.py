@@ -88,7 +88,8 @@ class derive(ccxt.async_support.derive):
             await self.load_markets()
         limitResolved = 10 if (limit is None) else limit
         market = self.market(symbol)
-        topic = 'orderbook.' + market['id'] + '.10.' + self.number_to_string(limitResolved)
+        marketId = self.safe_string(market, 'id', '')
+        topic = 'orderbook.' + marketId + '.10.' + self.number_to_string(limitResolved)
         request = {
             'method': 'subscribe',
             'params': {
@@ -126,7 +127,7 @@ class derive(ccxt.async_support.derive):
         data = self.safe_dict(params, 'data', {})
         marketId = self.safe_string(data, 'instrument_name')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         topic = self.safe_string(params, 'channel')
         if not (symbol in self.orderbooks):
             defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
@@ -152,7 +153,8 @@ class derive(ccxt.async_support.derive):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        topic = 'ticker_slim.' + market['id'] + '.100'  # v3 removed the fat ticker channel, ticker_slim is the only ticker feed
+        marketId = self.safe_string(market, 'id', '')
+        topic = 'ticker_slim.' + marketId + '.100'  # v3 removed the fat ticker channel, ticker_slim is the only ticker feed
         request = {
             'method': 'subscribe',
             'params': {
@@ -181,7 +183,8 @@ class derive(ccxt.async_support.derive):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        topic = 'ticker_slim.' + market['id'] + '.100'
+        marketId = self.safe_string(market, 'id', '')
+        topic = 'ticker_slim.' + marketId + '.100'
         messageHash = 'unwatch' + topic
         request = {
             'method': 'unsubscribe',
@@ -213,8 +216,10 @@ class derive(ccxt.async_support.derive):
         messageHashes = []
         for i in range(0, len(symbolsResolved)):
             market = self.market(symbolsResolved[i])
-            topics.append('ticker_slim.' + market['id'] + '.100')
-            messageHashes.append('bidask:' + market['symbol'])
+            marketId = self.safe_string(market, 'id', '')
+            marketSymbol = self.safe_string(market, 'symbol', '')
+            topics.append('ticker_slim.' + marketId + '.100')
+            messageHashes.append('bidask:' + marketSymbol)
         url = self.urls['api']['ws']
         requestId = self.request_id(url)
         request = {
@@ -231,7 +236,8 @@ class derive(ccxt.async_support.derive):
         ticker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscription)
         if self.newUpdates:
             result = {}
-            result[ticker['symbol']] = ticker
+            tickerSymbol = self.safe_string(ticker, 'symbol', '')
+            result[tickerSymbol] = ticker
             return result
         return self.filter_by_array(self.bidsasks, 'symbol', symbolsResolved)
 
@@ -279,7 +285,7 @@ class derive(ccxt.async_support.derive):
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
         ticker = self.parse_ticker(data, market)
-        tickerSymbol = ticker['symbol']
+        tickerSymbol = self.safe_string(ticker, 'symbol')
         if tickerSymbol is not None:
             self.tickers[tickerSymbol] = ticker
             bidAsk = self.safe_ticker({
@@ -307,11 +313,11 @@ class derive(ccxt.async_support.derive):
         """
         if self.markets is None:
             await self.load_markets()
-        limit = self.safe_integer(params, 'limit')
-        if limit is None:
-            limit = 10
+        limitRaw = self.safe_integer(params, 'limit')
+        limit = 10 if (limitRaw is None) else limitRaw
         market = self.market(symbol)
-        topic = 'orderbook.' + market['id'] + '.10.' + self.number_to_string(limit)
+        marketId = self.safe_string(market, 'id', '')
+        topic = 'orderbook.' + marketId + '.10.' + str(limit)
         messageHash = 'unwatch' + topic
         request = {
             'method': 'unsubscribe',
@@ -336,7 +342,8 @@ class derive(ccxt.async_support.derive):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        topic = 'trades.' + market['id']
+        marketId = self.safe_string(market, 'id', '')
+        topic = 'trades.' + marketId
         messageHah = 'unwatch' + topic
         request = {
             'method': 'unsubscribe',
@@ -376,7 +383,7 @@ class derive(ccxt.async_support.derive):
         parsedTopic = topic.split('.')
         marketId = self.safe_string(parsedTopic, 1)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         if symbol in self.trades:
             del self.trades[symbol]
         self.clean_unsubscription(client, topic, 'unwatch' + topic)
@@ -385,7 +392,7 @@ class derive(ccxt.async_support.derive):
         parsedTopic = topic.split('.')
         marketId = self.safe_string(parsedTopic, 1)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         if symbol in self.tickers:
             del self.tickers[symbol]
         if symbol in self.bidsasks:
@@ -450,7 +457,8 @@ class derive(ccxt.async_support.derive):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        topic = 'trades.' + market['id']
+        marketId = self.safe_string(market, 'id', '')
+        topic = 'trades.' + marketId
         request = {
             'method': 'subscribe',
             'params': {
@@ -479,7 +487,7 @@ class derive(ccxt.async_support.derive):
         parsedTopic = topic.split('.')
         marketId = self.safe_string(parsedTopic, 1)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         tradesArray = self.safe_value(self.trades, symbol)
         if tradesArray is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -551,10 +559,12 @@ class derive(ccxt.async_support.derive):
         if self.markets is None:
             await self.load_markets()
         subaccountId, paramsDeriveSubaccountId = self.handleDeriveSubaccountId('watchOrders', params)
-        topic = self.number_to_string(subaccountId) + '.orders'
+        subaccountIdString = self.number_to_string(subaccountId)
+        topic = subaccountIdString + '.orders'
         messageHash = topic
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
-        if symbolResolved is not None:
+        symbolResolved = None
+        if symbol is not None:
+            symbolResolved = self.symbol(symbol)
             messageHash += ':' + symbolResolved
         request = {
             'method': 'subscribe',
@@ -662,7 +672,8 @@ class derive(ccxt.async_support.derive):
         if self.markets is None:
             await self.load_markets()
         subaccountId, paramsDeriveSubaccountId = self.handleDeriveSubaccountId('unWatchOrders', params)
-        topic = self.number_to_string(subaccountId) + '.orders'
+        subaccountIdString = self.number_to_string(subaccountId)
+        topic = subaccountIdString + '.orders'
         messageHash = 'unwatch' + topic
         request = {
             'method': 'unsubscribe',
@@ -694,10 +705,12 @@ class derive(ccxt.async_support.derive):
         if self.markets is None:
             await self.load_markets()
         subaccountId, paramsDeriveSubaccountId = self.handleDeriveSubaccountId('watchMyTrades', params)
-        topic = self.number_to_string(subaccountId) + '.trades'
+        subaccountIdString = self.number_to_string(subaccountId)
+        topic = subaccountIdString + '.trades'
         messageHash = topic
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
-        if symbolResolved is not None:
+        symbolResolved = None
+        if symbol is not None:
+            symbolResolved = self.symbol(symbol)
             messageHash += ':' + symbolResolved
         request = {
             'method': 'subscribe',
@@ -751,7 +764,8 @@ class derive(ccxt.async_support.derive):
         if self.markets is None:
             await self.load_markets()
         subaccountId, paramsDeriveSubaccountId = self.handleDeriveSubaccountId('unWatchMyTrades', params)
-        topic = self.number_to_string(subaccountId) + '.trades'
+        subaccountIdString = self.number_to_string(subaccountId)
+        topic = subaccountIdString + '.trades'
         messageHash = 'unwatch' + topic
         request = {
             'method': 'unsubscribe',
@@ -796,7 +810,8 @@ class derive(ccxt.async_support.derive):
             emptyBalance = {}  # hoisted: an inline literal on the right side of a property assignment derails the rust transpiler
             seeded = self.extend(snapshot, emptyBalance)  # the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
             self.balance[subaccountIdKey] = seeded
-        topic = self.number_to_string(subaccountId) + '.balances'
+        subaccountIdString = self.number_to_string(subaccountId)
+        topic = subaccountIdString + '.balances'
         request = {
             'method': 'subscribe',
             'params': {
@@ -847,12 +862,14 @@ class derive(ccxt.async_support.derive):
             }
             snapshotParams = self.extend(snapshotRequest, paramsDeriveSubaccountId)
             positionsSnapshot = await self.fetch_positions(None, snapshotParams)
-            cache = self.positions[subaccountIdKey]
+            cache = self.safe_value(self.positions, subaccountIdKey)
             for i in range(0, len(positionsSnapshot)):
-                cache.append(positionsSnapshot[i])
+                snapshotPosition = self.safe_value(positionsSnapshot, i)
+                cache.append(snapshotPosition)
             loadedSnapshots[subaccountIdKey] = True
             self.options['loadedPositionsSnapshots'] = loadedSnapshots
-        topic = self.number_to_string(subaccountId) + '.balances'
+        subaccountIdString = self.number_to_string(subaccountId)
+        topic = subaccountIdString + '.balances'
         messageHash = 'positions:' + topic
         request = {
             'method': 'subscribe',
@@ -870,17 +887,17 @@ class derive(ccxt.async_support.derive):
         newPositions = await self.watch_private(messageHash, message, subscription)
         if self.newUpdates:
             return newPositions
-        return self.filter_by_symbols_since_limit(self.positions[subaccountIdKey], symbolsResolved, since, limit, True)
+        return self.filter_by_symbols_since_limit(self.safe_value(self.positions, subaccountIdKey), symbolsResolved, since, limit, True)
 
     def handle_position_delta(self, subaccountIdKey: str, entry: dict) -> Position:
         marketId = self.safe_string(entry, 'name')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         newSize = self.safe_string(entry, 'new_balance', '0')
         isShort = Precise.string_lt(newSize, '0')
         side = 'short' if isShort else 'long'
         contracts = Precise.string_abs(newSize)
-        cache = self.positions[subaccountIdKey]
+        cache = self.safe_value(self.positions, subaccountIdKey)
         symbolPositions = self.safe_dict(cache.hashmap, symbol, {})
         # a fill through zero flattens the opposite side first
         oppositeSide = 'long' if isShort else 'short'
@@ -960,7 +977,7 @@ class derive(ccxt.async_support.derive):
             updated = True
         if updated:
             self.balance[subaccountIdKey] = self.safe_balance(subBalance)
-            client.resolve(self.balance[subaccountIdKey], topic)
+            client.resolve(self.safe_value(self.balance, subaccountIdKey), topic)
         positionUpdatesLength = len(positionUpdates)
         if positionUpdatesLength > 0:
             client.resolve(positionUpdates, 'positions:' + topic)

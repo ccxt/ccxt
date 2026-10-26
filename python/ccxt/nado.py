@@ -535,8 +535,7 @@ class nado(Exchange, ImplicitAPI):
         isTriggerOrder = isStopOrder or isStopLossOrder or isTakeProfitOrder
         if isStopOrder:
             # the final omit drops triggerDirection from the request
-            triggerDirectionAndParams = self.handle_trigger_direction_and_params(paramsRecvWindow)
-            triggerDirection = triggerDirectionAndParams[0]
+            triggerDirection = self.safe_string(self.handle_trigger_direction_and_params(paramsRecvWindow), 0)
             directionSuffix = 'below'
             if triggerDirection == 'ascending':
                 directionSuffix = 'above'
@@ -1178,9 +1177,9 @@ class nado(Exchange, ImplicitAPI):
         }
         if market is not None:
             ordersRequest['product_ids'] = [self.parse_to_int(market['id'])]
-        ordersRequestUntil, paramsUntil = self.handle_until_option('max_time', ordersRequest, paramsSubaccount, 0.001)
         if limit is not None:
-            ordersRequestUntil['limit'] = min(limit, 500)
+            ordersRequest['limit'] = min(limit, 500)
+        ordersRequestUntil, paramsUntil = self.handle_until_option('max_time', ordersRequest, paramsSubaccount, 0.001)
         request = {
             'orders': ordersRequestUntil,
         }
@@ -1278,9 +1277,9 @@ class nado(Exchange, ImplicitAPI):
         }
         if market is not None:
             matchesRequest['product_ids'] = [self.parse_to_int(market['id'])]
-        matchesRequestUntil, paramsUntil = self.handle_until_option('max_time', matchesRequest, paramsSubaccount, 0.001)
         if limit is not None:
-            matchesRequestUntil['limit'] = min(limit, 500)
+            matchesRequest['limit'] = min(limit, 500)
+        matchesRequestUntil, paramsUntil = self.handle_until_option('max_time', matchesRequest, paramsSubaccount, 0.001)
         request = {
             'matches': matchesRequestUntil,
         }
@@ -1677,7 +1676,7 @@ class nado(Exchange, ImplicitAPI):
             settle = quote if contract else None
             symbol = base + '/' + quote
             if contract:
-                symbol += ':' + settle
+                symbol = base + '/' + quote + ':' + quote
             tradingStatus = self.safe_string(market, 'trading_status')
             active = (tradingStatus != 'not_tradable')
             priceIncrement = self.parse_x18(self.safe_string(market, 'price_increment_x18'))
@@ -1755,7 +1754,7 @@ class nado(Exchange, ImplicitAPI):
         result = {}
         assets = self.to_array(response)
         for i in range(0, len(assets)):
-            currency = assets[i]
+            currency = self.safe_value(assets, i)
             parsed = self.parse_currency(currency)
             code = self.safe_string(parsed, 'code')
             if code is None:
@@ -1814,7 +1813,7 @@ class nado(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         tickers = self.fetch_tickers([symbolValue], params)
         ticker = self.safe_dict(tickers, symbolValue)
         if ticker is None:
@@ -2147,16 +2146,17 @@ class nado(Exchange, ImplicitAPI):
         market = self.market(symbol)
         until = self.safe_integer(params, 'until')
         paramsOmitted = self.omit(params, 'until')
-        request = {
-            'candlesticks': {
-                'product_id': self.parse_to_int(market['id']),
-                'granularity': self.safe_integer(self.timeframes, timeframe, self.parse_timeframe(timeframe)),
-            },
+        candlesticks = {
+            'product_id': self.parse_to_int(market['id']),
+            'granularity': self.safe_integer(self.timeframes, timeframe, self.parse_timeframe(timeframe)),
         }
         if limit is not None:
-            request['candlesticks']['limit'] = min(limit, 500)
+            candlesticks['limit'] = min(limit, 500)
         if until is not None:
-            request['candlesticks']['max_time'] = self.parse_to_int(until / 1000)
+            candlesticks['max_time'] = self.parse_to_int(until / 1000)
+        request = {
+            'candlesticks': candlesticks,
+        }
         response = self.archivePost(self.deep_extend(request, paramsOmitted))
         #
         #     {
@@ -2834,7 +2834,7 @@ class nado(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def convert_to_x18(self, value: Str):
+    def convert_to_x18(self, value: Str) -> Str:
         if value is None:
             raise ArgumentsRequired(self.id + ' convertToX18() requires a value')
         return Precise.string_div(Precise.string_mul(value, '1000000000000000000'), '1', 0)
@@ -2897,7 +2897,8 @@ class nado(Exchange, ImplicitAPI):
         return '0x' + address + self.pad_hex(encoded, 24, False)
 
     def query_contracts(self, params: dict = {}) -> dict:
-        if self.safe_dict(self.options, 'gatewayContracts') is None:
+        gatewayContracts = self.safe_dict(self.options, 'gatewayContracts')
+        if gatewayContracts is None:
             request = {
                 'type': 'contracts',
             }
@@ -3016,7 +3017,9 @@ class nado(Exchange, ImplicitAPI):
         baseApiUrl = self.safe_string(self.urls['api'], endpoint)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        pathSuffix = ('/' + self.implode_params(path, params)) if (path != '') else ''
+        pathSuffix = ''
+        if path != '':
+            pathSuffix = '/' + self.implode_params(path, params)
         url = baseApiUrl + pathSuffix
         query = self.omit(params, self.extract_params(path))
         headersValue = {}
@@ -3024,7 +3027,7 @@ class nado(Exchange, ImplicitAPI):
             headersValue['Accept-Encoding'] = 'gzip, br, deflate'
         if method == 'GET':
             if len(query) > 0:
-                url += '?' + self.urlencode(query)
+                url = baseApiUrl + pathSuffix + '?' + self.urlencode(query)
         else:
             headersValue['Content-Type'] = 'application/json'
             requestBody = self.json(query)

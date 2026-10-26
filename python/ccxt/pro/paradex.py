@@ -119,12 +119,10 @@ class paradex(ccxt.async_support.paradex):
         """
         if self.markets is None:
             await self.load_markets()
-        messageHash = 'trades.'
+        messageHash = 'trades.ALL'
         if symbol is not None:
             market = self.market(symbol)
-            messageHash += market['id']
-        else:
-            messageHash += 'ALL'
+            messageHash = 'trades.' + market['id']
         url = self.get_ws_url()
         request = {
             'jsonrpc': '2.0',
@@ -345,14 +343,12 @@ class paradex(ccxt.async_support.paradex):
             await self.load_markets()
         await self.authenticate()
         messageHash = 'orders'
-        channel = 'orders.'
+        channel = 'orders.ALL'
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
         if symbol is not None:
             market = self.market(symbol)
-            channel += market['id']
-            messageHash += ':' + symbolResolved
-        else:
-            channel += 'ALL'
+            channel = 'orders.' + market['id']
+            messageHash = 'orders:' + symbolResolved
         url = self.get_ws_url()
         request = {
             'jsonrpc': '2.0',
@@ -425,14 +421,12 @@ class paradex(ccxt.async_support.paradex):
             await self.load_markets()
         await self.authenticate()
         messageHash = 'myTrades'
-        channel = 'fills.'
+        channel = 'fills.ALL'
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
         if symbol is not None:
             market = self.market(symbol)
-            channel += market['id']
-            messageHash += ':' + symbolResolved
-        else:
-            channel += 'ALL'
+            channel = 'fills.' + market['id']
+            messageHash = 'myTrades:' + symbolResolved
         url = self.get_ws_url()
         request = {
             'jsonrpc': '2.0',
@@ -795,7 +789,7 @@ class paradex(ccxt.async_support.paradex):
         params = self.safe_dict(message, 'params', {})
         data = self.safe_dict(params, 'data', {})
         fundingRate = self.parse_funding_rate_ws(data)
-        symbol = fundingRate['symbol']
+        symbol = self.safe_string(fundingRate, 'symbol')
         self.fundingRates[symbol] = fundingRate
         channel = self.safe_string(params, 'channel')
         # watchFundingRates without symbols waits on the bare channel
@@ -869,11 +863,11 @@ class paradex(ccxt.async_support.paradex):
         if templateId == 1:
             data = self.parse_sbe_trade(frameHex, blockLength, frameLength)
             if data is not None:
-                channel = 'trades.' + data['market']
+                channel = 'trades.' + self.safe_string(data, 'market')
         elif templateId == 3:
             data = self.parse_sbe_order_book(frameHex, blockLength, frameLength)
             if data is not None:
-                channel = self.get_order_book_channel(data['market'])
+                channel = self.get_order_book_channel(self.safe_string(data, 'market'))
         elif templateId == 4:
             data = self.parse_sbe_market_summary(frameHex, blockLength, frameLength)
             channel = 'markets_summary'
@@ -883,11 +877,11 @@ class paradex(ccxt.async_support.paradex):
         elif templateId == 20:
             data = self.parse_sbe_order(frameHex, blockLength, frameLength)
             if data is not None:
-                channel = 'orders.' + data['market']
+                channel = 'orders.' + self.safe_string(data, 'market')
         elif templateId == 21:
             data = self.parse_sbe_fill(frameHex, blockLength, frameLength)
             if data is not None:
-                channel = 'fills.' + data['market']
+                channel = 'fills.' + self.safe_string(data, 'market')
         elif templateId == 22:
             data = self.parse_sbe_position(frameHex, blockLength, frameLength)
             channel = 'positions'
@@ -977,10 +971,11 @@ class paradex(ccxt.async_support.paradex):
                 break
         return '0x' + raw[start:64]
 
-    def sbe_read_var_strings(self, frameHex: str, offset: float, count: float, frameLength: float) -> object:
-        # the var-data section: count strings, each prefixed with a uint8 length. Returns undefined
+    def sbe_read_var_strings(self, frameHex: str, offset: float, count: float, frameLength: float) -> list[str]:
+        # the var-data section: count strings, each prefixed with a uint8 length. Returns an empty list
         # when the frame ends before all of them, and only the strings present when a trailing one is
-        # absent, which is how a field appended to var-data reads on a frame from before it
+        # absent, which is how a field appended to var-data reads on a frame from before it.
+        # Every caller guards on the count it needs, so an empty list and a short one read alike
         result = []
         end = self.parse_to_int(frameLength)
         total = self.parse_to_int(count)
@@ -991,7 +986,7 @@ class paradex(ccxt.async_support.paradex):
             length = self.parse_to_int(self.sbe_read_uint(frameHex, position, 1))
             next = self.parse_to_int(self.sum(position, 1, length))
             if next > end:
-                return None
+                return []
             result.append(self.sbe_read_string(frameHex, position + 1, length))
             position = next
         return result
@@ -1007,7 +1002,7 @@ class paradex(ccxt.async_support.paradex):
         if blockSize < 50:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 2, frameLength)
-        stringsLength = 0 if (strings is None) else len(strings)
+        stringsLength = len(strings)
         if stringsLength < 1:
             return None
         sides = {'1': 'BUY', '2': 'SELL'}
@@ -1015,7 +1010,7 @@ class paradex(ccxt.async_support.paradex):
         return {
             # the full trade id, absent only on frames that predate it, the int64 tradeId cannot hold it
             'id': self.safe_string(strings, 1),
-            'market': strings[0],
+            'market': self.safe_string(strings, 0),
             'side': self.sbe_read_enum(frameHex, 32, sides),
             'size': self.sbe_read_decimal(frameHex, 41),
             'price': self.sbe_read_decimal(frameHex, 33),
@@ -1057,12 +1052,12 @@ class paradex(ccxt.async_support.paradex):
                 })
                 position = self.parse_to_int(self.sum(position, entryLength))
         strings = self.sbe_read_var_strings(frameHex, position, 1, frameLength)
-        stringsLength = 0 if (strings is None) else len(strings)
+        stringsLength = len(strings)
         if stringsLength < 1:
             return None
         return {
             'seq_no': self.sbe_read_int64(frameHex, 16),
-            'market': strings[0],
+            'market': self.safe_string(strings, 0),
             'last_updated_at': self.sbe_read_timestamp(frameHex, 8),
             'update_type': 's',
             'inserts': inserts,
@@ -1083,7 +1078,7 @@ class paradex(ccxt.async_support.paradex):
         if blockSize < 96:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 1, frameLength)
-        stringsLength = 0 if (strings is None) else len(strings)
+        stringsLength = len(strings)
         if stringsLength < 1:
             return None
         # appended in 1:3: null outside the pre-expiry settlement window and for undated markets
@@ -1091,7 +1086,7 @@ class paradex(ccxt.async_support.paradex):
         if blockSize >= 248:
             settlementTwapEstimate = self.sbe_read_decimal(frameHex, 248)
         return {
-            'symbol': strings[0],
+            'symbol': self.safe_string(strings, 0),
             'mark_price': self.sbe_read_decimal(frameHex, 24),
             'last_traded_price': self.sbe_read_decimal(frameHex, 40),
             'bid': self.sbe_read_decimal(frameHex, 72),
@@ -1117,11 +1112,11 @@ class paradex(ccxt.async_support.paradex):
         if blockSize < 58:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 1, frameLength)
-        stringsLength = 0 if (strings is None) else len(strings)
+        stringsLength = len(strings)
         if stringsLength < 1:
             return None
         return {
-            'market': strings[0],
+            'market': self.safe_string(strings, 0),
             'funding_index': self.sbe_read_decimal(frameHex, 32),
             'funding_premium': self.sbe_read_decimal(frameHex, 48),
             'funding_rate': self.sbe_read_decimal(frameHex, 24),
@@ -1143,7 +1138,7 @@ class paradex(ccxt.async_support.paradex):
         if blockSize < 126:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 4, frameLength)
-        stringsLength = 0 if (strings is None) else len(strings)
+        stringsLength = len(strings)
         if stringsLength < 4:
             return None
         statuses = {'1': 'NEW', '2': 'UNTRIGGERED', '3': 'OPEN', '4': 'CLOSED'}
@@ -1155,13 +1150,13 @@ class paradex(ccxt.async_support.paradex):
         order = {
             'account': self.sbe_read_address(frameHex, 84),
             'avg_fill_price': self.sbe_read_decimal(frameHex, 60),
-            'client_id': strings[1],
+            'client_id': self.safe_string(strings, 1),
             'created_at': self.sbe_read_timestamp(frameHex, 68),
             'flags': flags,
-            'id': strings[0],
+            'id': self.safe_string(strings, 0),
             'instruction': self.sbe_read_enum(frameHex, 27, timeInForces),
             'last_updated_at': self.sbe_read_timestamp(frameHex, 76),
-            'market': strings[2],
+            'market': self.safe_string(strings, 2),
             'price': self.sbe_read_decimal(frameHex, 28),
             'published_at': self.sbe_read_timestamp(frameHex, 124),
             'received_at': self.sbe_read_timestamp(frameHex, 116),
@@ -1176,8 +1171,9 @@ class paradex(ccxt.async_support.paradex):
             'type': self.sbe_read_enum(frameHex, 26, orderTypes),
         }
         # an empty cancel reason is sent for every live order, parseOrder reads any reason as canceled
-        if strings[3] != '':
-            order['cancel_reason'] = strings[3]
+        cancelReason = self.safe_string(strings, 3, '')
+        if cancelReason != '':
+            order['cancel_reason'] = cancelReason
         return order
 
     def sbe_read_flags(self, frameHex: str, offset: float, names: list[str]) -> list[str]:
@@ -1204,7 +1200,7 @@ class paradex(ccxt.async_support.paradex):
         if blockSize < 107:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 6, frameLength)
-        stringsLength = 0 if (strings is None) else len(strings)
+        stringsLength = len(strings)
         if stringsLength < 5:
             return None
         fillTypes = {'1': 'FILL', '2': 'LIQUIDATION', '3': 'UNWIND_TRANSFER', '4': 'SETTLE_MARKET', '5': 'RPI', '6': 'BLOCK_TRADE'}
@@ -1212,15 +1208,15 @@ class paradex(ccxt.async_support.paradex):
         liquidities = {'1': 'MAKER', '2': 'TAKER'}
         fill = {
             'account': self.sbe_read_address(frameHex, 67),
-            'client_id': strings[2],
+            'client_id': self.safe_string(strings, 2),
             'created_at': self.sbe_read_timestamp(frameHex, 59),
             'fee': self.sbe_read_decimal(frameHex, 43),
             'fee_currency': self.safe_string(strings, 5),
             'fill_type': self.sbe_read_enum(frameHex, 24, fillTypes),
-            'id': strings[0],
+            'id': self.safe_string(strings, 0),
             'liquidity': self.sbe_read_enum(frameHex, 26, liquidities),
-            'market': strings[4],
-            'order_id': strings[1],
+            'market': self.safe_string(strings, 4),
+            'order_id': self.safe_string(strings, 1),
             'price': self.sbe_read_decimal(frameHex, 27),
             'realized_funding': self.sbe_read_decimal(frameHex, 107),
             'realized_pnl': self.sbe_read_decimal(frameHex, 51),
@@ -1248,7 +1244,7 @@ class paradex(ccxt.async_support.paradex):
         if blockSize < 154:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 2, frameLength)
-        stringsLength = 0 if (strings is None) else len(strings)
+        stringsLength = len(strings)
         if stringsLength < 1:
             return None
         sides = {'1': 'LONG', '2': 'SHORT'}
@@ -1267,12 +1263,12 @@ class paradex(ccxt.async_support.paradex):
             'cost': self.sbe_read_decimal(frameHex, 129),
             'cost_usd': self.sbe_read_decimal(frameHex, 137),
             # the JSON channel's id, one position per account and market
-            'id': account + '-' + strings[0],
+            'id': account + '-' + self.safe_string(strings, 0),
             'last_fill_id': self.safe_string(strings, 1),
             'last_updated_at': self.sbe_read_timestamp(frameHex, 81),
             'leverage': self.sbe_read_decimal(frameHex, 73),
             'liquidation_price': self.sbe_read_decimal(frameHex, 65),
-            'market': strings[0],
+            'market': self.safe_string(strings, 0),
             'realized_positional_pnl': self.sbe_read_decimal(frameHex, 49),
             'seq_no': self.sbe_read_int64(frameHex, 16),
             'side': side,
@@ -1295,7 +1291,7 @@ class paradex(ccxt.async_support.paradex):
         if blockSize < 113:
             return None
         strings = self.sbe_read_var_strings(frameHex, self.sum(blockLength, 8), 1, frameLength)
-        stringsLength = 0 if (strings is None) else len(strings)
+        stringsLength = len(strings)
         if stringsLength < 1:
             return None
         statuses = {'1': 'ACTIVE', '2': 'LIQUIDATION'}
@@ -1307,7 +1303,7 @@ class paradex(ccxt.async_support.paradex):
             'maintenance_margin_requirement': self.sbe_read_decimal(frameHex, 48),
             'margin_cushion': self.sbe_read_decimal(frameHex, 112),
             'seq_no': self.sbe_read_int64(frameHex, 16),
-            'settlement_asset': strings[0],
+            'settlement_asset': self.safe_string(strings, 0),
             'status': self.sbe_read_enum(frameHex, 120, statuses),
             'total_collateral': self.sbe_read_decimal(frameHex, 24),
             'updated_at': self.sbe_read_timestamp(frameHex, 72),

@@ -494,11 +494,11 @@ class bitso(Exchange, ImplicitAPI):
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'book')
-            baseId, quoteId = id.split('_')
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.safe_currency_code(base)
-            quote = self.safe_currency_code(quote)
+            parts = id.split('_')
+            baseId = self.safe_string(parts, 0, '')
+            quoteId = self.safe_string(parts, 1, '')
+            base = self.safe_currency_code(baseId.upper())
+            quote = self.safe_currency_code(quoteId.upper())
             if (base is None) or (quote is None):
                 continue
             fees = self.safe_dict(market, 'fees', {})
@@ -1109,7 +1109,7 @@ class bitso(Exchange, ImplicitAPI):
         # convert it to an integer unconditionally
         paramsMarker = params
         if markerInParams:
-            paramsMarker = self.extend(params, {'marker': int(params['marker'])})
+            paramsMarker = self.extend(params, {'marker': self.parse_to_int(params['marker'])})
         request = {
             'book': market['id'],
             'limit': limit,  # default = 25, max = 100
@@ -1323,7 +1323,7 @@ class bitso(Exchange, ImplicitAPI):
         # convert it to an integer unconditionally
         paramsMarker = params
         if markerInParams:
-            paramsMarker = self.extend(params, {'marker': int(params['marker'])})
+            paramsMarker = self.extend(params, {'marker': self.parse_to_int(params['marker'])})
         request = {
             'book': market['id'],
             'limit': limit,  # default = 25, max = 100
@@ -1350,11 +1350,10 @@ class bitso(Exchange, ImplicitAPI):
         response = await self.privateGetOrdersOid({
             'oid': id,
         })
-        payload = self.safe_list(response, 'payload')
-        if isinstance(payload, list):
-            numOrders = len(payload)
-            if numOrders == 1:
-                return self.parse_order(payload[0])
+        payload = self.safe_list(response, 'payload', [])
+        numOrders = len(payload)
+        if numOrders == 1:
+            return self.parse_order(payload[0])
         raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
 
     async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
@@ -1747,7 +1746,7 @@ class bitso(Exchange, ImplicitAPI):
             'LTC': 'Litecoin',
         }
         currency = self.currency(code)
-        method = methods[code] if (code in methods) else None
+        method = self.safe_string(methods, code)
         if method is None:
             raise ExchangeError(self.id + ' not valid withdraw coin: ' + code)
         request = {
@@ -1880,8 +1879,7 @@ class bitso(Exchange, ImplicitAPI):
             # bitso rejects a nonce that is not higher than the previous one (error 104)
             nonce = str(self.incrementing_nonce())
             endpoint = '/api' + endpoint
-            content = [nonce, method, endpoint]
-            request = ''.join(content)
+            request = nonce + method + endpoint
             if method != 'GET' and method != 'DELETE':
                 if len(query) > 0:
                     jsonBody = self.json(query)

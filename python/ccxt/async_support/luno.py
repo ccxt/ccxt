@@ -497,7 +497,7 @@ class luno(Exchange, ImplicitAPI):
         return self.parse_currencies(values)
 
     def parse_currency(self, rawCurrency: list[dict]) -> CurrencyInterface:
-        id = self.safe_string(rawCurrency[0], 'native_currency')  # first item is guaranteed
+        id = self.safe_string(self.safe_dict(rawCurrency, 0), 'native_currency')  # first item is guaranteed
         code = self.safe_currency_code(id)
         networks = {}
         for i in range(0, len(rawCurrency)):
@@ -709,8 +709,10 @@ class luno(Exchange, ImplicitAPI):
             reservedUnconfirmed = Precise.string_add(reserved, unconfirmed)
             balanceUnconfirmed = Precise.string_add(balance, unconfirmed)
             if (code is not None) and (code in result):
-                result[code]['used'] = Precise.string_add(result[code]['used'], reservedUnconfirmed)
-                result[code]['total'] = Precise.string_add(result[code]['total'], balanceUnconfirmed)
+                result[code] = self.extend(result[code], {
+                    'used': Precise.string_add(self.safe_string(result[code], 'used'), reservedUnconfirmed),
+                    'total': Precise.string_add(self.safe_string(result[code], 'total'), balanceUnconfirmed),
+                })
             elif code is not None:
                 account = self.account()
                 account['used'] = reservedUnconfirmed
@@ -795,7 +797,6 @@ class luno(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(order, 'creation_timestamp')
         status = self.parse_order_status(self.safe_string(order, 'state'))
-        status = status if (status == 'open') else status
         side = None
         orderType = self.safe_string(order, 'type')
         if (orderType == 'ASK') or (orderType == 'SELL'):
@@ -1316,9 +1317,10 @@ class luno(Exchange, ImplicitAPI):
             response = await self.privatePostPostorder(self.extend(request, params))
         if response is None:
             raise NullResponse(self.id + ' createOrder() returned empty response')
+        orderId = self.safe_string(response, 'order_id')
         return self.safe_order({
             'info': response,
-            'id': response['order_id'],
+            'id': orderId,
         }, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -1392,7 +1394,9 @@ class luno(Exchange, ImplicitAPI):
         minRowBase = self.safe_integer(params, 'min_row', -1000)  # Maximum number of records supported
         limitApplies = (limit is not None) and (maxRowBase - minRowBase > limit)
         min_row = maxRowBase - limit if (limitApplies and (limit is not None) and maxRowBase <= 0) else minRowBase
-        max_row = minRowBase + limit if (limitApplies and maxRowBase > 0 and minRowBase > 0) else maxRowBase
+        max_row = maxRowBase
+        if limitApplies and maxRowBase > 0 and minRowBase > 0:
+            max_row = minRowBase + limit
         limitAdjusts = limitApplies and (maxRowBase <= 0 or minRowBase > 0)  # max_row - min_row becomes limit
         if (limitAdjusts and limit > 1000) or (not limitAdjusts and maxRowBase - minRowBase > 1000):
             raise ExchangeError(self.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")
@@ -1405,7 +1409,7 @@ class luno(Exchange, ImplicitAPI):
         entries = self.safe_list(response, 'transactions', [])
         return self.parse_ledger(entries, currency, since, limit)
 
-    def parse_ledger_comment(self, comment: object):
+    def parse_ledger_comment(self, comment: str) -> dict:
         words = comment.split(' ')
         types = {
             'Withdrawal': 'fee',
@@ -1445,12 +1449,12 @@ class luno(Exchange, ImplicitAPI):
         available_delta = self.safe_string(entry, 'available_delta')
         balance_delta = self.safe_string(entry, 'balance_delta')
         after = self.safe_string(entry, 'balance')
-        comment = self.safe_string(entry, 'description')
+        comment = self.safe_string(entry, 'description', '')
         before = after
         amount = '0.0'
         result = self.parse_ledger_comment(comment)
-        type = result['type']
-        referenceId = result['referenceId']
+        resultType = self.safe_string(result, 'type')
+        resultReferenceId = self.safe_string(result, 'referenceId')
         direction = None
         status = None
         if not Precise.string_equals(balance_delta, '0.0'):
@@ -1472,9 +1476,9 @@ class luno(Exchange, ImplicitAPI):
             'id': id,
             'direction': direction,
             'account': account_id,
-            'referenceId': referenceId,
+            'referenceId': resultReferenceId,
             'referenceAccount': None,
-            'type': type,
+            'type': resultType,
             'currency': code,
             'amount': self.parse_to_numeric(amount),
             'timestamp': timestamp,

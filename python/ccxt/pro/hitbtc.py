@@ -93,7 +93,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         :returns dict: response from exchange
         """
         self.check_required_credentials()
-        url = self.urls['api']['ws']['private']
+        wsUrls = self.safe_dict(self.urls['api'], 'ws')
+        url = self.safe_string(wsUrls, 'private')
         messageHash = 'authenticated'
         client = self.client(url)
         future = client.reusableFuture(messageHash)
@@ -147,7 +148,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         symbolsNormalized = self.market_symbols(symbols)
         isBatch = name.find('batch') >= 0
         resolvedPerSymbol = not isBatch or (messageHashPrefix == 'orderbooks')  # handleOrderBook resolves only per-symbol hashes, also on the batch channels
-        url = self.urls['api']['ws']['public']
+        wsUrls = self.safe_dict(self.urls['api'], 'ws')
+        url = self.safe_string(wsUrls, 'public')
         messageHashes = []
         if symbolsNormalized is not None and resolvedPerSymbol:
             for i in range(0, len(symbolsNormalized)):
@@ -176,11 +178,13 @@ class hitbtc(ccxt.async_support.hitbtc):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
-        url = self.urls['api']['ws']['private']
+        wsUrls = self.safe_dict(self.urls['api'], 'ws')
+        url = self.safe_string(wsUrls, 'private')
         splitName = name.split('_subscribe')
-        messageHash = self.safe_string(splitName, 0, '')
+        messageHashBase = self.safe_string(splitName, 0, '')
+        messageHash = messageHashBase
         if symbol is not None:
-            messageHash = messageHash + '::' + symbol
+            messageHash = messageHashBase + '::' + symbol
         requestId = self.incrementing_nonce()
         subscribe = {
             'method': name,
@@ -201,8 +205,10 @@ class hitbtc(ccxt.async_support.hitbtc):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
-        url = self.urls['api']['ws']['private']
-        messageHash = str(self.incrementing_nonce())
+        wsUrls = self.safe_dict(self.urls['api'], 'ws')
+        url = self.safe_string(wsUrls, 'private')
+        requestId = self.incrementing_nonce()
+        messageHash = self.number_to_string(requestId)
         subscribe = {
             'method': name,
             'params': params,
@@ -296,7 +302,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_symbol(marketId, market)
             item = data[marketId]
             messageHash = 'orderbooks::' + symbol
             if not (symbol in self.orderbooks):
@@ -442,7 +448,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_symbol(marketId, market)
             ticker = self.parse_ws_ticker(data[marketId], market)
             self.tickers[symbol] = ticker
             result.append(ticker)
@@ -564,7 +570,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_symbol(marketId, market)
             ticker = self.parse_ws_bid_ask(data[marketId], market)
             self.bidsasks[symbol] = ticker
             result.append(ticker)
@@ -663,7 +669,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
             tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            symbol = market['symbol']
+            symbol = self.safe_symbol(marketId, market)
             stored = self.safe_value(self.trades, symbol)
             if stored is None:
                 stored = ArrayCache(tradesLimit)
@@ -728,13 +734,14 @@ class hitbtc(ccxt.async_support.hitbtc):
         period = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'candles/' + period
         market = self.market(symbol)
-        request = {
-            'params': {
-                'symbols': [market['id']],
-            },
+        subscribeParams = {
+            'symbols': [market['id']],
         }
         if limit is not None:
-            request['params']['limit'] = limit
+            subscribeParams['limit'] = limit
+        request = {
+            'params': subscribeParams,
+        }
         ohlcv = await self.subscribe_public(name, 'candles', [symbol], self.deep_extend(request, params))
         limitResolved = limit
         if self.newUpdates:
@@ -786,7 +793,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_symbol(marketId, market)
             self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
             stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
             if stored is None:
@@ -928,9 +935,9 @@ class hitbtc(ccxt.async_support.hitbtc):
         return message
 
     def handle_order_helper(self, client: Client, message: dict, order: dict):
-        orders = self.orders
-        if orders is None:
+        if self.orders is None:
             return
+        orders = self.orders
         marketId = self.safe_string_lower_2(order, 'instrument', 'symbol')
         method = self.safe_string(message, 'method', '')
         splitMethod = method.split('_order')
@@ -1205,7 +1212,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             market = self.market(symbol)
             request['symbol'] = market['id']
         marketType, paramsMarketType = self.handle_market_type_and_params('fetchOpenOrdersWs', market, params)
-        marginMode = self.handle_margin_mode_and_params('fetchOpenOrdersWs', paramsMarketType)[0]
+        marginMode = self.handle_margin_mode_and_params('fetchOpenOrdersWs', paramsMarketType)
         if marketType == 'swap':
             return await self.trade_request('futures_get_orders', request)
         elif (marketType == 'margin') or (marginMode is not None):

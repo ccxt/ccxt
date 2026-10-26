@@ -112,7 +112,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(operationType, request)
@@ -191,7 +193,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(batchOperationType, request)
@@ -248,7 +252,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(batchOperationType, request)
@@ -322,7 +328,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(operationType, request)
@@ -377,7 +385,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         wsRequest = self.wrap_as_post_action(operationType, request)
@@ -421,7 +431,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -457,7 +469,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -559,7 +573,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -592,7 +608,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -628,7 +646,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -666,7 +686,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -760,7 +782,7 @@ class pacifica(ccxt.async_support.pacifica):
             trades.append(parsed)
         keys = list(symbols.keys())
         for i in range(0, len(keys)):
-            currentMessageHash = 'myTrades:' + keys[i]
+            currentMessageHash = 'myTrades:' + self.safe_string(keys, i, '')
             client.resolve(trades, currentMessageHash)
         # non-symbol specific
         messageHash = 'myTrades'
@@ -787,7 +809,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -824,7 +848,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -970,7 +996,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -1008,7 +1036,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -1084,12 +1114,14 @@ class pacifica(ccxt.async_support.pacifica):
         if symbol is not None:
             market = self.market(symbol)
             symbolResolved = self.safe_string(market, 'symbol')
-            messageHash = messageHash + ':' + symbolResolved
+            messageHash = messageHash + ':' + self.safe_string(market, 'symbol', '')
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         request = {
@@ -1126,7 +1158,9 @@ class pacifica(ccxt.async_support.pacifica):
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        url = self.safe_string(self.urls[urlKey]['ws'], 'public')
+        apiUrls = self.safe_dict(self.urls, urlKey, {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        url = self.safe_string(wsUrls, 'public')
         if url is None:
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         userAddress, paramsOriginAndSingleAddress = self.handleOriginAndSingleAddress('unWatchOrders', params)
@@ -1203,8 +1237,11 @@ class pacifica(ccxt.async_support.pacifica):
         id = self.safe_string(message, 'id')
         if id is None:
             id = self.safe_string(data, 'id')
+        wsOptions = self.safe_dict(self.options, 'ws', {})
+        wsHeaders = self.safe_dict(wsOptions, 'options', {})
+        wsHeadersFinal = self.safe_dict(wsHeaders, 'headers', {})
         try:
-            self.handle_errors(0, error, '', postType, self.options['ws']['options']['headers'], self.json(data), message, {}, {})
+            self.handle_errors(0, error, '', postType, wsHeadersFinal, self.json(data), message, {}, {})
         except Exception as e:
             client.reject(e, id)
             return True

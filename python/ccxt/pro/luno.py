@@ -58,7 +58,8 @@ class luno(ccxt.async_support.luno):
             await self.load_markets()
         market = self.market(symbol)
         symbolValue = market['symbol']
-        subscriptionHash = '/stream/' + market['id']
+        marketId = self.safe_string(market, 'id', '')
+        subscriptionHash = '/stream/' + marketId
         subscription = {'symbol': symbolValue}
         wsUrl = self.safe_string(self.urls['api'], 'ws')
         if wsUrl is None:
@@ -98,18 +99,19 @@ class luno(ccxt.async_support.luno):
             return
         symbol = subscription['symbol']
         market = self.market(symbol)
-        messageHash = 'trades:' + symbol
-        stored = self.safe_value(self.trades, symbol)
+        symbolValue = market['symbol']
+        messageHash = 'trades:' + symbolValue
+        stored = self.safe_value(self.trades, symbolValue)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
-            self.trades[symbol] = stored
+            self.trades[symbolValue] = stored
         for i in range(0, len(rawTrades)):
             rawTrade = rawTrades[i]
             trade = self.parse_trade(rawTrade, market)
             stored.append(trade)
-        self.trades[symbol] = stored
-        client.resolve(self.trades[symbol], messageHash)
+        self.trades[symbolValue] = stored
+        client.resolve(stored, messageHash)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -162,7 +164,8 @@ class luno(ccxt.async_support.luno):
             await self.load_markets()
         market = self.market(symbol)
         symbolValue = market['symbol']
-        subscriptionHash = '/stream/' + market['id']
+        marketId = self.safe_string(market, 'id', '')
+        subscriptionHash = '/stream/' + marketId
         subscription = {'symbol': symbolValue}
         wsUrl = self.safe_string(self.urls['api'], 'ws')
         if wsUrl is None:
@@ -211,7 +214,8 @@ class luno(ccxt.async_support.luno):
         #     }
         #
         symbol = subscription['symbol']
-        messageHash = 'orderbook:' + symbol
+        symbolValue = self.safe_string(subscription, 'symbol', '')
+        messageHash = 'orderbook:' + symbolValue
         timestamp = self.safe_integer(message, 'timestamp')
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.indexed_order_book({})
@@ -256,8 +260,7 @@ class luno(ccxt.async_support.luno):
         amount = self.safe_number(bidask, amountKey)
         result = [price, amount]
         if thirdKey is not None:
-            thirdValue = self.safe_string(bidask, thirdKey)
-            result.append(thirdValue)
+            result.append(self.safe_string(bidask, thirdKey))
         return result
 
     def handle_book_delta(self, orderbook: object, message: object):
@@ -381,7 +384,7 @@ class luno(ccxt.async_support.luno):
         if messageSequence <= storedNonce:
             # an old or replayed frame, discard it
             return False
-        expectedSequence = storedNonce + 1
+        expectedSequence = self.parse_to_int(storedNonce) + 1
         if messageSequence != expectedSequence:
             # a gap in the sequence means a lost message and the book is
             # unrecoverable on a live connection, because luno only sends
@@ -394,12 +397,14 @@ class luno(ccxt.async_support.luno):
             # the cached book is kept so references returned by earlier
             # watchOrderBook calls stay live: clearing its nonce discards
             # deltas until the fresh snapshot resets the book in place
-            error = InvalidNonce(self.id + ' watchOrderBook() received an out-of-sequence update for ' + symbol + ', expected ' + str(expectedSequence) + ' but got ' + str(messageSequence))
             orderbook['nonce'] = None
             market = self.market(symbol)
-            subscriptionHash = '/stream/' + market['id']
+            symbolValue = self.safe_string(market, 'symbol', '')
+            marketId = self.safe_string(market, 'id', '')
+            subscriptionHash = '/stream/' + marketId
             if subscriptionHash in client.subscriptions:
                 del client.subscriptions[subscriptionHash]
+            error = InvalidNonce(self.id + ' watchOrderBook() received an out-of-sequence update for ' + symbolValue + ', expected ' + str(expectedSequence) + ' but got ' + str(messageSequence))
             client.reset(error)
             del self.clients[client.url]
             return False

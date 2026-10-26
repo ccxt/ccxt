@@ -541,8 +541,10 @@ class indodax(Exchange, ImplicitAPI):
         #
         symbol = self.safe_symbol(None, market)
         timestamp = self.safe_timestamp(ticker, 'server_time')
-        baseVolume = 'vol_' + self.safe_string_lower(market, 'baseId')
-        quoteVolume = 'vol_' + self.safe_string_lower(market, 'quoteId')
+        baseId = self.safe_string_lower(market, 'baseId', '')
+        quoteId = self.safe_string_lower(market, 'quoteId', '')
+        baseVolume = 'vol_' + baseId
+        quoteVolume = 'vol_' + quoteId
         last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
             'symbol': symbol,
@@ -798,9 +800,7 @@ class indodax(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        side = None
-        if 'type' in order:
-            side = self.safe_string(order, 'type')
+        side = self.safe_string(order, 'type')
         status = self.parse_order_status(self.safe_string(order, 'status', 'open'))
         symbol = None
         cost = None
@@ -812,8 +812,8 @@ class indodax(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market)
         if marketResolved is not None:
             symbol = marketResolved['symbol']
-            quoteId = marketResolved['quoteId']
-            baseId = marketResolved['baseId']
+            quoteId = self.safe_string(marketResolved, 'quoteId', '')
+            baseId = self.safe_string(marketResolved, 'baseId', '')
             if (marketResolved['quoteId'] == 'idr') and ('order_rp' in order):
                 quoteId = 'rp'
             if (marketResolved['baseId'] == 'idr') and ('remain_rp' in order):
@@ -906,11 +906,12 @@ class indodax(Exchange, ImplicitAPI):
         if symbol is not None:
             return self.parse_orders(rawOrders, market, since, limit)
         # { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
-        marketIds = list(rawOrders.keys())
+        ordersDict = self.safe_dict(openOrdersResult, 'orders', {})
+        marketIds = list(ordersDict.keys())
         exchangeOrders = []
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            marketOrders = rawOrders[marketId]
+            marketOrders = ordersDict[marketId]
             market = self.safe_market(marketId)
             parsedOrders = self.parse_orders(marketOrders, market, since, limit)
             exchangeOrders = self.array_concat(exchangeOrders, parsedOrders)
@@ -1115,10 +1116,14 @@ class indodax(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'return', {})
         result = self.deposit_withdraw_fee(response)
-        result['withdraw']['fee'] = self.safe_number(data, 'withdraw_fee')
-        result['withdraw']['percentage'] = False
-        result['deposit']['fee'] = 0
-        result['deposit']['percentage'] = False
+        result['withdraw'] = {
+            'fee': self.safe_number(data, 'withdraw_fee'),
+            'percentage': False,
+        }
+        result['deposit'] = {
+            'fee': 0,
+            'percentage': False,
+        }
         return self.assign_default_deposit_withdraw_fees(result, currency)
 
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -1204,13 +1209,13 @@ class indodax(Exchange, ImplicitAPI):
         transactions = []
         currency = None
         if code is None:
-            keys = list(withdraw.keys())
-            for i in range(0, len(keys)):
-                key = keys[i]
+            withdrawKeys = list(withdraw.keys())
+            for i in range(0, len(withdrawKeys)):
+                key = withdrawKeys[i]
                 transactions = self.array_concat(transactions, withdraw[key])
-            keys = list(deposit.keys())
-            for i in range(0, len(keys)):
-                key = keys[i]
+            depositKeys = list(deposit.keys())
+            for i in range(0, len(depositKeys)):
+                key = depositKeys[i]
                 transactions = self.array_concat(transactions, deposit[key])
         else:
             currency = self.currency(code)
@@ -1452,9 +1457,9 @@ class indodax(Exchange, ImplicitAPI):
         if isPublic:
             query = self.omit(params, self.extract_params(path))
             requestPath = '/' + self.implode_params(path, params)
-            url += requestPath
+            url = apiUrl + requestPath
             if len(query) > 0:
-                url += '?' + self.urlencode_with_array_repeat(query)
+                url = apiUrl + requestPath + '?' + self.urlencode_with_array_repeat(query)
         else:
             self.check_required_credentials()
             privateBody = self.urlencode(self.extend({

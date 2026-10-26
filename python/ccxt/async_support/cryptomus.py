@@ -510,10 +510,9 @@ class cryptomus(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'currency_pair')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
         last = self.safe_string(ticker, 'last_price')
         return self.safe_ticker({
-            'symbol': symbol,
+            'symbol': marketResolved['symbol'],
             'timestamp': None,
             'datetime': None,
             'high': None,
@@ -731,7 +730,8 @@ class cryptomus(Exchange, ImplicitAPI):
         sideBuy = side == 'buy'
         amountToString = self.number_to_string(amount)
         priceToString = self.number_to_string(price)
-        costParam, paramsCost = self.handle_param_string(paramsOmitted, 'cost')
+        paramsCost = self.omit(paramsOmitted, 'cost')
+        costParam = self.safe_string(paramsOmitted, 'cost')
         cost = costParam
         response: dict
         if type == 'market':
@@ -742,12 +742,12 @@ class cryptomus(Exchange, ImplicitAPI):
             if sideBuy:
                 createMarketBuyOrderRequiresPrice = requiresPriceAndParams[0]
                 if createMarketBuyOrderRequiresPrice:
-                    if (price is None) and (cost is None):
+                    if (price is None) and (costParam is None):
                         raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to False and pass the cost to spend in the amount argument')
-                    elif cost is None:
+                    elif costParam is None:
                         cost = Precise.string_mul(amountToString, priceToString)
                 else:
-                    cost = cost if (cost is not None and cost != '') else amountToString
+                    cost = costParam if (costParam is not None and costParam != '') else amountToString
                 request['value'] = cost
             else:
                 request['quantity'] = amountToString
@@ -1166,16 +1166,16 @@ class cryptomus(Exchange, ImplicitAPI):
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
-        if 'code' in response:
-            code = self.safe_string(response, 'code')
+        code = self.safe_string(response, 'code')
+        message = self.safe_string(response, 'message')
+        if code is not None:
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
             raise ExchangeError(feedback)
-        elif 'message' in response:
+        elif message is not None:
             #
             #      {"message":"Minimum amount 15 USDT","state":1}
             #
-            message = self.safe_string(response, 'message')
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)

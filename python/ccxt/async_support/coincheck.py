@@ -956,20 +956,21 @@ class coincheck(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
+        hasQuery = len(query) > 0
         if apiName == 'public':
-            if len(query) > 0:
+            if hasQuery:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
             queryString = ''
             if method == 'GET':
-                if len(query) > 0:
+                if hasQuery:
                     url += '?' + self.urlencode(self.keysort(query))
             else:
-                if len(query) > 0:
-                    bodySigned = self.urlencode(self.keysort(query))
-                    queryString = bodySigned
+                if hasQuery:
+                    queryString = self.urlencode(self.keysort(query))
+                    bodySigned = queryString
             auth = nonce + url + queryString
             headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -994,5 +995,5 @@ class coincheck(Exchange, ImplicitAPI):
             feedback = self.id + ' ' + self.json(response)
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
-            raise ExchangeError(self.id + ' ' + self.json(response))
+            raise ExchangeError(feedback)
         return None

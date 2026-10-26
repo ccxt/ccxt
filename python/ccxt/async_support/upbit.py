@@ -529,11 +529,15 @@ class upbit(Exchange, ImplicitAPI):
         id = self.safe_string(market, 'market')
         if id is None:
             raise ExchangeError(self.id + ' parseMarket() missing id')
-        quoteId, baseId = id.split('-')
+        parts = id.split('-')
+        quoteId = self.safe_string(parts, 0)
+        baseId = self.safe_string(parts, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
             return None
+        tradingFeesByQuoteCurrency = self.safe_dict(self.options, 'tradingFeesByQuoteCurrency', {})
+        tradingFees = self.safe_dict(self.fees, 'trading', {})
         return self.safe_market_structure({
             'id': id,
             'symbol': base + '/' + quote,
@@ -553,8 +557,8 @@ class upbit(Exchange, ImplicitAPI):
             'contract': False,
             'linear': None,
             'inverse': None,
-            'taker': self.safe_number(self.options['tradingFeesByQuoteCurrency'], quote, self.fees['trading']['taker']),
-            'maker': self.safe_number(self.options['tradingFeesByQuoteCurrency'], quote, self.fees['trading']['maker']),
+            'taker': self.safe_number(tradingFeesByQuoteCurrency, quote, self.safe_number(tradingFees, 'taker')),
+            'maker': self.safe_number(tradingFeesByQuoteCurrency, quote, self.safe_number(tradingFees, 'maker')),
             'contractSize': None,
             'expiry': None,
             'expiryDatetime': None,
@@ -646,9 +650,8 @@ class upbit(Exchange, ImplicitAPI):
             await self.load_markets()
         ids = None
         if symbols is None:
-            allIds = self.ids
-            if allIds is not None:
-                ids = ','.join(allIds)
+            if self.ids is not None:
+                ids = ','.join(self.ids)
         else:
             marketIds = self.market_ids(symbols)
             ids = ','.join(marketIds)
@@ -690,7 +693,7 @@ class upbit(Exchange, ImplicitAPI):
         result = {}
         orderbooks = self.to_array(response)
         for i in range(0, len(orderbooks)):
-            orderbook = orderbooks[i]
+            orderbook = self.safe_dict(orderbooks, i, {})
             marketId = self.safe_string(orderbook, 'market')
             symbol = self.safe_symbol(marketId, None, '-')
             timestamp = self.safe_integer(orderbook, 'timestamp')
@@ -811,7 +814,7 @@ class upbit(Exchange, ImplicitAPI):
             for i in range(0, len(sortedQuoteIds)):
                 if quoteCurrencies != '':
                     quoteCurrencies = quoteCurrencies + ','
-                quoteCurrencies = quoteCurrencies + sortedQuoteIds[i]
+                quoteCurrencies = quoteCurrencies + self.safe_string(sortedQuoteIds, i, '')
             request = {
                 'quote_currencies': quoteCurrencies,
             }
@@ -861,10 +864,9 @@ class upbit(Exchange, ImplicitAPI):
         idsString = ''
         queries = []
         for i in range(0, len(ids)):
-            id = ids[i]
             if idsString != '':
                 idsString = idsString + ','
-            idsString = idsString + id
+            idsString = idsString + self.safe_string(ids, i, '')
             if len(idsString) >= maxQueryLength:
                 queries.append(idsString)
                 idsString = ''
@@ -922,7 +924,7 @@ class upbit(Exchange, ImplicitAPI):
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         side = None
-        askOrBid = self.safe_string_lower_2(trade, 'ask_bid', 'side')
+        askOrBid = self.safe_string_lower_2(trade, 'ask_bid', 'side', '')
         if askOrBid == 'ask':
             side = 'sell'
         elif askOrBid == 'bid':
@@ -1079,14 +1081,15 @@ class upbit(Exchange, ImplicitAPI):
         fetchMarketResponse = await self.fetch_markets(params)
         response = {}
         for i in range(0, len(fetchMarketResponse)):
+            item = self.safe_dict(fetchMarketResponse, i)
             element = {}
-            element['maker'] = self.safe_number(fetchMarketResponse[i], 'maker')
-            element['taker'] = self.safe_number(fetchMarketResponse[i], 'taker')
-            element['symbol'] = self.safe_string(fetchMarketResponse[i], 'symbol')
+            element['maker'] = self.safe_number(item, 'maker')
+            element['taker'] = self.safe_number(item, 'taker')
+            element['symbol'] = self.safe_string(item, 'symbol')
             element['percentage'] = True
             element['tierBased'] = False
-            element['info'] = fetchMarketResponse[i]
-            feeSymbol = self.safe_string(fetchMarketResponse[i], 'symbol')
+            element['info'] = item
+            feeSymbol = self.safe_string(item, 'symbol')
             if feeSymbol is not None:
                 response[feeSymbol] = element
         return response
@@ -1829,7 +1832,8 @@ class upbit(Exchange, ImplicitAPI):
         numTrades = len(trades)
         if numTrades > 0:
             # the timestamp in fetchOrder trades is missing
-            lastTradeTimestamp = trades[numTrades - 1]['timestamp']
+            lastTrade = self.safe_dict(trades, numTrades - 1, {})
+            lastTradeTimestamp = lastTrade['timestamp']
             getFeesFromTrades = False
             if feeCost is None:
                 getFeesFromTrades = True
@@ -1839,7 +1843,7 @@ class upbit(Exchange, ImplicitAPI):
                 trade = self.safe_dict(trades, i)
                 cost = Precise.string_add(cost, self.safe_string(trade, 'cost'))
                 if getFeesFromTrades:
-                    tradeFee = self.safe_dict(trades[i], 'fee', {})
+                    tradeFee = self.safe_dict(trade, 'fee', {})
                     tradeFeeCost = self.safe_string(tradeFee, 'cost')
                     if tradeFeeCost is not None:
                         feeCost = Precise.string_add(feeCost, tradeFeeCost)
@@ -2287,35 +2291,34 @@ class upbit(Exchange, ImplicitAPI):
         })
         url += '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
+        numQueryKeys = len(query)
         if method != 'POST':
-            if len(query) > 0:
+            if numQueryKeys > 0:
                 url += '?' + self.urlencode(query)
         hasBody = (apiName == 'private') and (method != 'GET') and (method != 'DELETE')
         requestBody = None
         if hasBody:
             requestBody = self.json(params)
-        privateHeaders = None
+        headers = {}
         if apiName == 'private':
             self.check_required_credentials()
-            privateHeaders = {}
             nonce = self.uuid()
             request = {
                 'access_key': self.apiKey,
                 'nonce': nonce,
             }
-            hasQuery = len(query)
             auth = None
             if hasBody:
-                privateHeaders['Content-Type'] = 'application/json'
-            if hasQuery != 0:
+                headers['Content-Type'] = 'application/json'
+            if numQueryKeys != 0:
                 auth = self.rawencode(query)
             if auth is not None:
                 hash = self.hash(self.encode(auth), 'sha512')
                 request['query_hash'] = hash
                 request['query_hash_alg'] = 'SHA512'
             token = self.jwt(request, self.encode(self.secret), 'sha256')
-            privateHeaders['Authorization'] = 'Bearer ' + token
-        requestHeaders = privateHeaders if (apiName == 'private') else None
+            headers['Authorization'] = 'Bearer ' + token
+        requestHeaders = headers if (apiName == 'private') else None
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

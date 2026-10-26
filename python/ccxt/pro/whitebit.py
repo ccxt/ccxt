@@ -82,8 +82,7 @@ class whitebit(ccxt.async_support.whitebit):
             await self.load_markets()
         market = self.market(symbol)
         symbolValue = market['symbol']
-        timeframes = self.safe_dict(self.options, 'timeframes', {})
-        interval = self.safe_integer(timeframes, timeframe)
+        interval = self.safe_integer(self.options['timeframes'], timeframe)
         marketId = market['id']
         # currently there is no way of knowing
         # the interval upon getting an update
@@ -125,10 +124,8 @@ class whitebit(ccxt.async_support.whitebit):
             symbol = market['symbol']
             messageHash = 'candles' + ':' + symbol
             parsed = self.parse_ohlcv(data, market)
-            # this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
             if not (symbol in self.ohlcvs):
                 self.ohlcvs[symbol] = {}
-            # let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
             if not ('unknown' in self.ohlcvs[symbol]):
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
@@ -155,8 +152,7 @@ class whitebit(ccxt.async_support.whitebit):
         limitValue = 10 if (limit is None) else limit
         messageHash = 'orderbook' + ':' + market['symbol']
         method = 'depth_subscribe'
-        options = self.safe_dict(self.options, 'watchOrderBook', {})
-        defaultPriceInterval = self.safe_string(options, 'priceInterval', '0')
+        defaultPriceInterval = self.safe_string(self.options['watchOrderBook'], 'priceInterval', '0')
         priceInterval = self.safe_string(params, 'priceInterval', defaultPriceInterval)
         paramsOmitted = self.omit(params, 'priceInterval')
         reqParams = [
@@ -272,7 +268,7 @@ class whitebit(ccxt.async_support.whitebit):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, False)
         method = 'market_subscribe'
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         id = self.incrementing_nonce()
         messageHashes = []
         args = []
@@ -398,7 +394,7 @@ class whitebit(ccxt.async_support.whitebit):
         parsedTrades = self.parse_trades(data, market)
         for j in range(0, len(parsedTrades)):
             stored.append(parsedTrades[j])
-        messageHash = 'trades:' + market['symbol']
+        messageHash = 'trades:' + symbol
         client.resolve(stored, messageHash)
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
@@ -455,7 +451,7 @@ class whitebit(ccxt.async_support.whitebit):
         stored = self.myTrades
         parsed = self.parse_ws_trade(trade)
         stored.append(parsed)
-        symbol = parsed['symbol']
+        symbol = self.safe_string(parsed, 'symbol', '')
         messageHash = 'myTrades:' + symbol
         client.resolve(stored, messageHash)
 
@@ -586,7 +582,7 @@ class whitebit(ccxt.async_support.whitebit):
         status = self.safe_integer(params, 0)
         parsed = self.parse_ws_order(self.extend(data, {'status': status}))
         stored.append(parsed)
-        symbol = parsed['symbol']
+        symbol = self.safe_string(parsed, 'symbol', '')
         messageHash = 'orders:' + symbol
         client.resolve(self.orders, messageHash)
 
@@ -717,7 +713,7 @@ class whitebit(ccxt.async_support.whitebit):
         else:
             method = 'balanceMargin_subscribe'
             messageHash += 'margin'
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         client = self.client(url)
         self.set_balance_cache(client, type, messageHash)
         fetchBalanceSnapshot, paramsFetchBalanceSnapshot = self.handle_option_bool_and_params(paramsMarketType, 'watchBalance', 'fetchBalanceSnapshot', True)
@@ -791,7 +787,7 @@ class whitebit(ccxt.async_support.whitebit):
         data = self.safe_list(message, 'params', [])
         for i in range(0, len(data)):
             balanceDict = self.safe_dict(data, i, {})
-            self.balance['info'] = balanceDict
+            self.balance['info'] = self.safe_dict(data, i, {})
             if isMargin:
                 currencyId = self.safe_string(balanceDict, 'a')
                 code = self.safe_currency_code(currencyId)
@@ -821,7 +817,7 @@ class whitebit(ccxt.async_support.whitebit):
         client.resolve(self.balance, messageHash)
 
     async def watch_public(self, messageHash: str, method: str, reqParams: list[object] = [], params: dict = {}):
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         id = self.incrementing_nonce()
         request = {
             'id': id,
@@ -834,7 +830,7 @@ class whitebit(ccxt.async_support.whitebit):
     async def watch_multiple_subscription(self, messageHash: str, method: str, symbol: Str, isNested: bool = False, params: dict = {}):
         if self.markets is None:
             await self.load_markets()
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         id = self.incrementing_nonce()
         client = self.safe_value(self.clients, url)
         request = None
@@ -886,7 +882,7 @@ class whitebit(ccxt.async_support.whitebit):
     async def watch_private(self, messageHash: str, method: str, reqParams: list[object] = [], params: dict = {}):
         self.check_required_credentials()
         await self.authenticate()
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         id = self.incrementing_nonce()
         request = {
             'id': id,
@@ -898,7 +894,7 @@ class whitebit(ccxt.async_support.whitebit):
 
     async def authenticate(self, params: dict = {}) -> float:
         self.check_required_credentials()
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         client = self.client(url)
         subscribeHash = 'authenticated'
         # handleAuthenticate () resolves the handshake future with 1, so 1 is

@@ -61,12 +61,15 @@ class bittrade(ccxt.async_support.bittrade):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
         # only supports a limit of 150 at this time
-        messageHash = 'market.' + market['id'] + '.detail'
+        marketId = self.safe_string(market, 'id', '')
+        messageHash = 'market.' + marketId + '.detail'
         api = self.safe_string(self.options, 'api', 'api')
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        apiWsUrls = self.safe_dict(wsUrls, api, {})
         hostname = {'hostname': self.hostname}
-        url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
+        url = self.implode_params(apiWsUrls['public'], hostname)
         requestId = self.request_id()
         request = {
             'sub': messageHash,
@@ -75,7 +78,7 @@ class bittrade(ccxt.async_support.bittrade):
         subscription = {
             'id': requestId,
             'messageHash': messageHash,
-            'symbol': symbolValue,
+            'symbol': market['symbol'],
             'params': params,
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
@@ -126,12 +129,16 @@ class bittrade(ccxt.async_support.bittrade):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         # only supports a limit of 150 at this time
-        messageHash = 'market.' + market['id'] + '.trade.detail'
+        marketId = self.safe_string(market, 'id', '')
+        messageHash = 'market.' + marketId + '.trade.detail'
         api = self.safe_string(self.options, 'api', 'api')
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        apiWsUrls = self.safe_dict(wsUrls, api, {})
         hostname = {'hostname': self.hostname}
-        url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
+        url = self.implode_params(apiWsUrls['public'], hostname)
         requestId = self.request_id()
         request = {
             'sub': messageHash,
@@ -203,12 +210,16 @@ class bittrade(ccxt.async_support.bittrade):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
-        messageHash = 'market.' + market['id'] + '.kline.' + interval
+        marketId = self.safe_string(market, 'id', '')
+        messageHash = 'market.' + marketId + '.kline.' + interval
         api = self.safe_string(self.options, 'api', 'api')
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        apiWsUrls = self.safe_dict(wsUrls, api, {})
         hostname = {'hostname': self.hostname}
-        url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
+        url = self.implode_params(apiWsUrls['public'], hostname)
         requestId = self.request_id()
         request = {
             'sub': messageHash,
@@ -277,13 +288,17 @@ class bittrade(ccxt.async_support.bittrade):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         # only supports a limit of 150 at this time
         limitValue = 150
-        messageHash = 'market.' + market['id'] + '.mbp.150'
+        marketId = self.safe_string(market, 'id', '')
+        messageHash = 'market.' + marketId + '.mbp.150'
         api = self.safe_string(self.options, 'api', 'api')
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(apiUrls, 'ws', {})
+        apiWsUrls = self.safe_dict(wsUrls, api, {})
         hostname = {'hostname': self.hostname}
-        url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
+        url = self.implode_params(apiWsUrls['public'], hostname)
         requestId = self.request_id()
         request = {
             'sub': messageHash,
@@ -349,8 +364,11 @@ class bittrade(ccxt.async_support.bittrade):
             limit = self.safe_integer(subscription, 'limit')
             params = self.safe_dict(subscription, 'params')
             api = self.safe_string(self.options, 'api', 'api')
+            apiUrls = self.safe_dict(self.urls, 'api', {})
+            wsUrls = self.safe_dict(apiUrls, 'ws', {})
+            apiWsUrls = self.safe_dict(wsUrls, api, {})
             hostname = {'hostname': self.hostname}
-            url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
+            url = self.implode_params(apiWsUrls['public'], hostname)
             requestId = self.request_id()
             request = {
                 'req': messageHash,

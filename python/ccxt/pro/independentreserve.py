@@ -59,11 +59,13 @@ class independentreserve(ccxt.async_support.independentreserve):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         wsUrl = self.safe_string(self.urls['api'], 'ws')
         if wsUrl is None:
             raise ExchangeError(self.id + ' watchTrades() has no websocket url')
-        url = wsUrl + '?subscribe=ticker-' + market['base'] + '-' + market['quote']
+        baseId = self.safe_string(market, 'base', '')
+        quoteId = self.safe_string(market, 'quote', '')
+        url = wsUrl + '?subscribe=ticker-' + baseId + '-' + quoteId
         messageHash = 'trades:' + symbolValue
         trades = await self.watch(url, messageHash, None, messageHash)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
@@ -99,7 +101,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         trade = self.parse_ws_trade(data)
         stored.append(trade)
         self.trades[symbol] = stored
-        client.resolve(self.trades[symbol], messageHash)
+        client.resolve(stored, messageHash)
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -143,13 +145,15 @@ class independentreserve(ccxt.async_support.independentreserve):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         limitResolved = 100 if (limit is None) else limit
         limitString = self.number_to_string(limitResolved)
         wsUrl = self.safe_string(self.urls['api'], 'ws')
         if wsUrl is None:
             raise ExchangeError(self.id + ' watchOrderBook() has no websocket url')
-        url = wsUrl + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote']
+        baseId = self.safe_string(market, 'base', '')
+        quoteId = self.safe_string(market, 'quote', '')
+        url = wsUrl + '/orderbook/' + limitString + '?subscribe=' + baseId + '-' + quoteId
         messageHash = 'orderbook:' + symbolValue + ':' + limitString
         subscription = {
             'receivedSnapshot': False,
@@ -185,7 +189,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         if channel is None:
             return
         parts = channel.split('/')
-        depth = self.safe_string(parts, 1)
+        depth = self.safe_string(parts, 1, '')
         baseId = self.safe_string(parts, 2)
         quoteId = self.safe_string(parts, 3)
         base = self.safe_currency_code(baseId)
@@ -226,10 +230,10 @@ class independentreserve(ccxt.async_support.independentreserve):
             payload = ''
             for i in range(0, 10):
                 if i < bidsLength:
-                    payload = payload + self.value_to_checksum(storedBids[i][0]) + self.value_to_checksum(storedBids[i][1])
+                    payload = payload + self.value_to_checksum(self.safe_number(storedBids[i], 0)) + self.value_to_checksum(self.safe_number(storedBids[i], 1))
             for i in range(0, 10):
                 if i < asksLength:
-                    payload = payload + self.value_to_checksum(storedAsks[i][0]) + self.value_to_checksum(storedAsks[i][1])
+                    payload = payload + self.value_to_checksum(self.safe_number(storedAsks[i], 0)) + self.value_to_checksum(self.safe_number(storedAsks[i], 1))
             calculatedChecksum = self.crc32(payload, False)
             responseChecksum = self.safe_integer(orderBook, 'Crc32')
             if calculatedChecksum != responseChecksum:

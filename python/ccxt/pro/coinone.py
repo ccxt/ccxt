@@ -306,7 +306,7 @@ class coinone(ccxt.async_support.coinone):
         #
         data = self.safe_dict(message, 'data', {})
         trade = self.parse_ws_trade(data)
-        symbol = trade['symbol']
+        symbol = self.safe_string(trade, 'symbol', '')
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -393,7 +393,7 @@ class coinone(ccxt.async_support.coinone):
             keys = list(methods.keys())
             for i in range(0, len(keys)):
                 key = keys[i]
-                if topic.find(keys[i]) >= 0:
+                if topic.find(key) >= 0:
                     method = methods[key]
                     method(client, message)
                     return

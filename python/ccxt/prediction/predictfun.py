@@ -1868,9 +1868,9 @@ class predictfun(PredictionExchange, ImplicitAPI):
         marketFeeRateBps = self.safe_string(marketRow, 'feeRateBps', '200')  # should be at least 200
         feeRateBps = self.safe_string(paramsWarnOnMarketOrderWithoutPrice, 'feeRateBps', marketFeeRateBps)
         marketIsNegRisk = self.safe_bool(marketRow, 'isNegRisk', False)
-        isNegRisk = self.safe_bool(paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', marketIsNegRisk)
+        isNegRisk = (self.safe_bool(paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', marketIsNegRisk) is True)
         marketIsYieldBearing = self.safe_bool(marketRow, 'isYieldBearing', False)
-        isYieldBearing = self.safe_bool(paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', marketIsYieldBearing)
+        isYieldBearing = (self.safe_bool(paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', marketIsYieldBearing) is True)
         defaultExpiration = self.safe_integer(self.options, 'defaultExpiration', 3600)  # 1 hour
         expirationDelta = defaultExpiration
         expiration = self.safe_integer(paramsWarnOnMarketOrderWithoutPrice, 'expiration')
@@ -2658,8 +2658,8 @@ class predictfun(PredictionExchange, ImplicitAPI):
             marketSymbol = self.safe_string(outcomeObj, 'market')
             marketObj = self.safe_dict(self.markets, marketSymbol, {})
             marketRow = self.safe_dict(marketObj, 'info', {})
-            isNegRisk = self.safe_bool(marketRow, 'isNegRisk', False)
-            isYieldBearing = self.safe_bool(marketRow, 'isYieldBearing', False)
+            isNegRisk = (self.safe_bool(marketRow, 'isNegRisk', False) is True)
+            isYieldBearing = (self.safe_bool(marketRow, 'isYieldBearing', False) is True)
         if side == 'sell':
             ctfToken = self.safe_string(params, 'token', self.conditional_tokens_address(isNegRisk, isYieldBearing))
             operators = []

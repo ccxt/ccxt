@@ -304,8 +304,9 @@ class bit2c(Exchange, ImplicitAPI):
             code = codes[i]
             account = self.account()
             currency = self.currency(code)
-            uppercase = currency['id'].upper()
-            if uppercase in response:
+            currencyId = self.safe_string(currency, 'id', '')
+            uppercase = currencyId.upper()
+            if self.safe_string(response, uppercase) is not None:
                 account['free'] = self.safe_string(response, 'AVAILABLE_' + uppercase)
                 account['total'] = self.safe_string(response, uppercase)
             result[code] = account
@@ -833,9 +834,7 @@ class bit2c(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        responseList = []
-        if response is not None:
-            responseList = self.to_array(response)
+        responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
     def remove_comma_from_value(self, str: str) -> str:
@@ -921,10 +920,8 @@ class bit2c(Exchange, ImplicitAPI):
             tradeMarket = self.safe_market(None, market)
             side = self.safe_value(trade, 'isBid')
             if side is not None:
-                if (side is not None) and (side != ''):
-                    side = 'buy'
-                else:
-                    side = 'sell'
+                # safeValue already drops an empty string, so a present isBid is a buy here
+                side = 'buy'
         marketResolved = self.safe_market(None, tradeMarket)
         return self.safe_trade({
             'info': trade,

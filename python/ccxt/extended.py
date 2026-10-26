@@ -373,7 +373,7 @@ class extended(Exchange, ImplicitAPI):
         keys = list(input.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            item = input[key]
+            item = self.safe_dict(input, key, {})
             numericIdString = self.safe_string(item, 'numericId')
             if numericIdString is None:
                 continue
@@ -1021,7 +1021,7 @@ class extended(Exchange, ImplicitAPI):
         result = []
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_dict(data, i, {})
             if (cursor is not None) and (i == dataLength - 1):
                 entry = self.extend(entry, {'cursor': cursor})
             result.append(entry)
@@ -1084,7 +1084,7 @@ class extended(Exchange, ImplicitAPI):
         result = []
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_dict(data, i, {})
             if (cursor is not None) and (i == dataLength - 1):
                 entry = self.extend(entry, {'cursor': cursor})
             result.append(entry)
@@ -1123,7 +1123,7 @@ class extended(Exchange, ImplicitAPI):
     def parse_funding_histories(self, histories: list[object], market: Market = None, since: Int = None, limit: Int = None) -> list[FundingHistory]:
         result = []
         for i in range(0, len(histories)):
-            result.append(self.parse_funding_history(histories[i], market))
+            result.append(self.parse_funding_history(self.safe_dict(histories, i, {}), market))
         symbol = None if (market is None) else self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
@@ -1290,7 +1290,7 @@ class extended(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', None, 10000)
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         limitResolved = 100 if (limit is None) else limit
         until = self.safe_integer(paramsPaginate, 'until', self.milliseconds())
         endTime = self.safe_integer(paramsPaginate, 'endTime', until)
@@ -1327,7 +1327,7 @@ class extended(Exchange, ImplicitAPI):
         result = []
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_dict(data, i, {})
             if (cursor is not None) and (i == dataLength - 1):
                 entry = self.extend(entry, {'cursor': cursor})
             result.append(self.parse_funding_rate_history(entry, market))
@@ -1588,7 +1588,7 @@ class extended(Exchange, ImplicitAPI):
         result = []
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_dict(data, i, {})
             if (cursor is not None) and (i == dataLength - 1):
                 entry = self.extend(entry, {'cursor': cursor})
             result.append(entry)
@@ -1693,7 +1693,7 @@ class extended(Exchange, ImplicitAPI):
         result = []
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_dict(data, i, {})
             if (cursor is not None) and (i == dataLength - 1):
                 entry = self.extend(entry, {'cursor': cursor})
             result.append(entry)
@@ -1828,7 +1828,7 @@ class extended(Exchange, ImplicitAPI):
         result = []
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_dict(data, i, {})
             if (cursor is not None) and (i == dataLength - 1):
                 entry = self.extend(entry, {'cursor': cursor})
             result.append(entry)
@@ -1939,7 +1939,7 @@ class extended(Exchange, ImplicitAPI):
         if currencyByNumericId is not None:
             return self.safe_string(currencyByNumericId, 'code')
         if currency is not None:
-            return currency['code']
+            return self.safe_string(currency, 'code')
         code = self.safe_currency_code(assetId)
         if code == 'USD':
             code = 'USDC'
@@ -2300,7 +2300,7 @@ class extended(Exchange, ImplicitAPI):
         result = []
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_dict(data, i, {})
             if (cursor is not None) and (i == dataLength - 1):
                 entry = self.extend(entry, {'cursor': cursor})
             result.append(entry)
@@ -2384,7 +2384,7 @@ class extended(Exchange, ImplicitAPI):
         if cachedAccount is not None:
             return self.safe_dict(self.options, 'account', {})
         accountData = self.fetch_account(params)
-        self.options['account'] = accountData['info']
+        self.options['account'] = self.safe_dict(accountData, 'info', {})
         return self.safe_dict(self.options, 'account', {})
 
     def create_order_settlement_data(self, isBuy: bool, amountString: str, priceString: str, params: dict = {}) -> dict:
@@ -2421,8 +2421,8 @@ class extended(Exchange, ImplicitAPI):
         }
         msgHash = self.get_extended_order_msg_hash(settlement)
         sig = json.loads(self.extended_starknet_sign(msgHash, self.privateKey))
-        r = self.get_extended_signature_hex(sig[0])
-        s = self.get_extended_signature_hex(sig[1])
+        r = self.get_extended_signature_hex(self.safe_string(sig, 0))
+        s = self.get_extended_signature_hex(self.safe_string(sig, 1))
         settlement['r'] = r
         settlement['s'] = s
         return settlement
@@ -2453,8 +2453,8 @@ class extended(Exchange, ImplicitAPI):
         msgHash = self.get_extended_withdrawal_msg_hash(settlement, starkKey)
         sig = json.loads(self.extended_starknet_sign(msgHash, self.privateKey))
         settlement['signature'] = {
-            'r': self.get_extended_signature_hex(sig[0]),
-            's': self.get_extended_signature_hex(sig[1]),
+            'r': self.get_extended_signature_hex(self.safe_string(sig, 0)),
+            's': self.get_extended_signature_hex(self.safe_string(sig, 1)),
         }
         return settlement
 
@@ -2483,8 +2483,8 @@ class extended(Exchange, ImplicitAPI):
         msgHash = self.get_extended_transfer_msg_hash(settlement)
         sig = json.loads(self.extended_starknet_sign(msgHash, self.privateKey))
         settlement['signature'] = {
-            'r': self.get_extended_signature_hex(sig[0]),
-            's': self.get_extended_signature_hex(sig[1]),
+            'r': self.get_extended_signature_hex(self.safe_string(sig, 0)),
+            's': self.get_extended_signature_hex(self.safe_string(sig, 1)),
         }
         return settlement
 
@@ -2808,8 +2808,9 @@ class extended(Exchange, ImplicitAPI):
         market = None
         orderSymbol = symbol
         if symbol is not None:
-            market = self.market(symbol)
-            orderSymbol = market['symbol']
+            symbolMarket = self.market(symbol)
+            market = symbolMarket
+            orderSymbol = symbolMarket['symbol']
         response = None
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
         paramsOmitted = self.omit(params, ['clientOrderId', 'client_id'])
@@ -3079,7 +3080,7 @@ class extended(Exchange, ImplicitAPI):
         result = []
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_dict(data, i, {})
             if (cursor is not None) and (i == dataLength - 1):
                 entry = self.extend(entry, {'cursor': cursor})
             result.append(entry)
@@ -3240,7 +3241,8 @@ class extended(Exchange, ImplicitAPI):
         result = ''
         while(Precise.string_gt(decimalString, '0')):
             remainder = self.parse_to_int(Precise.string_mod(decimalString, '16'))
-            result = hexChars[remainder] + result
+            hexChar = self.safe_string(hexChars, remainder, '')
+            result = hexChar + result
             decimalString = Precise.string_div(decimalString, '16', 0)
         if result == '':
             return '0'
@@ -3374,7 +3376,6 @@ class extended(Exchange, ImplicitAPI):
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestHeaders = None
         requestBody = None
-        version = self.safe_string(api, 0)
         accessibility = self.safe_string(api, 1)
         endpoint = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -3392,7 +3393,7 @@ class extended(Exchange, ImplicitAPI):
             if ((method == 'POST') or (method == 'PATCH')) and not queryPost:
                 requestBody = self.json(query)
                 requestHeaders['Content-Type'] = 'application/json'
-        url = self.implode_hostname(baseApiUrl) + '/api/' + version + endpoint
+        url = self.implode_hostname(baseApiUrl) + '/api/' + api[0] + endpoint
         if (method == 'GET' or method == 'DELETE' or queryPost) and (len(query) > 0):
             url += '?' + self.urlencode_with_array_repeat(query)
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}

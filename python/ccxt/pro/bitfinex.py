@@ -56,7 +56,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        marketId = market['id']
+        marketId = self.safe_string(market, 'id', '')
         url = self.urls['api']['ws']['public']
         client = self.client(url)
         messageHash = channel + ':' + marketId
@@ -82,13 +82,13 @@ class bitfinex(ccxt.async_support.bitfinex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        marketId = market['id']
+        marketId = self.safe_string(market, 'id', '')
         url = self.urls['api']['ws']['public']
         client = self.client(url)
         subMessageHash = channel + ':' + marketId
         messageHash = 'unsubscribe:' + channel + ':' + marketId
         unSubTopic = 'unsubscribe' + ':' + topic + ':' + symbol
-        channelId = self.safe_string(client.subscriptions, unSubTopic)
+        channelId = self.safe_string(client.subscriptions, unSubTopic, '')
         request = {
             'event': 'unsubscribe',
             'chanId': channelId,
@@ -127,8 +127,9 @@ class bitfinex(ccxt.async_support.bitfinex):
         symbolValue = market['symbol']
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         channel = 'candles'
-        key = 'trade:' + interval + ':' + market['id']
-        messageHash = channel + ':' + interval + ':' + market['id']
+        marketId = self.safe_string(market, 'id', '')
+        key = 'trade:' + interval + ':' + marketId
+        messageHash = channel + ':' + interval + ':' + marketId
         request = {
             'event': 'subscribe',
             'channel': channel,
@@ -156,12 +157,13 @@ class bitfinex(ccxt.async_support.bitfinex):
         symbolValue = market['symbol']
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         channel = 'candles'
-        subMessageHash = channel + ':' + interval + ':' + market['id']
+        marketId = self.safe_string(market, 'id', '')
+        subMessageHash = channel + ':' + interval + ':' + marketId
         messageHash = 'unsubscribe:' + subMessageHash
         url = self.urls['api']['ws']['public']
         client = self.client(url)
-        subId = 'unsubscribe:trade:' + interval + ':' + market['id']  # trade here because we use the key
-        channelId = self.safe_string(client.subscriptions, subId)
+        subId = 'unsubscribe:trade:' + interval + ':' + marketId  # trade here because we use the key
+        channelId = self.safe_string(client.subscriptions, subId, '')
         request = {
             'event': 'unsubscribe',
             'chanId': channelId,
@@ -232,13 +234,11 @@ class bitfinex(ccxt.async_support.bitfinex):
         else:
             # update
             ohlcvs = [data]
-        channel = self.safe_string(subscription, 'channel')
+        channel = self.safe_string(subscription, 'channel', '')
         key = self.safe_string(subscription, 'key', '')
         keyParts = key.split(':')
-        interval = self.safe_string(keyParts, 1)
-        marketId = key
-        marketId = marketId.replace('trade:', '')
-        marketId = marketId.replace(interval + ':', '')
+        interval = self.safe_string(keyParts, 1, '')
+        marketId = self.safe_string(keyParts, 2, '')
         market = self.safe_market(marketId)
         timeframe = self.find_timeframe(interval)
         symbol = market['symbol']
@@ -251,8 +251,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             self.ohlcvs[symbol][timeframe] = stored
         ohlcvsLength = len(ohlcvs)
         for i in range(0, ohlcvsLength):
-            ohlcv = ohlcvs[ohlcvsLength - i - 1]
-            parsed = self.parse_ohlcv(ohlcv, market)
+            parsed = self.parse_ohlcv(self.safe_list(ohlcvs, ohlcvsLength - i - 1), market)
             stored.append(parsed)
         client.resolve(stored, messageHash)
 
@@ -294,7 +293,8 @@ class bitfinex(ccxt.async_support.bitfinex):
         messageHash = 'myTrade'
         if symbol is not None:
             market = self.market(symbol)
-            messageHash += ':' + market['id']
+            marketId = self.safe_string(market, 'id', '')
+            messageHash = 'myTrade:' + marketId
         trades = await self.subscribe_private(messageHash)
         limitResolved = limit
         if self.newUpdates:
@@ -346,7 +346,8 @@ class bitfinex(ccxt.async_support.bitfinex):
         trade = self.parse_ws_trade({'result': data})
         symbol = trade['symbol']
         market = self.market(symbol)
-        messageHash = name + ':' + market['id']
+        marketId = self.safe_string(market, 'id', '')
+        messageHash = name + ':' + marketId
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
@@ -390,7 +391,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         #
         #
         channel = self.safe_string(subscription, 'channel')
-        marketId = self.safe_string(subscription, 'symbol')
+        marketId = self.safe_string(subscription, 'symbol', '')
         market = self.safe_market(marketId)
         tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
         symbol = market['symbol']
@@ -406,7 +407,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             length = len(trades)
             for i in range(0, length):
                 index = length - i - 1
-                parsed = self.parse_ws_trade({'result': trades[index]}, market)
+                parsed = self.parse_ws_trade({'result': self.safe_list(trades, index)}, market)
                 stored.append(parsed)
         else:
             # update
@@ -542,7 +543,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         #  ]
         #
         ticker = self.safe_list(message, 1)
-        marketId = self.safe_string(subscription, 'symbol')
+        marketId = self.safe_string(subscription, 'symbol', '')
         market = self.safe_market(marketId)
         symbol = self.safe_symbol(marketId)
         parsed = self.parse_ws_ticker(ticker, market)
@@ -643,7 +644,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         #         ]
         #     ]
         #
-        marketId = self.safe_string(subscription, 'symbol')
+        marketId = self.safe_string(subscription, 'symbol', '')
         symbol = self.safe_symbol(marketId)
         channel = 'book'
         messageHash = channel + ':' + marketId
@@ -713,7 +714,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         #
         # [ 173904, "cs", -890884919 ]
         #
-        marketId = self.safe_string(subscription, 'symbol')
+        marketId = self.safe_string(subscription, 'symbol', '')
         symbol = self.safe_symbol(marketId)
         channel = 'book'
         messageHash = channel + ':' + marketId
@@ -732,10 +733,10 @@ class bitfinex(ccxt.async_support.bitfinex):
             bid = self.safe_list(bids, i)
             ask = self.safe_list(asks, i)
             if bid is not None:
-                stringArray.append(self.number_to_string(bids[i][idToCheck]))
-                stringArray.append(self.number_to_string(bids[i][1]))
+                stringArray.append(self.number_to_string(self.safe_number(bid, idToCheck)))
+                stringArray.append(self.number_to_string(self.safe_number(bid, 1)))
             if ask is not None:
-                stringArray.append(self.number_to_string(asks[i][idToCheck]))
+                stringArray.append(self.number_to_string(self.safe_number(ask, idToCheck)))
                 aski1 = self.safe_number(ask, 1)
                 if aski1 is not None:
                     stringArray.append(self.number_to_string(-aski1))
@@ -890,9 +891,9 @@ class bitfinex(ccxt.async_support.bitfinex):
         #     "chanId": CHANNEL_ID
         # }
         #
-        channelId = self.safe_string(message, 'chanId')
+        channelId = self.safe_string(message, 'chanId', '')
         unSubChannel = 'unsubscribe:' + channelId
-        subMessageHash = self.safe_string(client.subscriptions, unSubChannel)
+        subMessageHash = self.safe_string(client.subscriptions, unSubChannel, '')
         subscription = self.safe_dict(client.subscriptions, 'unsubscribe:' + subMessageHash)
         del client.subscriptions[unSubChannel]
         messageHashes = self.safe_list(subscription, 'messageHashes', [])
@@ -924,7 +925,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         #       key: 'trade:1m:tBTCUST'
         #  }
         #
-        channelId = self.safe_string(message, 'chanId')
+        channelId = self.safe_string(message, 'chanId', '')
         client.subscriptions[channelId] = message
         # store the opposite direction too for unWatch
         mappings = {
@@ -936,7 +937,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         unifiedChannel = self.safe_string(mappings, self.safe_string(message, 'channel'))
         if 'key' in message:
             # handle ohlcv differently because the message is different
-            key = self.safe_string(message, 'key')
+            key = self.safe_string(message, 'key', '')
             subKeyId = 'unsubscribe:' + key
             client.subscriptions[subKeyId] = channelId
         else:
@@ -998,7 +999,8 @@ class bitfinex(ccxt.async_support.bitfinex):
         messageHash = 'orders'
         if symbol is not None:
             market = self.market(symbol)
-            messageHash += ':' + market['id']
+            marketId = self.safe_string(market, 'id', '')
+            messageHash = 'orders:' + marketId
         orders = await self.subscribe_private(messageHash)
         limitResolved = limit
         if self.newUpdates:
@@ -1060,13 +1062,13 @@ class bitfinex(ccxt.async_support.bitfinex):
             for i in range(0, len(data)):
                 value = data[i]
                 parsed = self.parse_ws_order(value)
-                symbol = parsed['symbol']
+                symbol = self.safe_string(parsed, 'symbol', '')
                 symbolIds[symbol] = True
                 orders.append(parsed)
         else:
             parsed = self.parse_ws_order(data)
             orders.append(parsed)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol', '')
             symbolIds[symbol] = True
         name = 'orders'
         client.resolve(self.orders, name)
@@ -1074,7 +1076,8 @@ class bitfinex(ccxt.async_support.bitfinex):
         for i in range(0, len(keys)):
             symbol = keys[i]
             market = self.market(symbol)
-            messageHash = name + ':' + market['id']
+            marketId = self.safe_string(market, 'id', '')
+            messageHash = name + ':' + marketId
             client.resolve(self.orders, messageHash)
 
     def parse_ws_order_status(self, status: Str) -> Str:

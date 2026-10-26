@@ -1109,23 +1109,23 @@ class p2b(Exchange, ImplicitAPI):
             await self.load_markets()
         untilParam = self.safe_integer(params, 'until')
         paramsOmitted = self.omit(params, 'until')
-        until = None
-        sinceResolved = 0
+        until = self.parse_to_int(0)
+        sinceResolved = self.parse_to_int(0)
         if untilParam is not None:
-            until = untilParam
+            until = self.parse_to_int(untilParam)
             if since is not None:
                 if (untilParam - since) > 86400000:
                     raise BadRequest(self.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours')
-                sinceResolved = since
+                sinceResolved = self.parse_to_int(since)
             else:
-                sinceResolved = untilParam - 86400000
+                sinceResolved = self.parse_to_int(untilParam - 86400000)
         elif since is not None:
-            until = since + 86400000
-            sinceResolved = since
+            until = self.parse_to_int(since + 86400000)
+            sinceResolved = self.parse_to_int(since)
         else:
             now = self.milliseconds()
-            until = now
-            sinceResolved = now - 86400000
+            until = self.parse_to_int(now)
+            sinceResolved = self.parse_to_int(now - 86400000)
         market = self.market(symbol)
         sinceSec = self.parse_to_int(sinceResolved / 1000)
         untilSec = self.parse_to_int(until / 1000)
@@ -1190,23 +1190,23 @@ class p2b(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        until = None
-        sinceResolved = 0
+        until = self.parse_to_int(0)
+        sinceResolved = self.parse_to_int(0)
         if untilParam is not None:
-            until = untilParam
+            until = self.parse_to_int(untilParam)
             if since is not None:
                 if (untilParam - since) > 86400000:
                     raise BadRequest(self.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours')
-                sinceResolved = since
+                sinceResolved = self.parse_to_int(since)
             else:
-                sinceResolved = untilParam - 86400000
+                sinceResolved = self.parse_to_int(untilParam - 86400000)
         elif since is not None:
-            until = since + 86400000
-            sinceResolved = since
+            until = self.parse_to_int(since + 86400000)
+            sinceResolved = self.parse_to_int(since)
         else:
             now = self.milliseconds()
-            until = now
-            sinceResolved = now - 86400000
+            until = self.parse_to_int(now)
+            sinceResolved = self.parse_to_int(now - 86400000)
         sinceSec = self.parse_to_int(sinceResolved / 1000)
         untilSec = self.parse_to_int(until / 1000)
         request = {
@@ -1334,10 +1334,12 @@ class p2b(Exchange, ImplicitAPI):
             if len(paramsOmitted) > 0:
                 url += '?' + self.urlencode(paramsOmitted)
         if apiName == 'private':
-            paramsOmitted['request'] = '/api/v2/' + path
             # p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             # the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
-            paramsOmitted['nonce'] = str(self.incrementing_nonce())
+            paramsOmitted = self.extend(paramsOmitted, {
+                'request': '/api/v2/' + path,
+                'nonce': str(self.incrementing_nonce()),
+            })
             payload = self.string_to_base64(self.json(paramsOmitted))  # Body json encoded in base64
             headersSigned = {
                 'Content-Type': 'application/json',

@@ -129,7 +129,7 @@ class PredictionExchange(BaseExchange):
         if (eventId is not None) or (slug is not None):
             filtered = []
             for i in range(0, len(result)):
-                event = result[i]
+                event = self.safe_value(result, i)
                 idMatch = (eventId is not None) and (self.safe_string(event, 'id') == eventId)
                 slugMatch = (slug is not None) and (self.safe_string(event, 'slug') == slug)
                 if idMatch or slugMatch:
@@ -178,7 +178,7 @@ class PredictionExchange(BaseExchange):
         wantActive = (status == 'active')
         result = []
         for i in range(0, len(events)):
-            event = events[i]
+            event = self.safe_value(events, i)
             isActive = self.safe_bool(event, 'active')
             # keep events whose status is unknown (already filtered server-side, no `active` field)
             if (isActive is None) or (isActive == wantActive):
@@ -191,18 +191,18 @@ class PredictionExchange(BaseExchange):
         queriesLength = 0
         if queries is not None:
             queriesLength = len(queries)
-        if (searchIn is None) or (queries is None) or (queriesLength == 0):
+        if (searchIn is None) or (queriesLength == 0):
             return events
         checkTitle = (searchIn == 'title') or (searchIn == 'both')
         checkDescription = (searchIn == 'description') or (searchIn == 'both')
         result = []
         for i in range(0, len(events)):
-            event = events[i]
+            event = self.safe_value(events, i)
             title = self.safe_string_lower(event, 'title', '')
             description = self.safe_string_lower(event, 'description', '')
             matched = False
-            for qi in range(0, len(queries)):
-                q = queries[qi].lower()
+            for qi in range(0, queriesLength):
+                q = self.safe_string(queries, qi, '').lower()
                 if title is None:
                     raise ExchangeError(self.id + ' filterEventsBySearchIn() missing title')
                 if checkTitle and (title.find(q) >= 0):
@@ -242,17 +242,20 @@ class PredictionExchange(BaseExchange):
     def filter_events_by_tags(self, events: list[object], tags: Strings = None):
         # keep events carrying one of the requested tags; tolerant to string tags and to
         # object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
-        if (tags is None) or (len(tags) == 0):
+        tagsLength = 0
+        if tags is not None:
+            tagsLength = len(tags)
+        if tagsLength == 0:
             return events
         wanted = []
-        for i in range(0, len(tags)):
-            wantedKey = self.normalize_tag_key(tags[i])
+        for i in range(0, tagsLength):
+            wantedKey = self.normalize_tag_key(self.safe_string(tags, i, ''))
             if wantedKey != '':
                 # an empty normalized key would substring-match every tag
                 wanted.append(wantedKey)
         result = []
         for i in range(0, len(events)):
-            event = events[i]
+            event = self.safe_value(events, i)
             eventTags = self.safe_list(event, 'tags', [])
             matched = False
             for ti in range(0, len(eventTags)):
@@ -289,7 +292,7 @@ class PredictionExchange(BaseExchange):
         if self.events_by_slug is None:
             self.events_by_slug = {}
         for i in range(0, len(events)):
-            event = events[i]
+            event = self.safe_value(events, i)
             id = self.safe_string(event, 'id')
             slug = self.safe_string(event, 'slug')
             handle = self.safe_string(event, 'event')
@@ -336,9 +339,9 @@ class PredictionExchange(BaseExchange):
         # cache-only event resolver (the event analogue of this.outcome) - the cache fills
         # through fetchEvents; this never fetches
         if (self.events is not None) and (eventIdOrSlug in self.events):
-            return self.events[eventIdOrSlug]
+            return self.safe_value(self.events, eventIdOrSlug)
         if (self.events_by_slug is not None) and (eventIdOrSlug in self.events_by_slug):
-            return self.events_by_slug[eventIdOrSlug]
+            return self.safe_value(self.events_by_slug, eventIdOrSlug)
         raise BadSymbol(self.id + ' has no cached event ' + eventIdOrSlug + " - call fetchEvents ({'query': ...}) first")
 
     def outcome(self, outcomeSymbol: Str):
@@ -347,9 +350,9 @@ class PredictionExchange(BaseExchange):
         if (self.outcomes is None) or self.is_empty(self.outcomes):
             raise ExchangeError(self.id + ' outcomes not loaded - call loadOutcomes () or an outcome-addressed method first')
         if outcomeSymbol in self.outcomes:
-            return self.outcomes[outcomeSymbol]
+            return self.safe_value(self.outcomes, outcomeSymbol)
         if (self.outcomes_by_id is not None) and (outcomeSymbol in self.outcomes_by_id):
-            return self.outcomes_by_id[outcomeSymbol]
+            return self.safe_value(self.outcomes_by_id, outcomeSymbol)
         raise BadSymbol(self.id + ' does not have outcome ' + outcomeSymbol + ' - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first')
 
     def has_outcome(self, outcomeIdOrSymbol: Str):
@@ -367,9 +370,9 @@ class PredictionExchange(BaseExchange):
     def safe_outcome(self, outcomeIdOrSymbol: Str, outcomeObj: object = None):
         if outcomeIdOrSymbol is not None:
             if (self.outcomes is not None) and (outcomeIdOrSymbol in self.outcomes):
-                return self.outcomes[outcomeIdOrSymbol]
+                return self.safe_value(self.outcomes, outcomeIdOrSymbol)
             if (self.outcomes_by_id is not None) and (outcomeIdOrSymbol in self.outcomes_by_id):
-                return self.outcomes_by_id[outcomeIdOrSymbol]
+                return self.safe_value(self.outcomes_by_id, outcomeIdOrSymbol)
         if outcomeObj is not None:
             return outcomeObj
         # stub for an unknown handle; it only carries the identity keys, not the market fields
@@ -502,7 +505,7 @@ class PredictionExchange(BaseExchange):
         marketKeys = list(stored.keys())
         for i in range(0, len(marketKeys)):
             key = marketKeys[i]
-            stored[key] = self.omit(stored[key], 'symbol')
+            stored[key] = self.omit(self.safe_dict(stored, key, {}), 'symbol')
         self.populate_outcomes()
         return stored
 
@@ -1079,19 +1082,21 @@ class PredictionExchange(BaseExchange):
             reduced = self.reduce_fees_by_currency(feeList)
             reducedLength = len(reduced)
             if reducedLength > 0:
-                fee = reduced[0]
+                fee = self.safe_dict(reduced, 0)
         # derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
         # trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         orderType = self.safe_string(outcomeOrder, 'type')
         timeInForce = self.safe_string(outcomeOrder, 'timeInForce')
-        postOnly = self.safe_bool(outcomeOrder, 'postOnly')
+        # the venue flag and the derived one are each written once, so neither local widens
+        postOnlyValue = self.safe_bool(outcomeOrder, 'postOnly')
+        derivedPostOnly = None
         if timeInForce is None:
             if orderType == 'market':
                 timeInForce = 'IOC'
-            if postOnly is True:
+            if postOnlyValue is True:
                 timeInForce = 'PO'
-        elif postOnly is None:
-            postOnly = (timeInForce == 'PO')
+        elif postOnlyValue is None:
+            derivedPostOnly = (timeInForce == 'PO')
         timestamp = self.safe_integer(outcomeOrder, 'timestamp')
         datetime = self.safe_string(outcomeOrder, 'datetime')
         if datetime is None:
@@ -1115,7 +1120,7 @@ class PredictionExchange(BaseExchange):
             'cost': self.parse_number(cost),
             'fee': fee,
             'reduceOnly': self.safe_bool(outcomeOrder, 'reduceOnly'),
-            'postOnly': postOnly,
+            'postOnly': postOnlyValue if (postOnlyValue is not None) else derivedPostOnly,
             'trades': trades,
             'outcome': self.safe_string(outcomeOrder, 'outcome'),
             'outcomeId': self.safe_string(outcomeOrder, 'outcomeId'),
@@ -1392,7 +1397,7 @@ class PredictionExchange(BaseExchange):
     def rlp_encode_list(self, items: list[str]):
         concatenated = ''
         for i in range(0, len(items)):
-            concatenated = concatenated + items[i]
+            concatenated = concatenated + self.safe_string(items, i, '')
         byteLength = self.parse_to_int(len(concatenated) / 2)
         if byteLength < 56:
             return self.int_to_base16(192 + byteLength) + concatenated
@@ -1417,15 +1422,12 @@ class PredictionExchange(BaseExchange):
         if hexValue is None:
             return ''
         h = self.remove0x_prefix(hexValue)
-        start = 0
         total = len(h)
-        while((start < total) and (h[start:start + 1] == '0')):
-            start = start + 1
-        h = h[start:]
-        if h == '':
-            return ''
-        h = self.pad_hex_to_even(h)
-        return h
+        for i in range(0, total):
+            if h[i:i + 1] == '0':
+                continue
+            return self.pad_hex_to_even(h[i:])
+        return ''
 
     def sign_evm_transaction(self, tx: dict, privateKey: str):
         # per-exchange override — needs the noble crypto imports. the base declares it so

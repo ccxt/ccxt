@@ -285,7 +285,7 @@ class phemex(ccxt.async_support.phemex):
                 tickers.append(self.parse_perpetual_ticker(data[i]))
         for i in range(0, len(tickers)):
             ticker = tickers[i]
-            symbol = ticker['symbol']
+            symbol = self.safe_string(ticker, 'symbol', '')
             messageHash = 'ticker:' + symbol
             timestamp = self.safe_integer_product(message, 'timestamp', 0.000001)
             ticker['timestamp'] = timestamp
@@ -309,8 +309,9 @@ class phemex(ccxt.async_support.phemex):
             await self.load_markets()
         type, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, params)
         usePerpetualApi = self.safe_string(paramsMarketType, 'settle') == 'USDT'
-        messageHash = ':balance'
-        messageHash = 'perpetual' + messageHash if usePerpetualApi else type + messageHash
+        messageHash = 'perpetual:balance'
+        if not usePerpetualApi:
+            messageHash = type + ':balance'
         return await self.subscribe_private(type, messageHash, paramsMarketType)
 
     def handle_balance(self, type: str, client: Client, message: list[object]):
@@ -785,7 +786,7 @@ class phemex(ccxt.async_support.phemex):
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
         if symbol is not None:
             market = self.market(symbol)
-            messageHash = messageHash + market['symbol']
+            messageHash = 'trades:' + self.safe_string(market, 'symbol', '')
         isUsdtMarket = (market is not None) and (market['settle'] == 'USDT')
         settleRequest = {}
         if isUsdtMarket:
@@ -793,7 +794,10 @@ class phemex(ccxt.async_support.phemex):
         type, paramsType = self.handle_market_type_and_params('watchMyTrades', market, self.extend(params, settleRequest))
         if symbolResolved is None:
             settle = self.safe_string(paramsType, 'settle')
-            messageHash = (messageHash + 'perpetual') if (settle == 'USDT') else (messageHash + type)
+            if settle == 'USDT':
+                messageHash = 'trades:perpetual'
+            else:
+                messageHash = 'trades:' + type
         trades = await self.subscribe_private(type, messageHash, paramsType)
         limitResolved = limit
         if self.newUpdates:
@@ -904,7 +908,7 @@ class phemex(ccxt.async_support.phemex):
             cachedTrades = ArrayCacheBySymbolById(limit)
         marketIds = {}
         type = None
-        for i in range(0, len(message)):
+        for i in range(0, tradesLength):
             rawTrade = message[i]
             marketId = self.safe_string(rawTrade, 'symbol')
             market = self.safe_market(marketId)
@@ -941,7 +945,7 @@ class phemex(ccxt.async_support.phemex):
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
         if symbol is not None:
             market = self.market(symbol)
-            messageHash = messageHash + market['symbol']
+            messageHash = 'orders:' + self.safe_string(market, 'symbol', '')
         isUsdtMarket = (market is not None) and (market['settle'] == 'USDT')
         settleRequest = {}
         if isUsdtMarket:
@@ -949,7 +953,10 @@ class phemex(ccxt.async_support.phemex):
         type, paramsType = self.handle_market_type_and_params('watchOrders', market, self.extend(params, settleRequest))
         isUSDTSettled = self.safe_string(paramsType, 'settle') == 'USDT'
         if symbolResolved is None:
-            messageHash = (messageHash + 'perpetual') if (isUSDTSettled) else (messageHash + type)
+            if isUSDTSettled:
+                messageHash = 'orders:perpetual'
+            else:
+                messageHash = 'orders:' + type
         orders = await self.subscribe_private(type, messageHash, paramsType)
         limitResolved = limit
         if self.newUpdates:
@@ -1133,7 +1140,7 @@ class phemex(ccxt.async_support.phemex):
             messageLength = len(message)
             if messageLength == 0:
                 return
-            for i in range(0, len(message)):
+            for i in range(0, messageLength):
                 update = message[i]
                 action = self.safe_string(update, 'action')
                 if (action is not None) and (action != 'Cancel'):

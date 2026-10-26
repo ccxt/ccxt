@@ -291,10 +291,10 @@ class hibachi(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'settlementSymbol')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        if (base is None) or (quote is None):
-            return None
         settleId = self.safe_string(market, 'settlementSymbol')
         settle = self.safe_currency_code(settleId)
+        if (base is None) or (quote is None) or (settle is None):
+            return None
         symbol = base + '/' + quote + ':' + settle
         created = self.safe_integer_product(market, 'marketCreationTimestamp', 1000)
         return self.safe_market_structure({
@@ -817,8 +817,7 @@ class hibachi(Exchange, ImplicitAPI):
         amountStr = self.amount_to_precision(self.safe_string(market, 'symbol'), amount)
         feeRateStr = self.number_to_string(feeRate)
         info = self.safe_dict(market, 'info')
-        underlying = '1e' + self.safe_string(info, 'underlyingDecimals')
-        settlement = '1e' + self.safe_string(info, 'settlementDecimals')
+        underlying = '1e' + self.safe_string(info, 'underlyingDecimals', '')
         one = '1'
         feeRateFactor = '100000000'  # 10^8
         priceFactor = '4294967296'  # 2^32
@@ -843,7 +842,7 @@ class hibachi(Exchange, ImplicitAPI):
         encodedPrice = self.binary_concat()
         if type == 'limit':
             priceStr = self.price_to_precision(self.safe_string(market, 'symbol'), price)
-            priceInternal = Precise.string_div(Precise.string_div(Precise.string_mul(Precise.string_mul(priceStr, priceFactor), settlement), underlying), one, 0)
+            priceInternal = Precise.string_div(Precise.string_div(Precise.string_mul(Precise.string_mul(priceStr, priceFactor), '1e' + self.safe_string(info, 'settlementDecimals', '')), underlying), one, 0)
             price16 = self.int_to_base16(self.parse_to_int(priceInternal))
             pricePadded = price16.rjust(16, '0')
             # @ts-expect-error
@@ -939,7 +938,8 @@ class hibachi(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        nonce = self.incrementing_nonce()
+        nonceValue = self.incrementing_nonce()
+        nonce = self.parse_to_int(nonceValue)
         requestOrders = []
         for i in range(0, len(orders)):
             rawOrder = self.safe_dict(orders, i)
@@ -1036,7 +1036,8 @@ class hibachi(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        nonce = self.incrementing_nonce()
+        nonceValue = self.incrementing_nonce()
+        nonce = self.parse_to_int(nonceValue)
         requestOrders = []
         for i in range(0, len(orders)):
             rawOrder = self.safe_dict(orders, i)
@@ -1117,7 +1118,7 @@ class hibachi(Exchange, ImplicitAPI):
         """
         orders = []
         for i in range(0, len(ids)):
-            orderRequest = self.cancel_order_request(ids[i])
+            orderRequest = self.cancel_order_request(self.safe_string(ids, i, ''))
             orderRequest['action'] = 'cancel'
             orders.append(orderRequest)
         request = {
@@ -1280,8 +1281,8 @@ class hibachi(Exchange, ImplicitAPI):
             # For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             hash = self.hash(message, 'sha256', 'hex')
             signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
-            r = signature['r']
-            s = signature['s']
+            r = self.safe_string(signature, 'r', '')
+            s = self.safe_string(signature, 's', '')
             v = self.int_to_base16(signature['v'])
             return r.rjust(64, '0') + s.rjust(64, '0') + v.rjust(2, '0')
 
@@ -1743,11 +1744,11 @@ class hibachi(Exchange, ImplicitAPI):
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
-        if 'status' in response:
-            #
-            #     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
-            #
-            status = self.safe_string(response, 'status')
+        status = self.safe_string(response, 'status')
+        #
+        #     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
+        #
+        if status is not None:
             if status == 'failed':
                 code = self.safe_string(response, 'errorCode')
                 feedback = self.id + ' ' + body

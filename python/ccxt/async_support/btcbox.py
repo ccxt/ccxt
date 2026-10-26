@@ -385,7 +385,7 @@ class btcbox(Exchange, ImplicitAPI):
         for i in range(0, len(codes)):
             code = codes[i]
             currency = self.currency(code)
-            currencyId = currency['id']
+            currencyId = self.safe_string(currency, 'id', '')
             free = currencyId + '_balance'
             if free in response:
                 account = self.account()
@@ -785,12 +785,12 @@ class btcbox(Exchange, ImplicitAPI):
         url = apiUrl + '/' + self.version + '/' + path
         if apiName == 'public':
             if len(params) > 0:
-                url += '?' + self.urlencode(params)
+                url = apiUrl + '/' + self.version + '/' + path + '?' + self.urlencode(params)
         elif apiName == 'webApi':
-            url = self.urls['www'] + '/' + path
+            url = self.safe_string(self.urls, 'www', '') + '/' + path
         else:
             self.check_required_credentials()
-            nonce = str(self.nonce())
+            nonce = self.number_to_string(self.nonce())
             query = self.extend({
                 'key': self.apiKey,
                 'nonce': nonce,
@@ -823,8 +823,8 @@ class btcbox(Exchange, ImplicitAPI):
         response = await self.fetch2(path, api, method, params, config)
         if isinstance(response, str):
             # sometimes the exchange returns whitespace prepended to json
-            response = self.strip(response)
-            if not self.is_json_encoded_object(response):
-                raise ExchangeError(self.id + ' ' + response)
-            response = json.loads(response)
+            strippedResponse = self.strip(response)
+            if not self.is_json_encoded_object(strippedResponse):
+                raise ExchangeError(self.id + ' ' + strippedResponse)
+            response = json.loads(strippedResponse)
         return response

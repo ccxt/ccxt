@@ -368,13 +368,13 @@ class hollaex(Exchange, ImplicitAPI):
             market = self.safe_dict(pairs, key)
             baseId = self.safe_string(market, 'pair_base')
             quoteId = self.safe_string(market, 'pair_2')
-            base = self.common_currency_code(baseId.upper())
-            quote = self.common_currency_code(quoteId.upper())
+            baseCode = self.common_currency_code(baseId.upper())
+            quoteCode = self.common_currency_code(quoteId.upper())
             result.append({
                 'id': self.safe_string(market, 'name'),
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
+                'symbol': baseCode + '/' + quoteCode,
+                'base': baseCode,
+                'quote': quoteCode,
                 'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
@@ -689,7 +689,7 @@ class hollaex(Exchange, ImplicitAPI):
         keys = list(tickers.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            ticker = tickers[key]
+            ticker = self.safe_value(tickers, key)
             marketId = self.safe_string(ticker, 'symbol', key)
             market = self.safe_market(marketId, None, '-')
             symbol = market['symbol']
@@ -887,8 +887,9 @@ class hollaex(Exchange, ImplicitAPI):
         makerFees = self.safe_dict(fees, 'maker', {})
         takerFees = self.safe_dict(fees, 'taker', {})
         result = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             market = self.market(symbol)
             makerString = self.safe_string(makerFees, market['id'])
             takerString = self.safe_string(takerFees, market['id'])
@@ -987,7 +988,7 @@ class hollaex(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' currencies not loaded')
         currencyIds = list(currenciesById.keys())
         for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
+            currencyId = self.safe_string(currencyIds, i, '')
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_string(response, currencyId + '_available')
@@ -1022,7 +1023,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    async def fetch_open_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetch an open order by it's id
 
@@ -1138,10 +1139,9 @@ class hollaex(Exchange, ImplicitAPI):
         #                     "exchange_id": 176
         #                 }
         #             }
-        order = response
-        if order is None:
+        if response is None:
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
-        return self.parse_order(order)
+        return self.parse_order(response)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -1622,7 +1622,7 @@ class hollaex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
+    async def fetch_withdrawal(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 

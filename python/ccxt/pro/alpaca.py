@@ -78,7 +78,7 @@ class alpaca(ccxt.async_support.alpaca):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        url = self.urls['api']['ws']['crypto']
+        url = self.safe_string(self.safe_dict(self.urls['api'], 'ws'), 'crypto')
         await self.authenticate(url)
         if self.markets is None:
             await self.load_markets()
@@ -104,7 +104,8 @@ class alpaca(ccxt.async_support.alpaca):
         #
         ticker = self.parse_ticker(message)
         symbol = ticker['symbol']
-        messageHash = 'ticker:' + symbol
+        tickerSymbol = self.safe_string(ticker, 'symbol', '')
+        messageHash = 'ticker:' + tickerSymbol
         if symbol is not None:
             self.tickers[symbol] = ticker
         client.resolve(ticker, messageHash)
@@ -159,12 +160,12 @@ class alpaca(ccxt.async_support.alpaca):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        url = self.urls['api']['ws']['crypto']
+        url = self.safe_string(self.safe_dict(self.urls['api'], 'ws'), 'crypto')
         await self.authenticate(url)
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         request = {
             'action': 'subscribe',
             'bars': [market['id']],
@@ -214,12 +215,12 @@ class alpaca(ccxt.async_support.alpaca):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        url = self.urls['api']['ws']['crypto']
+        url = self.safe_string(self.safe_dict(self.urls['api'], 'ws'), 'crypto')
         await self.authenticate(url)
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'orderbook' + ':' + symbolValue
         request = {
             'action': 'subscribe',
@@ -292,12 +293,12 @@ class alpaca(ccxt.async_support.alpaca):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        url = self.urls['api']['ws']['crypto']
+        url = self.safe_string(self.safe_dict(self.urls['api'], 'ws'), 'crypto')
         await self.authenticate(url)
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'trade:' + symbolValue
         request = {
             'action': 'subscribe',
@@ -346,14 +347,17 @@ class alpaca(ccxt.async_support.alpaca):
         :param boolean [params.unifiedMargin]: use unified margin account
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        url = self.urls['api']['ws']['trading']
+        url = self.safe_string(self.safe_dict(self.urls['api'], 'ws'), 'trading')
         await self.authenticate(url)
         messageHash = 'myTrades'
         if self.markets is None:
             await self.load_markets()
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else None
-        if symbolResolved is not None:
-            messageHash += ':' + symbolResolved
+        symbolResolved = None
+        if symbol is not None:
+            market = self.market(symbol)
+            marketSymbol = self.safe_string(market, 'symbol', '')
+            symbolResolved = marketSymbol
+            messageHash = 'myTrades:' + marketSymbol
         request = {
             'action': 'listen',
             'data': {
@@ -375,7 +379,7 @@ class alpaca(ccxt.async_support.alpaca):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        url = self.urls['api']['ws']['trading']
+        url = self.safe_string(self.safe_dict(self.urls['api'], 'ws'), 'trading')
         await self.authenticate(url)
         if self.markets is None:
             await self.load_markets()
@@ -383,8 +387,9 @@ class alpaca(ccxt.async_support.alpaca):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = self.safe_string(market, 'symbol')
-            messageHash = 'orders:' + symbolResolved
+            marketSymbol = self.safe_string(market, 'symbol', '')
+            symbolResolved = marketSymbol
+            messageHash = 'orders:' + marketSymbol
         request = {
             'action': 'listen',
             'data': {
@@ -457,7 +462,8 @@ class alpaca(ccxt.async_support.alpaca):
         orders.append(order)
         messageHash = 'orders'
         client.resolve(orders, messageHash)
-        messageHash = 'orders:' + order['symbol']
+        orderSymbol = self.safe_string(order, 'symbol', '')
+        messageHash = 'orders:' + orderSymbol
         client.resolve(orders, messageHash)
 
     def handle_my_trade(self, client: Client, message: dict):
@@ -519,7 +525,8 @@ class alpaca(ccxt.async_support.alpaca):
         if trade is None:
             return
         myTrades.append(trade)
-        messageHash = 'myTrades:' + trade['symbol']
+        tradeSymbol = self.safe_string(trade, 'symbol', '')
+        messageHash = 'myTrades:' + tradeSymbol
         client.resolve(myTrades, messageHash)
         messageHash = 'myTrades'
         client.resolve(myTrades, messageHash)
@@ -586,7 +593,7 @@ class alpaca(ccxt.async_support.alpaca):
             'fee': None,
         }, market)
 
-    async def authenticate(self, url: str, params: dict = {}):
+    async def authenticate(self, url: Str, params: dict = {}):
         self.check_required_credentials()
         messageHash = 'authenticated'
         client = self.client(url)
@@ -598,7 +605,7 @@ class alpaca(ccxt.async_support.alpaca):
                 'key': self.apiKey,
                 'secret': self.secret,
             }
-            if url == self.safe_string(self.urls['api']['ws'], 'trading'):
+            if url == self.safe_string(self.safe_dict(self.urls['api'], 'ws'), 'trading'):
                 # this auth request is being deprecated in test environment
                 request = {
                     'action': 'authenticate',
@@ -618,11 +625,12 @@ class alpaca(ccxt.async_support.alpaca):
         #        "msg": "invalid syntax"
         #    }
         #
-        code = self.safe_string(message, 'code')
+        code = self.safe_string(message, 'code', '')
         msg = self.safe_string(message, 'msg')
-        errorMessage = self.id + ' code: ' + code
+        header = self.id + ' code: ' + code
+        errorMessage = header
         if msg is not None:
-            errorMessage = errorMessage + ' message: ' + msg
+            errorMessage = header + ' message: ' + msg
         raise ExchangeError(errorMessage)
 
     def handle_connected(self, client: Client, message: dict) -> dict:
@@ -634,7 +642,7 @@ class alpaca(ccxt.async_support.alpaca):
         #
         return message
 
-    def handle_crypto_message(self, client: Client, message: list[object]):
+    def handle_crypto_message(self, client: Client, message: list[dict]):
         for i in range(0, len(message)):
             data = message[i]
             T = self.safe_string(data, 'T')

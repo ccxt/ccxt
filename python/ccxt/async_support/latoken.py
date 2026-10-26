@@ -455,7 +455,7 @@ class latoken(Exchange, ImplicitAPI):
         result = []
         rawMarkets = self.to_array(response)
         for i in range(0, len(rawMarkets)):
-            market = rawMarkets[i]
+            market = self.safe_value(rawMarkets, i)
             id = self.safe_string(market, 'id')
             # the exchange shows them inverted
             baseId = self.safe_string(market, 'baseCurrency')
@@ -593,7 +593,7 @@ class latoken(Exchange, ImplicitAPI):
         rawCurrencies = self.to_array(response)
         merged = []
         for i in range(0, len(rawCurrencies)):
-            rawCurrency = rawCurrencies[i]
+            rawCurrency = self.safe_value(rawCurrencies, i)
             bindingEntry = self.safe_dict(bindingsById, self.safe_string(rawCurrency, 'id'))
             bindings = self.safe_list(bindingEntry, 'bindings')
             mergedCurrency = rawCurrency
@@ -708,11 +708,12 @@ class latoken(Exchange, ImplicitAPI):
             'timestamp': None,
             'datetime': None,
         }
-        maxTimestamp = None
         types = self.safe_dict(self.options, 'types', {})
         accountType = self.safe_string(types, type, type)
         balancesByType = self.group_by(response, 'type')
         balances = self.safe_list(balancesByType, accountType, [])
+        firstBalance = self.safe_dict(balances, 0)
+        maxTimestamp = self.safe_integer(firstBalance, 'timestamp')
         for i in range(0, len(balances)):
             balance = self.safe_dict(balances, i)
             currencyId = self.safe_string(balance, 'currency')
@@ -1902,7 +1903,7 @@ class latoken(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         urlencodedQuery = self.urlencode(query)
         if method == 'GET':
-            if len(query) > 0:
+            if urlencodedQuery != '':
                 requestString += '?' + urlencodedQuery
         if apiName == 'private':
             self.check_required_credentials()

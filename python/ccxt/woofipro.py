@@ -598,7 +598,7 @@ class woofipro(Exchange, ImplicitAPI):
             return None
         settleId = self.safe_string(parts, 2)
         settle = self.safe_currency_code(settleId)
-        symbol = base + '/' + quote + ':' + settle
+        symbol = base + '/' + quote + ':' + quote
         return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
@@ -853,7 +853,6 @@ class woofipro(Exchange, ImplicitAPI):
         amount = self.safe_string(trade, 'executed_quantity')
         order_id = self.safe_string(trade, 'order_id')
         fee = self.parse_token_and_fee_temp(trade, 'fee_asset', 'fee')
-        cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
         id = self.safe_string(trade, 'id')
         takerOrMaker = None
@@ -868,7 +867,7 @@ class woofipro(Exchange, ImplicitAPI):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': Precise.string_mul(price, amount),
             'order': order_id,
             'takerOrMaker': takerOrMaker,
             'type': None,
@@ -1669,7 +1668,6 @@ class woofipro(Exchange, ImplicitAPI):
         side = self.safe_string_lower(order, 'side')
         filled = self.safe_string_n(order, ['total_executed_quantity', 'totalExecutedQuantity', 'executed_quantity', 'executed'])
         average = self.omit_zero(self.safe_string_2(order, 'average_executed_price', 'averageExecutedPrice'))
-        remaining = Precise.string_sub(amount, filled)
         fee = self.safe_value_2(order, 'total_fee', 'totalFee')
         feeCurrency = self.safe_string_2(order, 'fee_asset', 'feeAsset')
         transactions = self.safe_list(order, 'Transactions')
@@ -1708,7 +1706,7 @@ class woofipro(Exchange, ImplicitAPI):
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,  # TO_DO
+            'remaining': Precise.string_sub(amount, filled),  # TO_DO
             'cost': cost,
             'trades': transactions,
             'fee': {
@@ -1782,7 +1780,8 @@ class woofipro(Exchange, ImplicitAPI):
         hasStopLoss = (stopLoss is not None)
         hasTakeProfit = (takeProfit is not None)
         algoType = self.safe_string(params, 'algoType')
-        isConditional = triggerPrice is not None or hasStopLoss or hasTakeProfit or (self.safe_value(params, 'childOrders') is not None)
+        paramsChildOrders = self.safe_value(params, 'childOrders')
+        isConditional = triggerPrice is not None or hasStopLoss or hasTakeProfit or (paramsChildOrders is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
@@ -1875,7 +1874,8 @@ class woofipro(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_dict(params, 'stopLoss')
         takeProfit = self.safe_dict(params, 'takeProfit')
-        isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_list(params, 'childOrders') is not None)
+        paramsChildOrders = self.safe_list(params, 'childOrders')
+        isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (paramsChildOrders is not None)
         response = None
         if isConditional:
             response = self.v1PrivatePostAlgoOrder(request)
@@ -1938,7 +1938,8 @@ class woofipro(Exchange, ImplicitAPI):
             triggerPrice = self.safe_string_2(orderParams, 'triggerPrice', 'stopPrice')
             stopLoss = self.safe_dict(orderParams, 'stopLoss')
             takeProfit = self.safe_dict(orderParams, 'takeProfit')
-            isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_list(orderParams, 'childOrders') is not None)
+            paramsChildOrders = self.safe_list(orderParams, 'childOrders')
+            isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (paramsChildOrders is not None)
             if isConditional:
                 raise NotSupported(self.id + ' createOrders() only support non-stop order')
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
@@ -1996,7 +1997,8 @@ class woofipro(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
         if triggerPrice is not None:
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-        isConditional = (triggerPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
+        paramsChildOrders = self.safe_value(params, 'childOrders')
+        isConditional = (triggerPrice is not None) or (paramsChildOrders is not None)
         orderQtyKey = 'quantity' if isConditional else 'order_quantity'
         priceKey = 'price' if isConditional else 'order_price'
         if price is not None:
@@ -2268,8 +2270,9 @@ class woofipro(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        orders = self.safe_dict(response, 'data', response)
-        parsedOrders = {} if (orders is None) else orders
+        parsedOrders = self.safe_dict(response, 'data', response)
+        if parsedOrders is None:
+            parsedOrders = {}
         return self.parse_order(parsedOrders, market)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -2562,7 +2565,7 @@ class woofipro(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['balance_token'] = currency['id']
+            request['balance_token'] = self.safe_string(currency, 'id')
         if since is not None:
             request['start_t'] = since
         if limit is not None:
@@ -2780,8 +2783,8 @@ class woofipro(Exchange, ImplicitAPI):
 
     def sign_hash(self, hash: str, privateKey: str) -> str:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
-        r = signature['r']
-        s = signature['s']
+        r = self.safe_string(signature, 'r', '')
+        s = self.safe_string(signature, 's', '')
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
@@ -2839,7 +2842,7 @@ class woofipro(Exchange, ImplicitAPI):
             'chainId': self.parse_to_int(chainId),
             'receiver': address,
             'token': codeUpper,
-            'amount': str(amount),
+            'amount': self.number_to_string(amount),
             'withdrawNonce': withdrawNonce,
             'timestamp': nonce,
         }
@@ -3319,8 +3322,8 @@ class woofipro(Exchange, ImplicitAPI):
             ts = str(self.nonce())
             url += pathWithParams
             apiKey = self.apiKey
-            if apiKey.find('ed25519:') < 0:
-                apiKey = 'ed25519:' + apiKey
+            if self.apiKey.find('ed25519:') < 0:
+                apiKey = 'ed25519:' + self.apiKey
             requestHeaders = {
                 'orderly-account-id': self.accountId,
                 'orderly-key': apiKey,
@@ -3339,9 +3342,8 @@ class woofipro(Exchange, ImplicitAPI):
                 if method == 'DELETE':
                     requestBody = ''
             secret = self.secret
-            rawSecret = self.secret
-            if rawSecret.find('ed25519:') >= 0:
-                parts = rawSecret.split('ed25519:')
+            if self.secret.find('ed25519:') >= 0:
+                parts = self.secret.split('ed25519:')
                 secret = parts[1]
             signature = self.eddsa(self.encode(auth), self.base58_to_binary(secret), 'ed25519')
             requestHeaders['orderly-signature'] = self.urlencode_base64(self.base64_to_binary(signature))

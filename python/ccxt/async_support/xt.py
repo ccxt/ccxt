@@ -1204,7 +1204,7 @@ class xt(Exchange, ImplicitAPI):
     def parse_markets(self, markets: object):
         result = []
         for i in range(0, len(markets)):
-            parsed = self.parse_market(markets[i])
+            parsed = self.parse_market(self.safe_value(markets, i))
             if parsed is not None:
                 result.append(parsed)
         return result
@@ -1749,9 +1749,10 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        ticker = self.safe_value(response, 'result')
         if market['spot'] is True:
-            return self.parse_ticker(ticker[0], market)
+            tickers = self.safe_list(response, 'result', [])
+            return self.parse_ticker(tickers[0], market)
+        ticker = self.safe_dict(response, 'result', {})
         return self.parse_ticker(ticker, market)
 
     async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
@@ -4425,7 +4426,7 @@ class xt(Exchange, ImplicitAPI):
                 if self.in_array(symbol, symbols):
                     result[symbol] = self.parse_market_leverage_tiers(entry, market)
             else:
-                result[symbol] = self.parse_market_leverage_tiers(response[i], market)
+                result[symbol] = self.parse_market_leverage_tiers(entry, market)
         return result
 
     async def fetch_market_leverage_tiers(self, symbol: str, params: dict = {}) -> list[LeverageTier]:
@@ -4920,8 +4921,7 @@ class xt(Exchange, ImplicitAPI):
             # endpoint, including here and on position/list; there is no one-way/net
             # mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             # both validate positionSide against exactly ['LONG', 'SHORT'])
-            key = self.safe_string(breakEntry, 'symbol') + '_' + self.safe_string(breakEntry, 'positionSide')
-            breakBySymbolSide[key] = breakEntry
+            breakBySymbolSide[self.safe_string(breakEntry, 'symbol', '') + '_' + self.safe_string(breakEntry, 'positionSide', '')] = breakEntry
         return breakBySymbolSide
 
     def merge_position_break_info(self, entry: dict, breakBySymbolSide: dict) -> dict:
@@ -4930,9 +4930,7 @@ class xt(Exchange, ImplicitAPI):
         :param dict entry: a single entry from a position/list response
         :param dict breakBySymbolSide: the result of indexPositionBreakList()
         """
-        marketId = self.safe_string(entry, 'symbol')
-        key = marketId + '_' + self.safe_string(entry, 'positionSide')
-        breakEntry = self.safe_dict(breakBySymbolSide, key)
+        breakEntry = self.safe_dict(breakBySymbolSide, self.safe_string(entry, 'symbol', '') + '_' + self.safe_string(entry, 'positionSide', ''))
         if breakEntry is None:
             return entry
         return self.extend(entry, {
@@ -5523,7 +5521,7 @@ class xt(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api: list[str] = [], method: str = 'GET', params={}):
+    def sign(self, path: str, api: list[str] = [], method: str = 'GET', params: dict = {}):
         signed = api[0] == 'private'
         endpoint = api[1]
         request = '/' + self.implode_params(path, params)
@@ -5539,7 +5537,7 @@ class xt(Exchange, ImplicitAPI):
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + payload
-        query = self.omit(params, self.extract_params(path))
+        query = self.extend(self.omit(params, self.extract_params(path)))
         urlencoded = self.urlencode(self.keysort(query))
         headersValue = {
             'Content-Type': 'application/json',
@@ -5565,7 +5563,7 @@ class xt(Exchange, ImplicitAPI):
                 payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp
                 if isUndefinedBody:
                     if urlencoded != '':
-                        url += '?' + urlencoded
+                        url = apiUrl + payload + '?' + urlencoded
                         payloadString += '#' + method + '#' + payload + '#' + self.rawencode(self.keysort(query))
                     else:
                         payloadString += '#' + method + '#' + payload
@@ -5577,7 +5575,7 @@ class xt(Exchange, ImplicitAPI):
                 payloadString = 'xt-validate-appkey=' + self.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp  # we can't glue timestamp, breaks in php
                 if method == 'GET':
                     if urlencoded != '':
-                        url += '?' + urlencoded
+                        url = apiUrl + payload + '?' + urlencoded
                         payloadString += '#' + payload + '#' + urlencoded
                     else:
                         payloadString += '#' + payload
@@ -5589,7 +5587,7 @@ class xt(Exchange, ImplicitAPI):
             headersValue['xt-validate-signature'] = signature
         else:
             if urlencoded != '':
-                url += '?' + urlencoded
+                url = apiUrl + payload + '?' + urlencoded
         bodyValue = None
         if signed:
             bodyValue = signedBody

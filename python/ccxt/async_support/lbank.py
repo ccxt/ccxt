@@ -470,12 +470,11 @@ class lbank(Exchange, ImplicitAPI):
         return self.parse_currencies(values)
 
     def parse_currency(self, rawCurrency: list[dict]) -> CurrencyInterface:
-        id = self.safe_string(rawCurrency[0], 'assetCode')  # first member is guaranteed
+        id = self.safe_string(self.safe_dict(rawCurrency, 0, {}), 'assetCode')  # first member is guaranteed
         code = self.safe_currency_code(id)
-        networksRaw = rawCurrency
         networks = {}
-        for j in range(0, len(networksRaw)):
-            networkEntry = self.safe_dict(networksRaw, j)
+        for j in range(0, len(rawCurrency)):
+            networkEntry = self.safe_dict(rawCurrency, j)
             networkId = self.safe_string(networkEntry, 'chain')
             if networkId is None:
                 networkId = self.safe_string(networkEntry, 'assetCode')  # use type as fallback if networkId is not present
@@ -522,7 +521,7 @@ class lbank(Exchange, ImplicitAPI):
                 },
             },
             'networks': networks,
-            'info': networksRaw,
+            'info': rawCurrency,
         })
 
     async def fetch_markets(self, params: dict = {}) -> list[Market]:
@@ -540,7 +539,9 @@ class lbank(Exchange, ImplicitAPI):
             self.fetch_swap_markets(params),
         ]
         resolvedMarkets = await asyncio.gather(*marketsPromises)
-        return self.array_concat(resolvedMarkets[0], resolvedMarkets[1])
+        spotMarkets = resolvedMarkets[0]
+        swapMarkets = resolvedMarkets[1]
+        return self.array_concat(spotMarkets, swapMarkets)
 
     async def fetch_spot_markets(self, params: dict = {}) -> list[Market]:
         response = await self.spotPublicGetAccuracy(params)
@@ -668,14 +669,13 @@ class lbank(Exchange, ImplicitAPI):
             quote = self.safe_currency_code(quoteId)
             if (base is None) or (quote is None):
                 continue
-            settle = self.safe_currency_code(settleId)
-            symbol = base + '/' + quote + ':' + settle
+            symbol = base + '/' + quote + ':' + quote
             result.append({
                 'id': marketId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': settle,
+                'settle': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
@@ -1561,7 +1561,8 @@ class lbank(Exchange, ImplicitAPI):
         for i in range(0, len(fees)):
             fee = self.parse_trading_fee(fees[i])
             symbol = fee['symbol']
-            result[symbol] = fee
+            if symbol is not None:
+                result[symbol] = fee
         return result
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
@@ -1920,7 +1921,7 @@ class lbank(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'data', [])
         numOrders = len(result)
         if numOrders == 1:
-            return self.parse_order(result[0])
+            return self.parse_order(self.safe_dict(result, 0, {}))
         else:
             # const parsedOrders = [];
             # for (let i = 0; i < numOrders; i++) {
@@ -1947,7 +1948,7 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        sinceValue = self.safe_value(params, 'start_date', since)
+        sinceValue = self.safe_integer(params, 'start_date', since)
         paramsOmitted = self.omit(params, 'start_date')
         request = {
             'symbol': market['id'],
@@ -2617,8 +2618,7 @@ class lbank(Exchange, ImplicitAPI):
         withdrawFees = {}
         for i in range(0, len(result)):
             entry = self.safe_dict(result, i)
-            currencyId = self.safe_string(entry, 'coin')
-            code = self.safe_currency_code(currencyId)
+            code = self.safe_currency_code(self.safe_string(entry, 'coin'))
             networkList = self.safe_list(entry, 'networkList', [])
             if code is not None:
                 withdrawFees[code] = {}
@@ -2629,7 +2629,9 @@ class lbank(Exchange, ImplicitAPI):
                     networkCode = self.network_id_to_code(self.safe_string(networkEntry, 'name'), code)
                     if networkCode is not None:
                         if (code is not None) and (networkCode is not None):
-                            withdrawFees[code][networkCode] = fee
+                            feesForCode = {}
+                            feesForCode[networkCode] = fee
+                            withdrawFees[code] = self.extend(self.safe_dict(withdrawFees, code, {}), feesForCode)
         return {
             'withdraw': withdrawFees,
             'deposit': {},
@@ -2675,17 +2677,15 @@ class lbank(Exchange, ImplicitAPI):
             item = self.safe_dict(result, i)
             canWithdraw = self.safe_string(item, 'canWithDraw')
             if canWithdraw == 'true':
-                currencyId = self.safe_string(item, 'assetCode')
-                codeInner = self.safe_currency_code(currencyId)
+                codeInner = self.safe_currency_code(self.safe_string(item, 'assetCode'))
                 network = self.network_id_to_code(self.safe_string(item, 'chain'), codeInner)
                 if network is None:
                     network = codeInner
                 fee = self.safe_string(item, 'fee')
-                if self.safe_value(withdrawFees, codeInner) is None:
-                    if codeInner is not None:
-                        withdrawFees[codeInner] = {}
                 if (codeInner is not None) and (network is not None):
-                    withdrawFees[codeInner][network] = self.parse_number(fee)
+                    feesForCode = {}
+                    feesForCode[network] = self.parse_number(fee)
+                    withdrawFees[codeInner] = self.extend(self.safe_dict(withdrawFees, codeInner, {}), feesForCode)
         return {
             'withdraw': withdrawFees,
             'deposit': {},
@@ -2808,8 +2808,7 @@ class lbank(Exchange, ImplicitAPI):
             fee = response[i]
             canWithdraw = self.safe_bool(fee, 'canWithDraw')
             if canWithdraw is True:
-                currencyId = self.safe_string(fee, 'assetCode')
-                code = self.safe_currency_code(currencyId)
+                code = self.safe_currency_code(self.safe_string(fee, 'assetCode'))
                 if (code is not None) and (codes is None or self.in_array(code, codes)):
                     withdrawFee = self.safe_number(fee, 'fee')
                     if withdrawFee is not None:
@@ -2821,7 +2820,8 @@ class lbank(Exchange, ImplicitAPI):
                             resultCodeInfo.append(fee)
                         networkCode = self.network_id_to_code(self.safe_string(fee, 'chain'), code)
                         if networkCode is not None:
-                            result[code]['networks'][networkCode] = {
+                            networkFees = {}
+                            networkFees[networkCode] = {
                                 'withdraw': {
                                     'fee': withdrawFee,
                                     'percentage': None,
@@ -2831,11 +2831,15 @@ class lbank(Exchange, ImplicitAPI):
                                     'percentage': None,
                                 },
                             }
+                            networks = self.extend(self.safe_dict(self.safe_dict(result, code, {}), 'networks', {}), networkFees)
+                            result[code] = self.extend(self.safe_dict(result, code, {}), {'networks': networks})
                         else:
-                            result[code]['withdraw'] = {
-                                'fee': withdrawFee,
-                                'percentage': None,
-                            }
+                            result[code] = self.extend(self.safe_dict(result, code, {}), {
+                                'withdraw': {
+                                    'fee': withdrawFee,
+                                    'percentage': None,
+                                },
+                            })
         return result
 
     def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
@@ -2880,7 +2884,8 @@ class lbank(Exchange, ImplicitAPI):
                         'percentage': None,
                     }
                 if networkCode is not None:
-                    result['networks'][networkCode] = {
+                    networkFees = {}
+                    networkFees[networkCode] = {
                         'withdraw': {
                             'fee': withdrawFee,
                             'percentage': None,
@@ -2890,10 +2895,11 @@ class lbank(Exchange, ImplicitAPI):
                             'percentage': None,
                         },
                     }
+                    result['networks'] = self.extend(self.safe_dict(result, 'networks', {}), networkFees)
         return result
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
-        query = self.omit(params, self.extract_params(path))
+        paramsOmitted = self.omit(params, self.extract_params(path))
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
@@ -2907,15 +2913,15 @@ class lbank(Exchange, ImplicitAPI):
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             url = contractUrl + '/' + self.implode_params(path, params)
         if api[1] == 'public':
-            if len(query) > 0:
-                url += '?' + self.urlencode(self.keysort(query))
+            if len(paramsOmitted) > 0:
+                url += '?' + self.urlencode(self.keysort(paramsOmitted))
         else:
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
             echostr = self.uuid22() + self.uuid16()
-            query = self.extend({
+            signedQuery = self.extend({
                 'api_key': self.apiKey,
-            }, query)
+            }, paramsOmitted)
             signatureMethod = None
             if len(self.secret) > 32:
                 signatureMethod = 'RSA'
@@ -2926,7 +2932,7 @@ class lbank(Exchange, ImplicitAPI):
                 'echostr': echostr,
                 'signature_method': finalSig,
                 'timestamp': timestamp,
-            }, query)))
+            }, signedQuery)))
             encoded = self.encode(auth)
             hash = self.hash(encoded, 'md5')
             uppercaseHash = hash.upper()
@@ -2946,8 +2952,8 @@ class lbank(Exchange, ImplicitAPI):
                 sign = self.rsa(uppercaseHash, pem, 'sha256')
             elif signatureMethod == 'HmacSHA256':
                 sign = self.hmac(self.encode(uppercaseHash), self.encode(self.secret), hashlib.sha256)
-            query['sign'] = sign
-            bodySigned = self.urlencode(self.keysort(query))
+            signedQuery['sign'] = sign
+            bodySigned = self.urlencode(self.keysort(signedQuery))
             headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'timestamp': timestamp,
@@ -2970,8 +2976,8 @@ class lbank(Exchange, ImplicitAPI):
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             raise NullResponse(self.id + ' parseBalance() returned empty response')
-        success = self.safe_value(response, 'result')
-        if (success == 'false') or (success is None) or (success is None) or (success is False):
+        success = self.safe_string(response, 'result')
+        if (success == 'false') or (success is None):
             errorCode = self.safe_string(response, 'error_code')
             message = self.safe_string({
                 '10000': 'Internal error',

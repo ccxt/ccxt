@@ -837,7 +837,7 @@ class bullish(Exchange, ImplicitAPI):
             margin = self.safe_bool(market, 'marginTradingEnabled')
         else:
             contractSize = self.safe_number(market, 'contractMultiplier')
-            symbol += ':' + settle
+            symbol = base + '/' + quote + ':' + settle
             linear = settle == quote
             inverse = not linear
             if type == 'swap':
@@ -855,6 +855,7 @@ class bullish(Exchange, ImplicitAPI):
                     optionType = self.safe_string_lower(market, 'optionType')
                     strike = self.parse_to_numeric(self.safe_string(market, 'optionStrikePrice'))
                     symbol += '-' + self.number_to_string(strike) + '-' + self.safe_string(idParts, 4)
+        tradingFees = self.safe_dict(self.fees, 'trading', {})
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -873,8 +874,8 @@ class bullish(Exchange, ImplicitAPI):
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
-            'taker': self.fees['trading']['taker'],
-            'maker': self.fees['trading']['maker'],
+            'taker': tradingFees['taker'],
+            'maker': tradingFees['maker'],
             'contractSize': contractSize,
             'expiry': self.parse8601(expiryDatetime),
             'expiryDatetime': expiryDatetime,
@@ -1140,13 +1141,13 @@ class bullish(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(trade, 'createdAtTimestamp')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'quantity')
         side = self.safe_string_lower(trade, 'side')
         isTaker = self.safe_bool(trade, 'isTaker')
-        currency = marketResolved['quote']
+        currency = self.safe_string(marketResolved, 'quote')
         code = self.safe_currency_code(currency)
         feeCost = self.safe_number(trade, 'quoteFee')
         fee = None
@@ -1301,7 +1302,7 @@ class bullish(Exchange, ImplicitAPI):
         maxRetries, paramsMaxRetries = self.handle_option_integer_and_params(params, method, 'maxRetries', 3)
         if (method != 'fetchOHLCV') and (method != 'fetchFundingRateHistory') and (method != 'fetchTrades'):
             raise NotSupported(self.id + ' safeDeterministicCall() does not support the ' + method + ' method')
-        errors = 0
+        errors = self.parse_to_int(0)
         paramsOmitted = self.omit(paramsMaxRetries, 'until')
         # the exchange returns the most recent data, so we do not need to pass until into paginated calls
         # the correct util value will be calculated inside of the method
@@ -1316,7 +1317,7 @@ class bullish(Exchange, ImplicitAPI):
             except Exception as e:
                 if isinstance(e, RateLimitExceeded):
                     raise e  # if we are rate limited, we should not retry and fail fast
-                errors += 1
+                errors = self.parse_to_int(errors + 1)
                 if errors > maxRetries:
                     raise e
         return []
@@ -1365,9 +1366,9 @@ class bullish(Exchange, ImplicitAPI):
             startTime = untilParam - maxDelta
         elif untilParam is None:
             until = self.sum(startTime, maxDelta)
-        requestUntil['createdAtDatetime[gte]'] = self.iso8601(startTime)
-        requestUntil['createdAtDatetime[lte]'] = self.iso8601(until)
-        response = self.publicGetV1MarketsSymbolCandle(self.extend(requestUntil, paramsUntil))
+        request['createdAtDatetime[gte]'] = self.iso8601(startTime)
+        request['createdAtDatetime[lte]'] = self.iso8601(until)
+        response = self.publicGetV1MarketsSymbolCandle(self.extend(request, paramsUntil))
         #
         #     [
         #         {
@@ -1488,11 +1489,9 @@ class bullish(Exchange, ImplicitAPI):
         paramsSinceAndUntil = self.handle_since_and_until(since, params)
         if limit is not None:
             request['_pageSize'] = self.get_closest_limit(limit)
-        method = 'privateGetV2HistoryOrders'
-        paramsMethod = None
-        method, paramsMethod = self.handle_option_string_and_params(paramsSinceAndUntil, 'fetchOrders', 'method', method)
+        methodResolved, paramsMethod = self.handle_option_string_and_params(paramsSinceAndUntil, 'fetchOrders', 'method', 'privateGetV2HistoryOrders')
         response = []
-        if method == 'privateGetV2Orders':
+        if methodResolved == 'privateGetV2Orders':
             #
             #     [
             #         {
@@ -1523,7 +1522,7 @@ class bullish(Exchange, ImplicitAPI):
             #     ]
             #
             response = self.privateGetV2Orders(self.extend(request, paramsMethod))
-        elif method == 'privateGetV2HistoryOrders':
+        elif methodResolved == 'privateGetV2HistoryOrders':
             response = self.privateGetV2HistoryOrders(self.extend(request, paramsMethod))
         else:
             raise BadRequest(self.id + ' fetchOrders() method parameter must be either "privateGetV2Orders" or "privateGetV2HistoryOrders"')
@@ -1548,9 +1547,7 @@ class bullish(Exchange, ImplicitAPI):
         if untilParam is not None:
             until = untilParam
         sinceFromUntil = (since is None) and (untilParam is not None)
-        paramsResult = params
-        if sinceFromUntil:
-            paramsResult = self.omit(params, 'until')
+        paramsResult = self.omit(params, 'until') if sinceFromUntil else params
         if (since is not None) or (untilParam is not None):
             timeDelta = 7 * 24 * 60 * 60 * 1000  # 7 days
             sinceResolved = since
@@ -1563,10 +1560,8 @@ class bullish(Exchange, ImplicitAPI):
                     until = now
                 else:
                     until = self.sum(since, timeDelta)
-            sinceDate = self.iso8601(sinceResolved)
-            untilDate = self.iso8601(until)
-            paramsResult[sinceKey] = sinceDate
-            paramsResult[untilKey] = untilDate
+            paramsResult[sinceKey] = self.iso8601(sinceResolved)
+            paramsResult[untilKey] = self.iso8601(until)
         return paramsResult
 
     def get_closest_limit(self, limit: Int) -> Int:
@@ -1742,8 +1737,8 @@ class bullish(Exchange, ImplicitAPI):
         orderType = type
         if postOnly:
             orderType = 'POST_ONLY'
-        timeInForce, paramsTimeInForce = self.handle_option_string_and_params(paramsPostOnly, 'createOrder', 'timeInForce', 'GTC')  # is mandatory
-        paramsTimeInForce['timeInForce'] = timeInForce.upper()
+        timeInForce, paramsTimeInForceRaw = self.handle_option_string_and_params(paramsPostOnly, 'createOrder', 'timeInForce', 'GTC')  # is mandatory
+        paramsTimeInForce = self.extend(paramsTimeInForceRaw, {'timeInForce': timeInForce.upper()})
         if not isMarketOrder:
             request['price'] = self.price_to_precision(symbol, price)
         triggerPrice = self.safe_string(paramsTimeInForce, 'triggerPrice')
@@ -2008,10 +2003,10 @@ class bullish(Exchange, ImplicitAPI):
         requestUntil, paramsUntil = self.handle_until_option('createdAtDatetime[lte]', request, params)
         until = self.safe_integer(requestUntil, 'createdAtDatetime[lte]')
         if until is not None:
-            requestUntil['createdAtDatetime[lte]'] = self.iso8601(until)
+            request['createdAtDatetime[lte]'] = self.iso8601(until)
         if since is not None:
-            requestUntil['createdAtDatetime[gte]'] = self.iso8601(since)
-        response = self.privateGetV1WalletsTransactions(self.extend(requestUntil, paramsUntil))
+            request['createdAtDatetime[gte]'] = self.iso8601(since)
+        response = self.privateGetV1WalletsTransactions(self.extend(request, paramsUntil))
         #
         #     {
         #         "data": [
@@ -2421,8 +2416,9 @@ class bullish(Exchange, ImplicitAPI):
         result = {
             'info': response,
         }
-        for i in range(0, len(response)):
-            balance = self.safe_dict(response, i)
+        rows = self.to_array(response)
+        for i in range(0, len(rows)):
+            balance = self.safe_dict(rows, i)
             symbol = self.safe_string(balance, 'assetSymbol')
             code = self.safe_currency_code(symbol)
             account = self.account()
@@ -2496,7 +2492,7 @@ class bullish(Exchange, ImplicitAPI):
         #     ]
         #
         marketResolved = self.safe_market(self.safe_string(position, 'symbol'), market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(position, 'createdAtTimestamp')
         side = self.safe_string(position, 'side')
         return self.safe_position({
@@ -2710,9 +2706,9 @@ class bullish(Exchange, ImplicitAPI):
             startTimestamp = now - 1000 * 60 * 60 * 24 * 90  # Only the last 90 days of data is available for querying
         if until is None:
             until = now
-        requestUntil['createdAtDatetime[gte]'] = self.iso8601(startTimestamp)
-        requestUntil['createdAtDatetime[lte]'] = self.iso8601(until)
-        response = self.privateGetV1HistoryBorrowInterest(self.extend(requestUntil, paramsUntil))
+        request['createdAtDatetime[gte]'] = self.iso8601(startTimestamp)
+        request['createdAtDatetime[lte]'] = self.iso8601(until)
+        response = self.privateGetV1HistoryBorrowInterest(self.extend(request, paramsUntil))
         #
         #     [
         #         {
@@ -2874,10 +2870,11 @@ class bullish(Exchange, ImplicitAPI):
             self.check_required_credentials()
             nonce = str(self.microseconds())
             timestamp = str(self.get_timestamp())
+            headers = {}
             if method == 'GET':
                 payload = timestamp + nonce + method + '/trading-api/' + path
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'hex')
-                requestHeaders = {
+                headers = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,
                     'BX-SIGNATURE': signature,
@@ -2887,26 +2884,24 @@ class bullish(Exchange, ImplicitAPI):
                 payload = timestamp + nonce + method + '/trading-api/' + path + requestBody
                 digest = self.hash(self.encode(payload), 'sha256', 'hex')
                 signature = self.hmac(self.encode(digest), self.encode(self.secret), hashlib.sha256, 'hex')
-                requestHeaders = {
+                headers = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,
                     'BX-SIGNATURE': signature,
                     'Content-Type': 'application/json',
                 }
-                requestHeaders['Content-Type'] = 'application/json'
                 rateLimitToken = self.safe_string(request, 'rateLimitToken')
                 if rateLimitToken is not None:
-                    requestHeaders['BX-RATE-LIMIT-TOKEN'] = rateLimitToken
+                    headers['BX-RATE-LIMIT-TOKEN'] = rateLimitToken
             if path == 'v1/users/hmac/login':
-                requestHeaders = {} if (requestHeaders is None) else requestHeaders
-                requestHeaders['BX-PUBLIC-KEY'] = self.apiKey
+                headers['BX-PUBLIC-KEY'] = self.apiKey
             else:
                 token = self.token
                 if (token is None):
                     raise AuthenticationError(self.id + ' requires a token, please call signIn() first')
-                requestHeaders = {} if (requestHeaders is None) else requestHeaders
-                requestHeaders['Authorization'] = 'Bearer ' + token
+                headers['Authorization'] = 'Bearer ' + token
                 # headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
+            requestHeaders = headers
         if method == 'GET':
             query = self.urlencode(request)
             if len(query) > 0:

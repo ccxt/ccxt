@@ -381,7 +381,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         self.events = eventsDict
         return flatMarkets
 
-    async def fetch_raw_events_by_search(self, queries: list[str], params: dict = {}) -> list[object]:
+    async def fetch_raw_events_by_search(self, queries: list[str], params: dict = {}) -> list[dict]:
         """
  @ignore
         fetches raw gamma event objects matching the given search terms, paginating through all result pages
@@ -489,7 +489,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             return lower
         return slug
 
-    async def fetch_raw_events_list(self, params: dict = {}) -> list[object]:
+    async def fetch_raw_events_list(self, params: dict = {}) -> list[dict]:
         """
  @ignore
         fetches raw gamma event objects from the events listing endpoint, paginating in parallel

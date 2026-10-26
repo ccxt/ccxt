@@ -821,6 +821,55 @@ class tokocrypto(Exchange, ImplicitAPI):
                     active = False
                     break
             marginTradingEnable = self.safe_string(market, 'marginTradingEnable')
+            costMin = None
+            precision = {
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision'))),
+                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
+                'base': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
+                'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
+            }
+            limits = {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': costMin,
+                    'max': None,
+                },
+            }
+            if 'PRICE_FILTER' in filtersByType:
+                filter = self.safe_dict(filtersByType, 'PRICE_FILTER', {})
+                # PRICE_FILTER reports zero values for maxPrice
+                # since they updated filter types in November 2018
+                # https://github.com/ccxt/ccxt/issues/4286
+                # therefore limits['price']['max'] doesn't have any meaningful value except undefined
+                limits['price'] = {
+                    'min': self.safe_number(filter, 'minPrice'),
+                    'max': self.safe_number(filter, 'maxPrice'),
+                }
+                precision['price'] = filter['tickSize']
+            if 'LOT_SIZE' in filtersByType:
+                filter = self.safe_dict(filtersByType, 'LOT_SIZE', {})
+                precision['amount'] = self.safe_number(filter, 'stepSize')
+                limits['amount'] = {
+                    'min': self.safe_number(filter, 'minQty'),
+                    'max': self.safe_number(filter, 'maxQty'),
+                }
+            if 'MARKET_LOT_SIZE' in filtersByType:
+                filter = self.safe_dict(filtersByType, 'MARKET_LOT_SIZE', {})
+                limits['market'] = {
+                    'min': self.safe_number(filter, 'minQty'),
+                    'max': self.safe_number(filter, 'maxQty'),
+                }
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -846,61 +895,14 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
-                    'base': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
-                    'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
+                'precision': precision,
+                'limits': limits,
                 'created': None,
                 'info': market,
             }
-            if 'PRICE_FILTER' in filtersByType:
-                filter = self.safe_dict(filtersByType, 'PRICE_FILTER', {})
-                entry['precision']['price'] = self.safe_number(filter, 'tickSize')
-                # PRICE_FILTER reports zero values for maxPrice
-                # since they updated filter types in November 2018
-                # https://github.com/ccxt/ccxt/issues/4286
-                # therefore limits['price']['max'] doesn't have any meaningful value except undefined
-                entry['limits']['price'] = {
-                    'min': self.safe_number(filter, 'minPrice'),
-                    'max': self.safe_number(filter, 'maxPrice'),
-                }
-                entry['precision']['price'] = filter['tickSize']
-            if 'LOT_SIZE' in filtersByType:
-                filter = self.safe_dict(filtersByType, 'LOT_SIZE', {})
-                entry['precision']['amount'] = self.safe_number(filter, 'stepSize')
-                entry['limits']['amount'] = {
-                    'min': self.safe_number(filter, 'minQty'),
-                    'max': self.safe_number(filter, 'maxQty'),
-                }
-            if 'MARKET_LOT_SIZE' in filtersByType:
-                filter = self.safe_dict(filtersByType, 'MARKET_LOT_SIZE', {})
-                entry['limits']['market'] = {
-                    'min': self.safe_number(filter, 'minQty'),
-                    'max': self.safe_number(filter, 'maxQty'),
-                }
             if 'MIN_NOTIONAL' in filtersByType:
                 filter = self.safe_dict(filtersByType, 'MIN_NOTIONAL', {})
-                entry['limits']['cost']['min'] = self.safe_number_2(filter, 'minNotional', 'notional')
+                costMin = self.safe_number_2(filter, 'minNotional', 'notional')
             result.append(entry)
         return result
 
@@ -1801,7 +1803,9 @@ class tokocrypto(Exchange, ImplicitAPI):
         isPostOnlyTimeInForce = (requestedTimeInForce == 'GTX')
         postOnly, paramsPostOnly = self.handle_post_only(isMarketOrder, isPostOnlyTimeInForce, params)
         # only supported for spot/margin api
-        typeResolved = 'LIMIT_MAKER' if (postOnly) else type
+        typeResolved = type
+        if postOnly:
+            typeResolved = 'LIMIT_MAKER'
         # post only is expressed by the order type here, not by a time force
         timeInForceResolved = requestedTimeInForce
         if postOnly:
@@ -1833,8 +1837,10 @@ class tokocrypto(Exchange, ImplicitAPI):
             'TAKE_PROFIT_LIMIT': 6,
             'LIMIT_MAKER': 7,
         }
+        baseId = self.safe_string(market, 'baseId', '')
+        quoteId = self.safe_string(market, 'quoteId', '')
         request = {
-            'symbol': market['baseId'] + '_' + market['quoteId'],
+            'symbol': baseId + '_' + quoteId,
             'type': self.safe_string(reverseOrderTypeMapping, uppercaseType),
         }
         if side == 'buy':
@@ -1867,7 +1873,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         if uppercaseType == 'MARKET':
             if side == 'buy':
-                precision = market['precision']['price']
+                marketPrecision = self.safe_dict(market, 'precision', {})
+                precision = marketPrecision['price']
                 quoteAmount = None
                 createMarketBuyOrderRequiresPrice = True
                 createMarketBuyOrderRequiresPrice, paramsRequest = self.handle_option_bool_and_params(paramsRequest, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
@@ -2561,13 +2568,13 @@ class tokocrypto(Exchange, ImplicitAPI):
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
-        if not (apiName in self.urls['api']['rest']):
+        restUrls = self.extend({}, self.urls['api']['rest'])
+        if not (apiName in restUrls):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints')
         baseApiUrl = self.safe_string(self.urls['api']['rest'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = baseApiUrl
-        url += '/' + path
+        url = baseApiUrl + '/' + path
         if apiName == 'wapi':
             url += '.html'
         userDataStream = (path == 'userDataStream') or (path == 'listenKey')
@@ -2584,7 +2591,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
         elif (apiName == 'private') or (apiName == 'sapi' and path != 'system/status') or (apiName == 'sapiV3') or (apiName == 'wapi' and path != 'systemStatus') or (apiName == 'dapiPrivate') or (apiName == 'dapiPrivateV2') or (apiName == 'fapiPrivate') or (apiName == 'fapiPrivateV2'):
             self.check_required_credentials()
-            query = None
+            query = ''
             defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
             extendedParams = self.extend({
                 'timestamp': self.nonce(),
@@ -2606,12 +2613,11 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'X-MBX-APIKEY': self.apiKey,
             }
             queryInUrl = (method == 'GET') or (method == 'DELETE') or (apiName == 'wapi')
-            bodySigned = query
-            if queryInUrl:
-                bodySigned = None
+            bodySigned = None
             if queryInUrl:
                 url += '?' + query
             else:
+                bodySigned = query
                 headersSigned['Content-Type'] = 'application/x-www-form-urlencoded'
             return {'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned}
         else:
@@ -2677,19 +2683,20 @@ class tokocrypto(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config: dict = {}):
-        if ('noCoin' in config) and not ('coin' in params):
-            return config['noCoin']
-        elif ('noSymbol' in config) and not ('symbol' in params):
-            return config['noSymbol']
-        elif ('noPoolId' in config) and not ('poolId' in params):
-            return config['noPoolId']
-        elif ('byLimit' in config) and ('limit' in params):
-            limit = self.safe_integer(params, 'limit')
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
+        paramsDict = self.extend({}, params)
+        if ('noCoin' in paramsDict) and not ('coin' in paramsDict):
+            return self.safe_integer(config, 'noCoin')
+        elif ('noSymbol' in paramsDict) and not ('symbol' in paramsDict):
+            return self.safe_integer(config, 'noSymbol')
+        elif ('noPoolId' in paramsDict) and not ('poolId' in paramsDict):
+            return self.safe_integer(config, 'noPoolId')
+        elif ('byLimit' in config) and ('limit' in paramsDict):
+            limit = self.safe_integer(paramsDict, 'limit')
             byLimit = self.safe_list(config, 'byLimit', [])
             for i in range(0, len(byLimit)):
                 entry = byLimit[i]
                 entryLimit = self.safe_integer(entry, 0)
                 if (limit is not None) and (entryLimit is not None) and (limit <= entryLimit):
-                    return entry[1]
+                    return self.safe_integer(entry, 1)
         return self.safe_integer(config, 'cost', 1)

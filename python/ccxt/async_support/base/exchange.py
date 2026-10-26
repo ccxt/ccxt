@@ -1443,7 +1443,7 @@ class BaseExchange(SyncExchange):
                         break
                     errors = 0
                     result = self.array_concat(result, response)
-                    firstElement = self.safe_value(response, 0)
+                    firstElement = self.safe_dict(response, 0)
                     paginationTimestamp = self.safe_integer_2(firstElement, 'timestamp', 0)
                     if paginationTimestamp is None:
                         shouldBreak = True
@@ -1465,7 +1465,7 @@ class BaseExchange(SyncExchange):
                         break
                     errors = 0
                     result = self.array_concat(result, response)
-                    last = self.safe_value(response, responseLength - 1)
+                    last = self.safe_dict(response, responseLength - 1)
                     lastTimestamp = self.safe_integer(last, 'timestamp', 0)
                     if lastTimestamp is None:
                         shouldBreak = True
@@ -1599,8 +1599,7 @@ class BaseExchange(SyncExchange):
                 if responseLength == 0:
                     shouldBreak = True
                     break
-                if response is not None:
-                    result = self.array_concat(result, response)
+                result = self.array_concat(result, response)
                 last = self.safe_dict(response, responseLength - 1)
                 # cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = None  # search for the cursor

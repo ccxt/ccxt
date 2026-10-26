@@ -1392,13 +1392,13 @@ class paradex(Exchange, ImplicitAPI):
         if l1:
             l1D = {
                 'name': 'Paradex',
-                'chainId': systemConfig['l1_chain_id'],
+                'chainId': self.safe_string(systemConfig, 'l1_chain_id'),
                 'version': '1',
             }
             return l1D
         domain = {
             'name': 'Paradex',
-            'chainId': systemConfig['starknet_chain_id'],
+            'chainId': self.safe_string(systemConfig, 'starknet_chain_id'),
             'version': 1,
         }
         return domain
@@ -1420,13 +1420,13 @@ class paradex(Exchange, ImplicitAPI):
             signature = self.sign_message(msg, self.privateKey)
             account = self.retrieve_stark_account(
                 signature,
-                systemConfig['paraclear_account_hash'],
-                systemConfig['paraclear_account_proxy_hash']
+                self.safe_string(systemConfig, 'paraclear_account_hash'),
+                self.safe_string(systemConfig, 'paraclear_account_proxy_hash')
             )
             self.options['paradexAccount'] = account
         return self.safe_dict(self.options, 'paradexAccount', {})
 
-    def onboarding(self, params: dict = {}):
+    def onboarding(self, params: dict = {}) -> dict:
         account = self.retrieve_account()
         req = {
             'action': 'Onboarding',
@@ -1437,11 +1437,11 @@ class paradex(Exchange, ImplicitAPI):
                 {'name': 'action', 'type': 'felt'},
             ],
         }
-        msg = self.starknet_encode_structured_data(domain, messageTypes, req, account['address'])
+        msg = self.starknet_encode_structured_data(domain, messageTypes, req, self.safe_string(account, 'address'))
         signature = self.starknet_sign(msg, account['privateKey'])
         params['signature'] = signature
-        params['account'] = account['address']
-        params['public_key'] = account['publicKey']
+        params['account'] = self.safe_string(account, 'address')
+        params['public_key'] = self.safe_string(account, 'publicKey')
         response = self.privatePostOnboarding(params)
         return response
 
@@ -1474,10 +1474,10 @@ class paradex(Exchange, ImplicitAPI):
                 {'name': 'expiration', 'type': 'felt'},
             ],
         }
-        msg = self.starknet_encode_structured_data(domain, messageTypes, req, account['address'])
+        msg = self.starknet_encode_structured_data(domain, messageTypes, req, self.safe_string(account, 'address'))
         signature = self.starknet_sign(msg, account['privateKey'])
         params['signature'] = signature
-        params['account'] = account['address']
+        params['account'] = self.safe_string(account, 'address')
         params['timestamp'] = req['timestamp']
         params['expiration'] = req['expiration']
         response = self.privatePostAuth(params)
@@ -1607,7 +1607,7 @@ class paradex(Exchange, ImplicitAPI):
         }
         return self.safe_string_lower(types, type, type)
 
-    def scale_number(self, num: str) -> Str:
+    def scale_number(self, num: Str) -> Str:
         return Precise.string_mul(num, '100000000')
 
     def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
@@ -1695,11 +1695,11 @@ class paradex(Exchange, ImplicitAPI):
         isMarket = (orderType.find('MARKET') >= 0)
         orderReq = {
             'timestamp': now * 1000,
-            'market': self.string_to_base16(request['market']),
+            'market': self.string_to_base16(self.safe_string(request, 'market')),
             'side': '1' if (self.safe_string(request, 'side') == 'BUY') else '2',
-            'orderType': self.string_to_base16(request['type']),
-            'size': self.scale_number(request['size']),
-            'price': '0' if (isMarket) else self.scale_number(request['price']),
+            'orderType': self.string_to_base16(self.safe_string(request, 'type')),
+            'size': self.scale_number(self.safe_string(request, 'size')),
+            'price': '0' if (isMarket) else self.scale_number(self.safe_string(request, 'price')),
         }
         orderFields = [
             {'name': 'timestamp', 'type': 'felt'},
@@ -1711,7 +1711,7 @@ class paradex(Exchange, ImplicitAPI):
         ]
         messageTypes = {}
         if modify:
-            orderReq['id'] = request['id']
+            orderReq['id'] = self.safe_string(request, 'id')
             orderFields.append({'name': 'id', 'type': 'felt'})
             messageTypes = {
                 'ModifyOrder': orderFields,
@@ -1721,7 +1721,7 @@ class paradex(Exchange, ImplicitAPI):
                 'Order': orderFields,
             }
         domain = self.prepare_paradex_domain()
-        msg = self.starknet_encode_structured_data(domain, messageTypes, orderReq, account['address'])
+        msg = self.starknet_encode_structured_data(domain, messageTypes, orderReq, self.safe_string(account, 'address'))
         signature = self.starknet_sign(msg, account['privateKey'])
         signedRequest = self.extend(request, {
             'signature': signature,
@@ -1963,7 +1963,7 @@ class paradex(Exchange, ImplicitAPI):
             self.load_markets()
         clientOrderIds = self.safe_list_n(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
         paramsOmitted = self.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
-        hasOrderIds = (ids is not None) and (isinstance(ids, list))
+        hasOrderIds = isinstance(ids, list)
         hasClientOrderIds = (clientOrderIds is not None) and (isinstance(clientOrderIds, list))
         if not hasOrderIds and not hasClientOrderIds:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter')
@@ -3265,18 +3265,18 @@ class paradex(Exchange, ImplicitAPI):
             privateBody = None
             # TODO: optimize
             if pathValue == 'auth':
-                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = query['account']
-                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = query['signature']
-                privateHeaders['PARADEX-TIMESTAMP'] = str(query['timestamp'])
-                privateHeaders['PARADEX-SIGNATURE-EXPIRATION'] = str(query['expiration'])
+                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = self.safe_string(query, 'account')
+                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = self.safe_string(query, 'signature')
+                privateHeaders['PARADEX-TIMESTAMP'] = self.safe_string(query, 'timestamp')
+                privateHeaders['PARADEX-SIGNATURE-EXPIRATION'] = self.safe_string(query, 'expiration')
             elif pathValue == 'onboarding':
                 privateHeaders['PARADEX-ETHEREUM-ACCOUNT'] = self.walletAddress
-                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = query['account']
-                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = query['signature']
-                privateHeaders['PARADEX-TIMESTAMP'] = str(self.nonce())
+                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = self.safe_string(query, 'account')
+                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = self.safe_string(query, 'signature')
+                privateHeaders['PARADEX-TIMESTAMP'] = self.number_to_string(self.nonce())
                 privateHeaders['Content-Type'] = 'application/json'
                 privateBody = self.json({
-                    'public_key': query['public_key'],
+                    'public_key': self.safe_string(query, 'public_key'),
                 })
             else:
                 token = self.safe_string(self.options, 'authToken')

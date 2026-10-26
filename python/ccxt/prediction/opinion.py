@@ -1520,7 +1520,8 @@ class opinion(PredictionExchange, ImplicitAPI):
         self.options['apiKey'] = creds['apiKey']
         # checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         # options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
-        self.apiKey = creds['apiKey']
+        # an empty string, not undefined: the strict base types the credential as string
+        self.apiKey = self.safe_string(creds, 'apiKey', '')
         return creds
 
     def opinion_ws_url(self) -> str:

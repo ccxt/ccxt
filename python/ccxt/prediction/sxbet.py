@@ -2101,8 +2101,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
-        sym = self.safe_string(outcomeObj, 'outcome')
-        marketHash = self.safe_string(outcomeObj['info'], 'marketHash')
+        sym = self.safe_string(outcomeObj, 'outcome', '')
+        marketHash = self.safe_string(outcomeObj['info'], 'marketHash', '')
         channel = 'orderbook_v3:' + marketHash
         messageHash = 'orderbook::' + sym
         url = self.safe_string(self.urls['api'], 'ws')
@@ -2206,7 +2206,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
-        sym = self.safe_string(outcomeObj, 'outcome')
+        sym = self.safe_string(outcomeObj, 'outcome', '')
         marketHash = self.safe_string(outcomeObj['info'], 'marketHash')
         messageHash = 'ticker::' + sym
         watchedTickers = self.safe_dict(self.options, 'wsWatchedTickers')
@@ -2285,7 +2285,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
-        sym = self.safe_string(outcomeObj, 'outcome')
+        sym = self.safe_string(outcomeObj, 'outcome', '')
         messageHash = 'trades::' + sym
         trades = await self.subscribe_sxbet_channel(messageHash, 'recent_trades_v3:global')
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
@@ -2373,7 +2373,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             await self.load_outcome(outcome)
             outcomeObj = self.outcome(outcome)
-            sym = self.safe_string(outcomeObj, 'outcome')
+            sym = self.safe_string(outcomeObj, 'outcome', '')
             messageHash = 'myTrades::' + sym
         channel = 'account:fills_v3_#' + self.walletAddress
         trades = await self.subscribe_sxbet_channel(messageHash, channel)
@@ -2417,7 +2417,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             await self.load_outcome(outcome)
             outcomeObj = self.outcome(outcome)
-            sym = self.safe_string(outcomeObj, 'outcome')
+            sym = self.safe_string(outcomeObj, 'outcome', '')
             messageHash = 'orders::' + sym
         channel = 'account:orders_v3_#' + self.walletAddress
         orders = await self.subscribe_sxbet_channel(messageHash, channel)

@@ -270,7 +270,9 @@ class zaif(Exchange, ImplicitAPI):
         name = self.safe_string(market, 'name')
         if name is None:
             raise ExchangeError(self.id + ' parseMarket() missing name')
-        baseId, quoteId = name.split('/')
+        nameParts = name.split('/')
+        baseId = self.safe_string(nameParts, 0)
+        quoteId = self.safe_string(nameParts, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
@@ -559,7 +561,7 @@ class zaif(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'return', {})
         return self.safe_order({
             'info': response,
-            'id': str(data['order_id']),
+            'id': self.number_to_string(data['order_id']),
         }, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -806,8 +808,7 @@ class zaif(Exchange, ImplicitAPI):
         }
 
     def custom_nonce(self) -> str:
-        num = self.number_to_string(self.milliseconds() / 1000)
-        nonce = float(num)
+        nonce = self.milliseconds() / 1000
         return format(nonce, '.8f')
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:

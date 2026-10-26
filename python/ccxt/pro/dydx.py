@@ -50,9 +50,9 @@ class dydx(ccxt.async_support.dydx):
         """
         if self.markets is None:
             await self.load_markets()
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         market = self.market(symbol)
-        messageHash = 'trade:' + market['symbol']
+        messageHash = 'trade:' + self.safe_string(market, 'symbol', '')
         request = {
             'type': 'subscribe',
             'channel': 'v4_trades',
@@ -76,9 +76,9 @@ class dydx(ccxt.async_support.dydx):
         """
         if self.markets is None:
             await self.load_markets()
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         market = self.market(symbol)
-        messageHash = 'trade:' + market['symbol']
+        messageHash = 'trade:' + self.safe_string(market, 'symbol', '')
         request = {
             'type': 'unsubscribe',
             'channel': 'v4_trades',
@@ -111,7 +111,7 @@ class dydx(ccxt.async_support.dydx):
         #
         marketId = self.safe_string(message, 'id')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         content = self.safe_dict(message, 'contents')
         rawTrades = self.safe_list(content, 'trades', [])
         stored = self.safe_value(self.trades, symbol)
@@ -121,8 +121,7 @@ class dydx(ccxt.async_support.dydx):
             self.trades[symbol] = stored
         parsedTrades = self.parse_trades(rawTrades, market)
         for i in range(0, len(parsedTrades)):
-            parsed = parsedTrades[i]
-            stored.append(parsed)
+            stored.append(parsedTrades[i])
         messageHash = 'trade' + ':' + symbol
         client.resolve(stored, messageHash)
 
@@ -168,9 +167,9 @@ class dydx(ccxt.async_support.dydx):
         """
         if self.markets is None:
             await self.load_markets()
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         market = self.market(symbol)
-        messageHash = 'orderbook:' + market['symbol']
+        messageHash = 'orderbook:' + self.safe_string(market, 'symbol', '')
         request = {
             'type': 'subscribe',
             'channel': 'v4_orderbook',
@@ -191,9 +190,9 @@ class dydx(ccxt.async_support.dydx):
         """
         if self.markets is None:
             await self.load_markets()
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         market = self.market(symbol)
-        messageHash = 'orderbook:' + market['symbol']
+        messageHash = 'orderbook:' + self.safe_string(market, 'symbol', '')
         request = {
             'type': 'unsubscribe',
             'channel': 'v4_orderbook',
@@ -227,7 +226,7 @@ class dydx(ccxt.async_support.dydx):
         #
         marketId = self.safe_string(message, 'id')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         content = self.safe_dict(message, 'contents')
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
@@ -266,14 +265,14 @@ class dydx(ccxt.async_support.dydx):
         """
         if self.markets is None:
             await self.load_markets()
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         market = self.market(symbol)
-        messageHash = 'ohlcv:' + market['symbol']
+        messageHash = 'ohlcv:' + self.safe_string(market, 'symbol', '')
         resolution = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
             'type': 'subscribe',
             'channel': 'v4_candles',
-            'id': market['id'] + '/' + resolution,
+            'id': self.safe_string(market, 'id', '') + '/' + resolution,
         }
         ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         limitResolved = limit
@@ -295,14 +294,14 @@ class dydx(ccxt.async_support.dydx):
         """
         if self.markets is None:
             await self.load_markets()
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         market = self.market(symbol)
-        messageHash = 'ohlcv:' + market['symbol']
+        messageHash = 'ohlcv:' + self.safe_string(market, 'symbol', '')
         resolution = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
             'type': 'unsubscribe',
             'channel': 'v4_candles',
-            'id': market['id'] + '/' + resolution,
+            'id': self.safe_string(market, 'id', '') + '/' + resolution,
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
@@ -364,7 +363,7 @@ class dydx(ccxt.async_support.dydx):
         timeframe = self.find_timeframe(interval)
         marketId = self.safe_string(part, 0)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         content = self.safe_dict(message, 'contents')
         candles = self.safe_list(content, 'candles')
         messageHash = 'ohlcv:' + symbol
@@ -389,7 +388,7 @@ class dydx(ccxt.async_support.dydx):
         # }
         #
         try:
-            msg = self.safe_string(message, 'message')
+            msg = self.safe_string(message, 'message', '')
             raise ExchangeError(self.id + ' ' + msg)
         except Exception as e:
             client.reject(e)

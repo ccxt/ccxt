@@ -854,8 +854,8 @@ class gemini(Exchange, ImplicitAPI):
             return None
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote
-        if settleId is not None:
-            symbol = symbol + ':' + settle
+        if settle is not None:
+            symbol = base + '/' + quote + ':' + settle
             swap = True
             contractSize = tickSize  # always same
             linear = True  # always linear
@@ -987,13 +987,13 @@ class gemini(Exchange, ImplicitAPI):
         tickerPromiseB = self.fetch_ticker_v2(symbol, params)
         tickerA, tickerB = await asyncio.gather(*[tickerPromiseA, tickerPromiseB])
         return self.deep_extend(tickerA, {
-            'open': tickerB['open'],
-            'high': tickerB['high'],
-            'low': tickerB['low'],
-            'change': tickerB['change'],
-            'percentage': tickerB['percentage'],
-            'average': tickerB['average'],
-            'info': tickerB['info'],
+            'open': self.safe_string(tickerB, 'open'),
+            'high': self.safe_string(tickerB, 'high'),
+            'low': self.safe_string(tickerB, 'low'),
+            'change': self.safe_string(tickerB, 'change'),
+            'percentage': self.safe_string(tickerB, 'percentage'),
+            'average': self.safe_string(tickerB, 'average'),
+            'info': self.safe_value(tickerB, 'info'),
         })
 
     async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
@@ -1941,11 +1941,11 @@ class gemini(Exchange, ImplicitAPI):
         headersSigned = None
         if apiName == 'private':
             self.check_required_credentials()
-            apiKey = self.apiKey
-            if apiKey.find('account') < 0:
+            if self.apiKey.find('account') < 0:
                 raise AuthenticationError(self.id + ' sign() requires an account-key, master-keys are not-supported')
             # gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
-            nonce = str(self.incrementing_nonce())
+            nonceValue = self.incrementing_nonce()
+            nonce = self.number_to_string(nonceValue)
             finalUrl = url
             request = self.extend({
                 'request': finalUrl,
@@ -1961,7 +1961,7 @@ class gemini(Exchange, ImplicitAPI):
                 'X-GEMINI-SIGNATURE': signature,
             }
         else:
-            if len(query) > 0:
+            if not (self.is_empty(query)):
                 url += '?' + self.urlencode(query)
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:

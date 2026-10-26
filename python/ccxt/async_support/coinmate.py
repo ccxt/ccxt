@@ -1237,8 +1237,9 @@ class coinmate(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + path
         if apiName == 'public':
-            if len(params) > 0:
-                url += '?' + self.urlencode(params)
+            publicQuery = self.extend({}, params)
+            if len(publicQuery) > 0:
+                url += '?' + self.urlencode(publicQuery)
         else:
             self.check_required_credentials()
             # coinmate requires each nonce to be greater than the previous one for the key

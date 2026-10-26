@@ -193,7 +193,7 @@ class binance(PredictionExchange, ImplicitAPI):
         self.set_events(parsedEvents)
         return flatMarkets
 
-    async def fetch_raw_topics(self, maxTopics: Int, rest: dict = {}) -> list[object]:
+    async def fetch_raw_topics(self, maxTopics: Int, rest: dict = {}) -> list[dict]:
         """
  @ignore
         pages the market/list endpoint and returns up to `maxTopics` raw market topics
@@ -263,7 +263,7 @@ class binance(PredictionExchange, ImplicitAPI):
             offset = self.sum(offset, pageTopicsLength)
         return collected
 
-    async def fetch_raw_topic_detail(self, topicId: str, params: dict = {}) -> object:
+    async def fetch_raw_topic_detail(self, topicId: str, params: dict = {}) -> dict:
         """
  @ignore
         fetches a single raw market topic(with nested markets and outcome tokens) by its id
@@ -276,7 +276,7 @@ class binance(PredictionExchange, ImplicitAPI):
         }
         return await self.sapiPrivateGetMarketDetail(self.extend(request, params))
 
-    async def complete_raw_topics(self, rawTopics: list[object]) -> list[object]:
+    async def complete_raw_topics(self, rawTopics: list[dict]) -> list[dict]:
         """
  @ignore
         ensures each raw topic carries fully-populated nested markets(with outcome token ids), fetching the topic detail when the listing/search payload omitted them
@@ -398,7 +398,7 @@ class binance(PredictionExchange, ImplicitAPI):
         postParams = self.omit(paramsOmitted, postOmitKeys)
         return self.apply_event_fetch_params(result, postParams, [])
 
-    async def fetch_events_by_query(self, queries: list[str], limit: Int, rest: dict = {}) -> list[object]:
+    async def fetch_events_by_query(self, queries: list[str], limit: Int, rest: dict = {}) -> list[dict]:
         """
  @ignore
         resolves free-text queries through the semantic market search endpoint, then completes the matched topics with their outcome tokens
@@ -1487,7 +1487,7 @@ class binance(PredictionExchange, ImplicitAPI):
                 return self.safe_dict(self.options, 'wallet')
         raise NotSupported(self.id + 'fetchWallet could\'n find wallet ' + walletAddress)
 
-    async def fetch_quote(self, request: dict, params: dict = {}) -> object:
+    async def fetch_quote(self, request: dict, params: dict = {}) -> dict:
         """
         request for quote from binance server
 

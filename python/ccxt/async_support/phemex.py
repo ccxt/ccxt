@@ -1212,7 +1212,7 @@ class phemex(Exchange, ImplicitAPI):
         if market is None:
             raise ArgumentsRequired(self.id + ' customParseBidAsk() requires a market argument')
         amount = self.safe_string(bidask, amountKey)
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot') is True:
             amount = self.from_ev(amount, market)
         return [
             self.parse_number(self.from_ep(self.safe_string(bidask, priceKey), market)),
@@ -1233,9 +1233,8 @@ class phemex(Exchange, ImplicitAPI):
             bidasks = self.safe_list(orderbook, side, [])
             for k in range(0, len(bidasks)):
                 orders.append(self.custom_parse_bid_ask(bidasks[k], priceKey, amountKey, market))
-            result[side] = orders
-        result[bidsKey] = self.sort_by(result[bidsKey], 0, True)
-        result[asksKey] = self.sort_by(result[asksKey], 0)
+            descending = (i == 0)
+            result[side] = self.sort_by(orders, 0, descending)
         return result
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
@@ -1356,7 +1355,7 @@ class phemex(Exchange, ImplicitAPI):
         #     ]
         #
         baseVolume = None
-        if (market is not None) and (market['spot'] is True):
+        if (market is not None) and (self.safe_bool(market, 'spot') is True):
             baseVolume = self.parse_number(self.from_ev(self.safe_string(ohlcv, 7), market))
         else:
             baseVolume = self.safe_number(ohlcv, 7)
@@ -1416,7 +1415,7 @@ class phemex(Exchange, ImplicitAPI):
                     else:
                         # when since is defined 'to' is mandatory
                         now = self.seconds()
-                        to = self.parse_to_int(fromSeconds + (maxLimit * candleDuration))
+                        to = self.parse_to_int(self.parse_to_int(fromSeconds) + (maxLimit * candleDuration))
                         request['to'] = now if (to > now) else to
                 elif until is not None:
                     # when 'to' is defined since is mandatory
@@ -1893,7 +1892,8 @@ class phemex(Exchange, ImplicitAPI):
             side = self.safe_string_lower(trade, tradeLength - 3)
             priceString = self.safe_string(trade, tradeLength - 2)
             amountString = self.safe_string(trade, tradeLength - 1)
-            if isinstance(trade[tradeLength - 2], numbers.Real):
+            priceAmount = trade[tradeLength - 2]
+            if isinstance(priceAmount, numbers.Real):
                 priceString = self.from_ep(priceString, marketResolved)
                 amountString = self.from_ev(amountString, marketResolved)
         else:
@@ -4462,7 +4462,7 @@ class phemex(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(info, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        riskLimits = (marketResolved['info']['riskLimits'])
+        riskLimits = self.safe_list(marketResolved['info'], 'riskLimits', [])
         tiers = []
         minNotional = 0
         for i in range(0, len(riskLimits)):
@@ -4493,17 +4493,15 @@ class phemex(Exchange, ImplicitAPI):
                 queryString = self.urlencode_with_array_repeat(query)
                 url += '?' + queryString
         requestBody = None
-        privateHeaders = None
+        privateHeaders = {}
         if apiName == 'private':
             self.check_required_credentials()
             timestamp = self.seconds()
             xPhemexRequestExpiry = self.safe_integer(self.options, 'x-phemex-request-expiry', 60)
             expiry = self.sum(timestamp, xPhemexRequestExpiry)
             expiryString = str(expiry)
-            privateHeaders = {
-                'x-phemex-access-token': self.apiKey,
-                'x-phemex-request-expiry': expiryString,
-            }
+            privateHeaders['x-phemex-access-token'] = self.apiKey
+            privateHeaders['x-phemex-request-expiry'] = expiryString
             payload = ''
             if method == 'POST':
                 isOrderPlacement = (path == 'g-orders') or (path == 'spot/orders') or (path == 'orders')
@@ -4643,13 +4641,13 @@ class phemex(Exchange, ImplicitAPI):
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
-            if transfer['fromAccount'] is None:
+            if self.safe_string(transfer, 'fromAccount') is None:
                 transfer['fromAccount'] = fromAccount
-            if transfer['toAccount'] is None:
+            if self.safe_string(transfer, 'toAccount') is None:
                 transfer['toAccount'] = toAccount
-            if transfer['amount'] is None:
+            if self.safe_string(transfer, 'amount') is None:
                 transfer['amount'] = amount
-            if transfer['currency'] is None:
+            if self.safe_string(transfer, 'currency') is None:
                 transfer['currency'] = code
         return transfer
 
@@ -4793,9 +4791,9 @@ class phemex(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 100)
         customSymbol = None
         if isUsdtSettled:
-            customSymbol = '.' + market['id'] + 'FR8H'  # phemex requires a custom symbol for funding rate history
+            customSymbol = '.' + self.safe_string(market, 'id', '') + 'FR8H'  # phemex requires a custom symbol for funding rate history
         else:
-            customSymbol = '.' + market['baseId'] + 'FR8H'
+            customSymbol = '.' + self.safe_string(market, 'baseId', '') + 'FR8H'
         request = {
             'symbol': customSymbol,
         }

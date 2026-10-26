@@ -1096,7 +1096,7 @@ class bigone(Exchange, ImplicitAPI):
             orderbook = self.safe_dict(response, 'data', {})
             return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'quantity')
 
-    def parse_contract_bids_asks(self, bidsAsks: object):
+    def parse_contract_bids_asks(self, bidsAsks: dict):
         bidsAsksKeys = list(bidsAsks.keys())
         result = []
         for i in range(0, len(bidsAsksKeys)):
@@ -1106,8 +1106,8 @@ class bigone(Exchange, ImplicitAPI):
         return result
 
     def parse_contract_order_book(self, orderbook: dict, symbol: str, limit: Int = None) -> OrderBook:
-        responseBids = self.safe_dict(orderbook, 'bids')
-        responseAsks = self.safe_dict(orderbook, 'asks')
+        responseBids = self.safe_dict(orderbook, 'bids', {})
+        responseAsks = self.safe_dict(orderbook, 'asks', {})
         bids = self.parse_contract_bids_asks(responseBids)
         asks = self.parse_contract_bids_asks(responseAsks)
         return {
@@ -1900,7 +1900,7 @@ class bigone(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            nonce = str(self.nonce())
+            nonce = self.number_to_string(self.nonce())
             request = {
                 'type': 'OpenAPIV2',
                 'sub': self.apiKey,

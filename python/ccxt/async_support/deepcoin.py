@@ -526,7 +526,7 @@ class deepcoin(Exchange, ImplicitAPI):
             isLinear = (quoteId != 'USD')
             settleId = quoteId if isLinear else baseId
             settle = self.safe_currency_code(settleId)
-            symbol = symbol + ':' + settle
+            symbol = base + '/' + quote + ':' + settle
         fees = self.safe_dict_2(self.fees, type, 'trading', {})
         maxLeverage = self.safe_string(market, 'lever', '1')
         maxLeverage = Precise.string_max(maxLeverage, '1')
@@ -591,8 +591,9 @@ class deepcoin(Exchange, ImplicitAPI):
         symbols = list(result.keys())
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            market = result[symbol]
-            if (market is not None) and (market['swap'] is True):
+            market = self.safe_dict(result, symbol, {})
+            isSwap = self.safe_bool(market, 'swap', False)
+            if isSwap:
                 additionalId = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')
                 if self.markets_by_id is not None:
                     self.markets_by_id[additionalId] = [market]  # some endpoints return swap market id as base+quote
@@ -2875,7 +2876,7 @@ class deepcoin(Exchange, ImplicitAPI):
         if method == 'GET':
             query = self.urlencode(params)
             if len(query) > 0:
-                requestPath += '?' + query
+                requestPath = path + '?' + query
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')

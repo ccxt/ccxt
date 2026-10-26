@@ -584,7 +584,7 @@ class backpack(Exchange, ImplicitAPI):
         #
         currencies = {}
         for i in range(0, len(response)):
-            currency = self.parse_currency(response[i])
+            currency = self.parse_currency(self.safe_dict(response, i, {}))
             if (stock is not True) or (self.safe_string(currency, 'type') == 'stock'):
                 currencies[currency['code']] = currency
         return currencies
@@ -695,7 +695,7 @@ class backpack(Exchange, ImplicitAPI):
         markets = []
         marketIds = {}
         for i in range(0, len(response)):
-            rawMarket = response[i]
+            rawMarket = self.safe_dict(response, i, {})
             rawType = self.safe_string(rawMarket, 'marketType', '')
             if not self.in_array(rawType, marketTypes):
                 continue
@@ -707,7 +707,7 @@ class backpack(Exchange, ImplicitAPI):
                 if (marketId is None) or (marketId in marketIds):
                     continue
                 marketIds[marketId] = True
-                if (stock is not True) or (market['stock'] is True):
+                if (stock is not True) or self.safe_bool(market, 'stock', False):
                     markets.append(market)
         if includeRfq:
             for i in range(0, len(securities)):
@@ -905,7 +905,7 @@ class backpack(Exchange, ImplicitAPI):
             inverse = False
             settleId = self.safe_string(market, 'quoteSymbol')
             settle = self.safe_currency_code(settleId)
-            symbol += ':' + settle
+            symbol = base + '/' + quote + ':' + settle
             contractSize = 1
         else:
             return None
@@ -1063,7 +1063,7 @@ class backpack(Exchange, ImplicitAPI):
         fee = self.safe_dict(order, 'fee')
         timestamp = self.safe_integer(order, 'timestamp')
         return {
-            'info': order['info'],
+            'info': self.safe_dict(order, 'info'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'id': self.safe_string(order, 'id'),
@@ -1093,7 +1093,7 @@ class backpack(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchConvertQuote() requires a positive amount')
         await self.load_markets()
         market = self.rfq_conversion_market(fromCode, toCode)
-        fromIsBase = fromCode == market['base']
+        fromIsBase = fromCode == self.safe_string(market, 'base')
         side = 'sell' if (fromIsBase) else 'buy'
         if not fromIsBase:
             initialQuote = await self.fetch_stock_indicative_quote(market['symbol'], side, 1, {'stock': True})
@@ -1172,11 +1172,11 @@ class backpack(Exchange, ImplicitAPI):
         quoteId = self.safe_string(query, 'quoteId')
         if quoteId is not None:
             acceptParams = self.omit(query, ['quoteId', 'price', 'baseAmount', 'clientOrderId'])
-            accepted = await self.accept_rfq_quote(id, quoteId, market['symbol'], acceptParams)
+            accepted = await self.accept_rfq_quote(id, quoteId, self.safe_symbol(None, market), acceptParams)
             return self.parse_conversion(accepted, self.currency(fromCode), self.currency(toCode))
         if (amount is None) or not Precise.string_gt(self.number_to_string(amount), '0'):
             raise ArgumentsRequired(self.id + ' createConvertTrade() requires a positive amount')
-        fromIsBase = fromCode == market['base']
+        fromIsBase = fromCode == self.safe_string(market, 'base')
         side = 'sell' if (fromIsBase) else 'buy'
         quantity = self.number_to_string(amount)
         price = self.safe_number(query, 'price')
@@ -1186,19 +1186,19 @@ class backpack(Exchange, ImplicitAPI):
                 quantity = self.number_to_string(baseAmount)
             else:
                 if (price is None) or not Precise.string_gt(self.number_to_string(price), '0'):
-                    indicative = await self.fetch_stock_indicative_quote(market['symbol'], side, 1, {'stock': True})
+                    indicative = await self.fetch_stock_indicative_quote(self.safe_symbol(None, market), side, 1, {'stock': True})
                     if not self.safe_bool(indicative, 'available', False):
                         raise InvalidOrder(self.id + ' createConvertTrade() stock indicative quote unavailable: ' + self.safe_string(indicative, 'reason', 'priceUnavailable'))
                     price = self.safe_number(indicative, 'price')
                 if (price is None) or not Precise.string_gt(self.number_to_string(price), '0'):
                     raise InvalidOrder(self.id + ' createConvertTrade() buying stock requires a positive price bound')
                 rawQuantity = Precise.string_div(self.number_to_string(amount), self.number_to_string(price), 18)
-                preciseQuantity = self.amount_to_precision(market['symbol'], self.parse_number(rawQuantity))
+                preciseQuantity = self.amount_to_precision(self.safe_symbol(None, market), self.parse_number(rawQuantity))
                 if preciseQuantity is None:
                     raise InvalidOrder(self.id + ' createConvertTrade() could not determine a stock quantity')
                 quantity = preciseQuantity
             if (price is None) or not Precise.string_gt(self.number_to_string(price), '0'):
-                indicative = await self.fetch_stock_indicative_quote(market['symbol'], side, self.parse_number(quantity), {'stock': True})
+                indicative = await self.fetch_stock_indicative_quote(self.safe_symbol(None, market), side, self.parse_number(quantity), {'stock': True})
                 if not self.safe_bool(indicative, 'available', False):
                     raise InvalidOrder(self.id + ' createConvertTrade() stock indicative quote unavailable: ' + self.safe_string(indicative, 'reason', 'priceUnavailable'))
                 price = self.safe_number(indicative, 'price')
@@ -1223,7 +1223,7 @@ class backpack(Exchange, ImplicitAPI):
         orderParams = self.omit(query, ['price', 'baseAmount', 'quoteId', 'clientOrderId'])
         if clientOrderId is not None:
             orderParams['clientOrderId'] = clientOrderId
-        order = await self.create_rfq_order(market['symbol'], 'market', side, self.parse_number(quantity), price, self.extend(orderParams, {'stock': True}))
+        order = await self.create_rfq_order(self.safe_symbol(None, market), 'market', side, self.parse_number(quantity), price, self.extend(orderParams, {'stock': True}))
         return self.parse_conversion(order, self.currency(fromCode), self.currency(toCode))
 
     def stock_data_request(self, methodName: str, params: dict, market: Market = None) -> dict:
@@ -1240,7 +1240,8 @@ class backpack(Exchange, ImplicitAPI):
         query = self.safe_dict(selection, 1, {})
         request = self.extend({}, query)
         source = self.safe_string(query, 'source')
-        isRfq = (market is not None) and (self.safe_string(market['info'], 'marketType') == 'RFQ')
+        marketInfo = self.safe_dict(market, 'info', {})
+        isRfq = (market is not None) and (self.safe_string(marketInfo, 'marketType') == 'RFQ')
         if source is None:
             source = 'External' if (isRfq) else 'Venue'
         if (source != 'Venue') and (source != 'External'):
@@ -1248,7 +1249,7 @@ class backpack(Exchange, ImplicitAPI):
         if source == 'External':
             if not stock:
                 raise BadRequest(self.id + ' ' + methodName + '() External provider data requires a stock market symbol or params.stock=true when no symbol is provided')
-            if (market is not None) and (market['stock'] is not True):
+            if (market is not None) and not self.safe_bool(market, 'stock', False):
                 raise BadSymbol(self.id + ' ' + methodName + '() External data requires a stock market')
             request['source'] = source
             if methodName == 'fetchOHLCV':
@@ -1263,10 +1264,10 @@ class backpack(Exchange, ImplicitAPI):
                     raise BadRequest(self.id + ' ' + methodName + '() External tickers require interval=1d')
                 request['interval'] = interval
         if market is not None:
-            marketId = market['id']
-            if self.safe_string(market['info'], 'marketType') == 'RFQ':
-                marketId = market['baseId'] + '_' + market['quoteId']
-            request['symbol'] = marketId
+            if isRfq:
+                request['symbol'] = self.safe_string(market, 'baseId', '') + '_' + self.safe_string(market, 'quoteId', '')
+            else:
+                request['symbol'] = self.safe_string(market, 'id')
         return request
 
     def filter_stock_structures(self, entries: list) -> list:
@@ -1319,13 +1320,14 @@ class backpack(Exchange, ImplicitAPI):
         symbolsLength = 0
         if symbols is not None:
             symbolsLength = len(symbols)
-        symbolsNormalized = None if (symbolsLength == 0) else self.market_symbols(symbols, None, False)
-        symbolsResolved = list(self.markets.keys()) if (symbolsNormalized is None) else symbolsNormalized
+        symbolsResolved = list(self.markets.keys())
+        if symbolsLength != 0:
+            symbolsResolved = self.market_symbols(symbols, None, False)
         hasRfqSymbol = False
         hasStockSymbol = False
         if symbols is not None:
             for i in range(0, len(symbolsResolved)):
-                market = self.market(symbolsResolved[i])
+                market = self.market(self.safe_string(symbolsResolved, i))
                 if market['stock'] is True:
                     hasStockSymbol = True
                 if self.safe_string(market['info'], 'marketType') == 'RFQ':
@@ -1356,7 +1358,7 @@ class backpack(Exchange, ImplicitAPI):
             if (ticker is not None) and ((source != 'External') or (market['stock'] is True)):
                 result[marketSymbol] = ticker
             elif marketIsRfq:
-                underlyingId = market['baseId'] + '_' + market['quoteId']
+                underlyingId = self.safe_string(market, 'baseId', '') + '_' + self.safe_string(market, 'quoteId', '')
                 useExternal = (source == 'External') or needsExternalRfqTickers
                 tickerSource = externalResponseById if (useExternal) else responseById
                 underlyingTicker = self.safe_dict(tickerSource, underlyingId)
@@ -1403,7 +1405,6 @@ class backpack(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'symbol')
         marketResolved = self.safe_market(marketId) if (market is None) else market
-        symbol = marketResolved['symbol']
         open = self.safe_string(ticker, 'firstPrice')
         last = self.safe_string(ticker, 'lastPrice')
         high = self.safe_string(ticker, 'high')
@@ -1417,7 +1418,7 @@ class backpack(Exchange, ImplicitAPI):
             percentage = Precise.string_mul(self.safe_string(ticker, 'priceChangePercent'), '100')
         change = self.safe_string(ticker, 'priceChange')
         parsedTicker = self.safe_ticker({
-            'symbol': symbol,
+            'symbol': self.safe_string(marketResolved, 'symbol'),
             'timestamp': None,
             'datetime': None,
             'high': high,
@@ -1488,7 +1489,7 @@ class backpack(Exchange, ImplicitAPI):
             orderbook['asks'] = self.array_slice(orderbook['asks'], 0, limit)
         return orderbook
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches venue or external stock candlestick data for the underlying market
 
@@ -1779,7 +1780,7 @@ class backpack(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         selection = self.handle_stock_params('fetchMyTrades', params, market)
         stock = self.safe_bool(selection, 0, False)
         query = self.safe_dict(selection, 1, {})
@@ -1792,7 +1793,7 @@ class backpack(Exchange, ImplicitAPI):
         if rfq or aggregate:
             rfqRequest = {}
             if market is not None:
-                rfqRequest['symbol'] = market['id']
+                rfqRequest['symbol'] = self.safe_string(market, 'id')
             if limit is not None:
                 rfqRequest['limit'] = min(limit, 1000)
             rfqParams = self.omit(accountParams, ['assetClass', 'marketType', 'from', 'to'])
@@ -2561,7 +2562,7 @@ class backpack(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         selection = self.handle_stock_params('fetchOpenOrders', params, market)
         stock = self.safe_bool(selection, 0, False)
         query = self.safe_dict(selection, 1, {})
@@ -2604,7 +2605,7 @@ class backpack(Exchange, ImplicitAPI):
         if self.safe_string(market['info'], 'marketType') == 'RFQ':
             rfqResponse = await self.privateGetApiV1Rfqs(self.extend(query, {'symbol': market['id'], 'rfqId': id}))
             for i in range(0, len(rfqResponse)):
-                order = self.parse_order(rfqResponse[i], market)
+                order = self.parse_order(self.safe_dict(rfqResponse, i, {}), market)
                 if order['id'] == id:
                     return order
             raise OrderNotFound(self.id + ' fetchOpenOrder() RFQ ' + id + ' not found')
@@ -2647,7 +2648,7 @@ class backpack(Exchange, ImplicitAPI):
         else:
             response = await self.privateGetWapiV1HistoryOrders(self.extend(query, request))
         for i in range(0, len(response)):
-            order = self.parse_order(response[i], market)
+            order = self.parse_order(self.safe_dict(response, i, {}), market)
             if order['id'] == id:
                 return order
         openOrderParams = self.extend(query, {'stock': self.safe_bool(selection, 0, False)})
@@ -2741,7 +2742,7 @@ class backpack(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         if limit is not None:
             request['limit'] = limit
         selection = self.handle_stock_params('fetchOrders', params, market)
@@ -3051,7 +3052,7 @@ class backpack(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetWapiV1HistoryFunding(self.extend(request, params))
@@ -3099,11 +3100,11 @@ class backpack(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         requestParams = params if isinstance(params, list) else self.omit(params, ['stock', 'defaultStock', 'rfq', 'callerMethodName'])
         sortedParams = requestParams if isinstance(requestParams, list) else self.keysort(requestParams)
-        headersSigned = None
+        headersSigned = {}
         bodySigned = None
         if apiName == 'private':
             self.check_required_credentials()
-            ts = str(self.nonce())
+            ts = self.number_to_string(self.nonce())
             recvWindow = self.safe_string_2(self.options, 'recvWindow', 'X-Window', '5000')
             optionInstructions = self.safe_dict(self.options, 'instructions', {})
             optionPathInstructions = self.safe_dict(optionInstructions, path, {})
@@ -3142,12 +3143,13 @@ class backpack(Exchange, ImplicitAPI):
 
     def generate_batch_payload(self, params: object, ts: str, recvWindow: str, instruction: str) -> str:
         payload = ''
-        for i in range(0, len(params)):
+        paramsLength = len(params)
+        for i in range(0, paramsLength):
             order = self.safe_dict(params, i, {})
             sortedOrder = self.keysort(order)
             orderQuery = self.urlencode(sortedOrder)
             payload += 'instruction=' + instruction + '&' + orderQuery + '&'
-            if i == (len(params) - 1):
+            if i == (paramsLength - 1):
                 payload += 'timestamp=' + ts + '&window=' + recvWindow
         return payload
 

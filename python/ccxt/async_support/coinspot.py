@@ -295,11 +295,13 @@ class coinspot(Exchange, ImplicitAPI):
         result = {'info': response}
         balances = self.safe_value_2(response, 'balance', 'balances')
         if isinstance(balances, list):
-            for i in range(0, len(balances)):
-                currencies = balances[i]
-                currencyIds = list(currencies.keys())
-                for j in range(0, len(currencyIds)):
-                    currencyId = currencyIds[j]
+            rows = self.to_array(balances)
+            numRows = len(rows)
+            for i in range(0, numRows):
+                currencies = self.safe_dict(rows, i, {})
+                currencyIdsList = list(currencies.keys())
+                for j in range(0, len(currencyIdsList)):
+                    currencyId = currencyIdsList[j]
                     balance = self.safe_dict(currencies, currencyId)
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
@@ -307,9 +309,9 @@ class coinspot(Exchange, ImplicitAPI):
                     if code is not None:
                         result[code] = account
         else:
-            currencyIds = list(balances.keys())
-            for i in range(0, len(currencyIds)):
-                currencyId = currencyIds[i]
+            currencyIdsMap = list(balances.keys())
+            for i in range(0, len(currencyIdsMap)):
+                currencyId = currencyIdsMap[i]
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['total'] = self.safe_string(balances, currencyId)

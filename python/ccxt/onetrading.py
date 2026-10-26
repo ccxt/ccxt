@@ -1101,7 +1101,9 @@ class onetrading(Exchange, ImplicitAPI):
         periodUnit = self.safe_string(self.timeframes, timeframe)
         if periodUnit is None:
             raise ExchangeError(self.id + ' fetchOHLCV() missing periodUnit')
-        period, unit = periodUnit.split('/')
+        periodUnitParts = periodUnit.split('/')
+        period = periodUnitParts[0]
+        unit = periodUnitParts[1]
         durationInSeconds = self.parse_timeframe(timeframe)
         duration = durationInSeconds * 1000
         limitResolved = 1500 if (limit is None) else limit

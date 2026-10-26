@@ -2069,8 +2069,8 @@ class bitget(Exchange, ImplicitAPI):
             # }
         productType = self.safe_string_2(paramsSubType, 'productType', 'category', defaultProductType)
         if (productType is None) and (market is not None):
-            settle = market['settle']
-            if market['spot'] is True:
+            settle = self.safe_string(market, 'settle')
+            if self.safe_bool(market, 'spot', False):
                 marginMode = None
                 marginMode, paramsSubType = self.handle_margin_mode_and_params('handleProductTypeAndParams', paramsSubType)
                 if marginMode is not None:
@@ -2317,7 +2317,7 @@ class bitget(Exchange, ImplicitAPI):
                 if symbolType == 'perpetual':
                     type = 'swap'
                     swap = True
-                    symbol = symbol + ':' + settle
+                    symbol = base + '/' + quote + ':' + settle
                 elif symbolType == 'delivery':
                     expiry = self.safe_integer(market, 'deliveryTime')
                     expiryIso = self.iso8601(expiry)
@@ -2326,12 +2326,13 @@ class bitget(Exchange, ImplicitAPI):
                     yearPart = self.safe_string(expiryParts, 0, '')
                     dayPart = self.safe_string(expiryParts, 2, '')
                     year = yearPart[2:4]
-                    month = self.safe_string(expiryParts, 1)
+                    month = expiryParts[1]
                     day = dayPart[0:2]
-                    expiryString = year + month + day
+                    monthDay = month + day
+                    expiryString = year + monthDay
                     type = 'future'
                     future = True
-                    symbol = symbol + ':' + settle + '-' + expiryString
+                    symbol = base + '/' + quote + ':' + settle + '-' + expiryString
                 contract = True
                 inverse = (base == settle)
                 linear = not inverse
@@ -2579,7 +2580,7 @@ class bitget(Exchange, ImplicitAPI):
                 if symbolType == 'perpetual':
                     type = 'swap'
                     swap = True
-                    symbol = symbol + ':' + settle
+                    symbol = base + '/' + quote + ':' + settle
                 elif symbolType == 'delivery':
                     expiry = self.safe_integer(market, 'deliveryTime')
                     expiryIso = self.iso8601(expiry)
@@ -2588,12 +2589,13 @@ class bitget(Exchange, ImplicitAPI):
                     yearPart = self.safe_string(expiryParts, 0, '')
                     dayPart = self.safe_string(expiryParts, 2, '')
                     year = yearPart[2:4]
-                    month = self.safe_string(expiryParts, 1)
+                    month = expiryParts[1]
                     day = dayPart[0:2]
-                    expiryString = year + month + day
+                    monthDay = month + day
+                    expiryString = year + monthDay
                     type = 'future'
                     future = True
-                    symbol = symbol + ':' + settle + '-' + expiryString
+                    symbol = base + '/' + quote + ':' + settle + '-' + expiryString
                 contract = True
                 inverse = (base == settle)
                 linear = not inverse
@@ -3926,8 +3928,9 @@ class bitget(Exchange, ImplicitAPI):
         if isStock and (symbols is None):
             # for returning only tokenized stock symbols
             symbolsResolved = []
-            for i in range(0, len(self.symbols)):
-                symbol = self.symbols[i]
+            allSymbols = self.symbols
+            for i in range(0, len(allSymbols)):
+                symbol = allSymbols[i]
                 entry = self.market(symbol)
                 isStockMarket = self.safe_bool(entry, 'stock', False)
                 if isStockMarket:
@@ -4179,15 +4182,12 @@ class bitget(Exchange, ImplicitAPI):
         feeStructure = feeDetail[0] if isFeeStructure else feeDetail
         if feeStructure is not None:
             currencyCode = self.safe_currency_code(self.safe_string(feeStructure, 'feeCoin'))
-            fee = {
-                'currency': currencyCode,
-            }
             feeCostString = self.safe_string_2(feeStructure, 'totalFee', 'fee')
             deduction = self.safe_string(feeStructure, 'deduction') is True if 'yes' else False
-            if deduction:
-                fee['cost'] = feeCostString
-            else:
-                fee['cost'] = Precise.string_neg(feeCostString)
+            fee = {
+                'currency': currencyCode,
+                'cost': feeCostString if deduction else Precise.string_neg(feeCostString),
+            }
         return self.safe_trade({
             'info': trade,
             'id': self.safe_string_2(trade, 'tradeId', 'execId'),
@@ -4671,11 +4671,11 @@ class bitget(Exchange, ImplicitAPI):
         isStock = (stock is True)
         isStockOrUta = (isStock or (uta is True))
         if isStockOrUta:
-            timeframes = timeframesOption['uta']
+            timeframes = self.safe_dict(timeframesOption, 'uta')
             request['interval'] = self.safe_string(timeframes, timeframe, timeframe)
         else:
             marketType = 'spot' if (market['spot'] is True) else 'swap'
-            timeframes = timeframesOption[marketType]
+            timeframes = self.safe_dict(timeframesOption, marketType)
             request['granularity'] = self.safe_string(timeframes, timeframe, timeframe)
         msInDay = 86400000
         now = self.milliseconds()
@@ -5851,10 +5851,8 @@ class bitget(Exchange, ImplicitAPI):
                     if tpLimitPrice is not None:
                         request['presetStopSurplusExecutePrice'] = self.price_to_precision(symbol, tpLimitPrice)
             if not isStopLossOrTakeProfitTrigger:
-                if marginMode is None:
-                    marginMode = 'cross'
                 marginModeRequest = 'isolated'
-                if marginMode == 'cross':
+                if (marginMode is None) or (marginMode == 'cross'):
                     marginModeRequest = 'crossed'
                 request['marginMode'] = marginModeRequest
                 requestSide = side
@@ -6019,10 +6017,8 @@ class bitget(Exchange, ImplicitAPI):
         }
         response = None
         if (market['swap'] is True) or (market['future'] is True):
-            if marginMode is None:
-                marginMode = 'cross'
             marginModeRequest = 'isolated'
-            if marginMode == 'cross':
+            if (marginMode is None) or (marginMode == 'cross'):
                 marginModeRequest = 'crossed'
             request['marginMode'] = marginModeRequest
             request['marginCoin'] = market['settleId']
@@ -6200,7 +6196,7 @@ class bitget(Exchange, ImplicitAPI):
                 response = await self.privateSpotPostV2SpotTradeCancelReplaceOrder(self.extend(request, paramsOmitted))
         else:
             if (market['swap'] is not True) and (market['future'] is not True):
-                raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders')
+                raise NotSupported(self.id + ' editOrder() does not support ' + self.safe_string(market, 'type', '') + ' orders')
             request['symbol'] = market['id']
             request['productType'] = productType
             if not isTakeProfitOrder and not isStopLossOrder:
@@ -6369,7 +6365,7 @@ class bitget(Exchange, ImplicitAPI):
                 else:
                     response = await self.privateSpotPostV2SpotTradeCancelOrder(self.extend(request, paramsMarginMode))
         else:
-            raise NotSupported(self.id + ' cancelOrder() does not support ' + market['type'] + ' orders')
+            raise NotSupported(self.id + ' cancelOrder() does not support ' + self.safe_string(market, 'type', '') + ' orders')
         #
         # spot, swap, future, spot margin and tokenized stock
         #
@@ -6441,7 +6437,7 @@ class bitget(Exchange, ImplicitAPI):
         productType = self.handle_product_type_and_params(market, params)[0]
         requestList = []
         for i in range(0, len(ids)):
-            individualId = ids[i]
+            individualId = self.safe_string(ids, i)
             order = {
                 'orderId': individualId,
                 'symbol': market['id'],
@@ -6500,7 +6496,7 @@ class bitget(Exchange, ImplicitAPI):
         paramsUTA = self.omit(paramsUTA, ['stop', 'trigger'])
         orderIdList = []
         for i in range(0, len(ids)):
-            individualId = ids[i]
+            individualId = self.safe_string(ids, i)
             orderId = {
                 'orderId': individualId,
             }
@@ -6708,7 +6704,7 @@ class bitget(Exchange, ImplicitAPI):
             request['productType'] = productType
             response = await self.privateMixGetV2MixOrderDetail(self.extend(request, paramsProductType))
         else:
-            raise NotSupported(self.id + ' fetchOrder() does not support ' + market['type'] + ' orders')
+            raise NotSupported(self.id + ' fetchOrder() does not support ' + self.safe_string(market, 'type', '') + ' orders')
         #
         # spot
         #
@@ -10038,17 +10034,19 @@ class bitget(Exchange, ImplicitAPI):
         #
         chains = self.safe_list(fee, 'chains', [])
         chainsLength = len(chains)
+        networks = {}
+        withdraw = {
+            'fee': None,
+            'percentage': None,
+        }
         result = {
             'info': fee,
-            'withdraw': {
-                'fee': None,
-                'percentage': None,
-            },
+            'withdraw': withdraw,
             'deposit': {
                 'fee': None,
                 'percentage': None,
             },
-            'networks': {},
+            'networks': networks,
         }
         for i in range(0, chainsLength):
             chain = self.safe_dict(chains, i)
@@ -10056,13 +10054,13 @@ class bitget(Exchange, ImplicitAPI):
             currencyCode = self.safe_string(currency, 'code')
             networkCode = self.network_id_to_code(networkId, currencyCode)
             if networkCode is not None:
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'deposit': {'fee': None, 'percentage': None},
                     'withdraw': {'fee': self.safe_number(chain, 'withdrawFee'), 'percentage': False},
                 }
             if chainsLength == 1:
-                result['withdraw']['fee'] = self.safe_number(chain, 'withdrawFee')
-                result['withdraw']['percentage'] = False
+                withdraw['fee'] = self.safe_number(chain, 'withdrawFee')
+                withdraw['percentage'] = False
         return result
 
     async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
@@ -11590,7 +11588,7 @@ class bitget(Exchange, ImplicitAPI):
         requestHeaders = None
         if signed:
             self.check_required_credentials()
-            timestamp = str(self.nonce())
+            timestamp = self.number_to_string(self.nonce())
             auth = timestamp + method + payload
             if method == 'POST':
                 requestBody = self.json(params)

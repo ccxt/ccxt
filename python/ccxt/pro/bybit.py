@@ -187,14 +187,14 @@ class bybit(ccxt.async_support.bybit):
         return requestId
 
     async def get_url_by_market_type(self, symbol: Str = None, isPrivate: Bool = False, method: Str = None, params: dict = {}) -> str:
-        accessibility = 'public'
-        if isPrivate:
-            accessibility = 'private'
+        accessibility = 'private' if (isPrivate) else 'public'
         methodValue = '' if (method is None) else method
         isUsdcSettled = None
         isSpot = None
         type = None
         market = None
+        wsUrls = self.safe_dict(self.urls['api'], 'ws', {})
+        accessibilityUrls = self.safe_dict(wsUrls, accessibility, {})
         url = self.urls['api']['ws']
         if symbol is not None:
             market = self.market(symbol)
@@ -212,18 +212,18 @@ class bybit(ccxt.async_support.bybit):
             isUnifiedMargin = self.safe_bool(unified, 0, False)
             isUnifiedAccount = self.safe_bool(unified, 1, False)
             if isUsdcSettled and (not isUnifiedMargin) and (not isUnifiedAccount):
-                url = url[accessibility]['usdc']
+                url = accessibilityUrls['usdc']
             else:
-                url = url[accessibility]['contract']
+                url = accessibilityUrls['contract']
         else:
             if isSpot:
-                url = url[accessibility]['spot']
+                url = accessibilityUrls['spot']
             elif (type == 'swap') or (type == 'future'):
                 subType = self.handle_sub_type_and_params(methodValue, market, params, 'linear')[0]
-                url = url[accessibility][subType]
+                url = accessibilityUrls[subType]
             else:
                 # option
-                url = url[accessibility]['option']
+                url = accessibilityUrls['option']
         url = self.implode_hostname(url)
         return url
 
@@ -277,7 +277,7 @@ class bybit(ccxt.async_support.bybit):
             ],
             'header': {
                 'X-BAPI-TIMESTAMP': str(self.milliseconds()),
-                'X-BAPI-RECV-WINDOW': str(self.options['recvWindow']),
+                'X-BAPI-RECV-WINDOW': self.number_to_string(self.options['recvWindow']),
             },
         }
         return await self.watch(url, requestId, request, requestId, True)
@@ -322,7 +322,7 @@ class bybit(ccxt.async_support.bybit):
             ],
             'header': {
                 'X-BAPI-TIMESTAMP': str(self.milliseconds()),
-                'X-BAPI-RECV-WINDOW': str(self.options['recvWindow']),
+                'X-BAPI-RECV-WINDOW': self.number_to_string(self.options['recvWindow']),
             },
         }
         return await self.watch(url, requestId, request, requestId, True)
@@ -359,7 +359,7 @@ class bybit(ccxt.async_support.bybit):
             ],
             'header': {
                 'X-BAPI-TIMESTAMP': str(self.milliseconds()),
-                'X-BAPI-RECV-WINDOW': str(self.options['recvWindow']),
+                'X-BAPI-RECV-WINDOW': self.number_to_string(self.options['recvWindow']),
             },
         }
         return await self.watch(url, requestId, request, requestId, True)
@@ -386,8 +386,7 @@ class bybit(ccxt.async_support.bybit):
         topic = self.safe_string(options, 'name', 'tickers')
         if (market['spot'] is not True) and topic != 'tickers':
             raise BadRequest(self.id + ' watchTicker() only supports name tickers for contract markets')
-        topic += '.' + market['id']
-        topics = [topic]
+        topics = [topic + '.' + market['id']]
         return await self.watch_topics(url, [messageHash], topics, paramsValue)
 
     async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
@@ -703,7 +702,8 @@ class bybit(ccxt.async_support.bybit):
             symbolString = market['symbol']
             unfiedTimeframe = data[1]
             timeframeId = self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
-            rawHashes.append('kline.' + timeframeId + '.' + market['id'])
+            marketId = self.safe_string(market, 'id', '')
+            rawHashes.append('kline.' + timeframeId + '.' + marketId)
             messageHashes.append('ohlcv::' + symbolString + '::' + unfiedTimeframe)
         symbol, timeframe, stored = await self.watch_topics(url, messageHashes, rawHashes, params)
         limitResolved = limit
@@ -738,7 +738,8 @@ class bybit(ccxt.async_support.bybit):
             symbolString = market['symbol']
             unfiedTimeframe = data[1]
             timeframeId = self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
-            rawHashes.append('kline.' + timeframeId + '.' + market['id'])
+            marketId = self.safe_string(market, 'id', '')
+            rawHashes.append('kline.' + timeframeId + '.' + marketId)
             subMessageHashes.append('ohlcv::' + symbolString + '::' + unfiedTimeframe)
             messageHashes.append('unsubscribe::ohlcv::' + symbolString + '::' + unfiedTimeframe)
         subExtension = {
@@ -891,7 +892,7 @@ class bybit(ccxt.async_support.bybit):
         for i in range(0, len(symbolsNormalized)):
             symbol = symbolsNormalized[i]
             marketId = self.market_id(symbol)
-            topic = 'orderbook.' + str(limitResolved) + '.' + marketId
+            topic = 'orderbook.' + self.number_to_string(limitResolved) + '.' + marketId
             topics.append(topic)
             messageHash = 'orderbook:' + symbol
             messageHashes.append(messageHash)
@@ -927,7 +928,7 @@ class bybit(ccxt.async_support.bybit):
         for i in range(0, len(symbolsNormalized)):
             symbol = symbolsNormalized[i]
             market = self.market(symbol)
-            marketId = market['id']
+            marketId = self.safe_string(market, 'id', '')
             topic = channel + '.' + marketId
             messageHashes.append('unsubscribe:orderbook:' + symbol)
             subMessageHashes.append('orderbook:' + symbol)
@@ -1066,7 +1067,8 @@ class bybit(ccxt.async_support.bybit):
         for i in range(0, len(symbolsNormalized)):
             symbol = symbolsNormalized[i]
             market = self.market(symbol)
-            topic = 'publicTrade.' + market['id']
+            marketId = self.safe_string(market, 'id', '')
+            topic = 'publicTrade.' + marketId
             topics.append(topic)
             messageHash = 'trade:' + symbol
             messageHashes.append(messageHash)
@@ -1098,7 +1100,8 @@ class bybit(ccxt.async_support.bybit):
         for i in range(0, len(symbolsNormalized)):
             symbol = symbolsNormalized[i]
             market = self.market(symbol)
-            topic = 'publicTrade.' + market['id']
+            marketId = self.safe_string(market, 'id', '')
+            topic = 'publicTrade.' + marketId
             topics.append(topic)
             messageHash = 'unsubscribe:trade:' + symbol
             messageHashes.append(messageHash)
@@ -1632,7 +1635,8 @@ class bybit(ccxt.async_support.bybit):
         url = await self.get_url_by_market_type(symbolValue, False, 'watchLiquidations', params)
         method, paramsMethod = self.handle_option_string_and_params(self.clean_params(params), 'watchLiquidations', 'method', 'allLiquidation')
         messageHash = 'liquidations::' + symbolValue
-        topic = method + '.' + market['id']
+        marketId = self.safe_string(market, 'id', '')
+        topic = method + '.' + marketId
         newLiquidation = await self.watch_topics(url, [messageHash], [topic], paramsMethod)
         if self.newUpdates:
             return newLiquidation
@@ -2138,12 +2142,12 @@ class bybit(ccxt.async_support.bybit):
                 rawBalances = self.array_concat(rawBalances, B)
             info = rawBalances
         if topic == 'wallet':
-            data = self.safe_value(message, 'data', {})
+            data = self.safe_list(message, 'data', [])
             for i in range(0, len(data)):
                 result = self.safe_dict(data, 0, {})
                 account = self.safe_string_lower(result, 'accountType')
                 rawBalances = self.array_concat(rawBalances, self.safe_list(result, 'coin', []))
-            info = data
+            info = self.safe_list(message, 'data', [])
         for i in range(0, len(rawBalances)):
             self.parse_ws_balance(rawBalances[i], account)
         if account is not None:
@@ -2354,7 +2358,7 @@ class bybit(ccxt.async_support.bybit):
                 raise ExchangeError(feedback)
             success = self.safe_bool(message, 'success')
             if (success is not None) and (not success):
-                ret_msg = self.safe_string(message, 'ret_msg')
+                ret_msg = self.safe_string(message, 'ret_msg', '')
                 request = self.safe_dict(message, 'request', {})
                 op = self.safe_string(request, 'op')
                 if op == 'auth':

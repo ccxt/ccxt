@@ -484,7 +484,6 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def parse_markets(self, markets: object):
         result = []
-        fees = self.fees
         for i in range(0, len(markets)):
             market = self.safe_dict(markets, i)
             id = self.safe_string(market, 'market')
@@ -519,8 +518,8 @@ class bitvavo(Exchange, ImplicitAPI):
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
-                'taker': fees['trading']['taker'],
-                'maker': fees['trading']['maker'],
+                'taker': self.safe_number(self.fees['trading'], 'taker'),
+                'maker': self.safe_number(self.fees['trading'], 'maker'),
                 'precision': {
                     'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityDecimals'))),
                     'price': self.safe_number(market, 'tickSize'),
@@ -985,7 +984,7 @@ class bitvavo(Exchange, ImplicitAPI):
         taker = self.safe_number(feesValue, 'taker')
         result = {}
         for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+            symbol = self.safe_string(self.symbols, i, '')
             result[symbol] = {
                 'info': fees,
                 'symbol': symbol,
@@ -1108,14 +1107,14 @@ class bitvavo(Exchange, ImplicitAPI):
             request['start'] = since
             sinceLimit = 1440 if (limit is None) else min(limit, 1440)
             request['end'] = self.sum(since, sinceLimit * duration * 1000)
-        requestUntil, paramsUntil = self.handle_until_option('end', request, params)
         if limit is not None:
-            requestUntil['limit'] = min(limit, 1440)  # default 1440, max 1440
+            request['limit'] = min(limit, 1440)  # default 1440, max 1440
         elif since is not None:
-            requestUntil['limit'] = 1440
+            request['limit'] = 1440
+        requestUntil, paramsUntil = self.handle_until_option('end', request, params)
         return self.extend(requestUntil, paramsUntil)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/
@@ -2533,15 +2532,15 @@ class bitvavo(Exchange, ImplicitAPI):
         url = '/' + self.version + '/' + self.implode_params(path, params)
         getOrDelete = (method == 'GET') or (method == 'DELETE')
         if getOrDelete:
-            if len(query) > 0:
+            if not self.is_empty(query):
                 url += '?' + self.urlencode(query)
         if apiName == 'private':
             self.check_required_credentials()
             payload = ''
             if not getOrDelete:
-                if len(query) > 0:
-                    requestBody = self.json(query)
-                    payload = requestBody
+                if not self.is_empty(query):
+                    payload = self.json(query)
+                    requestBody = payload
             timestamp = str(self.milliseconds())
             auth = timestamp + method + url + payload
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
@@ -2577,7 +2576,7 @@ class bitvavo(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
         if ('noMarket' in config) and not ('market' in params):
             return config['noMarket']
         return self.safe_value(config, 'cost', 1)

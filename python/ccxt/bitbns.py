@@ -514,11 +514,12 @@ class bitbns(Exchange, ImplicitAPI):
             parts = key.split('availableorder')
             numParts = len(parts)
             if numParts > 1:
+                usedCurrencyId = self.safe_string(parts, 1, '')
                 currencyId = self.safe_string(parts, 1)
                 # note that "Money" stands for INR - the only fiat in bitbns
                 account = self.account()
                 account['free'] = self.safe_string(data, key)
-                account['used'] = self.safe_string(data, 'inorder' + currencyId)
+                account['used'] = self.safe_string(data, 'inorder' + usedCurrencyId)
                 if currencyId == 'Money':
                     currencyId = 'INR'
                 code = self.safe_currency_code(currencyId)
@@ -1208,23 +1209,21 @@ class bitbns(Exchange, ImplicitAPI):
         return self.milliseconds()
 
     def sign(self, path: str, api: list[str] = ['www'], method: str = 'GET', params: dict = {}) -> dict:
-        urls = self.urls
         apiName = api[0]
-        if not (apiName in urls['api']):
+        if not (apiName in self.urls['api']):
             raise ExchangeError(self.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints')
         if apiName != 'www':
             self.check_required_credentials()
-        apiKeyHeaders = {
-            'X-BITBNS-APIKEY': self.apiKey,
-        }
-        requestHeaders = apiKeyHeaders if (apiName != 'www') else None
+        requestHeaders = {}
+        if apiName != 'www':
+            requestHeaders['X-BITBNS-APIKEY'] = self.apiKey
         baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = self.implode_hostname(baseApiUrl)
         url = baseUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        nonce = str(self.nonce())
+        nonce = self.number_to_string(self.nonce())
         queryLength = len(query)
         postBody = '{}'
         if queryLength > 0:
@@ -1240,7 +1239,6 @@ class bitbns(Exchange, ImplicitAPI):
             }
             payload = self.string_to_base64(self.json(auth))
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
-            requestHeaders = {} if (requestHeaders is None) else requestHeaders
             requestHeaders['X-BITBNS-PAYLOAD'] = payload
             requestHeaders['X-BITBNS-SIGNATURE'] = signature
             requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded'

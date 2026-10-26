@@ -682,7 +682,7 @@ class bitteam(Exchange, ImplicitAPI):
             fee = self.parse_number(withdrawCommissionFixed)
             feesByNetworkId[blockChain] = fee
         else:
-            feesByNetworkId = withdrawCommissionFixed
+            feesByNetworkId = self.extend(withdrawCommissionFixed, {})
         statuses = self.safe_dict(statusesResponse, numericId, {})
         deposit = self.safe_bool(statuses, 'depositStatus')
         withdraw = self.safe_bool(statuses, 'withdrawStatus')
@@ -2399,11 +2399,11 @@ class bitteam(Exchange, ImplicitAPI):
             if code == 404:
                 if (url.find('/ccxt/order/') >= 0) and (method == 'GET'):
                     parts = url.split('/order/')
-                    orderId = self.safe_string(parts, 1)
+                    orderId = self.safe_string(parts, 1, '')
                     raise OrderNotFound(self.id + ' order ' + orderId + ' not found')
                 if url.find('/cmc/orderbook/') >= 0:
                     parts = url.split('/cmc/orderbook/')
-                    symbolId = self.safe_string(parts, 1)
+                    symbolId = self.safe_string(parts, 1, '')
                     raise BadSymbol(self.id + ' symbolId ' + symbolId + ' not found')
             feedback = self.id + ' ' + body
             message = self.safe_string(response, 'message')

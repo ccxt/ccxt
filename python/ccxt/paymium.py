@@ -167,9 +167,8 @@ class paymium(Exchange, ImplicitAPI):
             free = 'balance_' + currencyId
             if free in response:
                 account = self.account()
-                used = 'locked_' + currencyId
                 account['free'] = self.safe_string(response, free)
-                account['used'] = self.safe_string(response, used)
+                account['used'] = self.safe_string(response, 'locked_' + currencyId)
                 result[code] = account
         return self.safe_balance(result)
 
@@ -298,7 +297,8 @@ class paymium(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(None, market)
         side = self.safe_string(trade, 'side')
         price = self.safe_string(trade, 'price')
-        amountField = 'traded_' + marketResolved['base'].lower()
+        baseId = self.safe_string(marketResolved, 'base', '')
+        amountField = 'traded_' + baseId.lower()
         amount = self.safe_string(trade, amountField)
         return self.safe_trade({
             'info': trade,
@@ -610,8 +610,9 @@ class paymium(Exchange, ImplicitAPI):
         baseUrl = baseApiUrl
         url = baseUrl + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
+        hasQuery = len(query) > 0
         if api[0] == 'public':
-            if len(query) > 0:
+            if hasQuery:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -622,7 +623,6 @@ class paymium(Exchange, ImplicitAPI):
                 'Api-Key': self.apiKey,
                 'Api-Nonce': nonce,
             }
-            hasQuery = len(query) > 0
             signedBody = None
             if method == 'POST' and hasQuery:
                 signedBody = self.json(query)
@@ -633,7 +633,7 @@ class paymium(Exchange, ImplicitAPI):
             else:
                 if hasQuery:
                     queryString = self.urlencode(query)
-                    auth += queryString
+                    auth = nonce + url + queryString
                     url += '?' + queryString
             signedHeaders['Api-Signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}

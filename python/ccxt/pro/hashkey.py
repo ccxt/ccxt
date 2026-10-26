@@ -220,7 +220,7 @@ class hashkey(ccxt.async_support.hashkey):
         #
         data = self.safe_list(message, 'data', [])
         ticker = self.parse_ticker(self.safe_dict(data, 0, {}))
-        symbol = ticker['symbol']
+        symbol = self.safe_string(ticker, 'symbol', '')
         messageHash = 'ticker:' + symbol
         self.tickers[symbol] = ticker
         client.resolve(self.tickers[symbol], messageHash)
@@ -374,7 +374,7 @@ class hashkey(ccxt.async_support.hashkey):
         messageHash = 'orders'
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
         if symbol is not None:
-            messageHash = messageHash + ':' + symbolResolved
+            messageHash = 'orders' + ':' + symbolResolved
         orders = await self.watch_private(messageHash)
         limitResolved = limit
         if self.newUpdates:
@@ -425,7 +425,7 @@ class hashkey(ccxt.async_support.hashkey):
         orders.append(parsed)
         messageHash = 'orders'
         client.resolve(orders, messageHash)
-        symbol = parsed['symbol']
+        symbol = self.safe_string(parsed, 'symbol', '')
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(orders, symbolSpecificMessageHash)
 
@@ -491,7 +491,7 @@ class hashkey(ccxt.async_support.hashkey):
         messageHash = 'myTrades'
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
         if symbol is not None:
-            messageHash += ':' + symbolResolved
+            messageHash = 'myTrades' + ':' + symbolResolved
         trades = await self.watch_private(messageHash)
         limitResolved = limit
         if self.newUpdates:
@@ -524,7 +524,7 @@ class hashkey(ccxt.async_support.hashkey):
         self.myTrades = tradesArray
         messageHash = 'myTrades'
         client.resolve(tradesArray, messageHash)
-        symbol = parsed['symbol']
+        symbol = self.safe_string(parsed, 'symbol', '')
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(tradesArray, symbolSpecificMessageHash)
 
@@ -644,7 +644,7 @@ class hashkey(ccxt.async_support.hashkey):
         positions.append(parsed)
         messageHash = 'positions'
         client.resolve(parsed, messageHash)
-        symbol = parsed['symbol']
+        symbol = self.safe_string(parsed, 'symbol', '')
         client.resolve(parsed, messageHash + ':' + symbol)
 
     def parse_ws_position(self, position: dict, market: Market = None) -> Position:

@@ -781,9 +781,9 @@ class derive(Exchange, ImplicitAPI):
         """
         allInstruments = []
         maxPages, paramsMaxPages = self.handle_option_integer_and_params(params, 'getMarketsPaginated', 'maxMarketPages', 25)
-        pageSize, paramsOmitted = self.handle_option_and_params(paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000)
-        page = 1
+        pageSize, paramsOmitted = self.handle_option_integer_and_params(paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000)
         for i in range(0, maxPages):
+            page = i + 1
             requestExtension = {
                 'page': page,
                 'page_size': pageSize,
@@ -798,7 +798,6 @@ class derive(Exchange, ImplicitAPI):
             collected = len(allInstruments)
             if collected >= totalCount:
                 break
-            page += 1
         return allInstruments
 
     def parse_market(self, market: dict) -> Market:
@@ -1011,8 +1010,9 @@ class derive(Exchange, ImplicitAPI):
         amount = self.safe_string(stats, 'oi')
         markPrice = self.safe_string(interest, 'M')
         value = None
+        isOption = self.safe_bool(market, 'option', False)
         # for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
-        if (market is not None) and (market['option'] is not True):
+        if (market is not None) and (isOption is not True):
             value = Precise.string_mul(amount, markPrice)
         return self.safe_open_interest({
             'symbol': self.safe_symbol(None, market),
@@ -1537,7 +1537,7 @@ class derive(Exchange, ImplicitAPI):
         # todo: check active spot markets after launch of v3
         market = self.market(symbol)
         period = self.safe_string(self.timeframes, timeframe, timeframe)
-        priceType, paramsPrice = self.handle_option_and_params(params, 'fetchOHLCV', 'price')
+        priceType, paramsPrice = self.handle_option_string_and_params(params, 'fetchOHLCV', 'price')
         until = self.safe_integer(paramsPrice, 'until')
         paramsOmitted = self.omit(paramsPrice, ['until'])
         duration = self.parse_timeframe(timeframe)
@@ -1882,8 +1882,8 @@ class derive(Exchange, ImplicitAPI):
     def sign_hash(self, hash: str, privateKey: str) -> str:
         self.check_required_credentials()
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
-        r = signature['r']
-        s = signature['s']
+        r = self.safe_string(signature, 'r', '')
+        s = self.safe_string(signature, 's', '')
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
@@ -1934,18 +1934,18 @@ class derive(Exchange, ImplicitAPI):
         ACTION_TYPEHASH = self.base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17')
         TRADE_MODULE_ADDRESS = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'  # shared across mainnet and testnet in v3
         priceString = self.number_to_string(price)
-        maxFee = None
-        paramsMaxFee = {}
-        maxFee, paramsMaxFee = self.handle_option_and_params(paramsDeriveSubaccountId, 'createOrder', 'max_fee')
-        if maxFee is None:
+        maxFeeOptionAndParams = self.handle_option_and_params(paramsDeriveSubaccountId, 'createOrder', 'max_fee')
+        maxFeeString = self.safe_string(maxFeeOptionAndParams, 0)
+        if maxFeeString is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a max_fee argument in params')
-        maxFeeString = self.number_to_string(maxFee)
+        paramsMaxFee = self.safe_dict(maxFeeOptionAndParams, 1, {})
         amountString = self.number_to_string(amount)
+        marketInfo = self.safe_dict(market, 'info', {})
         tradeModuleDataHash = self.hash(self.eth_abi_encode([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
-            market['info']['base_asset_address'],
-            self.convert_to_big_int(market['info']['base_asset_sub_id']),  # options carry a huge encoded sub_id that overflows double precision, so it must stay integral
+            marketInfo['base_asset_address'],
+            self.convert_to_big_int(marketInfo['base_asset_sub_id']),  # options carry a huge encoded sub_id that overflows double precision, so it must stay integral
             self.convert_to_big_int((self.parse_units(priceString))),
             self.convert_to_big_int((self.parse_units((self.amount_to_precision(symbol, amountString))))),
             self.convert_to_big_int((self.parse_units(maxFeeString))),
@@ -2096,11 +2096,12 @@ class derive(Exchange, ImplicitAPI):
         priceString = self.number_to_string(price)
         maxFeeString = self.safe_string(paramsDeriveSubaccountId, 'max_fee', '0')
         amountString = self.number_to_string(amount)
+        marketInfo = self.safe_dict(market, 'info', {})
         tradeModuleDataHash = self.hash(self.eth_abi_encode([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
-            market['info']['base_asset_address'],
-            self.convert_to_big_int(market['info']['base_asset_sub_id']),  # options carry a huge encoded sub_id that overflows double precision, so it must stay integral
+            marketInfo['base_asset_address'],
+            self.convert_to_big_int(marketInfo['base_asset_sub_id']),  # options carry a huge encoded sub_id that overflows double precision, so it must stay integral
             self.convert_to_big_int((self.parse_units(priceString))),
             self.convert_to_big_int((self.parse_units((self.amount_to_precision(symbol, amountString))))),
             self.convert_to_big_int((self.parse_units(maxFeeString))),
@@ -2663,9 +2664,7 @@ class derive(Exchange, ImplicitAPI):
         #         "algo_slices_completed": null
         #     }
         #
-        order = self.safe_dict(rawOrder, 'data')
-        if order is None:
-            order = rawOrder
+        order = self.safe_dict(rawOrder, 'data', rawOrder)
         timestamp = self.safe_integer(rawOrder, 'creation_timestamp')  # the nonce is no longer a usable fallback: v3 nonces are nanosecond-scale values with a random suffix
         orderId = self.safe_string(order, 'order_id')
         marketId = self.safe_string(order, 'instrument_name')
@@ -3448,7 +3447,8 @@ class derive(Exchange, ImplicitAPI):
                     account['total'] = self.safe_string(balance, 'amount')
                 else:
                     amount = self.safe_string(balance, 'amount')
-                    account['total'] = Precise.string_add(account['total'], amount)
+                    previousTotal = self.safe_string(account, 'total')
+                    account['total'] = Precise.string_add(previousTotal, amount)
                 if code is not None:
                     result[code] = account
         usdcAccount = self.safe_dict(result, 'USDC')
@@ -4057,7 +4057,8 @@ class derive(Exchange, ImplicitAPI):
             return [subaccountIdInt, paramsSubaccountId]
         optionsWallet = self.safe_integer(self.options, 'subaccount_id')
         if optionsWallet is not None:
-            return [optionsWallet, paramsSubaccountId]
+            # parsed, not returned raw: every arm of this tuple has to hand back a plain value so the statically typed ports read the slot natively instead of through a runtime helper
+            return [self.parse_to_int(optionsWallet), paramsSubaccountId]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.')
 
     def handle_derive_wallet_address(self, methodName: str, params: dict) -> list:

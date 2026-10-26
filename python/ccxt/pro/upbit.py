@@ -46,18 +46,18 @@ class upbit(ccxt.async_support.upbit):
         symbolsMarket = self.market_symbols(symbolsRequested)
         symbolsNormalized = [] if (symbolsMarket is None) else symbolsMarket
         marketIds = self.market_ids(symbolsNormalized)
-        url = self.implode_params(self.urls['api']['ws'], {
+        url = self.implode_params(self.safe_string(self.urls['api'], 'ws'), {
             'hostname': self.hostname,
         })
         client = self.client(url)
         subscriptionsKey = 'upbitPublicSubscriptions'
         if not (subscriptionsKey in client.subscriptions):
             client.subscriptions[subscriptionsKey] = self.create_safe_dictionary(True)
-        subscriptions = client.subscriptions[subscriptionsKey]
+        subscriptions = self.safe_dict(client.subscriptions, subscriptionsKey, {})
         messageHashes = []
         for i in range(0, len(symbolsNormalized)):
-            marketId = marketIds[i]
-            symbol = symbolsNormalized[i]
+            marketId = self.safe_string(marketIds, i, '')
+            symbol = self.safe_string(symbolsNormalized, i, '')
             messageHash = channel + ':' + symbol
             messageHashes.append(messageHash)
             if not (messageHash in subscriptions):
@@ -341,30 +341,24 @@ class upbit(ccxt.async_support.upbit):
         request = {
             'type': channel,
         }
-        symbolResolved = None
+        messageHashResolved = messageHash
+        channelKey = channel
         if symbol is not None:
             await self.load_markets()
             market = self.market(symbol)
-            symbolResolved = market['symbol']
-            symbols = [symbolResolved]
-            marketIds = self.market_ids(symbols)
-            request['codes'] = marketIds
-        messageHashResolved = messageHash
-        if symbolResolved is not None:
+            symbolResolved = self.safe_string(market, 'symbol', '')
+            request['codes'] = self.market_ids([symbolResolved])
             messageHashResolved = messageHash + ':' + symbolResolved
-        url = self.implode_params(self.urls['api']['ws'], {
+            channelKey = channel + ':' + symbolResolved
+        url = self.implode_params(self.safe_string(self.urls['api'], 'ws'), {
             'hostname': self.hostname,
-        })
-        url += '/private'
+        }) + '/private'
         client = self.client(url)
         # Track private channel subscriptions to support multiple concurrent watches
         subscriptionsKey = 'upbitPrivateSubscriptions'
         if not (subscriptionsKey in client.subscriptions):
             client.subscriptions[subscriptionsKey] = self.create_safe_dictionary(True)
-        channelKey = channel
-        if symbolResolved is not None:
-            channelKey = channel + ':' + symbolResolved
-        subscriptions = client.subscriptions[subscriptionsKey]
+        subscriptions = self.safe_dict(client.subscriptions, subscriptionsKey, {})
         isNewChannel = not (channelKey in subscriptions)
         if isNewChannel:
             subscriptions[channelKey] = request
@@ -582,8 +576,7 @@ class upbit(ccxt.async_support.upbit):
         myTrades.append(trade)
         messageHash = 'myTrades'
         client.resolve(myTrades, messageHash)
-        messageHash = 'myTrades:' + trade['symbol']
-        client.resolve(myTrades, messageHash)
+        client.resolve(myTrades, 'myTrades:' + self.safe_string(trade, 'symbol', ''))
 
     def handle_order(self, client: Client, message: dict):
         parsed = self.parse_ws_order(message)
@@ -625,8 +618,7 @@ class upbit(ccxt.async_support.upbit):
         cachedOrders.append(parsed)
         messageHash = 'myOrder'
         client.resolve(self.orders, messageHash)
-        messageHash = messageHash + ':' + symbol
-        client.resolve(self.orders, messageHash)
+        client.resolve(self.orders, messageHash + ':' + self.safe_string(parsed, 'symbol', ''))
 
     async def watch_balance(self, params: dict = {}) -> Balances:
         """

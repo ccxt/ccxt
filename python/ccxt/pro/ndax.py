@@ -56,9 +56,10 @@ class ndax(ccxt.async_support.ndax):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        marketId = self.safe_string(market, 'id', '')
         name = 'SubscribeLevel1'
-        messageHash = name + ':' + market['id']
-        url = self.urls['api']['ws']
+        messageHash = name + ':' + marketId
+        url = self.safe_string(self.safe_dict(self.urls, 'api', {}), 'ws')
         requestId = self.request_id()
         payload = {
             'OMSId': omsId,
@@ -102,12 +103,13 @@ class ndax(ccxt.async_support.ndax):
         #     }
         #
         ticker = self.parse_ticker(payload)
-        symbol = ticker['symbol']
+        symbol = self.safe_string(ticker, 'symbol')
         market = self.market(symbol)
         if symbol is not None:
             self.tickers[symbol] = ticker
+        marketId = self.safe_string(market, 'id', '')
         name = 'SubscribeLevel1'
-        messageHash = name + ':' + market['id']
+        messageHash = name + ':' + marketId
         client.resolve(ticker, messageHash)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
@@ -126,10 +128,11 @@ class ndax(ccxt.async_support.ndax):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
         name = 'SubscribeTrades'
-        messageHash = name + ':' + market['id']
-        url = self.urls['api']['ws']
+        messageHash = name + ':' + marketId
+        url = self.safe_string(self.safe_dict(self.urls, 'api', {}), 'ws')
         requestId = self.request_id()
         payload = {
             'OMSId': omsId,
@@ -174,7 +177,7 @@ class ndax(ccxt.async_support.ndax):
         updates = {}
         for i in range(0, len(payload)):
             trade = self.parse_trade(payload[i])
-            symbol = trade['symbol']
+            symbol = self.safe_string(trade, 'symbol')
             tradesArray = None if (symbol is None) else self.safe_value(self.trades, symbol)
             if tradesArray is None:
                 limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -188,7 +191,8 @@ class ndax(ccxt.async_support.ndax):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            messageHash = name + ':' + market['id']
+            marketId = self.safe_string(market, 'id', '')
+            messageHash = name + ':' + marketId
             tradesArray = self.safe_value(self.trades, symbol)
             client.resolve(tradesArray, messageHash)
 
@@ -209,10 +213,11 @@ class ndax(ccxt.async_support.ndax):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
         name = 'SubscribeTicker'
-        messageHash = name + ':' + timeframe + ':' + market['id']
-        url = self.urls['api']['ws']
+        messageHash = name + ':' + timeframe + ':' + marketId
+        url = self.safe_string(self.safe_dict(self.urls, 'api', {}), 'ws')
         requestId = self.request_id()
         payload = {
             'OMSId': omsId,
@@ -264,9 +269,8 @@ class ndax(ccxt.async_support.ndax):
             ohlcv = self.safe_list(payload, i)
             marketId = self.safe_string(ohlcv, 8)
             market = self.safe_market(marketId)
-            symbol = market['symbol']
-            if marketId is not None:
-                updates[marketId] = {}
+            symbol = self.safe_string(market, 'symbol', '')
+            marketUpdates = {}
             self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
             keys = list(self.timeframes.keys())
             for j in range(0, len(keys)):
@@ -287,8 +291,9 @@ class ndax(ccxt.async_support.ndax):
                 ]
                 stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
                 length = len(stored)
-                if (length > 0) and (candleTimestamp == self.safe_integer(stored[length - 1], 0)):
-                    previous = stored[length - 1]
+                previous = self.safe_value(stored, length - 1)
+                previousTimestamp = self.safe_integer(previous, 0)
+                if (length > 0) and (previousTimestamp is not None) and (previousTimestamp == candleTimestamp):
                     parsedHigh = self.safe_float(ohlcv, 1)
                     previousHigh = self.safe_float(previous, 1)
                     high = previousHigh
@@ -304,27 +309,28 @@ class ndax(ccxt.async_support.ndax):
                         if (previousLow is not None) and (parsedLow > previousLow):
                             low = previousLow
                     stored[length - 1] = [
-                        parsed[0],
-                        previous[1],
+                        candleTimestamp,
+                        self.safe_float(previous, 1),
                         high,
                         low,
-                        parsed[4],
-                        self.sum(parsed[5], previous[5]),
+                        self.safe_float(ohlcv, 4),
+                        self.sum(self.safe_float(ohlcv, 5), self.safe_float(previous, 5)),
                     ]
                     if marketId is not None:
-                        updates[marketId][timeframe] = True
+                        marketUpdates[timeframe] = True
                 else:
                     if length > 0:
-                        lastTimestamp = self.safe_integer(stored[length - 1], 0)
-                        if (lastTimestamp is not None) and (lastTimestamp > candleTimestamp):
+                        if (previousTimestamp is not None) and (previousTimestamp > candleTimestamp):
                             continue
                     stored.append(parsed)
                     limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                     if length >= limit:
                         stored.pop(0)
                     if marketId is not None:
-                        updates[marketId][timeframe] = True
+                        marketUpdates[timeframe] = True
                 self.ohlcvs[symbol][timeframe] = stored
+            if marketId is not None:
+                updates[marketId] = marketUpdates
         name = 'SubscribeTicker'
         marketIds = list(updates.keys())
         for i in range(0, len(marketIds)):
@@ -334,8 +340,8 @@ class ndax(ccxt.async_support.ndax):
                 timeframe = timeframes[j]
                 messageHash = name + ':' + timeframe + ':' + marketId
                 market = self.safe_market(marketId)
-                symbol = market['symbol']
-                stored = self.safe_list(self.ohlcvs[symbol], timeframe, [])
+                symbol = self.safe_string(market, 'symbol', '')
+                stored = self.safe_list(self.safe_value(self.ohlcvs, symbol), timeframe, [])
                 client.resolve(stored, messageHash)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
@@ -353,10 +359,11 @@ class ndax(ccxt.async_support.ndax):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
         name = 'SubscribeLevel2'
-        messageHash = name + ':' + market['id']
-        url = self.urls['api']['ws']
+        messageHash = name + ':' + marketId
+        url = self.safe_string(self.safe_dict(self.urls, 'api', {}), 'ws')
         requestId = self.request_id()
         limitValue = 100 if (limit is None) else limit
         payload = {
@@ -414,7 +421,7 @@ class ndax(ccxt.async_support.ndax):
         if marketId is None:
             return
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
             return
