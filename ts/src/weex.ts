@@ -1591,7 +1591,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] whether to automatically paginate requests until the required number of candles is returned
-     * @param {boolean} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
+     * @param {boolean} [params.historical] whether to fetch historical klines (default is false, forced to true when since or until is set because the recent klines endpoints ignore time filters). If false, will fetch last price klines
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchContractOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
@@ -1618,7 +1618,11 @@ export default class weex extends Exchange {
         let response = undefined;
         // hardcap threshold
         const limitResolved: Int = (limit === undefined) ? undefined : Math.min (limit, 1000);
-        if (historical) {
+        // the recent-klines endpoints ignore startTime and endTime and only ever return the
+        // latest candles, so a request bounded by since or until has to go through the history
+        // endpoint, which honours both (endTime = since + limit * timeframe when until is absent)
+        const useHistory = historical || (since !== undefined) || (until !== undefined);
+        if (useHistory) {
             if (priceType !== undefined) {
                 request['priceType'] = priceType;
             }
@@ -1644,7 +1648,8 @@ export default class weex extends Exchange {
                     }
                     startTime = until - timeDelta;
                 } else {
-                    endTime = since + timeDelta;
+                    // this.sum, a bare + is string concatenation in the php port
+                    endTime = this.sum (since, timeDelta);
                 }
             }
             request['startTime'] = startTime;
