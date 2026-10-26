@@ -2227,7 +2227,7 @@ export default class whitebit extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
-            'orderId': parseInt (id),
+            'orderId': this.parseToInt (id),
         };
         const response = await this.v4PrivatePostOrderCancel (this.extend (request, params));
         //
@@ -2703,7 +2703,7 @@ export default class whitebit extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {
-            'orderId': parseInt (id),
+            'orderId': this.parseToInt (id),
         };
         let market: Market = undefined;
         if (symbol !== undefined) {
