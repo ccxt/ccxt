@@ -57,7 +57,7 @@ export default class independentreserve extends independentreserveRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const wsUrl = this.safeString (this.urls['api'], 'ws');
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' watchTrades() has no websocket url');
@@ -151,7 +151,7 @@ export default class independentreserve extends independentreserveRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const limitResolved: Int = (limit === undefined) ? 100 : limit;
         const limitString = this.numberToString (limitResolved);
         const wsUrl = this.safeString (this.urls['api'], 'ws');
