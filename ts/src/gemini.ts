@@ -2080,7 +2080,7 @@ export default class gemini extends Exchange {
                 'X-GEMINI-SIGNATURE': signature,
             };
         } else {
-            if (Object.keys (query).length > 0) {
+            if (!(this.isEmpty (query))) {
                 url += '?' + this.urlencode (query);
             }
         }
