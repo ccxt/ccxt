@@ -409,7 +409,7 @@ export default class binance extends binanceRest {
         } else {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const market = this.market (symbolsNormalized[i]);
-                subscriptionHashes.push (market['lowercaseId'] + '@forceOrder');
+                subscriptionHashes.push (this.safeString (market, 'lowercaseId', '') + '@forceOrder');
                 messageHashes.push ('liquidations::' + symbolsNormalized[i]);
             }
             streamHash += '::' + symbolsNormalized.join (',');
@@ -808,7 +808,7 @@ export default class binance extends binanceRest {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             messageHashes.push ('orderbook::' + symbol);
-            const subscriptionHash = market['lowercaseId'] + '@' + name;
+            const subscriptionHash = this.safeString (market, 'lowercaseId', '') + '@' + name;
             if (watchOrderBookRate === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() watchOrderBookRate is required');
             }

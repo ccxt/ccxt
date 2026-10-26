@@ -3455,7 +3455,7 @@ export default class binance extends Exchange {
         const isDemoEnv = (demoMode) || (sandboxMode);
         const fetchMarkets: List = [];
         for (let i = 0; i < rawFetchMarkets.length; i++) {
-            const type = this.safeValue (rawFetchMarkets, i);
+            const type = this.safeString (rawFetchMarkets, i);
             if (type === 'option' && (isDemoEnv)) {
                 continue;
             }
@@ -3812,12 +3812,12 @@ export default class binance extends Exchange {
         let strike: Str = undefined;
         if (contract) {
             if (swap) {
-                symbol = symbol + ':' + settle;
+                symbol = base + '/' + quote + ':' + settle;
             } else if (future) {
-                symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
+                symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry);
             } else if (option) {
                 strike = this.numberToString (this.parseToNumeric (this.safeString (market, 'strikePrice')));
-                symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry) + '-' + strike + '-' + this.safeString (optionParts, 3);
+                symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry) + '-' + strike + '-' + this.safeString (optionParts, 3);
             }
             contractSize = this.safeNumber2 (market, 'contractSize', 'unit', this.parseNumber ('1'));
             linear = settle === quote;
@@ -3837,7 +3837,7 @@ export default class binance extends Exchange {
         if (spot) {
             const permissions = this.safeList (market, 'permissions', []);
             for (let j = 0; j < permissions.length; j++) {
-                if (permissions[j] === 'TRD_GRP_003') {
+                if (this.safeString (permissions, j) === 'TRD_GRP_003') {
                     active = false;
                     break;
                 }
@@ -6176,7 +6176,7 @@ export default class binance extends Exchange {
 
     parseOrderTypeByMarket (type: Str, marketType: Str): Str {
         let types: Dict = {};
-        if ((marketType !== undefined) && marketType === 'spot') {
+        if (marketType === 'spot') {
             types = {
                 'limit_maker': 'limit',
                 'stop_loss_limit': 'limit',
@@ -13332,8 +13332,7 @@ export default class binance extends Exchange {
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url: string = baseApiUrl;
-        url += '/' + path;
+        let url: string = baseApiUrl + '/' + path;
         let signedHeaders: NullableDict = undefined;
         let signedBody: Str = undefined;
         if (path === 'historicalTrades') {
@@ -13428,14 +13427,14 @@ export default class binance extends Exchange {
                 'X-MBX-APIKEY': this.apiKey,
             };
             if ((method === 'GET') || (method === 'DELETE')) {
-                url += '?' + query;
+                url = url + '?' + query;
             } else {
                 signedBody = query;
                 signedHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
             if (Object.keys (params).length > 0) {
-                url += '?' + this.urlencode (params);
+                url = url + '?' + this.urlencode (params);
             }
         }
         const headersResolved: NullableDict = signedHeaders;
