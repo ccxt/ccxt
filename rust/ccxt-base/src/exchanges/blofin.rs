@@ -152,6 +152,7 @@ impl crate::exchange_generated::ExchangeBase for BlofinCore {
                 "fetch_my_trades" => self.fetch_my_trades(&args[..]).await,
                 "fetch_ohlcv" => self.fetch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_open_orders" => self.fetch_open_orders(&args[..]).await,
+                "fetch_order" => self.fetch_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_order_book" => self.fetch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_position" => self.fetch_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_position_mode" => self.fetch_position_mode(&args[..]).await,
@@ -293,7 +294,7 @@ impl BlofinCore {
         m.insert("fetchOpenInterestHistory".to_string(), Value::Bool(false));
         m.insert("fetchOpenOrder".to_string(), Value::Null);
         m.insert("fetchOpenOrders".to_string(), Value::Bool(true));
-        m.insert("fetchOrder".to_string(), Value::Null);
+        m.insert("fetchOrder".to_string(), Value::Bool(true));
         m.insert("fetchOrderBook".to_string(), Value::Bool(true));
         m.insert("fetchOrderBooks".to_string(), Value::Bool(false));
         m.insert("fetchOrders".to_string(), Value::Bool(false));
@@ -977,7 +978,14 @@ impl BlofinCore {
         m.insert("symbolRequired".to_string(), Value::Bool(false));
     m
 }));
-        m.insert("fetchOrder".to_string(), Value::Null);
+        m.insert("fetchOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("marginMode".to_string(), Value::Bool(false));
+        m.insert("trigger".to_string(), Value::Bool(false));
+        m.insert("trailing".to_string(), Value::Bool(false));
+        m.insert("symbolRequired".to_string(), Value::Bool(true));
+    m
+}));
         m.insert("fetchOpenOrders".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
@@ -1058,7 +1066,11 @@ impl BlofinCore {
         m.insert("extends".to_string(), Value::Str("forDerivatives".into()));
     m
 }));
-        m.insert("inverse".to_string(), Value::Null);
+        m.insert("inverse".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("extends".to_string(), Value::Str("forDerivatives".into()));
+    m
+}));
     m
 }));
         m.insert("future".to_string(), Value::Map({
@@ -2732,6 +2744,64 @@ impl BlofinCore {
 
 /*
  * @method
+ * @name blofin#fetchOrder
+ * @description fetches information on an order made by the user
+ * @see https://docs.blofin.com/index.html#get-order-detail
+ * @see https://docs.blofin.com/index.html#get-tpsl-order-detail
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+ * @param {boolean} [params.tpsl] True if fetching a tpsl order
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+    pub async fn fetch_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if (symbol == Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".into()))));
+        }
+        if (self.markets.clone() == Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut market: Value = self.market(symbol);
+        let mut request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            m
+        });
+        let mut isTpsl: Value = self.safe_bool2(params.clone(), Value::Str("tpsl".into()), Value::Str("TPSL".into()), &[Value::Bool(false)]);
+        let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
+        if (clientOrderId != Value::Null) {
+            request.insert("clientOrderId".into(), clientOrderId);
+        }  else if (isTpsl.as_bool() == Some(true)) {
+            request.insert("tpslId".into(), id.clone());
+        }  else {
+            request.insert("orderId".into(), id.clone());
+        }
+        let mut query: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[]);
+        let mut response: Value = Value::Null;
+        if (isTpsl.as_bool() == Some(true)) {
+            let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+            response = self.private_get_trade_order_tpsl_detail(&[__ws_arg_12]).await;
+        }  else {
+            let __ws_arg_13 = self.extend(Value::Map(request), &[query]);
+            response = self.private_get_trade_order_detail(&[__ws_arg_13]).await;
+        }
+        let mut data: Value = self.safe_dict_k(response, "data", &[]);
+        if (data == Value::Null) {
+            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order ".into())).into()), id)));
+        }
+        return self.parse_order(data, &[market]);
+
+    Value::Null
+}
+
+/*
+ * @method
  * @name blofin#fetchOpenOrders
  * @description Fetch orders that are still open
  * @see https://blofin.com/docs#get-active-orders
@@ -2782,15 +2852,15 @@ impl BlofinCore {
         let mut query: Value = self.omit(paramsMethod, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[]);
         let mut response: Value = Value::Null;
         if isTpSl.as_bool() == Some(true) || (method.as_str() == Some("privateGetTradeOrdersTpslPending")) {
-            let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[query.clone()]);
-            response = self.private_get_trade_orders_tpsl_pending(&[__ws_arg_12]).await;
+            let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+            response = self.private_get_trade_orders_tpsl_pending(&[__ws_arg_14]).await;
         }  else if isTrigger.as_bool() == Some(true) || (method.as_str() == Some("privateGetTradeOrdersAlgoPending")) {
             request.insert("orderType".into(), Value::Str("trigger".into()));
-            let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[query.clone()]);
-            response = self.private_get_trade_orders_algo_pending(&[__ws_arg_13]).await;
+            let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+            response = self.private_get_trade_orders_algo_pending(&[__ws_arg_15]).await;
         }  else {
-            let __ws_arg_14 = self.extend(Value::Map(request), &[query]);
-            response = self.private_get_trade_orders_pending(&[__ws_arg_14]).await;
+            let __ws_arg_16 = self.extend(Value::Map(request), &[query]);
+            response = self.private_get_trade_orders_pending(&[__ws_arg_16]).await;
         }
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[market, since, limit]);
@@ -2876,11 +2946,11 @@ impl BlofinCore {
             //         ]
             //     }
             //
-            let __ws_arg_15 = self.extend(requestUntil.clone(), &[paramsMarketType.clone()]);
-            response = self.private_get_spot_trade_fills_history(&[__ws_arg_15]).await;
+            let __ws_arg_17 = self.extend(requestUntil.clone(), &[paramsMarketType.clone()]);
+            response = self.private_get_spot_trade_fills_history(&[__ws_arg_17]).await;
         }  else {
-            let __ws_arg_16 = self.extend(requestUntil, &[paramsMarketType]);
-            response = self.private_get_trade_fills_history(&[__ws_arg_16]).await;
+            let __ws_arg_18 = self.extend(requestUntil, &[paramsMarketType]);
+            response = self.private_get_trade_fills_history(&[__ws_arg_18]).await;
         }
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_trades(data, &[market, since, limit]);
@@ -2936,8 +3006,8 @@ impl BlofinCore {
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("after".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_17 = self.extend(requestUntil, &[paramsUntil.clone()]);
-        let mut response: Value = self.private_get_asset_deposit_history(&[__ws_arg_17]).await;
+        let __ws_arg_19 = self.extend(requestUntil, &[paramsUntil.clone()]);
+        let mut response: Value = self.private_get_asset_deposit_history(&[__ws_arg_19]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_transactions(data, &[currency, since, limit, paramsUntil]);
 
@@ -2992,8 +3062,8 @@ impl BlofinCore {
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("after".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_18 = self.extend(requestUntil, &[paramsUntil.clone()]);
-        let mut response: Value = self.private_get_asset_withdrawal_history(&[__ws_arg_18]).await;
+        let __ws_arg_20 = self.extend(requestUntil, &[paramsUntil.clone()]);
+        let mut response: Value = self.private_get_asset_withdrawal_history(&[__ws_arg_20]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_transactions(data, &[currency, since, limit, paramsUntil]);
 
@@ -3252,8 +3322,8 @@ impl BlofinCore {
             // the same display-name chain ids that withdrawal-apply and the currencies registry use
             request.insert("chain".into(), self.network_code_to_chain_id(networkCode, &[currency.clone()]).map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[query]);
-        let mut response: Value = self.private_get_asset_deposit_address(&[__ws_arg_19]).await;
+        let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[query]);
+        let mut response: Value = self.private_get_asset_deposit_address(&[__ws_arg_21]).await;
         //
         //     {
         //         "code": "0",
@@ -3407,8 +3477,8 @@ impl BlofinCore {
             currency = self.currency(code);
             request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_asset_deposit_history(&[__ws_arg_20]).await;
+        let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.private_get_asset_deposit_history(&[__ws_arg_22]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         // only accept a row that matches the requested id, in case the
         // venue ignores the filter and returns the latest records instead
@@ -3462,8 +3532,8 @@ impl BlofinCore {
             currency = self.currency(code);
             request.insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_asset_withdrawal_history(&[__ws_arg_21]).await;
+        let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.private_get_asset_withdrawal_history(&[__ws_arg_23]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         // only accept a row that matches the requested id (or clientId), in
         // case the venue ignores the filter and returns the latest records
@@ -3561,8 +3631,8 @@ impl BlofinCore {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a params[\"network\"] or params[\"chain\"] for on-chain withdrawals".into()))));
             }
         }
-        let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[query]);
-        let mut response: Value = self.private_post_asset_withdrawal_apply(&[__ws_arg_22]).await;
+        let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[query]);
+        let mut response: Value = self.private_post_asset_withdrawal_apply(&[__ws_arg_24]).await;
         //
         //     {
         //         "code": "0",
@@ -3577,8 +3647,8 @@ impl BlofinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let __ws_arg_23 = self.extend(Value::Map(request), &[data]);
-        return self.parse_transaction(__ws_arg_23, &[currency]);
+        let __ws_arg_25 = self.extend(Value::Map(request), &[data]);
+        return self.parse_transaction(__ws_arg_25, &[currency]);
 
     Value::Null
 }
@@ -3629,8 +3699,8 @@ impl BlofinCore {
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_24 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.private_get_asset_bills(&[__ws_arg_24]).await;
+        let __ws_arg_26 = self.extend(requestUntil, &[paramsUntil]);
+        let mut response: Value = self.private_get_asset_bills(&[__ws_arg_26]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_ledger(data, &[currency, since, limit]);
 
@@ -3960,8 +4030,8 @@ impl BlofinCore {
                 m.insert("toAccount".to_string(), toId);
             m
         });
-        let __ws_arg_25 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_asset_transfer(&[__ws_arg_25]).await;
+        let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.private_post_asset_transfer(&[__ws_arg_27]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4015,8 +4085,8 @@ impl BlofinCore {
                 m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_account_positions(&[__ws_arg_26]).await;
+        let __ws_arg_28 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.private_get_account_positions(&[__ws_arg_28]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         let mut position: Value = self.safe_dict(data, Value::Int(0), &[]);
         if (position == Value::Null) {
@@ -4101,8 +4171,8 @@ impl BlofinCore {
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_27 = self.extend(requestUntil, &[paramsUntil.clone()]);
-        let mut response: Value = self.private_get_account_positions_history(&[__ws_arg_27]).await;
+        let __ws_arg_29 = self.extend(requestUntil, &[paramsUntil.clone()]);
+        let mut response: Value = self.private_get_account_positions_history(&[__ws_arg_29]).await;
         //
         //    {
         //        "code": "0",
@@ -4341,8 +4411,8 @@ impl BlofinCore {
                 m.insert("marginMode".to_string(), marginMode);
             m
         });
-        let __ws_arg_28 = self.extend(Value::Map(request), &[query]);
-        let mut response: Value = self.private_get_account_batch_leverage_info(&[__ws_arg_28]).await;
+        let __ws_arg_30 = self.extend(Value::Map(request), &[query]);
+        let mut response: Value = self.private_get_account_batch_leverage_info(&[__ws_arg_30]).await;
         //
         //     {
         //         "code": "0",
@@ -4396,8 +4466,8 @@ impl BlofinCore {
                 m.insert("marginMode".to_string(), marginMode);
             m
         });
-        let __ws_arg_29 = self.extend(Value::Map(request), &[query]);
-        let mut response: Value = self.private_get_account_leverage_info(&[__ws_arg_29]).await;
+        let __ws_arg_31 = self.extend(Value::Map(request), &[query]);
+        let mut response: Value = self.private_get_account_leverage_info(&[__ws_arg_31]).await;
         //
         //     {
         //         "code": "0",
@@ -4478,8 +4548,8 @@ impl BlofinCore {
                 m.insert("instId".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_30 = self.extend(Value::Map(request), &[paramsMarginMode]);
-        let mut response: Value = self.private_post_account_set_leverage(&[__ws_arg_30]).await;
+        let __ws_arg_32 = self.extend(Value::Map(request), &[paramsMarginMode]);
+        let mut response: Value = self.private_post_account_set_leverage(&[__ws_arg_32]).await;
         return response;
 
     Value::Null
@@ -4525,8 +4595,8 @@ impl BlofinCore {
         if (clientOrderId != Value::Null) {
             request.insert("clientOrderId".into(), clientOrderId);
         }
-        let __ws_arg_31 = self.extend(Value::Map(request), &[paramsMarginMode]);
-        let mut response: Value = self.private_post_trade_close_position(&[__ws_arg_31]).await;
+        let __ws_arg_33 = self.extend(Value::Map(request), &[paramsMarginMode]);
+        let mut response: Value = self.private_post_trade_close_position(&[__ws_arg_33]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4589,11 +4659,11 @@ impl BlofinCore {
         let mut query: Value = self.omit(paramsMethod, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[]);
         let mut response: Value = Value::Null;
         if isTrigger.as_bool() == Some(true) || (method.as_str() == Some("privateGetTradeOrdersTpslHistory")) {
-            let __ws_arg_32 = self.extend(Value::Map(request.clone()), &[query.clone()]);
-            response = self.private_get_trade_orders_tpsl_history(&[__ws_arg_32]).await;
+            let __ws_arg_34 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+            response = self.private_get_trade_orders_tpsl_history(&[__ws_arg_34]).await;
         }  else {
-            let __ws_arg_33 = self.extend(Value::Map(request), &[query]);
-            response = self.private_get_trade_orders_history(&[__ws_arg_33]).await;
+            let __ws_arg_35 = self.extend(Value::Map(request), &[query]);
+            response = self.private_get_trade_orders_history(&[__ws_arg_35]).await;
         }
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[market, since, limit]);
@@ -4680,8 +4750,8 @@ impl BlofinCore {
                 m.insert("marginMode".to_string(), marginMode);
             m
         });
-        let __ws_arg_34 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_account_set_margin_mode(&[__ws_arg_34]).await;
+        let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.private_post_account_set_margin_mode(&[__ws_arg_36]).await;
         //
         //     {
         //         "code": "0",
@@ -4752,8 +4822,8 @@ impl BlofinCore {
                 m.insert("positionMode".to_string(), (if hedged.as_bool() == Some(true) { Value::Str("long_short_mode".into()) } else { Value::Str("net_mode".into()) }));
             m
         });
-        let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
-        return self.private_post_account_set_position_mode(&[__ws_arg_35]).await;
+        let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
+        return self.private_post_account_set_position_mode(&[__ws_arg_37]).await;
 
     Value::Null
 }

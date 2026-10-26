@@ -1757,7 +1757,7 @@ impl GateCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:candles:".into()), interval).into()), Value::Str(":".into())).into()), symbolValue).into());
         let mut url: Value = self.get_url_by_market(market);
         let mut requestId: Value = self.request_id();
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId.clone());
                 m.insert("time".to_string(), self.seconds());
@@ -1775,7 +1775,7 @@ impl GateCore {
         // an unsupported timeframe falls back to the caller's key, matching
         // the previous no-op cleanup instead of an undefined cache key
         let mut cacheTimeframe: Value = self.find_timeframe(interval, &[]);
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
@@ -1786,8 +1786,8 @@ impl GateCore {
                 m.insert("subMessageHashes".to_string(), Value::from(vec![subMessageHash]));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
-        return self.watch_multiple(url, Value::from(vec![messageHash.clone()]), &[message, Value::from(vec![messageHash]), subscription]).await;
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
+        return self.watch_multiple(url, Value::from(vec![messageHash.clone()]), &[message, Value::from(vec![messageHash]), Value::Map(subscription)]).await;
 
     Value::Null
 }
