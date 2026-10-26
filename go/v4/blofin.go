@@ -99,7 +99,7 @@ func (this *Blofin) Describe() any {
 			"fetchOpenInterestHistory":             false,
 			"fetchOpenOrder":                       nil,
 			"fetchOpenOrders":                      true,
-			"fetchOrder":                           nil,
+			"fetchOrder":                           true,
 			"fetchOrderBook":                       true,
 			"fetchOrderBooks":                      false,
 			"fetchOrders":                          false,
@@ -536,7 +536,12 @@ func (this *Blofin) Describe() any {
 					"untilDays":      100000,
 					"symbolRequired": false,
 				},
-				"fetchOrder": nil,
+				"fetchOrder": map[string]any{
+					"marginMode":     false,
+					"trigger":        false,
+					"trailing":       false,
+					"symbolRequired": true,
+				},
 				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          100,
@@ -1348,11 +1353,11 @@ func (this *Blofin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes101419 []any = r1.Value
-		if retRes101419 == nil {
+		var retRes101919 []any = r1.Value
+		if retRes101919 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes101419)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes101919)}
 		}
 		return nil
 	}
@@ -1444,11 +1449,11 @@ func (this *Blofin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes107919 []any = r1.Value
-		if retRes107919 == nil {
+		var retRes108419 []any = r1.Value
+		if retRes108419 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes107919)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes108419)}
 		}
 		return nil
 	}
@@ -1533,11 +1538,11 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes112619 []any = r1.Value
-		if retRes112619 == nil {
+		var retRes113119 []any = r1.Value
+		if retRes113119 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes112619)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes113119)}
 		}
 		return nil
 	}
@@ -2394,6 +2399,80 @@ func (this *Blofin) createOrdersBody(ch chan AsyncResult[[]Order], orders any, o
 
 /**
  * @method
+ * @name blofin#fetchOrder
+ * @description fetches information on an order made by the user
+ * @see https://docs.blofin.com/index.html#get-order-detail
+ * @see https://docs.blofin.com/index.html#get-tpsl-order-detail
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+ * @param {boolean} [params.tpsl] True if fetching a tpsl order
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Blofin) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
+	go this.fetchOrderBody(ch, id, optionalArgs...)
+	return ch
+}
+func (this *Blofin) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if symbol == nil {
+		panic(ArgumentsRequired(this.Id + " fetchOrder() requires a symbol argument"))
+	}
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instId": market["id"],
+	}
+	var isTpsl *bool = this.SafeBool2(params, "tpsl", "TPSL", false)
+	var clientOrderId *string = this.SafeString(params, "clientOrderId")
+	if clientOrderId != nil {
+		request["clientOrderId"] = clientOrderId
+	} else if isTpsl != nil && *isTpsl == true {
+		request["tpslId"] = id
+	} else {
+		request["orderId"] = id
+	}
+	var query map[string]any = this.OmitDict(params, []any{"clientOrderId", "tpsl", "TPSL"})
+	var response any = nil
+	if isTpsl != nil && *isTpsl == true {
+
+		r1 := <-this.PrivateGetTradeOrderTpslDetail(this.Extend(request, query))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
+	} else {
+
+		r2 := <-this.PrivateGetTradeOrderDetail(this.Extend(request, query))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
+	}
+	var data map[string]any = SafeMapTyped(response, "data")
+	if data == nil {
+		panic(OrderNotFound(Add(this.Id+" fetchOrder() could not find order ", id)))
+	}
+
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	return nil
+}
+
+/**
+ * @method
  * @name blofin#fetchOpenOrders
  * @description Fetch orders that are still open
  * @see https://blofin.com/docs#get-active-orders
@@ -2437,11 +2516,11 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes182319 []any = r1.Value
-		if retRes182319 == nil {
+		var retRes187519 []any = r1.Value
+		if retRes187519 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes182319)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes187519)}
 		}
 		return nil
 	}
@@ -2533,11 +2612,11 @@ func (this *Blofin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes187319 []any = r1.Value
-		if retRes187319 == nil {
+		var retRes192519 []any = r1.Value
+		if retRes192519 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes187319)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes192519)}
 		}
 		return nil
 	}
@@ -2643,11 +2722,11 @@ func (this *Blofin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes194219 []any = r1.Value
-		if retRes194219 == nil {
+		var retRes199419 []any = r1.Value
+		if retRes199419 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes194219)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes199419)}
 		}
 		return nil
 	}
@@ -2719,11 +2798,11 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes198219 []any = r1.Value
-		if retRes198219 == nil {
+		var retRes203419 []any = r1.Value
+		if retRes203419 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes198219)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes203419)}
 		}
 		return nil
 	}
@@ -3429,11 +3508,11 @@ func (this *Blofin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes249119 []any = r1.Value
-		if retRes249119 == nil {
+		var retRes254319 []any = r1.Value
+		if retRes254319 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes249119)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes254319)}
 		}
 		return nil
 	}
@@ -4522,11 +4601,11 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes328619 []any = r1.Value
-		if retRes328619 == nil {
+		var retRes333819 []any = r1.Value
+		if retRes333819 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes328619)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes333819)}
 		}
 		return nil
 	}
@@ -5333,6 +5412,34 @@ func (this *Blofin) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
 		return nil, r.Err
 	}
 	var res []Order = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name blofin#fetchOrder
+ * @description fetches information on an order made by the user
+ * @see https://docs.blofin.com/index.html#get-order-detail
+ * @see https://docs.blofin.com/index.html#get-tpsl-order-detail
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+ * @param {boolean} [params.tpsl] True if fetching a tpsl order
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Blofin) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
+
+	opts := FetchOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
+	}
+	var res Order = r.Value
 	return res, nil
 }
 
