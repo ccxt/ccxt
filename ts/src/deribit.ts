@@ -524,48 +524,48 @@ export default class deribit extends Exchange {
     override createExpiredOptionMarket (symbol: string): MarketInterface {
         // support expired option contracts
         let quote = 'USD';
-        let settle: Str = undefined;
+        let settle = '';
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
+        const hasSlash = symbol.indexOf ('/') > -1;
+        const hasUsdc = symbol.indexOf ('USDC') > -1;
         let base: Str = undefined;
         let expiry: Str = undefined;
-        if (symbol.indexOf ('/') > -1) {
-            base = this.safeString (symbolBase, 0);
+        if (hasSlash) {
+            base = this.safeString (symbolBase, 0, '');
             expiry = this.safeString (optionParts, 1);
-            if (symbol.indexOf ('USDC') > -1) {
-                base = base + '_USDC';
-            }
         } else {
-            base = this.safeString (optionParts, 0);
+            base = this.safeString (optionParts, 0, '');
             expiry = this.convertMarketIdExpireDate (this.safeString (optionParts, 1));
         }
-        if (symbol.indexOf ('USDC') > -1) {
-            quote = 'USDC';
-            settle = 'USDC';
-        } else {
-            settle = base;
-        }
-        let splitBase = base;
         if (base === undefined) {
             throw new ExchangeError (this.id + ' createExpiredOptionMarket() missing base');
         }
-        if (base.indexOf ('_') > -1) {
-            const splitSymbol = base.split ('_');
-            splitBase = this.safeString (splitSymbol, 0);
+        // the slash form of a usdc instrument carries its settlement currency in the base
+        let baseSuffix = '';
+        if (hasSlash && hasUsdc) {
+            baseSuffix = '_USDC';
         }
-        const strike = this.safeString (optionParts, 2);
-        const optionType = this.safeString (optionParts, 3);
+        const baseResolved = base + baseSuffix;
+        if (hasUsdc) {
+            quote = 'USDC';
+            settle = 'USDC';
+        } else {
+            // no usdc suffix on this path, so the resolved base is the settle currency
+            settle = baseResolved;
+        }
+        // the part of the base before the first underscore, or the whole base when it has none
+        const splitBase = this.safeString (baseResolved.split ('_'), 0, '');
+        const strike = this.safeString (optionParts, 2, '');
+        const optionType = this.safeString (optionParts, 3, '');
         const datetime = this.convertExpireDate (expiry);
-        const timestamp = this.parse8601 (datetime);
-        const id = base + '-' + this.convertExpireDateToMarketIdDate (expiry) + '-' + strike + '-' + optionType;
-        const symbolExpired = splitBase + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType;
         return {
-            'id': id,
-            'symbol': symbolExpired,
-            'base': base,
+            'id': baseResolved + '-' + this.convertExpireDateToMarketIdDate (expiry) + '-' + strike + '-' + optionType,
+            'symbol': splitBase + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'base': baseResolved,
             'quote': quote,
             'settle': settle,
-            'baseId': base,
+            'baseId': baseResolved,
             'quoteId': quote,
             'settleId': settle,
             'active': false,
@@ -579,7 +579,7 @@ export default class deribit extends Exchange {
             'margin': false,
             'contract': true,
             'contractSize': undefined,
-            'expiry': timestamp,
+            'expiry': this.parse8601 (datetime),
             'expiryDatetime': datetime,
             'optionType': (optionType === 'C') ? 'call' : 'put',
             'strike': this.parseNumber (strike),
