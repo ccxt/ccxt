@@ -673,14 +673,13 @@ export default class lbank extends Exchange {
             if ((base === undefined) || (quote === undefined)) {
                 continue;
             }
-            const settle = this.safeCurrencyCode (settleId);
-            const symbol = base + '/' + quote + ':' + settle;
+            const symbol = base + '/' + quote + ':' + quote;
             result.push ({
                 'id': marketId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': settle,
+                'settle': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
@@ -2841,11 +2840,6 @@ export default class lbank extends Exchange {
                     network = codeInner;
                 }
                 const fee = this.safeString (item, 'fee');
-                if (this.safeDict (withdrawFees, codeInner) === undefined) {
-                    if (codeInner !== undefined) {
-                        withdrawFees[codeInner] = {};
-                    }
-                }
                 if ((codeInner !== undefined) && (network !== undefined)) {
                     const feesForCode: Dict = {};
                     feesForCode[network] = this.parseNumber (fee);
@@ -3068,7 +3062,8 @@ export default class lbank extends Exchange {
                     };
                 }
                 if (networkCode !== undefined) {
-                    result['networks'][networkCode] = {
+                    const networkFees: Dict = {};
+                    networkFees[networkCode] = {
                         'withdraw': {
                             'fee': withdrawFee,
                             'percentage': undefined,
@@ -3078,6 +3073,7 @@ export default class lbank extends Exchange {
                             'percentage': undefined,
                         },
                     };
+                    result['networks'] = this.extend (this.safeDict (result, 'networks', {}), networkFees);
                 }
             }
         }
