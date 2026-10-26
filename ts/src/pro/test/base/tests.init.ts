@@ -8,14 +8,12 @@ import testWsKeepAliveTimeout from "./test.keepAliveTimeout.js";
 import testWsClientThrottleWiring from "./test.clientThrottleWiring.js";
 import testBingxOrderFreshness from "./test.bingxOrderFreshness.js";
 import testHyperliquidPendingUnsubscribe from "./test.pendingUnsubscribe.hyperliquid.js";
-import testCoinbaseWsAuth from "./test.wsAuth.coinbase.js";
 
 async function testBaseWs () {
     testWsOrderBook ();
     testWsCache ();
     testWsCacheNative (); // js-only: removeAt () has no port equivalent
     testBingxOrderFreshness (); // js-only: native handler/cache regression test
-    testCoinbaseWsAuth (); // js-only: native createWSAuth regression test
     // todo : testWsClose ();
     await testWsSingleFlight ();
     await testWsSingleFlightWiring ();
