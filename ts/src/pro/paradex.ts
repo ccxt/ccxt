@@ -1071,10 +1071,11 @@ export default class paradex extends paradexRest {
         return '0x' + raw.slice (start, 64);
     }
 
-    sbeReadVarStrings (frameHex: string, offset: number, count: number, frameLength: number): any {
+    sbeReadVarStrings (frameHex: string, offset: number, count: number, frameLength: number): string[] {
         // the var-data section: count strings, each prefixed with a uint8 length. Returns an empty list
         // when the frame ends before all of them, and only the strings present when a trailing one is
-        // absent, which is how a field appended to var-data reads on a frame from before it
+        // absent, which is how a field appended to var-data reads on a frame from before it.
+        // Every caller guards on the count it needs, so an empty list and a short one read alike
         const result: string[] = [];
         const end = this.parseToInt (frameLength);
         const total = this.parseToInt (count);
@@ -1273,7 +1274,7 @@ export default class paradex extends paradexRest {
         const order: Dict = {
             'account': this.sbeReadAddress (frameHex, 84),
             'avg_fill_price': this.sbeReadDecimal (frameHex, 60),
-            'client_id': strings[1],
+            'client_id': this.safeString (strings, 1),
             'created_at': this.sbeReadTimestamp (frameHex, 68),
             'flags': flags,
             'id': this.safeString (strings, 0),
@@ -1294,8 +1295,9 @@ export default class paradex extends paradexRest {
             'type': this.sbeReadEnum (frameHex, 26, orderTypes),
         };
         // an empty cancel reason is sent for every live order, parseOrder reads any reason as canceled
-        if (strings[3] !== '') {
-            order['cancel_reason'] = strings[3];
+        const cancelReason = this.safeString (strings, 3, '');
+        if (cancelReason !== '') {
+            order['cancel_reason'] = cancelReason;
         }
         return order;
     }
@@ -1337,7 +1339,7 @@ export default class paradex extends paradexRest {
         const liquidities: Dict = { '1': 'MAKER', '2': 'TAKER' };
         const fill: Dict = {
             'account': this.sbeReadAddress (frameHex, 67),
-            'client_id': strings[2],
+            'client_id': this.safeString (strings, 2),
             'created_at': this.sbeReadTimestamp (frameHex, 59),
             'fee': this.sbeReadDecimal (frameHex, 43),
             'fee_currency': this.safeString (strings, 5),
@@ -1397,7 +1399,7 @@ export default class paradex extends paradexRest {
             'cost': this.sbeReadDecimal (frameHex, 129),
             'cost_usd': this.sbeReadDecimal (frameHex, 137),
             // the JSON channel's id, one position per account and market
-            'id': account + '-' + strings[0],
+            'id': account + '-' + this.safeString (strings, 0),
             'last_fill_id': this.safeString (strings, 1),
             'last_updated_at': this.sbeReadTimestamp (frameHex, 81),
             'leverage': this.sbeReadDecimal (frameHex, 73),
