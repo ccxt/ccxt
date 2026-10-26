@@ -1618,7 +1618,7 @@ export default class woo extends wooRest {
         //         "data": "SPOT_BTC_USDT@orderbook"
         //     }
         //
-        const subscribeHash = this.safeString (message, 'data');
+        const subscribeHash = this.safeString (message, 'data', '');
         const unsubscribeHash = 'unsubscribe::' + subscribeHash;
         const subscription = this.safeDict (client.subscriptions, unsubscribeHash, {});
         const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
