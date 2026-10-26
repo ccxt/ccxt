@@ -3201,8 +3201,7 @@ export default class myriad extends Exchange {
         // connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
         // clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
         const client = this.client (url);
-        const connectSent = this.safeValue (client.subscriptions, 'connect');
-        if (connectSent === undefined) {
+        if (!('connect' in client.subscriptions)) {
             this.options['wsConnected'] = false;
             const requestId = this.requestId (url);
             // give the anonymous connect a name so the params object is non-empty (PHP serialises an
@@ -3311,7 +3310,7 @@ export default class myriad extends Exchange {
         // finish the connect handshake first so the client exists and the subscribe follows the connect reply
         await this.connectCentrifugo (url);
         const client = this.client (url);
-        const isNewSubscription = this.safeValue (client.subscriptions, channel) === undefined;
+        const isNewSubscription = !(channel in client.subscriptions);
         if (isNewSubscription) {
             // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
             // fresh subscription (first call or after a reconnect that cleared client.subscriptions)
@@ -3766,7 +3765,7 @@ export default class myriad extends Exchange {
         const url = this.safeString (this.urls['api'], 'ws');
         await this.connectCentrifugo (url);
         const client = this.client (url);
-        const isNewSubscription = this.safeValue (client.subscriptions, channel) === undefined;
+        const isNewSubscription = !(channel in client.subscriptions);
         if (isNewSubscription) {
             // the channel pushes only signed deltas; seed absolute share balances from REST so
             // handlePosition can maintain a running contracts figure
@@ -3911,9 +3910,7 @@ export default class myriad extends Exchange {
         // included — the previous logic only sent a body for authenticated requests)
         let bodyValue: Str = undefined;
         if (method !== 'GET') {
-            const queryKeys = Object.keys (query);
-            const queryKeysLength = queryKeys.length;
-            if (queryKeysLength > 0) {
+            if (Object.keys (query).length > 0) {
                 bodyValue = this.json (query);
             }
         }
