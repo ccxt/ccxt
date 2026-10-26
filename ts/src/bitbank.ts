@@ -1096,7 +1096,7 @@ export default class bitbank extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0, '');
         const query = this.extend ({}, this.omit (params, this.extractParams (path)));
         const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
@@ -1144,10 +1144,9 @@ export default class bitbank extends Exchange {
                 'ACCESS-SIGNATURE': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
             };
             if (isTimeWindow) {
-                requestHeaders['ACCESS-REQUEST-TIME'] = requestTime;
-                requestHeaders['ACCESS-TIME-WINDOW'] = timeWindow;
+                requestHeaders = this.extend (requestHeaders, { 'ACCESS-REQUEST-TIME': requestTime, 'ACCESS-TIME-WINDOW': timeWindow });
             } else {
-                requestHeaders['ACCESS-NONCE'] = nonce;
+                requestHeaders = this.extend (requestHeaders, { 'ACCESS-NONCE': nonce });
             }
         }
         const bodyResolved = requestBody;
