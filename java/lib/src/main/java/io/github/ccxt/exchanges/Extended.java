@@ -4208,7 +4208,7 @@ public class Extended extends ExtendedApi
     {
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
-        String accessibility = this.safeString(api, 1);
+        String accessibility = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         String endpoint = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Boolean queryPost = (java.util.Objects.equals(path, "user/deadmanswitch"));

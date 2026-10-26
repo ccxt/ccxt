@@ -7300,8 +7300,8 @@ public class Mexc extends MexcApi
     {
         Map<String, Object> requestHeaders = null;
         Object requestBody = null;
-        String section = this.safeString(api, 0);
-        String access = this.safeString(api, 1);
+        String section = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String access = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         String pathValue = (String) this.implodeParams(path, parameters);
         Object paramsValue = this.omit(parameters, this.extractParams(path));
         String url = null;
