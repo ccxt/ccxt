@@ -1312,7 +1312,7 @@ export default class weex extends Exchange {
         const marketId = this.safeString (ticker, 'symbol');
         const markPrice = this.safeString (ticker, 'markPrice');
         let marketType = 'spot';
-        if ((markPrice !== undefined) || ((market !== undefined) && (market['contract'] === true))) {
+        if ((markPrice !== undefined) || ((market !== undefined) && (this.safeBool (market, 'contract', false)))) {
             // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = 'swap';
         }
@@ -2232,7 +2232,8 @@ export default class weex extends Exchange {
         }
         const market = this.market (symbol);
         const request = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
-        const response = await this.privatePostApiV3Order (request);
+        let response: Dict | undefined = undefined;
+        response = await this.privatePostApiV3Order (request);
         //
         //     {
         //         "symbol": "DOGEUSDT",
@@ -4378,7 +4379,7 @@ export default class weex extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const isBatch = (path.indexOf ('batch') >= 0);
         if (!isBatch && ((method === 'GET') || (method === 'DELETE'))) {
-            if (Object.keys (query).length > 0) {
+            if (!this.isEmpty (query)) {
                 endpoint += '?' + this.urlencode (query);
             }
         }
