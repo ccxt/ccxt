@@ -591,8 +591,7 @@ export default class mudrex extends Exchange {
         if (response === undefined) {
             throw new NullResponse (this.id + ' fetchBalance() returned empty response');
         }
-        response['currency'] = currency;
-        return this.parseBalance (response);
+        return this.parseBalance (this.extend (response, { 'currency': currency }));
     }
 
     override parseBalance (response: any): Balances {
