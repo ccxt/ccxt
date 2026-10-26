@@ -1541,31 +1541,32 @@ export default class foxbit extends Exchange {
         }
         const market = this.market (symbol);
         this.checkRequiredArgument ('editOrder', side, 'side');
+        const createRequest: Dict = {
+            'type': typeValue,
+            'side': side.toUpperCase (),
+            'market_symbol': market['id'],
+        };
+        if (typeValue === 'LIMIT' || typeValue === 'MARKET') {
+            createRequest['quantity'] = this.amountToPrecision (symbol, amount);
+            if (typeValue === 'LIMIT') {
+                createRequest['price'] = this.priceToPrecision (symbol, price);
+            }
+        }
+        if (typeValue === 'STOP_MARKET') {
+            createRequest['stop_price'] = this.priceToPrecision (symbol, price);
+            createRequest['quantity'] = this.amountToPrecision (symbol, amount);
+        }
+        if (typeValue === 'INSTANT') {
+            createRequest['amount'] = this.priceToPrecision (symbol, amount);
+        }
         const request: Dict = {
             'mode': 'ALLOW_FAILURE',
             'cancel': {
                 'type': 'ID',
                 'id': this.parseNumber (id),
             },
-            'create': {
-                'type': typeValue,
-                'side': side.toUpperCase (),
-                'market_symbol': market['id'],
-            },
+            'create': createRequest,
         };
-        if (typeValue === 'LIMIT' || typeValue === 'MARKET') {
-            request['create']['quantity'] = this.amountToPrecision (symbol, amount);
-            if (typeValue === 'LIMIT') {
-                request['create']['price'] = this.priceToPrecision (symbol, price);
-            }
-        }
-        if (typeValue === 'STOP_MARKET') {
-            request['create']['stop_price'] = this.priceToPrecision (symbol, price);
-            request['create']['quantity'] = this.amountToPrecision (symbol, amount);
-        }
-        if (typeValue === 'INSTANT') {
-            request['create']['amount'] = this.priceToPrecision (symbol, amount);
-        }
         const response = await this.v3PrivatePostOrdersCancelReplace (this.extend (request, params));
         // {
         //     "cancel": {
@@ -1929,7 +1930,7 @@ export default class foxbit extends Exchange {
         const address = this.safeString2 (cryptoDetails, 'receiving_address', 'destination_address');
         const sn = this.safeString (transaction, 'sn');
         let type = 'withdrawal';
-        if (sn !== undefined && sn[0] === 'D') {
+        if (sn !== undefined && sn.startsWith ('D')) {
             type = 'deposit';
         }
         const fee = this.safeString (transaction, 'fee', '0');
