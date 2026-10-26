@@ -1180,7 +1180,7 @@ export default class hibachi extends Exchange {
     override async cancelOrders (ids:string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         const orders: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
-            const orderRequest: Dict = this.cancelOrderRequest (ids[i]);
+            const orderRequest: Dict = this.cancelOrderRequest (this.safeString (ids, i, ''));
             orderRequest['action'] = 'cancel';
             orders.push (orderRequest);
         }
