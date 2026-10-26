@@ -97,7 +97,7 @@ export default class bydfi extends bydfiRest {
     }
 
     async watchPublic (messageHashes: string[], channels: Strings, params: Dict = {}, subscription: Dict = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const id = this.requestId ();
         const subscriptionParams: Dict = {
             'id': id,
@@ -120,7 +120,7 @@ export default class bydfi extends bydfiRest {
 
     async watchPrivate (messageHashes: string[], params: Dict = {}) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const subHash = 'private';
         const client = this.client (url);
         const privateSubscription = this.safeValue (client.subscriptions, subHash);
@@ -362,7 +362,7 @@ export default class bydfi extends bydfiRest {
             const market = this.market (marketId);
             const tf = this.safeString (symbolAndTimeframe, 1);
             const timeframes = this.safeDict (this.options, 'timeframes', {});
-            const interval = this.safeString (timeframes, tf, tf);
+            const interval = this.safeString (timeframes, tf, '');
             const channelMarketId = this.safeString (market, 'id', '');
             const channelMarketSymbol = this.safeString (market, 'symbol', '');
             channels.push (channelMarketId + '@kline_' + interval);
@@ -403,7 +403,7 @@ export default class bydfi extends bydfiRest {
             const marketId = this.safeString (symbolAndTimeframe, 0);
             const market = this.market (marketId);
             const tf = this.safeString (symbolAndTimeframe, 1);
-            const interval = this.safeString (this.timeframes, tf, tf);
+            const interval = this.safeString (this.timeframes, tf, '');
             const channelMarketId = this.safeString (market, 'id', '');
             const channelMarketSymbol = this.safeString (market, 'symbol', '');
             channels.push (channelMarketId + '@kline_' + interval);
@@ -434,7 +434,7 @@ export default class bydfi extends bydfiRest {
         //
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const interval = this.safeString (message, 'i');
         const timeframes = this.safeDict (this.options, 'timeframes', {});
         const timeframe = this.findTimeframe (interval, timeframes);
@@ -666,7 +666,7 @@ export default class bydfi extends bydfiRest {
         const rawOrder = this.safeDict (message, 'o', {});
         const marketId = this.safeString (rawOrder, 's');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const messageHash = 'orders';
         const symbolMessageHash = messageHash + '::' + symbol;
         if (this.orders === undefined) {
@@ -826,7 +826,7 @@ export default class bydfi extends bydfiRest {
         const rawPosition = this.safeDict (positionsData, 0, {});
         const marketId = this.safeString (rawPosition, 's');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const messageHash = 'positions';
         const symbolMessageHash = messageHash + '::' + symbol;
         if (this.positions === undefined) {
@@ -917,7 +917,7 @@ export default class bydfi extends bydfiRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const client = this.client (url);
         this.fetchBalanceSnapshot (client);
         const options = this.safeDict (this.options, 'watchBalance');
