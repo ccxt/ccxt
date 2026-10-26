@@ -1469,7 +1469,7 @@ export default class poloniex extends Exchange {
         const timestamp = this.safeIntegerN (trade, [ 'ts', 'createTime', 'cT', 'cTime' ]);
         const marketId = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market, '_');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const side = this.safeStringLower2 (trade, 'side', 'takerSide');
         let fee: FeeString = undefined;
         const priceString = this.safeString2 (trade, 'price', 'px');
@@ -1785,7 +1785,7 @@ export default class poloniex extends Exchange {
         }
         const marketId = this.safeString (order, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market, '_');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         let resultingTrades = this.safeValue (order, 'resultingTrades');
         if (resultingTrades !== undefined) {
             if (!Array.isArray (resultingTrades)) {
@@ -2136,7 +2136,7 @@ export default class poloniex extends Exchange {
         let isContract = false;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
-            const symbol: string = rawOrder['symbol'];
+            const symbol = this.safeString (rawOrder, 'symbol', '');
             const marketInner = this.market (symbol);
             const marketInnerType = this.safeString (marketInner, 'type');
             const marketType = this.safeString (market, 'type');
@@ -2562,7 +2562,7 @@ export default class poloniex extends Exchange {
      */
     override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
-        const idValue: string = id.toString ();
+        const idValue: string = this.numberToString (id);
         const request: Dict = {
             'id': idValue,
         };
@@ -3375,7 +3375,7 @@ export default class poloniex extends Exchange {
             const entry: Dict = this.safeDict (entries, i, {});
             const currencies = Object.keys (entry);
             const currencyId = this.safeString (currencies, 0);
-            data[currencyId as string] = entry[currencyId as string];
+            data[currencyId as string] = this.safeValue (entry, currencyId);
         }
         return this.parseDepositWithdrawFees (data, codes);
     }
