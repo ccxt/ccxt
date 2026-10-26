@@ -58,7 +58,7 @@ export default class upbit extends upbitRest {
         if (!(subscriptionsKey in client.subscriptions)) {
             client.subscriptions[subscriptionsKey] = this.createSafeDictionary (true);
         }
-        const subscriptions = client.subscriptions[subscriptionsKey];
+        const subscriptions = this.safeDict (client.subscriptions, subscriptionsKey, {});
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const marketId = marketIds[i];
@@ -399,7 +399,7 @@ export default class upbit extends upbitRest {
         if (symbolResolved !== undefined) {
             channelKey = channel + ':' + symbolResolved;
         }
-        const subscriptions = client.subscriptions[subscriptionsKey];
+        const subscriptions = this.safeDict (client.subscriptions, subscriptionsKey, {});
         const isNewChannel = !(channelKey in subscriptions);
         if (isNewChannel) {
             subscriptions[channelKey] = request;

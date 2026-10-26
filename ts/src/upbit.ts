@@ -7,7 +7,7 @@ import { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, Insuffici
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Balances, Currency, Dict, NullableDict, FeeString, List, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, OrderBooks, TradingFees, Endpoint } from './base/types.js';
+import type { Balances, Currency, Dict, FeeString, List, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, OrderBooks, TradingFees, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -664,9 +664,8 @@ export default class upbit extends Exchange {
         }
         let ids: Str = undefined;
         if (symbols === undefined) {
-            const allIds = this.ids;
-            if (allIds !== undefined) {
-                ids = allIds.join (',');
+            if (this.ids !== undefined) {
+                ids = this.ids.join (',');
             }
         } else {
             const marketIds = this.marketIds (symbols);
@@ -2461,10 +2460,9 @@ export default class upbit extends Exchange {
         if (hasBody) {
             requestBody = this.json (params);
         }
-        let privateHeaders: NullableDict = undefined;
+        const headers: Dict = {};
         if (apiName === 'private') {
             this.checkRequiredCredentials ();
-            privateHeaders = {};
             const nonce = this.uuid ();
             const request: Dict = {
                 'access_key': this.apiKey,
@@ -2472,7 +2470,7 @@ export default class upbit extends Exchange {
             };
             let auth: Str = undefined;
             if (hasBody) {
-                privateHeaders['Content-Type'] = 'application/json';
+                headers['Content-Type'] = 'application/json';
             }
             if (numQueryKeys !== 0) {
                 auth = this.rawencode (query);
@@ -2483,9 +2481,9 @@ export default class upbit extends Exchange {
                 request['query_hash_alg'] = 'SHA512';
             }
             const token = jwt (request, this.encode (this.secret), sha256);
-            privateHeaders['Authorization'] = 'Bearer ' + token;
+            headers['Authorization'] = 'Bearer ' + token;
         }
-        const requestHeaders = (apiName === 'private') ? privateHeaders : undefined;
+        const requestHeaders = (apiName === 'private') ? headers : undefined;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
