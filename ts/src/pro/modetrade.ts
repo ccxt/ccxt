@@ -469,7 +469,7 @@ export default class modetrade extends modetradeRest {
             stored = new ArrayCacheByTimestamp (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
-        const ohlcvCache = this.ohlcvs[symbol][timeframe];
+        const ohlcvCache = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
         ohlcvCache.append (parsed);
         client.resolve (ohlcvCache, topic);
     }

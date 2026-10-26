@@ -1097,8 +1097,7 @@ export default class modetrade extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             });
         }
-        const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbolResolved, since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (this.sortBy (rates, 'timestamp'), symbolResolved, since, limit) as FundingRateHistory[];
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -1748,7 +1747,7 @@ export default class modetrade extends Exchange {
                 'algo_type': 'POSITIONAL_TP_SL',
                 'child_orders': [],
             };
-            const childOrders = outterOrder['child_orders'];
+            const childOrders: Dict[] = [];
             let closeSide: Str = 'BUY';
             if (orderSide === 'BUY') {
                 closeSide = 'SELL';
@@ -1775,6 +1774,7 @@ export default class modetrade extends Exchange {
                 };
                 childOrders.push (takeProfitOrder);
             }
+            outterOrder['child_orders'] = childOrders;
             request['child_orders'] = [ outterOrder ];
         }
         const paramsOmitted: Dict = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ]);
@@ -2847,8 +2847,7 @@ export default class modetrade extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
-        return this.safeNumber (data, 'withdraw_nonce');
+        return this.safeNumber (this.safeDict (response, 'data', {}), 'withdraw_nonce');
     }
 
     hashMessage (message: any) {
@@ -3237,9 +3236,11 @@ export default class modetrade extends Exchange {
                     const brokerId = this.safeString (this.options, 'brokerId', 'CCXTMODE');
                     if (path === 'batch-order') {
                         const ordersList = this.safeList (paramsSorted, 'orders', []);
+                        const taggedOrders: List = [];
                         for (let i = 0; i < ordersList.length; i++) {
-                            paramsSorted['orders'][i]['order_tag'] = brokerId;
+                            taggedOrders.push (this.extend (this.safeDict (ordersList, i, {}), { 'order_tag': brokerId }));
                         }
+                        paramsSorted['orders'] = taggedOrders;
                     } else {
                         paramsSorted['order_tag'] = brokerId;
                     }
