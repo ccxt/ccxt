@@ -615,20 +615,13 @@ func (this *Bitso) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 	var currencies map[string]any = SafeMapTyped(this.Options, "cachedCurrencies")
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		var market any = func() any {
-			if i >= 0 && i < len(markets) {
-				return DerefScalar(markets[i])
-			}
-			return nil
-		}()
+		var market any = markets[i]
 		var id *string = this.SafeString(market, "book")
-		baseIdquoteIdVariable := Split(id, "_")
-		baseId := GetValue(baseIdquoteIdVariable, 0)
-		quoteId := GetValue(baseIdquoteIdVariable, 1)
-		var base any = ToUpper(baseId)
-		var quote any = ToUpper(quoteId)
-		base = DerefScalar(this.SafeCurrencyCode(base))
-		quote = DerefScalar(this.SafeCurrencyCode(quote))
+		var parts []string = strings.Split(*id, "_")
+		var baseId *string = this.SafeString(parts, 0, "")
+		var quoteId *string = this.SafeString(parts, 1, "")
+		var base *string = this.SafeCurrencyCode(strings.ToUpper(*baseId))
+		var quote *string = this.SafeCurrencyCode(strings.ToUpper(*quoteId))
 		if (base == nil) || (quote == nil) {
 			continue
 		}
@@ -673,7 +666,7 @@ func (this *Bitso) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 		var baseCurrency map[string]any = SafeMapTyped(currencies, base)
 		result = append(result, this.SafeMarketStructure(this.Extend(map[string]any{
 			"id":             id,
-			"symbol":         Add(Add(base, "/"), quote),
+			"symbol":         *base + "/" + *quote,
 			"base":           base,
 			"quote":          quote,
 			"settle":         nil,
@@ -854,7 +847,7 @@ func (this *Bitso) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -866,7 +859,7 @@ func (this *Bitso) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -919,7 +912,7 @@ func (this *Bitso) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1008,7 +1001,7 @@ func (this *Bitso) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1024,7 +1017,7 @@ func (this *Bitso) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 	var ticker map[string]any = SafeMapTyped(response, "payload")
 
 	//
@@ -1075,7 +1068,7 @@ func (this *Bitso) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1282,7 +1275,7 @@ func (this *Bitso) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1298,7 +1291,7 @@ func (this *Bitso) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 	var payload []any = SafeListTypedDefault(response, "payload", []any{})
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(payload, market, since, limit))}
@@ -1323,7 +1316,7 @@ func (this *Bitso) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFe
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1383,22 +1376,19 @@ func (this *Bitso) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFe
 	var fees []any = SafeListTyped(payload, "fees")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(fees); i++ {
-		var fee any = func() any {
-			if i >= 0 && i < len(fees) {
-				return DerefScalar(fees[i])
-			}
-			return nil
-		}()
+		var fee any = fees[i]
 		var marketId *string = this.SafeString(fee, "book")
 		var symbol *string = this.SafeSymbol(marketId, nil, "_")
-		AddElementToObject(result, symbol, map[string]any{
-			"info":       fee,
-			"symbol":     symbol,
-			"maker":      this.SafeNumber(fee, "maker_fee_decimal"),
-			"taker":      this.SafeNumber(fee, "taker_fee_decimal"),
-			"percentage": true,
-			"tierBased":  true,
-		})
+		if symbol != nil {
+			result[*symbol] = map[string]any{
+				"info":       fee,
+				"symbol":     symbol,
+				"maker":      this.SafeNumber(fee, "maker_fee_decimal"),
+				"taker":      this.SafeNumber(fee, "taker_fee_decimal"),
+				"percentage": true,
+				"tierBased":  true,
+			}
+		}
 	}
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
@@ -1432,7 +1422,7 @@ func (this *Bitso) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1453,7 +1443,7 @@ func (this *Bitso) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 	var paramsMarker any = params
 	if markerInParams {
 		paramsMarker = this.Extend(params, map[string]any{
-			"marker": ParseInt(params["marker"]),
+			"marker": this.ParseToInt(params["marker"]),
 		})
 	}
 	var request map[string]any = map[string]any{
@@ -1497,7 +1487,7 @@ func (this *Bitso) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1552,7 +1542,7 @@ func (this *Bitso) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalA
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1622,7 +1612,7 @@ func (this *Bitso) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var response map[string]any = MapTyped(r.Raw)
+	var response map[string]any = r.Value
 	//
 	//     {
 	//         "success": true,
@@ -1632,12 +1622,7 @@ func (this *Bitso) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optio
 	var payload []any = SafeListTyped(response, "payload")
 	var orders []any = []any{}
 	for i := 0; i < len(payload); i++ {
-		var id any = func() any {
-			if i >= 0 && i < len(payload) {
-				return DerefScalar(payload[i])
-			}
-			return nil
-		}()
+		var id any = DerefScalar(payload[i])
 		orders = append(orders, OrderToMap(this.ParseOrder(id, market)))
 	}
 
@@ -1684,12 +1669,7 @@ func (this *Bitso) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	var payload []any = SafeListTyped(response, "payload")
 	var canceledOrders []any = []any{}
 	for i := 0; i < len(payload); i++ {
-		var order map[string]any = OrderToMap(this.ParseOrder(func() any {
-			if i >= 0 && i < len(payload) {
-				return DerefScalar(payload[i])
-			}
-			return nil
-		}()))
+		var order map[string]any = OrderToMap(this.ParseOrder(DerefScalar(payload[i])))
 		canceledOrders = append(canceledOrders, order)
 	}
 
@@ -1785,7 +1765,7 @@ func (this *Bitso) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1806,7 +1786,7 @@ func (this *Bitso) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	var paramsMarker any = params
 	if markerInParams {
 		paramsMarker = this.Extend(params, map[string]any{
-			"marker": ParseInt(params["marker"]),
+			"marker": this.ParseToInt(params["marker"]),
 		})
 	}
 	var request map[string]any = map[string]any{
@@ -1847,7 +1827,7 @@ func (this *Bitso) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1861,15 +1841,13 @@ func (this *Bitso) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
-	var payload any = this.SafeList(response, "payload")
-	if payload != nil {
-		var numOrders int = GetArrayLength(payload)
-		if numOrders == 1 {
+	var response map[string]any = r1.Value
+	var payload []any = SafeListTyped(response, "payload")
+	var numOrders int = len(payload)
+	if numOrders == 1 {
 
-			ch <- AsyncResult[Order]{Value: this.ParseOrder(GetValue(payload, 0))}
-			return nil
-		}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(payload[0])}
+		return nil
 	}
 	panic(OrderNotFound(Add(Add(this.Id+": The order ", id), " not found.")))
 }
@@ -1902,7 +1880,7 @@ func (this *Bitso) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string,
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1947,7 +1925,7 @@ func (this *Bitso) fetchDepositBody(ch chan AsyncResult[Transaction], id any, op
 	_ = code
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2020,7 +1998,7 @@ func (this *Bitso) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optiona
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2084,7 +2062,7 @@ func (this *Bitso) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2104,13 +2082,8 @@ func (this *Bitso) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 	var payload map[string]any = SafeMapTyped(response, "payload")
 	var address *string = this.SafeString(payload, "account_identifier")
 	var tag *string = nil
-	if func() int {
-		if address == nil {
-			return -1
-		}
-		return strings.Index(*address, "?dt=")
-	}() >= 0 {
-		var parts []string = Split(address, "?dt=")
+	if strings.Index(*address, "?dt=") >= 0 {
+		var parts []string = strings.Split(*address, "?dt=")
 		address = this.SafeString(parts, 0)
 		tag = this.SafeString(parts, 1)
 	}
@@ -2148,7 +2121,7 @@ func (this *Bitso) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any],
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2208,12 +2181,7 @@ func (this *Bitso) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any],
 	var payload map[string]any = SafeMapTyped(response, "payload")
 	var depositFees []any = SafeListTyped(payload, "deposit_fees")
 	for i := 0; i < len(depositFees); i++ {
-		var depositFee any = func() any {
-			if i >= 0 && i < len(depositFees) {
-				return DerefScalar(depositFees[i])
-			}
-			return nil
-		}()
+		var depositFee any = depositFees[i]
 		var currencyId *string = this.SafeString(depositFee, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (codes != nil) && !this.InArray(code, codes) {
@@ -2281,7 +2249,7 @@ func (this *Bitso) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]D
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2391,12 +2359,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) m
 	var depositResponse []any = SafeListTyped(response, "deposit_fees")
 	var withdrawalResponse map[string]any = SafeMapTyped(response, "withdrawal_fees")
 	for i := 0; i < len(depositResponse); i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(depositResponse) {
-				return DerefScalar(depositResponse[i])
-			}
-			return nil
-		}()
+		var entry any = depositResponse[i]
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (codes == nil) || ((code != nil) && (InOp(codes, code))) {
@@ -2463,16 +2426,16 @@ func (this *Bitso) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	var tagWithdrawTagPtr *string = nil
+	tagWithdrawTagPtr, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
+		if tagWithdrawTagPtr != nil {
+			return *tagWithdrawTagPtr
 		}
 		return nil
 	}()
-	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address, code, tagWithdrawTag)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2487,13 +2450,8 @@ func (this *Bitso) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 		"LTC": "Litecoin",
 	}
 	var currency map[string]any = this.Currency(code)
-	var method any = func() any {
-		if func() bool { _, ok := methods[code]; return ok }() {
-			return methods[code]
-		}
-		return nil
-	}()
-	if IsEqual(method, nil) {
+	var method *string = this.SafeString(methods, code)
+	if method == nil {
 		panic(ExchangeError(this.Id + " not valid withdraw coin: " + code))
 	}
 	var request map[string]any = map[string]any{
@@ -2501,7 +2459,7 @@ func (this *Bitso) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 		"address":         address,
 		"destination_tag": tagWithdrawTag,
 	}
-	var classMethod any = Add(Add("privatePost", method), "Withdrawal")
+	var classMethod string = "privatePost" + *method + "Withdrawal"
 
 	r1 := <-this.CallDynamically(classMethod, this.Extend(request, paramsWithdrawTag))
 	if r1.Err != nil {
@@ -2634,7 +2592,7 @@ func (this *Bitso) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Bitso) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -2654,13 +2612,12 @@ func (this *Bitso) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + endpoint
-	if GetValue(api, 0) == "private" {
+	if api[0] == "private" {
 		this.CheckRequiredCredentials()
 		// bitso rejects a nonce that is not higher than the previous one (error 104)
 		var nonce string = ToString(this.IncrementingNonce())
 		endpoint = "/api" + endpoint
-		var content []any = []any{nonce, method, endpoint}
-		var request string = Join(content, "")
+		var request string = nonce + method + endpoint
 		if (method != "GET") && (method != "DELETE") {
 			if len(ObjectKeys(query)) > 0 {
 				var jsonBody string = this.Json(query)
@@ -2669,9 +2626,9 @@ func (this *Bitso) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 		var signature string = this.Hmac(this.Encode(request), this.Encode(this.Secret), sha256)
-		var auth any = Add(Add(Add(Add(this.ApiKey, ":"), nonce), ":"), signature)
+		var auth string = this.ApiKey + ":" + nonce + ":" + signature
 		requestHeaders = map[string]any{
-			"Authorization": Add("Bitso ", auth),
+			"Authorization": "Bitso " + auth,
 		}
 	}
 	return map[string]any{
@@ -2681,7 +2638,7 @@ func (this *Bitso) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Bitso) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bitso) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

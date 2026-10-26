@@ -234,17 +234,17 @@ func (this *Mudrex) Describe() any {
 	})
 }
 func (this *Mudrex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	var apiUrls map[string]any = SafeMapTyped(this.Urls, "api")
 	var base *string = this.SafeString(apiUrls, apiName)
 	if base == nil {
-		panic(ExchangeError(this.Id + " unknown API namespace: " + *apiName))
+		panic(ExchangeError(this.Id + " unknown API namespace: " + apiName))
 	}
 	var url string = *base + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
@@ -254,7 +254,7 @@ func (this *Mudrex) Sign(path string, optionalArgs ...any) any {
 		requestHeaders["Partner-Id"] = brokerId
 	}
 	var methodUpper string = strings.ToUpper(method)
-	if apiName != nil && *apiName == "private" {
+	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		requestHeaders["X-Authentication"] = this.Secret
 		if (methodUpper == "POST") || (methodUpper == "PATCH") || (methodUpper == "DELETE") {
@@ -284,7 +284,7 @@ func (this *Mudrex) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 	}
-	if len(ObjectKeys(query)) > 0 {
+	if !this.IsEmpty(query) {
 		url += "?" + this.Urlencode(query)
 	}
 	return map[string]any{
@@ -294,7 +294,7 @@ func (this *Mudrex) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Mudrex) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Mudrex) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if (response == nil) || !IsObject(response) {
 		return nil
 	}
@@ -309,16 +309,16 @@ func (this *Mudrex) HandleErrors(code any, reason any, url any, method any, head
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], text, this.Id+" "+*text)
 		var msg string = this.Id + " " + *text
 		var low string = strings.ToLower(*text)
-		if (IsEqual(code, 401)) || (strings.Index(low, "auth") >= 0) {
+		if (code == 401) || (strings.Index(low, "auth") >= 0) {
 			panic(AuthenticationError(msg))
 		}
-		if (IsEqual(code, 429)) || (strings.Index(low, "rate") >= 0) {
+		if (code == 429) || (strings.Index(low, "rate") >= 0) {
 			panic(RateLimitExceeded(msg))
 		}
 		if strings.Index(low, "insufficient") >= 0 {
 			panic(InsufficientFunds(msg))
 		}
-		if IsEqual(code, 400) {
+		if code == 400 {
 			panic(BadRequest(msg))
 		}
 		panic(ExchangeError(msg))
@@ -365,7 +365,7 @@ func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -375,7 +375,9 @@ func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	var market map[string]any = this.Market(symbol)
 	var priceType *string = this.SafeString(params, "price")
 	// the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-	var assetPair any = Add(Add(market["baseId"], "/"), market["quoteId"])
+	var baseIdString *string = this.SafeString(market, "baseId", "")
+	var quoteIdString *string = this.SafeString(market, "quoteId", "")
+	var assetPair string = *baseIdString + "/" + *quoteIdString
 	var request map[string]any = map[string]any{
 		"assets":      assetPair,
 		"aggregation": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -442,7 +444,7 @@ func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 	var assetTicks map[string]any = SafeMapTyped(data, "asset_ticks")
-	var ohlcvs []any = SafeListTypedDefault(assetTicks, ToLower(assetPair), []any{})
+	var ohlcvs []any = SafeListTypedDefault(assetTicks, strings.ToLower(assetPair), []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit))}
 	return nil
@@ -483,11 +485,11 @@ func (this *Mudrex) fetchMarkOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes34215 []any = OHLCVsToList(r.Value)
-	if retRes34215 == nil {
+	var retRes34415 []any = OHLCVsToList(r.Value)
+	if retRes34415 == nil {
 		ch <- AsyncResult[[]OHLCV]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes34215)}
+		ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes34415)}
 	}
 	return nil
 }
@@ -511,7 +513,7 @@ func (this *Mudrex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -556,7 +558,7 @@ func (this *Mudrex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -571,15 +573,15 @@ func (this *Mudrex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	}
 	var response map[string]any = r1.Value
 	var data any = this.SafeValue(response, "data", []any{})
-	var rows any = func() any {
-		if IsArray(data) {
-			return data
-		}
-		return this.SafeList(data, "items", []any{})
-	}()
+	var rows []any = []any{}
+	if IsArray(data) {
+		rows = this.ToArray(data)
+	} else {
+		rows = ArrayTyped(this.SafeList(data, "items", []any{}))
+	}
 	var resultTickers map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(rows); i++ {
-		var t any = GetValue(rows, i)
+	for i := 0; i < len(rows); i++ {
+		var t any = DerefScalar(rows[i])
 		var sym *string = this.SafeString(t, "symbol")
 		if sym == nil {
 			continue
@@ -589,7 +591,9 @@ func (this *Mudrex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 		if (symbols != nil) && !this.InArray(symbol, symbols) {
 			continue
 		}
-		AddElementToObject(resultTickers, symbol, TickerToMap(this.ParseTicker(t, m)))
+		if symbol != nil {
+			resultTickers[*symbol] = TickerToMap(this.ParseTicker(t, m))
+		}
 	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(resultTickers, "symbol", symbols))}
@@ -697,18 +701,13 @@ func (this *Mudrex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	}
 	var result []any = []any{}
 	for i := 0; i < len(aggregated); i++ {
-		result = append(result, this.ParseMarket(func() any {
-			if i >= 0 && i < len(aggregated) {
-				return DerefScalar(aggregated[i])
-			}
-			return nil
-		}()))
+		result = append(result, this.ParseMarket(aggregated[i]))
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Mudrex) ParseMarket(asset any) any {
+func (this *Mudrex) ParseMarket(asset any) map[string]any {
 	var ms *string = this.SafeString(asset, "symbol")
 	var base *string = ms
 	if (ms != nil) && strings.HasSuffix(*ms, "USDT") {
@@ -798,7 +797,7 @@ func (this *Mudrex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -838,12 +837,13 @@ func (this *Mudrex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	if response == nil {
 		panic(NullResponse(this.Id + " fetchBalance() returned empty response"))
 	}
-	AddElementToObject(response, "currency", currency)
 
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(this.Extend(response, map[string]any{
+		"currency": currency,
+	})))}
 	return nil
 }
-func (this *Mudrex) ParseBalance(response any) map[string]any {
+func (this *Mudrex) ParseBalance(response map[string]any) map[string]any {
 	var data map[string]any = SafeMapTyped(response, "data")
 	var currency *string = this.SafeString(response, "currency", "USDT")
 	var result map[string]any = map[string]any{
@@ -885,7 +885,7 @@ func (this *Mudrex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -941,7 +941,7 @@ func (this *Mudrex) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1003,7 +1003,7 @@ func (this *Mudrex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1126,7 +1126,7 @@ func (this *Mudrex) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1264,7 +1264,7 @@ func (this *Mudrex) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1312,7 +1312,7 @@ func (this *Mudrex) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalA
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1366,7 +1366,7 @@ func (this *Mudrex) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state s
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1402,12 +1402,7 @@ func (this *Mudrex) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state s
 	}
 	var orders []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		orders = append(orders, OrderToMap(this.ParseOrder(func() any {
-			if i >= 0 && i < len(rows) {
-				return DerefScalar(rows[i])
-			}
-			return nil
-		}(), market)))
+		orders = append(orders, OrderToMap(this.ParseOrder(DerefScalar(rows[i]), market)))
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbol, since, limit))}
@@ -1446,11 +1441,11 @@ func (this *Mudrex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes98315 []any = OrdersToList(r.Value)
-	if retRes98315 == nil {
+	var retRes98915 []any = OrdersToList(r.Value)
+	if retRes98915 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes98315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes98915)}
 	}
 	return nil
 }
@@ -1487,11 +1482,11 @@ func (this *Mudrex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes99815 []any = OrdersToList(r.Value)
-	if retRes99815 == nil {
+	var retRes100415 []any = OrdersToList(r.Value)
+	if retRes100415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes99815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes100415)}
 	}
 	return nil
 }
@@ -1528,11 +1523,11 @@ func (this *Mudrex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes101315 []any = OrdersToList(r.Value)
-	if retRes101315 == nil {
+	var retRes101915 []any = OrdersToList(r.Value)
+	if retRes101915 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes101315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes101915)}
 	}
 	return nil
 }
@@ -1559,7 +1554,7 @@ func (this *Mudrex) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1582,15 +1577,10 @@ func (this *Mudrex) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	var rows []any = this.ToArray(data)
 	var outPos []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var p any = func() any {
-			if i >= 0 && i < len(rows) {
-				return DerefScalar(rows[i])
-			}
-			return nil
-		}()
+		var p any = DerefScalar(rows[i])
 		var symRaw *string = this.SafeString(p, "symbol")
 		var m map[string]any = this.SafeMarket(symRaw)
-		var pos map[string]any = MapTyped(PositionToMap(this.ParsePosition(p, m)))
+		var pos map[string]any = PositionToMap(this.ParsePosition(p, m))
 		outPos = append(outPos, pos)
 	}
 
@@ -1626,7 +1616,7 @@ func (this *Mudrex) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1666,7 +1656,7 @@ func (this *Mudrex) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 	//     }
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
-	var positions any = this.ParsePositions(data, symbolsNormalized)
+	var positions []any = this.ParsePositions(data, symbolsNormalized)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}
 	return nil
@@ -1751,7 +1741,7 @@ func (this *Mudrex) closePositionBody(ch chan AsyncResult[Order], symbol string,
 	_ = side
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1768,15 +1758,19 @@ func (this *Mudrex) closePositionBody(ch chan AsyncResult[Order], symbol string,
 			panic(r1.Err)
 		}
 		var positions []any = PositionsToList(r1.Value)
-		for i := 0; i < len(positions); i++ {
-			var p any = GetValue(positions, i)
-			if (side != nil) && !IsEqual(GetValue(p, "side"), side) {
-				continue
-			}
-			if IsEqual(GetValue(p, "symbol"), market["symbol"]) {
-				positionId = this.SafeString(p, "id")
-				break
-			}
+		var candidates []any = this.FilterBy(positions, "symbol", market["symbol"])
+		if side != nil {
+			candidates = this.FilterBy(candidates, "side", side)
+		}
+		var numCandidates int = len(candidates)
+		if numCandidates > 0 {
+			var found map[string]any = MapTyped(func() any {
+				if 0 >= 0 && 0 < len(candidates) {
+					return DerefScalar(candidates[0])
+				}
+				return nil
+			}())
+			positionId = this.SafeString(found, "id")
 		}
 	}
 	if positionId == nil {
@@ -1839,7 +1833,7 @@ func (this *Mudrex) addMarginBody(ch chan AsyncResult[MarginModification], symbo
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1854,12 +1848,11 @@ func (this *Mudrex) addMarginBody(ch chan AsyncResult[MarginModification], symbo
 			panic(r1.Err)
 		}
 		var positions []any = PositionsToList(r1.Value)
-		for i := 0; i < len(positions); i++ {
-			var p any = GetValue(positions, i)
-			if IsEqual(GetValue(p, "symbol"), symbol) {
-				positionId = this.SafeString(p, "id")
-				break
-			}
+		var matches []any = this.FilterBy(positions, "symbol", symbol)
+		var numMatches int = len(matches)
+		if numMatches > 0 {
+			var found map[string]any = MapTyped(DerefScalar(matches[0]))
+			positionId = this.SafeString(found, "id")
 		}
 	}
 	if positionId == nil {
@@ -1906,11 +1899,11 @@ func (this *Mudrex) reduceMarginBody(ch chan AsyncResult[MarginModification], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes125615 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes125615 == nil {
+	var retRes126015 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
+	if retRes126015 == nil {
 		ch <- AsyncResult[MarginModification]{}
 	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes125615)}
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes126015)}
 	}
 	return nil
 }
@@ -1944,7 +1937,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1964,8 +1957,8 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		return *limit * 2
 	}()
 	var allRows []any = []any{}
-	var transactionsCount any = 0
-	var calls any = 0
+	var transactionsCount int64 = this.ParseToInt(0)
+	var calls int64 = this.ParseToInt(0)
 	var offset any = 0
 	var paging bool = true
 	for paging {
@@ -1983,25 +1976,20 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		var data []any = SafeListTyped(response, "data")
 		var dataLength int = len(data)
 		for i := 0; i < len(data); i++ {
-			var entry any = func() any {
-				if i >= 0 && i < len(data) {
-					return DerefScalar(data[i])
-				}
-				return nil
-			}()
+			var entry any = data[i]
 			allRows = append(allRows, entry)
 			if this.SafeString(entry, "fee_type") != nil && *this.SafeString(entry, "fee_type") == "TRANSACTION" {
 				// count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
 				if (market == nil) || (IsEqual(this.SafeString(entry, "symbol"), market["id"])) {
-					transactionsCount = Add(transactionsCount, 1)
+					transactionsCount = this.ParseToInt(transactionsCount + 1)
 				}
 			}
 		}
-		calls = Add(calls, 1)
+		calls = this.ParseToInt(calls + 1)
 		paging = false
 		// the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
 		if (limit != nil) && (dataLength == pageSize) {
-			if (int64(transactionsCount.(int)) < *limit) && (int64(calls.(int)) < maxCalls) {
+			if (transactionsCount < *limit) && (calls < maxCalls) {
 				// this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
 				offset = this.Sum(offset, pageSize)
 				paging = true
@@ -2012,14 +2000,9 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	var rebateKeys []any = []any{}
 	var rebateAmounts []any = []any{}
 	var transactions []any = []any{}
-	var transactionKeys []any = []any{}
+	var transactionKeys []string = []string{}
 	for i := 0; i < len(allRows); i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(allRows) {
-				return DerefScalar(allRows[i])
-			}
-			return nil
-		}()
+		var entry any = DerefScalar(allRows[i])
 		var feeType *string = this.SafeString(entry, "fee_type")
 		var pairKey string = *this.SafeString(entry, "symbol", "") + ":" + *this.SafeString(entry, "created_at", "") + ":" + *this.SafeString(entry, "transaction_amount", "")
 		if feeType != nil && *feeType == "TRANSACTION" {
@@ -2034,37 +2017,17 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	for i := 0; i < len(transactions); i++ {
 		var rebate *string = nil
 		for j := 0; j < len(rebateKeys); j++ {
-			if IsEqual(func() any {
-				if j >= 0 && j < len(rebateKeys) {
-					return DerefScalar(rebateKeys[j])
-				}
-				return nil
-			}(), func() any {
-				if i >= 0 && i < len(transactionKeys) {
-					return DerefScalar(transactionKeys[i])
-				}
-				return nil
-			}()) {
+			if DerefScalar(rebateKeys[j]) == GetValue(transactionKeys, i) {
 				rebate = this.SafeString(rebateAmounts, j)
 				// blank the consumed key so the next equal fill matches the next rebate, never the same one twice
-				AddElementToObject(rebateKeys, j, nil)
+				AddElementToObject(rebateKeys, j, "")
 				break
 			}
 		}
 		if rebate == nil {
-			rows = append(rows, func() any {
-				if i >= 0 && i < len(transactions) {
-					return DerefScalar(transactions[i])
-				}
-				return nil
-			}())
+			rows = append(rows, DerefScalar(transactions[i]))
 		} else {
-			rows = append(rows, this.Extend(func() any {
-				if i >= 0 && i < len(transactions) {
-					return DerefScalar(transactions[i])
-				}
-				return nil
-			}(), map[string]any{
+			rows = append(rows, this.Extend(DerefScalar(transactions[i]), map[string]any{
 				"rebate_amount": rebate,
 			}))
 		}

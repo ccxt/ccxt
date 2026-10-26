@@ -71,12 +71,7 @@ func fetchTickersHelperTestBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICo
 	AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
 	for i := 0; i < len(values); i++ {
 		// todo: symbol check here
-		var ticker any = func() any {
-			if i >= 0 && i < len(values) {
-				return DerefScalar(values[i])
-			}
-			return nil
-		}()
+		var ticker any = DerefScalar(values[i])
 
 		{
 			func() (ret_ any) {

@@ -595,11 +595,19 @@ func (this *Coinspot) ParseBalance(response any) map[string]any {
 	}
 	var balances any = this.SafeValue2(response, "balance", "balances")
 	if IsArray(balances) {
-		for i := 0; i < GetArrayLength(balances); i++ {
-			var currencies any = GetValue(balances, i)
-			var currencyIds []string = ObjectKeys(currencies)
-			for j := 0; j < len(currencyIds); j++ {
-				var currencyId string = GetValue(currencyIds, j).(string)
+		var rows []any = this.ToArray(balances)
+		var numRows int = len(rows)
+		for i := 0; i < numRows; i++ {
+			var currencies map[string]any = SafeMapTyped(rows, i)
+			var currencyIdsList []string = nil
+			if currencies != nil {
+				currencyIdsList = make([]string, 0, len(currencies))
+				for objectKey := range currencies {
+					currencyIdsList = append(currencyIdsList, objectKey)
+				}
+			}
+			for j := 0; j < len(currencyIdsList); j++ {
+				var currencyId string = currencyIdsList[j]
 				var balance map[string]any = SafeMapTyped(currencies, currencyId)
 				var code *string = this.SafeCurrencyCode(currencyId)
 				var account map[string]any = this.Account()
@@ -610,9 +618,9 @@ func (this *Coinspot) ParseBalance(response any) map[string]any {
 			}
 		}
 	} else {
-		var currencyIds []string = ObjectKeys(balances)
-		for i := 0; i < len(currencyIds); i++ {
-			var currencyId string = GetValue(currencyIds, i).(string)
+		var currencyIdsMap []string = ObjectKeys(balances)
+		for i := 0; i < len(currencyIdsMap); i++ {
+			var currencyId string = currencyIdsMap[i]
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account map[string]any = this.Account()
 			account["total"] = this.SafeString(balances, currencyId)
@@ -642,7 +650,7 @@ func (this *Coinspot) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -709,7 +717,7 @@ func (this *Coinspot) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -787,7 +795,7 @@ func (this *Coinspot) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -843,7 +851,7 @@ func (this *Coinspot) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -888,7 +896,9 @@ func (this *Coinspot) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		if market["spot"] == true {
 			var symbol *string = SafeStringPtr(market["symbol"])
 			var ticker any = prices[id]
-			AddElementToObject(result, symbol, TickerToMap(this.ParseTicker(ticker, market)))
+			if symbol != nil {
+				result[*symbol] = TickerToMap(this.ParseTicker(ticker, market))
+			}
 		}
 	}
 
@@ -921,7 +931,7 @@ func (this *Coinspot) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -979,7 +989,7 @@ func (this *Coinspot) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1136,7 +1146,7 @@ func (this *Coinspot) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1238,7 +1248,7 @@ func (this *Coinspot) cancelOrderBody(ch chan AsyncResult[Order], id any, option
 	})}
 	return nil
 }
-func (this *Coinspot) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Coinspot) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -1254,7 +1264,7 @@ func (this *Coinspot) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Coinspot) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -1262,19 +1272,19 @@ func (this *Coinspot) Sign(path string, optionalArgs ...any) any {
 	_ = params
 	var requestHeaders map[string]any = nil
 	var requestBody any = nil
-	var apiLength int = GetArrayLength(api)
+	var apiLength int = len(api)
 	var isVersionedApi bool = (apiLength > 1)
 	var version any = func() any {
 		if isVersionedApi {
-			return GetValue(api, 0)
+			return api[0]
 		}
 		return nil
 	}()
 	var accessType any = func() any {
 		if isVersionedApi {
-			return GetValue(api, 1)
+			return api[1]
 		}
-		return GetValue(api, 0)
+		return api[0]
 	}()
 	var endpoint string = "/" + this.ImplodeParams(path, params)
 	var fullPath any = endpoint

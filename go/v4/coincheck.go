@@ -354,7 +354,10 @@ func (this *Coincheck) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var codes []string = ObjectKeys(this.Currencies)
+	var codes []string = nil
+	for k := range this.Currencies() {
+		codes = append(codes, k)
+	}
 	for i := 0; i < len(codes); i++ {
 		var code string = codes[i]
 		var currency map[string]any = this.Currency(code)
@@ -452,7 +455,7 @@ func (this *Coincheck) fetchBalanceBody(ch chan AsyncResult[Balances], optionalA
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -497,7 +500,7 @@ func (this *Coincheck) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optiona
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -519,12 +522,7 @@ func (this *Coincheck) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optiona
 	var parsedOrders []any = ArrayTyped(this.ParseOrders(rawOrders, market, since, limit))
 	var result []any = []any{}
 	for i := 0; i < len(parsedOrders); i++ {
-		result = append(result, this.Extend(func() any {
-			if i >= 0 && i < len(parsedOrders) {
-				return DerefScalar(parsedOrders[i])
-			}
-			return nil
-		}(), map[string]any{
+		result = append(result, this.Extend(parsedOrders[i], map[string]any{
 			"status": "open",
 		}))
 	}
@@ -605,7 +603,7 @@ func (this *Coincheck) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -689,7 +687,7 @@ func (this *Coincheck) fetchTickerBody(ch chan AsyncResult[Ticker], symbol strin
 	if symbol != "BTC/JPY" {
 		panic(BadSymbol(this.Id + " fetchTicker() supports BTC/JPY only"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -705,7 +703,7 @@ func (this *Coincheck) fetchTickerBody(ch chan AsyncResult[Ticker], symbol strin
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var ticker map[string]any = MapTyped(r1.Raw)
+	var ticker map[string]any = r1.Value
 
 	//
 	// {
@@ -831,7 +829,7 @@ func (this *Coincheck) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -902,7 +900,7 @@ func (this *Coincheck) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any,
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -921,7 +919,7 @@ func (this *Coincheck) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 	//
 	//      {
 	//          "id": "206849494",
@@ -956,7 +954,7 @@ func (this *Coincheck) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradi
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1039,7 +1037,7 @@ func (this *Coincheck) createOrderBody(ch chan AsyncResult[Order], symbol string
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1150,7 +1148,7 @@ func (this *Coincheck) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opt
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1230,7 +1228,7 @@ func (this *Coincheck) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1362,14 +1360,14 @@ func (this *Coincheck) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Coincheck) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
-	var bodySigned any = nil
+	var apiName string = api[0]
+	var bodySigned *string = nil
 	var headersSigned any = nil
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
@@ -1377,25 +1375,26 @@ func (this *Coincheck) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if apiName != nil && *apiName == "public" {
-		if len(ObjectKeys(query)) > 0 {
+	var hasQuery bool = (len(ObjectKeys(query)) > 0)
+	if apiName == "public" {
+		if hasQuery {
 			url += "?" + this.Urlencode(query)
 		}
 	} else {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
-		var queryString any = ""
+		var queryString string = ""
 		if method == "GET" {
-			if len(ObjectKeys(query)) > 0 {
+			if hasQuery {
 				url += "?" + this.Urlencode(this.Keysort(query))
 			}
 		} else {
-			if len(ObjectKeys(query)) > 0 {
-				bodySigned = this.Urlencode(this.Keysort(query))
-				queryString = bodySigned
+			if hasQuery {
+				queryString = this.Urlencode(this.Keysort(query))
+				bodySigned = SafeStringPtr(queryString)
 			}
 		}
-		var auth *string = SafeStringPtr(Add(nonce+url, queryString))
+		var auth string = nonce + url + queryString
 		headersSigned = map[string]any{
 			"Content-Type":     "application/x-www-form-urlencoded",
 			"ACCESS-KEY":       this.ApiKey,
@@ -1404,7 +1403,7 @@ func (this *Coincheck) Sign(path string, optionalArgs ...any) any {
 		}
 	}
 	var headersResolved any = headersSigned
-	var bodyResolved any = bodySigned
+	var bodyResolved *string = bodySigned
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -1412,7 +1411,7 @@ func (this *Coincheck) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResolved,
 	}
 }
-func (this *Coincheck) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Coincheck) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -1426,7 +1425,7 @@ func (this *Coincheck) HandleErrors(httpCode any, reason any, url any, method an
 		var feedback string = this.Id + " " + this.Json(response)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
-		panic(ExchangeError(this.Id + " " + this.Json(response)))
+		panic(ExchangeError(feedback))
 	}
 	return nil
 }

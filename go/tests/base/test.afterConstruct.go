@@ -55,7 +55,7 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 		var collectedNetworkCodes []any = []any{}
 		for i := 0; i < len(networkCodes); i++ {
 			var networkCodeLower string = ToLower((networkCodes[i]))
-			Assert(!EvalTruthy(exchange.InArray(networkCodeLower, collectedNetworkCodes)), Add(Add("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"", networkCodes[i]), "\" in different uppercase/lowercase format"))
+			Assert(!EvalTruthy(exchange.InArray(networkCodeLower, collectedNetworkCodes)), Add("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \""+networkCodes[i], "\" in different uppercase/lowercase format"))
 			collectedNetworkCodes = append(collectedNetworkCodes, networkCodeLower)
 		}
 		// 5) test networkCodeToId & networkIdToCode

@@ -212,12 +212,7 @@ func (this *Binance) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInte
 			var eventMarkets []any = ccxt.SafeListTyped(ccxt.GetValue(events, ei), "markets")
 			var eventMarketsLength int = len(eventMarkets)
 			for mi := 0; mi < eventMarketsLength; mi++ {
-				queryMarkets = append(queryMarkets, func() any {
-					if mi >= 0 && mi < len(eventMarkets) {
-						return ccxt.DerefScalar(eventMarkets[mi])
-					}
-					return nil
-				}())
+				queryMarkets = append(queryMarkets, ccxt.DerefScalar(eventMarkets[mi]))
 			}
 		}
 
@@ -241,12 +236,7 @@ func (this *Binance) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInte
 		var eventMarkets []any = ccxt.SafeListTyped(parsedEvent, "markets")
 		var eventMarketsLength int = len(eventMarkets)
 		for mi := 0; mi < eventMarketsLength; mi++ {
-			flatMarkets = append(flatMarkets, func() any {
-				if mi >= 0 && mi < len(eventMarkets) {
-					return ccxt.DerefScalar(eventMarkets[mi])
-				}
-				return nil
-			}())
+			flatMarkets = append(flatMarkets, ccxt.DerefScalar(eventMarkets[mi]))
 		}
 	}
 	this.SetEvents(parsedEvents)
@@ -348,12 +338,7 @@ func (this *Binance) fetchRawTopicsBody(ch chan ccxt.AsyncResult[[]map[string]an
 		var pageTopics []any = ccxt.SafeListTyped(response, "marketTopics")
 		var pageTopicsLength int = len(pageTopics)
 		for i := 0; i < pageTopicsLength; i++ {
-			collected = append(collected, func() any {
-				if i >= 0 && i < len(pageTopics) {
-					return ccxt.DerefScalar(pageTopics[i])
-				}
-				return nil
-			}())
+			collected = append(collected, pageTopics[i])
 		}
 		var hasMore *bool = this.SafeBool(response, "hasMore", false)
 		if (!(hasMore != nil && *hasMore)) || (ccxt.IsLessThan(pageTopicsLength, reqLimit)) {
@@ -488,20 +473,10 @@ func (this *Binance) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 	var tagsLength int = len(tags)
 	var allQueries []any = []any{}
 	for i := 0; i < len(queries); i++ {
-		allQueries = append(allQueries, func() any {
-			if i >= 0 && i < len(queries) {
-				return ccxt.DerefScalar(queries[i])
-			}
-			return nil
-		}())
+		allQueries = append(allQueries, queries[i])
 	}
 	for i := 0; i < tagsLength; i++ {
-		allQueries = append(allQueries, func() any {
-			if i >= 0 && i < len(tags) {
-				return ccxt.DerefScalar(tags[i])
-			}
-			return nil
-		}())
+		allQueries = append(allQueries, tags[i])
 	}
 	var allQueriesLength int = len(allQueries)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"query", "queries"})
@@ -516,8 +491,8 @@ func (this *Binance) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 	var eventId *string = this.SafeString(paramsOmitted, "eventId")
 	var l1Category *string = this.SafeString(paramsOmitted, "l1Category")
 	var l2Category *string = this.SafeString(paramsOmitted, "l2Category")
-	if this.Markets == nil {
-		this.Markets = this.CreateSafeDictionary()
+	if this.Markets() == nil {
+		this.PublishMarkets(map[string]any{})
 	}
 	var rawTopics any = []any{}
 	if allQueriesLength > 0 {
@@ -595,16 +570,11 @@ func (this *Binance) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 		var parsedMarkets []any = ccxt.SafeListTyped(parsedEvent, "markets")
 		var parsedMarketsLength int = len(parsedMarkets)
 		for mi := 0; mi < parsedMarketsLength; mi++ {
-			var m any = func() any {
-				if mi >= 0 && mi < len(parsedMarkets) {
-					return ccxt.DerefScalar(parsedMarkets[mi])
-				}
-				return nil
-			}()
+			var m any = parsedMarkets[mi]
 			// prediction market rows are keyed by the unified 'market' handle
 			var handle *string = this.SafeString(m, "market")
 			if handle != nil {
-				ccxt.AddElementToObject(this.Markets, handle, m)
+				this.AddMarketsEntry(handle, m)
 			}
 		}
 	}
@@ -783,12 +753,7 @@ func (this *Binance) ParseEvent(rawTopic any) map[string]any {
 	var anyActive bool = false
 	var rawMarketsLength int = len(rawMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
-		var parsed any = this.ParseTopicMarket(func() any {
-			if i >= 0 && i < len(rawMarkets) {
-				return ccxt.DerefScalar(rawMarkets[i])
-			}
-			return nil
-		}(), rawTopic)
+		var parsed any = this.ParseTopicMarket(rawMarkets[i], rawTopic)
 		marketsList = append(marketsList, parsed)
 		if *this.SafeBool(parsed, "active", false) {
 			anyActive = true
@@ -1187,7 +1152,9 @@ func (this *Binance) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 		}
 		var ticker map[string]any = this.ParsePredictionTicker(response, outcomeObj)
 		var symbolKey *string = this.SafeString(ticker, "outcome", outcomes[i])
-		ccxt.AddElementToObject(result, symbolKey, ticker)
+		if symbolKey != nil {
+			result[*symbolKey] = ticker
+		}
 	}
 
 	ch <- ccxt.AsyncResult[map[string]ccxt.PredictionTicker]{Value: ccxt.PredictionTickerMapFromMap(result)}
@@ -1784,21 +1751,12 @@ func (this *Binance) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	var filtered []any = []any{}
 	var positionsLength int = len(positions)
 	for i := 0; i < positionsLength; i++ {
-		var position any = func() any {
-			if i >= 0 && i < len(positions) {
-				return ccxt.DerefScalar(positions[i])
-			}
-			return nil
-		}()
+		var position any = ccxt.DerefScalar(positions[i])
 		var positionOutcome *string = this.SafeString(position, "outcome")
-		if (positionOutcome != nil) && (func() bool {
-			if positionOutcome == nil {
-				return false
+		if positionOutcome != nil {
+			if _, ok := requestedOutcomeSymbols[*positionOutcome]; ok {
+				filtered = append(filtered, position)
 			}
-			_, ok := requestedOutcomeSymbols[*positionOutcome]
-			return ok
-		}()) {
-			filtered = append(filtered, position)
 		}
 	}
 
@@ -2054,7 +2012,7 @@ func (this *Binance) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	// }
 	//
 	var trades []any = ccxt.SafeListTypedDefault(response, "orders", []any{})
-	var parsedTrades any = this.ParsePredictionTrades(trades, outcomeObj)
+	var parsedTrades []any = this.ParsePredictionTrades(trades, outcomeObj)
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.FilterByOutcomeSinceLimit(parsedTrades, outcome, since, limit))}
 	return nil
@@ -2193,26 +2151,16 @@ func (this *Binance) fetchWalletBody(ch chan ccxt.AsyncResult[map[string]any], m
 	//
 	var wallets []any = ccxt.SafeListTyped(response, "wallets")
 	if walletAddress == nil {
-		this.Options.Store("wallet", this.SafeDict(wallets, 0))
+		this.Options["wallet"] = this.SafeDict(wallets, 0)
 
 		ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "wallet")}
 		return nil
 	}
 	var walletLength int = len(wallets)
 	for i := 0; i < walletLength; i++ {
-		var w *string = this.SafeString(func() any {
-			if i >= 0 && i < len(wallets) {
-				return ccxt.DerefScalar(wallets[i])
-			}
-			return nil
-		}(), "walletAddress", "")
+		var w *string = this.SafeString(wallets[i], "walletAddress", "")
 		if w == walletAddress || (w != nil && walletAddress != nil && *w == *walletAddress) {
-			this.Options.Store("wallet", func() any {
-				if i >= 0 && i < len(wallets) {
-					return ccxt.DerefScalar(wallets[i])
-				}
-				return nil
-			}())
+			this.Options["wallet"] = wallets[i]
 
 			ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "wallet")}
 			return nil
@@ -2234,12 +2182,12 @@ func (this *Binance) fetchWalletBody(ch chan ccxt.AsyncResult[map[string]any], m
  * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
  * @returns {object} a quote
  */
-func (this *Binance) FetchQuoteAsync(request any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+func (this *Binance) FetchQuoteAsync(request map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
 	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.fetchQuoteBody(ch, request, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchQuoteBody(ch chan ccxt.AsyncResult[map[string]any], request any, optionalArgs ...any) any {
+func (this *Binance) fetchQuoteBody(ch chan ccxt.AsyncResult[map[string]any], request map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2612,12 +2560,7 @@ func (this *Binance) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 	var orders []any = []any{}
 	var canceledOrdersLength int = len(canceledOrders)
 	for i := 0; i < canceledOrdersLength; i++ {
-		var status any = func() any {
-			if i >= 0 && i < len(canceledOrders) {
-				return ccxt.DerefScalar(canceledOrders[i])
-			}
-			return nil
-		}()
+		var status any = canceledOrders[i]
 		var order map[string]any = map[string]any{
 			"id":            status,
 			"clientOrderId": nil,
@@ -2636,7 +2579,7 @@ func (this *Binance) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(orders)}
 	return nil
 }
-func (this *Binance) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Binance) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -2663,13 +2606,13 @@ func (this *Binance) HandleErrors(code any, reason any, url any, method any, hea
  * @returns {object} a dictionary with url, method, body and headers
  */
 func (this *Binance) Sign(path string, optionalArgs ...any) any {
-	api := ccxt.GetArg(optionalArgs, 0, []any{"sapi"})
+	var api []string = ccxt.GetArgStringSlice(optionalArgs, 0, []string{"sapi"})
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiGroup *string = ccxt.SafeStringPtr(ccxt.GetValue(api, 0))
+	var apiGroup string = api[0]
 	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "sapi"))
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)

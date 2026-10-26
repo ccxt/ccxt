@@ -571,7 +571,6 @@ func (this *Bitvavo) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 }
 func (this *Bitvavo) ParseMarkets(markets any) []any {
 	var result []any = []any{}
-	var fees any = this.Fees
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market map[string]any = SafeMapTyped(markets, i)
 		var id *string = this.SafeString(market, "market")
@@ -607,8 +606,8 @@ func (this *Bitvavo) ParseMarkets(markets any) []any {
 			"expiryDatetime": nil,
 			"strike":         nil,
 			"optionType":     nil,
-			"taker":          GetValue(GetValue(fees, "trading"), "taker"),
-			"maker":          GetValue(GetValue(fees, "trading"), "maker"),
+			"taker":          this.SafeNumber(this.Fees["trading"], "taker"),
+			"maker":          this.SafeNumber(this.Fees["trading"], "maker"),
 			"precision": map[string]any{
 				"amount": this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityDecimals"))),
 				"price":  this.SafeNumber(market, "tickSize"),
@@ -658,11 +657,11 @@ func (this *Bitvavo) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp652 := <-this.PublicGetAssets(params)
-	if listEp652.Err != nil {
-		panic(listEp652.Err)
+	listEp651 := <-this.PublicGetAssets(params)
+	if listEp651.Err != nil {
+		panic(listEp651.Err)
 	}
-	var response []any = listEp652.Value
+	var response []any = listEp651.Value
 
 	//
 	//     [
@@ -748,12 +747,7 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) map[string]any {
 	var minWithdraw *float64 = this.SafeNumber(rawCurrency, "withdrawalMinAmount")
 	// btw, absolutely all of them have 1 network atm
 	for j := 0; j < len(networksArray); j++ {
-		var networkId any = func() any {
-			if j >= 0 && j < len(networksArray) {
-				return DerefScalar(networksArray[j])
-			}
-			return nil
-		}()
+		var networkId any = networksArray[j]
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
 			networks[*networkCode] = map[string]any{
@@ -827,7 +821,7 @@ func (this *Bitvavo) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -937,7 +931,7 @@ func (this *Bitvavo) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1000,7 +994,7 @@ func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1015,11 +1009,11 @@ func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes83019 []any = r1.Value
-		if retRes83019 == nil {
+		var retRes82919 []any = r1.Value
+		if retRes82919 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes83019)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes82919)}
 		}
 		return nil
 	}
@@ -1034,11 +1028,11 @@ func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
-	listEp1005 := <-this.PublicGetMarketTrades(this.Extend(requestUntil, paramsUntil))
-	if listEp1005.Err != nil {
-		panic(listEp1005.Err)
+	listEp1004 := <-this.PublicGetMarketTrades(this.Extend(requestUntil, paramsUntil))
+	if listEp1004.Err != nil {
+		panic(listEp1004.Err)
 	}
-	var response []any = listEp1005.Value
+	var response []any = listEp1004.Value
 
 	//
 	//     [
@@ -1176,7 +1170,7 @@ func (this *Bitvavo) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1184,11 +1178,11 @@ func (this *Bitvavo) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		}
 	}
 
-	listEp1148 := <-this.PrivateGetAccount(params)
-	if listEp1148.Err != nil {
-		panic(listEp1148.Err)
+	listEp1147 := <-this.PrivateGetAccount(params)
+	if listEp1147.Err != nil {
+		panic(listEp1147.Err)
 	}
-	var response []any = listEp1148.Value
+	var response []any = listEp1147.Value
 
 	//
 	//     {
@@ -1219,15 +1213,17 @@ func (this *Bitvavo) ParseTradingFees(fees any, optionalArgs ...any) map[string]
 	var taker *float64 = this.SafeNumber(feesValue, "taker")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(this.Symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(this.Symbols, i))
-		AddElementToObject(result, symbol, map[string]any{
-			"info":       fees,
-			"symbol":     symbol,
-			"maker":      maker,
-			"taker":      taker,
-			"percentage": true,
-			"tierBased":  true,
-		})
+		var symbol *string = this.SafeString(this.Symbols, i, "")
+		if symbol != nil {
+			result[*symbol] = map[string]any{
+				"info":       fees,
+				"symbol":     symbol,
+				"maker":      maker,
+				"taker":      taker,
+				"percentage": true,
+				"tierBased":  true,
+			}
+		}
 	}
 	return result
 }
@@ -1251,7 +1247,7 @@ func (this *Bitvavo) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1315,7 +1311,7 @@ func (this *Bitvavo) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1398,12 +1394,12 @@ func (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) map[stri
 		}()
 		request["end"] = this.Sum(since, ((sinceLimit * duration) * 1000))
 	}
-	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
 	if limit != nil {
-		AddElementToObject(requestUntil, "limit", mathMin(limit, 1440)) // default 1440, max 1440
+		request["limit"] = mathMin(limit, 1440) // default 1440, max 1440
 	} else if since != nil {
-		requestUntil["limit"] = 1440
+		request["limit"] = 1440
 	}
+	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
 	return this.Extend(requestUntil, paramsUntil)
 }
 
@@ -1437,7 +1433,7 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1452,21 +1448,21 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes116219 []any = r1.Value
-		if retRes116219 == nil {
+		var retRes116119 []any = r1.Value
+		if retRes116119 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes116219)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes116119)}
 		}
 		return nil
 	}
 	var request map[string]any = this.FetchOHLCVRequest(symbol, timeframe, since, limit, paramsPaginate)
 
-	listEp1401 := <-this.PublicGetMarketCandles(request)
-	if listEp1401.Err != nil {
-		panic(listEp1401.Err)
+	listEp1400 := <-this.PublicGetMarketCandles(request)
+	if listEp1400.Err != nil {
+		panic(listEp1400.Err)
 	}
-	var response []any = listEp1401.Value
+	var response []any = listEp1400.Value
 
 	//
 	//     [
@@ -1516,7 +1512,7 @@ func (this *Bitvavo) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1524,11 +1520,11 @@ func (this *Bitvavo) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 		}
 	}
 
-	listEp1456 := <-this.PrivateGetBalance(params)
-	if listEp1456.Err != nil {
-		panic(listEp1456.Err)
+	listEp1455 := <-this.PrivateGetBalance(params)
+	if listEp1455.Err != nil {
+		panic(listEp1455.Err)
 	}
-	var response []any = listEp1456.Value
+	var response []any = listEp1455.Value
 
 	//
 	//     [
@@ -1561,7 +1557,7 @@ func (this *Bitvavo) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalA
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1627,7 +1623,7 @@ func (this *Bitvavo) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1714,7 +1710,7 @@ func (this *Bitvavo) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1791,7 +1787,7 @@ func (this *Bitvavo) fetchTransferBody(ch chan AsyncResult[TransferEntry], id st
 	_ = code
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1887,7 +1883,7 @@ func (this *Bitvavo) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2061,7 +2057,7 @@ func (this *Bitvavo) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2190,7 +2186,7 @@ func (this *Bitvavo) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2258,7 +2254,7 @@ func (this *Bitvavo) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2304,7 +2300,7 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2326,11 +2322,11 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
 	}
 
-	listEp2196 := <-this.PrivateDeleteOrders(this.Extend(request, paramsOperatorId))
-	if listEp2196.Err != nil {
-		panic(listEp2196.Err)
+	listEp2195 := <-this.PrivateDeleteOrders(this.Extend(request, paramsOperatorId))
+	if listEp2195.Err != nil {
+		panic(listEp2195.Err)
 	}
-	var response []any = listEp2196.Value
+	var response []any = listEp2195.Value
 
 	//
 	//     [
@@ -2369,7 +2365,7 @@ func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any
 	if (timeout > 0) && (timeout < 10000) {
 		panic(BadRequest(this.Id + " cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2428,7 +2424,7 @@ func (this *Bitvavo) fetchOrderBody(ch chan AsyncResult[Order], id any, optional
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOrder() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2542,7 +2538,7 @@ func (this *Bitvavo) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOrders() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2556,22 +2552,22 @@ func (this *Bitvavo) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes193719 []any = r1.Value
-		if retRes193719 == nil {
+		var retRes193619 []any = r1.Value
+		if retRes193619 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes193719)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes193619)}
 		}
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = this.FetchOrdersRequest(symbol, since, limit, paramsPaginate)
 
-	listEp2413 := <-this.PrivateGetOrders(request)
-	if listEp2413.Err != nil {
-		panic(listEp2413.Err)
+	listEp2412 := <-this.PrivateGetOrders(request)
+	if listEp2412.Err != nil {
+		panic(listEp2412.Err)
 	}
-	var response []any = listEp2413.Value
+	var response []any = listEp2412.Value
 
 	//
 	//     [
@@ -2640,7 +2636,7 @@ func (this *Bitvavo) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2654,11 +2650,11 @@ func (this *Bitvavo) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		request["market"] = market["id"]
 	}
 
-	listEp2493 := <-this.PrivateGetOrdersOpen(this.Extend(request, params))
-	if listEp2493.Err != nil {
-		panic(listEp2493.Err)
+	listEp2492 := <-this.PrivateGetOrdersOpen(this.Extend(request, params))
+	if listEp2492.Err != nil {
+		panic(listEp2492.Err)
 	}
-	var response []any = listEp2493.Value
+	var response []any = listEp2492.Value
 
 	//
 	//     [
@@ -2876,7 +2872,7 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2890,22 +2886,22 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes220819 []any = r1.Value
-		if retRes220819 == nil {
+		var retRes220719 []any = r1.Value
+		if retRes220719 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes220819)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes220719)}
 		}
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = this.FetchMyTradesRequest(symbol, since, limit, paramsPaginate)
 
-	listEp2729 := <-this.PrivateGetTrades(request)
-	if listEp2729.Err != nil {
-		panic(listEp2729.Err)
+	listEp2728 := <-this.PrivateGetTrades(request)
+	if listEp2728.Err != nil {
+		panic(listEp2728.Err)
 	}
-	var response []any = listEp2729.Value
+	var response []any = listEp2728.Value
 
 	//
 	//     [
@@ -2957,7 +2953,7 @@ func (this *Bitvavo) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3105,16 +3101,16 @@ func (this *Bitvavo) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	var tagWithdrawTagPtr *string = nil
+	tagWithdrawTagPtr, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
+		if tagWithdrawTagPtr != nil {
+			return *tagWithdrawTagPtr
 		}
 		return nil
 	}()
-	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address, code, tagWithdrawTag)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3191,7 +3187,7 @@ func (this *Bitvavo) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3204,11 +3200,11 @@ func (this *Bitvavo) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		currency = this.Currency(code)
 	}
 
-	listEp3006 := <-this.PrivateGetWithdrawalHistory(request)
-	if listEp3006.Err != nil {
-		panic(listEp3006.Err)
+	listEp3005 := <-this.PrivateGetWithdrawalHistory(request)
+	if listEp3005.Err != nil {
+		panic(listEp3005.Err)
 	}
-	var response []any = listEp3006.Value
+	var response []any = listEp3005.Value
 
 	//
 	//     [
@@ -3280,7 +3276,7 @@ func (this *Bitvavo) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3293,11 +3289,11 @@ func (this *Bitvavo) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		currency = this.Currency(code)
 	}
 
-	listEp3088 := <-this.PrivateGetDepositHistory(request)
-	if listEp3088.Err != nil {
-		panic(listEp3088.Err)
+	listEp3087 := <-this.PrivateGetDepositHistory(request)
+	if listEp3087.Err != nil {
+		panic(listEp3087.Err)
 	}
-	var response []any = listEp3088.Value
+	var response []any = listEp3087.Value
 
 	//
 	//     [
@@ -3481,7 +3477,7 @@ func (this *Bitvavo) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3489,11 +3485,11 @@ func (this *Bitvavo) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string
 		}
 	}
 
-	listEp3277 := <-this.PublicGetAssets(params)
-	if listEp3277.Err != nil {
-		panic(listEp3277.Err)
+	listEp3276 := <-this.PublicGetAssets(params)
+	if listEp3276.Err != nil {
+		panic(listEp3276.Err)
 	}
-	var response []any = listEp3277.Value
+	var response []any = listEp3276.Value
 
 	//
 	//   [
@@ -3518,34 +3514,34 @@ func (this *Bitvavo) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string
 	return nil
 }
 func (this *Bitvavo) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	var requestHeaders map[string]any = nil
-	var requestBody any = nil
+	var requestBody *string = nil
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var url string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var getOrDelete bool = (method == "GET") || (method == "DELETE")
 	if getOrDelete {
-		if len(ObjectKeys(query)) > 0 {
+		if !this.IsEmpty(query) {
 			url += "?" + this.Urlencode(query)
 		}
 	}
-	if apiName != nil && *apiName == "private" {
+	if apiName == "private" {
 		this.CheckRequiredCredentials()
-		var payload any = ""
+		var payload string = ""
 		if !getOrDelete {
-			if len(ObjectKeys(query)) > 0 {
-				requestBody = this.Json(query)
-				payload = requestBody
+			if !this.IsEmpty(query) {
+				payload = this.Json(query)
+				requestBody = SafeStringPtr(payload)
 			}
 		}
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
-		var auth *string = SafeStringPtr(Add(timestamp+method+url, payload))
+		var auth string = timestamp + method + url + payload
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		var accessWindow *string = this.SafeString2(this.Options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000")
 		requestHeaders = map[string]any{
@@ -3555,7 +3551,9 @@ func (this *Bitvavo) Sign(path string, optionalArgs ...any) any {
 			"BITVAVO-ACCESS-WINDOW":    accessWindow,
 		}
 		if !getOrDelete {
-			AddElementToObject(requestHeaders, "Content-Type", "application/json")
+			if requestHeaders != nil {
+				requestHeaders["Content-Type"] = "application/json"
+			}
 		}
 	}
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
@@ -3570,7 +3568,7 @@ func (this *Bitvavo) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Bitvavo) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bitvavo) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -3589,11 +3587,11 @@ func (this *Bitvavo) HandleErrors(httpCode any, reason any, url any, method any,
 	}
 	return nil
 }
-func (this *Bitvavo) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
+func (this *Bitvavo) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if (func() bool { _, ok := config["noMarket"]; return ok }()) && !(InOp(params, "market")) {
-		return GetValue(config, "noMarket")
+	if _, ok := config["noMarket"]; ok && !(InOp(params, "market")) {
+		return config["noMarket"]
 	}
 	return this.SafeValue(config, "cost", 1)
 }
@@ -3625,7 +3623,10 @@ func (this *Bitvavo) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

@@ -389,7 +389,7 @@ func (this *Cryptomus) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(result))}
 	return nil
 }
-func (this *Cryptomus) ParseMarket(market any) any {
+func (this *Cryptomus) ParseMarket(market any) map[string]any {
 	//
 	//     {
 	//         "id": "01JHN5EFT64YC4HR9KCGM5M65D",
@@ -528,25 +528,27 @@ func (this *Cryptomus) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], 
 	//
 	var coins []any = SafeListTyped(response, "result")
 	var groupedById map[string]any = this.GroupBy(coins, "currency_code")
-	var groupedArray []any = ObjectValues(groupedById)
+	var groupedArray []any = nil
+	if groupedById != nil {
+		groupedArray = make([]any, 0, len(groupedById))
+		for _, objectValue := range groupedById {
+			groupedArray = append(groupedArray, objectValue)
+		}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(groupedArray)}
 	return nil
 }
 func (this *Cryptomus) ParseCurrency(rawCurrency any) map[string]any {
 	// currency here is array of networks
-	var id any = nil // all entries have same id, as they were grouped by
+	var id *string = nil // all entries have same id, as they were grouped by
 	var code any = nil
 	var networks map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(rawCurrency); i++ {
 		var networkEntry map[string]any = SafeMapTyped(rawCurrency, i)
 		// set ID on first loop
 		if id == nil {
-			if derefPtr := this.SafeString(networkEntry, "currency_code"); derefPtr != nil {
-				id = *derefPtr
-			} else {
-				id = nil
-			}
+			id = this.SafeString(networkEntry, "currency_code")
 			if derefPtr := this.SafeCurrencyCode(id); derefPtr != nil {
 				code = *derefPtr
 			} else {
@@ -607,7 +609,7 @@ func (this *Cryptomus) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], 
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -651,10 +653,9 @@ func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "currency_pair")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var last *string = this.SafeString(ticker, "last_price")
 	return this.SafeTicker(map[string]any{
-		"symbol":        symbol,
+		"symbol":        marketResolved["symbol"],
 		"timestamp":     nil,
 		"datetime":      nil,
 		"high":          nil,
@@ -700,7 +701,7 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -778,7 +779,7 @@ func (this *Cryptomus) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any,
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -809,7 +810,7 @@ func (this *Cryptomus) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any,
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data")
+	var data []any = SafeListTyped(response, "data")
 	var dataList []any = []any{}
 	if data != nil {
 		dataList = ArrayTyped(data)
@@ -870,7 +871,7 @@ func (this *Cryptomus) fetchBalanceBody(ch chan AsyncResult[Balances], optionalA
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -953,7 +954,7 @@ func (this *Cryptomus) createOrderBody(ch chan AsyncResult[Order], symbol string
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -979,34 +980,28 @@ func (this *Cryptomus) createOrderBody(ch chan AsyncResult[Order], symbol string
 	var sideBuy bool = (side == "buy")
 	var amountToString *string = this.NumberToString(amount)
 	var priceToString *string = this.NumberToString(price)
-	var costParamparamsCostVariable []any = this.HandleParamString(paramsOmitted, "cost")
-	costParam := func() any {
-		if p, _ := costParamparamsCostVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
-	paramsCost := GetValue(costParamparamsCostVariable, 1)
+	var paramsCost any = this.Omit(paramsOmitted, "cost")
+	var costParam *string = this.SafeString(paramsOmitted, "cost")
 	var cost any = costParam
 	var response map[string]any = nil
 	if typeVar == "market" {
-		var requiresPriceAndParams any = TupleSlice(this.HandleOptionBoolAndParams(paramsCost, "createOrder", "createMarketBuyOrderRequiresPrice", true))
+		var requiresPriceAndParams []any = TupleSlice(this.HandleOptionBoolAndParams(paramsCost, "createOrder", "createMarketBuyOrderRequiresPrice", true))
 		var paramsMarket any = paramsCost
 		if sideBuy {
-			paramsMarket = GetValue(requiresPriceAndParams, 1)
+			paramsMarket = requiresPriceAndParams[1]
 		}
 		if sideBuy {
-			var createMarketBuyOrderRequiresPrice *bool = SafeBoolPtr(GetValue(requiresPriceAndParams, 0))
+			var createMarketBuyOrderRequiresPrice *bool = SafeBoolPtr(requiresPriceAndParams[0])
 			if createMarketBuyOrderRequiresPrice != nil && *createMarketBuyOrderRequiresPrice {
-				if (price == nil) && (IsEqual(cost, nil)) {
+				if (price == nil) && (costParam == nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument"))
-				} else if IsEqual(cost, nil) {
+				} else if costParam == nil {
 					cost = Precise.StringMul(amountToString, priceToString)
 				}
 			} else {
 				cost = func() any {
-					if !IsEqual(cost, nil) && !IsEqual(cost, "") {
-						return cost
+					if (costParam != nil) && (costParam == nil || *costParam != "") {
+						return costParam
 					}
 					return amountToString
 				}()
@@ -1068,7 +1063,7 @@ func (this *Cryptomus) cancelOrderBody(ch chan AsyncResult[Order], id any, optio
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1127,7 +1122,7 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Or
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1191,12 +1186,7 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Or
 	var result []any = SafeListTyped(response, "result")
 	var orders []any = []any{}
 	for i := 0; i < len(result); i++ {
-		var order any = func() any {
-			if i >= 0 && i < len(result) {
-				return DerefScalar(result[i])
-			}
-			return nil
-		}()
+		var order any = DerefScalar(result[i])
 		orders = append(orders, OrderToMap(this.ParseOrder(order, market)))
 	}
 
@@ -1236,7 +1226,7 @@ func (this *Cryptomus) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optiona
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1530,7 +1520,7 @@ func (this *Cryptomus) ParseFeeTiers(feeTiers []any, optionalArgs ...any) map[st
 	}
 }
 func (this *Cryptomus) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -1538,13 +1528,13 @@ func (this *Cryptomus) Sign(path string, optionalArgs ...any) any {
 	_ = params
 	var endpoint string = this.ImplodeParams(path, params)
 	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + endpoint
-	if apiName != nil && *apiName == "private" {
+	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		var jsonParams string = ""
 		var privateHeaders map[string]any = map[string]any{
@@ -1560,7 +1550,7 @@ func (this *Cryptomus) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 		var jsonParamsBase64 string = this.StringToBase64(jsonParams)
-		var stringToSign *string = SafeStringPtr(Add(jsonParamsBase64, this.Secret))
+		var stringToSign string = jsonParamsBase64 + this.Secret
 		var signature any = this.Hash(this.Encode(stringToSign), md5)
 		privateHeaders["sign"] = signature
 		var privateBody *string = func() *string {
@@ -1588,20 +1578,20 @@ func (this *Cryptomus) Sign(path string, optionalArgs ...any) any {
 		"headers": nil,
 	}
 }
-func (this *Cryptomus) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Cryptomus) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
-	if InOp(response, "code") {
-		var code *string = this.SafeString(response, "code")
+	var code *string = this.SafeString(response, "code")
+	var message *string = this.SafeString(response, "message")
+	if code != nil {
 		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 		panic(ExchangeError(feedback))
-	} else if InOp(response, "message") {
+	} else if message != nil {
 		//
 		//      {"message":"Minimum amount 15 USDT","state":1}
 		//
-		var message *string = this.SafeString(response, "message")
 		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

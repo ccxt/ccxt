@@ -193,13 +193,13 @@ func (this *Woo) V1PrivateGetFundingFeeHistory(args ...any) <-chan EndpointResul
 }
 
 // V1PrivateGetPositions returns a channel that yields a JSON object.
-func (this *Woo) V1PrivateGetPositions(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("v1PrivateGetPositions", args...)
+func (this *Woo) V1PrivateGetPositions(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivateGetPositions", args...))
 }
 
 // V1PrivateGetPositionSymbol returns a channel that yields a JSON object.
-func (this *Woo) V1PrivateGetPositionSymbol(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("v1PrivateGetPositionSymbol", args...)
+func (this *Woo) V1PrivateGetPositionSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivateGetPositionSymbol", args...))
 }
 
 // V1PrivateGetClientTransactionHistory returns a channel that yields a JSON object.
@@ -453,8 +453,8 @@ func (this *Woo) V3PrivateGetAssetStakingYieldHistory(args ...any) <-chan Endpoi
 }
 
 // V3PrivateGetFuturesPositions returns a channel that yields a JSON object.
-func (this *Woo) V3PrivateGetFuturesPositions(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("v3PrivateGetFuturesPositions", args...)
+func (this *Woo) V3PrivateGetFuturesPositions(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v3PrivateGetFuturesPositions", args...))
 }
 
 // V3PrivateGetFuturesLeverage returns a channel that yields a JSON object.
@@ -498,8 +498,8 @@ func (this *Woo) V3PrivateGetAlgoOrders(args ...any) <-chan EndpointResult[map[s
 }
 
 // V3PrivateGetPositions returns a channel that yields a JSON object.
-func (this *Woo) V3PrivateGetPositions(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("v3PrivateGetPositions", args...)
+func (this *Woo) V3PrivateGetPositions(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v3PrivateGetPositions", args...))
 }
 
 // V3PrivateGetBuypower returns a channel that yields a JSON object.

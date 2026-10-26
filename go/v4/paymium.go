@@ -217,7 +217,10 @@ func (this *Paymium) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var currencies []string = ObjectKeys(this.Currencies)
+	var currencies []string = nil
+	for k := range this.Currencies() {
+		currencies = append(currencies, k)
+	}
 	for i := 0; i < len(currencies); i++ {
 		var code string = currencies[i]
 		var currency map[string]any = this.Currency(code)
@@ -225,9 +228,8 @@ func (this *Paymium) ParseBalance(response any) map[string]any {
 		var free string = "balance_" + *currencyId
 		if InOp(response, free) {
 			var account map[string]any = this.Account()
-			var used string = "locked_" + *currencyId
 			account["free"] = this.SafeString(response, free)
-			account["used"] = this.SafeString(response, used)
+			account["used"] = this.SafeString(response, "locked_"+*currencyId)
 			result[code] = account
 		}
 	}
@@ -252,7 +254,7 @@ func (this *Paymium) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -292,7 +294,7 @@ func (this *Paymium) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -383,7 +385,7 @@ func (this *Paymium) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -430,7 +432,8 @@ func (this *Paymium) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var marketResolved map[string]any = this.SafeMarket(nil, market)
 	var side *string = this.SafeString(trade, "side")
 	var price *string = this.SafeString(trade, "price")
-	var amountField string = "traded_" + ToLower(marketResolved["base"])
+	var baseId *string = this.SafeString(marketResolved, "base", "")
+	var amountField string = "traded_" + strings.ToLower(*baseId)
 	var amount *string = this.SafeString(trade, amountField)
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -474,7 +477,7 @@ func (this *Paymium) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -515,7 +518,7 @@ func (this *Paymium) createDepositAddressBody(ch chan AsyncResult[DepositAddress
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -560,7 +563,7 @@ func (this *Paymium) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -610,7 +613,7 @@ func (this *Paymium) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -684,7 +687,7 @@ func (this *Paymium) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -775,7 +778,7 @@ func (this *Paymium) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -900,7 +903,7 @@ func (this *Paymium) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Paymium) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -913,8 +916,9 @@ func (this *Paymium) Sign(path string, optionalArgs ...any) any {
 	var baseUrl *string = baseApiUrl
 	var url string = *baseUrl + "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if GetValue(api, 0) == "public" {
-		if len(ObjectKeys(query)) > 0 {
+	var hasQuery bool = (len(ObjectKeys(query)) > 0)
+	if api[0] == "public" {
+		if hasQuery {
 			url += "?" + this.Urlencode(query)
 		}
 	} else {
@@ -926,7 +930,6 @@ func (this *Paymium) Sign(path string, optionalArgs ...any) any {
 			"Api-Key":   this.ApiKey,
 			"Api-Nonce": nonce,
 		}
-		var hasQuery bool = (len(ObjectKeys(query)) > 0)
 		var signedBody any = nil
 		if (method == "POST") && hasQuery {
 			signedBody = this.Json(query)
@@ -939,7 +942,7 @@ func (this *Paymium) Sign(path string, optionalArgs ...any) any {
 		} else {
 			if hasQuery {
 				var queryString string = this.Urlencode(query)
-				auth = Add(auth, queryString)
+				auth = nonce + url + queryString
 				url += "?" + queryString
 			}
 		}
@@ -958,7 +961,7 @@ func (this *Paymium) Sign(path string, optionalArgs ...any) any {
 		"headers": nil,
 	}
 }
-func (this *Paymium) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Paymium) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}

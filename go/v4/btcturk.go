@@ -372,7 +372,7 @@ func (this *Btcturk) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
 }
-func (this *Btcturk) ParseMarket(entry any) any {
+func (this *Btcturk) ParseMarket(entry any) map[string]any {
 	var id *string = this.SafeString(entry, "name")
 	var baseId *string = this.SafeString(entry, "numerator")
 	var quoteId *string = this.SafeString(entry, "denominator")
@@ -489,7 +489,7 @@ func (this *Btcturk) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -545,7 +545,7 @@ func (this *Btcturk) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -561,7 +561,7 @@ func (this *Btcturk) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 	//     {
 	//       "data": {
 	//         "timestamp": 1618827901241,
@@ -663,7 +663,7 @@ func (this *Btcturk) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -675,7 +675,7 @@ func (this *Btcturk) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 	var tickers []any = SafeListTyped(response, "data")
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbols))}
@@ -701,7 +701,7 @@ func (this *Btcturk) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -809,7 +809,7 @@ func (this *Btcturk) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -829,7 +829,7 @@ func (this *Btcturk) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//       "data": [
@@ -847,7 +847,7 @@ func (this *Btcturk) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	//       ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data")
+	var data []any = SafeListTyped(response, "data")
 	var dataList []any = []any{}
 	if data != nil {
 		dataList = ArrayTyped(data)
@@ -901,7 +901,7 @@ func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -928,7 +928,7 @@ func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	} else if since == nil {
 		limitResolved = 100 // default value
 	}
-	if !IsEqual(limitResolved, nil) {
+	if (limit != nil) || (since == nil) {
 		if timeframe == "1y" {
 			panic(BadRequest(this.Id + " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\""))
 		}
@@ -939,14 +939,15 @@ func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			}
 			return min(*limit, 11000)
 		}()
-		var limitSeconds any = (seconds * (limitCount - 1))
+		var limitSeconds int64 = this.ParseToInt(seconds * (limitCount - 1))
 		if since != nil {
-			var to any = Add(this.ParseToInt(float64(*since)/1000), limitSeconds)
-			if to.(int64) < untilSeconds {
+			var sinceSeconds int64 = this.ParseToInt(float64(*since) / 1000)
+			var to int64 = sinceSeconds + limitSeconds
+			if to < untilSeconds {
 				request["to"] = to
 			}
 		} else {
-			request["from"] = Subtract(0, limitSeconds)
+			request["from"] = 0 - limitSeconds
 		}
 	}
 
@@ -1052,7 +1053,7 @@ func (this *Btcturk) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1070,7 +1071,7 @@ func (this *Btcturk) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	if _, ok := params["clientOrderId"]; ok {
-		request["newClientOrderId"] = GetValue(params, "clientOrderId")
+		request["newClientOrderId"] = params["clientOrderId"]
 	} else if _, ok := params["newClientOrderId"]; !ok {
 		request["newClientOrderId"] = this.Uuid()
 	}
@@ -1158,7 +1159,7 @@ func (this *Btcturk) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1212,7 +1213,7 @@ func (this *Btcturk) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1235,7 +1236,7 @@ func (this *Btcturk) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 	// {
 	//   "data": [
 	//     {
@@ -1366,7 +1367,7 @@ func (this *Btcturk) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1404,7 +1405,7 @@ func (this *Btcturk) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//       "code": "0"
 	//     }
 	//
-	var data any = this.SafeList(response, "data")
+	var data []any = SafeListTyped(response, "data")
 	var dataList []any = []any{}
 	if data != nil {
 		dataList = ArrayTyped(data)
@@ -1417,13 +1418,13 @@ func (this *Btcturk) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Btcturk) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	if this.Id == "btctrader" {
 		panic(ExchangeError(this.Id + " is an abstract base API for BTCExchange, BTCTurk"))
 	}
@@ -1434,8 +1435,9 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) any {
 	var url string = *apiUrl + "/" + path
 	var isQueryMethod bool = (method == "GET") || (method == "DELETE")
 	if isQueryMethod {
-		if len(ObjectKeys(params)) > 0 {
-			url += "?" + this.Urlencode(params)
+		var query string = this.Urlencode(params)
+		if len(query) > 0 {
+			url += "?" + query
 		}
 	}
 	var requestBody any = nil
@@ -1444,12 +1446,12 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) any {
 	} else {
 		requestBody = this.Json(params)
 	}
-	var privateHeaders any = nil
-	if apiName != nil && *apiName == "private" {
+	var privateHeaders map[string]any = nil
+	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var secret []byte = this.Base64ToBinary(this.Secret)
-		var auth any = Add(this.ApiKey, nonce)
+		var auth string = this.ApiKey + nonce
 		privateHeaders = map[string]any{
 			"X-PCK":        this.ApiKey,
 			"X-Stamp":      nonce,
@@ -1457,15 +1459,14 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) any {
 			"Content-Type": "application/json",
 		}
 	}
-	var requestHeaders any = privateHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    requestBody,
-		"headers": requestHeaders,
+		"headers": privateHeaders,
 	}
 }
-func (this *Btcturk) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Btcturk) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	var errorCode *string = this.SafeString(response, "code", "0")
 	var message *string = this.SafeString(response, "message")
 	var output *string = message

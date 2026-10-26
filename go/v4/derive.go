@@ -753,7 +753,7 @@ func (this *Derive) Describe() any {
 }
 func (this *Derive) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
-	this.Options.Store("sandboxMode", enable)
+	this.Options["sandboxMode"] = enable
 }
 
 /**
@@ -1153,23 +1153,21 @@ func (this *Derive) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of raw instrument entries
  */
-func (this *Derive) GetMarketsPaginatedAsync(request any, optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+func (this *Derive) GetMarketsPaginatedAsync(request map[string]any, optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
 	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.getMarketsPaginatedBody(ch, request, optionalArgs...)
 	return ch
 }
-func (this *Derive) getMarketsPaginatedBody(ch chan AsyncResult[[]MarketInterface], request any, optionalArgs ...any) any {
+func (this *Derive) getMarketsPaginatedBody(ch chan AsyncResult[[]MarketInterface], request map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var allInstruments []any = []any{}
 	maxPages, paramsMaxPages := this.HandleOptionIntegerAndParams(params, "getMarketsPaginated", "maxMarketPages", 25)
-	var pageSizeparamsOmittedVariable []any = this.HandleOptionAndParams(paramsMaxPages, "getMarketsPaginated", "maxMarketsPerPage", 1000)
-	pageSize := GetValue(pageSizeparamsOmittedVariable, 0)
-	paramsOmitted := pageSizeparamsOmittedVariable[1]
-	var page any = 1
+	pageSize, paramsOmitted := this.HandleOptionIntegerAndParams(paramsMaxPages, "getMarketsPaginated", "maxMarketsPerPage", 1000)
 	for i := 0; int64(i) < maxPages; i++ {
+		var page int = i + 1
 		var requestExtension map[string]any = map[string]any{
 			"page":      page,
 			"page_size": pageSize,
@@ -1190,13 +1188,12 @@ func (this *Derive) getMarketsPaginatedBody(ch chan AsyncResult[[]MarketInterfac
 		if totalCount == nil || int64(collected) >= *totalCount {
 			break
 		}
-		page = Add(page, 1)
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(allInstruments)}
 	return nil
 }
-func (this *Derive) ParseMarket(market any) any {
+func (this *Derive) ParseMarket(market any) map[string]any {
 	var typeVar *string = this.SafeString(market, "instrument_type")
 	var marketType *string = nil
 	var spot bool = false
@@ -1330,7 +1327,7 @@ func (this *Derive) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1400,7 +1397,7 @@ func (this *Derive) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sym
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1454,15 +1451,16 @@ func (this *Derive) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sym
 	return nil
 }
 func (this *Derive) ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(interest, "t")
 	var stats map[string]any = SafeMapTyped(interest, "stats")
 	var amount *string = this.SafeString(stats, "oi")
 	var markPrice *string = this.SafeString(interest, "M")
 	var value *string = nil
+	var isOption *bool = this.SafeBool(market, "option", false)
 	// for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
-	if (market != nil) && (GetValue(market, "option") != true) {
+	if (market != nil) && (isOption == nil || *isOption != true) {
 		value = Precise.StringMul(amount, markPrice)
 	}
 	return this.SafeOpenInterest(map[string]any{
@@ -1494,7 +1492,7 @@ func (this *Derive) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string, 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r1 := <-this.LoadMarketsAsync()
 		if r1.Err != nil {
@@ -1606,7 +1604,7 @@ func (this *Derive) fetchOptionBody(ch chan AsyncResult[Option], symbol string, 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1693,7 +1691,7 @@ func (this *Derive) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string]
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1764,7 +1762,7 @@ func (this *Derive) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[strin
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1776,7 +1774,7 @@ func (this *Derive) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[strin
 		market = this.Market(symbol)
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchMySettlementHistory", params)
-	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
@@ -1864,12 +1862,7 @@ func (this *Derive) ParseSettlements(settlements []any, optionalArgs ...any) []a
 	_ = market
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		result = append(result, this.ParseSettlement(func() any {
-			if i >= 0 && i < len(settlements) {
-				return DerefScalar(settlements[i])
-			}
-			return nil
-		}(), market))
+		result = append(result, this.ParseSettlement(DerefScalar(settlements[i]), market))
 	}
 	return result
 }
@@ -1963,7 +1956,7 @@ func (this *Derive) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2138,12 +2131,7 @@ func (this *Derive) ParseTrades(trades any, optionalArgs ...any) []any {
 	var tradesArray []any = this.ToArray(trades)
 	var result []any = []any{}
 	for i := 0; i < len(tradesArray); i++ {
-		var rawTrade any = func() any {
-			if i >= 0 && i < len(tradesArray) {
-				return DerefScalar(tradesArray[i])
-			}
-			return nil
-		}()
+		var rawTrade any = DerefScalar(tradesArray[i])
 		var isFetchTrades bool = !(InOp(rawTrade, "order_id"))
 		var liquidityRole *string = this.SafeString(rawTrade, "liquidity_role")
 		if isFetchTrades && (liquidityRole != nil && *liquidityRole == "maker") {
@@ -2190,7 +2178,7 @@ func (this *Derive) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2215,9 +2203,7 @@ func (this *Derive) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	// todo: check active spot markets after launch of v3
 	var market map[string]any = this.Market(symbol)
 	var period *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var priceTypeparamsPriceVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "price")
-	priceType := GetValue(priceTypeparamsPriceVariable, 0)
-	var paramsPrice map[string]any = MapTyped(priceTypeparamsPriceVariable[1])
+	priceType, paramsPrice := this.HandleOptionStringAndParams(params, "fetchOHLCV", "price")
 	var until *int64 = this.SafeInteger(paramsPrice, "until")
 	var paramsOmitted map[string]any = this.OmitDict(paramsPrice, []any{"until"})
 	var duration int64 = this.ParseTimeframe(timeframe)
@@ -2257,7 +2243,7 @@ func (this *Derive) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		"end_timestamp":   end,
 	}
 	var response map[string]any = nil
-	if priceType == "index" {
+	if priceType != nil && *priceType == "index" {
 		request["currency"] = market["baseId"]
 
 		r2 := <-this.PublicPostGetIndexChartData(this.Extend(request, paramsOmitted))
@@ -2389,7 +2375,7 @@ func (this *Derive) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2448,12 +2434,7 @@ func (this *Derive) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	var data []any = SafeListTyped(result, "funding_rate_history")
 	var rates []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}()
+		var entry any = data[i]
 		var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 		rates = append(rates, map[string]any{
 			"info":        entry,
@@ -2561,7 +2542,7 @@ func (this *Derive) ParseFundingRate(contract any, optionalArgs ...any) FundingR
 		"interval":                 nil,
 	})
 }
-func (this *Derive) HashOrderMessage(order any) any {
+func (this *Derive) HashOrderMessage(order []any) any {
 	var accountHash any = this.Hash(this.EthAbiEncode([]any{"bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"}, order), keccak, "binary")
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	// EIP712Domain (name "Matching", version "1.0", verifyingContract 0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD) precomputed for chainId 1 (mainnet) and 11155111 (sepolia testnet)
@@ -2573,7 +2554,7 @@ func (this *Derive) HashOrderMessage(order any) any {
 	var prefix []byte = this.Base16ToBinary("1901")
 	return this.Hash(this.BinaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex")
 }
-func (this *Derive) SignOrder(order any, privateKey any) string {
+func (this *Derive) SignOrder(order []any, privateKey any) string {
 	var hashOrder any = this.HashOrderMessage(order)
 	return this.SignHash(Slice(hashOrder, int64(-64), nil), Slice(privateKey, int64(-64), nil))
 }
@@ -2606,10 +2587,10 @@ func (this *Derive) HashMessage(message any) any {
 func (this *Derive) SignHash(hash any, privateKey string) string {
 	this.CheckRequiredCredentials()
 	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
-	var r *string = SafeStringPtr(signature["r"])
-	var s *string = SafeStringPtr(signature["s"])
+	var r *string = this.SafeString(signature, "r", "")
+	var s *string = this.SafeString(signature, "s", "")
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
-	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
+	return "0x" + (strings.Repeat("0", max(64-len(*r), 0)) + *r)[max(len(*r)-64, 0):] + (strings.Repeat("0", max(64-len(*s), 0)) + *s)[max(len(*s)-64, 0):] + v
 }
 func (this *Derive) SignMessage(message any, privateKey any) string {
 	return this.SignHash(this.HashMessage(message), Slice(privateKey, int64(-64), nil))
@@ -2653,7 +2634,7 @@ func (this *Derive) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2665,7 +2646,7 @@ func (this *Derive) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument"))
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("createOrder", params)
-	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
 	var test *bool = this.SafeBool(paramsDeriveSubaccountId, "test", false)
 	var reduceOnly *bool = this.SafeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only")
@@ -2680,17 +2661,15 @@ func (this *Derive) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var TRADE_MODULE_ADDRESS string = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b" // shared across mainnet and testnet in v3
 	var priceString *string = this.NumberToString(price)
-	var maxFee any = nil
-	var paramsMaxFee map[string]any = map[string]any{}
-	var maxFeeparamsMaxFeeVariable []any = this.HandleOptionAndParams(paramsDeriveSubaccountId, "createOrder", "max_fee")
-	maxFee = GetValue(maxFeeparamsMaxFeeVariable, 0)
-	paramsMaxFee = MapTyped(maxFeeparamsMaxFeeVariable[1])
-	if IsEqual(maxFee, nil) {
+	var maxFeeOptionAndParams []any = this.HandleOptionAndParams(paramsDeriveSubaccountId, "createOrder", "max_fee")
+	var maxFeeString *string = this.SafeString(maxFeeOptionAndParams, 0)
+	if maxFeeString == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a max_fee argument in params"))
 	}
-	var maxFeeString *string = this.NumberToString(maxFee)
+	var paramsMaxFee map[string]any = this.SafeDictMap(maxFeeOptionAndParams, 1, map[string]any{})
 	var amountString *string = this.NumberToString(amount)
-	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(market["info"], "base_asset_address"), this.ConvertToBigInt(GetValue(market["info"], "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
+	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{marketInfo["base_asset_address"], this.ConvertToBigInt(marketInfo["base_asset_sub_id"]), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
 	deriveWalletAddressparamsDeriveWalletAddressVariable := this.HandleDeriveWalletAddress("createOrder", paramsMaxFee)
 	var deriveWalletAddress *string = SafeStringPtr(deriveWalletAddressparamsDeriveWalletAddressVariable[0])
 	var paramsDeriveWalletAddress map[string]any = MapTyped(deriveWalletAddressparamsDeriveWalletAddressVariable[1])
@@ -2850,7 +2829,7 @@ func (this *Derive) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2859,7 +2838,7 @@ func (this *Derive) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	}
 	var market map[string]any = this.Market(symbol)
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("editOrder", params)
-	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
 	var reduceOnly *bool = this.SafeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only")
 	var timeInForce *string = this.SafeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force")
@@ -2874,7 +2853,8 @@ func (this *Derive) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	var priceString *string = this.NumberToString(price)
 	var maxFeeString *string = this.SafeString(paramsDeriveSubaccountId, "max_fee", "0")
 	var amountString *string = this.NumberToString(amount)
-	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(market["info"], "base_asset_address"), this.ConvertToBigInt(GetValue(market["info"], "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
+	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{marketInfo["base_asset_address"], this.ConvertToBigInt(marketInfo["base_asset_sub_id"]), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
 	deriveWalletAddressparamsDeriveWalletAddressVariable := this.HandleDeriveWalletAddress("editOrder", paramsDeriveSubaccountId)
 	var deriveWalletAddress *string = SafeStringPtr(deriveWalletAddressparamsDeriveWalletAddressVariable[0])
 	var paramsDeriveWalletAddress map[string]any = MapTyped(deriveWalletAddressparamsDeriveWalletAddressVariable[1])
@@ -3033,7 +3013,7 @@ func (this *Derive) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3043,7 +3023,7 @@ func (this *Derive) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	var market map[string]any = this.Market(symbol)
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("cancelOrder", params)
-	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
 	var paramsOmitted map[string]any = this.OmitDict(paramsDeriveSubaccountId, []any{"trigger", "stop"})
 	var request map[string]any = map[string]any{
@@ -3158,7 +3138,7 @@ func (this *Derive) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3170,7 +3150,7 @@ func (this *Derive) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		market = this.Market(symbol)
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("cancelAllOrders", params)
-	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
@@ -3235,7 +3215,7 @@ func (this *Derive) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3260,7 +3240,7 @@ func (this *Derive) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchCanceledAndClosedOrders", paramsOmitted)
-	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
@@ -3349,7 +3329,7 @@ func (this *Derive) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 		}
 	}
 	var orders []any = SafeListTypedDefault(data, "orders", []any{})
-	var parsedOrders any = this.ParseOrders(orders, market)
+	var parsedOrders []any = this.ParseOrders(orders, market)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(parsedOrders, symbol, since, limit))}
 	return nil
@@ -3378,7 +3358,7 @@ func (this *Derive) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalA
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3390,7 +3370,7 @@ func (this *Derive) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalA
 		market = this.Market(symbol)
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchOrder", params)
-	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
 	var request map[string]any = map[string]any{
 		"order_id":      id,
@@ -3438,7 +3418,7 @@ func (this *Derive) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3448,7 +3428,7 @@ func (this *Derive) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"trigger", "stop"})
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchOpenOrders", paramsOmitted)
-	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
@@ -3522,7 +3502,7 @@ func (this *Derive) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	//
 	var data map[string]any = SafeMapTyped(response, "result")
 	var orders []any = SafeListTypedDefault(data, "orders", []any{})
-	var parsedOrders any = this.ParseOrders(orders, market)
+	var parsedOrders []any = this.ParseOrders(orders, market)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(parsedOrders, symbol, since, limit))}
 	return nil
@@ -3556,7 +3536,7 @@ func (this *Derive) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3602,7 +3582,7 @@ func (this *Derive) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], option
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3683,10 +3663,7 @@ func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) Order {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var order any = this.SafeDict(rawOrder, "data")
-	if IsEqual(order, nil) {
-		order = rawOrder
-	}
+	var order any = this.SafeDict(rawOrder, "data", rawOrder)
 	var timestamp *int64 = this.SafeInteger(rawOrder, "creation_timestamp") // the nonce is no longer a usable fallback: v3 nonces are nanosecond-scale values with a random suffix
 	var orderId *string = this.SafeString(order, "order_id")
 	var marketId *string = this.SafeString(order, "instrument_name")
@@ -3788,7 +3765,7 @@ func (this *Derive) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3796,7 +3773,7 @@ func (this *Derive) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string
 		}
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchOrderTrades", params)
-	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
 	var request map[string]any = map[string]any{
 		"order_id":      id,
@@ -3894,7 +3871,7 @@ func (this *Derive) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3908,16 +3885,16 @@ func (this *Derive) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes296719 []any = r1.Value
-		if retRes296719 == nil {
+		var retRes296519 []any = r1.Value
+		if retRes296519 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes296719)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes296519)}
 		}
 		return nil
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchMyTrades", paramsPaginate)
-	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
@@ -4042,7 +4019,7 @@ func (this *Derive) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4050,7 +4027,7 @@ func (this *Derive) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 		}
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchPositions", params)
-	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
@@ -4217,7 +4194,7 @@ func (this *Derive) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4231,16 +4208,16 @@ func (this *Derive) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes322419 []any = r1.Value
-		if retRes322419 == nil {
+		var retRes322219 []any = r1.Value
+		if retRes322219 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes322419)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes322219)}
 		}
 		return nil
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchFundingHistory", paramsPaginate)
-	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
@@ -4362,7 +4339,7 @@ func (this *Derive) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4673,7 +4650,8 @@ func (this *Derive) ParseBalance(response any) map[string]any {
 				AddElementToObject(account, "total", this.SafeString(balance, "amount"))
 			} else {
 				var amount *string = this.SafeString(balance, "amount")
-				AddElementToObject(account, "total", Precise.StringAdd(GetValue(account, "total"), amount))
+				var previousTotal *string = this.SafeString(account, "total")
+				AddElementToObject(account, "total", Precise.StringAdd(previousTotal, amount))
 			}
 			if code != nil {
 				AddElementToObject(result, code, account)
@@ -4718,7 +4696,7 @@ func (this *Derive) transferBody(ch chan AsyncResult[TransferEntry], code string
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4854,7 +4832,7 @@ func (this *Derive) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4862,7 +4840,7 @@ func (this *Derive) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 		}
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchTransfers", params)
-	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
@@ -4945,7 +4923,7 @@ func (this *Derive) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string]
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5060,7 +5038,7 @@ func (this *Derive) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 4, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5068,7 +5046,7 @@ func (this *Derive) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest
 		}
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchBorrowInterest", params)
-	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
@@ -5150,7 +5128,7 @@ func (this *Derive) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5172,7 +5150,7 @@ func (this *Derive) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 		panic(BadRequest(this.Id + " withdraw() " + code + " carries no erc20 decimals metadata"))
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("withdraw", params)
-	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
 	var forceBatch *bool = this.SafeBool2(paramsDeriveSubaccountId, "force_batch", "forceBatch", false)
 	var defaultMaxFee string = func() string {
@@ -5187,7 +5165,7 @@ func (this *Derive) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	var amountString string = this.DecimalToPrecision(this.NumberToString(amount), TRUNCATE, decimals, DECIMAL_PLACES)
 	// the withdrawal amount is the protocol's only non-e18 action value, it is signed at the native decimals of the underlying erc20
 	var one string = "1"
-	var scale string = PadEnd(one, Add(decimals, 1), "0")
+	var scale string = PadEnd(one, *decimals+1, "0")
 	var amountScaled *string = Precise.StringMul(amountString, scale)
 	var nonce string = this.NonceString()
 	var signatureExpiry *int64 = this.SafeInteger(paramsOmitted, "signature_expiry_sec", this.Seconds()+7776000)
@@ -5261,7 +5239,7 @@ func (this *Derive) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5269,7 +5247,7 @@ func (this *Derive) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		}
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchDeposits", params)
-	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
@@ -5348,7 +5326,7 @@ func (this *Derive) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5356,7 +5334,7 @@ func (this *Derive) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		}
 	}
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchWithdrawals", params)
-	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
+	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = MapTyped(subaccountIdparamsDeriveSubaccountIdVariable[1])
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
@@ -5496,22 +5474,23 @@ func (this *Derive) HandleDeriveSubaccountId(methodName string, params any) []an
 	if (derivesubAccountId != nil) && (derivesubAccountId != "") {
 		// the venue rejects a string subaccount_id ("expected i64"), so coerce early
 		var subaccountIdInt int64 = this.ParseToInt(derivesubAccountId)
-		if !(InOp(this.Options, "subaccount_id")) {
+		if _, hx15ok := this.Options["subaccount_id"]; !hx15ok {
 			// remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
-			this.Options.Store("subaccount_id", subaccountIdInt)
+			this.Options["subaccount_id"] = subaccountIdInt
 		}
 		return []any{subaccountIdInt, paramsSubaccountId}
 	}
 	var optionsWallet *int64 = this.SafeInteger(this.Options, "subaccount_id")
 	if optionsWallet != nil {
-		return []any{optionsWallet, paramsSubaccountId}
+		// parsed, not returned raw: every arm of this tuple has to hand back a plain value so the statically typed ports read the slot natively instead of through a runtime helper
+		return []any{this.ParseToInt(optionsWallet), paramsSubaccountId}
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID."))
 }
 func (this *Derive) HandleDeriveWalletAddress(methodName string, params any) []any {
 	deriveWalletAddress, paramsDeriveWalletAddress := this.HandleOptionStringAndParams(params, methodName, "deriveWalletAddress")
 	if (deriveWalletAddress != nil) && (deriveWalletAddress == nil || *deriveWalletAddress != "") {
-		this.Options.Store("deriveWalletAddress", deriveWalletAddress)
+		this.Options["deriveWalletAddress"] = DerefScalar(deriveWalletAddress)
 		return []any{deriveWalletAddress, paramsDeriveWalletAddress}
 	}
 	var optionsWallet *string = this.SafeString(this.Options, "deriveWalletAddress")
@@ -5519,12 +5498,12 @@ func (this *Derive) HandleDeriveWalletAddress(methodName string, params any) []a
 		return []any{optionsWallet, paramsDeriveWalletAddress}
 	}
 	// v3 abolished the separate derive wallet: the owner wallet is the user's own EOA, so the walletAddress credential is the default; set deriveWalletAddress explicitly only when signing with a session key registered to another owner wallet
-	if (this.WalletAddress != nil) && (this.WalletAddress != "") {
+	if this.WalletAddress != "" {
 		return []any{this.WalletAddress, paramsDeriveWalletAddress}
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires the walletAddress credential, a deriveWalletAddress parameter inside 'params', or exchange.options['deriveWalletAddress'] = ADDRESS."))
 }
-func (this *Derive) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Derive) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -5543,13 +5522,13 @@ func (this *Derive) Nonce() any {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Derive) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -5559,7 +5538,7 @@ func (this *Derive) Sign(path string, optionalArgs ...any) any {
 		var postHeaders map[string]any = map[string]any{
 			"Content-Type": "application/json",
 		}
-		if apiName != nil && *apiName == "private" {
+		if apiName == "private" {
 			var now *string = this.NumberToString(this.Nonce())
 			var signature string = this.SignMessage(now, this.PrivateKey)
 			var configuredWalletAddress *string = this.SafeString(this.Options, "deriveWalletAddress")
@@ -5617,7 +5596,10 @@ func (this *Derive) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

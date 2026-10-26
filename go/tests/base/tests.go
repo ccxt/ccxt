@@ -6,7 +6,6 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import "strconv"
-
 import "strings"
 
 type testMainClass struct {
@@ -228,9 +227,9 @@ func (this *testMainClass) ImportFilesAsync(exchange ccxt.ICoreExchange) <-chan 
 func (this *testMainClass) importFilesBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExchange) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var properties any = ObjectKeys(exchange.GetHas())
-	AppendToArray(&properties, "loadMarkets")
-	AppendToArray(&properties, "afterConstruct")
+	var properties []string = ObjectKeys(exchange.GetHas())
+	properties = append(properties, "loadMarkets")
+	properties = append(properties, "afterConstruct")
 	if EvalTruthy(IsSync()) {
 		this.TestFiles = GetTestFilesSync(properties, this.WsTests)
 	} else {
@@ -422,12 +421,7 @@ func (this *testMainClass) GetSkips(exchange ccxt.ICoreExchange, methodName any)
 	// check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
 	var methodNames []any = []any{methodName, Add(Add(methodName, "."), this.Ext)}
 	for i := 0; i < len(methodNames); i++ {
-		var mName *string = SafeStringPtr(func() any {
-			if i >= 0 && i < len(methodNames) {
-				return DerefScalar(methodNames[i])
-			}
-			return nil
-		}())
+		var mName *string = SafeStringPtr(DerefScalar(methodNames[i]))
 		if InOp(this.SkippedMethods, mName) {
 			// if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
 			if IsString(GetValue(this.SkippedMethods, mName)) {
@@ -840,7 +834,7 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 	var spot bool = GetArgBool(optionalArgs, 0, true)
 	_ = spot
 	var currentTypeMarkets any = this.GetMarketsFromExchange(exchange, spot)
-	var codes []any = []any{"BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"}
+	var codes []string = []string{"BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"}
 	var spotSymbols []any = []any{"BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"}
 	var swapSymbols []any = []any{"BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"}
 	var targetSymbols any = func() any {
@@ -853,12 +847,7 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 	// if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
 	if IsEqual(symbol, nil) {
 		for i := 0; i < len(codes); i++ {
-			var currentCode *string = SafeStringPtr(func() any {
-				if i >= 0 && i < len(codes) {
-					return DerefScalar(codes[i])
-				}
-				return nil
-			}())
+			var currentCode string = codes[i]
 			var marketsArrayForCurrentCode []any = exchange.FilterBy(currentTypeMarkets, "base", currentCode)
 			var indexedMkts map[string]any = exchange.IndexBy(marketsArrayForCurrentCode, "symbol")
 			var symbolsArrayForCurrentCode []string = nil
@@ -880,12 +869,7 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 		var activeMarkets []any = exchange.FilterBy(currentTypeMarkets, "active", true)
 		var activeSymbols []any = []any{}
 		for i := 0; i < len(activeMarkets); i++ {
-			activeSymbols = append(activeSymbols, GetValue(func() any {
-				if i >= 0 && i < len(activeMarkets) {
-					return DerefScalar(activeMarkets[i])
-				}
-				return nil
-			}(), "symbol"))
+			activeSymbols = append(activeSymbols, GetValue(DerefScalar(activeMarkets[i]), "symbol"))
 		}
 		symbol = this.GetTestSymbol(exchange, spot, activeSymbols)
 	}
@@ -893,12 +877,7 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 		var values []any = ObjectValues(currentTypeMarkets)
 		var valuesLength int = len(values)
 		if valuesLength > 0 {
-			var first any = func() any {
-				if 0 >= 0 && 0 < len(values) {
-					return DerefScalar(values[0])
-				}
-				return nil
-			}()
+			var first any = DerefScalar(values[0])
 			if !IsEqual(first, nil) {
 				symbol = GetValue(first, "symbol")
 			}
@@ -1044,12 +1023,7 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan ccxt.AsyncResult[any
 		return nil
 	}(), "symbol")}
 	if rankedLength > 1 {
-		result = append(result, exchange.SafeString(func() any {
-			if 1 >= 0 && 1 < len(ranked) {
-				return DerefScalar(ranked[1])
-			}
-			return nil
-		}(), "symbol"))
+		result = append(result, exchange.SafeString(DerefScalar(ranked[1]), "symbol"))
 	}
 
 	ch <- ccxt.AsyncResult[any]{Value: result}
@@ -3279,7 +3253,8 @@ func (this *testMainClass) testExchangeRequestStaticallyBody(ch chan ccxt.AsyncR
 	}
 	var accounts any = exchange.SafeList(exchangeData, "accounts")
 	if !IsEqual(accounts, nil) && !IsEqual(accounts, nil) {
-		exchange.SetAccounts(accounts)
+		// the field is a List<object>: assign the call, not the untyped local
+		exchange.SetAccounts(exchange.SafeList(exchangeData, "accounts"))
 	}
 	// exchange.Setoptions(exchange.GetdeepExtend() (exchange.Getoptions(), globalOptions); // custom options to be used in the tests)
 	exchange.ExtendExchangeOptions(globalOptions)

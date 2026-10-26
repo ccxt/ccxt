@@ -14,7 +14,7 @@ func HelperTestNetworkCodeToId(networksMap any) {
 			"networks": networksMap,
 		},
 	}, map[string]any{}, exchange)
-	exchange.Currencies = exchange.MapToSafeMap(map[string]any{}) // go fix + c# uninitialized prop fix
+	exchange.PublishCurrencies(exchange.MapToSafeMap(map[string]any{})) // go fix + c# uninitialized prop fix
 	// unified code and its alias resolve to the same id, regardless of which one options.networks uses
 	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ERC20"), "Ether"))
 	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ETH"), "Ether"))
@@ -45,7 +45,7 @@ func HelperTestNetworkIdToCode(networksMap any) {
 			"networks": networksMap,
 		},
 	}, map[string]any{}, exchange)
-	exchange.Currencies = exchange.MapToSafeMap(map[string]any{}) // go fix + c# uninitialized prop fix
+	exchange.PublishCurrencies(exchange.MapToSafeMap(map[string]any{})) // go fix + c# uninitialized prop fix
 	// always the unified code, never an alias, regardless of currency
 	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Ether"), "ERC20"))
 	Assert(ccxt.IsEqual(exchange.NetworkIdToCode("Ether", "USDC"), "ERC20"))
@@ -73,7 +73,7 @@ func HelperTestNetworkAliases() {
 			"networks": map[string]any{},
 		},
 	}, map[string]any{}, exchange)
-	exchange.Currencies = exchange.MapToSafeMap(map[string]any{}) // go fix + c# uninitialized prop fix
+	exchange.PublishCurrencies(exchange.MapToSafeMap(map[string]any{})) // go fix + c# uninitialized prop fix
 	var aliases map[string]any = map[string]any{
 		"ETH":     "ERC20",
 		"TRX":     "TRC20",

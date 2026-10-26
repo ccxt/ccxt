@@ -684,7 +684,7 @@ func (this *Coinone) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -724,7 +724,7 @@ func (this *Coinone) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -796,7 +796,7 @@ func (this *Coinone) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -886,7 +886,7 @@ func (this *Coinone) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1108,7 +1108,7 @@ func (this *Coinone) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1186,7 +1186,7 @@ func (this *Coinone) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	if price == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for the limit orders"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1247,7 +1247,7 @@ func (this *Coinone) fetchOrderBody(ch chan AsyncResult[Order], id any, optional
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOrder() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1349,25 +1349,11 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) Order {
 	var id *string = this.SafeString2(order, "orderId", "order_id")
 	var baseId *string = this.SafeString2(order, "baseCurrency", "target_currency")
 	var quoteId *string = this.SafeString2(order, "targetCurrency", "quote_currency")
-	var base any = nil
-	var quote any = nil
-	if baseId != nil {
-		if derefPtr := this.SafeCurrencyCode(baseId); derefPtr != nil {
-			base = *derefPtr
-		} else {
-			base = nil
-		}
-	}
-	if quoteId != nil {
-		if derefPtr := this.SafeCurrencyCode(quoteId); derefPtr != nil {
-			quote = *derefPtr
-		} else {
-			quote = nil
-		}
-	}
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = nil
 	if (base != nil) && (quote != nil) {
-		symbol = Add(Add(base, "/"), quote)
+		symbol = *base + "/" + *quote
 	}
 	var marketResolved any = func() any {
 		if symbol != nil {
@@ -1404,7 +1390,7 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) Order {
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(order, "fee")
 	if feeCostString != nil {
-		var feeCurrencyCode any = base
+		var feeCurrencyCode *string = base
 		if side != nil && *side == "sell" {
 			feeCurrencyCode = quote
 		}
@@ -1470,7 +1456,7 @@ func (this *Coinone) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if symbol == nil {
 		panic(ExchangeError(this.Id + " fetchOpenOrders() allows fetching closed orders with a specific symbol"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1540,7 +1526,7 @@ func (this *Coinone) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1613,7 +1599,7 @@ func (this *Coinone) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
 	if (price == nil) || (qty == nil) || (isAsk == nil) {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument."))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1664,7 +1650,7 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1737,13 +1723,13 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 	return nil
 }
 func (this *Coinone) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	var request string = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
@@ -1751,20 +1737,20 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/"
-	var isPublic bool = (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "v2Public")
-	if apiName != nil && *apiName == "v2Public" {
+	var isPublic bool = (apiName == "public") || (apiName == "v2Public")
+	if apiName == "v2Public" {
 		var apiUrl2 *string = this.SafeString(this.Urls["api"], "v2Public")
 		if apiUrl2 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
 		url = *apiUrl2 + "/"
-	} else if apiName != nil && *apiName == "v2Private" {
+	} else if apiName == "v2Private" {
 		var apiUrl3 *string = this.SafeString(this.Urls["api"], "v2Private")
 		if apiUrl3 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
 		url = *apiUrl3 + "/"
-	} else if apiName != nil && *apiName == "v2_1Private" {
+	} else if apiName == "v2_1Private" {
 		var apiUrl4 *string = this.SafeString(this.Urls["api"], "v2_1Private")
 		if apiUrl4 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -1783,10 +1769,10 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 		url += request
 		// the v2.1 api requires a uuid nonce, the older apis use a numeric one
 		var nonce *string = nil
-		if apiName != nil && *apiName == "v2_1Private" {
+		if apiName == "v2_1Private" {
 			nonce = SafeStringPtr(this.Uuid())
 		} else {
-			nonce = SafeStringPtr(ToString(this.Nonce()))
+			nonce = this.NumberToString(this.Nonce())
 		}
 		var json string = this.Json(this.Extend(map[string]any{
 			"access_token": this.ApiKey,
@@ -1794,7 +1780,7 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 		}, params))
 		var payload string = this.StringToBase64(json)
 		requestBody = SafeStringPtr(payload)
-		var secret string = ToUpper(this.Secret)
+		var secret string = strings.ToUpper(this.Secret)
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(secret), sha512)
 		requestHeaders = map[string]any{
 			"Content-Type":        "application/json",
@@ -1811,7 +1797,7 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResolved,
 	}
 }
-func (this *Coinone) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Coinone) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

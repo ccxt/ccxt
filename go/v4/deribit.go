@@ -798,60 +798,52 @@ func (this *Deribit) Describe() any {
 func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 	// support expired option contracts
 	var quote string = "USD"
-	var settle any = nil
+	var settle string = ""
 	var optionParts []string = Split(symbol, "-")
 	var symbolBase []string = Split(symbol, "/")
-	var base any = nil
+	var hasSlash bool = (GetIndexOf(symbol, "/") > -1)
+	var hasUsdc bool = (GetIndexOf(symbol, "USDC") > -1)
+	var base *string = nil
 	var expiry any = nil
-	if GetIndexOf(symbol, "/") > -1 {
-		if derefPtr := this.SafeString(symbolBase, 0); derefPtr != nil {
-			base = *derefPtr
-		} else {
-			base = nil
-		}
+	if hasSlash {
+		base = this.SafeString(symbolBase, 0, "")
 		if derefPtr := this.SafeString(optionParts, 1); derefPtr != nil {
 			expiry = *derefPtr
 		} else {
 			expiry = nil
 		}
-		if GetIndexOf(symbol, "USDC") > -1 {
-			base = Add(base, "_USDC")
-		}
 	} else {
-		if derefPtr := this.SafeString(optionParts, 0); derefPtr != nil {
-			base = *derefPtr
-		} else {
-			base = nil
-		}
+		base = this.SafeString(optionParts, 0, "")
 		expiry = this.ConvertMarketIdExpireDate(this.SafeString(optionParts, 1))
 	}
-	if GetIndexOf(symbol, "USDC") > -1 {
-		quote = "USDC"
-		settle = "USDC"
-	} else {
-		settle = base
-	}
-	var splitBase any = base
 	if base == nil {
 		panic(ExchangeError(this.Id + " createExpiredOptionMarket() missing base"))
 	}
-	if GetIndexOf(base, "_") > -1 {
-		var splitSymbol []string = Split(base, "_")
-		splitBase = this.SafeString(splitSymbol, 0)
+	// the slash form of a usdc instrument carries its settlement currency in the base
+	var baseSuffix string = ""
+	if hasSlash && hasUsdc {
+		baseSuffix = "_USDC"
 	}
-	var strike *string = this.SafeString(optionParts, 2)
-	var optionType *string = this.SafeString(optionParts, 3)
+	var baseResolved string = *base + baseSuffix
+	if hasUsdc {
+		quote = "USDC"
+		settle = "USDC"
+	} else {
+		// no usdc suffix on this path, so the resolved base is the settle currency
+		settle = baseResolved
+	}
+	// the part of the base before the first underscore, or the whole base when it has none
+	var splitBase *string = this.SafeString(strings.Split(baseResolved, "_"), 0, "")
+	var strike *string = this.SafeString(optionParts, 2, "")
+	var optionType *string = this.SafeString(optionParts, 3, "")
 	var datetime any = this.ConvertExpireDate(expiry)
-	var timestamp *int64 = this.Parse8601(datetime)
-	var id any = Add(Add(Add(Add(Add(Add(base, "-"), this.ConvertExpireDateToMarketIdDate(expiry)), "-"), strike), "-"), optionType)
-	var symbolExpired any = Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(splitBase, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType)
 	return map[string]any{
-		"id":             id,
-		"symbol":         symbolExpired,
-		"base":           base,
+		"id":             Add(Add(baseResolved+"-", this.ConvertExpireDateToMarketIdDate(expiry)), ("-" + *strike + "-" + *optionType)),
+		"symbol":         Add(Add(*splitBase+"/"+quote+":"+settle+"-", expiry), ("-" + *strike + "-" + *optionType)),
+		"base":           baseResolved,
 		"quote":          quote,
 		"settle":         settle,
-		"baseId":         base,
+		"baseId":         baseResolved,
 		"quoteId":        quote,
 		"settleId":       settle,
 		"active":         false,
@@ -865,7 +857,7 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 		"margin":         false,
 		"contract":       true,
 		"contractSize":   nil,
-		"expiry":         timestamp,
+		"expiry":         this.Parse8601(datetime),
 		"expiryDatetime": datetime,
 		"optionType": func() string {
 			if optionType != nil && *optionType == "C" {
@@ -905,11 +897,11 @@ func (this *Deribit) SafeMarket(optionalArgs ...any) map[string]any {
 	var marketType *string = GetArgStringPtr(optionalArgs, 3, nil)
 	_ = marketType
 	var isOption bool = (marketId != nil) && ((EndsWith(marketId, "-C")) || (EndsWith(marketId, "-P")))
-	if isOption && ((this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId))) {
+	if isOption && ((this.Markets_by_id() == nil) || !(InOp(this.Markets_by_id(), marketId))) {
 		// handle expired option contracts
 		return MarketTyped(this.CreateExpiredOptionMarket(marketId))
 	}
-	return MarketTyped(this.Exchange.SafeMarket(marketId, market, delimiter, marketType))
+	return this.Exchange.SafeMarket(marketId, market, delimiter, marketType)
 }
 
 /**
@@ -1117,7 +1109,7 @@ func (this *Deribit) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalA
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1256,12 +1248,7 @@ func (this *Deribit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		//
 		var currenciesResult []any = SafeListTyped(currenciesResponse, "result")
 		for i := 0; i < len(currenciesResult); i++ {
-			var currencyId *string = this.SafeString(func() any {
-				if i >= 0 && i < len(currenciesResult) {
-					return DerefScalar(currenciesResult[i])
-				}
-				return nil
-			}(), "currency")
+			var currencyId *string = this.SafeString(currenciesResult[i], "currency")
 			var request map[string]any = map[string]any{
 				"currency": currencyId,
 			}
@@ -1348,19 +1335,9 @@ func (this *Deribit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		}
 	}
 	for i := 0; i < len(instrumentsResponses); i++ {
-		var instrumentsResult []any = SafeListTyped(func() any {
-			if i >= 0 && i < len(instrumentsResponses) {
-				return DerefScalar(instrumentsResponses[i])
-			}
-			return nil
-		}(), "result")
+		var instrumentsResult []any = SafeListTyped(DerefScalar(instrumentsResponses[i]), "result")
 		for k := 0; k < len(instrumentsResult); k++ {
-			var market any = func() any {
-				if k >= 0 && k < len(instrumentsResult) {
-					return DerefScalar(instrumentsResult[k])
-				}
-				return nil
-			}()
+			var market any = instrumentsResult[k]
 			var kind *string = this.SafeString(market, "kind")
 			var isSpot bool = (kind != nil && *kind == "spot")
 			var id *string = this.SafeString(market, "instrument_name")
@@ -1533,7 +1510,7 @@ func (this *Deribit) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1629,7 +1606,7 @@ func (this *Deribit) createDepositAddressBody(ch chan AsyncResult[DepositAddress
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1691,7 +1668,7 @@ func (this *Deribit) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1837,7 +1814,7 @@ func (this *Deribit) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1853,7 +1830,7 @@ func (this *Deribit) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -1910,7 +1887,7 @@ func (this *Deribit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1993,12 +1970,7 @@ func (this *Deribit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	var result []any = SafeListTyped(response, "result")
 	var tickers map[string]any = map[string]any{}
 	for i := 0; i < len(result); i++ {
-		var ticker map[string]any = TickerToMap(this.ParseTicker(func() any {
-			if i >= 0 && i < len(result) {
-				return DerefScalar(result[i])
-			}
-			return nil
-		}()))
+		var ticker map[string]any = TickerToMap(this.ParseTicker(DerefScalar(result[i])))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			tickers[*symbol] = ticker
@@ -2039,7 +2011,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2264,7 +2236,7 @@ func (this *Deribit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2293,7 +2265,7 @@ func (this *Deribit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		request["end_timestamp"] = until
 	}
 	var response map[string]any = nil
-	if (since == nil) && !(func() bool { _, ok := request["end_timestamp"]; return ok }()) {
+	if _, ok := request["end_timestamp"]; (since == nil) && !ok {
 
 		r1 := <-this.PublicGetGetLastTradesByInstrument(this.Extend(request, paramsOmitted))
 		if r1.Err != nil {
@@ -2358,7 +2330,7 @@ func (this *Deribit) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2432,12 +2404,7 @@ func (this *Deribit) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	var futureFee map[string]any = map[string]any{}
 	var optionFee map[string]any = map[string]any{}
 	for i := 0; i < len(fees); i++ {
-		var fee any = func() any {
-			if i >= 0 && i < len(fees) {
-				return DerefScalar(fees[i])
-			}
-			return nil
-		}()
+		var fee any = fees[i]
 		var instrumentType *string = this.SafeString(fee, "instrument_type")
 		if instrumentType != nil && *instrumentType == "future" {
 			futureFee = map[string]any{
@@ -2508,7 +2475,7 @@ func (this *Deribit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2724,7 +2691,7 @@ func (this *Deribit) fetchOrderBody(ch chan AsyncResult[Order], id any, optional
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2806,7 +2773,7 @@ func (this *Deribit) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -2967,9 +2934,9 @@ func (this *Deribit) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var order any = this.SafeValue(result, "order")
-	var trades any = this.SafeList(result, "trades", []any{})
-	AddElementToObject(order, "trades", trades)
+	var order map[string]any = this.Extend(this.SafeValue(result, "order"), map[string]any{
+		"trades": this.SafeList(result, "trades", []any{}),
+	})
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
@@ -3007,7 +2974,7 @@ func (this *Deribit) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	if amount == nil {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an amount argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3037,9 +3004,9 @@ func (this *Deribit) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	}
 	var response map[string]any = r1.Value
 	var result map[string]any = SafeMapTyped(response, "result")
-	var order any = this.SafeValue(result, "order")
-	var trades any = this.SafeList(result, "trades", []any{})
-	AddElementToObject(order, "trades", trades)
+	var order map[string]any = this.Extend(this.SafeValue(result, "order"), map[string]any{
+		"trades": this.SafeList(result, "trades", []any{}),
+	})
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order)}
 	return nil
@@ -3067,7 +3034,7 @@ func (this *Deribit) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3111,7 +3078,7 @@ func (this *Deribit) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3182,7 +3149,7 @@ func (this *Deribit) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3246,7 +3213,7 @@ func (this *Deribit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3315,7 +3282,7 @@ func (this *Deribit) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id strin
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3400,7 +3367,7 @@ func (this *Deribit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3525,7 +3492,7 @@ func (this *Deribit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDeposits() requires a currency code argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3544,7 +3511,7 @@ func (this *Deribit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -3602,7 +3569,7 @@ func (this *Deribit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchWithdrawals() requires a currency code argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3824,7 +3791,7 @@ func (this *Deribit) fetchPositionBody(ch chan AsyncResult[Position], symbol any
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3897,7 +3864,7 @@ func (this *Deribit) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -3976,7 +3943,7 @@ func (this *Deribit) fetchVolatilityHistoryBody(ch chan AsyncResult[[]map[string
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4029,18 +3996,8 @@ func (this *Deribit) ParseVolatilityHistory(volatility any) []any {
 	var volatilityResult []any = SafeListTyped(volatility, "result")
 	var result []any = []any{}
 	for i := 0; i < len(volatilityResult); i++ {
-		var timestamp *int64 = this.SafeInteger(func() any {
-			if i >= 0 && i < len(volatilityResult) {
-				return DerefScalar(volatilityResult[i])
-			}
-			return nil
-		}(), 0)
-		var volatilityObj *float64 = this.SafeNumber(func() any {
-			if i >= 0 && i < len(volatilityResult) {
-				return DerefScalar(volatilityResult[i])
-			}
-			return nil
-		}(), 1)
+		var timestamp *int64 = this.SafeInteger(volatilityResult[i], 0)
+		var volatilityObj *float64 = this.SafeNumber(volatilityResult[i], 1)
 		result = append(result, map[string]any{
 			"info":       volatilityObj,
 			"timestamp":  timestamp,
@@ -4081,7 +4038,7 @@ func (this *Deribit) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchTransfers() requires a currency code argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4164,7 +4121,7 @@ func (this *Deribit) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4296,16 +4253,10 @@ func (this *Deribit) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
-	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
+	var tagWithdrawTag *string = nil
+	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4381,7 +4332,7 @@ func (this *Deribit) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4443,7 +4394,7 @@ func (this *Deribit) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symb
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4507,7 +4458,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4528,11 +4479,11 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes333319 []any = r1.Value
-		if retRes333319 == nil {
+		var retRes332919 []any = r1.Value
+		if retRes332919 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes333319)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes332919)}
 		}
 		return nil
 	}
@@ -4550,7 +4501,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		if since == nil {
 			return now
 		}
-		return Add(since, month)
+		return this.ParseToInt(*since + month)
 	}()
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
@@ -4691,7 +4642,7 @@ func (this *Deribit) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], s
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4705,17 +4656,17 @@ func (this *Deribit) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], s
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes344919 []any = r1.Value
-		if retRes344919 == nil {
+		var retRes344519 []any = r1.Value
+		if retRes344519 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes344919)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes344519)}
 		}
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
 	if market["spot"] == true {
-		panic(NotSupported(Add(Add(this.Id+" fetchLiquidations() does not support ", market["type"]), " markets")))
+		panic(NotSupported(this.Id + " fetchLiquidations() does not support " + *this.SafeString(market, "type", "") + " markets"))
 	}
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
@@ -4820,7 +4771,7 @@ func (this *Deribit) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation],
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchMyLiquidations() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4829,7 +4780,7 @@ func (this *Deribit) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation],
 	}
 	var market map[string]any = this.Market(symbol)
 	if market["spot"] == true {
-		panic(NotSupported(Add(Add(this.Id+" fetchMyLiquidations() does not support ", market["type"]), " markets")))
+		panic(NotSupported(this.Id + " fetchMyLiquidations() does not support " + *this.SafeString(market, "type", "") + " markets"))
 	}
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
@@ -4925,7 +4876,7 @@ func (this *Deribit) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -4941,7 +4892,7 @@ func (this *Deribit) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -5081,7 +5032,7 @@ func (this *Deribit) fetchOptionBody(ch chan AsyncResult[Option], symbol string,
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5156,7 +5107,7 @@ func (this *Deribit) fetchOptionChainBody(ch chan AsyncResult[map[string]Option]
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5284,7 +5235,7 @@ func (this *Deribit) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sy
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -5392,20 +5343,20 @@ func (this *Deribit) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Deribit) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
-	var request string = "/" + "api/" + this.Version + "/" + *apiName + "/" + path
-	if apiName != nil && *apiName == "public" {
+	var apiName string = api[0]
+	var request string = "/" + "api/" + this.Version + "/" + apiName + "/" + path
+	if apiName == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			request += "?" + this.Urlencode(params)
 		}
 	}
-	if apiName != nil && *apiName == "private" {
+	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
@@ -5417,7 +5368,7 @@ func (this *Deribit) Sign(path string, optionalArgs ...any) any {
 		var auth string = timestamp + "\n" + nonce + "\n" + requestData              // eslint-disable-line quotes
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		var signedHeaders map[string]any = map[string]any{
-			"Authorization": Add(Add(Add(Add(Add(Add(Add(Add("deri-hmac-sha256 id=", this.ApiKey), ",ts="), timestamp), ",sig="), signature), ","), "nonce="), nonce),
+			"Authorization": "deri-hmac-sha256 id=" + this.ApiKey + ",ts=" + timestamp + ",sig=" + signature + "," + "nonce=" + nonce,
 		}
 		var baseApiUrl *string = this.SafeString(this.Urls["api"], "rest")
 		if baseApiUrl == nil {
@@ -5443,7 +5394,7 @@ func (this *Deribit) Sign(path string, optionalArgs ...any) any {
 		"headers": nil,
 	}
 }
-func (this *Deribit) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Deribit) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -5498,7 +5449,10 @@ func (this *Deribit) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

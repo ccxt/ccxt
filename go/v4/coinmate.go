@@ -529,12 +529,7 @@ func (this *Coinmate) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var market any = func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}()
+		var market any = DerefScalar(data[i])
 		var id *string = this.SafeString(market, "name")
 		var baseId *string = this.SafeString(market, "firstCurrency")
 		var quoteId *string = this.SafeString(market, "secondCurrency")
@@ -643,7 +638,7 @@ func (this *Coinmate) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -683,7 +678,7 @@ func (this *Coinmate) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -727,7 +722,7 @@ func (this *Coinmate) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -743,7 +738,7 @@ func (this *Coinmate) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "error": false,
@@ -788,7 +783,7 @@ func (this *Coinmate) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -801,7 +796,7 @@ func (this *Coinmate) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 	//
 	//     {
 	//         "error": false,
@@ -908,7 +903,7 @@ func (this *Coinmate) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1052,16 +1047,16 @@ func (this *Coinmate) withdrawBody(ch chan AsyncResult[Transaction], code string
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	var tagWithdrawTagPtr *string = nil
+	tagWithdrawTagPtr, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
+		if tagWithdrawTagPtr != nil {
+			return *tagWithdrawTagPtr
 		}
 		return nil
 	}()
-	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address, code, tagWithdrawTag)
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1209,7 +1204,7 @@ func (this *Coinmate) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1339,7 +1334,7 @@ func (this *Coinmate) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1398,7 +1393,7 @@ func (this *Coinmate) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterfac
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1517,7 +1512,7 @@ func (this *Coinmate) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOrders() requires a symbol argument"))
 	}
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1537,7 +1532,7 @@ func (this *Coinmate) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
@@ -1676,7 +1671,7 @@ func (this *Coinmate) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1765,7 +1760,7 @@ func (this *Coinmate) fetchOrderBody(ch chan AsyncResult[Order], id any, optiona
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -1842,13 +1837,13 @@ func (this *Coinmate) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Coinmate) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	var bodySigned *string = nil
 	var headersSigned any = nil
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
@@ -1856,15 +1851,16 @@ func (this *Coinmate) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + path
-	if apiName != nil && *apiName == "public" {
-		if len(ObjectKeys(params)) > 0 {
-			url += "?" + this.Urlencode(params)
+	if apiName == "public" {
+		var publicQuery map[string]any = this.Extend(map[string]any{}, params)
+		if len(publicQuery) > 0 {
+			url += "?" + this.Urlencode(publicQuery)
 		}
 	} else {
 		this.CheckRequiredCredentials()
 		// coinmate requires each nonce to be greater than the previous one for the key
 		var nonce string = ToString(this.IncrementingNonce())
-		var auth *string = SafeStringPtr(Add(Add(nonce, this.Uid), this.ApiKey))
+		var auth string = nonce + this.Uid + this.ApiKey
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		bodySigned = SafeStringPtr(this.Urlencode(this.Extend(map[string]any{
 			"clientId":  this.Uid,
@@ -1885,7 +1881,7 @@ func (this *Coinmate) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResolved,
 	}
 }
-func (this *Coinmate) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Coinmate) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -1930,7 +1926,10 @@ func (this *Coinmate) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

@@ -105,7 +105,7 @@ func (this *Kucoinfutures) transferBody(ch chan ccxt.AsyncResult[ccxt.TransferEn
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
