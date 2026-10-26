@@ -355,7 +355,7 @@ export default class kucoin extends kucoinRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         let messageHash = 'ticker:' + symbolValue;
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (params, 'watchTicker', 'uta', false);
         if (uta) {
@@ -389,7 +389,7 @@ export default class kucoin extends kucoinRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const isFuturesMethod = market['contract'];
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (params, 'unWatchTicker', 'uta', false);
         const subscription: Dict = {
@@ -910,7 +910,7 @@ export default class kucoin extends kucoinRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const period = this.safeString (this.timeframes, timeframe, timeframe);
         let messageHash = 'candles:' + symbolValue + ':' + timeframe;
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (params, 'watchOHLCV', 'uta', false);
@@ -957,7 +957,7 @@ export default class kucoin extends kucoinRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const uta = false;
         const [ utaOption, paramsUta ] = this.handleOptionBoolAndParams (params, 'unWatchOHLCV', 'uta', uta);
         const period = this.safeString (this.timeframes, timeframe, timeframe);
@@ -1138,7 +1138,7 @@ export default class kucoin extends kucoinRest {
         if (utaOption) {
             await this.loadMarkets ();
             const market = this.market (symbol);
-            const symbolResolved: string = market['symbol'];
+            const symbolResolved: string = this.safeString (market, 'symbol', '');
             const messageHash = 'uta:trades:' + symbolResolved;
             const channel = 'trade';
             const trades = await this.subscribePublicUta (messageHash, channel, symbolResolved, paramsUta);
@@ -1265,7 +1265,7 @@ export default class kucoin extends kucoinRest {
         if (utaOption) {
             await this.loadMarkets ();
             const market = this.market (symbol);
-            const symbolResolved: string = market['symbol'];
+            const symbolResolved: string = this.safeString (market, 'symbol', '');
             const subMessageHash = 'uta:trades:' + symbolResolved;
             const messageHash = 'unsubscribe:' + subMessageHash;
             const channel = 'trade';
@@ -1432,7 +1432,7 @@ export default class kucoin extends kucoinRest {
         if (uta) {
             await this.loadMarkets ();
             const market = this.market (symbol);
-            const symbolResolved: string = market['symbol'];
+            const symbolResolved: string = this.safeString (market, 'symbol', '');
             // depth: '1', '5', '50' or 'increment'
             const [ depth, paramsDepth ] = this.handleOptionStringAndParams (paramsUta, 'watchOrderBook', 'utaDepth', 'increment');
             const messageHash = 'uta:orderbook:' + symbolResolved + ':depth:' + depth;
@@ -1476,7 +1476,7 @@ export default class kucoin extends kucoinRest {
         if (uta) {
             await this.loadMarkets ();
             const market = this.market (symbol);
-            const symbolResolved: string = market['symbol'];
+            const symbolResolved: string = this.safeString (market, 'symbol', '');
             // depth: '1', '5', '50' or 'increment'
             const [ depth, paramsDepth ] = this.handleOptionStringAndParams (paramsUta, 'watchOrderBook', 'utaDepth', 'increment');
             const paramsExtended = this.extend (paramsDepth, {
