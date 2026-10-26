@@ -839,7 +839,7 @@ export default class upbit extends Exchange {
                 if (quoteCurrencies !== '') {
                     quoteCurrencies = quoteCurrencies + ',';
                 }
-                quoteCurrencies = quoteCurrencies + sortedQuoteIds[i];
+                quoteCurrencies = quoteCurrencies + this.safeString (sortedQuoteIds, i, '');
             }
             const request: Dict = {
                 'quote_currencies': quoteCurrencies,
@@ -894,11 +894,10 @@ export default class upbit extends Exchange {
         let idsString: string = '';
         const queries: string[] = [];
         for (let i = 0; i < ids.length; i++) {
-            const id = this.safeString (ids, i);
             if (idsString !== '') {
                 idsString = idsString + ',';
             }
-            idsString = idsString + id;
+            idsString = idsString + this.safeString (ids, i, '');
             if (idsString.length >= maxQueryLength) {
                 queries.push (idsString);
                 idsString = '';

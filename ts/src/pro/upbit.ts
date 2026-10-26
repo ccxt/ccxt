@@ -61,8 +61,8 @@ export default class upbit extends upbitRest {
         const subscriptions = this.safeDict (client.subscriptions, subscriptionsKey, {});
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
-            const marketId = marketIds[i];
-            const symbol = symbolsNormalized[i];
+            const marketId = this.safeString (marketIds, i, '');
+            const symbol = this.safeString (symbolsNormalized, i, '');
             const messageHash = channel + ':' + symbol;
             messageHashes.push (messageHash);
             if (!(messageHash in subscriptions)) {
