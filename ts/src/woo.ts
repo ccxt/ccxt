@@ -939,10 +939,6 @@ export default class woo extends Exchange {
         const amount = this.safeString2 (trade, 'executed_quantity', 'executedQuantity');
         const order_id = this.safeString2 (trade, 'order_id', 'orderId');
         const fee = this.parseTokenAndFeeTemp (trade, [ 'fee_asset', 'feeAsset' ], [ 'fee' ]);
-        const feeCost = this.safeString (fee, 'cost');
-        if ((fee !== undefined) && (feeCost !== undefined)) {
-            fee['cost'] = feeCost;
-        }
         const cost = Precise.stringMul (price, amount);
         const side = this.safeStringLower (trade, 'side');
         const id = this.safeString (trade, 'id');
@@ -3080,7 +3076,7 @@ export default class woo extends Exchange {
             const firstPart = this.safeString (parts, 0);
             let currencyId = this.safeString (parts, 1, firstPart);
             if (partsLength > 2) {
-                currencyId += '_' + this.safeString (parts, 2);
+                currencyId += '_' + this.safeString (parts, 2, '');
             }
             return this.safeCurrency (currencyId);
         }
