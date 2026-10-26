@@ -355,8 +355,8 @@ export default class bitflyer extends Exchange {
                 continue;
             }
             let symbol = base + '/' + quote;
-            let taker = this.fees['trading']['taker'];
-            let maker = this.fees['trading']['maker'];
+            let taker = this.safeNumber (this.fees['trading'], 'taker');
+            let maker = this.safeNumber (this.fees['trading'], 'maker');
             const contract = swap || future;
             if (contract) {
                 maker = 0.0;
@@ -579,10 +579,7 @@ export default class bitflyer extends Exchange {
         }
         let order: Str = undefined;
         if (side !== undefined) {
-            const idInner = side + '_child_order_acceptance_id';
-            if (idInner in trade) {
-                order = this.safeString (trade, idInner);
-            }
+            order = this.safeString (trade, side + '_child_order_acceptance_id');
         }
         if (order === undefined) {
             order = this.safeString (trade, 'child_order_acceptance_id');
@@ -884,8 +881,8 @@ export default class bitflyer extends Exchange {
         }
         const orders = await this.fetchOrders (symbol);
         const ordersById = this.indexBy (orders, 'id');
-        if (id in ordersById) {
-            const found = this.safeDict (ordersById, id);
+        const found = this.safeDict (ordersById, id);
+        if (found !== undefined) {
             return found as Order;
         }
         throw new OrderNotFound (this.id + ' No order found with id ' + id);
