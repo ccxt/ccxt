@@ -2770,7 +2770,7 @@ export default class kucoin extends Exchange {
         last = this.safeString (ticker, 'price', last);
         const marketId = this.safeString (ticker, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol', '');
         let percentage = this.safeString (ticker, 'changeRate');
         if (percentage !== undefined) {
             percentage = Precise.stringMul (percentage, '100');
@@ -6369,7 +6369,7 @@ export default class kucoin extends Exchange {
         //
         const marketId = this.safeString (order, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol', '');
         const orderId = this.safeString2 (order, 'id', 'orderId');
         const type = this.safeString (order, 'type');
         const timestamp = this.safeInteger (order, 'createdAt');
@@ -6672,7 +6672,7 @@ export default class kucoin extends Exchange {
         //
         const marketId = this.safeString (order, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol', '');
         const timestamp = this.safeIntegerProduct2 (order, 'orderTime', 'ts', 0.000001);
         const lastUpdateTimestamp = this.safeIntegerProduct (order, 'updatedTime', 0.000001);
         const rawTimeInForce = this.safeString (order, 'timeInForce');
@@ -11419,7 +11419,7 @@ export default class kucoin extends Exchange {
             await this.loadMarkets ();
         }
         let posMode: Str = '0';
-        if (hedged) {
+        if (hedged === true) {
             posMode = '1';
         }
         const request: Dict = {

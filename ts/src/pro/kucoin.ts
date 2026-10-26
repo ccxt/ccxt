@@ -634,8 +634,7 @@ export default class kucoin extends kucoinRest {
             const ticker = this.parseSpotOrUtaTicker (rawTicker, market);
             const symbol = ticker['symbol'];
             this.tickers[(symbol as string)] = ticker;
-            const messageHash = 'ticker:' + symbol;
-            client.resolve (ticker, messageHash);
+            client.resolve (ticker, 'ticker:' + symbol);
             // watchTickers
             const allTickers: Dict = {};
             allTickers[(symbol as string)] = ticker;
@@ -672,8 +671,7 @@ export default class kucoin extends kucoinRest {
         const market = this.safeMarket (marketId, undefined, '-');
         const ticker = this.parseTicker (data, market);
         this.tickers[market['symbol']] = ticker;
-        const messageHash = 'ticker:' + market['symbol'];
-        client.resolve (ticker, messageHash);
+        client.resolve (ticker, 'ticker:' + market['symbol']);
     }
 
     handleUtaTicker (client: Client, message: Dict) {
@@ -714,8 +712,7 @@ export default class kucoin extends kucoinRest {
         const market = this.safeMarket (marketId);
         const ticker = this.parseWsUtaTicker (data, market);
         this.tickers[market['symbol']] = ticker;
-        const messageHash = 'uta:ticker:' + market['symbol'];
-        client.resolve (ticker, messageHash);
+        client.resolve (ticker, 'uta:ticker:' + market['symbol']);
     }
 
     parseWsUtaTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -1046,7 +1043,7 @@ export default class kucoin extends kucoinRest {
         // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe (interval);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const messageHash = 'candles:' + symbol + ':' + timeframe;
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
@@ -1095,7 +1092,7 @@ export default class kucoin extends kucoinRest {
         const data = this.safeDict (message, 'd', {});
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const interval = this.safeString (data, 'i');
         const timeframe = this.findTimeframe (interval);
         const messageHash = 'uta:candles:' + symbol + ':' + timeframe;
@@ -1751,7 +1748,7 @@ export default class kucoin extends kucoinRest {
         const data = this.safeDict (message, 'd', {});
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const timestamp = this.safeIntegerProduct (data, 'M', 0.000001);
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
@@ -2595,7 +2592,7 @@ export default class kucoin extends kucoinRest {
         //
         const marketId = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol', '');
         const type = this.safeString (trade, 'orderType');
         const side = this.safeString (trade, 'side');
         const tradeId = this.safeString (trade, 'tradeId');
@@ -3232,7 +3229,7 @@ export default class kucoin extends kucoinRest {
         //
         const marketId = this.safeString (position, 's');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol', '');
         const timestamp = this.safeIntegerProduct (position, 'O', 0.000001);
         const amountString = this.safeString (position, 'q');
         const size = Precise.stringAbs (amountString);
