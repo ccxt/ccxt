@@ -590,7 +590,9 @@ public partial class blofin : Exchange
                     { "linear", new Dictionary<string, object>() {
                         { "extends", "forDerivatives" },
                     } },
-                    { "inverse", null },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
                 } },
                 { "future", new Dictionary<string, object>() {
                     { "linear", null },
