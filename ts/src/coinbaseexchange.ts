@@ -2212,8 +2212,8 @@ export default class coinbaseexchange extends Exchange {
             let payload = '';
             if (method !== 'GET') {
                 if (Object.keys (query).length > 0) {
-                    requestBody = this.json (query);
-                    payload = requestBody;
+                    payload = this.json (query);
+                    requestBody = payload;
                 }
             }
             const what = nonce + method + request + payload;
