@@ -807,6 +807,57 @@ export default class tokocrypto extends Exchange {
             }
             const marginTradingEnable = this.safeString (market, 'marginTradingEnable');
             let costMin: Num = undefined;
+            const precision: Dict = {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
+                'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
+                'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
+            };
+            const limits: Dict = {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': costMin,
+                    'max': undefined,
+                },
+            };
+            if ('PRICE_FILTER' in filtersByType) {
+                const filter: Dict = this.safeDict (filtersByType, 'PRICE_FILTER', {});
+                // PRICE_FILTER reports zero values for maxPrice
+                // since they updated filter types in November 2018
+                // https://github.com/ccxt/ccxt/issues/4286
+                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+                limits['price'] = {
+                    'min': this.safeNumber (filter, 'minPrice'),
+                    'max': this.safeNumber (filter, 'maxPrice'),
+                };
+                precision['price'] = filter['tickSize'];
+            }
+            if ('LOT_SIZE' in filtersByType) {
+                const filter: Dict = this.safeDict (filtersByType, 'LOT_SIZE', {});
+                precision['amount'] = this.safeNumber (filter, 'stepSize');
+                limits['amount'] = {
+                    'min': this.safeNumber (filter, 'minQty'),
+                    'max': this.safeNumber (filter, 'maxQty'),
+                };
+            }
+            if ('MARKET_LOT_SIZE' in filtersByType) {
+                const filter: Dict = this.safeDict (filtersByType, 'MARKET_LOT_SIZE', {});
+                limits['market'] = {
+                    'min': this.safeNumber (filter, 'minQty'),
+                    'max': this.safeNumber (filter, 'maxQty'),
+                };
+            }
             const entry: Dict = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -832,61 +883,11 @@ export default class tokocrypto extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
-                    'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
-                    'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': costMin,
-                        'max': undefined,
-                    },
-                },
+                'precision': precision,
+                'limits': limits,
                 'created': undefined,
                 'info': market,
             };
-            if ('PRICE_FILTER' in filtersByType) {
-                const filter: Dict = this.safeDict (filtersByType, 'PRICE_FILTER', {});
-                entry['precision']['price'] = this.safeNumber (filter, 'tickSize');
-                // PRICE_FILTER reports zero values for maxPrice
-                // since they updated filter types in November 2018
-                // https://github.com/ccxt/ccxt/issues/4286
-                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-                entry['limits']['price'] = {
-                    'min': this.safeNumber (filter, 'minPrice'),
-                    'max': this.safeNumber (filter, 'maxPrice'),
-                };
-                entry['precision']['price'] = filter['tickSize'];
-            }
-            if ('LOT_SIZE' in filtersByType) {
-                const filter: Dict = this.safeDict (filtersByType, 'LOT_SIZE', {});
-                entry['precision']['amount'] = this.safeNumber (filter, 'stepSize');
-                entry['limits']['amount'] = {
-                    'min': this.safeNumber (filter, 'minQty'),
-                    'max': this.safeNumber (filter, 'maxQty'),
-                };
-            }
-            if ('MARKET_LOT_SIZE' in filtersByType) {
-                const filter: Dict = this.safeDict (filtersByType, 'MARKET_LOT_SIZE', {});
-                entry['limits']['market'] = {
-                    'min': this.safeNumber (filter, 'minQty'),
-                    'max': this.safeNumber (filter, 'maxQty'),
-                };
-            }
             if ('MIN_NOTIONAL' in filtersByType) {
                 const filter: Dict = this.safeDict (filtersByType, 'MIN_NOTIONAL', {});
                 costMin = this.safeNumber2 (filter, 'minNotional', 'notional');
