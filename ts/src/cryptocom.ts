@@ -817,7 +817,7 @@ export default class cryptocom extends Exchange {
             } else if (inst_type === 'WARRANT') {
                 type = 'option';
                 const symbolOptionType = (optionType === 'call') ? 'C' : 'P';
-                symbol = base + '/' + quote + ':' + quote + '-' + this.yymmdd (expiry) + '-' + strike + '-' + symbolOptionType;
+                symbol = base + '/' + quote + ':' + quote + '-' + this.yymmdd (expiry) + '-' + this.safeString (market, 'strike', '') + '-' + symbolOptionType;
                 contract = true;
             }
             const isLinear = (contract === true) ? true : undefined;
@@ -898,7 +898,7 @@ export default class cryptocom extends Exchange {
                 if (symbolsLength > 1) {
                     throw new BadRequest (this.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol');
                 }
-                symbol = symbols[0];
+                symbol = this.safeString (symbols, 0);
             } else {
                 symbol = symbols;
             }

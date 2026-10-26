@@ -1312,7 +1312,7 @@ export default class cryptocom extends cryptocomRest {
             'nonce': nonce,
         };
         const message = this.extend (request, params);
-        return await this.watch (url, nonce.toString (), message, true);
+        return await this.watch (url, this.numberToString (nonce), message, true);
     }
 
     async watchPrivateSubscribe (messageHash: Str, params: Dict = {}) {
