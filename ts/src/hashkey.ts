@@ -1038,7 +1038,7 @@ export default class hashkey extends Exchange {
             isSpot = false;
             isSwap = true;
             baseId = this.safeString (market, 'underlying');
-            suffix += ':' + settleId;
+            suffix = ':' + settleId;
         }
         const base = this.safeCurrencyCode (baseId);
         if ((base === undefined) || (quote === undefined)) {
