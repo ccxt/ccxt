@@ -2447,8 +2447,8 @@ export default class polymarket extends Exchange {
         const leverage = await this.fetchLeverage (symbol, params);
         return {
             'info': leverage['info'],
-            'symbol': leverage['symbol'],
-            'marginMode': leverage['marginMode'],
+            'symbol': this.safeString (leverage, 'symbol'),
+            'marginMode': this.safeString (leverage, 'marginMode'),
         } as MarginMode;
     }
 
@@ -2818,8 +2818,7 @@ export default class polymarket extends Exchange {
         if ((path === 'trade/orders') || (path === 'trade/orders-coid')) {
             const op = this.safeDict (params, 'op', {});
             const args = this.safeList (op, 'args', []);
-            const argsLength = args.length;
-            return this.sum (1, this.parseToInt (argsLength / 20));
+            return this.sum (1, this.parseToInt (args.length / 20));
         }
         if (path === 'info/book') {
             const depth = this.safeInteger (params, 'depth', 100);
@@ -2836,8 +2835,10 @@ export default class polymarket extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiType = api[0];
-        let url = this.urls['api'][apiType] + '/' + this.implodeParams (path, params);
+        const apiType = this.safeString (api, 0, 'public');
+        const baseUrl = this.safeString (this.urls['api'], apiType, '');
+        const implodedPath = this.implodeParams (path, params);
+        let url = baseUrl + '/' + implodedPath;
         const query = this.omit (params, this.extractParams (path));
         const headersResolved: Dict = {
             'Accept': 'application/json',
@@ -2853,7 +2854,7 @@ export default class polymarket extends Exchange {
                 const keys = Object.keys (query);
                 const keysLength = keys.length;
                 if (keysLength > 0) {
-                    url += '?' + this.urlencode (query);
+                    url = baseUrl + '/' + implodedPath + '?' + this.urlencode (query);
                 }
             }
             if (apiType === 'private') {
