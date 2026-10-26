@@ -4764,7 +4764,7 @@ export default class phemex extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0, '');
         const query = this.omit (params, this.extractParams (path));
         const requestPath = '/' + this.implodeParams (path, params);
         let url = requestPath;
@@ -4942,16 +4942,16 @@ export default class phemex extends Exchange {
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
-            if (transfer['fromAccount'] === undefined) {
+            if (this.safeString (transfer, 'fromAccount') === undefined) {
                 transfer['fromAccount'] = fromAccount;
             }
-            if (transfer['toAccount'] === undefined) {
+            if (this.safeString (transfer, 'toAccount') === undefined) {
                 transfer['toAccount'] = toAccount;
             }
-            if (transfer['amount'] === undefined) {
+            if (this.safeString (transfer, 'amount') === undefined) {
                 transfer['amount'] = amount;
             }
-            if (transfer['currency'] === undefined) {
+            if (this.safeString (transfer, 'currency') === undefined) {
                 transfer['currency'] = code;
             }
         }
@@ -5110,9 +5110,9 @@ export default class phemex extends Exchange {
         }
         let customSymbol: Str = undefined;
         if (isUsdtSettled) {
-            customSymbol = '.' + market['id'] + 'FR8H'; // phemex requires a custom symbol for funding rate history
+            customSymbol = '.' + this.safeString (market, 'id', '') + 'FR8H'; // phemex requires a custom symbol for funding rate history
         } else {
-            customSymbol = '.' + market['baseId'] + 'FR8H';
+            customSymbol = '.' + this.safeString (market, 'baseId', '') + 'FR8H';
         }
         const request: Dict = {
             'symbol': customSymbol,
