@@ -578,8 +578,8 @@ export default class bingx extends bingxRest {
             url = this.safeString (this.urls['api']['ws'], marketType);
         }
         const options = this.safeDict (this.options, 'watchOrderBook', {});
-        const depth = this.safeInteger (options, 'depth', 100);
-        const subscriptionHash = this.safeString (market, 'id', '') + '@depth' + this.numberToString (depth);
+        const depth = this.safeString (options, 'depth', '100');
+        const subscriptionHash = this.safeString (market, 'id', '') + '@depth' + depth;
         const messageHash = this.getMessageHash ('orderbook', this.safeString (market, 'symbol'));
         const uuid = this.uuid ();
         const request: Dict = {
@@ -626,8 +626,8 @@ export default class bingx extends bingxRest {
         }
         const market = this.market (symbol);
         const options = this.safeDict (this.options, 'watchOrderBook', {});
-        const depth = this.safeInteger (options, 'depth', 100);
-        const subMessageHash = this.safeString (market, 'id', '') + '@depth' + this.numberToString (depth);
+        const depth = this.safeString (options, 'depth', '100');
+        const subMessageHash = this.safeString (market, 'id', '') + '@depth' + depth;
         const messageHash = 'unsubscribe::' + subMessageHash;
         const topic = 'orderbook';
         const methodName = 'unWatchOrderBook';
@@ -1030,7 +1030,11 @@ export default class bingx extends bingxRest {
             messageHash = spotMessageHash;
         }
         if (market !== undefined) {
-            messageHash += ':' + symbolResolved;
+            if (isSpot) {
+                messageHash = spotMessageHash + ':' + this.safeString (market, 'symbol', '');
+            } else {
+                messageHash = swapMessageHash + ':' + this.safeString (market, 'symbol', '');
+            }
         }
         const uuid = this.uuid ();
         let baseUrl: Str = undefined;
@@ -1104,7 +1108,11 @@ export default class bingx extends bingxRest {
             messageHash = spotMessageHash;
         }
         if (market !== undefined) {
-            messageHash += ':' + symbolResolved;
+            if (isSpot) {
+                messageHash = spotMessageHash + ':' + this.safeString (market, 'symbol', '');
+            } else {
+                messageHash = swapMessageHash + ':' + this.safeString (market, 'symbol', '');
+            }
         }
         const uuid = this.uuid ();
         let baseUrl: Str = undefined;
