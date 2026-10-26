@@ -558,7 +558,7 @@ export default class krakenfutures extends Exchange {
         const settlementCurrencies = this.safeList (this.safeDict (this.options, 'settlementCurrencies', {}), 'flex', []);
         const currencies: Dict[] = [];
         for (let i = 0; i < settlementCurrencies.length; i++) {
-            const code = settlementCurrencies[i];
+            const code = this.safeString (settlementCurrencies, i, '');
             currencies.push ({
                 'id': code.toLowerCase (),
                 'numericId': undefined,
@@ -3562,17 +3562,12 @@ export default class krakenfutures extends Exchange {
             const tier = marginLevels[i];
             const initialMargin = this.safeString (tier, 'initialMargin');
             const minNotional = this.safeNumber2 (tier, 'numNonContractUnits', 'contracts');
-            if (i !== 0) {
-                const tiersLength = tiers.length;
-                const previousTier = tiers[tiersLength - 1];
-                previousTier['maxNotional'] = minNotional;
-            }
             tiers.push ({
                 'tier': this.sum (i, 1),
                 'symbol': this.safeSymbol (marketId, marketResolved),
                 'currency': marketResolved['quote'],
                 'minNotional': minNotional,
-                'maxNotional': undefined,
+                'maxNotional': this.safeNumber2 (this.safeValue (marginLevels, this.sum (i, 1)), 'numNonContractUnits', 'contracts'),
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMargin'),
                 'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMargin)),
                 'info': tier,
@@ -3713,7 +3708,7 @@ export default class krakenfutures extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const marketIdUpper = this.marketId (symbol);
+        const marketIdUpper = this.safeString (this.market (symbol), 'id');
         if (marketIdUpper === undefined) {
             throw new ArgumentsRequired (this.id + ' marketId is required');
         }
@@ -3774,7 +3769,7 @@ export default class krakenfutures extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const marketIdUpper = this.marketId (symbol);
+        const marketIdUpper = this.safeString (market, 'id');
         if (marketIdUpper === undefined) {
             throw new ArgumentsRequired (this.id + ' marketId is required');
         }

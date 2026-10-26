@@ -494,7 +494,7 @@ export default class krakenfutures extends krakenfuturesRest {
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            messageHash += ':' + market['symbol'];
+            messageHash = 'myTrades' + ':' + market['symbol'];
         }
         const trades = await this.subscribePrivate (name, messageHash, params);
         let limitResolved: Int = limit;
@@ -870,7 +870,7 @@ export default class krakenfutures extends krakenfuturesRest {
                             'info': info,
                         });
                         client.resolve (orders, messageHash);
-                        client.resolve (orders, messageHash + ':' + currentOrder['symbol']);
+                        client.resolve (orders, messageHash + ':' + this.safeString (currentOrder, 'symbol', ''));
                         break;
                     }
                 }
