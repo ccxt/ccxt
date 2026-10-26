@@ -1767,7 +1767,7 @@ export default class nado extends Exchange {
             const settle = contract ? quote : undefined;
             let symbol: string = base + '/' + quote;
             if (contract) {
-                symbol += ':' + settle;
+                symbol = base + '/' + quote + ':' + settle;
             }
             const tradingStatus = this.safeString (market, 'trading_status');
             const active = (tradingStatus !== 'not_tradable');
@@ -1848,7 +1848,7 @@ export default class nado extends Exchange {
         const result: Dict = {};
         const assets = this.toArray (response);
         for (let i = 0; i < assets.length; i++) {
-            const currency = assets[i];
+            const currency = this.safeValue (assets, i);
             const parsed = this.parseCurrency (currency);
             const code = this.safeString (parsed, 'code');
             if (code === undefined) {
