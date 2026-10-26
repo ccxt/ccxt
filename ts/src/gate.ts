@@ -1299,13 +1299,13 @@ export default class gate extends Exchange {
         const symbolBase = symbol.split ('/');
         const marketIdBase = symbol.split ('_');
         let base: Str = this.safeString (symbolBase, 0, '');
-        let expiry: Str = this.safeString (optionParts, 1);
+        let expiry: Str = this.safeString (optionParts, 1, '');
         if (symbol.indexOf ('/') === -1) {
             base = this.safeString (marketIdBase, 0, '');
             expiry = (expiry as string).slice (2, 8); // convert 20230728 to 230728
         }
-        const strike = this.safeString (optionParts, 2);
-        const optionType = this.safeString (optionParts, 3);
+        const strike = this.safeString (optionParts, 2, '');
+        const optionType = this.safeString (optionParts, 3, '');
         const datetime = this.convertExpireDate (expiry);
         const timestamp = this.parse8601 (datetime);
         return {
@@ -1828,7 +1828,7 @@ export default class gate extends Exchange {
                     continue;
                 }
                 const expiry = this.safeTimestamp (market, 'expiration_time');
-                const strike = this.safeString (market, 'strike_price');
+                const strike = this.safeString (market, 'strike_price', '');
                 const isCall = this.safeBool (market, 'is_call');
                 let optionLetter: Str = 'P';
                 if (isCall === true) {
@@ -4388,7 +4388,7 @@ export default class gate extends Exchange {
         let type: Str = undefined;
         let amountString = this.safeString (transaction, 'amount');
         if (id !== undefined) {
-            if (id[0] === 'b') {
+            if (id.startsWith ('b')) {
                 // GateCode handling
                 type = Precise.stringGt (amountString, '0') ? 'deposit' : 'withdrawal';
                 amountString = Precise.stringAbs (amountString);
@@ -4808,7 +4808,7 @@ export default class gate extends Exchange {
                     throw new BadRequest (this.id + ' createOrder () clientOrderId or text param must be up to 28 characters');
                 }
                 query = this.omit (query, 'textIsRequired');
-                if (clientOrderIdRaw[0] !== 't') {
+                if (!clientOrderIdRaw.startsWith ('t')) {
                     clientOrderId = 't-' + clientOrderIdRaw;
                 }
                 request['text'] = clientOrderId;
@@ -5445,7 +5445,7 @@ export default class gate extends Exchange {
         const clientOrderIdRaw = this.safeString2 (paramsOmitted, 'text', 'clientOrderId');
         let orderId = id;
         if (clientOrderIdRaw !== undefined) {
-            if (clientOrderIdRaw[0] !== 't') {
+            if (!clientOrderIdRaw.startsWith ('t')) {
                 orderId = 't-' + clientOrderIdRaw;
             } else {
                 orderId = clientOrderIdRaw;
