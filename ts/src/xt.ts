@@ -5874,7 +5874,7 @@ export default class xt extends Exchange {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + payload;
-        const query: Dict = this.omit (params, this.extractParams (path));
+        const query: Dict = this.extend (this.omit (params, this.extractParams (path)));
         const urlencoded = this.urlencode (this.keysort (query));
         const headersValue: NullableDict = {
             'Content-Type': 'application/json',

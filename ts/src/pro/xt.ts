@@ -1445,12 +1445,11 @@ export default class xt extends xtRest {
         //           }
         //    }
         //
-        let orders = this.orders;
-        if (orders === undefined) {
+        if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit');
-            orders = new ArrayCacheBySymbolById (limit);
-            this.orders = orders;
+            this.orders = new ArrayCacheBySymbolById (limit);
         }
+        const orders = this.orders;
         const order = this.safeDict (message, 'data', {});
         const marketId = this.safeString2 (order, 's', 'symbol');
         if (marketId !== undefined) {
@@ -1555,12 +1554,11 @@ export default class xt extends xtRest {
         //    }
         //
         const data = this.safeDict (message, 'data', {});
-        let stored = this.myTrades;
-        if (stored === undefined) {
+        if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCacheBySymbolById (limit);
-            this.myTrades = stored;
+            this.myTrades = new ArrayCacheBySymbolById (limit);
         }
+        const stored = this.myTrades;
         const parsedTrade = this.parseTrade (data);
         const tradeSymbol = parsedTrade['symbol'];
         if (tradeSymbol === undefined) {
