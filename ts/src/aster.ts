@@ -1181,13 +1181,13 @@ export default class aster extends Exchange {
         const paramsOmitted: Dict = this.omit (paramsUntil, 'price');
         let response: Dict | List;
         if (isMark) {
-            requestUntil['symbol'] = market['id'];
+            requestUntil['symbol'] = this.safeString (market, 'id', '');
             response = await this.fapiPublicGetV3MarkPriceKlines (this.extend (requestUntil, paramsOmitted));
         } else if (isIndex) {
-            requestUntil['pair'] = market['id'];
+            requestUntil['pair'] = this.safeString (market, 'id', '');
             response = await this.fapiPublicGetV3IndexPriceKlines (this.extend (requestUntil, paramsOmitted));
         } else {
-            requestUntil['symbol'] = market['id'];
+            requestUntil['symbol'] = this.safeString (market, 'id', '');
             if (market['linear'] === true) {
                 response = await this.fapiPublicGetV3Klines (this.extend (requestUntil, paramsOmitted));
             } else {
@@ -2697,10 +2697,11 @@ export default class aster extends Exchange {
         await this.loadMarketsAndSignIn ();
         const ordersRequests: List = [];
         const orderSymbols: string[] = [];
-        if (orders.length > 5) {
+        const ordersLength = orders.length;
+        if (ordersLength > 5) {
             throw new InvalidOrder (this.id + ' createOrders() order list max 5 orders');
         }
-        for (let i = 0; i < orders.length; i++) {
+        for (let i = 0; i < ordersLength; i++) {
             const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             const currentMarket = this.market (marketId);
@@ -4312,7 +4313,7 @@ export default class aster extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0);
         const baseApiUrl = this.safeString (this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');

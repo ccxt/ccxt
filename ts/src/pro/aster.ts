@@ -412,7 +412,7 @@ export default class aster extends asterRest {
         const marketType = this.getAccountTypeFromUrl (client.url);
         const ticker = message;
         const parsed = this.parseWsTicker (ticker, marketType);
-        const symbol: Str = parsed['symbol'];
+        const symbol: Str = this.safeString (parsed, 'symbol');
         if (symbol !== undefined) {
             const messageHash = 'ticker:' + symbol;
             this.tickers[symbol] = parsed;
@@ -572,7 +572,7 @@ export default class aster extends asterRest {
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const ticker = this.parseWsBidAsk (data, market);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString (ticker, 'symbol');
         if (symbol !== undefined) {
             this.bidsasks[symbol] = ticker;
         }
@@ -749,7 +749,7 @@ export default class aster extends asterRest {
         const marketId = this.safeString (trade, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const parsed = this.parseWsTrade (trade, market);
-        const symbol = parsed['symbol'];
+        const symbol = this.safeString (parsed, 'symbol');
         if (symbol === undefined) {
             return;
         }
@@ -1165,7 +1165,7 @@ export default class aster extends asterRest {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         };
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+        for (let i = 0; i < symbolsLength; i++) {
             const data = this.safeList (symbolsAndTimeframes, i);
             let symbolString = this.safeString (data, 0);
             if (symbolString === undefined) {
@@ -1225,7 +1225,7 @@ export default class aster extends asterRest {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         };
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+        for (let i = 0; i < symbolsLength; i++) {
             const data = this.safeList (symbolsAndTimeframes, i);
             let symbolString = this.safeString (data, 0);
             if (symbolString === undefined) {
