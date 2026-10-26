@@ -1031,7 +1031,7 @@ export default class binance extends binanceRest {
             const messages = orderbook.cache;
             orderbook.cache = [];
             for (let i = 0; i < messages.length; i++) {
-                const messageItem = messages[i];
+                const messageItem = this.safeValue (messages, i);
                 const U = this.safeInteger (messageItem, 'U');
                 const u = this.safeInteger (messageItem, 'u');
                 if ((U === undefined) || (u === undefined)) {
@@ -1084,7 +1084,7 @@ export default class binance extends binanceRest {
 
     override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i]);
+            this.handleDelta (bookside, this.safeValue (deltas, i));
         }
     }
 
@@ -2183,7 +2183,7 @@ export default class binance extends binanceRest {
         }
         const symbolValue: string = this.symbol (symbol);
         const tickers = await this.watchTickers ([ symbolValue ], this.extend (params, { 'callerMethodName': 'watchTicker' }));
-        return tickers[symbolValue];
+        return this.safeValue (tickers, symbolValue);
     }
 
     /**
@@ -2203,7 +2203,7 @@ export default class binance extends binanceRest {
         }
         const symbolValue: string = this.symbol (symbol);
         const tickers = await this.watchMarkPrices ([ symbolValue ], this.extend (params, { 'callerMethodName': 'watchMarkPrice' }));
-        return tickers[symbolValue];
+        return this.safeValue (tickers, symbolValue);
     }
 
     /**
@@ -2853,7 +2853,7 @@ export default class binance extends binanceRest {
             if (isSpot) {
                 tickerFallbackType = 'spot';
             }
-            const tickerMarketType = (tickerMarketById !== undefined) ? tickerMarketById['type'] : tickerFallbackType;
+            const tickerMarketType = (tickerMarketById !== undefined) ? this.safeValue (tickerMarketById, 'type') : tickerFallbackType;
             const parsedTicker = this.parseWsTicker (ticker, tickerMarketType);
             const symbol = parsedTicker['symbol'];
             if (symbol !== undefined) {
@@ -3365,7 +3365,7 @@ export default class binance extends binanceRest {
         this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
-            const future = client.futures[messageHash];
+            const future = this.safeValue (client.futures, messageHash);
             future.resolve ();
             client.resolve (this.balance[type], type + ':balance');
         }
@@ -3523,7 +3523,7 @@ export default class binance extends binanceRest {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
                 market = this.market (symbolsNormalized[0]);
-                payload['symbol'] = market['id'];
+                payload['symbol'] = this.safeValue (market, 'id');
             }
         }
         let type = this.getMarketType ('fetchPositionsWs', market, params);
@@ -3740,7 +3740,7 @@ export default class binance extends binanceRest {
             const account = this.account ();
             const delta = this.safeString (message, 'd');
             if ((code !== undefined) && (code in this.balance[accountType])) {
-                let previousValue = this.balance[accountType][code]['free'];
+                let previousValue = this.safeValue (this.balance[accountType][code], 'free');
                 if (typeof previousValue !== 'string') {
                     previousValue = this.numberToString (previousValue);
                 }
@@ -4392,7 +4392,7 @@ export default class binance extends binanceRest {
         const closedOrders: Order[] = [];
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
-            if (order['status'] === 'closed') {
+            if (this.safeString (order, 'status') === 'closed') {
                 closedOrders.push (order);
             }
         }
@@ -4686,7 +4686,7 @@ export default class binance extends binanceRest {
         if (event === 'orderReport') {
             const baseAssetCode = this.safeString (order, 'b');
             let stockBaseSymbol = baseAssetCode;
-            if ((stockBaseSymbol !== undefined) && (stockBaseSymbol.indexOf ('EQ_') === 0)) {
+            if ((stockBaseSymbol !== undefined) && (stockBaseSymbol.startsWith ('EQ_'))) {
                 stockBaseSymbol = stockBaseSymbol.slice (3);
             }
             if (stockBaseSymbol === undefined) {
@@ -5179,7 +5179,7 @@ export default class binance extends binanceRest {
         this.setPositionsCache (client, type, symbolsNormalized, isPortfolioMargin);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        const cache = this.safeValue (this.positions, type);
+        const cache = this.positions[type];
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
             const snapshot = await client.future (type + ':fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized, since, limit, true);
@@ -5232,7 +5232,7 @@ export default class binance extends binanceRest {
         }
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
-            const future = client.futures[messageHash];
+            const future = this.safeValue (client.futures, messageHash);
             future.resolve (cache);
             client.resolve (cache, type + ':position');
         }

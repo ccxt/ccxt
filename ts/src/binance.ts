@@ -3201,10 +3201,10 @@ export default class binance extends Exchange {
             promises.push (this.sapiGetMarginAllPairs (params));
         }
         const results = await Promise.all (promises);
-        const responseCurrencies = results[0];
+        const responseCurrencies = this.safeValue (results, 0);
         let marginablesById: NullableDict = undefined;
         if (fetchMargins) {
-            const responseMarginables = results[1];
+            const responseMarginables = this.safeValue (results, 1);
             marginablesById = this.indexBy (responseMarginables, 'assetName');
         }
         return this.parseCurrenciesCustom (responseCurrencies, marginablesById);
@@ -3455,7 +3455,7 @@ export default class binance extends Exchange {
         const isDemoEnv = (demoMode) || (sandboxMode);
         const fetchMarkets: List = [];
         for (let i = 0; i < rawFetchMarkets.length; i++) {
-            const type = rawFetchMarkets[i];
+            const type = this.safeValue (rawFetchMarkets, i);
             if (type === 'option' && (isDemoEnv)) {
                 continue;
             }
@@ -4178,12 +4178,12 @@ export default class binance extends Exchange {
             if (paramSymbols !== undefined) {
                 let symbols = '';
                 if (Array.isArray (paramSymbols)) {
-                    const mid = this.marketId (paramSymbols[0]);
+                    const mid = this.marketId (this.safeValue (paramSymbols, 0));
                     if (mid !== undefined) {
                         symbols = mid;
                     }
                     for (let i = 1; i < paramSymbols.length; i++) {
-                        const symbol = paramSymbols[i];
+                        const symbol = this.safeValue (paramSymbols, i);
                         const id = this.marketId (symbol);
                         if (id !== undefined) {
                             symbols += ',' + id;
@@ -4982,9 +4982,9 @@ export default class binance extends Exchange {
     parseTickersForRolling (response: any, symbols: Strings): Tickers {
         const results: List = [];
         for (let i = 0; i < response.length; i++) {
-            const marketId = this.safeString (response[i], 'symbol');
+            const marketId = this.safeString (this.safeValue (response, i), 'symbol');
             const tickerMarket = this.safeMarket (marketId, undefined, undefined, 'spot');
-            const parsedTicker = this.parseTicker (response[i]);
+            const parsedTicker = this.parseTicker (this.safeValue (response, i));
             parsedTicker['symbol'] = tickerMarket['symbol'];
             results.push (parsedTicker);
         }
@@ -5867,7 +5867,7 @@ export default class binance extends Exchange {
             const quoteOrderQty = this.handleOption ('createOrder', 'quoteOrderQty', true);
             if (quoteOrderQty === true) {
                 const quoteOrderQtyNew = this.safeValue2 (params, 'quoteOrderQty', 'cost');
-                const precision = market['precision']['price'];
+                const precision = this.safeValue (market['precision'], 'price');
                 if (quoteOrderQtyNew !== undefined) {
                     request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
                 } else if (price !== undefined) {
@@ -10999,9 +10999,9 @@ export default class binance extends Exchange {
             const symbols = Object.keys (markets);
             const linearFees: Dict = {};
             const feeTier = this.safeInteger (response, 'feeTier');
-            const feeTiers = (this.fees as Dict)['linear']['trading']['tiers'];
-            const maker = feeTiers['maker'][feeTier as number][1];
-            const taker = feeTiers['taker'][feeTier as number][1];
+            const feeTiers = this.safeValue (this.safeValue (this.safeValue (this.fees, 'linear'), 'trading'), 'tiers');
+            const maker = this.safeValue (this.safeValue (this.safeValue (feeTiers, 'maker'), feeTier), 1);
+            const taker = this.safeValue (this.safeValue (this.safeValue (feeTiers, 'taker'), feeTier), 1);
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = markets[symbol];
@@ -11034,9 +11034,9 @@ export default class binance extends Exchange {
             const symbols = Object.keys (markets);
             const inverseFees: Dict = {};
             const feeTier = this.safeInteger (response, 'feeTier');
-            const feeTiers = (this.fees as Dict)['inverse']['trading']['tiers'];
-            const maker = feeTiers['maker'][feeTier as number][1];
-            const taker = feeTiers['taker'][feeTier as number][1];
+            const feeTiers = this.safeValue (this.safeValue (this.safeValue (this.fees, 'inverse'), 'trading'), 'tiers');
+            const maker = this.safeValue (this.safeValue (this.safeValue (feeTiers, 'maker'), feeTier), 1);
+            const taker = this.safeValue (this.safeValue (this.safeValue (feeTiers, 'taker'), feeTier), 1);
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = markets[symbol];
@@ -11120,7 +11120,7 @@ export default class binance extends Exchange {
             throw new NullResponse (this.id + ' fetchFundingRate() returned empty response');
         }
         if (market['inverse'] === true) {
-            response = response[0];
+            response = this.safeValue (response, 0);
         }
         //
         //     {
@@ -11341,8 +11341,8 @@ export default class binance extends Exchange {
                 // sometimes not all the codes are correctly returned...
                 if (code in balances) {
                     const parsed = this.parseAccountPosition (this.extend (position, {
-                        'crossMargin': balances[code]['crossMargin'],
-                        'crossWalletBalance': balances[code]['crossWalletBalance'],
+                        'crossMargin': this.safeValue (balances[code], 'crossMargin'),
+                        'crossWalletBalance': this.safeValue (balances[code], 'crossWalletBalance'),
                     }), market);
                     result.push (parsed);
                 }
@@ -11477,7 +11477,7 @@ export default class binance extends Exchange {
         let maintenanceMarginPercentageString: Str = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise.stringLt (notionalStringAbs, bracket[0])) {
+            if (Precise.stringLt (notionalStringAbs, this.safeValue (bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString (bracket, 1);
@@ -11565,7 +11565,7 @@ export default class binance extends Exchange {
             const rounderString = rounder.toString ();
             const liquidationPriceRoundedString = Precise.stringAdd (rounderString, liquidationPriceStringRaw);
             let truncatedLiquidationPrice = Precise.stringDiv (liquidationPriceRoundedString, '1', pricePrecision);
-            if (truncatedLiquidationPrice !== undefined && truncatedLiquidationPrice[0] === '-') {
+            if (truncatedLiquidationPrice !== undefined && this.safeValue (truncatedLiquidationPrice, 0) === '-') {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
                 truncatedLiquidationPrice = undefined;
@@ -11703,7 +11703,7 @@ export default class binance extends Exchange {
         let maintenanceMarginPercentageString: Str = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise.stringLt (notionalStringAbs, bracket[0])) {
+            if (Precise.stringLt (notionalStringAbs, this.safeValue (bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString (bracket, 1);
@@ -13046,7 +13046,7 @@ export default class binance extends Exchange {
         //
         const result: List = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push (this.parseSettlement (settlements[i], market));
+            result.push (this.parseSettlement (this.safeValue (settlements, i), market));
         }
         return result;
     }
@@ -13323,7 +13323,7 @@ export default class binance extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0, 'public');
         const apiUrls = this.safeDict (this.urls, 'api', {});
         if (!(apiName in apiUrls)) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
@@ -13446,7 +13446,7 @@ export default class binance extends Exchange {
     getExceptionsByUrl (url: string, exactOrBroad: string): Dict {
         // the only callers pass handleErrors' url, which is a non-nullable string everywhere
         let marketType: Str = undefined;
-        const hostname = (this.hostname !== undefined) ? this.hostname : 'binance.com';
+        const hostname: string = (this.hostname !== undefined) ? this.hostname : 'binance.com';
         if (url.startsWith ('https://api.' + hostname + '/') || url.startsWith ('https://demo-api') || url.startsWith ('https://testnet.binance.vision')) {
             marketType = 'spot';
         } else if (url.startsWith ('https://dapi.' + hostname + '/') || url.startsWith ('https://demo-dapi') || url.startsWith ('https://testnet.binancefuture.com/dapi')) {
@@ -13577,7 +13577,7 @@ export default class binance extends Exchange {
     override async request (path: string, api: string[] = [ 'public' ], method: any = 'GET', params: Dict = {}, config: Dict = {}) {
         const response = await this.fetch2 (path, api, method, params, config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if (api[0] === 'private') {
+        if (this.safeString (api, 0) === 'private') {
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
         }
         return response;
@@ -14880,7 +14880,7 @@ export default class binance extends Exchange {
         const markets = await this.fetchMarkets ();
         const tradingLimits: Dict = {};
         for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
+            const market = this.safeValue (markets, i);
             const symbol = this.safeString (market, 'symbol');
             if (market === undefined) {
                 throw new ExchangeError (this.id + ' fetchTradingLimits() could not resolve market');
@@ -15070,7 +15070,7 @@ export default class binance extends Exchange {
         if (response === undefined) {
             throw new NullResponse (this.id + ' fetchMarginMode() returned empty response');
         }
-        return this.parseMarginMode (response[0], market);
+        return this.parseMarginMode (this.safeValue (response, 0), market);
     }
 
     override parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
