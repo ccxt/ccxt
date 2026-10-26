@@ -138,7 +138,7 @@ export default class apex extends apexRest {
         const parts = (topic as string).split ('.');
         const marketId = this.safeString (parts, 2);
         const market = this.safeMarket (marketId, undefined, undefined);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -277,8 +277,8 @@ export default class apex extends apexRest {
         if (url === undefined) {
             const timeStamp = this.milliseconds ().toString ();
             const wsEndpoint: Str = this.safeString (this.urls['api']['ws'], 'public', '');
-            url = wsEndpoint + '&timestamp=' + timeStamp;
-            this.options['wsPublicUrl'] = url;
+            this.options['wsPublicUrl'] = wsEndpoint + '&timestamp=' + timeStamp;
+            url = this.safeString (this.options, 'wsPublicUrl', '');
         }
         return url;
     }
@@ -288,8 +288,8 @@ export default class apex extends apexRest {
         if (url === undefined) {
             const timeStamp = this.milliseconds ().toString ();
             const wsEndpoint: Str = this.safeString (this.urls['api']['ws'], 'private', '');
-            url = wsEndpoint + '&timestamp=' + timeStamp;
-            this.options['wsPrivateUrl'] = url;
+            this.options['wsPrivateUrl'] = wsEndpoint + '&timestamp=' + timeStamp;
+            url = this.safeString (this.options, 'wsPrivateUrl', '');
         }
         return url;
     }
@@ -380,7 +380,7 @@ export default class apex extends apexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const url = this.getWsPublicUrl ();
         const messageHash = 'ticker:' + symbolValue;
         const marketId: Str = this.safeString (market, 'id2', '');
@@ -405,8 +405,7 @@ export default class apex extends apexRest {
         const messageHashes: string[] = [];
         const url = this.getWsPublicUrl ();
         const topics: string[] = [];
-        const symbolsNormalizedLength = symbolsNormalized.length;
-        for (let i = 0; i < symbolsNormalizedLength; i++) {
+        for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const marketId: Str = this.safeString (market, 'id2', '');
@@ -567,14 +566,13 @@ export default class apex extends apexRest {
         }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = this.safeString (market, 'symbol', '');
-        if (!(symbol in this.ohlcvs)) {
-            this.ohlcvs[symbol] = {};
-        }
-        if (!((timeframe as string) in this.ohlcvs[symbol])) {
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe as string);
+        if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe as string] = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe as string] = stored;
         }
-        const stored = this.ohlcvs[symbol][timeframe as string];
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV (data[i]);
             stored.append (parsed);
@@ -833,8 +831,7 @@ export default class apex extends apexRest {
         for (let i = 0; i < promises.length; i++) {
             const positions = promises[i];
             for (let ii = 0; ii < positions.length; ii++) {
-                const position = positions[ii];
-                cache.append (position);
+                cache.append (positions[ii]);
             }
         }
         // don't remove the future from the .futures cache
@@ -897,7 +894,7 @@ export default class apex extends apexRest {
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const parts = messageHash.split ('::');
-            const symbolsString = parts[1];
+            const symbolsString = this.safeString (parts, 1, '');
             const symbols = symbolsString.split (',');
             const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
             if (!this.isEmpty (positions)) {

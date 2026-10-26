@@ -1285,15 +1285,14 @@ export default class apex extends Exchange {
     override safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         let marketResolved: Market = market;
         if (market === undefined && marketId !== undefined) {
-            const marketsById = this.markets_by_id;
             if ((this.markets !== undefined) && (marketId in this.markets)) {
                 marketResolved = this.markets[marketId];
-            } else if ((marketsById !== undefined) && (marketId in marketsById)) {
-                marketResolved = marketsById[marketId];
+            } else if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
+                marketResolved = this.markets_by_id[marketId];
             } else {
                 const newMarketId = this.addHyphenBeforeUsdt (marketId);
-                if ((marketsById !== undefined) && (newMarketId in marketsById)) {
-                    const markets = marketsById[newMarketId];
+                if ((this.markets_by_id !== undefined) && (newMarketId in this.markets_by_id)) {
+                    const markets = this.markets_by_id[newMarketId];
                     const numMarkets = markets.length;
                     if (numMarkets > 0) {
                         if (markets[0]['id2'] === marketId) {
