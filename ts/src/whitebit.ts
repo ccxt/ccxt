@@ -2416,8 +2416,7 @@ export default class whitebit extends Exchange {
         if (marketType === 'swap') {
             response = await this.v4PrivatePostCollateralAccountBalance (paramsMarketType);
         } else {
-            const options = this.safeDict (this.options, 'fetchBalance', {});
-            const defaultAccount = this.safeString (options, 'account');
+            const defaultAccount = this.safeString (this.options['fetchBalance'], 'account');
             const account = this.safeString2 (paramsMarketType, 'account', 'type', defaultAccount);
             const paramsOmitted: Dict = this.omit (paramsMarketType, [ 'account', 'type' ]);
             if (account === 'main' || account === 'funding') {
@@ -3084,9 +3083,8 @@ export default class whitebit extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        const accountsByType = this.safeDict (this.options, 'accountsByType');
-        const fromAccountId = this.safeString (accountsByType, fromAccount, fromAccount);
-        const toAccountId = this.safeString (accountsByType, toAccount, toAccount);
+        const fromAccountId = this.safeString (this.options['accountsByType'], fromAccount, fromAccount);
+        const toAccountId = this.safeString (this.options['accountsByType'], toAccount, toAccount);
         const amountString = this.currencyToPrecision (code, amount);
         const request: Dict = {
             'ticker': currency['id'],
