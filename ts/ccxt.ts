@@ -200,6 +200,7 @@ import hollaexPro from  './src/pro/hollaex.js'
 import htxPro from  './src/pro/htx.js'
 import hyperliquidPro from  './src/pro/hyperliquid.js'
 import independentreservePro from  './src/pro/independentreserve.js'
+import interactivebrokersPro from  './src/pro/interactivebrokers.js'
 import krakenPro from  './src/pro/kraken.js'
 import krakenfuturesPro from  './src/pro/krakenfutures.js'
 import kucoinPro from  './src/pro/kucoin.js'
@@ -394,6 +395,7 @@ const pro = {
     'htx':                    htxPro,
     'hyperliquid':            hyperliquidPro,
     'independentreserve':     independentreservePro,
+    'interactivebrokers':     interactivebrokersPro,
     'kraken':                 krakenPro,
     'krakenfutures':          krakenfuturesPro,
     'kucoin':                 kucoinPro,
