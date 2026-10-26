@@ -103,7 +103,6 @@ export default class coincheck extends coincheckRest {
             orderbook = this.orderBook (snapshot);
             this.orderbooks[symbol] = orderbook;
         } else {
-            orderbook = this.orderbooks[symbol];
             orderbook.reset (snapshot);
         }
         const messageHash = 'orderbook:' + symbol;
