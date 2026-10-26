@@ -996,7 +996,7 @@ export default class bitvavo extends Exchange {
         const taker = this.safeNumber (feesValue, 'taker');
         const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+            const symbol = this.safeString (this.symbols, i, '');
             result[symbol] = {
                 'info': fees,
                 'symbol': symbol,
@@ -1129,12 +1129,12 @@ export default class bitvavo extends Exchange {
             const sinceLimit: Int = (limit === undefined) ? 1440 : Math.min (limit, 1440);
             request['end'] = this.sum (since, sinceLimit * duration * 1000);
         }
-        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, params);
         if (limit !== undefined) {
-            requestUntil['limit'] = Math.min (limit, 1440); // default 1440, max 1440
+            request['limit'] = Math.min (limit, 1440); // default 1440, max 1440
         } else if (since !== undefined) {
-            requestUntil['limit'] = 1440;
+            request['limit'] = 1440;
         }
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, params);
         return this.extend (requestUntil, paramsUntil);
     }
 
@@ -2691,7 +2691,7 @@ export default class bitvavo extends Exchange {
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');
         if (getOrDelete) {
-            if (Object.keys (query).length > 0) {
+            if (!this.isEmpty (query)) {
                 url += '?' + this.urlencode (query);
             }
         }
@@ -2699,7 +2699,7 @@ export default class bitvavo extends Exchange {
             this.checkRequiredCredentials ();
             let payload = '';
             if (!getOrDelete) {
-                if (Object.keys (query).length > 0) {
+                if (!this.isEmpty (query)) {
                     payload = this.json (query);
                     requestBody = payload;
                 }

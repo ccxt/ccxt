@@ -801,7 +801,7 @@ export default class bitvavo extends bitvavoRest {
         if (orderbook === undefined) {
             return;
         }
-        if (orderbook['nonce'] === undefined) {
+        if (this.safeInteger (orderbook, 'nonce') === undefined) {
             const subscription = this.safeValue (client.subscriptions, messageHash, {});
             // multi-symbol watches share one subscription object, so the
             // snapshot-in-flight flag must be tracked per market
@@ -970,7 +970,7 @@ export default class bitvavo extends bitvavoRest {
             if (!key.startsWith ('unsubscribe:')) {
                 continue;
             }
-            const subscription = client.subscriptions[key];
+            const subscription = this.safeValue (client.subscriptions, key);
             const subHash = key.replace ('unsubscribe:', '');
             this.cleanCache (subscription);
             this.cleanUnsubscription (client, subHash, key);
