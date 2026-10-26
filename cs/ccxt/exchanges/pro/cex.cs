@@ -47,7 +47,7 @@ public partial class cex : ccxt.cex
         });
     }
 
-    public virtual object requestId()
+    public virtual string? requestId()
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
@@ -68,8 +68,8 @@ public partial class cex : ccxt.cex
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        string messageHash = ((string)this.requestId());
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string messageHash = this.requestId();
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "e", "get-balance" },
             { "data", new Dictionary<string, object>() {} },
@@ -158,7 +158,7 @@ public partial class cex : ccxt.cex
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         string messageHash = "trades";
         string subscriptionHash = ("old:" + symbolValue);
         WebSocketClient client = ((WebSocketClient)this.safeValue(this.clients, url));
@@ -179,9 +179,11 @@ public partial class cex : ccxt.cex
                 }
             }
         }
+        string? baseId = ((string)(market.ContainsKey("base") ? market["base"] : null));
+        string? quoteId = ((string)(market.ContainsKey("quote") ? market["quote"] : null));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "e", "subscribe" },
-            { "rooms", new List<object>() {((("pair-" + ((market.ContainsKey("base") ? market["base"] : null))) + "-") + ((market.ContainsKey("quote") ? market["quote"] : null)))} },
+            { "rooms", new List<object>() {((("pair-" + baseId) + "-") + quoteId)} },
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         object trades = await this.watch(url, messageHash, request, subscriptionHash);
@@ -204,7 +206,7 @@ public partial class cex : ccxt.cex
         this.handleTradesInner(client, message);
     }
 
-    public virtual Dictionary<string, object> parseWsOldTrade(object trade, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsOldTrade(object trade, IDictionary<string, object>? market = null)
     {
         //
         //  snapshot trade
@@ -300,7 +302,7 @@ public partial class cex : ccxt.cex
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         string messageHash = ("ticker:" + symbolValue);
         string? method = this.safeString(parameters, "method", "private"); // default to private because the specified ticker is received quicker
         Dictionary<string, object> message = new Dictionary<string, object>() {
@@ -339,7 +341,7 @@ public partial class cex : ccxt.cex
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         string messageHash = "tickers";
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "e", "subscribe" },
@@ -347,7 +349,7 @@ public partial class cex : ccxt.cex
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         object ticker = await this.watch(url, messageHash, request, messageHash);
-        object tickerSymbol = getValue(ticker, "symbol");
+        string? tickerSymbol = this.safeString(ticker, "symbol");
         if ((symbolsNormalized != null) && !this.inArray(tickerSymbol, symbolsNormalized))
         {
             return await this.WatchTickers(symbolsNormalized, parameters);
@@ -355,7 +357,10 @@ public partial class cex : ccxt.cex
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            result[(string)tickerSymbol] = ticker;
+            if ((tickerSymbol != null))
+            {
+                result[(string)tickerSymbol] = ticker;
+            }
             return ccxt.BaseExchange.ToTickers(result);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
@@ -378,8 +383,8 @@ public partial class cex : ccxt.cex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
-        string messageHash = ((string)this.requestId());
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
+        string messageHash = this.requestId();
         Dictionary<string, object> request = this.extend(new Dictionary<string, object>() {
             { "e", "ticker" },
             { "oid", messageHash },
@@ -420,7 +425,7 @@ public partial class cex : ccxt.cex
         }
     }
 
-    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         //
         //  public
@@ -504,8 +509,8 @@ public partial class cex : ccxt.cex
             await this.loadMarkets();
         }
         await this.authenticate();
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
-        string messageHash = ((string)this.requestId());
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
+        string messageHash = this.requestId();
         Dictionary<string, object> request = this.extend(new Dictionary<string, object>() {
             { "e", "get-balance" },
             { "oid", messageHash },
@@ -536,7 +541,7 @@ public partial class cex : ccxt.cex
             await this.loadMarkets();
         }
         await this.authenticate(parameters);
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orders:" + symbolValue);
@@ -580,10 +585,11 @@ public partial class cex : ccxt.cex
             await this.loadMarkets();
         }
         await this.authenticate(parameters);
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = ("myTrades:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        string subscriptionHash = ("orders:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("myTrades:" + symbolValue);
+        string subscriptionHash = ("orders:" + symbolValue);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "e", "open-orders" },
             { "data", new Dictionary<string, object>() {
@@ -653,16 +659,16 @@ public partial class cex : ccxt.cex
         //         }
         //     }
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        ccxt.pro.ArrayCache stored = this.myTrades;
-        if ((stored == null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
-            stored = new ArrayCacheBySymbolById(limit);
-            this.myTrades = stored;
+            this.myTrades = new ArrayCacheBySymbolById(limit);
         }
+        ccxt.pro.ArrayCache stored = this.myTrades;
         ccxt.Trade trade = this.parseWsTrade(data);
         stored.append(ccxt.BaseExchange.FromTrade(trade));
-        string messageHash = ("myTrades:" + ((((object)trade.symbol))));
+        string? tradeSymbol = this.safeString(ccxt.BaseExchange.FromTrade(trade), "symbol", "");
+        string messageHash = ("myTrades:" + tradeSymbol);
         client.resolve(stored, messageHash);
     }
 
@@ -870,7 +876,7 @@ public partial class cex : ccxt.cex
         client.resolve(storedOrders, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsOrderUpdate(IDictionary<string, object> order, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsOrderUpdate(IDictionary<string, object> order, IDictionary<string, object>? market = null)
     {
         //
         //      {
@@ -1008,7 +1014,7 @@ public partial class cex : ccxt.cex
 
     public virtual string? currencyFromPrecision(object currency, object amount)
     {
-        Int64? scale = this.safeInteger(getValue(this.currencies, currency), "precision", 0);
+        Int64? scale = this.safeInteger((this.currenciesDict != null && currency != null && this.currenciesDict.ContainsKey((string)currency) ? this.currenciesDict[(string)currency] : null), "precision", 0);
         return this.fromPrecision(amount, scale);
     }
 
@@ -1029,14 +1035,14 @@ public partial class cex : ccxt.cex
         //         "ok": "ok"
         //     }
         //
-        string? symbol = this.safeString(message, "oid"); // symbol is set as requestId in watchOrders
+        string? symbol = this.safeString(message, "oid", ""); // symbol is set as requestId in watchOrders
         List<object> rawOrders = this.safeList(message, "data", new List<object>() {});
-        ccxt.pro.ArrayCache myOrders = this.orders;
-        if ((myOrders == null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
-            myOrders = new ArrayCacheBySymbolById(limit);
+            this.orders = new ArrayCacheBySymbolById(limit);
         }
+        ccxt.pro.ArrayCache myOrders = this.orders;
         for (int i = 0; i < rawOrders.Count; i++)
         {
             IDictionary<string, object> rawOrder = ((IDictionary<string, object>)rawOrders[i]);
@@ -1045,7 +1051,6 @@ public partial class cex : ccxt.cex
             order.status = ccxt.BaseExchange.StructString("open");
             myOrders.append(ccxt.BaseExchange.FromOrder(order));
         }
-        this.orders = myOrders;
         string messageHash = ("orders:" + symbol);
         int ordersLength = (myOrders?.Count ?? 0);
         if (ordersLength > 0)
@@ -1074,7 +1079,7 @@ public partial class cex : ccxt.cex
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         string messageHash = ("orderbook:" + symbolValue);
         Int64? depth = ((limit == null)) ? 0 : limit;
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -1088,7 +1093,7 @@ public partial class cex : ccxt.cex
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, request, messageHash));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual void handleOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message)
@@ -1184,7 +1189,7 @@ public partial class cex : ccxt.cex
         ccxt.pro.IOrderBook storedOrderBook = this.safeOrderBook(this.orderbooks, symbol);
         string messageHash = ("orderbook:" + symbol);
         Int64? nonce = this.safeInteger(storedOrderBook, "nonce");
-        if (((nonce == null)) || (!(incrementalId == (nonce + 1))))
+        if (((nonce == null)) || ((nonce + 1 != incrementalId)))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             var error = new InvalidNonce((this.id + " watchOrderBook() skipped a message"));
@@ -1240,11 +1245,13 @@ public partial class cex : ccxt.cex
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("ohlcv:" + symbolValue);
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
+        string? baseId = this.safeString(market, "baseId", "");
+        string? quoteId = this.safeString(market, "quoteId", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "e", "init-ohlcv" },
             { "i", timeframeVar },
-            { "rooms", new List<object>() {((("pair-" + ((market.ContainsKey("baseId") ? market["baseId"] : null))) + "-") + ((market.ContainsKey("quoteId") ? market["quoteId"] : null)))} },
+            { "rooms", new List<object>() {((("pair-" + baseId) + "-") + quoteId)} },
         };
         object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         Int64? limitResolved = limit;
@@ -1417,8 +1424,8 @@ public partial class cex : ccxt.cex
         Dictionary<string, object> data = this.extend(new Dictionary<string, object>() {
             { "order_id", id.ToString() },
         }, parameters);
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
-        string messageHash = ((string)this.requestId());
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
+        string messageHash = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "e", "get-order" },
             { "oid", messageHash },
@@ -1452,8 +1459,8 @@ public partial class cex : ccxt.cex
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbol);
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
-        string messageHash = ((string)this.requestId());
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
+        string messageHash = this.requestId();
         Dictionary<string, object> data = this.extend(new Dictionary<string, object>() {
             { "pair", new List<object>() {(market.ContainsKey("baseId") ? market["baseId"] : null), (market.ContainsKey("quoteId") ? market["quoteId"] : null)} },
         }, parameters);
@@ -1493,8 +1500,8 @@ public partial class cex : ccxt.cex
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbol);
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
-        string messageHash = ((string)this.requestId());
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
+        string messageHash = this.requestId();
         Dictionary<string, object> data = this.extend(new Dictionary<string, object>() {
             { "pair", new List<object>() {(market.ContainsKey("baseId") ? market["baseId"] : null), (market.ContainsKey("quoteId") ? market["quoteId"] : null)} },
             { "amount", amount },
@@ -1548,8 +1555,8 @@ public partial class cex : ccxt.cex
             { "price", price },
             { "order_id", id },
         }, parameters);
-        string messageHash = ((string)this.requestId());
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string messageHash = this.requestId();
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "e", "cancel-replace-order" },
             { "oid", messageHash },
@@ -1585,8 +1592,8 @@ public partial class cex : ccxt.cex
         Dictionary<string, object> data = this.extend(new Dictionary<string, object>() {
             { "order_id", id },
         }, parameters);
-        string messageHash = ((string)this.requestId());
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string messageHash = this.requestId();
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "e", "cancel-order" },
             { "oid", messageHash },
@@ -1618,11 +1625,11 @@ public partial class cex : ccxt.cex
             await this.loadMarkets();
         }
         await this.authenticate();
-        string messageHash = ((string)this.requestId());
+        string messageHash = this.requestId();
         Dictionary<string, object> data = this.extend(new Dictionary<string, object>() {
             { "cancel-orders", ids },
         }, parameters);
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "e", "mass-cancel-place-orders" },
             { "oid", messageHash },
@@ -1691,7 +1698,7 @@ public partial class cex : ccxt.cex
         } catch(Exception error)
         {
             string? messageHash = this.safeString(message, "oid");
-            var future = this.safeValue(getValue(client, "futures"), messageHash);
+            Future future = ((Future)this.safeValue(client.futures, messageHash));
             if ((future != null))
             {
                 client.reject(error, messageHash);
@@ -1764,7 +1771,7 @@ public partial class cex : ccxt.cex
     public async virtual Task<object> authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture("authenticated");

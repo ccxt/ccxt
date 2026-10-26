@@ -436,13 +436,13 @@ public partial class kalshi : PredictionExchange
                                 { "markets", new List<object>() {} },
                             };
                         }
-                        object eventEntry = (eventKey != null && eventsDict.ContainsKey(eventKey) ? eventsDict[eventKey] : null);
+                        IDictionary<string, object> eventEntry = ((IDictionary<string, object>)(eventKey != null && eventsDict.ContainsKey(eventKey) ? eventsDict[eventKey] : null));
                         // push through a local and write the slice back — the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array, so a
                         // direct push on eventEntry['markets'] loses the element in go
-                        object entryMarkets = getValue(eventEntry, "markets");
+                        object entryMarkets = (eventEntry != null && eventEntry.ContainsKey("markets") ? eventEntry["markets"] : null);
                         ((IList<object>)entryMarkets).Add(m);
-                        ((IDictionary<string,object>)eventEntry)["markets"] = entryMarkets;
+                        eventEntry["markets"] = entryMarkets;
                     }
                 }
             }
@@ -573,13 +573,13 @@ public partial class kalshi : PredictionExchange
      * @param {string[]} outcomeSymbols kalshi tickers (optionally with a '-NO' suffix) or outcome handles
      * @returns {object} the outcome cache
      */
-    public async override Task<Dictionary<string, object>> FetchOutcomes(object outcomeSymbols)
+    public async override Task<Dictionary<string, object>> FetchOutcomes(IList<object> outcomeSymbols)
     {
         List<object> tickers = new List<object>() {};
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(outcomeSymbols); i++)
+        for (int i = 0; i < (outcomeSymbols?.Count ?? 0); i++)
         {
-            object outcomeSymbol = getValue(outcomeSymbols, i);
+            object outcomeSymbol = (outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null);
             if (getIndexOf(outcomeSymbol, ":") >= 0)
             {
                 continue;
@@ -630,17 +630,17 @@ public partial class kalshi : PredictionExchange
                 this.indexMarketOutcomes(parsed);
             }
         }
-        for (int i = 0; i < getArrayLength(outcomeSymbols); i++)
+        for (int i = 0; i < (outcomeSymbols?.Count ?? 0); i++)
         {
-            if (!this.hasOutcome(getValue(outcomeSymbols, i)))
+            if (!this.hasOutcome((outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null)))
             {
-                ccxt.BaseExchange.FromDict(await this.FetchOutcome(getValue(outcomeSymbols, i)));
+                await this.FetchOutcome((outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null));
             }
         }
         return ccxt.BaseExchange.ToDict(this.outcomes);
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
         // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
@@ -660,7 +660,7 @@ public partial class kalshi : PredictionExchange
         }
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
-        if (isEqual(code, 400))
+        if ((code == 400))
         {
             string feedback = ((this.id + " ") + (body));
             throw new BadRequest (feedback) ;
@@ -837,7 +837,7 @@ public partial class kalshi : PredictionExchange
         }
         // effectively-final copy for the market object literal below (reassigned in the loop)
         string? marketResolvedOutcome = resolvedOutcome;
-        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "id", ticker },
             { "market", marketSymbol },
             { "base", "USD" },
@@ -901,7 +901,7 @@ public partial class kalshi : PredictionExchange
                 { "openInterest", openInt },
             }) },
             { "created", null },
-        });
+        };
     }
 
     /**
@@ -1369,7 +1369,7 @@ public partial class kalshi : PredictionExchange
      * @param {object[]} asks array of [price, size] ask levels
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public virtual object sortedOrders(string? outcome, object timestamp, object bids, object asks)
+    public virtual object sortedOrders(string? outcome, object timestamp, IList<object> bids, IList<object> asks)
     {
         // Sort bids descending, asks ascending, match CCXT OrderBook shape
         List<object> bidsValue = this.sortBy(bids, 0, true);
@@ -1724,17 +1724,17 @@ public partial class kalshi : PredictionExchange
      * @param {object} [market] a resolved outcome/market hint
      * @returns {object} a unified trade structure
      */
-    public virtual object parseMyTrade(object fill, IDictionary<string, object> market = null)
+    public virtual object parseMyTrade(object fill, IDictionary<string, object>? market = null)
     {
         string? id = this.safeString2(fill, "fill_id", "trade_id");
         string? orderId = this.safeString(fill, "order_id");
-        object ticker = this.safeString2(fill, "ticker", "market_ticker");
+        string? ticker = this.safeString2(fill, "ticker", "market_ticker");
         // the leg the fill executed on ('yes' | 'no'); NO is addressed as <ticker>-NO
         string? sideLeg = this.safeStringLower(fill, "side");
         object outcomeKey = ticker;
         if ((sideLeg == "no") && ((ticker != null)))
         {
-            outcomeKey = add(ticker, "-NO");
+            outcomeKey = (ticker + "-NO");
         }
         IDictionary<string, object> mkt = this.safeOutcome(outcomeKey, market);
         Int64? ts = this.parse8601(this.safeString(fill, "created_time"));
@@ -1959,7 +1959,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [market] a resolved outcome/market hint
      * @returns {object} a prediction settlement structure
      */
-    public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object>? market = null)
     {
         object ticker = this.safeString(settlement, "ticker");
         // the leg the user actually held (kalshi reports separate yes/no counts + costs)
@@ -2175,7 +2175,7 @@ public partial class kalshi : PredictionExchange
         // kalshi's status filter takes a single value (resting|executed|canceled); "closed" spans
         // both executed and canceled, so fetch every order and keep the non-open ones client-side
         parameters ??= new Dictionary<string, object>();
-        List<object> orders = ccxt.BaseExchange.FromPredictionOrderList(await this.FetchOrders(outcome,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), parameters));
+        List<object> orders = ccxt.BaseExchange.FromPredictionOrderList(await this.FetchOrders(outcome, null, null, parameters));
         List<object> result = new List<object>() {};
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
@@ -2226,14 +2226,14 @@ public partial class kalshi : PredictionExchange
     public override Dictionary<string, object> parsePredictionOrder(object order, object market = null)
     {
         string? id = this.safeString(order, "order_id");
-        object ticker = this.safeString(order, "ticker");
+        string? ticker = this.safeString(order, "ticker");
         // a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no');
         // the bare ticker is the YES outcome's id, the NO leg is addressed as `<ticker>-NO`
         string? sideLeg = this.safeStringLower(order, "side");
         object outcomeKey = ticker;
         if ((sideLeg == "no") && ((ticker != null)))
         {
-            outcomeKey = add(ticker, "-NO");
+            outcomeKey = (ticker + "-NO");
         }
         IDictionary<string, object> mkt = this.safeOutcome(outcomeKey, market);
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
@@ -2471,7 +2471,7 @@ public partial class kalshi : PredictionExchange
         }
         await this.loadOutcome(outcome);
         ccxt.BaseExchange.FromPredictionOrder(await this.CancelOrder(id,outcome));
-        return await this.CreateOrder(outcome,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
+        return await this.CreateOrder(outcome,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount), price, parameters);
     }
 
     /**
@@ -2620,11 +2620,11 @@ public partial class kalshi : PredictionExchange
         if (queriesLength > 0)
         {
             // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
-            rawEvents = ccxt.BaseExchange.FromDictList(await this.FetchEventsByQuery(queries,ccxt.BaseExchange.ToInt64Arg(fetchCap), rest));
+            rawEvents = ccxt.BaseExchange.FromDictList(await this.FetchEventsByQuery(queries, fetchCap, rest));
         } else if ((eventId != null))
         {
             // kalshi's event id (and slug) is the event_ticker — fetch it directly
-            Dictionary<string, object> fullEvent = ccxt.BaseExchange.FromDict(await this.FetchRawEventByTicker(eventId, rest));
+            Dictionary<string, object> fullEvent = await this.FetchRawEventByTicker(eventId, rest);
             rawEvents = new List<object>() {fullEvent};
         } else
         {
@@ -2715,7 +2715,7 @@ public partial class kalshi : PredictionExchange
             }
             try
             {
-                Dictionary<string, object> fullEvent = ccxt.BaseExchange.FromDict(await this.FetchRawEventByTicker((eventTickers != null && ei < eventTickers.Count ? eventTickers[ei] : null), rest));
+                Dictionary<string, object> fullEvent = await this.FetchRawEventByTicker((eventTickers != null && ei < eventTickers.Count ? eventTickers[ei] : null), rest);
                 rawEvents.Add(fullEvent);
             } catch(Exception e)
             {
@@ -2752,7 +2752,7 @@ public partial class kalshi : PredictionExchange
         {
             fullEvent["markets"] = this.safeList(response, "markets", new List<object>() {});
         }
-        return ccxt.BaseExchange.ToDict(fullEvent);
+        return fullEvent;
     }
 
     /**
@@ -2920,7 +2920,7 @@ public partial class kalshi : PredictionExchange
     public async override Task<ccxt.PredictionEvent> FetchEvent(string id, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        Dictionary<string, object> fullEvent = ccxt.BaseExchange.FromDict(await this.FetchRawEventByTicker(id, parameters));
+        Dictionary<string, object> fullEvent = await this.FetchRawEventByTicker(id, parameters);
         Dictionary<string, object> eventVar = this.parseEvent(fullEvent);
         this.indexEventOutcomes(eventVar);
         return ccxt.BaseExchange.ToPredictionEvent(eventVar);
@@ -3107,14 +3107,14 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] request parameters
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiGroup = getValue(api, 0);
+        string? apiGroup = ((string)(api != null && 0 < api.Count ? api[0] : null));
         string? access = this.safeString(api, 1, "public");
-        object baseUrls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
+        object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
         object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "kalshi"));
         string? implodedPath = this.implodeParams(path, parameters);
         object url = add(add(baseUrl, "/"), implodedPath);
@@ -3138,9 +3138,9 @@ public partial class kalshi : PredictionExchange
             // INCLUDING the /trade-api/v2 prefix and any path params substituted in, but NOT
             // the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
             int tradeApiIndex = getIndexOf(baseUrl, "/trade-api");
-            object versionPrefix = slice(baseUrl, tradeApiIndex, null);
+            object versionPrefix = ((baseUrl == null) ? null : ((string)baseUrl).Substring(Math.Max(Math.Min((tradeApiIndex < 0 ? ((string)baseUrl).Length + (tradeApiIndex) : tradeApiIndex), ((string)baseUrl).Length), 0)));
             string? pathForSigning = ((string)add(add(versionPrefix, "/"), implodedPath));
-            string? payload = ((string)((timestamp + method) + pathForSigning));
+            string payload = ((timestamp + method) + pathForSigning);
             // RSA-PSS SHA-256 signature with the private key PEM
             List<object> keyParts = this.privateKey.Split(new [] {"\\n"}, StringSplitOptions.None).ToList<object>();
             string cleanPrivateKey = String.Join("\n", keyParts.ToArray());

@@ -69,19 +69,18 @@ public partial class bitstamp : ccxt.bitstamp
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = ("orderbook:" + symbolValue);
-        string channel = ("diff_order_book_" + ((market.ContainsKey("id") ? market["id"] : null)));
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "bts:subscribe" },
             { "data", new Dictionary<string, object>() {
-                { "channel", channel },
+                { "channel", ("diff_order_book_" + this.safeString(market, "id", "")) },
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, message, messageHash));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     /**
@@ -101,8 +100,8 @@ public partial class bitstamp : ccxt.bitstamp
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string channel = ("diff_order_book_" + ((market.ContainsKey("id") ? market["id"] : null)));
+        string? symbolValue = this.safeString(market, "symbol", "");
+        string channel = ("diff_order_book_" + this.safeString(market, "id", ""));
         string subHash = ("orderbook:" + symbolValue);
         return await this.unWatchChannel(channel, subHash, "orderbook", new List<object>() {symbolValue}, parameters);
     }
@@ -121,7 +120,7 @@ public partial class bitstamp : ccxt.bitstamp
     public async virtual Task<object> unWatchChannel(object channel, object subHash, object topic, object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         string unsubHash = ("unsubscribe:" + (channel));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "bts:unsubscribe" },
@@ -181,11 +180,11 @@ public partial class bitstamp : ccxt.bitstamp
         string messageHash = ("orderbook:" + symbol);
         if ((nonce == null))
         {
-            int cacheLength = ((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0);
+            Int64? cacheLength = this.parseToInt(((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0));
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
-            object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 6);
-            if (isEqual(cacheLength, snapshotDelay))
+            Int64? snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", 6));
+            if ((cacheLength == snapshotDelay))
             {
                 this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, null, new Dictionary<string, object>() {}});
             }
@@ -207,10 +206,8 @@ public partial class bitstamp : ccxt.bitstamp
         orderbook["nonce"] = this.safeInteger(delta, "microtimestamp");
         List<object> bids = this.safeList(delta, "bids", new List<object>() {});
         List<object> asks = this.safeList(delta, "asks", new List<object>() {});
-        ccxt.pro.IBids storedBids = orderbook?.bids;
-        ccxt.pro.IAsks storedAsks = orderbook?.asks;
-        this.handleBidAsks(storedBids, bids);
-        this.handleBidAsks(storedAsks, asks);
+        this.handleBidAsks(orderbook?.bids, bids);
+        this.handleBidAsks(orderbook?.asks, asks);
     }
 
     public virtual void handleBidAsks(object bookSide, IList<object> bidAsks)
@@ -266,14 +263,13 @@ public partial class bitstamp : ccxt.bitstamp
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = ("trades:" + symbolValue);
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
-        string channel = ("live_trades_" + ((market.ContainsKey("id") ? market["id"] : null)));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "bts:subscribe" },
             { "data", new Dictionary<string, object>() {
-                { "channel", channel },
+                { "channel", ("live_trades_" + this.safeString(market, "id", "")) },
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
@@ -303,8 +299,8 @@ public partial class bitstamp : ccxt.bitstamp
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string channel = ("live_trades_" + ((market.ContainsKey("id") ? market["id"] : null)));
+        string? symbolValue = this.safeString(market, "symbol", "");
+        string channel = ("live_trades_" + this.safeString(market, "id", ""));
         string subHash = ("trades:" + symbolValue);
         return await this.unWatchChannel(channel, subHash, "trades", new List<object>() {symbolValue}, parameters);
     }
@@ -417,14 +413,13 @@ public partial class bitstamp : ccxt.bitstamp
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = ("fundingRate:" + symbolValue);
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
-        string channel = ("funding_rate_" + ((market.ContainsKey("id") ? market["id"] : null)));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "bts:subscribe" },
             { "data", new Dictionary<string, object>() {
-                { "channel", channel },
+                { "channel", ("funding_rate_" + this.safeString(market, "id", "")) },
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
@@ -486,14 +481,13 @@ public partial class bitstamp : ccxt.bitstamp
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string channel = "private-my_orders";
-        string messageHash = ((channel + "_") + ((market.ContainsKey("id") ? market["id"] : null)));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolValue },
             { "limit", limit },
             { "type", channel },
             { "params", parameters },
         };
-        object orders = await this.subscribePrivate(subscription, messageHash, parameters);
+        object orders = await this.subscribePrivate(subscription, ((channel + "_") + this.safeString(market, "id", "")), parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
@@ -530,7 +524,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             throw new AuthenticationError ((this.id + " unWatchOrders() requires a userId from authenticate()")) ;
         }
-        string channel = ((("private-my_orders_" + ((market.ContainsKey("id") ? market["id"] : null))) + "-") + userId);
+        string channel = ((("private-my_orders_" + this.safeString(market, "id", "")) + "-") + userId);
         return await this.unWatchChannel(channel, channel, "orders", new List<object>() {symbolValue}, parameters);
     }
 
@@ -559,7 +553,7 @@ public partial class bitstamp : ccxt.bitstamp
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string channel = "private-my_trades";
-        string messageHash = ((channel + "_") + ((market.ContainsKey("id") ? market["id"] : null)));
+        string messageHash = ((channel + "_") + this.safeString(market, "id", ""));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolValue },
             { "limit", limit },
@@ -603,7 +597,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             throw new AuthenticationError ((this.id + " unWatchMyTrades() requires a userId from authenticate()")) ;
         }
-        string channel = ((("private-my_trades_" + ((market.ContainsKey("id") ? market["id"] : null))) + "-") + userId);
+        string channel = ((("private-my_trades_" + this.safeString(market, "id", "")) + "-") + userId);
         return await this.unWatchChannel(channel, channel, "myTrades", new List<object>() {symbolValue}, parameters);
     }
 
@@ -649,7 +643,7 @@ public partial class bitstamp : ccxt.bitstamp
         client.resolve(stored, channel);
     }
 
-    public virtual Dictionary<string, object> parseWsMyTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsMyTrade(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -1164,7 +1158,7 @@ public partial class bitstamp : ccxt.bitstamp
     public async virtual Task<object> subscribePrivate(IDictionary<string, object> subscription, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         await this.authenticate();
         string? userId = this.safeString(this.options, "userId");
         if ((userId == null))

@@ -112,7 +112,7 @@ public partial class deepcoin : ccxt.deepcoin
     {
         suffix ??= "";
         unWatch ??= false;
-        string? marketId = this.safeString(market, "symbol"); // spot markets use symbol with slash
+        string? marketId = this.safeString(market, "symbol", ""); // spot markets use symbol with slash
         if ((this.safeString(market, "type") == "swap"))
         {
             marketId = (this.safeString(market, "baseId", "") + this.safeString(market, "quoteId", "")); // swap markets use symbol without slash
@@ -138,7 +138,8 @@ public partial class deepcoin : ccxt.deepcoin
     {
         parameters ??= new Dictionary<string, object>();
         suffix ??= "";
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), (market != null && market.ContainsKey("type") ? market["type"] : null));
+        string? marketType = this.safeString(market, "type", "");
+        string? url = this.safeString((this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null), marketType, "");
         Int64 requestId = this.requestId();
         Dictionary<string, object> request = this.createPublicRequest(market, requestId, topicID, suffix);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -153,7 +154,8 @@ public partial class deepcoin : ccxt.deepcoin
         parameters ??= new Dictionary<string, object>();
         subscription ??= new Dictionary<string, object>();
         suffix ??= "";
-        object url = getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), (market != null && market.ContainsKey("type") ? market["type"] : null));
+        string? marketType = this.safeString(market, "type", "");
+        string? url = this.safeString((this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null), marketType, "");
         Int64 requestId = this.requestId();
         var client = this.client(url);
         IDictionary<string, object> existingSubscription = this.safeDict(client.subscriptions, messageHash);
@@ -177,8 +179,7 @@ public partial class deepcoin : ccxt.deepcoin
     {
         parameters ??= new Dictionary<string, object>();
         string? listenKey = await this.authenticate();
-        string url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private") + "?listenKey=") + listenKey);
-        return await this.watch(url, messageHash, null, "private", parameters);
+        return await this.watch(((this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private", "") + "?listenKey=") + listenKey), messageHash, null, "private", parameters);
     }
 
     public async virtual Task<string?> authenticate(IDictionary<string, object>? parameters = null)
@@ -271,7 +272,7 @@ public partial class deepcoin : ccxt.deepcoin
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = (("ticker" + "::") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string messageHash = (("ticker" + "::") + this.safeString(market, "symbol", ""));
         return ccxt.BaseExchange.ToTicker(await this.watchPublic(market, messageHash, "7", parameters));
     }
 
@@ -292,7 +293,7 @@ public partial class deepcoin : ccxt.deepcoin
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = (("ticker" + "::") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string messageHash = (("ticker" + "::") + this.safeString(market, "symbol", ""));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "topic", "ticker" },
         };
@@ -343,7 +344,7 @@ public partial class deepcoin : ccxt.deepcoin
         client.resolve(ccxt.BaseExchange.FromTicker(parsedTicker), messageHash);
     }
 
-    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -425,7 +426,7 @@ public partial class deepcoin : ccxt.deepcoin
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = (("trades" + "::") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string messageHash = (("trades" + "::") + this.safeString(market, "symbol", ""));
         object trades = await this.watchPublic(market, messageHash, "2", parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
@@ -452,7 +453,7 @@ public partial class deepcoin : ccxt.deepcoin
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = (("trades" + "::") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string messageHash = (("trades" + "::") + this.safeString(market, "symbol", ""));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "topic", "trades" },
         };
@@ -606,7 +607,7 @@ public partial class deepcoin : ccxt.deepcoin
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? interval = this.safeString(timeframes, timeframeVar, timeframeVar);
         string messageHash = (((("ohlcv" + "::") + symbolValue) + "::") + (timeframeVar));
@@ -640,7 +641,7 @@ public partial class deepcoin : ccxt.deepcoin
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? interval = this.safeString(timeframes, timeframeVar, timeframeVar);
         string messageHash = (((("ohlcv" + "::") + symbolValue) + "::") + (timeframeVar));
@@ -741,12 +742,12 @@ public partial class deepcoin : ccxt.deepcoin
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = (("orderbook" + "::") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string messageHash = (("orderbook" + "::") + this.safeString(market, "symbol", ""));
         var suffixparamsValueVariable = this.orderBookSuffix(market, "watchOrderBook", parameters);
         var suffix = suffixparamsValueVariable[0];
         IDictionary<string, object> paramsValue = ((IDictionary<string, object>)suffixparamsValueVariable[1]);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(market, messageHash, "25", paramsValue, suffix));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     /**
@@ -767,7 +768,7 @@ public partial class deepcoin : ccxt.deepcoin
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = (("orderbook" + "::") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string messageHash = (("orderbook" + "::") + this.safeString(market, "symbol", ""));
         var suffixparamsValueVariable = this.orderBookSuffix(market, "unWatchOrderBook", parameters);
         var suffix = suffixparamsValueVariable[0];
         IDictionary<string, object> paramsValue = ((IDictionary<string, object>)suffixparamsValueVariable[1]);
@@ -868,10 +869,8 @@ public partial class deepcoin : ccxt.deepcoin
         Dictionary<string, object> market = this.safeMarket(marketId, null, "/");
         string? symbol = this.safeSymbol(marketId, market);
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        Dictionary<string, object> orderedEntries = new Dictionary<string, object>() {
-            { "bids", new List<object>() {} },
-            { "asks", new List<object>() {} },
-        };
+        List<object> bids = new List<object>() {};
+        List<object> asks = new List<object>() {};
         for (int i = 0; i < entries.Count; i++)
         {
             IDictionary<string, object> entry = this.safeDict(entries, i);
@@ -882,13 +881,17 @@ public partial class deepcoin : ccxt.deepcoin
             if (side == "0")
             {
                 // bid
-                ((IList<object>)orderedEntries["bids"]).Add(new List<object>() {price, volume});
+                bids.Add(new List<object>() {price, volume});
             } else if (side == "1")
             {
                 // ask
-                ((IList<object>)orderedEntries["asks"]).Add(new List<object>() {price, volume});
+                asks.Add(new List<object>() {price, volume});
             }
         }
+        Dictionary<string, object> orderedEntries = new Dictionary<string, object>() {
+            { "bids", bids },
+            { "asks", asks },
+        };
         Int64? timestamp = this.safeInteger(message, "mt", 0);
         ccxt.OrderBook snapshot = this.parseOrderBook(orderedEntries, symbol, timestamp);
         (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
@@ -972,7 +975,7 @@ public partial class deepcoin : ccxt.deepcoin
         string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : null;
         if ((symbolResolved != null))
         {
-            messageHash = messageHash + ("::" + symbolResolved);
+            messageHash = (("myTrades" + "::") + symbolResolved);
         }
         object trades = await this.watchPrivate(messageHash, parameters);
         Int64? limitResolved = limit;
@@ -1060,7 +1063,7 @@ public partial class deepcoin : ccxt.deepcoin
         string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : null;
         if ((symbolResolved != null))
         {
-            messageHash = messageHash + ("::" + symbolResolved);
+            messageHash = (("orders" + "::") + symbolResolved);
         }
         object orders = await this.watchPrivate(messageHash, parameters);
         Int64? limitResolved = limit;
@@ -1225,7 +1228,7 @@ public partial class deepcoin : ccxt.deepcoin
         {
             messageHashes.Add(messageHash);
         }
-        string url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private") + "?listenKey=") + listenKey);
+        string url = ((this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private", "") + "?listenKey=") + listenKey);
         object positions = await this.watchMultiple(url, messageHashes, parameters, new List<object>() {"private"});
         if (this.newUpdates)
         {
@@ -1280,7 +1283,7 @@ public partial class deepcoin : ccxt.deepcoin
         }
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -1430,7 +1433,7 @@ public partial class deepcoin : ccxt.deepcoin
             Dictionary<string, object> subscriptionsById = this.indexBy(client.subscriptions, "id");
             Int64? subId = this.safeInteger(data, "L");
             IDictionary<string, object> subscription = this.safeDict(subscriptionsById, subId, new Dictionary<string, object>() {}); // original watch subscription
-            string? subHash = this.safeString(subscription, "subHash");
+            string? subHash = this.safeString(subscription, "subHash", "");
             string unsubHash = ("unsubscribe::" + subHash);
             IDictionary<string, object> unsubsciption = this.safeDict(client.subscriptions, unsubHash, new Dictionary<string, object>() {}); // unWatch subscription
             this.handleUnSubscription(client, unsubsciption);

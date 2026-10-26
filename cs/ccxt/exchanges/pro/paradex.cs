@@ -47,18 +47,18 @@ public partial class paradex : ccxt.paradex
         });
     }
 
-    public virtual object getWsUrl()
+    public virtual string? getWsUrl()
     {
-        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        object url = (this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null);
         if (!(this.safeBool(this.options, "sbe", true) == true))
         {
-            return url;
+            return ((string?)((object)(url)));
         }
         string? schemaVersion = this.safeString(this.options, "sbeSchemaVersion", "3");
-        return add(add(url, "?sbeSchemaId=1&sbeSchemaVersion="), schemaVersion);
+        return ((string?)((object)(add(add(url, "?sbeSchemaId=1&sbeSchemaVersion="), schemaVersion))));
     }
 
-    public virtual object getOrderBookChannel(object marketId)
+    public virtual string? getOrderBookChannel(object marketId)
     {
         return (("order_book." + (marketId)) + ".snapshot@15@100ms");
     }
@@ -133,14 +133,11 @@ public partial class paradex : ccxt.paradex
         {
             await this.loadMarkets();
         }
-        string messageHash = "trades.";
+        string messageHash = "trades.ALL";
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            messageHash = messageHash + ((market.ContainsKey("id") ? market["id"] : null));
-        } else
-        {
-            messageHash = messageHash + "ALL";
+            messageHash = ("trades." + ((market.ContainsKey("id") ? market["id"] : null)));
         }
         object url = this.getWsUrl();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -220,7 +217,7 @@ public partial class paradex : ccxt.paradex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? messageHash = ((string)this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null)));
+        string? messageHash = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null));
         object url = this.getWsUrl();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -230,7 +227,7 @@ public partial class paradex : ccxt.paradex
             } },
         };
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
@@ -408,16 +405,13 @@ public partial class paradex : ccxt.paradex
         }
         await this.authenticate();
         string messageHash = "orders";
-        string channel = "orders.";
+        string channel = "orders.ALL";
         object symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            channel = channel + ((market.ContainsKey("id") ? market["id"] : null));
-            messageHash = messageHash + (":" + (symbolResolved));
-        } else
-        {
-            channel = channel + "ALL";
+            channel = ("orders." + ((market.ContainsKey("id") ? market["id"] : null)));
+            messageHash = ("orders:" + (symbolResolved));
         }
         object url = this.getWsUrl();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -504,16 +498,13 @@ public partial class paradex : ccxt.paradex
         }
         await this.authenticate();
         string messageHash = "myTrades";
-        string channel = "fills.";
+        string channel = "fills.ALL";
         object symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            channel = channel + ((market.ContainsKey("id") ? market["id"] : null));
-            messageHash = messageHash + (":" + (symbolResolved));
-        } else
-        {
-            channel = channel + "ALL";
+            channel = ("fills." + ((market.ContainsKey("id") ? market["id"] : null)));
+            messageHash = ("myTrades:" + (symbolResolved));
         }
         object url = this.getWsUrl();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -950,7 +941,7 @@ public partial class paradex : ccxt.paradex
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> fundingRate = this.parseFundingRateWs(data);
-        string? symbol = ((string)(fundingRate != null && fundingRate.ContainsKey("symbol") ? fundingRate["symbol"] : null));
+        string? symbol = this.safeString(fundingRate, "symbol");
         this.fundingRates[(string)symbol] = fundingRate;
         string? channel = this.safeString(parameters, "channel");
         // watchFundingRates without symbols waits on the bare channel
@@ -962,7 +953,7 @@ public partial class paradex : ccxt.paradex
         }
     }
 
-    public virtual Dictionary<string, object> parseFundingRateWs(IDictionary<string, object> contract, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseFundingRateWs(IDictionary<string, object> contract, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -1038,14 +1029,14 @@ public partial class paradex : ccxt.paradex
             data = this.parseSbeTrade(frameHex, blockLength, frameLength);
             if ((data != null))
             {
-                channel = ("trades." + ((data != null && data.ContainsKey("market") ? data["market"] : null)));
+                channel = ("trades." + this.safeString(data, "market"));
             }
         } else if ((templateId == 3))
         {
             data = this.parseSbeOrderBook(frameHex, blockLength, frameLength);
             if ((data != null))
             {
-                channel = this.getOrderBookChannel((data != null && data.ContainsKey("market") ? data["market"] : null));
+                channel = this.getOrderBookChannel(this.safeString(data, "market"));
             }
         } else if ((templateId == 4))
         {
@@ -1060,14 +1051,14 @@ public partial class paradex : ccxt.paradex
             data = this.parseSbeOrder(frameHex, blockLength, frameLength);
             if ((data != null))
             {
-                channel = ("orders." + ((data != null && data.ContainsKey("market") ? data["market"] : null)));
+                channel = ("orders." + this.safeString(data, "market"));
             }
         } else if ((templateId == 21))
         {
             data = this.parseSbeFill(frameHex, blockLength, frameLength);
             if ((data != null))
             {
-                channel = ("fills." + ((data != null && data.ContainsKey("market") ? data["market"] : null)));
+                channel = ("fills." + this.safeString(data, "market"));
             }
         } else if ((templateId == 22))
         {
@@ -1115,7 +1106,7 @@ public partial class paradex : ccxt.paradex
         return this.parseToInt(result);
     }
 
-    public virtual object sbeReadInt64(object frameHex, object offset)
+    public virtual string? sbeReadInt64(object frameHex, object offset)
     {
         // a signed int64 as a decimal string, undefined for INT64_MIN which the schema uses as null
         Int64? low = this.parseToInt(this.sbeReadUint(frameHex, offset, 4));
@@ -1136,22 +1127,22 @@ public partial class paradex : ccxt.paradex
         return result;
     }
 
-    public virtual object sbeReadDecimal(object frameHex, object offset)
+    public virtual string? sbeReadDecimal(object frameHex, object offset)
     {
         // prices, sizes and rates are int64 mantissas with a fixed exponent of -8
-        string? mantissa = ((string)this.sbeReadInt64(frameHex, offset));
+        string? mantissa = this.sbeReadInt64(frameHex, offset);
         if ((mantissa == null))
         {
             return null;
         }
-        return Precise.stringDiv(mantissa, "100000000", 8);
+        return ((string?)((object)(Precise.stringDiv(mantissa, "100000000", 8))));
     }
 
     public virtual object sbeReadTimestamp(object frameHex, object offset)
     {
         // timestamps are microseconds, truncated to milliseconds with Precise: a float
         // quotient like 1791906071000.999 is rounded up when php converts it to an int
-        string? microseconds = ((string)this.sbeReadInt64(frameHex, offset));
+        string? microseconds = this.sbeReadInt64(frameHex, offset);
         if ((microseconds == null))
         {
             return null;
@@ -1159,22 +1150,22 @@ public partial class paradex : ccxt.paradex
         return this.parseToInt(Precise.stringDiv(microseconds, "1000", 0));
     }
 
-    public virtual object sbeReadEnum(object frameHex, object offset, IDictionary<string, object> values)
+    public virtual string? sbeReadEnum(object frameHex, object offset, IDictionary<string, object> values)
     {
         Int64? value = this.parseToInt(this.sbeReadUint(frameHex, offset, 1));
         return this.safeString(values, this.numberToString(value));
     }
 
-    public virtual object sbeReadString(object frameHex, object offset, object length)
+    public virtual string? sbeReadString(object frameHex, object offset, object length)
     {
         Int64? first = this.parseToInt(offset);
         Int64? size = this.parseToInt(length);
         Int64? start = (first * 2);
         Int64 end = this.sum(start, (size * 2));
-        return this.binaryToString(this.base16ToBinary(slice(frameHex, start, end)));
+        return ((string?)((object)(this.binaryToString(this.base16ToBinary(slice(frameHex, start, end))))));
     }
 
-    public virtual object sbeReadAddress(object frameHex, object offset)
+    public virtual string? sbeReadAddress(object frameHex, object offset)
     {
         // a 32-byte big-endian account address, printed without leading zeros like the JSON feed
         Int64? first = this.parseToInt(offset);
@@ -1191,14 +1182,15 @@ public partial class paradex : ccxt.paradex
                 break;
             }
         }
-        return ("0x" + slice(raw, start, 64));
+        return ("0x" + ((raw == null) ? null : raw.Substring(Math.Max(Math.Min((start < 0 ? raw.Length + (start) : start), raw.Length), 0), Math.Max(Math.Min(64, raw.Length) - Math.Max(Math.Min((start < 0 ? raw.Length + (start) : start), raw.Length), 0), 0))));
     }
 
     public virtual List<object> sbeReadVarStrings(object frameHex, object offset, object count, object frameLength)
     {
-        // the var-data section: count strings, each prefixed with a uint8 length. Returns undefined
+        // the var-data section: count strings, each prefixed with a uint8 length. Returns an empty list
         // when the frame ends before all of them, and only the strings present when a trailing one is
-        // absent, which is how a field appended to var-data reads on a frame from before it
+        // absent, which is how a field appended to var-data reads on a frame from before it.
+        // Every caller guards on the count it needs, so an empty list and a short one read alike
         List<object> result = new List<object>() {};
         Int64? end = this.parseToInt(frameLength);
         Int64? total = this.parseToInt(count);
@@ -1213,7 +1205,7 @@ public partial class paradex : ccxt.paradex
             Int64? next = this.parseToInt(this.sum(position, 1, length));
             if ((next != null && (end == null || next > end)))
             {
-                return ((List<object>)((object)(null)));
+                return ((List<object>)((object)(new List<object>() {})));
             }
             result.Add(this.sbeReadString(frameHex, (position + 1), length));
             position = next;
@@ -1235,7 +1227,7 @@ public partial class paradex : ccxt.paradex
             return ((Dictionary<string, object>)((object)(null)));
         }
         List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 2, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
+        int stringsLength = (strings?.Count ?? 0);
         if (stringsLength < 1)
         {
             return ((Dictionary<string, object>)((object)(null)));
@@ -1254,7 +1246,7 @@ public partial class paradex : ccxt.paradex
         };
         return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "id", this.safeString(strings, 1) },
-            { "market", (strings != null && 0 < strings.Count ? strings[0] : null) },
+            { "market", this.safeString(strings, 0) },
             { "side", this.sbeReadEnum(frameHex, 32, sides) },
             { "size", this.sbeReadDecimal(frameHex, 41) },
             { "price", this.sbeReadDecimal(frameHex, 33) },
@@ -1310,14 +1302,14 @@ public partial class paradex : ccxt.paradex
             }
         }
         List<object> strings = this.sbeReadVarStrings(frameHex, position, 1, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
+        int stringsLength = (strings?.Count ?? 0);
         if (stringsLength < 1)
         {
             return ((Dictionary<string, object>)((object)(null)));
         }
         return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "seq_no", this.sbeReadInt64(frameHex, 16) },
-            { "market", (strings != null && 0 < strings.Count ? strings[0] : null) },
+            { "market", this.safeString(strings, 0) },
             { "last_updated_at", this.sbeReadTimestamp(frameHex, 8) },
             { "update_type", "s" },
             { "inserts", inserts },
@@ -1342,7 +1334,7 @@ public partial class paradex : ccxt.paradex
             return ((Dictionary<string, object>)((object)(null)));
         }
         List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
+        int stringsLength = (strings?.Count ?? 0);
         if (stringsLength < 1)
         {
             return ((Dictionary<string, object>)((object)(null)));
@@ -1354,7 +1346,7 @@ public partial class paradex : ccxt.paradex
             settlementTwapEstimate = this.sbeReadDecimal(frameHex, 248);
         }
         return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
-            { "symbol", (strings != null && 0 < strings.Count ? strings[0] : null) },
+            { "symbol", this.safeString(strings, 0) },
             { "mark_price", this.sbeReadDecimal(frameHex, 24) },
             { "last_traded_price", this.sbeReadDecimal(frameHex, 40) },
             { "bid", this.sbeReadDecimal(frameHex, 72) },
@@ -1383,13 +1375,13 @@ public partial class paradex : ccxt.paradex
             return ((Dictionary<string, object>)((object)(null)));
         }
         List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
+        int stringsLength = (strings?.Count ?? 0);
         if (stringsLength < 1)
         {
             return ((Dictionary<string, object>)((object)(null)));
         }
         return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
-            { "market", (strings != null && 0 < strings.Count ? strings[0] : null) },
+            { "market", this.safeString(strings, 0) },
             { "funding_index", this.sbeReadDecimal(frameHex, 32) },
             { "funding_premium", this.sbeReadDecimal(frameHex, 48) },
             { "funding_rate", this.sbeReadDecimal(frameHex, 24) },
@@ -1415,7 +1407,7 @@ public partial class paradex : ccxt.paradex
             return ((Dictionary<string, object>)((object)(null)));
         }
         List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 4, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
+        int stringsLength = (strings?.Count ?? 0);
         if (stringsLength < 4)
         {
             return ((Dictionary<string, object>)((object)(null)));
@@ -1456,13 +1448,13 @@ public partial class paradex : ccxt.paradex
         Dictionary<string, object> order = new Dictionary<string, object>() {
             { "account", this.sbeReadAddress(frameHex, 84) },
             { "avg_fill_price", this.sbeReadDecimal(frameHex, 60) },
-            { "client_id", (strings != null && 1 < strings.Count ? strings[1] : null) },
+            { "client_id", this.safeString(strings, 1) },
             { "created_at", this.sbeReadTimestamp(frameHex, 68) },
             { "flags", flags },
-            { "id", (strings != null && 0 < strings.Count ? strings[0] : null) },
+            { "id", this.safeString(strings, 0) },
             { "instruction", this.sbeReadEnum(frameHex, 27, timeInForces) },
             { "last_updated_at", this.sbeReadTimestamp(frameHex, 76) },
-            { "market", (strings != null && 2 < strings.Count ? strings[2] : null) },
+            { "market", this.safeString(strings, 2) },
             { "price", this.sbeReadDecimal(frameHex, 28) },
             { "published_at", this.sbeReadTimestamp(frameHex, 124) },
             { "received_at", this.sbeReadTimestamp(frameHex, 116) },
@@ -1477,24 +1469,25 @@ public partial class paradex : ccxt.paradex
             { "type", this.sbeReadEnum(frameHex, 26, orderTypes) },
         };
         // an empty cancel reason is sent for every live order, parseOrder reads any reason as canceled
-        if (!((strings != null && 3 < strings.Count ? strings[3] : null) is ""))
+        string? cancelReason = this.safeString(strings, 3, "");
+        if (cancelReason != "")
         {
-            order["cancel_reason"] = (strings != null && 3 < strings.Count ? strings[3] : null);
+            order["cancel_reason"] = cancelReason;
         }
         return order;
     }
 
-    public virtual object sbeReadFlags(object frameHex, object offset, object names)
+    public virtual object sbeReadFlags(object frameHex, object offset, IList<object> names)
     {
         // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
         List<object> flags = new List<object>() {};
         Int64? bits = this.parseToInt(this.sbeReadUint(frameHex, offset, 1));
-        for (int i = 0; i < getArrayLength(names); i++)
+        for (int i = 0; i < (names?.Count ?? 0); i++)
         {
             Int64? bit = this.parseToInt(((Int64?)((double?)bits % 2)));
-            if (((bit == 1)) && (!(getValue(names, i) is "")))
+            if (((bit == 1)) && (!((names != null && i < names.Count ? names[i] : null) is "")))
             {
-                flags.Add(getValue(names, i));
+                flags.Add((names != null && i < names.Count ? names[i] : null));
             }
             bits = this.parseToInt(((double?)bits / 2));
         }
@@ -1517,7 +1510,7 @@ public partial class paradex : ccxt.paradex
             return ((Dictionary<string, object>)((object)(null)));
         }
         List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 6, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
+        int stringsLength = (strings?.Count ?? 0);
         if (stringsLength < 5)
         {
             return ((Dictionary<string, object>)((object)(null)));
@@ -1540,15 +1533,15 @@ public partial class paradex : ccxt.paradex
         };
         Dictionary<string, object> fill = new Dictionary<string, object>() {
             { "account", this.sbeReadAddress(frameHex, 67) },
-            { "client_id", (strings != null && 2 < strings.Count ? strings[2] : null) },
+            { "client_id", this.safeString(strings, 2) },
             { "created_at", this.sbeReadTimestamp(frameHex, 59) },
             { "fee", this.sbeReadDecimal(frameHex, 43) },
             { "fee_currency", this.safeString(strings, 5) },
             { "fill_type", this.sbeReadEnum(frameHex, 24, fillTypes) },
-            { "id", (strings != null && 0 < strings.Count ? strings[0] : null) },
+            { "id", this.safeString(strings, 0) },
             { "liquidity", this.sbeReadEnum(frameHex, 26, liquidities) },
-            { "market", (strings != null && 4 < strings.Count ? strings[4] : null) },
-            { "order_id", (strings != null && 1 < strings.Count ? strings[1] : null) },
+            { "market", this.safeString(strings, 4) },
+            { "order_id", this.safeString(strings, 1) },
             { "price", this.sbeReadDecimal(frameHex, 27) },
             { "realized_funding", this.sbeReadDecimal(frameHex, 107) },
             { "realized_pnl", this.sbeReadDecimal(frameHex, 51) },
@@ -1582,7 +1575,7 @@ public partial class paradex : ccxt.paradex
             return ((Dictionary<string, object>)((object)(null)));
         }
         List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 2, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
+        int stringsLength = (strings?.Count ?? 0);
         if (stringsLength < 1)
         {
             return ((Dictionary<string, object>)((object)(null)));
@@ -1595,10 +1588,10 @@ public partial class paradex : ccxt.paradex
             { "1", "OPEN" },
             { "2", "CLOSED" },
         };
-        string? side = ((string)this.sbeReadEnum(frameHex, 24, sides));
+        string? side = this.sbeReadEnum(frameHex, 24, sides);
         object account = this.sbeReadAddress(frameHex, 89);
         // the frame carries the size unsigned, the JSON channel signs it negative for a short
-        string? size = ((string)this.sbeReadDecimal(frameHex, 25));
+        string? size = this.sbeReadDecimal(frameHex, 25);
         if ((side == "SHORT") && (size != "0"))
         {
             size = Precise.stringNeg(size);
@@ -1610,12 +1603,12 @@ public partial class paradex : ccxt.paradex
             { "cached_funding_index", this.sbeReadDecimal(frameHex, 145) },
             { "cost", this.sbeReadDecimal(frameHex, 129) },
             { "cost_usd", this.sbeReadDecimal(frameHex, 137) },
-            { "id", add(add(account, "-"), (strings != null && 0 < strings.Count ? strings[0] : null)) },
+            { "id", add(add(account, "-"), this.safeString(strings, 0)) },
             { "last_fill_id", this.safeString(strings, 1) },
             { "last_updated_at", this.sbeReadTimestamp(frameHex, 81) },
             { "leverage", this.sbeReadDecimal(frameHex, 73) },
             { "liquidation_price", this.sbeReadDecimal(frameHex, 65) },
-            { "market", (strings != null && 0 < strings.Count ? strings[0] : null) },
+            { "market", this.safeString(strings, 0) },
             { "realized_positional_pnl", this.sbeReadDecimal(frameHex, 49) },
             { "seq_no", this.sbeReadInt64(frameHex, 16) },
             { "side", side },
@@ -1642,7 +1635,7 @@ public partial class paradex : ccxt.paradex
             return ((Dictionary<string, object>)((object)(null)));
         }
         List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
+        int stringsLength = (strings?.Count ?? 0);
         if (stringsLength < 1)
         {
             return ((Dictionary<string, object>)((object)(null)));
@@ -1659,7 +1652,7 @@ public partial class paradex : ccxt.paradex
             { "maintenance_margin_requirement", this.sbeReadDecimal(frameHex, 48) },
             { "margin_cushion", this.sbeReadDecimal(frameHex, 112) },
             { "seq_no", this.sbeReadInt64(frameHex, 16) },
-            { "settlement_asset", (strings != null && 0 < strings.Count ? strings[0] : null) },
+            { "settlement_asset", this.safeString(strings, 0) },
             { "status", this.sbeReadEnum(frameHex, 120, statuses) },
             { "total_collateral", this.sbeReadDecimal(frameHex, 24) },
             { "updated_at", this.sbeReadTimestamp(frameHex, 72) },

@@ -665,7 +665,7 @@ public partial class deepcoin : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
         string symbol = ((bs + "/") + quote);
         bool? isLinear = null;
@@ -674,7 +674,7 @@ public partial class deepcoin : Exchange
             isLinear = (quoteId != "USD");
             settleId = isLinear == true ? quoteId : baseId;
             settle = this.safeCurrencyCode(settleId);
-            symbol = ((symbol + ":") + settle);
+            symbol = ((((bs + "/") + quote) + ":") + settle);
         }
         IDictionary<string, object> fees = this.safeDict2(this.fees, type, "trading", new Dictionary<string, object>() {});
         string? maxLeverage = this.safeString(market, "lever", "1");
@@ -743,8 +743,9 @@ public partial class deepcoin : Exchange
         for (int i = 0; i < symbols.Count; i++)
         {
             string? symbol = ((string)symbols[i]);
-            object market = getValue(result, symbol);
-            if (((market != null)) && ((getValue(market, "swap") is true)))
+            IDictionary<string, object> market = this.safeDict(result, symbol, new Dictionary<string, object>() {});
+            bool? isSwap = this.safeBool(market, "swap", false);
+            if ((isSwap == true))
             {
                 string additionalId = (this.safeString(market, "baseId", "") + this.safeString(market, "quoteId", ""));
                 if ((this.markets_by_id != null))
@@ -1044,7 +1045,7 @@ public partial class deepcoin : Exchange
         return this.parseTrades(data, market, since, limit);
     }
 
-    public virtual string getProductGroupFromMarket(IDictionary<string, object> market)
+    public virtual string? getProductGroupFromMarket(IDictionary<string, object> market)
     {
         string productGroup = "Spot";
         if ((this.safeBool(market, "swap", false) == true))
@@ -2116,7 +2117,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
             { "cost", cost },
         });
-        return await this.CreateOrder(symbol, "market",side,ccxt.BaseExchange.ToDoubleArgRequired(0),ccxt.BaseExchange.ToDoubleArg(null), paramsExtended);
+        return await this.CreateOrder(symbol, "market",side,ccxt.BaseExchange.ToDoubleArgRequired(0), null, paramsExtended);
     }
 
     /**
@@ -2134,7 +2135,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
             { "cost", cost },
         });
-        return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(0),ccxt.BaseExchange.ToDoubleArg(null), paramsExtended);
+        return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(0), null, paramsExtended);
     }
 
     /**
@@ -2152,7 +2153,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
             { "cost", cost },
         });
-        return await this.CreateOrder(symbol, "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(0),ccxt.BaseExchange.ToDoubleArg(null), paramsExtended);
+        return await this.CreateOrder(symbol, "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(0), null, paramsExtended);
     }
 
     /**
@@ -2437,7 +2438,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> paramsExtended2 = this.extend(paramsExtended, new Dictionary<string, object>() {
             { "state", "canceled" },
         });
-        return await this.FetchCanceledAndClosedOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsExtended2);
+        return await this.FetchCanceledAndClosedOrders(symbol, since, limit, paramsExtended2);
     }
 
     /**
@@ -2462,7 +2463,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> paramsExtended2 = this.extend(paramsExtended, new Dictionary<string, object>() {
             { "state", "filled" },
         });
-        return await this.FetchCanceledAndClosedOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsExtended2);
+        return await this.FetchCanceledAndClosedOrders(symbol, since, limit, paramsExtended2);
     }
 
     /**
@@ -3174,7 +3175,7 @@ public partial class deepcoin : Exchange
         //         }
         //     }
         //
-        return ccxt.BaseExchange.ToDict(response);
+        return response;
     }
 
     /**
@@ -3514,7 +3515,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> paramsExtended = this.extend(new Dictionary<string, object>() {
             { "ordId", id },
         }, parameters);
-        return await this.FetchMyTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsExtended);
+        return await this.FetchMyTrades(symbol, since, limit, paramsExtended);
     }
 
     /**
@@ -3562,28 +3563,28 @@ public partial class deepcoin : Exchange
         return this.parseOrder(data, market);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
         object requestPath = path;
         if ((method == "GET"))
         {
             string query = this.urlencode(parameters);
             if (query.Length > 0)
             {
-                requestPath = add(requestPath, ("?" + query));
+                requestPath = ((path + "?") + query);
             }
         }
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = ((apiUrl + "/") + (requestPath));
-        if ((apiName is "private"))
+        if (apiName == "private")
         {
             this.checkRequiredCredentials();
             Int64 timestamp = this.milliseconds();
@@ -3618,7 +3619,7 @@ public partial class deepcoin : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? msg = this.safeString(response, "msg");
@@ -3649,7 +3650,7 @@ public partial class deepcoin : Exchange
         {
             sCode = retCode;
         }
-        if ((!isEqual(code, 200)) || (messageCode != "0") || ((sCode != null) && sCode != "0"))
+        if (((code != 200)) || (messageCode != "0") || ((sCode != null) && sCode != "0"))
         {
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), messageCode, feedback);
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), sCode, feedback);

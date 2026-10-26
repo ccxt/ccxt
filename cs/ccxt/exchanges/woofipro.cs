@@ -836,7 +836,7 @@ public partial class woofipro : Exchange
         //         "timestamp": "1709274106602"
         //     }
         //
-        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "timestamp"));
+        return this.safeInteger(response, "timestamp") ?? 0;
     }
 
     public override Dictionary<string, object> parseMarket(object market)
@@ -881,11 +881,11 @@ public partial class woofipro : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
         string? settleId = this.safeString(parts, 2);
         string? settle = this.safeCurrencyCode(settleId);
-        string symbol = ((((bs + "/") + quote) + ":") + settle);
+        string symbol = ((((bs + "/") + quote) + ":") + quote);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -1002,7 +1002,7 @@ public partial class woofipro : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        object tokenPromise = this.v1PublicGetPublicToken(parameters);
+        var tokenPromise = this.v1PublicGetPublicToken(parameters);
         //
         // {
         //     "success": true,
@@ -1025,10 +1025,11 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        object chainPromise = this.v1PublicGetPublicChainInfo(parameters);
-        var tokenResponsechainResponseVariable = await promiseAll(new List<object>() {tokenPromise, chainPromise});
-        var tokenResponse = ((IList<object>) tokenResponsechainResponseVariable)[0];
-        var chainResponse = ((IList<object>) tokenResponsechainResponseVariable)[1];
+        var chainPromise = this.v1PublicGetPublicChainInfo(parameters);
+        await Task.WhenAll(tokenPromise, chainPromise);
+        List<object> tokenResponsechainResponseVariable = new List<object> { tokenPromise.Result, chainPromise.Result };
+        var tokenResponse = tokenResponsechainResponseVariable[0];
+        var chainResponse = tokenResponsechainResponseVariable[1];
         IDictionary<string, object> tokenData = this.safeDict(tokenResponse, "data", new Dictionary<string, object>() {});
         List<object> tokenRows = this.safeList(tokenData, "rows", new List<object>() {});
         IDictionary<string, object> chainData = this.safeDict(chainResponse, "data", new Dictionary<string, object>() {});
@@ -1170,7 +1171,6 @@ public partial class woofipro : Exchange
         string? amount = this.safeString(trade, "executed_quantity");
         string? order_id = this.safeString(trade, "order_id");
         Dictionary<string, object> fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
-        string? cost = Precise.stringMul(price, amount);
         string? side = this.safeStringLower(trade, "side");
         string? id = this.safeString(trade, "id");
         string? takerOrMaker = null;
@@ -1187,7 +1187,7 @@ public partial class woofipro : Exchange
             { "side", side },
             { "price", price },
             { "amount", amount },
-            { "cost", cost },
+            { "cost", Precise.stringMul(price, amount) },
             { "order", order_id },
             { "takerOrMaker", takerOrMaker },
             { "type", null },
@@ -2106,7 +2106,6 @@ public partial class woofipro : Exchange
         string? side = this.safeStringLower(order, "side");
         string? filled = this.safeStringN(order, new List<object>() {"total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed"});
         string? average = ((string)this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice")));
-        string? remaining = Precise.stringSub(amount, filled);
         object fee = this.safeValue2(order, "total_fee", "totalFee");
         string? feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         List<object> transactions = this.safeList(order, "Transactions");
@@ -2149,7 +2148,7 @@ public partial class woofipro : Exchange
             { "average", average },
             { "amount", amount },
             { "filled", filled },
-            { "remaining", remaining },
+            { "remaining", Precise.stringSub(amount, filled) },
             { "cost", cost },
             { "trades", transactions },
             { "fee", new Dictionary<string, object>() {
@@ -2242,7 +2241,8 @@ public partial class woofipro : Exchange
         bool hasStopLoss = ((stopLoss != null));
         bool hasTakeProfit = ((takeProfit != null));
         string? algoType = this.safeString(parameters, "algoType");
-        bool isConditional = (triggerPrice != null) || hasStopLoss || hasTakeProfit || (!(this.safeValue(parameters, "childOrders") == null));
+        List<object> paramsChildOrders = ((List<object>)this.safeValue(parameters, "childOrders"));
+        bool isConditional = (triggerPrice != null) || hasStopLoss || hasTakeProfit || ((paramsChildOrders != null));
         bool isMarket = orderType == "MARKET";
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
         bool postOnly = this.isPostOnly(isMarket, null, parameters);
@@ -2362,7 +2362,8 @@ public partial class woofipro : Exchange
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         IDictionary<string, object> stopLoss = this.safeDict(parameters, "stopLoss");
         IDictionary<string, object> takeProfit = this.safeDict(parameters, "takeProfit");
-        bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || ((this.safeList(parameters, "childOrders") != null));
+        List<object> paramsChildOrders = this.safeList(parameters, "childOrders");
+        bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || ((paramsChildOrders != null));
         Dictionary<string, object> response = null;
         if (isConditional)
         {
@@ -2407,7 +2408,8 @@ public partial class woofipro : Exchange
             string? triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             IDictionary<string, object> stopLoss = this.safeDict(orderParams, "stopLoss");
             IDictionary<string, object> takeProfit = this.safeDict(orderParams, "takeProfit");
-            bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || ((this.safeList(orderParams, "childOrders") != null));
+            List<object> paramsChildOrders = this.safeList(orderParams, "childOrders");
+            bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || ((paramsChildOrders != null));
             if (isConditional)
             {
                 throw new NotSupported ((this.id + " createOrders() only support non-stop order")) ;
@@ -2475,7 +2477,8 @@ public partial class woofipro : Exchange
         {
             request["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
-        bool isConditional = ((triggerPrice != null)) || (!(this.safeValue(parameters, "childOrders") == null));
+        List<object> paramsChildOrders = ((List<object>)this.safeValue(parameters, "childOrders"));
+        bool isConditional = ((triggerPrice != null)) || ((paramsChildOrders != null));
         string orderQtyKey = isConditional ? "quantity" : "order_quantity";
         string priceKey = isConditional ? "price" : "order_price";
         if ((price != null))
@@ -2814,8 +2817,11 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        IDictionary<string, object> orders = this.safeDict(response, "data", response);
-        IDictionary<string, object> parsedOrders = ((orders == null)) ? new Dictionary<string, object>() {} : orders;
+        IDictionary<string, object> parsedOrders = this.safeDict(response, "data", response);
+        if ((parsedOrders == null))
+        {
+            parsedOrders = new Dictionary<string, object>() {};
+        }
         return this.parseOrder(parsedOrders, market);
     }
 
@@ -2952,7 +2958,7 @@ public partial class woofipro : Exchange
         Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "status", "INCOMPLETE" },
         });
-        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), extendedParams);
+        return await this.FetchOrders(symbol, since, limit, extendedParams);
     }
 
     /**
@@ -2982,7 +2988,7 @@ public partial class woofipro : Exchange
         Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "status", "COMPLETED" },
         });
-        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), extendedParams);
+        return await this.FetchOrders(symbol, since, limit, extendedParams);
     }
 
     /**
@@ -3187,7 +3193,7 @@ public partial class woofipro : Exchange
         if ((code != null))
         {
             currency = this.currency(code);
-            request["balance_token"] = (currency.ContainsKey("id") ? currency["id"] : null);
+            request["balance_token"] = this.safeString(currency, "id");
         }
         if ((since != null))
         {
@@ -3357,7 +3363,7 @@ public partial class woofipro : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "side", "DEPOSIT" },
         };
-        return await this.FetchDepositsWithdrawals(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchDepositsWithdrawals(code, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -3377,7 +3383,7 @@ public partial class woofipro : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "side", "WITHDRAW" },
         };
-        return await this.FetchDepositsWithdrawals(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchDepositsWithdrawals(code, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -3440,16 +3446,16 @@ public partial class woofipro : Exchange
         return ((string?)((object)(("0x" + hashed))));
     }
 
-    public virtual string signHash(object hash, object privateKey)
+    public virtual string? signHash(object hash, object privateKey)
     {
         Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
-        string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
-        string? s = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
+        string? r = this.safeString(signature, "r", "");
+        string? s = this.safeString(signature, "s", "");
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
         return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
 
-    public virtual string signMessage(object message, object privateKey)
+    public virtual string? signMessage(object message, object privateKey)
     {
         return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
@@ -3526,7 +3532,7 @@ public partial class woofipro : Exchange
             { "chainId", this.parseToInt(chainId) },
             { "receiver", address },
             { "token", codeUpper },
-            { "amount", amount.ToString() },
+            { "amount", this.numberToString(amount) },
             { "withdrawNonce", withdrawNonce },
             { "timestamp", nonce },
         };
@@ -3668,7 +3674,7 @@ public partial class woofipro : Exchange
         //     "timestamp": 1702989203989
         // }
         //
-        return ccxt.BaseExchange.ToDict(await this.v1PrivatePostClientMarginMode(this.extend(request, parameters)));
+        return await this.v1PrivatePostClientMarginMode(this.extend(request, parameters));
     }
 
     public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
@@ -3850,7 +3856,7 @@ public partial class woofipro : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "leverage", leverage },
         };
-        return ccxt.BaseExchange.ToDict(await this.v1PrivatePostClientLeverage(this.extend(request, parameters)));
+        return await this.v1PrivatePostClientLeverage(this.extend(request, parameters));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
@@ -4042,24 +4048,24 @@ public partial class woofipro : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> section = null, string method = null, object parameters = null)
     {
         section ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object version = getValue(section, 0);
-        object access = getValue(section, 1);
+        string? version = ((string)(section != null && 0 < section.Count ? section[0] : null));
+        string? access = ((string)(section != null && 1 < section.Count ? section[1] : null));
         string? pathWithParams = this.implodeParams(path, parameters);
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), access);
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), access);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        string url = (((apiUrl + "/") + (version)) + "/");
+        string url = (((apiUrl + "/") + version) + "/");
         Dictionary<string, object> requestParams = this.keysort(this.omit(parameters, this.extractParams(path)));
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if ((access is "public"))
+        if (access == "public")
         {
             url = url + pathWithParams;
             if ((new List<object>(requestParams.Keys)).Count > 0)
@@ -4089,31 +4095,31 @@ public partial class woofipro : Exchange
                 }
                 requestParams = this.keysort(requestParams);
             }
-            object auth = "";
+            string auth = "";
             string ts = this.nonce().ToString();
             url = url + pathWithParams;
             object apiKey = this.apiKey;
-            if (getIndexOf(apiKey, "ed25519:") < 0)
+            if (this.apiKey.IndexOf("ed25519:", StringComparison.Ordinal) < 0)
             {
-                apiKey = ("ed25519:" + (apiKey));
+                apiKey = ("ed25519:" + this.apiKey);
             }
             requestHeaders = new Dictionary<string, object>() {
                 { "orderly-account-id", this.accountId },
                 { "orderly-key", apiKey },
                 { "orderly-timestamp", ts },
             };
-            auth = (((((ts + method) + "/") + (version)) + "/") + pathWithParams);
+            auth = (((((ts + method) + "/") + version) + "/") + pathWithParams);
             if ((method == "POST") || (method == "PUT"))
             {
                 requestBody = this.json(requestParams);
-                auth = (auth + (requestBody));
+                auth = auth + requestBody;
                 requestHeaders["content-type"] = "application/json";
             } else
             {
                 if ((new List<object>(requestParams.Keys)).Count > 0)
                 {
                     url = url + ("?" + this.urlencode(requestParams));
-                    auth = (auth + (("?" + this.rawencode(requestParams))));
+                    auth = auth + ("?" + this.rawencode(requestParams));
                 }
                 requestHeaders["content-type"] = "application/x-www-form-urlencoded";
                 if ((method == "DELETE"))
@@ -4122,10 +4128,9 @@ public partial class woofipro : Exchange
                 }
             }
             object secret = this.secret;
-            string? rawSecret = this.secret;
-            if ((rawSecret?.IndexOf("ed25519:", StringComparison.Ordinal) ?? -1) >= 0)
+            if (this.secret.IndexOf("ed25519:", StringComparison.Ordinal) >= 0)
             {
-                List<object> parts = rawSecret.Split(new [] {"ed25519:"}, StringSplitOptions.None).ToList<object>();
+                List<object> parts = this.secret.Split(new [] {"ed25519:"}, StringSplitOptions.None).ToList<object>();
                 secret = (parts != null && 1 < parts.Count ? parts[1] : null);
             }
             string signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);
@@ -4141,7 +4146,7 @@ public partial class woofipro : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

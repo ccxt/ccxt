@@ -380,7 +380,7 @@ public partial class apex : Exchange
         //    "time": 1738837534454
         //     }
         // }
-        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(data, "time"));
+        return this.safeInteger(data, "time") ?? 0;
     }
 
     public override Dictionary<string, object> parseBalance(object response)
@@ -581,8 +581,8 @@ public partial class apex : Exchange
         string? code = this.safeCurrencyCode(currencyId);
         string? name = this.safeString(currency, "displayName");
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        object chains = (this.options.ContainsKey("_temp_currencies_chains") ? this.options["_temp_currencies_chains"] : null);
-        for (int j = 0; j < getArrayLength(chains); j++)
+        List<object> chains = this.safeList(this.options, "_temp_currencies_chains", new List<object>() {});
+        for (int j = 0; j < chains.Count; j++)
         {
             IDictionary<string, object> chain = this.safeDict(chains, j);
             List<object> tokens = this.safeList(chain, "tokens", new List<object>() {});
@@ -737,7 +737,7 @@ public partial class apex : Exchange
         string? settle = this.safeCurrencyCode(settleId);
         if (((baseId == null)) || ((quote == null)) || ((settle == null)))
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
         string symbol = ((((baseId + "/") + quote) + ":") + settle);
         int expiry = 0;
@@ -1394,19 +1394,18 @@ public partial class apex : Exchange
         object marketResolved = market;
         if ((market == null) && (marketId != null))
         {
-            IDictionary<string, object> marketsById = this.markets_by_id;
             if (((this.markets != null)) && ((this.markets != null && marketId is string inOpKey0 && this.markets.ContainsKey(inOpKey0))))
             {
                 marketResolved = (this.markets != null && marketId != null && this.markets.ContainsKey((string)marketId) ? this.markets[(string)marketId] : null);
-            } else if (((marketsById != null)) && ((marketsById != null && marketId is string inOpKey1 && marketsById.ContainsKey(inOpKey1))))
+            } else if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey1 && this.markets_by_id.ContainsKey(inOpKey1))))
             {
-                marketResolved = (marketsById != null && marketId != null && marketsById.ContainsKey((string)marketId) ? marketsById[(string)marketId] : null);
+                marketResolved = (this.markets_by_id != null && marketId != null && this.markets_by_id.ContainsKey((string)marketId) ? this.markets_by_id[(string)marketId] : null);
             } else
             {
                 string? newMarketId = this.addHyphenBeforeUsdt(marketId);
-                if (((marketsById != null)) && (((newMarketId != null) && (marketsById?.ContainsKey(newMarketId) == true))))
+                if (((this.markets_by_id != null)) && ((this.markets_by_id != null && newMarketId != null && this.markets_by_id.ContainsKey(newMarketId))))
                 {
-                    object markets = (marketsById != null && newMarketId != null && marketsById.ContainsKey(newMarketId) ? marketsById[newMarketId] : null);
+                    object markets = (this.markets_by_id != null && newMarketId != null && this.markets_by_id.ContainsKey(newMarketId) ? this.markets_by_id[newMarketId] : null);
                     int numMarkets = getArrayLength(markets);
                     if (numMarkets > 0)
                     {
@@ -1423,9 +1422,8 @@ public partial class apex : Exchange
 
     public virtual string? generateRandomClientIdOmni(object _accountId)
     {
-        bool hasAccountId = ((_accountId != null)) && (!(_accountId is ""));
-        object accountId = null;
-        if (hasAccountId)
+        object accountId = "";
+        if (((_accountId != null)) && (!(_accountId is "")))
         {
             accountId = _accountId;
         } else
@@ -1442,7 +1440,7 @@ public partial class apex : Exchange
         string? symbolChar = this.safeString(symbol, (index - 1));
         if (index > 0 && symbolChar != "-")
         {
-            return ((slice(symbol, 0, index) + "-") + slice(symbol, index, null));
+            return ((string?)((object)(((((symbol == null) ? null : ((string)symbol).Substring(0, Math.Max(Math.Min((index < 0 ? ((string)symbol).Length + (index) : index), ((string)symbol).Length), 0))) + "-") + ((symbol == null) ? null : ((string)symbol).Substring(Math.Max(Math.Min((index < 0 ? ((string)symbol).Length + (index) : index), ((string)symbol).Length), 0)))))));
         }
         return ((string?)((object)(symbol)));
     }
@@ -1508,7 +1506,8 @@ public partial class apex : Exchange
         IDictionary<string, object> fees = this.safeDict(this.fees, "swap", new Dictionary<string, object>() {});
         string? taker = this.safeString(fees, "taker", "0.0005");
         string? maker = this.safeString(fees, "maker", "0.0002");
-        string limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(getValue((market.ContainsKey("precision") ? market["precision"] : null), "price"))), TRUNCATE, getValue((market.ContainsKey("precision") ? market["precision"] : null), "price"), this.precisionMode, this.paddingMode);
+        object pricePrecision = getValue((market.ContainsKey("precision") ? market["precision"] : null), "price");
+        string limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(pricePrecision)), TRUNCATE, pricePrecision, this.precisionMode, this.paddingMode);
         Int64 timeNow = this.milliseconds();
         string? triggerPrice = this.safeString(parameters, "triggerPrice");
         string? stopLossPrice = this.safeString(parameters, "stopLossPrice");
@@ -1632,21 +1631,18 @@ public partial class apex : Exchange
         string? finalNonce = nonce; // java req
         string? ethAddress = this.safeString(accountData, "ethereumAddress", "");
         string? accountId = this.safeString(accountData, "id", "");
-        object currency = new Dictionary<string, object>() {};
-        List<object> assets = new List<object>() {};
+        IDictionary<string, object> currency = new Dictionary<string, object>() {};
         bool isContract = (fromAccount.ToLower() == "contract");
+        List<object> assets = spotAssets;
         if (isContract)
         {
             assets = contractAssets;
-        } else
-        {
-            assets = spotAssets;
         }
         for (int i = 0; i < (assets?.Count ?? 0); i++)
         {
-            if ((this.safeString(assets[i], "token", "") == code))
+            if ((this.safeString(this.safeDict(assets, i, new Dictionary<string, object>() {}), "token", "") == code))
             {
-                currency = assets[i];
+                currency = this.safeDict(assets, i, new Dictionary<string, object>() {});
             }
         }
         string? tokenId = this.safeString(currency, "tokenId", "");
@@ -1705,10 +1701,9 @@ public partial class apex : Exchange
                 { "timestampSeconds", timestampSeconds },
             };
             object signature = await this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign);
-            string amountStr = amount.ToString();
             Int64? ts = timestampSeconds; // java req
             Dictionary<string, object> request = new Dictionary<string, object>() {
-                { "amount", amountStr },
+                { "amount", this.numberToString(amount) },
                 { "timestamp", ts },
                 { "clientTransferId", finalClientOrderId },
                 { "signature", signature },
@@ -2190,13 +2185,13 @@ public partial class apex : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2221,7 +2216,7 @@ public partial class apex : Exchange
             Dictionary<string, object> sortedQuery = this.keysort(parameters);
             signBody = this.rawencode(sortedQuery);
         }
-        if ((apiName is "private"))
+        if (apiName == "private")
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();
@@ -2244,7 +2239,7 @@ public partial class apex : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         //
         // {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
@@ -2260,7 +2255,7 @@ public partial class apex : Exchange
             string feedback = ((this.id + " ") + (body));
             string? message = this.safeString2(response, "key", "msg");
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
-            string status = code.ToString();
+            string status = ((object)code).ToString();
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), status, feedback);
             throw new ExchangeError (feedback) ;
         }

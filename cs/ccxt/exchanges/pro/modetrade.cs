@@ -77,18 +77,19 @@ public partial class modetrade : ccxt.modetrade
 
     public async virtual Task<object> watchPublic(object messageHash, IDictionary<string, object> message)
     {
-        // the default id
-        object id = "OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY";
-        if ((this.accountId != null) && !(this.accountId == ""))
-        {
-            id = this.accountId;
-        }
-        string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+        string? wsUrl = this.safeString(wsUrls, "public");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchPublic() has no public websocket url")) ;
         }
-        string url = ((wsUrl + "/") + (id));
+        // the default id
+        string url = ((wsUrl + "/") + "OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY");
+        if ((this.accountId != null) && !(this.accountId == ""))
+        {
+            url = ((wsUrl + "/") + this.accountId);
+        }
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -116,14 +117,15 @@ public partial class modetrade : ccxt.modetrade
         }
         string name = "orderbook";
         Dictionary<string, object> market = this.market(symbol);
-        string? topic = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), name));
+        string marketId = this.safeString(market, "id", "");
+        string topic = ((marketId + "@") + name);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(topic, message));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
@@ -183,7 +185,8 @@ public partial class modetrade : ccxt.modetrade
         }
         string name = "ticker";
         Dictionary<string, object> market = this.market(symbol);
-        string? topic = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), name));
+        string marketId = this.safeString(market, "id", "");
+        string topic = ((marketId + "@") + name);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -192,7 +195,7 @@ public partial class modetrade : ccxt.modetrade
         return ccxt.BaseExchange.ToTicker(await this.watchPublic(topic, message));
     }
 
-    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -383,7 +386,7 @@ public partial class modetrade : ccxt.modetrade
             Dictionary<string, object> ticker = this.parseWsBidAsk(this.extend(data[i], new Dictionary<string, object>() {
                 { "ts", timestamp },
             }));
-            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+            string? symbol = this.safeString(ticker, "symbol");
             if ((symbol != null))
             {
                 this.tickers[(string)symbol] = ticker;
@@ -393,7 +396,7 @@ public partial class modetrade : ccxt.modetrade
         client.resolve(result, topic);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         string? marketId = this.safeString(ticker, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -439,7 +442,8 @@ public partial class modetrade : ccxt.modetrade
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string name = "kline";
-        string? topic = ((string)add(add(add(add((market.ContainsKey("id") ? market["id"] : null), "@"), name), "_"), interval));
+        string marketId = this.safeString(market, "id", "");
+        string topic = ((((marketId + "@") + name) + "_") + interval);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -494,7 +498,7 @@ public partial class modetrade : ccxt.modetrade
             stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
         }
-        ccxt.pro.ArrayCacheByTimestamp ohlcvCache = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp ohlcvCache = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
         ohlcvCache.append(parsed);
         client.resolve(ohlcvCache, topic);
     }
@@ -518,8 +522,8 @@ public partial class modetrade : ccxt.modetrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? topic = ((string)add((market.ContainsKey("id") ? market["id"] : null), "@trade"));
+        string marketId = this.safeString(market, "id", "");
+        string topic = (marketId + "@trade");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -531,7 +535,7 @@ public partial class modetrade : ccxt.modetrade
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, (market.ContainsKey("symbol") ? market["symbol"] : null), limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limitResolved, true));
     }
 
     public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -679,7 +683,9 @@ public partial class modetrade : ccxt.modetrade
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+        string? wsUrl = this.safeString(wsUrls, "private");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " authenticate() has no private websocket url")) ;
@@ -695,9 +701,9 @@ public partial class modetrade : ccxt.modetrade
             string ts = this.nonce().ToString();
             string auth = ts;
             object secret = this.secret;
-            if (getIndexOf(secret, "ed25519:") >= 0)
+            if (this.secret.IndexOf("ed25519:", StringComparison.Ordinal) >= 0)
             {
-                List<object> parts = ((string)secret).Split(new [] {"ed25519:"}, StringSplitOptions.None).ToList<object>();
+                List<object> parts = this.secret.Split(new [] {"ed25519:"}, StringSplitOptions.None).ToList<object>();
                 secret = (parts != null && 1 < parts.Count ? parts[1] : null);
             }
             string signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);
@@ -719,7 +725,9 @@ public partial class modetrade : ccxt.modetrade
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+        string? wsUrl = this.safeString(wsUrls, "private");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchPrivate() has no private websocket url")) ;
@@ -737,7 +745,9 @@ public partial class modetrade : ccxt.modetrade
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+        string? wsUrl = this.safeString(wsUrls, "private");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchPrivateMultiple() has no private websocket url")) ;
@@ -784,7 +794,7 @@ public partial class modetrade : ccxt.modetrade
         {
             Dictionary<string, object> market = this.market(symbol);
             symbolResolved = this.safeString(market, "symbol");
-            messageHash = messageHash + (":" + symbolResolved);
+            messageHash = ((topic + ":") + symbolResolved);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -833,7 +843,7 @@ public partial class modetrade : ccxt.modetrade
         {
             Dictionary<string, object> market = this.market(symbol);
             symbolResolved = this.safeString(market, "symbol");
-            messageHash = messageHash + (":" + symbolResolved);
+            messageHash = (("myTrades" + ":") + symbolResolved);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -1005,12 +1015,15 @@ public partial class modetrade : ccxt.modetrade
         //
         string? topic = this.safeString(message, "topic");
         object data = this.safeValue(message, "data");
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        bool dataIsArray = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        if (dataIsArray)
         {
             // algoexecutionreport
-            for (int i = 0; i < getArrayLength(data); i++)
+            List<object> dataList = this.safeList(message, "data", new List<object>() {});
+            int dataListLength = dataList.Count;
+            for (int i = 0; i < dataListLength; i++)
             {
-                object order = getValue(data, i);
+                object order = (dataList != null && i < dataList.Count ? dataList[i] : null);
                 string? tradeIdStr = this.safeString(data, "tradeId");
                 string? tradeId = ((tradeIdStr == null)) ? null : this.omitZero(tradeIdStr);
                 if ((tradeId != null))
@@ -1065,8 +1078,7 @@ public partial class modetrade : ccxt.modetrade
             }
             cachedOrders.append(parsed);
             client.resolve(this.orders, topic);
-            object messageHashSymbol = add(add(topic, ":"), symbol);
-            client.resolve(this.orders, messageHashSymbol);
+            client.resolve(this.orders, add(add(topic, ":"), symbol));
         }
     }
 
@@ -1149,7 +1161,9 @@ public partial class modetrade : ccxt.modetrade
         {
             messageHashes.Add("positions");
         }
-        string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+        string? wsUrl = this.safeString(wsUrls, "private");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchPositions() has no private websocket url")) ;
@@ -1161,7 +1175,7 @@ public partial class modetrade : ccxt.modetrade
         bool awaitPositionsSnapshot = ((bool)this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
         if (((fetchPositionsSnapshot == true)) && ((awaitPositionsSnapshot == true)) && ((this.positions == null)))
         {
-            ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
+            object snapshot = await client.future("fetchPositionsSnapshot");
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1176,7 +1190,7 @@ public partial class modetrade : ccxt.modetrade
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, IList<object>? symbols = null)
     {
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
         if ((fetchPositionsSnapshot == true))
@@ -1208,9 +1222,9 @@ public partial class modetrade : ccxt.modetrade
             }
         }
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        Future future = ((Future)this.safeValue(client.futures, messageHash));
+        if ((future != null))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             client.resolve(cache, "positions");
         }
@@ -1266,13 +1280,14 @@ public partial class modetrade : ccxt.modetrade
             Dictionary<string, object> position = this.parseWsPosition(rawPosition, market);
             newPositions.Add(position);
             cache.append(position);
-            string messageHash = ("positions::" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+            string? marketSymbol = this.safeString(market, "symbol", "");
+            string messageHash = ("positions::" + marketSymbol);
             client.resolve(position, messageHash);
         }
         client.resolve(newPositions, "positions");
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -1417,7 +1432,11 @@ public partial class modetrade : ccxt.modetrade
             object account = this.account();
             if (((code != null)) && ((this.balance != null && code != null && this.balance.ContainsKey(code))))
             {
-                account = (this.balance != null && code != null && this.balance.ContainsKey(code) ? this.balance[code] : null);
+                IDictionary<string, object> cachedAccount = this.safeDict(this.balance, code);
+                if ((cachedAccount != null))
+                {
+                    account = cachedAccount;
+                }
             }
             string? total = this.safeString(value, "holding");
             string? used = this.safeString(value, "frozen");

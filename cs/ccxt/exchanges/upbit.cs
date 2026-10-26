@@ -491,7 +491,21 @@ public partial class upbit : Exchange
         }
         string? currencyId = this.safeString(currencyInfo, "code");
         string? code = this.safeCurrencyCode(currencyId);
-        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "info", response },             { "id", currencyId },             { "code", code },             { "name", code },             { "active", active },             { "fee", this.safeNumber(currencyInfo, "withdraw_fee") },             { "precision", null },             { "limits", new Dictionary<string, object>() {                 { "withdraw", new Dictionary<string, object>() {                     { "min", this.safeNumber(withdrawLimits, "minimum") },                     { "max", this.parseNumber(maxWithdrawLimit) },                 } },             } },         });
+        return new Dictionary<string, object>() {
+            { "info", response },
+            { "id", currencyId },
+            { "code", code },
+            { "name", code },
+            { "active", active },
+            { "fee", this.safeNumber(currencyInfo, "withdraw_fee") },
+            { "precision", null },
+            { "limits", new Dictionary<string, object>() {
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(withdrawLimits, "minimum") },
+                    { "max", this.parseNumber(maxWithdrawLimit) },
+                } },
+            } },
+        };
     }
 
     public async virtual Task<ccxt.MarketInterface> FetchMarket(string symbol, IDictionary<string, object>? parameters = null)
@@ -600,15 +614,17 @@ public partial class upbit : Exchange
         {
             throw new ExchangeError ((this.id + " parseMarket() missing id")) ;
         }
-        var quoteIdbaseIdVariable = id.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-        var quoteId = quoteIdbaseIdVariable[0];
-        var baseId = quoteIdbaseIdVariable[1];
+        List<object> parts = id.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
+        string? quoteId = this.safeString(parts, 0);
+        string? baseId = this.safeString(parts, 1);
         string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
+        IDictionary<string, object> tradingFeesByQuoteCurrency = this.safeDict(this.options, "tradingFeesByQuoteCurrency", new Dictionary<string, object>() {});
+        IDictionary<string, object> tradingFees = this.safeDict(this.fees, "trading", new Dictionary<string, object>() {});
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", ((bs + "/") + quote) },
@@ -628,8 +644,8 @@ public partial class upbit : Exchange
             { "contract", false },
             { "linear", null },
             { "inverse", null },
-            { "taker", this.safeNumber((this.options.ContainsKey("tradingFeesByQuoteCurrency") ? this.options["tradingFeesByQuoteCurrency"] : null), quote, getValue(getValue(this.fees, "trading"), "taker")) },
-            { "maker", this.safeNumber((this.options.ContainsKey("tradingFeesByQuoteCurrency") ? this.options["tradingFeesByQuoteCurrency"] : null), quote, getValue(getValue(this.fees, "trading"), "maker")) },
+            { "taker", this.safeNumber(tradingFeesByQuoteCurrency, quote, this.safeNumber(tradingFees, "taker")) },
+            { "maker", this.safeNumber(tradingFeesByQuoteCurrency, quote, this.safeNumber(tradingFees, "maker")) },
             { "contractSize", null },
             { "expiry", null },
             { "expiryDatetime", null },
@@ -738,10 +754,9 @@ public partial class upbit : Exchange
         string? ids = null;
         if ((symbols == null))
         {
-            object allIds = this.ids;
-            if ((allIds != null))
+            if ((this.ids != null))
             {
-                ids = String.Join(",", ((IList<object>)allIds).ToArray());
+                ids = String.Join(",", ((IList<object>)this.ids).ToArray());
             }
         } else
         {
@@ -788,14 +803,14 @@ public partial class upbit : Exchange
         IList<object> orderbooks = this.toArray(response);
         for (int i = 0; i < (orderbooks?.Count ?? 0); i++)
         {
-            object orderbook = orderbooks[i];
+            IDictionary<string, object> orderbook = this.safeDict(orderbooks, i, new Dictionary<string, object>() {});
             string? marketId = this.safeString(orderbook, "market");
             string? symbol = this.safeSymbol(marketId, null, "-");
             Int64? timestamp = this.safeInteger(orderbook, "timestamp");
             result[(string)symbol] = new Dictionary<string, object>() {
                 { "symbol", symbol },
-                { "bids", this.sortBy(this.parseOrderBookBidsAsks(getValue(orderbook, "orderbook_units"), "bid_price", "bid_size"), 0, true) },
-                { "asks", this.sortBy(this.parseOrderBookBidsAsks(getValue(orderbook, "orderbook_units"), "ask_price", "ask_size"), 0) },
+                { "bids", this.sortBy(this.parseOrderBookBidsAsks((orderbook != null && orderbook.ContainsKey("orderbook_units") ? orderbook["orderbook_units"] : null), "bid_price", "bid_size"), 0, true) },
+                { "asks", this.sortBy(this.parseOrderBookBidsAsks((orderbook != null && orderbook.ContainsKey("orderbook_units") ? orderbook["orderbook_units"] : null), "ask_price", "ask_size"), 0) },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
                 { "nonce", null },
@@ -818,7 +833,7 @@ public partial class upbit : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        Dictionary<string, object> orderbooks = ccxt.BaseExchange.FromOrderBooks(await this.FetchOrderBooks(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+        Dictionary<string, object> orderbooks = ccxt.BaseExchange.FromOrderBooks(await this.FetchOrderBooks(new List<object>() {symbol}, limit, parameters));
         IDictionary<string, object> orderbook = this.safeDict(orderbooks, symbol);
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
@@ -918,14 +933,14 @@ public partial class upbit : Exchange
                 }
             }
             List<string> sortedQuoteIds = this.sort(quoteIds); // market iteration order differs per language
-            object quoteCurrencies = "";
+            string quoteCurrencies = "";
             for (int i = 0; i < (sortedQuoteIds?.Count ?? 0); i++)
             {
-                if (!(quoteCurrencies is ""))
+                if (quoteCurrencies != "")
                 {
                     quoteCurrencies = (quoteCurrencies + ",");
                 }
-                quoteCurrencies = add(quoteCurrencies, (sortedQuoteIds != null && i < sortedQuoteIds.Count ? sortedQuoteIds[i] : null));
+                quoteCurrencies = (quoteCurrencies + this.safeString(sortedQuoteIds, i, ""));
             }
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "quote_currencies", quoteCurrencies },
@@ -934,7 +949,7 @@ public partial class upbit : Exchange
         } else
         {
             IList<object> ids = this.marketIds(symbolsNormalized);
-            List<object> promises = new List<object>() {};
+            List<Task<List<object>>> promises = new List<Task<List<object>>>() {};
             List<object> queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
             for (int i = 0; i < (queries?.Count ?? 0); i++)
             {
@@ -943,7 +958,7 @@ public partial class upbit : Exchange
                     { "markets", idsQuery },
                 }, parameters)));
             }
-            List<object> responses = await promiseAll(promises);
+            List<object> responses = new List<object>(await Task.WhenAll(promises));
             tickers = this.arraysConcat(responses);
         }
         //
@@ -987,12 +1002,11 @@ public partial class upbit : Exchange
         List<object> queries = new List<object>() {};
         for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
-            string? id = ((string)(ids != null && i < ids.Count ? ids[i] : null));
             if (idsString != "")
             {
                 idsString = (idsString + ",");
             }
-            idsString = (idsString + id);
+            idsString = (idsString + this.safeString(ids, i, ""));
             if (isGreaterThanOrEqual(idsString.Length, maxQueryLength))
             {
                 queries.Add(idsString);
@@ -1062,11 +1076,11 @@ public partial class upbit : Exchange
             timestamp = this.parse8601(this.safeString(trade, "created_at"));
         }
         string? side = null;
-        object askOrBid = this.safeStringLower2(trade, "ask_bid", "side");
-        if ((askOrBid is "ask"))
+        string askOrBid = this.safeStringLower2(trade, "ask_bid", "side", "");
+        if (askOrBid == "ask")
         {
             side = "sell";
-        } else if ((askOrBid is "bid"))
+        } else if (askOrBid == "bid")
         {
             side = "buy";
         }
@@ -1076,7 +1090,7 @@ public partial class upbit : Exchange
         string? marketId = this.safeString2(trade, "market", "code");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         Dictionary<string, object> fee = null;
-        string? feeCost = this.safeString(trade, add(askOrBid, "_fee"));
+        string? feeCost = this.safeString(trade, (askOrBid + "_fee"));
         if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
@@ -1235,14 +1249,15 @@ public partial class upbit : Exchange
         Dictionary<string, object> response = new Dictionary<string, object>() {};
         for (int i = 0; i < (fetchMarketResponse?.Count ?? 0); i++)
         {
+            IDictionary<string, object> item = this.safeDict(fetchMarketResponse, i);
             Dictionary<string, object> element = new Dictionary<string, object>() {};
-            element["maker"] = this.safeNumber(fetchMarketResponse[i], "maker");
-            element["taker"] = this.safeNumber(fetchMarketResponse[i], "taker");
-            element["symbol"] = this.safeString(fetchMarketResponse[i], "symbol");
+            element["maker"] = this.safeNumber(item, "maker");
+            element["taker"] = this.safeNumber(item, "taker");
+            element["symbol"] = this.safeString(item, "symbol");
             element["percentage"] = true;
             element["tierBased"] = false;
-            element["info"] = fetchMarketResponse[i];
-            string? feeSymbol = this.safeString(fetchMarketResponse[i], "symbol");
+            element["info"] = item;
+            string? feeSymbol = this.safeString(item, "symbol");
             if ((feeSymbol != null))
             {
                 response[(string)feeSymbol] = element;
@@ -2142,7 +2157,8 @@ public partial class upbit : Exchange
         if (numTrades > 0)
         {
             // the timestamp in fetchOrder trades is missing
-            lastTradeTimestamp = getValue((trades != null && (numTrades - 1) < trades.Count ? trades[(numTrades - 1)] : null), "timestamp");
+            IDictionary<string, object> lastTrade = this.safeDict(trades, (numTrades - 1), new Dictionary<string, object>() {});
+            lastTradeTimestamp = (lastTrade != null && lastTrade.ContainsKey("timestamp") ? lastTrade["timestamp"] : null);
             bool getFeesFromTrades = false;
             if ((feeCost == null))
             {
@@ -2156,7 +2172,7 @@ public partial class upbit : Exchange
                 cost = Precise.stringAdd(cost, this.safeString(trade, "cost"));
                 if (getFeesFromTrades)
                 {
-                    IDictionary<string, object> tradeFee = this.safeDict((trades != null && i < trades.Count ? trades[i] : null), "fee", new Dictionary<string, object>() {});
+                    IDictionary<string, object> tradeFee = this.safeDict(trade, "fee", new Dictionary<string, object>() {});
                     string? tradeFeeCost = this.safeString(tradeFee, "cost");
                     if ((tradeFeeCost != null))
                     {
@@ -2681,13 +2697,13 @@ public partial class upbit : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2697,36 +2713,35 @@ public partial class upbit : Exchange
         });
         url = url + ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
+        int numQueryKeys = (new List<object>(((IDictionary<string,object>)query).Keys)).Count;
         if ((method != "POST"))
         {
-            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+            if (numQueryKeys > 0)
             {
                 url = url + ("?" + this.urlencode(query));
             }
         }
-        bool hasBody = ((apiName is "private")) && ((method != "GET")) && ((method != "DELETE"));
+        bool hasBody = (apiName == "private") && ((method != "GET")) && ((method != "DELETE"));
         string? requestBody = null;
         if (hasBody)
         {
             requestBody = this.json(parameters);
         }
-        Dictionary<string, object> privateHeaders = null;
-        if ((apiName is "private"))
+        Dictionary<string, object> headers = new Dictionary<string, object>() {};
+        if (apiName == "private")
         {
             this.checkRequiredCredentials();
-            privateHeaders = new Dictionary<string, object>() {};
             string nonce = this.uuid();
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "access_key", this.apiKey },
                 { "nonce", nonce },
             };
-            int hasQuery = (new List<object>(((IDictionary<string,object>)query).Keys)).Count;
             string? auth = null;
             if (hasBody)
             {
-                privateHeaders["Content-Type"] = "application/json";
+                headers["Content-Type"] = "application/json";
             }
-            if ((hasQuery != 0))
+            if ((numQueryKeys != 0))
             {
                 auth = this.rawencode(query);
             }
@@ -2737,9 +2752,9 @@ public partial class upbit : Exchange
                 request["query_hash_alg"] = "SHA512";
             }
             string token = jwt(request, this.encode(this.secret), sha256);
-            privateHeaders["Authorization"] = ("Bearer " + token);
+            headers["Authorization"] = ("Bearer " + token);
         }
-        Dictionary<string, object> requestHeaders = ((apiName is "private")) ? privateHeaders : null;
+        Dictionary<string, object> requestHeaders = (apiName == "private") ? headers : null;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -2748,7 +2763,7 @@ public partial class upbit : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

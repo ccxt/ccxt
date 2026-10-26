@@ -55,11 +55,12 @@ public partial class luno : ccxt.luno
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string subscriptionHash = ("/stream/" + ((market.ContainsKey("id") ? market["id"] : null)));
+        string? marketId = this.safeString(market, "id", "");
+        string subscriptionHash = ("/stream/" + marketId);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolValue },
         };
-        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        string? wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchTrades() has no websocket url")) ;
@@ -105,13 +106,14 @@ public partial class luno : ccxt.luno
         }
         object symbol = getValue(subscription, "symbol");
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = ("trades:" + (symbol));
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = ("trades:" + symbolValue);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbolValue));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            this.trades[(string)symbol] = stored;
+            this.trades[(string)symbolValue] = stored;
         }
         for (int i = 0; i < rawTrades.Count; i++)
         {
@@ -119,8 +121,8 @@ public partial class luno : ccxt.luno
             ccxt.Trade trade = this.parseTrade(rawTrade, market);
             stored.append(ccxt.BaseExchange.FromTrade(trade));
         }
-        this.trades[(string)symbol] = stored;
-        client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey((string)symbol) ? this.trades[(string)symbol] : null), messageHash);
+        this.trades[(string)symbolValue] = stored;
+        client.resolve(stored, messageHash);
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)
@@ -182,11 +184,12 @@ public partial class luno : ccxt.luno
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string subscriptionHash = ("/stream/" + ((market.ContainsKey("id") ? market["id"] : null)));
+        string? marketId = this.safeString(market, "id", "");
+        string subscriptionHash = ("/stream/" + marketId);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolValue },
         };
-        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        string? wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchOrderBook() has no websocket url")) ;
@@ -199,7 +202,7 @@ public partial class luno : ccxt.luno
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, request, subscriptionHash, subscription));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message, object subscription)
@@ -237,7 +240,8 @@ public partial class luno : ccxt.luno
         //     }
         //
         object symbol = getValue(subscription, "symbol");
-        string messageHash = ("orderbook:" + (symbol));
+        string? symbolValue = this.safeString(subscription, "symbol", "");
+        string messageHash = ("orderbook:" + symbolValue);
         Int64? timestamp = this.safeInteger(message, "timestamp");
         if (!((this.orderbooks != null && symbol is string inOpKey0 && this.orderbooks.ContainsKey(inOpKey0))))
         {
@@ -311,8 +315,7 @@ public partial class luno : ccxt.luno
         List<object> result = new List<object>() {price, amount};
         if (!(thirdKey == null))
         {
-            object thirdValue = this.safeString(bidask, thirdKey);
-            result.Add(thirdValue);
+            result.Add(((object)this.safeString(bidask, thirdKey)));
         }
         return result;
     }
@@ -473,7 +476,7 @@ public partial class luno : ccxt.luno
             // an old or replayed frame, discard it
             return false;
         }
-        Int64? expectedSequence = (storedNonce + 1);
+        Int64? expectedSequence = (this.parseToInt(storedNonce) + 1);
         if ((messageSequence != expectedSequence))
         {
             // a gap in the sequence means a lost message and the book is
@@ -487,14 +490,16 @@ public partial class luno : ccxt.luno
             // the cached book is kept so references returned by earlier
             // watchOrderBook calls stay live: clearing its nonce discards
             // deltas until the fresh snapshot resets the book in place
-            var error = new InvalidNonce(((((((this.id + " watchOrderBook() received an out-of-sequence update for ") + (symbol)) + ", expected ") + ((object)expectedSequence).ToString()) + " but got ") + ((object)messageSequence).ToString()));
             orderbook["nonce"] = null;
             Dictionary<string, object> market = this.market(symbol);
-            string subscriptionHash = ("/stream/" + ((market.ContainsKey("id") ? market["id"] : null)));
+            string? symbolValue = this.safeString(market, "symbol", "");
+            string? marketId = this.safeString(market, "id", "");
+            string subscriptionHash = ("/stream/" + marketId);
             if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscriptionHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(subscriptionHash);
             }
+            var error = new InvalidNonce(((((((this.id + " watchOrderBook() received an out-of-sequence update for ") + symbolValue) + ", expected ") + ((object)expectedSequence).ToString()) + " but got ") + ((object)messageSequence).ToString()));
             client.reset(error);
             ((IDictionary<string, ccxt.Exchange.WebSocketClient>)this.clients).Remove((string)client.url);
             return false;

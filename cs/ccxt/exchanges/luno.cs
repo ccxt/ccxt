@@ -514,7 +514,7 @@ public partial class luno : Exchange
 
     public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
-        string? id = this.safeString(getValue(rawCurrency, 0), "native_currency"); // first item is guaranteed
+        string? id = this.safeString(this.safeDict(rawCurrency, 0), "native_currency"); // first item is guaranteed
         string? code = this.safeCurrencyCode(id);
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(rawCurrency); i++)
@@ -752,8 +752,10 @@ public partial class luno : Exchange
             string? balanceUnconfirmed = Precise.stringAdd(balance, unconfirmed);
             if (((code != null)) && (((code != null) && result.ContainsKey(code))))
             {
-                ((IDictionary<string,object>)(result.ContainsKey(code) ? result[code] : null))["used"] = Precise.stringAdd(getValue((result.ContainsKey(code) ? result[code] : null), "used"), reservedUnconfirmed);
-                ((IDictionary<string,object>)(result.ContainsKey(code) ? result[code] : null))["total"] = Precise.stringAdd(getValue((result.ContainsKey(code) ? result[code] : null), "total"), balanceUnconfirmed);
+                result[(string)code] = this.extend((result.ContainsKey(code) ? result[code] : null), new Dictionary<string, object>() {
+                    { "used", Precise.stringAdd(this.safeString((result.ContainsKey(code) ? result[code] : null), "used"), reservedUnconfirmed) },
+                    { "total", Precise.stringAdd(this.safeString((result.ContainsKey(code) ? result[code] : null), "total"), balanceUnconfirmed) },
+                });
             } else if ((code != null))
             {
                 Dictionary<string, object> account = this.account();
@@ -856,8 +858,7 @@ public partial class luno : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(order, "creation_timestamp");
-        object status = this.parseOrderStatus(this.safeString(order, "state"));
-        status = ((status is "open")) ? status : status;
+        string? status = this.parseOrderStatus(this.safeString(order, "state"));
         string? side = null;
         string? orderType = this.safeString(order, "type");
         if ((orderType == "ASK") || (orderType == "SELL"))
@@ -976,7 +977,7 @@ public partial class luno : Exchange
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrdersByState(null, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByState(null, symbol, since, limit, parameters);
     }
 
     /**
@@ -993,7 +994,7 @@ public partial class luno : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrdersByState("PENDING", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByState("PENDING", symbol, since, limit, parameters);
     }
 
     /**
@@ -1010,7 +1011,7 @@ public partial class luno : Exchange
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrdersByState("COMPLETE", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByState("COMPLETE", symbol, since, limit, parameters);
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -1473,7 +1474,8 @@ public partial class luno : Exchange
         {
             throw new NullResponse ((this.id + " createOrder() returned empty response")) ;
         }
-        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", (response != null && response.ContainsKey("order_id") ? response["order_id"] : null) },         }, market);
+        string? orderId = this.safeString(response, "order_id");
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", orderId },         }, market);
     }
 
     /**
@@ -1511,12 +1513,12 @@ public partial class luno : Exchange
         parameters ??= new Dictionary<string, object>();
         object entryValue = ((entry == null)) ? -1 : entry;
         Int64? limitValue = ((limit == null)) ? 1 : limit;
-        object since = null;
+        Int64? since = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "min_row", entryValue },
             { "max_row", this.sum(entryValue, limitValue) },
         };
-        return await this.FetchLedger(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitValue), this.extend(request, parameters));
+        return await this.FetchLedger(code, since, limitValue, this.extend(request, parameters));
     }
 
     /**
@@ -1564,8 +1566,12 @@ public partial class luno : Exchange
         Int64? maxRowBase = this.safeInteger(parameters, "max_row", 0); // Default to most recent transactions
         Int64? minRowBase = this.safeInteger(parameters, "min_row", -1000); // Maximum number of records supported
         bool limitApplies = ((limit != null)) && (((limit == null || (maxRowBase - minRowBase) > limit)));
-        object min_row = (limitApplies && ((limit != null)) && (maxRowBase == null || maxRowBase <= 0)) ? ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(maxRowBase, limit) : minRowBase;
-        object max_row = (limitApplies && (maxRowBase > 0) && (minRowBase > 0)) ? add(minRowBase, limit) : maxRowBase;
+        object min_row = (limitApplies && ((limit != null)) && (maxRowBase == null || maxRowBase <= 0)) ? (maxRowBase - limit) : minRowBase;
+        object max_row = maxRowBase;
+        if (limitApplies && (maxRowBase > 0) && (minRowBase > 0))
+        {
+            max_row = add(minRowBase, limit);
+        }
         bool limitAdjusts = limitApplies && ((maxRowBase == null || maxRowBase <= 0) || (minRowBase > 0)); // max_row - min_row becomes limit
         if ((limitAdjusts && (limit > 1000)) || (!limitAdjusts && ((maxRowBase - minRowBase) > 1000)))
         {
@@ -1628,12 +1634,12 @@ public partial class luno : Exchange
         string? available_delta = this.safeString(entry, "available_delta");
         string? balance_delta = this.safeString(entry, "balance_delta");
         string? after = this.safeString(entry, "balance");
-        string? comment = this.safeString(entry, "description");
+        string? comment = this.safeString(entry, "description", "");
         string? before = after;
         string? amount = "0.0";
         Dictionary<string, object> result = this.parseLedgerComment(comment);
-        string? type = ((string)(result != null && result.ContainsKey("type") ? result["type"] : null));
-        string? referenceId = ((string)(result != null && result.ContainsKey("referenceId") ? result["referenceId"] : null));
+        string? resultType = this.safeString(result, "type");
+        string? resultReferenceId = this.safeString(result, "referenceId");
         string? direction = null;
         string? status = null;
         if (!Precise.stringEquals(balance_delta, "0.0"))
@@ -1662,9 +1668,9 @@ public partial class luno : Exchange
             { "id", id },
             { "direction", direction },
             { "account", account_id },
-            { "referenceId", referenceId },
+            { "referenceId", resultReferenceId },
             { "referenceAccount", null },
-            { "type", type },
+            { "type", resultType },
             { "currency", code },
             { "amount", this.parseToNumeric(amount) },
             { "timestamp", timestamp },
@@ -1838,13 +1844,13 @@ public partial class luno : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFee(this.assignDefaultDepositWithdrawFees(result, currency));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1856,7 +1862,7 @@ public partial class luno : Exchange
         {
             url = url + ("?" + this.urlencode(query));
         }
-        if (((apiName is "private")) || ((apiName is "exchangePrivate")))
+        if ((apiName == "private") || (apiName == "exchangePrivate"))
         {
             this.checkRequiredCredentials();
             string auth = this.stringToBase64(((this.apiKey + ":") + this.secret));
@@ -1873,7 +1879,7 @@ public partial class luno : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

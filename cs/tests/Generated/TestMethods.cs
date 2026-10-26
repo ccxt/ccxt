@@ -524,7 +524,7 @@ public partial class testMainClass
         return true;
     }
 
-    public virtual object getLastRequestUrl(BaseExchange exchange)
+    public virtual string? getLastRequestUrl(BaseExchange exchange)
     {
         object fetchCache = exchange.getFetchCache();
         object url = "";
@@ -537,7 +537,7 @@ public partial class testMainClass
                 url = exchange.safeString(lastRequest, "url", "");
             }
         }
-        return url;
+        return ((string?)((object)(url)));
     }
 
     public async virtual Task<object> runPublicTests(BaseExchange exchange, object symbols)
@@ -594,7 +594,7 @@ public partial class testMainClass
         return true;
     }
 
-    public async virtual Task<object> runTests(BaseExchange exchange, object tests, object isPublicTest)
+    public async virtual Task<object> runTests(BaseExchange exchange, object tests, bool? isPublicTest)
     {
         List<object> testNames = new List<object>(((IDictionary<string,object>)tests).Keys);
         List<object> promises = new List<object>() {};
@@ -618,7 +618,7 @@ public partial class testMainClass
                 failedMethods.Add(testName);
             }
         }
-        string testPrefixString = isTrue(isPublicTest) ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
+        string testPrefixString = isPublicTest == true ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
         if ((failedMethods?.Count ?? 0) > 0)
         {
             string errorsString = String.Join(", ", ((IList<object>)failedMethods).ToArray());
@@ -1592,7 +1592,7 @@ public partial class testMainClass
         }
     }
 
-    public virtual void assertStaticError(object cond, object message, object calculatedOutput, object storedOutput, object key = null)
+    public virtual void assertStaticError(bool? cond, object message, object calculatedOutput, object storedOutput, object key = null)
     {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
@@ -1603,7 +1603,7 @@ public partial class testMainClass
         // That is cheap in JS but O(tree²) in the Rust port (each level
         // re-serialises its whole subtree) — it made `--responseTests`
         // take minutes. Bail out before stringifying when the check holds.
-        if (isTrue(cond))
+        if (cond == true)
         {
             return;
         }
@@ -1689,7 +1689,7 @@ public partial class testMainClass
             return null;
         }
         List<object> urlParts = ((string)url).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
-        object res = "";
+        string res = "";
         for (int i = 0; i < urlParts.Count; i++)
         {
             if (i > 2)
@@ -1699,12 +1699,12 @@ public partial class testMainClass
                 {
                     // handle urls like this: /v1/account/accounts?AccessK
                     List<object> currentParts = current.Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
-                    res = (res + ("/"));
-                    res = add(res, (currentParts != null && 0 < currentParts.Count ? currentParts[0] : null));
+                    res = res + "/";
+                    res = res + ((currentParts != null && 0 < currentParts.Count ? currentParts[0] : null));
                     break;
                 }
-                res = (res + ("/"));
-                res = (res + (current));
+                res = res + "/";
+                res = res + current;
             }
         }
         return res;
@@ -2070,9 +2070,9 @@ public partial class testMainClass
         if (!isEqual(storedUrl, requestUrl))
         {
             // remove the host part from the url
-            object firstPath = this.removeHostnamefromUrl(storedUrl);
-            object secondPath = this.removeHostnamefromUrl(requestUrl);
-            this.assertStaticError(isEqual(firstPath, secondPath), "url mismatch", firstPath, secondPath);
+            string? firstPath = ((string)this.removeHostnamefromUrl(storedUrl));
+            string? secondPath = ((string)this.removeHostnamefromUrl(requestUrl));
+            this.assertStaticError((firstPath == secondPath), "url mismatch", firstPath, secondPath);
         }
         // body (aka storedOutput and newOutput) is not defined and information is in the url
         // example: "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0
@@ -2601,7 +2601,7 @@ public partial class testMainClass
         return true;  // in c# methods that will be used with promiseAll need to return something
     }
 
-    public virtual BaseExchange initOfflineExchange(object exchangeName, object isWs = null)
+    public virtual BaseExchange initOfflineExchange(object exchangeName, bool? isWs = null)
     {
         // prediction exchanges load their outcome markets from an event -> markets -> outcomes
         // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
@@ -2771,7 +2771,8 @@ public partial class testMainClass
         object accounts = exchange.safeList(exchangeData, "accounts");
         if ((accounts != null) && (accounts != null))
         {
-            exchange.accounts = accounts;
+            // the field is a List<object>: assign the call, not the untyped local
+            exchange.accounts = exchange.safeList(exchangeData, "accounts");
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions(globalOptions);

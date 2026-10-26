@@ -610,11 +610,12 @@ public partial class bitbns : Exchange
             int numParts = parts.Count;
             if (numParts > 1)
             {
+                string? usedCurrencyId = this.safeString(parts, 1, "");
                 string? currencyId = this.safeString(parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 Dictionary<string, object> account = this.account();
                 account["free"] = this.safeString(data, key);
-                account["used"] = this.safeString(data, ("inorder" + currencyId));
+                account["used"] = this.safeString(data, ("inorder" + usedCurrencyId));
                 if (currencyId == "Money")
                 {
                     currencyId = "INR";
@@ -1427,26 +1428,26 @@ public partial class bitbns : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object urls = this.urls;
-        object apiName = getValue(api, 0);
-        if (!(inOp(getValue(urls, "api"), apiName)))
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        if (!((this.urlsApi != null && apiName != null && this.urlsApi.ContainsKey(apiName))))
         {
-            throw new ExchangeError ((((this.id + " does not have a testnet/sandbox URL for ") + (apiName)) + " endpoints")) ;
+            throw new ExchangeError ((((this.id + " does not have a testnet/sandbox URL for ") + apiName) + " endpoints")) ;
         }
-        if (!(apiName is "www"))
+        if (apiName != "www")
         {
             this.checkRequiredCredentials();
         }
-        Dictionary<string, object> apiKeyHeaders = new Dictionary<string, object>() {
-            { "X-BITBNS-APIKEY", this.apiKey },
-        };
-        Dictionary<string, object> requestHeaders = (!(apiName is "www")) ? apiKeyHeaders : null;
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        Dictionary<string, object> requestHeaders = new Dictionary<string, object>() {};
+        if (apiName != "www")
+        {
+            requestHeaders["X-BITBNS-APIKEY"] = this.apiKey;
+        }
+        string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1454,7 +1455,7 @@ public partial class bitbns : Exchange
         string baseUrl = this.implodeHostname(baseApiUrl);
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        string nonce = this.nonce().ToString();
+        string? nonce = this.numberToString(this.nonce());
         int queryLength = (new List<object>(((IDictionary<string,object>)query).Keys)).Count;
         string postBody = "{}";
         if (queryLength > 0)
@@ -1476,7 +1477,6 @@ public partial class bitbns : Exchange
             };
             string payload = this.stringToBase64(this.json(auth));
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
-            requestHeaders = ((requestHeaders == null)) ? new Dictionary<string, object>() {} : requestHeaders;
             requestHeaders["X-BITBNS-PAYLOAD"] = payload;
             requestHeaders["X-BITBNS-SIGNATURE"] = signature;
             requestHeaders["Content-Type"] = "application/x-www-form-urlencoded";
@@ -1489,7 +1489,7 @@ public partial class bitbns : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

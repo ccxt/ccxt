@@ -188,7 +188,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} encoding outcome side encoding
      * @returns {string} the coin name
      */
-    public virtual string outcomeCoin(object encoding)
+    public virtual string? outcomeCoin(object encoding)
     {
         return ("#" + encoding.ToString());
     }
@@ -201,7 +201,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} encoding outcome side encoding
      * @returns {string} the token name
      */
-    public virtual string outcomeToken(object encoding)
+    public virtual string? outcomeToken(object encoding)
     {
         return ("+" + encoding.ToString());
     }
@@ -228,7 +228,7 @@ public partial class hyperliquid : PredictionExchange
             int colonIndex = (part?.IndexOf(":", StringComparison.Ordinal) ?? -1);
             if (colonIndex > -1)
             {
-                string? key = slice(part, 0, colonIndex);
+                string? key = ((part == null) ? null : part.Substring(0, Math.Max(Math.Min((colonIndex < 0 ? part.Length + (colonIndex) : colonIndex), part.Length), 0)));
                 string? value = slice(part, (colonIndex + 1L), null);
                 result[(string)key] = value;
             }
@@ -262,16 +262,16 @@ public partial class hyperliquid : PredictionExchange
         {
             label = "YES";
         }
-        object bs = underlying.ToUpper();
+        string bs = underlying.ToUpper();
         if (((targetPrice != null)) && (targetPrice != ""))
         {
-            bs = add(add(bs, "_ABOVE_"), targetPrice);
+            bs = ((bs + "_ABOVE_") + targetPrice);
         }
         if (((expiryDate != null)) && (!(expiryDate is "")))
         {
-            bs = add(add(bs, "_"), expiryDate);
+            bs = ((bs + "_") + (expiryDate));
         }
-        return ((string?)((object)(add(add(bs, ":"), label))));
+        return ((bs + ":") + label);
     }
 
     /**
@@ -356,10 +356,10 @@ public partial class hyperliquid : PredictionExchange
                         {
                             bucketLabel = ((("BETWEEN_" + (getValue(thresholds, (index - 1)))) + "_") + ((thresholds != null && index != null && index < thresholds.Count ? thresholds[(int)index] : null)));
                         }
-                        object bs = ((questionUnderlying.ToUpper() + "_") + bucketLabel);
+                        string bs = ((questionUnderlying.ToUpper() + "_") + bucketLabel);
                         if (((expiryDate != null)) && (!(expiryDate is "")))
                         {
-                            bs = add(add(bs, "_"), expiryDate);
+                            bs = ((bs + "_") + (expiryDate));
                         }
                         return ((string?)((object)(bs)));
                     }
@@ -367,10 +367,10 @@ public partial class hyperliquid : PredictionExchange
                 bool isFallbackLike = (rawDescription == "other") || (nameLower.IndexOf("fallback", StringComparison.Ordinal) >= 0) || (nameLower.IndexOf("other", StringComparison.Ordinal) >= 0);
                 if (((questionUnderlying != null) && questionUnderlying != "") && isFallbackLike)
                 {
-                    object bs = (questionUnderlying.ToUpper() + "_OTHER");
+                    string bs = (questionUnderlying.ToUpper() + "_OTHER");
                     if (((expiryDate != null)) && (!(expiryDate is "")))
                     {
-                        bs = add(add(bs, "_"), expiryDate);
+                        bs = ((bs + "_") + (expiryDate));
                     }
                     return ((string?)((object)(bs)));
                 }
@@ -408,7 +408,7 @@ public partial class hyperliquid : PredictionExchange
         // Fallback: use name slugified, or OUTCOME-<id>
         if (((name != null)) && (!(name is "")))
         {
-            return ((this.shortenSlug(name) + "_") + outcomeId.ToString());
+            return ((string?)((object)(((this.shortenSlug(name) + "_") + outcomeId.ToString()))));
         }
         return ("OUTCOME_" + outcomeId.ToString());
     }
@@ -1144,10 +1144,10 @@ public partial class hyperliquid : PredictionExchange
         // outcome positions are spot token balances under the "+<encoding>" coin form; they carry
         // the size (total) and entry notional (entryNtl). hyperliquid does not return the position
         // value / entry price / pnl, so they are computed from the current mid prices
-        List<object> promises = new List<object> {this.publicPostInfo(this.extend(request, paramsPublicAddress)), this.publicPostInfo(new Dictionary<string, object>() {
+        List<Task<object>> promises = new List<Task<object>> {this.publicPostInfo(this.extend(request, paramsPublicAddress)), this.publicPostInfo(new Dictionary<string, object>() {
     { "type", "allMids" },
 })};
-        List<object> results = await promiseAll(promises);
+        List<object> results = new List<object>(await Task.WhenAll(promises));
         IDictionary<string, object> response = this.safeDict(results, 0);
         object midsResponse = (results != null && 1 < results.Count ? results[1] : null);
         List<object> balances = this.safeList(response, "balances", new List<object>() {});
@@ -1478,7 +1478,7 @@ public partial class hyperliquid : PredictionExchange
             string? wallet = this.safeStringLower(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
             // feeInt defaults to 0: the builder is attached for statistics purposes only and the
             // user is not charged; set options.feeInt (tenths of a bp) together with feeRate to charge
-            object feeInt = this.safeInteger(this.options, "feeInt", 0);
+            Int64? feeInt = this.safeInteger(this.options, "feeInt", 0);
             if (!(this.safeBool(this.options, "builderFee", true) == true))
             {
                 feeInt = 0;
@@ -2592,12 +2592,12 @@ public partial class hyperliquid : PredictionExchange
         return ((string)normalized).ToLower();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "POST";
         parameters ??= new Dictionary<string, object>();
-        object apiGroup = getValue(api, 0);
+        string? apiGroup = ((string)(api != null && 0 < api.Count ? api[0] : null));
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object baseUrl = null;
         if ((sandboxMode == true))
@@ -2627,7 +2627,7 @@ public partial class hyperliquid : PredictionExchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

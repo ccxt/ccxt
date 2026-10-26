@@ -684,7 +684,7 @@ public partial class coinbaseinternational : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(response, "result");
-        return ccxt.BaseExchange.ToInt64Value(timestamp);
+        return timestamp ?? 0;
     }
 
     /**
@@ -914,7 +914,7 @@ public partial class coinbaseinternational : Exchange
             { "created", this.safeInteger(market, "creation_timestamp") },
         };
         Dictionary<string, object> parsedMarket = this.safeMarketStructure(marketStructure);
-        return ccxt.BaseExchange.ToDict(parsedMarket);
+        return parsedMarket;
     }
 
     /**
@@ -1106,7 +1106,7 @@ public partial class coinbaseinternational : Exchange
             throw new NotSupported ((this.id + " fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments")) ;
         }
         object limitResolved = limitVar;
-        int duration = this.parseTimeframe(timeframeVar);
+        Int64? duration = this.parseToInt(this.parseTimeframe(timeframeVar));
         Int64 now = this.milliseconds();
         if ((since == null))
         {
@@ -1114,7 +1114,7 @@ public partial class coinbaseinternational : Exchange
             {
                 limitResolved = 100;
             }
-            request["start_timestamp"] = this.sum(now, multiply(multiply(prefixUnaryNeg(ref limitResolved), duration), 1000));
+            request["start_timestamp"] = this.sum(now, ((this.parseToInt(limitResolved) * duration) * -1000));
             request["end_timestamp"] = now;
         } else
         {
@@ -1125,7 +1125,7 @@ public partial class coinbaseinternational : Exchange
                 request["end_timestamp"] = now;
             } else
             {
-                request["end_timestamp"] = this.sum(sinceResolved, multiply(multiply(limitResolved, duration), 1000));
+                request["end_timestamp"] = this.sum(sinceResolved, ((this.parseToInt(limitResolved) * duration) * 1000));
             }
         }
         Int64? until = this.safeInteger(paramsPaginate, "until");
@@ -1212,7 +1212,7 @@ public partial class coinbaseinternational : Exchange
         Int64 duration = (this.parseTimeframe("1h") * 1000L);
         Int64 now = this.milliseconds();
         object sinceResolved = since;
-        if ((sinceResolved == null))
+        if ((since == null))
         {
             sinceResolved = (now - (((((30L * 24L) * 60) * 60) * 1000)));
         }
@@ -1501,9 +1501,9 @@ public partial class coinbaseinternational : Exchange
                 }
                 for (int i = 0; i < (depths?.Count ?? 0); i++)
                 {
-                    if (isLessThanOrEqual(limit, depths[i]))
+                    if (isLessThanOrEqual(limit, this.parseToInt(depths[i])))
                     {
-                        request["depth"] = depths[i];
+                        request["depth"] = this.parseToInt(depths[i]);
                         break;
                     }
                 }
@@ -1915,7 +1915,7 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> currency = this.currency(code);
         Int64 now = this.milliseconds();
         object sinceResolved = since;
-        if ((sinceResolved == null))
+        if ((since == null))
         {
             sinceResolved = (now - (((((30L * 24L) * 60) * 60) * 1000)));
         }
@@ -2270,7 +2270,7 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> currency = this.currency(code);
         Int64 now = this.milliseconds();
         object sinceResolved = since;
-        if ((sinceResolved == null))
+        if ((since == null))
         {
             sinceResolved = (now - (((((30L * 24L) * 60) * 60) * 1000)));
         }
@@ -2370,7 +2370,7 @@ public partial class coinbaseinternational : Exchange
         {
             await this.loadMarkets();
         }
-        return await this.FetchDepositsWithdrawals(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(paramsResolved, new Dictionary<string, object>() {
+        return await this.FetchDepositsWithdrawals(code, since, limit, this.extend(paramsResolved, new Dictionary<string, object>() {
             { "query", "withdrawal" },
         }));
     }
@@ -2398,7 +2398,7 @@ public partial class coinbaseinternational : Exchange
         {
             await this.loadMarkets();
         }
-        return await this.FetchDepositsWithdrawals(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(paramsResolved, new Dictionary<string, object>() {
+        return await this.FetchDepositsWithdrawals(code, since, limit, this.extend(paramsResolved, new Dictionary<string, object>() {
             { "query", "deposit" },
         }));
     }
@@ -2482,7 +2482,7 @@ public partial class coinbaseinternational : Exchange
      * @param {float} amount unified order quantity
      * @returns {string} precision-formatted exchange order amount
      */
-    public virtual object getOrderAmount(object market, object amount)
+    public virtual string? getOrderAmount(object market, object amount)
     {
         string? exchangeAmount = this.numberToString(amount);
         if (this.isNativeDeribitCredentials() && ((getValue(market, "contract") is true)))
@@ -3586,7 +3586,7 @@ public partial class coinbaseinternational : Exchange
         //         "result": 50
         //     }
         //
-        return ccxt.BaseExchange.ToDict(response);
+        return response;
     }
 
     /**
@@ -3618,7 +3618,7 @@ public partial class coinbaseinternational : Exchange
             int quesPos = getIndexOf(uri, "?");
             if (quesPos > 0)
             {
-                uri = slice(uri, 0, quesPos);
+                uri = ((uri == null) ? null : ((string)uri).Substring(0, Math.Max(Math.Min((quesPos < 0 ? ((string)uri).Length + (quesPos) : quesPos), ((string)uri).Length), 0)));
             }
         }
         object nonce = this.randomBytes(16);
@@ -3637,7 +3637,7 @@ public partial class coinbaseinternational : Exchange
             { "sub", this.apiKey },
             { "iss", iss },
             { "nbf", seconds },
-            { "exp", add(seconds, 120) },
+            { "exp", (this.parseToInt(seconds) + 120) },
             { "iat", seconds },
         };
         if ((uri != null))
@@ -3734,7 +3734,7 @@ public partial class coinbaseinternational : Exchange
      * @description the cached gateway access token, options.v2AccessToken takes precedence over exchange.token
      * @returns {string|undefined} the access token
      */
-    public virtual object getV2AccessToken()
+    public virtual string? getV2AccessToken()
     {
         string? token = this.safeString(this.options, "v2AccessToken");
         if (((token != null)) && (token != ""))
@@ -3745,30 +3745,30 @@ public partial class coinbaseinternational : Exchange
         {
             return null;
         }
-        return this.token;
+        return ((string?)((object)(this.token)));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object access = ((api is IList<object>) || (api.GetType().IsGenericType && api.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? getValue(api, 0) : api;
-        object rpcMethod = add(add(access, "/"), path);
+        string access = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string rpcMethod = ((access + "/") + path);
         object requestParams = this.handleRouteAndParams("sign", parameters);
         bool isNativeDeribit = this.isNativeDeribitCredentials();
-        string baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest", "");
+        string baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest", "");
         if (isNativeDeribit)
         {
             baseApiUrl = "https://www.deribit.com/api/v2";
         }
-        string url = ((baseApiUrl + "/") + (rpcMethod));
+        string url = ((baseApiUrl + "/") + rpcMethod);
         Dictionary<string, object> requestHeaders = null;
         if (isNativeDeribit && (((path == "get_leverage")) || ((path == "set_leverage"))))
         {
-            throw new NotSupported ((((this.id + " ") + (rpcMethod)) + " is only documented on the Coinbase gateway")) ;
+            throw new NotSupported ((((this.id + " ") + rpcMethod) + " is only documented on the Coinbase gateway")) ;
         }
-        if (((access is "public")) && ((path == "auth")))
+        if ((access == "public") && ((path == "auth")))
         {
             this.checkRequiredCredentials();
             if (isNativeDeribit)
@@ -3785,12 +3785,12 @@ public partial class coinbaseinternational : Exchange
                     { "token", this.createAuthToken(this.seconds(), method, url, this.isEddsaSecret()) },
                 }, requestParams);
             }
-        } else if (((access is "private")) && isNativeDeribit)
+        } else if ((access == "private") && isNativeDeribit)
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();
             string nonce = this.nonce().ToString();
-            string signedRequest = (((((("/" + "api/") + this.version) + "/") + (access)) + "/") + path);
+            string signedRequest = (((((("/" + "api/") + this.version) + "/") + access) + "/") + path);
             if ((new List<object>(((IDictionary<string,object>)requestParams).Keys)).Count > 0)
             {
                 signedRequest = signedRequest + ("?" + this.urlencode(requestParams));
@@ -3802,7 +3802,7 @@ public partial class coinbaseinternational : Exchange
                 { "Content-Type", "application/json" },
                 { "Authorization", ((((((("deri-hmac-sha256 id=" + this.apiKey) + ",ts=") + timestamp) + ",sig=") + signature) + ",nonce=") + nonce) },
             };
-        } else if ((access is "private"))
+        } else if (access == "private")
         {
             object accessToken = this.getV2AccessToken();
             if ((accessToken == null))
@@ -3876,9 +3876,9 @@ public partial class coinbaseinternational : Exchange
     public virtual object handleRouteAndParams(object methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> routeparamsResolvedVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "route", "auto");
-        var route = routeparamsResolvedVariable[0];
-        IDictionary<string, object> paramsResolved = ((IDictionary<string, object>)routeparamsResolvedVariable[1]);
+        (string?, object) routeparamsResolvedVariable = this.handleOptionStringAndParams(parameters, methodName, "route", "auto");
+        string? route = routeparamsResolvedVariable.Item1;
+        IDictionary<string, object> paramsResolved = ((IDictionary<string, object>)routeparamsResolvedVariable.Item2);
         bool deribit = this.resolveRoute(route);
         bool? previousBackend = this.safeBool(this.options, "routeBackend");
         bool configuredBackend = this.isNativeDeribitCredentials();
@@ -3951,7 +3951,7 @@ public partial class coinbaseinternational : Exchange
         return ((this.apiKey.Length == 8)) && ((this.secret.Length == 43));
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         //
         //     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }

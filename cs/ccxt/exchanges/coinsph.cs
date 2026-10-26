@@ -810,16 +810,19 @@ public partial class coinsph : Exchange
     public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
+        bool hasSymbolParam = (inOp(parameters, "symbol"));
+        bool hasSymbolsParam = (inOp(parameters, "symbols"));
+        Int64? limit = this.safeInteger(parameters, "limit");
+        if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !hasSymbolParam)
         {
             return ((IDictionary<string,object>)config)["noSymbol"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbolAndNoSymbols")) && !(inOp(parameters, "symbol")) && !(inOp(parameters, "symbols")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbolAndNoSymbols")) && !hasSymbolParam && !hasSymbolsParam)
         {
             return ((IDictionary<string,object>)config)["noSymbolAndNoSymbols"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("byNumberOfSymbols")) && (inOp(parameters, "symbols")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("byNumberOfSymbols")) && hasSymbolsParam)
         {
-            object symbols = getValue(parameters, "symbols");
-            int symbolsAmount = getArrayLength(symbols);
+            List<object> symbols = this.safeList(parameters, "symbols", new List<object>() {});
+            int symbolsAmount = symbols.Count;
             List<object> byNumberOfSymbols = this.safeList(config, "byNumberOfSymbols", new List<object>() {});
             for (int i = 0; i < byNumberOfSymbols.Count; i++)
             {
@@ -827,20 +830,19 @@ public partial class coinsph : Exchange
                 Int64? threshold = this.safeInteger(entry, 0);
                 if (!(threshold == null) && (threshold == null || symbolsAmount >= threshold))
                 {
-                    return getValue(entry, 1);
+                    return this.safeInteger(entry, 1);
                 }
             }
-        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && ((limit != null)))
         {
-            Int64? limit = this.safeInteger(parameters, "limit");
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
             for (int i = 0; i < byLimit.Count; i++)
             {
                 object entry = byLimit[i];
                 Int64? threshold = this.safeInteger(entry, 0);
-                if ((limit != null) && !(threshold == null) && (threshold == null || limit >= threshold))
+                if (!(threshold == null) && (threshold == null || limit >= threshold))
                 {
-                    return getValue(entry, 1);
+                    return this.safeInteger(entry, 1);
                 }
             }
         }
@@ -877,7 +879,7 @@ public partial class coinsph : Exchange
         //
         //     {"serverTime":1677705408268}
         //
-        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "serverTime"));
+        return this.safeInteger(response, "serverTime") ?? 0;
     }
 
     /**
@@ -1424,7 +1426,7 @@ public partial class coinsph : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
         };
-        return await this.FetchMyTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.FetchMyTrades(symbol, since, limit, this.extend(request, parameters));
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)
@@ -2006,10 +2008,7 @@ public partial class coinsph : Exchange
             { "buy", "BUY" },
             { "sell", "SELL" },
         };
-        if ((status == null))
-        {
-            return null;
-        }
+        // safeString returns the status itself when it is absent, so no early return
         return this.safeString(statuses, status, status);
     }
 
@@ -2042,10 +2041,7 @@ public partial class coinsph : Exchange
             { "take_profit", "TAKE_PROFIT" },
             { "take_profit_limit", "TAKE_PROFIT_LIMIT" },
         };
-        if ((status == null))
-        {
-            return null;
-        }
+        // safeString returns the status itself when it is absent, so no early return
         return this.safeString(statuses, status, status);
     }
 
@@ -2158,7 +2154,7 @@ public partial class coinsph : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -2584,13 +2580,13 @@ public partial class coinsph : Exchange
         return ((string?)((object)(urlEncodedParam)));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2598,7 +2594,7 @@ public partial class coinsph : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         string? endpoint = this.implodeParams(path, parameters);
         string url = ((apiUrl + "/") + endpoint);
-        if ((apiName is "private"))
+        if (apiName == "private")
         {
             this.checkRequiredCredentials();
             ((IDictionary<string,object>)query)["timestamp"] = this.milliseconds();
@@ -2613,7 +2609,7 @@ public partial class coinsph : Exchange
             }
             string? signedQuery = this.urlEncodeQuery(query);
             string signature = this.hmac(this.encode(signedQuery), this.encode(this.secret), sha256);
-            url = ((((url + "?") + signedQuery) + "&signature=") + signature);
+            url = ((((((apiUrl + "/") + endpoint) + "?") + signedQuery) + "&signature=") + signature);
             Dictionary<string, object> signedHeaders = new Dictionary<string, object>() {
                 { "X-COINS-APIKEY", this.apiKey },
             };
@@ -2627,7 +2623,7 @@ public partial class coinsph : Exchange
         string? encodedQuery = this.urlEncodeQuery(query);
         if ((encodedQuery.Length != 0))
         {
-            url = url + ("?" + encodedQuery);
+            url = ((((apiUrl + "/") + endpoint) + "?") + encodedQuery);
         }
         return new Dictionary<string, object>() {
             { "url", url },
@@ -2637,7 +2633,7 @@ public partial class coinsph : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

@@ -354,8 +354,8 @@ public partial class mercado : Exchange
         IList<object> coins = this.toArray(response);
         for (int i = 0; i < (coins?.Count ?? 0); i++)
         {
-            object coin = coins[i];
-            object baseId = coin;
+            string? coin = this.safeString(coins, i, "");
+            string? baseId = coin;
             string quoteId = "BRL";
             string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
@@ -695,7 +695,7 @@ public partial class mercado : Exchange
             }
         }
         // TODO: replace this with a call to parseOrder for unification
-        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", getValue(getValue((response != null && response.ContainsKey("response_data") ? response["response_data"] : null), "order"), "order_id").ToString() },         }, market);
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", this.safeString(this.safeValue(this.safeValue(response, "response_data"), "order"), "order_id") },         }, market);
     }
 
     /**
@@ -860,7 +860,7 @@ public partial class mercado : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coin_pair", (market.ContainsKey("id") ? market["id"] : null) },
-            { "order_id", parseInt(id) },
+            { "order_id", this.parseToInt(id) },
         };
         Dictionary<string, object> response = await this.privatePostGetOrder(this.extend(request, parameters));
         IDictionary<string, object> responseData = this.safeDict(response, "response_data", new Dictionary<string, object>() {});
@@ -1017,7 +1017,7 @@ public partial class mercado : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
-            { "symbol", add(add((market.ContainsKey("base") ? market["base"] : null), "-"), (market.ContainsKey("quote") ? market["quote"] : null)) },
+            { "symbol", ((this.safeString(market, "base", "") + "-") + this.safeString(market, "quote", "")) },
         };
         // set some default limit, as it's required if user doesn't provide it
         Int64? limitResolved = ((limit == null)) ? 100 : limit;
@@ -1139,7 +1139,7 @@ public partial class mercado : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
-            List<object> trades = this.safeList((orders != null && i < orders.Count ? orders[i] : null), "trades", new List<object>() {});
+            List<object> trades = this.safeList(this.safeValue(orders, i), "trades", new List<object>() {});
             for (int y = 0; y < trades.Count; y++)
             {
                 result.Add(trades[y]);
@@ -1154,20 +1154,20 @@ public partial class mercado : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (apiUrl + "/");
         object query = this.omit(parameters, this.extractParams(path));
-        bool isPublic = ((apiName is "public")) || ((apiName is "v4Public")) || ((apiName is "v4PublicNet"));
+        bool isPublic = (apiName == "public") || (apiName == "v4Public") || (apiName == "v4PublicNet");
         string? privateBody = null;
         Dictionary<string, object> privateHeaders = null;
         if (isPublic)
@@ -1212,7 +1212,7 @@ public partial class mercado : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

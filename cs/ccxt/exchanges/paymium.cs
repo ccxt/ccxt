@@ -210,7 +210,7 @@ public partial class paymium : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        List<object> currencies = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        List<object> currencies = new List<object>(this.currenciesDict.Keys);
         for (int i = 0; i < currencies.Count; i++)
         {
             string? code = ((string)currencies[i]);
@@ -220,9 +220,8 @@ public partial class paymium : Exchange
             if (inOp(response, free))
             {
                 Dictionary<string, object> account = this.account();
-                string used = ("locked_" + currencyId);
                 account["free"] = this.safeString(response, free);
-                account["used"] = this.safeString(response, used);
+                account["used"] = this.safeString(response, ("locked_" + currencyId));
                 result[(string)code] = account;
             }
         }
@@ -372,7 +371,8 @@ public partial class paymium : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(null, market);
         string? side = this.safeString(trade, "side");
         string? price = this.safeString(trade, "price");
-        string amountField = ("traded_" + ((string)(marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null)).ToLower());
+        string? baseId = this.safeString(marketResolved, "base", "");
+        string amountField = ("traded_" + baseId.ToLower());
         string? amount = this.safeString(trade, amountField);
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -718,12 +718,12 @@ public partial class paymium : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -731,9 +731,10 @@ public partial class paymium : Exchange
         string baseUrl = baseApiUrl;
         string url = ((((baseUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if ((getValue(api, 0) is "public"))
+        bool hasQuery = (new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0;
+        if (((api != null && 0 < api.Count ? api[0] : null) is "public"))
         {
-            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+            if (hasQuery)
             {
                 url = url + ("?" + this.urlencode(query));
             }
@@ -747,7 +748,6 @@ public partial class paymium : Exchange
                 { "Api-Key", this.apiKey },
                 { "Api-Nonce", nonce },
             };
-            bool hasQuery = (new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0;
             string? signedBody = null;
             if ((method == "POST") && hasQuery)
             {
@@ -765,7 +765,7 @@ public partial class paymium : Exchange
                 if (hasQuery)
                 {
                     string queryString = this.urlencode(query);
-                    auth = auth + queryString;
+                    auth = ((nonce + url) + queryString);
                     url = url + ("?" + queryString);
                 }
             }
@@ -785,7 +785,7 @@ public partial class paymium : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

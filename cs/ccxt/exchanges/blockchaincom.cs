@@ -455,7 +455,7 @@ public partial class blockchaincom : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchL2OrderBook(symbol,ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchL2OrderBook(symbol, limit, parameters);
     }
 
     /**
@@ -841,7 +841,7 @@ public partial class blockchaincom : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string state = "CANCELED";
-        return await this.FetchOrdersByState(state, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByState(state, symbol, since, limit, parameters);
     }
 
     /**
@@ -859,7 +859,7 @@ public partial class blockchaincom : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string state = "FILLED";
-        return await this.FetchOrdersByState(state, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByState(state, symbol, since, limit, parameters);
     }
 
     /**
@@ -877,7 +877,7 @@ public partial class blockchaincom : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string state = "OPEN";
-        return await this.FetchOrdersByState(state, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByState(state, symbol, since, limit, parameters);
     }
 
     public async virtual Task<List<ccxt.Order>> FetchOrdersByState(object state, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -925,12 +925,12 @@ public partial class blockchaincom : Exchange
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         string? datetime = this.iso8601(timestamp);
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol", "");
         Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
         if ((feeCostString != null))
         {
-            string? feeCurrency = ((string)(marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null));
+            string? feeCurrency = this.safeString(marketResolved, "quote", "");
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "currency", feeCurrency },
@@ -1066,14 +1066,16 @@ public partial class blockchaincom : Exchange
         string? currencyId = this.safeString(transaction, "currency");
         string? code = this.safeCurrencyCode(currencyId, currency);
         string? state = this.safeString(transaction, "state");
-        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("depositId")))
+        string? depositId = this.safeString(transaction, "depositId");
+        string? withdrawalId = this.safeString(transaction, "withdrawalId");
+        if ((depositId != null))
         {
             type = "deposit";
-            id = this.safeString(transaction, "depositId");
-        } else if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("withdrawalId")))
+            id = depositId;
+        } else if ((withdrawalId != null))
         {
             type = "withdrawal";
-            id = this.safeString(transaction, "withdrawalId");
+            id = withdrawalId;
         }
         double? feeCost = (type == "withdrawal") ? this.safeNumber(transaction, "fee") : null;
         Dictionary<string, object> fee = null;
@@ -1365,21 +1367,21 @@ public partial class blockchaincom : Exchange
         return this.parseOrder(response);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string requestPath = ("/" + this.implodeParams(path, parameters));
-        object apiName = getValue(api, 0);
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (apiUrl + requestPath);
         object query = this.omit(parameters, this.extractParams(path));
-        bool isPrivate = ((apiName is "private"));
+        bool isPrivate = (apiName == "private");
         Dictionary<string, object> privateHeaders = new Dictionary<string, object>() {
             { "X-API-Token", this.secret },
         };
@@ -1394,7 +1396,7 @@ public partial class blockchaincom : Exchange
         {
             requestBody = this.json(query);
         }
-        if ((apiName is "public"))
+        if (apiName == "public")
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -1422,7 +1424,7 @@ public partial class blockchaincom : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if ((response == null))
@@ -1439,12 +1441,10 @@ public partial class blockchaincom : Exchange
         }
         string? errorCode = this.safeString(response, "status");
         string? errorMessage = this.safeString(response, "error");
-        if (!(code == null))
-        {
-            string feedback = ((this.id + " ") + this.json(response));
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
-        }
+        // code is an int: it is never undefined, the guard was dead
+        string feedback = ((this.id + " ") + this.json(response));
+        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+        this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
         return null;
     }
 }

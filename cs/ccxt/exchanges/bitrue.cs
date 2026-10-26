@@ -781,7 +781,7 @@ public partial class bitrue : Exchange
         //         "serverTime":1635467280514
         //     }
         //
-        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "serverTime"));
+        return this.safeInteger(response, "serverTime") ?? 0;
     }
 
     /**
@@ -943,8 +943,8 @@ public partial class bitrue : Exchange
         }
         List<object> promises = await promiseAll(promisesRaw);
         List<object> spotMarkets = this.safeList(this.safeDict(promises, 0), "symbols", new List<object>() {});
-        object futureMarkets = this.safeValue(promises, 1);
-        object deliveryMarkets = this.safeValue(promises, 2);
+        List<object> futureMarkets = this.safeList(promises, 1, new List<object>() {});
+        List<object> deliveryMarkets = this.safeList(promises, 2, new List<object>() {});
         List<object> markets = spotMarkets;
         markets = this.arrayConcat(markets, futureMarkets);
         markets = this.arrayConcat(markets, deliveryMarkets);
@@ -1059,7 +1059,7 @@ public partial class bitrue : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
         string symbol = ((bs + "/") + quote);
         if ((settle != null))
@@ -2129,7 +2129,7 @@ public partial class bitrue : Exchange
             throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports swap orders only")) ;
         }
         ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), parameters);
+        return await this.CreateOrder(symbol, "market", "buy", cost, null, parameters);
     }
 
     /**
@@ -2246,7 +2246,7 @@ public partial class bitrue : Exchange
         {
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             request["quantity"] = this.amountToPrecision(symbol, amount);
-            object validOrderTypes = this.safeValue((market.ContainsKey("info") ? market["info"] : null), "orderTypes");
+            List<object> validOrderTypes = this.safeList((market.ContainsKey("info") ? market["info"] : null), "orderTypes", new List<object>() {});
             if (!this.inArray(uppercaseType, validOrderTypes))
             {
                 throw new InvalidOrder (((((this.id + " ") + type) + " is not a valid order type in market ") + symbol)) ;
@@ -3170,6 +3170,7 @@ public partial class bitrue : Exchange
         //
         List<object> chainDetails = this.safeList(fee, "chainDetail", new List<object>() {});
         int chainDetailLength = chainDetails.Count;
+        Dictionary<string, object> networks = new Dictionary<string, object>() {};
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", fee },
             { "withdraw", new Dictionary<string, object>() {
@@ -3180,7 +3181,6 @@ public partial class bitrue : Exchange
                 { "fee", null },
                 { "percentage", null },
             } },
-            { "networks", new Dictionary<string, object>() {} },
         };
         if ((chainDetailLength != 0))
         {
@@ -3192,7 +3192,7 @@ public partial class bitrue : Exchange
                 string? networkCode = this.networkIdToCode(networkId, currencyCode);
                 if ((networkCode != null))
                 {
-                    ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                    networks[(string)networkCode] = new Dictionary<string, object>() {
                         { "deposit", new Dictionary<string, object>() {
                             { "fee", null },
                             { "percentage", null },
@@ -3205,11 +3205,14 @@ public partial class bitrue : Exchange
                 }
                 if ((chainDetailLength == 1))
                 {
-                    ((IDictionary<string,object>)result["withdraw"])["fee"] = this.safeNumber(chainDetail, "withdrawFee");
-                    ((IDictionary<string,object>)result["withdraw"])["percentage"] = false;
+                    result["withdraw"] = new Dictionary<string, object>() {
+                        { "fee", this.safeNumber(chainDetail, "withdrawFee") },
+                        { "percentage", false },
+                    };
                 }
             }
         }
+        result["networks"] = networks;
         return result;
     }
 
@@ -3366,7 +3369,7 @@ public partial class bitrue : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coinSymbol", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(code, amount) },
-            { "transferType", add(add(fromId, "_to_"), toId) },
+            { "transferType", add(((object)(fromId == null ? null : fromId + "_to_")), toId) },
         };
         Dictionary<string, object> response = await this.fapiV2PrivatePostFuturesTransfer(this.extend(request, parameters));
         //
@@ -3423,7 +3426,7 @@ public partial class bitrue : Exchange
         {
             response = await this.dapiV2PrivatePostLevelEdit(this.extend(request, parameters));
         }
-        return ccxt.BaseExchange.ToDict(response);
+        return response;
     }
 
     public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
@@ -3496,7 +3499,7 @@ public partial class bitrue : Exchange
         return ccxt.BaseExchange.ToMarginModification(this.parseMarginModification(response, market));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -3504,19 +3507,19 @@ public partial class bitrue : Exchange
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
         string? type = this.safeString(api, 0);
-        string? version = this.safeString(api, 1);
+        string? version = this.safeString(api, 1, "");
         string? access = this.safeString(api, 2);
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), type);
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), type);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        string url = apiUrl;
+        string? endpointPath = this.implodeParams(path, parameters);
+        string url = ((apiUrl + "/") + endpointPath);
         if (!((type == "api" && version == "kline") || (type == "open" && path.IndexOf("listenKey", StringComparison.Ordinal) >= 0)))
         {
-            url = url + ("/" + version);
+            url = ((((apiUrl + "/") + version) + "/") + endpointPath);
         }
-        url = url + ("/" + this.implodeParams(path, parameters));
         object paramsOmitted = this.omit(parameters, this.extractParams(path));
         if (access == "private")
         {
@@ -3530,37 +3533,39 @@ public partial class bitrue : Exchange
                 }, paramsOmitted));
                 string signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
                 query = query + (("&" + "signature=") + signature);
-                requestHeaders = new Dictionary<string, object>() {
-                    { "X-MBX-APIKEY", this.apiKey },
-                };
                 if (((method == "GET")) || ((method == "DELETE")))
                 {
                     url = url + ("?" + query);
+                    requestHeaders = new Dictionary<string, object>() {
+                        { "X-MBX-APIKEY", this.apiKey },
+                    };
                 } else
                 {
                     requestBody = query;
-                    requestHeaders["Content-Type"] = "application/x-www-form-urlencoded";
+                    requestHeaders = new Dictionary<string, object>() {
+                        { "X-MBX-APIKEY", this.apiKey },
+                        { "Content-Type", "application/x-www-form-urlencoded" },
+                    };
                 }
             } else
             {
                 string timestamp = this.nonce().ToString();
-                object signPath = null;
+                string signPrefix = "";
                 if (type == "fapi")
                 {
-                    signPath = "/fapi";
+                    signPrefix = "/fapi";
                 } else if (type == "dapi")
                 {
-                    signPath = "/dapi";
+                    signPrefix = "/dapi";
                 }
-                signPath = add(add(add(add(signPath, "/"), version), "/"), path);
-                object signMessage = ((timestamp + method) + (signPath));
+                string signMessage = ((timestamp + method) + (((((signPrefix + "/") + version) + "/") + path)));
                 if ((method == "GET"))
                 {
                     List<object> keys = new List<object>(((IDictionary<string,object>)paramsOmitted).Keys);
                     int keysLength = keys.Count;
                     if (keysLength > 0)
                     {
-                        signMessage = (signMessage + (("?" + this.urlencode(paramsOmitted))));
+                        signMessage = signMessage + ("?" + this.urlencode(paramsOmitted));
                     }
                     string signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     requestHeaders = new Dictionary<string, object>() {
@@ -3575,7 +3580,7 @@ public partial class bitrue : Exchange
                         { "recvWindow", recvWindow },
                     }, paramsOmitted);
                     requestBody = this.json(query);
-                    signMessage = (signMessage + (requestBody));
+                    signMessage = signMessage + requestBody;
                     string signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     requestHeaders = new Dictionary<string, object>() {
                         { "Content-Type", "application/json" },
@@ -3602,11 +3607,11 @@ public partial class bitrue : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
-        if ((isEqual(code, 418)) || (isEqual(code, 429)))
+        if (((code == 418)) || ((code == 429)))
         {
-            throw new DDoSProtection ((string)((((((this.id + " ") + code.ToString()) + " ") + reason) + " ") + (body))) ;
+            throw new DDoSProtection ((((((this.id + " ") + ((object)code).ToString()) + " ") + reason) + ((" " + (body))))) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
@@ -3642,7 +3647,7 @@ public partial class bitrue : Exchange
             {
                 try
                 {
-                    parsedMessage = parseJson(messageInner);
+                    parsedMessage = JsonHelper.Deserialize(messageInner);
                 } catch(Exception e)
                 {
                     // do nothing
@@ -3701,7 +3706,7 @@ public partial class bitrue : Exchange
                 Int64? threshold = this.safeInteger(entry, 0);
                 if ((limit != null) && (threshold != null) && (limit == null || limit <= threshold))
                 {
-                    return getValue(entry, 1);
+                    return this.safeNumber(entry, 1);
                 }
             }
         }

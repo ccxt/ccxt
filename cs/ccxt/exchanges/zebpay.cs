@@ -404,7 +404,7 @@ public partial class zebpay : Exchange
         // }
         //
         Int64? time = this.safeInteger(data, "timestamp");
-        return ccxt.BaseExchange.ToInt64Value(time);
+        return time ?? 0;
     }
 
     /**
@@ -425,7 +425,7 @@ public partial class zebpay : Exchange
         List<object> types = this.safeList(fetchMarketsOptions, "types", defaultMarkets);
         for (int i = 0; i < types.Count; i++)
         {
-            string? type = this.safeString(types, i);
+            string? type = this.safeString(types, i, "");
             if (type == "spot")
             {
                 promisesUnresolved.Add(this.FetchSpotMarkets(parameters));
@@ -501,31 +501,55 @@ public partial class zebpay : Exchange
         string? minWithdrawFeeString = null;
         string? minWithdrawString = null;
         string? minDepositString = null;
-        bool? deposit = false;
-        bool? withdraw = false;
+        bool deposit = false;
+        bool withdraw = false;
         for (int j = 0; j < chains.Count; j++)
         {
             IDictionary<string, object> chain = ((IDictionary<string, object>)chains[j]);
             string? networkId = this.safeString(chain, "chainId");
             string? networkCode = this.networkIdToCode(networkId, code);
             bool? depositAllowed = this.safeBool(chain, "isDepositEnabled", false);
-            deposit = depositAllowed == true ? depositAllowed : deposit;
+            if ((depositAllowed == true))
+            {
+                deposit = true;
+            }
             bool? withdrawAllowed = this.safeBool(chain, "isWithdrawEnabled", false);
-            withdraw = withdrawAllowed == true ? withdrawAllowed : withdraw;
+            if ((withdrawAllowed == true))
+            {
+                withdraw = true;
+            }
             string? withdrawFeeString = this.safeString(chain, "withdrawalFee");
             if ((withdrawFeeString != null))
             {
-                minWithdrawFeeString = ((minWithdrawFeeString == null)) ? withdrawFeeString : Precise.stringMin(withdrawFeeString, minWithdrawFeeString);
+                if ((minWithdrawFeeString == null))
+                {
+                    minWithdrawFeeString = withdrawFeeString;
+                } else
+                {
+                    minWithdrawFeeString = Precise.stringMin(withdrawFeeString, minWithdrawFeeString);
+                }
             }
             string? minNetworkWithdrawString = this.safeString(chain, "withdrawalMinSize");
             if ((minNetworkWithdrawString != null))
             {
-                minWithdrawString = ((minWithdrawString == null)) ? minNetworkWithdrawString : Precise.stringMin(minNetworkWithdrawString, minWithdrawString);
+                if ((minWithdrawString == null))
+                {
+                    minWithdrawString = minNetworkWithdrawString;
+                } else
+                {
+                    minWithdrawString = Precise.stringMin(minNetworkWithdrawString, minWithdrawString);
+                }
             }
             string? minNetworkDepositString = this.safeString(chain, "depositMinSize");
             if ((minNetworkDepositString != null))
             {
-                minDepositString = ((minDepositString == null)) ? minNetworkDepositString : Precise.stringMin(minNetworkDepositString, minDepositString);
+                if ((minDepositString == null))
+                {
+                    minDepositString = minNetworkDepositString;
+                } else
+                {
+                    minDepositString = Precise.stringMin(minNetworkDepositString, minDepositString);
+                }
             }
             if ((networkCode != null))
             {
@@ -556,7 +580,7 @@ public partial class zebpay : Exchange
             { "code", code },
             { "id", currencyId },
             { "name", name },
-            { "active", (deposit == true) && (withdraw == true) },
+            { "active", deposit && withdraw },
             { "deposit", deposit },
             { "withdraw", withdraw },
             { "fee", this.parseNumber(minWithdrawFeeString) },
@@ -1216,7 +1240,7 @@ public partial class zebpay : Exchange
         string upperCaseType = type.ToUpper();
         string? takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         string? stopLossPrice = this.safeString(parameters, "stopLossPrice");
-        object query = this.omit(parameters, new List<object>() {"marginAsset", "takeProfitPrice", "takeProfitPrice"});
+        IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"marginAsset", "takeProfitPrice", "takeProfitPrice"}));
         this.checkRequiredArgument("createOrder", side, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1225,10 +1249,8 @@ public partial class zebpay : Exchange
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            var requestqueryVariable = this.orderRequest(symbol, type, amount, request, price, query);
-            request = (Dictionary<string, object>)requestqueryVariable[0];
-            query = requestqueryVariable[1];
-            response = await this.privateSpotPostV2ExOrders(this.extend(request, query));
+            List<object> orderRequestResult = this.orderRequest(symbol, type, amount, request, price, query);
+            response = await this.privateSpotPostV2ExOrders(this.extend((orderRequestResult != null && 0 < orderRequestResult.Count ? orderRequestResult[0] : null), (orderRequestResult != null && 1 < orderRequestResult.Count ? orderRequestResult[1] : null)));
         } else
         {
             string? marginAsset = this.safeString(query, "marginAsset", "INR");
@@ -1274,7 +1296,7 @@ public partial class zebpay : Exchange
         return this.parseOrder(data, market);
     }
 
-    public virtual List<object> orderRequest(string? symbol, string? type, object amount, IDictionary<string, object> request, object price = null, object parameters = null)
+    public virtual List<object> orderRequest(string? symbol, string? type, object amount, IDictionary<string, object> request, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string upperCaseType = type.ToUpper();
@@ -1709,7 +1731,7 @@ public partial class zebpay : Exchange
         // { data: { "symbol", "longLeverage": 10, "shortLeverage": 1, "marginMode": "isolated" }
         //
         Dictionary<string, object> response = await this.privateSwapPostV1TradeUpdateUserLeverage(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToDict(response);
+        return response;
     }
 
     /**
@@ -1969,12 +1991,11 @@ public partial class zebpay : Exchange
             {
                 continue;
             }
-            string? settle = this.safeCurrencyCode(quoteId);
             string? status = this.safeString(market, "status");
             string symbol = ((bs + "/") + quote);
             result.Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
-                { "symbol", ((symbol + ":") + settle) },
+                { "symbol", ((symbol + ":") + quote) },
                 { "base", bs },
                 { "quote", quote },
                 { "baseId", baseId },
@@ -2100,7 +2121,7 @@ public partial class zebpay : Exchange
         };
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object>? market = null)
     {
         string? marketId = this.safeString(fee, "symbol");
         string? symbol = this.safeSymbol(marketId, market);
@@ -2192,7 +2213,7 @@ public partial class zebpay : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2206,14 +2227,13 @@ public partial class zebpay : Exchange
         {
             marketType = "swap";
         }
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), marketType);
+        string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), marketType);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        string url = baseApiUrl;
         string tail = ("/api/" + this.implodeParams(path, paramsOmitted));
-        url = url + tail;
+        string suffix = "";
         string timestamp = this.milliseconds().ToString();
         string signature = "";
         object query = this.omit(paramsOmitted, this.extractParams(path));
@@ -2225,7 +2245,7 @@ public partial class zebpay : Exchange
             {
                 if ((queryLength != 0))
                 {
-                    url = url + ("?" + this.urlencode(query));
+                    suffix = ("?" + this.urlencode(query));
                 }
             } else
             {
@@ -2233,11 +2253,11 @@ public partial class zebpay : Exchange
                 object paramsBody = this.omit(paramsOmitted, "priceType");
                 if ((priceType != null))
                 {
-                    url = url + ("?" + this.urlencode(new Dictionary<string, object>() {
+                    suffix = ("?" + this.urlencode(new Dictionary<string, object>() {
     { "priceType", priceType },
 }));
                 }
-                bodySigned = json(paramsBody);
+                bodySigned = this.json(paramsBody);
                 headersSigned = new Dictionary<string, object>() {
                     { "Referrer", "ccxt" },
                     { "Content-Type", "application/json" },
@@ -2253,7 +2273,7 @@ public partial class zebpay : Exchange
                 // For GET/DELETE: Append params to URL and sign the query string
                 string queryString = this.urlencode(paramsOmitted);
                 signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha256, "hex");
-                url = url + ("?" + queryString);
+                suffix = ("?" + queryString);
             } else
             {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
@@ -2264,9 +2284,10 @@ public partial class zebpay : Exchange
                 { "Referrer", "ccxt" },
                 { "X-AUTH-APIKEY", this.apiKey },
                 { "X-AUTH-SIGNATURE", signature },
+                { "Content-Type", "application/json" },
             };
-            headersSigned["Content-Type"] = "application/json";
         }
+        string url = ((baseApiUrl + tail) + suffix);
         Dictionary<string, object> headersResolved = headersSigned;
         string? bodyResolved = bodySigned;
         return new Dictionary<string, object>() {
@@ -2277,7 +2298,7 @@ public partial class zebpay : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -2292,7 +2313,7 @@ public partial class zebpay : Exchange
         // {"statusDescription":"Order quantity is out of range","data":{},"statusCode":400,"customMessage":["Order quantity is out of range"]}
         //
         string? errorCode = this.safeString2(response, "code", "statusCode");
-        string? message = this.safeString2(response, "msg", "statusDescription");
+        string? message = this.safeString2(response, "msg", "statusDescription", "");
         string feedback = ((this.id + " ") + message);
         this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
         this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);

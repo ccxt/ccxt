@@ -41,7 +41,7 @@ public partial class bittrade : ccxt.bittrade
         });
     }
 
-    public virtual object requestId()
+    public virtual string? requestId()
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
@@ -66,15 +66,18 @@ public partial class bittrade : ccxt.bittrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         // only supports a limit of 150 at this time
-        string messageHash = (("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".detail");
+        string? marketId = this.safeString(market, "id", "");
+        string messageHash = (("market." + marketId) + ".detail");
         string? api = this.safeString(this.options, "api", "api");
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiWsUrls = this.safeDict(wsUrls, api, new Dictionary<string, object>() {});
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
-        string requestId = ((string)this.requestId());
+        string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
+        string requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
             { "id", requestId },
@@ -82,7 +85,7 @@ public partial class bittrade : ccxt.bittrade
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", requestId },
             { "messageHash", messageHash },
-            { "symbol", symbolValue },
+            { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "params", parameters },
         };
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription));
@@ -144,15 +147,19 @@ public partial class bittrade : ccxt.bittrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         // only supports a limit of 150 at this time
-        string messageHash = (("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".trade.detail");
+        string? marketId = this.safeString(market, "id", "");
+        string messageHash = (("market." + marketId) + ".trade.detail");
         string? api = this.safeString(this.options, "api", "api");
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiWsUrls = this.safeDict(wsUrls, api, new Dictionary<string, object>() {});
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
-        string requestId = ((string)this.requestId());
+        string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
+        string requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
             { "id", requestId },
@@ -242,15 +249,19 @@ public partial class bittrade : ccxt.bittrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        string messageHash = ((("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".kline.") + interval);
+        string? marketId = this.safeString(market, "id", "");
+        string messageHash = ((("market." + marketId) + ".kline.") + interval);
         string? api = this.safeString(this.options, "api", "api");
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiWsUrls = this.safeDict(wsUrls, api, new Dictionary<string, object>() {});
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
-        string requestId = ((string)this.requestId());
+        string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
+        string requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
             { "id", requestId },
@@ -335,16 +346,20 @@ public partial class bittrade : ccxt.bittrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         // only supports a limit of 150 at this time
         int limitValue = 150;
-        string messageHash = (("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".mbp.150");
+        string? marketId = this.safeString(market, "id", "");
+        string messageHash = (("market." + marketId) + ".mbp.150");
         string? api = this.safeString(this.options, "api", "api");
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiWsUrls = this.safeDict(wsUrls, api, new Dictionary<string, object>() {});
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
-        string requestId = ((string)this.requestId());
+        string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
+        string requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
             { "id", requestId },
@@ -358,7 +373,7 @@ public partial class bittrade : ccxt.bittrade
             { "method", this.handleOrderBookSubscription },
         };
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual void handleOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, object subscription)
@@ -418,11 +433,14 @@ public partial class bittrade : ccxt.bittrade
             Int64? limit = this.safeInteger(subscription, "limit");
             IDictionary<string, object> parameters = this.safeDict(subscription, "params");
             string? api = this.safeString(this.options, "api", "api");
+            IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+            IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+            IDictionary<string, object> apiWsUrls = this.safeDict(wsUrls, api, new Dictionary<string, object>() {});
             Dictionary<string, object> hostname = new Dictionary<string, object>() {
                 { "hostname", this.hostname },
             };
-            string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
-            string requestId = ((string)this.requestId());
+            string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
+            string requestId = this.requestId();
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "req", messageHash },
                 { "id", requestId },
