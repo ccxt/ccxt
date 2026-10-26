@@ -527,8 +527,7 @@ export default class nado extends Exchange {
         const isTriggerOrder = isStopOrder || isStopLossOrder || isTakeProfitOrder;
         if (isStopOrder) {
             // the final omit drops triggerDirection from the request
-            const triggerDirectionAndParams = this.handleTriggerDirectionAndParams (paramsRecvWindow);
-            const triggerDirection: Str = triggerDirectionAndParams[0];
+            const triggerDirection = this.safeString (this.handleTriggerDirectionAndParams (paramsRecvWindow), 0);
             let directionSuffix: Str = 'below';
             if (triggerDirection === 'ascending') {
                 directionSuffix = 'above';
@@ -1225,10 +1224,10 @@ export default class nado extends Exchange {
         if (market !== undefined) {
             ordersRequest['product_ids'] = [ this.parseToInt (market['id']) ];
         }
-        const [ ordersRequestUntil, paramsUntil ] = this.handleUntilOption ('max_time', ordersRequest, paramsSubaccount, 0.001);
         if (limit !== undefined) {
-            ordersRequestUntil['limit'] = Math.min (limit, 500);
+            ordersRequest['limit'] = Math.min (limit, 500);
         }
+        const [ ordersRequestUntil, paramsUntil ] = this.handleUntilOption ('max_time', ordersRequest, paramsSubaccount, 0.001);
         const request: Dict = {
             'orders': ordersRequestUntil,
         };
@@ -1334,10 +1333,10 @@ export default class nado extends Exchange {
         if (market !== undefined) {
             matchesRequest['product_ids'] = [ this.parseToInt (market['id']) ];
         }
-        const [ matchesRequestUntil, paramsUntil ] = this.handleUntilOption ('max_time', matchesRequest, paramsSubaccount, 0.001);
         if (limit !== undefined) {
-            matchesRequestUntil['limit'] = Math.min (limit, 500);
+            matchesRequest['limit'] = Math.min (limit, 500);
         }
+        const [ matchesRequestUntil, paramsUntil ] = this.handleUntilOption ('max_time', matchesRequest, paramsSubaccount, 0.001);
         const request: Dict = {
             'matches': matchesRequestUntil,
         };
@@ -1913,7 +1912,7 @@ export default class nado extends Exchange {
     override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const tickers = await this.fetchTickers ([ symbolValue ], params);
         const ticker = this.safeDict (tickers, symbolValue) as Ticker;
         if (ticker === undefined) {
@@ -2265,18 +2264,19 @@ export default class nado extends Exchange {
         const market = this.market (symbol);
         const until = this.safeInteger (params, 'until');
         const paramsOmitted: Dict = this.omit (params, 'until');
-        const request: Dict = {
-            'candlesticks': {
-                'product_id': this.parseToInt (market['id']),
-                'granularity': this.safeInteger (this.timeframes, timeframe, this.parseTimeframe (timeframe)),
-            },
+        const candlesticks: Dict = {
+            'product_id': this.parseToInt (market['id']),
+            'granularity': this.safeInteger (this.timeframes, timeframe, this.parseTimeframe (timeframe)),
         };
         if (limit !== undefined) {
-            request['candlesticks']['limit'] = Math.min (limit, 500);
+            candlesticks['limit'] = Math.min (limit, 500);
         }
         if (until !== undefined) {
-            request['candlesticks']['max_time'] = this.parseToInt (until / 1000);
+            candlesticks['max_time'] = this.parseToInt (until / 1000);
         }
+        const request: Dict = {
+            'candlesticks': candlesticks,
+        };
         const response = await this.archivePost (this.deepExtend (request, paramsOmitted));
         //
         //     {
@@ -3003,7 +3003,7 @@ export default class nado extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    convertToX18 (value: Str) {
+    convertToX18 (value: Str): Str {
         if (value === undefined) {
             throw new ArgumentsRequired (this.id + ' convertToX18() requires a value');
         }

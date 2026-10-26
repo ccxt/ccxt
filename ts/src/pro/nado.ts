@@ -1171,7 +1171,7 @@ export default class nado extends nadoRest {
         const url = this.safeString (this.urls['api']['ws'], 'subscriptions');
         const client = this.client (url);
         for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
+            const messageHash = this.safeString (messageHashes, i, '');
             const clientSubscription = this.safeValue (client.subscriptions, messageHash);
             if (clientSubscription === undefined) {
                 const market = markets[i];
@@ -1216,7 +1216,7 @@ export default class nado extends nadoRest {
         const url = this.safeString (this.urls['api']['ws'], 'subscriptions');
         const client = this.client (url);
         for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
+            const messageHash = this.safeString (messageHashes, i, '');
             const id = this.requestId ();
             const unsubscribeHash = 'unsubscribe:' + messageHash;
             const requestParams = (subscriptionParams === undefined) ? params : subscriptionParams[i];
@@ -1348,7 +1348,7 @@ export default class nado extends nadoRest {
     handleTrade (client: Client, message: Dict) {
         const marketId = this.safeString (message, 'product_id');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const messageHash = 'trade:' + symbol;
         let trades = this.safeValue (this.trades, symbol);
         if (trades === undefined) {
@@ -1389,7 +1389,7 @@ export default class nado extends nadoRest {
         //
         const marketId = this.safeString (message, 'product_id');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const granularity = this.safeInteger (message, 'granularity');
         const timeframe = this.findTimeframe (granularity);
         if (timeframe === undefined) {
@@ -1616,7 +1616,7 @@ export default class nado extends nadoRest {
         client.resolve (tickers, 'ticker');
     }
 
-    parseWsAllBidsAsks (message: Dict): Tickers {
+    parseWsAllBidsAsks (message: Dict): Dict {
         //
         //     {
         //         "type": "all_bbo",
@@ -1694,7 +1694,7 @@ export default class nado extends nadoRest {
         if (!(symbol in this.orderbooks)) {
             return;
         }
-        const orderbook = this.orderbooks[symbol];
+        const orderbook: Dict = this.orderbooks[symbol];
         const messageHash = 'orderbook:' + symbol;
         const maxTimestamp = this.safeString (orderbook, 'maxTimestamp');
         const lastMaxTimestamp = this.safeString (message, 'last_max_timestamp');
@@ -1726,7 +1726,7 @@ export default class nado extends nadoRest {
         orderbook['symbol'] = symbol;
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
-        (orderbook as Dict)['maxTimestamp'] = this.safeString (message, 'max_timestamp');
+        orderbook['maxTimestamp'] = this.safeString (message, 'max_timestamp');
         client.resolve (orderbook, messageHash);
     }
 
