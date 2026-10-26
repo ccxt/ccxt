@@ -273,8 +273,8 @@ export default class myriad extends Exchange {
             const found = (responseIsArray) ? response : this.safeList (response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
-                const networkId = this.safeString (raw, 'networkId');
-                const marketId = this.safeString (raw, 'id');
+                const networkId = this.safeString (raw, 'networkId', '');
+                const marketId = this.safeString (raw, 'id', '');
                 const key = networkId + ':' + marketId;
                 if (!(key in seen)) {
                     seen[key] = true;
@@ -2849,8 +2849,8 @@ export default class myriad extends Exchange {
         for (let i = 0; i < outcomes.length; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
             const info = this.safeDict (outcomeObj, 'info', {});
-            const networkId = this.safeString (info, 'networkId');
-            const marketId = this.safeString (info, 'marketId');
+            const networkId = this.safeString (info, 'networkId', '');
+            const marketId = this.safeString (info, 'marketId', '');
             const key = networkId + ':' + marketId;
             if (!(key in outcomesByMarket)) {
                 outcomesByMarket[key] = [];
@@ -3302,8 +3302,8 @@ export default class myriad extends Exchange {
     override async watchOrderBook (outcome: string, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         const outcomeObj = await this.loadOutcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
-        const networkId = this.safeString (info, 'networkId');
-        const marketId = this.safeString (info, 'marketId');
+        const networkId = this.safeString (info, 'networkId', '');
+        const marketId = this.safeString (info, 'marketId', '');
         const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
         const channel = 'orderbook:' + networkId + ':' + marketId;
         const messageHash = 'orderbook::' + sym;
@@ -3385,8 +3385,8 @@ export default class myriad extends Exchange {
     override async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         const outcomeObj = await this.loadOutcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
-        const networkId = this.safeString (info, 'networkId');
-        const marketId = this.safeString (info, 'marketId');
+        const networkId = this.safeString (info, 'networkId', '');
+        const marketId = this.safeString (info, 'marketId', '');
         const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
         const channel = 'trades:' + networkId + ':' + marketId;
         const messageHash = 'trades::' + sym;
@@ -3412,8 +3412,8 @@ export default class myriad extends Exchange {
         }
         const outcomeObj = await this.loadOutcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
-        const networkId = this.safeString (info, 'networkId');
-        const marketId = this.safeString (info, 'marketId');
+        const networkId = this.safeString (info, 'networkId', '');
+        const marketId = this.safeString (info, 'marketId', '');
         const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
         const channel = 'trades:' + networkId + ':' + marketId;
         const messageHash = 'myTrades';
@@ -3548,8 +3548,8 @@ export default class myriad extends Exchange {
     override async watchTicker (outcome: string, params: Dict = {}): Promise<PredictionTicker> {
         const outcomeObj = await this.loadOutcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
-        const networkId = this.safeString (info, 'networkId');
-        const marketId = this.safeString (info, 'marketId');
+        const networkId = this.safeString (info, 'networkId', '');
+        const marketId = this.safeString (info, 'marketId', '');
         const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
         const channel = 'prices:' + networkId + ':' + marketId;
         const messageHash = 'ticker::' + sym;
@@ -3579,8 +3579,8 @@ export default class myriad extends Exchange {
         for (let i = 0; i < symbolsLength; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
             const info = this.safeDict (outcomeObj, 'info', {});
-            const networkId = this.safeString (info, 'networkId');
-            const marketId = this.safeString (info, 'marketId');
+            const networkId = this.safeString (info, 'networkId', '');
+            const marketId = this.safeString (info, 'marketId', '');
             const channel = 'prices:' + networkId + ':' + marketId;
             resolvedSymbols.push (this.safeOutcomeSymbol (outcomes[i], outcomeObj));
             if (!(channel in seenChannels)) {
