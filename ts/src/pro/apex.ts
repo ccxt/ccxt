@@ -401,12 +401,13 @@ export default class apex extends apexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized = this.marketSymbols (symbols, undefined, false);
         const messageHashes: string[] = [];
         const url = this.getWsPublicUrl ();
         const topics: string[] = [];
-        for (let i = 0; i < (symbolsNormalized as string[]).length; i++) {
-            const symbol = (symbolsNormalized as string[])[i];
+        const symbolsNormalizedLength = symbolsNormalized.length;
+        for (let i = 0; i < symbolsNormalizedLength; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const marketId: Str = this.safeString (market, 'id2', '');
             topics.push ('instrumentInfo' + '.H.' + marketId);

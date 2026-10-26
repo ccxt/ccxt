@@ -1307,9 +1307,8 @@ export default class apex extends Exchange {
     }
 
     generateRandomClientIdOmni (_accountId: Str): string {
-        const hasAccountId = (_accountId !== undefined) && (_accountId !== '');
-        let accountId: Str = undefined;
-        if (hasAccountId) {
+        let accountId: string = '';
+        if ((_accountId !== undefined) && (_accountId !== '')) {
             accountId = _accountId;
         } else {
             accountId = this.randNumber (12).toString ();
@@ -1499,8 +1498,8 @@ export default class apex extends Exchange {
             assets = contractAssets;
         }
         for (let i = 0; i < assets.length; i++) {
-            if (this.safeString (assets[i], 'token', '') === code) {
-                currency = assets[i];
+            if (this.safeString (this.safeDict (assets, i, {}), 'token', '') === code) {
+                currency = this.safeDict (assets, i, {});
             }
         }
         const tokenId = this.safeString (currency, 'tokenId', '');
