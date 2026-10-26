@@ -3990,7 +3990,7 @@ export default class okx extends Exchange {
             if (algoIds !== undefined) {
                 for (let i = 0; i < algoIds.length; i++) {
                     request.push ({
-                        'algoId': algoIds[i],
+                        'algoId': this.safeString (algoIds, i),
                         'instId': market['id'],
                     });
                 }
@@ -3998,12 +3998,12 @@ export default class okx extends Exchange {
             for (let i = 0; i < orderIds.length; i++) {
                 if ((trailing) || isTrigger) {
                     request.push ({
-                        'algoId': orderIds[i],
+                        'algoId': this.safeString (orderIds, i),
                         'instId': market['id'],
                     });
                 } else {
                     request.push ({
-                        'ordId': orderIds[i],
+                        'ordId': this.safeString (orderIds, i),
                         'instId': market['id'],
                     });
                 }
@@ -4013,12 +4013,12 @@ export default class okx extends Exchange {
                 if ((trailing) || isTrigger) {
                     request.push ({
                         'instId': market['id'],
-                        'algoClOrdId': clientOrderIds[i],
+                        'algoClOrdId': this.safeString (clientOrderIds, i),
                     });
                 } else {
                     request.push ({
                         'instId': market['id'],
-                        'clOrdId': clientOrderIds[i],
+                        'clOrdId': this.safeString (clientOrderIds, i),
                     });
                 }
             }
@@ -7080,7 +7080,7 @@ export default class okx extends Exchange {
                 const ruleType = this.safeString (marketInfo, 'ruleType');
                 const isExtendedPerpetual = (ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
                 if ((market['swap'] !== true) && !isExtendedPerpetual) {
-                    throw new BadRequest (this.id + ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' + symbolsNormalized[i] + ' is not');
+                    throw new BadRequest (this.id + ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' + this.safeString (symbolsNormalized, i, '') + ' is not');
                 }
             }
         }

@@ -117,7 +117,7 @@ export default class okx extends okxRest {
         }
         const isBusiness = (access === 'business');
         const isPublic = (access === 'public');
-        const url: string = this.urls['api']['ws'];
+        const url: string = this.safeString (this.urls['api'], 'ws', '');
         if (isBusiness || (channel.indexOf ('candle') > -1) || (channel === 'orders-algo')) {
             return url + '/business' + sandboxSuffix;
         } else if (isPublic) {
@@ -378,7 +378,7 @@ export default class okx extends okxRest {
         }
         const symbolValue: string = this.symbol (symbol);
         const fr = await this.watchFundingRates ([ symbolValue ], params);
-        return fr[symbolValue];
+        return this.safeValue (fr, symbolValue);
     }
 
     /**
@@ -538,7 +538,7 @@ export default class okx extends okxRest {
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
         const ticker = await this.watchMarkPrices ([ symbolValue ], paramsChannel);
-        return ticker[symbolValue];
+        return this.safeValue (ticker, symbolValue);
     }
 
     /**
@@ -2493,7 +2493,7 @@ export default class okx extends okxRest {
         };
         for (let i = 0; i < idsLength; i++) {
             const arg: Dict = this.extend (instParams, {
-                'ordId': ids[i],
+                'ordId': this.safeString (ids, i),
             });
             args.push (arg);
         }
