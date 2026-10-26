@@ -80,18 +80,17 @@ export default class modetrade extends modetradeRest {
     }
 
     async watchPublic (messageHash: string, message: Dict) {
-        // the default id
-        let id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
-        if (this.accountId !== undefined && this.accountId !== '') {
-            id = this.accountId;
-        }
         const apiUrls = this.safeDict (this.urls, 'api', {});
         const wsUrls = this.safeDict (apiUrls, 'ws', {});
         const wsUrl = this.safeString (wsUrls, 'public');
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' watchPublic() has no public websocket url');
         }
-        const url = wsUrl + '/' + id;
+        // the default id
+        let url = wsUrl + '/' + 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
+        if (this.accountId !== undefined && this.accountId !== '') {
+            url = wsUrl + '/' + this.accountId;
+        }
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -490,7 +489,6 @@ export default class modetrade extends modetradeRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
         const marketId = this.safeString (market, 'id', '');
         const topic = marketId + '@trade';
         const request: Dict = {
@@ -503,7 +501,7 @@ export default class modetrade extends modetradeRest {
         if (this.newUpdates) {
             limitResolved = trades.getLimit (market['symbol'], limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limitResolved, true);
+        return this.filterBySymbolSinceLimit (trades, market['symbol'], since, limitResolved, true);
     }
 
     handleTrade (client: Client, message: Dict) {
@@ -654,8 +652,8 @@ export default class modetrade extends modetradeRest {
             const ts = this.nonce ().toString ();
             const auth = ts;
             let secret = this.secret;
-            if (secret.indexOf ('ed25519:') >= 0) {
-                const parts = secret.split ('ed25519:');
+            if (this.secret.indexOf ('ed25519:') >= 0) {
+                const parts = this.secret.split ('ed25519:');
                 secret = parts[1];
             }
             const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);
@@ -997,8 +995,7 @@ export default class modetrade extends modetradeRest {
             }
             cachedOrders.append (parsed);
             client.resolve (this.orders, topic);
-            const messageHashSymbol = topic + ':' + symbol;
-            client.resolve (this.orders, messageHashSymbol);
+            client.resolve (this.orders, topic + ':' + symbol);
         }
     }
 
@@ -1124,8 +1121,8 @@ export default class modetrade extends modetradeRest {
             }
         }
         // don't remove the future from the .futures cache
-        if (messageHash in client.futures) {
-            const future = client.futures[messageHash];
+        const future = this.safeValue (client.futures, messageHash);
+        if (future !== undefined) {
             future.resolve (cache);
             client.resolve (cache, 'positions');
         }
