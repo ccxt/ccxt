@@ -916,7 +916,7 @@ export default class hyperliquid extends Exchange {
             const mappedQuoteId = this.safeString (spotCurrencyMapping, quoteId, quoteId);
             const mappedBase = this.safeCurrencyCode (mappedBaseName);
             const mappedQuote = this.safeCurrencyCode (mappedQuoteId);
-            const mappedSymbol = mappedBase + '/' + mappedQuote;
+            const mappedSymbol: string = mappedBase + '/' + mappedQuote;
             const innerBaseTokenInfo = this.safeDict (baseTokenInfo, 'spec', baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             const amountPrecisionStr = this.safeString (innerBaseTokenInfo, 'szDecimals');
@@ -1042,12 +1042,13 @@ export default class hyperliquid extends Exchange {
         }
         const baseId = this.safeString (market, 'baseId');
         const settle = this.safeCurrencyCode (settleId);
-        let symbol = base + '/' + quote;
+        const symbolBase: string = base + '/' + quote;
+        let symbol: string = symbolBase;
         const contract = true;
         const swap = true;
         if (contract) {
             if (swap) {
-                symbol = base + '/' + quote + ':' + settle;
+                symbol = symbolBase + ':' + settle;
             }
         }
         const fees = this.safeDict (this.fees, 'swap', {});
@@ -1146,7 +1147,8 @@ export default class hyperliquid extends Exchange {
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
         // if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
         const shouldRefresh = (this.safeString2 (params, 'user', 'address') !== undefined) && this.safeBool (params, 'enableUnifiedMargin') === undefined;
-        const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchBalance', params);
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchBalance', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchBalance', params), 1, {});
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, paramsPublicAddress);
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchBalance', paramsMarketType);
         const [ isUnifiedEnabled, paramsValue ] = await this.isUnifiedEnabled ('fetchBalance', userAddress, shouldRefresh, paramsMarginMode);
@@ -1618,7 +1620,8 @@ export default class hyperliquid extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchTrades', params);
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchTrades', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchTrades', params), 1, {});
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1992,7 +1995,8 @@ export default class hyperliquid extends Exchange {
         let publicAddress: Str = undefined;
         let paramsPublicAddress: Dict = {};
         if (address === undefined) {
-            [ publicAddress, paramsPublicAddress ] = this.handlePublicAddress ('isUnifiedEnabled', params);
+            publicAddress = this.safeString (this.handlePublicAddress ('isUnifiedEnabled', params), 0);
+            paramsPublicAddress = this.safeDict (this.handlePublicAddress ('isUnifiedEnabled', params), 1, {});
         }
         const userAddress: Str = (address !== undefined) ? address : publicAddress;
         const paramsAddress: Dict = (address !== undefined) ? params : paramsPublicAddress;
@@ -3189,7 +3193,8 @@ export default class hyperliquid extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
-        const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchOpenOrders', params);
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchOpenOrders', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchOpenOrders', params), 1, {});
         const [ method, paramsMethod ] = this.handleOptionStringAndParams (paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -3311,7 +3316,8 @@ export default class hyperliquid extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
-        const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchOrders', params);
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchOrders', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchOrders', params), 1, {});
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3390,7 +3396,8 @@ export default class hyperliquid extends Exchange {
     override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         let userAddress: Str = undefined;
         let params2 = undefined;
-        [ userAddress, params2 ] = this.handlePublicAddress ('fetchOrder', params);
+        userAddress = this.safeString (this.handlePublicAddress ('fetchOrder', params), 0);
+        params2 = this.safeDict (this.handlePublicAddress ('fetchOrder', params), 1, {});
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3662,7 +3669,8 @@ export default class hyperliquid extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchMyTrades', params);
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchMyTrades', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchMyTrades', params), 1, {});
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3790,7 +3798,8 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     override async fetchMyLiquidations (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Liquidation[]> {
-        const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchMyLiquidations', params);
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchMyLiquidations', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchMyLiquidations', params), 1, {});
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3938,7 +3947,8 @@ export default class hyperliquid extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchPositions', params);
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchPositions', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchPositions', params), 1, {});
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const request: Dict = {
             'type': 'clearinghouseState',
@@ -4388,7 +4398,8 @@ export default class hyperliquid extends Exchange {
         let query: Dict = params;
         [ transferMethod, query ] = this.handleOptionAndParams (query, 'transfer', 'method');
         let masterAddress: Str = undefined;
-        [ masterAddress, query ] = this.handlePublicAddress ('transfer', query);
+        masterAddress = this.safeString (this.handlePublicAddress ('transfer', query), 0);
+        query = this.safeDict (this.handlePublicAddress ('transfer', query), 1, {});
         let useSendAsset = (transferMethod === 'sendAsset');
         if (transferMethod === undefined) {
             let isUnified: Bool = undefined;
@@ -4636,7 +4647,8 @@ export default class hyperliquid extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchTradingFee', params);
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchTradingFee', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchTradingFee', params), 1, {});
         const market = this.market (symbol);
         const request: Dict = {
             'type': 'userFees',
@@ -4750,7 +4762,8 @@ export default class hyperliquid extends Exchange {
         }
         let userAddress: Str = undefined;
         let params2 = undefined;
-        [ userAddress, params2 ] = this.handlePublicAddress ('fetchLedger', params);
+        userAddress = this.safeString (this.handlePublicAddress ('fetchLedger', params), 0);
+        params2 = this.safeDict (this.handlePublicAddress ('fetchLedger', params), 1, {});
         const request: Dict = {
             'type': 'userNonFundingLedgerUpdates',
             'user': userAddress,
@@ -4850,7 +4863,8 @@ export default class hyperliquid extends Exchange {
         }
         let userAddress: Str = undefined;
         let params2 = undefined;
-        [ userAddress, params2 ] = this.handlePublicAddress ('fetchDepositsWithdrawals', params);
+        userAddress = this.safeString (this.handlePublicAddress ('fetchDepositsWithdrawals', params), 0);
+        params2 = this.safeDict (this.handlePublicAddress ('fetchDepositsWithdrawals', params), 1, {});
         const request: Dict = {
             'type': 'userNonFundingLedgerUpdates',
             'user': userAddress,
@@ -4897,7 +4911,7 @@ export default class hyperliquid extends Exchange {
             const record = records[i];
             if (this.safeString (record, 'type') === 'vaultDeposit') {
                 const delta = this.safeDict (record, 'delta', {});
-                if (this.safeString (delta, 'vault') === '0x' + vaultAddress) {
+                if (this.safeString (delta, 'vault', '') === '0x' + vaultAddress) {
                     deposits.push (record);
                 }
             }
@@ -4924,7 +4938,8 @@ export default class hyperliquid extends Exchange {
         }
         let userAddress: Str = undefined;
         let params2 = undefined;
-        [ userAddress, params2 ] = this.handlePublicAddress ('fetchDepositsWithdrawals', params);
+        userAddress = this.safeString (this.handlePublicAddress ('fetchDepositsWithdrawals', params), 0);
+        params2 = this.safeDict (this.handlePublicAddress ('fetchDepositsWithdrawals', params), 1, {});
         const request: Dict = {
             'type': 'userNonFundingLedgerUpdates',
             'user': userAddress,
@@ -4968,7 +4983,7 @@ export default class hyperliquid extends Exchange {
             const record = records[i];
             if (this.safeString (record, 'type') === 'vaultWithdraw') {
                 const delta = this.safeDict (record, 'delta', {});
-                if (this.safeString (delta, 'vault') === '0x' + vaultAddress) {
+                if (this.safeString (delta, 'vault', '') === '0x' + vaultAddress) {
                     withdrawals.push (record);
                 }
             }
@@ -5071,7 +5086,8 @@ export default class hyperliquid extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchFundingHistory', params);
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchFundingHistory', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchFundingHistory', params), 1, {});
         const request: Dict = {
             'user': userAddress,
             'type': 'userFunding',
@@ -5335,7 +5351,7 @@ export default class hyperliquid extends Exchange {
                 return byType[type];
             }
         }
-        return this.safeValue (config, 'cost', 1);
+        return this.safeNumber (config, 'cost', 1);
     }
 
     parseCreateEditOrderArgs (id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): [Dict, Dict] {
