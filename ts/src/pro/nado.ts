@@ -1028,7 +1028,7 @@ export default class nado extends nadoRest {
             'type': streamType,
         };
         if (market !== undefined) {
-            stream['product_id'] = this.parseToInt (market['id']);
+            stream['product_id'] = this.parseToInt (this.safeString (market, 'id'));
         }
         const request: Dict = {
             'method': 'subscribe',
@@ -1158,7 +1158,7 @@ export default class nado extends nadoRest {
             'type': streamType,
         };
         if (market !== undefined) {
-            stream['product_id'] = this.parseToInt (market['id']);
+            stream['product_id'] = this.parseToInt (this.safeString (market, 'id'));
         }
         return {
             'method': method,

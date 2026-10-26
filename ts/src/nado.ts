@@ -1767,7 +1767,7 @@ export default class nado extends Exchange {
             const settle = contract ? quote : undefined;
             let symbol: string = base + '/' + quote;
             if (contract) {
-                symbol = base + '/' + quote + ':' + settle;
+                symbol = base + '/' + quote + ':' + quote;
             }
             const tradingStatus = this.safeString (market, 'trading_status');
             const active = (tradingStatus !== 'not_tradable');
@@ -3212,12 +3212,15 @@ export default class nado extends Exchange {
 
     override sign (path: string, api: string[] = [], method: string = 'GET', params: Dict = {}): Dict {
         let requestBody: Str = undefined;
-        const endpoint = api[0];
+        const endpoint = this.safeString (api, 0);
         const baseApiUrl = this.safeString (this.urls['api'], endpoint);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        const pathSuffix = (path !== '') ? ('/' + this.implodeParams (path, params)) : '';
+        let pathSuffix: string = '';
+        if (path !== '') {
+            pathSuffix = '/' + this.implodeParams (path, params);
+        }
         let url = baseApiUrl + pathSuffix;
         const query = this.omit (params, this.extractParams (path));
         const headersValue: NullableDict = {};
@@ -3226,7 +3229,7 @@ export default class nado extends Exchange {
         }
         if (method === 'GET') {
             if (Object.keys (query).length > 0) {
-                url += '?' + this.urlencode (query);
+                url = baseApiUrl + pathSuffix + '?' + this.urlencode (query);
             }
         } else {
             headersValue['Content-Type'] = 'application/json';
