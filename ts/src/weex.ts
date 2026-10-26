@@ -1628,17 +1628,17 @@ export default class weex extends Exchange {
             }
             let startTime: Int = since;
             let endTime: Int = until;
+            const now = this.milliseconds ();
             if ((since === undefined) || (until === undefined)) {
-                const now = this.milliseconds ();
                 const duration = this.parseTimeframe (timeframe) * 1000;
-                let timeDelta = maxHistoricalLimit * duration;
+                // the history endpoint returns at most maxHistoricalLimit candles and serves the
+                // newest ones inside the window, so a wider window would silently drop the candles
+                // right after since, keep the window at what one call can return
+                let historyLimit = maxHistoricalLimit;
                 if (limit !== undefined && limit !== null && limit !== 0) {
-                    if (limit > 1000) {
-                        timeDelta = 1000 * duration;
-                    } else {
-                        timeDelta = limit * duration;
-                    }
+                    historyLimit = Math.min (limit, maxHistoricalLimit);
                 }
+                const timeDelta = historyLimit * duration;
                 if ((since === undefined) && (until === undefined)) {
                     endTime = now;
                     startTime = now - timeDelta;
@@ -1651,6 +1651,10 @@ export default class weex extends Exchange {
                     // this.sum, a bare + is string concatenation in the php port
                     endTime = this.sum (since, timeDelta);
                 }
+            }
+            // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
+            if ((endTime !== undefined) && (endTime > now)) {
+                endTime = now;
             }
             request['startTime'] = startTime;
             request['endTime'] = endTime;
