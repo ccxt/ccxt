@@ -1562,10 +1562,9 @@ export default class apex extends Exchange {
                 'timestampSeconds': timestampSeconds,
             };
             const signature = await this.getZKTransferSignatureObj (this.remove0xPrefix (this.getSeeds ()), orderToSign);
-            const amountStr = amount.toString ();
             const ts = timestampSeconds; // java req
             const request: Dict = {
-                'amount': amountStr,
+                'amount': this.numberToString (amount),
                 'timestamp': ts,
                 'clientTransferId': finalClientOrderId,
                 'signature': signature,

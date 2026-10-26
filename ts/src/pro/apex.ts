@@ -333,7 +333,7 @@ export default class apex extends apexRest {
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId, undefined, undefined);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const timestamp = this.safeIntegerProduct (message, 'ts', 0.001);
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
@@ -566,7 +566,7 @@ export default class apex extends apexRest {
             marketType = 'spot';
         }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
