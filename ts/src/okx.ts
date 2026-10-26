@@ -1517,27 +1517,26 @@ export default class okx extends Exchange {
         const quote = 'USD';
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
-        let base: Str = undefined;
+        let base: Str;
         if (symbol.indexOf ('/') > -1) {
-            base = this.safeString (symbolBase, 0);
+            base = this.safeString (symbolBase, 0, '');
         } else {
-            base = this.safeString (optionParts, 0);
+            base = this.safeString (optionParts, 0, '');
         }
-        const settle = base;
-        const expiry = this.safeString (optionParts, 2);
-        const strike = this.safeString (optionParts, 3);
-        const optionType = this.safeString (optionParts, 4);
-        const datetime = (expiry === undefined) ? undefined : this.convertExpireDate (expiry);
+        const expiry = this.safeString (optionParts, 2, '');
+        const strike = this.safeString (optionParts, 3, '');
+        const optionType = this.safeString (optionParts, 4, '');
+        const datetime = (expiry === '') ? undefined : this.convertExpireDate (expiry);
         const timestamp = this.parse8601 (datetime);
         return {
             'id': base + '-' + quote + '-' + expiry + '-' + strike + '-' + optionType,
-            'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'symbol': base + '/' + quote + ':' + base + '-' + expiry + '-' + strike + '-' + optionType,
             'base': base,
             'quote': quote,
-            'settle': settle,
+            'settle': base,
             'baseId': base,
             'quoteId': quote,
-            'settleId': settle,
+            'settleId': base,
             'active': false,
             'type': 'option',
             'linear': undefined,
@@ -6868,7 +6867,7 @@ export default class okx extends Exchange {
         let jsonBody: Str = undefined;
         // const type = this.getPathAuthenticationType (path);
         if (apiName === 'public') {
-            if (Object.keys (query).length > 0) {
+            if (!this.isEmpty (query)) {
                 url += '?' + this.urlencode (query);
             }
         } else if (apiName === 'private') {
@@ -6894,7 +6893,7 @@ export default class okx extends Exchange {
                     }
                 }
             }
-            hasJsonBody = (method !== 'GET') && (isArray || (Object.keys (query).length > 0));
+            hasJsonBody = (method !== 'GET') && (isArray || (!this.isEmpty (query)));
             jsonBody = hasJsonBody ? this.json (query) : undefined;
             const timestamp = this.iso8601 (this.nonce ());
             privateHeaders = {
@@ -6907,7 +6906,7 @@ export default class okx extends Exchange {
             };
             let auth = timestamp + method + request;
             if (method === 'GET') {
-                if (Object.keys (query).length > 0) {
+                if (!this.isEmpty (query)) {
                     const urlencodedQuery = '?' + this.urlencode (query);
                     url += urlencodedQuery;
                     auth += urlencodedQuery;

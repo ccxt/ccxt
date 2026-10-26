@@ -1813,7 +1813,7 @@ export default class okx extends okxRest {
             if (this.inArray (key, reserved)) {
                 continue;
             }
-            this.balance[key] = balance[key];
+            this.balance[key] = this.safeValue (balance, key);
         }
         this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, channel);
