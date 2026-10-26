@@ -326,8 +326,7 @@ export default class bitrue extends bitrueRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
-        const messageHash = 'orderbook:' + symbolValue;
+        const messageHash = 'orderbook:' + symbol;
         const wsUrls = this.safeDict (this.urls['api'], 'ws', {});
         let url: Str = undefined;
         let channel: Str = undefined;
@@ -427,20 +426,21 @@ export default class bitrue extends bitrueRest {
     }
 
     findSwapMarketByWsBaseQuote (wsBaseQuote: string) {
-        const markets = this.markets;
-        if (markets === undefined) {
+        if (this.markets === undefined) {
             return undefined;
         }
+        const markets = this.markets;
         const symbols = Object.keys (markets);
         for (let i = 0; i < symbols.length; i++) {
-            const candidate = markets[symbols[i]];
+            const symbolId: string = symbols[i];
+            const candidate = markets[symbolId];
             if (!this.safeBool (candidate, 'swap', false)) {
                 continue;
             }
             const baseId = this.safeStringLower (candidate, 'baseId');
             const quoteId = this.safeStringLower (candidate, 'quoteId');
             if (baseId === undefined || quoteId === undefined) {
-                throw new ExchangeError (this.id + ' findSwapMarketByWsBaseQuote() market ' + symbols[i] + ' has no baseId or quoteId');
+                throw new ExchangeError (this.id + ' findSwapMarketByWsBaseQuote() market ' + symbolId + ' has no baseId or quoteId');
             }
             if (baseId + quoteId === wsBaseQuote) {
                 return candidate;
@@ -612,7 +612,6 @@ export default class bitrue extends bitrueRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
         if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' watchOHLCV is only supported for swap markets');
         }
@@ -625,7 +624,7 @@ export default class bitrue extends bitrueRest {
         const quoteIdLower = this.safeStringLower (market, 'quoteId', '');
         const wsId = 'e_' + baseIdLower + quoteIdLower;
         const channel = 'market_' + wsId + '_kline_' + interval;
-        const messageHash = 'ohlcv:' + symbolValue + ':' + timeframe;
+        const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
         const wsUrls = this.safeDict (this.urls['api'], 'ws', {});
         const url = wsUrls['futurePublic'];
         const message: Dict = {
@@ -639,7 +638,7 @@ export default class bitrue extends bitrueRest {
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
+            limitResolved = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
@@ -722,7 +721,6 @@ export default class bitrue extends bitrueRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
         if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' watchTicker is only supported for swap markets');
         }
@@ -730,7 +728,7 @@ export default class bitrue extends bitrueRest {
         const quoteIdLower = this.safeStringLower (market, 'quoteId', '');
         const wsId = 'e_' + baseIdLower + quoteIdLower;
         const channel = 'market_' + wsId + '_ticker';
-        const messageHash = 'ticker:' + symbolValue;
+        const messageHash = 'ticker:' + symbol;
         const wsUrls = this.safeDict (this.urls['api'], 'ws', {});
         const url = wsUrls['futurePublic'];
         const message: Dict = {
