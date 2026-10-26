@@ -63,7 +63,7 @@ export default class extended extends extendedRest {
         const symbolValue: string = market['symbol'];
         const messageHash = 'orderbook:' + symbolValue;
         const query = this.urlencode (params);
-        let url = this.safeString (this.urls['api'], 'ws') + '/orderbooks/' + market['id'];
+        let url = this.safeString (this.urls['api'], 'ws', '') + '/orderbooks/' + this.safeString (market, 'id', '');
         if (query.length > 0) {
             url += '?' + query;
         }
@@ -143,7 +143,7 @@ export default class extended extends extendedRest {
 
     async watchPrivate (messageHash: string, subscription: NullableDict = undefined) {
         this.checkRequiredCredentials ();
-        const url = this.safeString (this.urls['api'], 'ws') + '/account';
+        const url = this.safeString (this.urls['api'], 'ws', '') + '/account';
         if ((this.clients === undefined) || !(url in this.clients)) {
             const defaultOptions = {
                 'ws': {
@@ -187,8 +187,8 @@ export default class extended extends extendedRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbolResolved = this.safeString (market, 'symbol');
-            messageHash += ':' + symbolResolved;
+            symbolResolved = this.safeString (market, 'symbol', '');
+            messageHash = 'orders:' + symbolResolved;
         }
         const orders = await this.watchPrivate (messageHash, {
             'symbol': symbolResolved,
@@ -301,8 +301,8 @@ export default class extended extends extendedRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbolResolved = this.safeString (market, 'symbol');
-            messageHash += ':' + symbolResolved;
+            symbolResolved = this.safeString (market, 'symbol', '');
+            messageHash = 'myTrades:' + symbolResolved;
         }
         const trades = await this.watchPrivate (messageHash, {
             'symbol': symbolResolved,
@@ -362,7 +362,8 @@ export default class extended extends extendedRest {
         }
         const keys = Object.keys (symbols);
         for (let i = 0; i < keys.length; i++) {
-            const messageHash = 'myTrades:' + keys[i];
+            const key = keys[i];
+            const messageHash = 'myTrades:' + key;
             client.resolve (stored, messageHash);
         }
         client.resolve (stored, 'myTrades');
@@ -515,7 +516,8 @@ export default class extended extends extendedRest {
         }
         const keys = Object.keys (symbols);
         for (let i = 0; i < keys.length; i++) {
-            const messageHash = 'orders:' + keys[i];
+            const key = keys[i];
+            const messageHash = 'orders:' + key;
             client.resolve (orders, messageHash);
         }
         client.resolve (orders, 'orders');
@@ -545,7 +547,7 @@ export default class extended extends extendedRest {
         const symbolValue: string = market['symbol'];
         const messageHash = 'fundingRate:' + symbolValue;
         const query = this.urlencode (params);
-        let url = this.safeString (this.urls['api'], 'ws') + '/funding/' + market['id'];
+        let url = this.safeString (this.urls['api'], 'ws', '') + '/funding/' + this.safeString (market, 'id', '');
         if (query.length > 0) {
             url += '?' + query;
         }
@@ -619,7 +621,7 @@ export default class extended extends extendedRest {
         const symbolValue: string = market['symbol'];
         const messageHash = 'markPrice:' + symbolValue;
         const query = this.urlencode (params);
-        let url = this.safeString (this.urls['api'], 'ws') + '/prices/mark/' + market['id'];
+        let url = this.safeString (this.urls['api'], 'ws', '') + '/prices/mark/' + this.safeString (market, 'id', '');
         if (query.length > 0) {
             url += '?' + query;
         }
@@ -682,7 +684,7 @@ export default class extended extends extendedRest {
         const symbolValue: string = market['symbol'];
         const messageHash = 'trades:' + symbolValue;
         const query = this.urlencode (params);
-        let url = this.safeString (this.urls['api'], 'ws') + '/publicTrades/' + market['id'];
+        let url = this.safeString (this.urls['api'], 'ws', '') + '/publicTrades/' + this.safeString (market, 'id', '');
         if (query.length > 0) {
             url += '?' + query;
         }
@@ -780,7 +782,7 @@ export default class extended extends extendedRest {
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = 'ohlcv:' + symbolValue + ':' + timeframe + ':' + candleType;
         const query = this.urlencode (this.extend ({ 'interval': interval }, paramsOmitted));
-        const url = this.safeString (this.urls['api'], 'ws') + '/candles/' + market['id'] + '/' + candleType + '?' + query;
+        const url = this.safeString (this.urls['api'], 'ws', '') + '/candles/' + this.safeString (market, 'id', '') + '/' + candleType + '?' + query;
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, undefined, messageHash, {
             'name': 'ohlcv',
             'symbol': symbolValue,
