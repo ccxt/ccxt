@@ -956,7 +956,7 @@ export default class bitopro extends Exchange {
         let copyFrom: any = firstCandle;
         let timestamp: Int = undefined;
         if (since === undefined) {
-            timestamp = firstCandle[0];
+            timestamp = this.safeValue (firstCandle, 0);
         } else {
             timestamp = since;
         }
@@ -969,19 +969,13 @@ export default class bitopro extends Exchange {
                 result.push (candle);
                 i = this.sum (i, 1);
             } else {
-                const copy = this.arrayConcat ([], copyFrom);
-                copy[0] = timestamp;
                 // set open, high, low to close
-                const closeValue = copy[4];
-                copy[1] = closeValue;
-                copy[2] = closeValue;
-                copy[3] = closeValue;
-                copy[5] = this.parseNumber ('0');
-                result.push (copy);
+                const closeValue = this.safeValue (copyFrom, 4);
+                result.push ([ timestamp, closeValue, closeValue, closeValue, closeValue, this.parseNumber ('0') ]);
             }
             timestamp = this.sum (timestamp, distanceInMs);
             resultLength = result.length;
-            copyFrom = result[resultLength - 1];
+            copyFrom = this.safeValue (result, resultLength - 1);
         }
         return result;
     }
