@@ -1971,9 +1971,9 @@ export default class predictfun extends Exchange {
         const marketFeeRateBps = this.safeString (marketRow, 'feeRateBps', '200');  // should be at least 200
         const feeRateBps = this.safeString (paramsWarnOnMarketOrderWithoutPrice, 'feeRateBps', marketFeeRateBps);
         const marketIsNegRisk = this.safeBool (marketRow, 'isNegRisk', false);
-        const isNegRisk = this.safeBool (paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', marketIsNegRisk);
+        const isNegRisk = (this.safeBool (paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', marketIsNegRisk) === true);
         const marketIsYieldBearing = this.safeBool (marketRow, 'isYieldBearing', false);
-        const isYieldBearing = this.safeBool (paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', marketIsYieldBearing);
+        const isYieldBearing = (this.safeBool (paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', marketIsYieldBearing) === true);
         const defaultExpiration = this.safeInteger (this.options, 'defaultExpiration', 3600); // 1 hour
         let expirationDelta = defaultExpiration;
         let expiration = this.safeInteger (paramsWarnOnMarketOrderWithoutPrice, 'expiration');
@@ -2831,8 +2831,8 @@ export default class predictfun extends Exchange {
             const marketSymbol = this.safeString (outcomeObj, 'market');
             const marketObj: Dict = this.safeDict (this.markets, marketSymbol, {});
             const marketRow: Dict = this.safeDict (marketObj, 'info', {});
-            isNegRisk = this.safeBool (marketRow, 'isNegRisk', false);
-            isYieldBearing = this.safeBool (marketRow, 'isYieldBearing', false);
+            isNegRisk = (this.safeBool (marketRow, 'isNegRisk', false) === true);
+            isYieldBearing = (this.safeBool (marketRow, 'isYieldBearing', false) === true);
         }
         if (side === 'sell') {
             const ctfToken = this.safeString (params, 'token', this.conditionalTokensAddress (isNegRisk, isYieldBearing));
