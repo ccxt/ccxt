@@ -3250,7 +3250,6 @@ export default class modetrade extends Exchange {
             if (isPostOrPut && isOrder) {
                 paramsSigned = this.keysort (paramsSorted);
             }
-            let auth = '';
             const ts = this.nonce ().toString ();
             url += pathWithParams;
             let apiKey = this.apiKey;
@@ -3262,7 +3261,7 @@ export default class modetrade extends Exchange {
                 'orderly-key': apiKey,
                 'orderly-timestamp': ts,
             };
-            auth = ts + method + '/' + version + '/' + pathWithParams;
+            let auth = ts + method + '/' + version + '/' + pathWithParams;
             let signedBody: Str = undefined;
             if (method === 'POST' || method === 'PUT') {
                 signedBody = this.json (paramsSigned);
@@ -3277,8 +3276,8 @@ export default class modetrade extends Exchange {
                 signedBody = (method === 'DELETE') ? '' : undefined;
             }
             let secret = this.secret;
-            if (secret.indexOf ('ed25519:') >= 0) {
-                const parts = secret.split ('ed25519:');
+            if (this.secret.indexOf ('ed25519:') >= 0) {
+                const parts = this.secret.split ('ed25519:');
                 secret = parts[1];
             }
             const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);
