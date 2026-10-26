@@ -129,12 +129,10 @@ export default class paradex extends paradexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let messageHash = 'trades.';
+        let messageHash = 'trades.ALL';
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            messageHash += market['id'];
-        } else {
-            messageHash += 'ALL';
+            messageHash = 'trades.' + market['id'];
         }
         const url = this.getWsUrl ();
         const request: Dict = {
@@ -376,14 +374,12 @@ export default class paradex extends paradexRest {
         }
         await this.authenticate ();
         let messageHash = 'orders';
-        let channel = 'orders.';
+        let channel = 'orders.ALL';
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            channel += market['id'];
-            messageHash += ':' + symbolResolved;
-        } else {
-            channel += 'ALL';
+            channel = 'orders.' + market['id'];
+            messageHash = 'orders:' + symbolResolved;
         }
         const url = this.getWsUrl ();
         const request: Dict = {
@@ -463,14 +459,12 @@ export default class paradex extends paradexRest {
         }
         await this.authenticate ();
         let messageHash = 'myTrades';
-        let channel = 'fills.';
+        let channel = 'fills.ALL';
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            channel += market['id'];
-            messageHash += ':' + symbolResolved;
-        } else {
-            channel += 'ALL';
+            channel = 'fills.' + market['id'];
+            messageHash = 'myTrades:' + symbolResolved;
         }
         const url = this.getWsUrl ();
         const request: Dict = {
@@ -947,7 +941,7 @@ export default class paradex extends paradexRest {
         if (templateId === 1) {
             data = this.parseSbeTrade (frameHex, blockLength, frameLength);
             if (data !== undefined) {
-                channel = 'trades.' + data['market'];
+                channel = 'trades.' + this.safeString (data, 'market');
             }
         } else if (templateId === 3) {
             data = this.parseSbeOrderBook (frameHex, blockLength, frameLength);
@@ -963,12 +957,12 @@ export default class paradex extends paradexRest {
         } else if (templateId === 20) {
             data = this.parseSbeOrder (frameHex, blockLength, frameLength);
             if (data !== undefined) {
-                channel = 'orders.' + data['market'];
+                channel = 'orders.' + this.safeString (data, 'market');
             }
         } else if (templateId === 21) {
             data = this.parseSbeFill (frameHex, blockLength, frameLength);
             if (data !== undefined) {
-                channel = 'fills.' + data['market'];
+                channel = 'fills.' + this.safeString (data, 'market');
             }
         } else if (templateId === 22) {
             data = this.parseSbePosition (frameHex, blockLength, frameLength);
@@ -1078,7 +1072,7 @@ export default class paradex extends paradexRest {
     }
 
     sbeReadVarStrings (frameHex: string, offset: number, count: number, frameLength: number): any {
-        // the var-data section: count strings, each prefixed with a uint8 length. Returns undefined
+        // the var-data section: count strings, each prefixed with a uint8 length. Returns an empty list
         // when the frame ends before all of them, and only the strings present when a trailing one is
         // absent, which is how a field appended to var-data reads on a frame from before it
         const result: string[] = [];
@@ -1092,7 +1086,7 @@ export default class paradex extends paradexRest {
             const length = this.parseToInt (this.sbeReadUint (frameHex, position, 1));
             const next = this.parseToInt (this.sum (position, 1, length));
             if (next > end) {
-                return undefined;
+                return [];
             }
             result.push (this.sbeReadString (frameHex, position + 1, length));
             position = next;
@@ -1112,7 +1106,7 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 2, frameLength);
-        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        const stringsLength = strings.length;
         if (stringsLength < 1) {
             return undefined;
         }
@@ -1170,7 +1164,7 @@ export default class paradex extends paradexRest {
             }
         }
         const strings = this.sbeReadVarStrings (frameHex, position, 1, frameLength);
-        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        const stringsLength = strings.length;
         if (stringsLength < 1) {
             return undefined;
         }
@@ -1199,7 +1193,7 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 1, frameLength);
-        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        const stringsLength = strings.length;
         if (stringsLength < 1) {
             return undefined;
         }
@@ -1237,7 +1231,7 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 1, frameLength);
-        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        const stringsLength = strings.length;
         if (stringsLength < 1) {
             return undefined;
         }
@@ -1266,7 +1260,7 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 4, frameLength);
-        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        const stringsLength = strings.length;
         if (stringsLength < 4) {
             return undefined;
         }
@@ -1334,7 +1328,7 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 6, frameLength);
-        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        const stringsLength = strings.length;
         if (stringsLength < 5) {
             return undefined;
         }
@@ -1382,7 +1376,7 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 2, frameLength);
-        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        const stringsLength = strings.length;
         if (stringsLength < 1) {
             return undefined;
         }
@@ -1433,7 +1427,7 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 1, frameLength);
-        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        const stringsLength = strings.length;
         if (stringsLength < 1) {
             return undefined;
         }
