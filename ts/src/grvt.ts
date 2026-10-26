@@ -1456,8 +1456,7 @@ export default class grvt extends Exchange {
         const useTransfersEndpoint = this.safeBool (this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
         if (useTransfersEndpoint) {
             const transfers = await this.internalFetchTransfers (this.extend (requestUntilOptionString, paramsUntilOptionString), currency, since, limit);
-            const filteredResults = this.filterTransfersByType (transfers, 'deposit', true);
-            const transactions = this.getListFromObjectValues (filteredResults[0], 'info');
+            const transactions = this.getListFromObjectValues (this.safeList (this.filterTransfersByType (transfers, 'deposit', true), 0, []), 'info');
             return this.parseTransactions (transactions, currency, since, limit);
         } else {
             const response = await this.privateTradingPostFullV1DepositHistory (this.extend (requestUntilOptionString, paramsUntilOptionString));
@@ -1513,8 +1512,7 @@ export default class grvt extends Exchange {
         const useTransfersEndpoint = this.safeBool (this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
         if (useTransfersEndpoint) {
             const transfers = await this.internalFetchTransfers (this.extend (requestUntilOptionString, paramsUntilOptionString), currency, since, limit);
-            const filteredResults = this.filterTransfersByType (transfers, 'withdrawal', true);
-            const transactions = this.getListFromObjectValues (filteredResults[0], 'info');
+            const transactions = this.getListFromObjectValues (this.safeList (this.filterTransfersByType (transfers, 'withdrawal', true), 0, []), 'info');
             return this.parseTransactions (transactions, currency, since, limit);
         } else {
             const response = await this.privateTradingPostFullV1WithdrawalHistory (this.extend (requestUntilOptionString, paramsUntilOptionString));
@@ -1758,8 +1756,7 @@ export default class grvt extends Exchange {
         //
         const rows: Dict[] = this.safeList (response, 'result', []);
         const transfers = this.parseTransfers (rows, currency, since, limit);
-        const filteredResults = this.filterTransfersByType (transfers, 'internal', false);
-        return this.toArray (filteredResults[1]);
+        return this.toArray (this.safeList (this.filterTransfersByType (transfers, 'internal', false), 1, []));
     }
 
     filterTransfersByType (transfers: Dict[], transferType: string, onlyMainAccount = true): List[] {
@@ -1768,7 +1765,7 @@ export default class grvt extends Exchange {
         for (let i = 0; i < transfers.length; i++) {
             const transfer = transfers[i];
             if ((onlyMainAccount && this.safeString (transfer, 'fromAccount') === '0' && this.safeString (transfer, 'toAccount') === '0') || (!onlyMainAccount && (this.safeString (transfer, 'fromAccount') !== '0' || this.safeString (transfer, 'toAccount') !== '0'))) {
-                const metadata = this.safeString (transfer['info'], 'transfer_metadata');
+                const metadata = this.safeString (this.safeDict (transfer, 'info', {}), 'transfer_metadata');
                 const parsedMetadata = this.parseJson (metadata);
                 const direction = this.safeString (parsedMetadata, 'direction');
                 if (direction === transferType) {
@@ -3375,9 +3372,7 @@ export default class grvt extends Exchange {
             this.options['AuthAccountId'] = accountId;
             const cookie = this.safeString2 (headers, 'Set-Cookie', 'set-cookie');
             if (cookie !== undefined) {
-                const cookieParts = cookie.split (';');
-                const cookieValue = cookieParts[0];
-                this.options['AuthCookieValue'] = cookieValue;
+                this.options['AuthCookieValue'] = this.safeString (cookie.split (';'), 0, '');
             }
             if (this.safeString (this.options, 'AuthCookieValue') === undefined || this.safeString (this.options, 'AuthAccountId') === undefined) {
                 throw new AuthenticationError (this.id + ' signIn() failed to receive auth-cookie or account-id');

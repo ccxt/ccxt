@@ -278,7 +278,7 @@ export default class grvt extends grvtRest {
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const ticker = this.parseWsTicker (data, market);
         this.tickers[symbol] = ticker;
         client.resolve (ticker, 'ticker::' + symbol);
@@ -372,7 +372,7 @@ export default class grvt extends grvtRest {
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new ArrayCache (limit);
@@ -475,7 +475,7 @@ export default class grvt extends grvtRest {
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const secondPart = this.safeString (parts, 1, '');
         const timeframeId = secondPart.replace ('-TRADE', '');
         const timeframe = this.findTimeframe (timeframeId);
@@ -600,7 +600,7 @@ export default class grvt extends grvtRest {
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const timestamp = this.safeIntegerProduct (data, 'event_time', 0.000001);
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
