@@ -2491,7 +2491,7 @@ export default class kraken extends Exchange {
                 if (typeof orderTrade === 'string') {
                     tradeIds.push (orderTrade);
                 } else {
-                    tradeIds.push (orderTrade['id']);
+                    tradeIds.push (this.safeString (orderTrade, 'id'));
                 }
             }
         }
@@ -3708,7 +3708,7 @@ export default class kraken extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0, '');
         let url = '/' + this.version + '/' + apiName + '/' + path;
         if (apiName === 'public') {
             if (Object.keys (params).length > 0) {

@@ -1190,7 +1190,7 @@ export default class kraken extends krakenRest {
         let messageHash = name;
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
         if (symbolResolved !== undefined) {
-            messageHash += ':' + symbolResolved;
+            messageHash = name + ':' + symbolResolved;
         }
         const url = (this.urls['api'] as Dict)['ws']['privateV2'];
         const requestId = this.requestId ();
@@ -1409,7 +1409,7 @@ export default class kraken extends krakenRest {
                 const previousOrder = this.safeDict (previousOrders, id);
                 let newOrder = parsed;
                 if (previousOrder !== undefined) {
-                    const newRawOrder = this.extend (previousOrder['info'], newOrder['info']);
+                    const newRawOrder = this.extend (previousOrder['info'], parsed['info']);
                     newOrder = this.parseWsOrder (newRawOrder);
                 }
                 const length = stored.length;
