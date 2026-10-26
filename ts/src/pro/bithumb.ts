@@ -142,9 +142,7 @@ export default class bithumb extends bithumbRest {
             if (isGenerationTwo) {
                 streamMarketId = this.getGen2MarketId (market);
             } else {
-                const baseId = this.safeString (market, 'base', '');
-                const quoteId = this.safeString (market, 'quote', '');
-                streamMarketId = baseId + '_' + quoteId;
+                streamMarketId = this.safeString (market, 'base', '') + '_' + this.safeString (market, 'quote', '');
             }
             streamMarketIds.push (streamMarketId);
             messageHashes.push ('ticker:' + market['symbol']);

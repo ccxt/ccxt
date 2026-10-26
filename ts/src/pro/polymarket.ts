@@ -133,8 +133,7 @@ export default class polymarket extends polymarketRest {
         const market = this.market (symbol);
         const symbolResolved: string = market['symbol'];
         const messageHash = 'orderbook:' + symbolResolved;
-        const marketId = this.safeString (market, 'id', '');
-        const channel = 'book::' + marketId;
+        const channel = 'book::' + this.safeString (market, 'id', '');
         const request = this.sendSubscription ('sub', [ channel ], [ messageHash ], [ messageHash ], {}, params);
         const url = this.urls['api']['ws'];
         const orderbook = await this.watch (url, messageHash, request, messageHash);
@@ -156,8 +155,7 @@ export default class polymarket extends polymarketRest {
         const symbolResolved: string = market['symbol'];
         const subMessageHash = 'orderbook:' + symbolResolved;
         const messageHash = 'unsubscribe:' + subMessageHash;
-        const marketId = this.safeString (market, 'id', '');
-        const channel = 'book::' + marketId;
+        const channel = 'book::' + this.safeString (market, 'id', '');
         const context: Dict = {
             'topic': 'orderbook',
             'symbol': symbolResolved,
@@ -215,8 +213,7 @@ export default class polymarket extends polymarketRest {
         const market = this.market (symbol);
         const symbolResolved: string = market['symbol'];
         const messageHash = 'ticker:' + symbolResolved;
-        const marketId = this.safeString (market, 'id', '');
-        const channel = 'tickers::' + marketId;
+        const channel = 'tickers::' + this.safeString (market, 'id', '');
         const request = this.sendSubscription ('sub', [ channel ], [ messageHash ], [ messageHash ], {}, params);
         const url = this.urls['api']['ws'];
         return await this.watch (url, messageHash, request, messageHash);
@@ -237,8 +234,7 @@ export default class polymarket extends polymarketRest {
         const symbolResolved: string = market['symbol'];
         const subMessageHash = 'ticker:' + symbolResolved;
         const messageHash = 'unsubscribe:' + subMessageHash;
-        const marketId = this.safeString (market, 'id', '');
-        const channel = 'tickers::' + marketId;
+        const channel = 'tickers::' + this.safeString (market, 'id', '');
         const context: Dict = {
             'topic': 'ticker',
             'symbol': symbolResolved,
@@ -405,8 +401,7 @@ export default class polymarket extends polymarketRest {
         const market = this.market (symbol);
         const symbolResolved: string = market['symbol'];
         const messageHash = 'trade:' + symbolResolved;
-        const marketId = this.safeString (market, 'id', '');
-        const channel = 'trades::' + marketId;
+        const channel = 'trades::' + this.safeString (market, 'id', '');
         const request = this.sendSubscription ('sub', [ channel ], [ messageHash ], [ messageHash ], {}, params);
         const url = this.urls['api']['ws'];
         const trades = await this.watch (url, messageHash, request, messageHash);
@@ -432,8 +427,7 @@ export default class polymarket extends polymarketRest {
         const symbolResolved: string = market['symbol'];
         const subMessageHash = 'trade:' + symbolResolved;
         const messageHash = 'unsubscribe:' + subMessageHash;
-        const marketId = this.safeString (market, 'id', '');
-        const channel = 'trades::' + marketId;
+        const channel = 'trades::' + this.safeString (market, 'id', '');
         const context: Dict = {
             'topic': 'trades',
             'symbol': symbolResolved,
@@ -554,8 +548,7 @@ export default class polymarket extends polymarketRest {
             throw new NotSupported (this.id + ' watchOHLCV() does not support the ' + timeframe + ' timeframe over the websocket');
         }
         const messageHash = 'candles:' + timeframe + ':' + symbolResolved;
-        const marketId = this.safeString (market, 'id', '');
-        const channel = 'klines::' + marketId + '::' + interval;
+        const channel = 'klines::' + this.safeString (market, 'id', '') + '::' + interval;
         const request = this.sendSubscription ('sub', [ channel ], [ messageHash ], [ messageHash ], {}, params);
         const url = this.urls['api']['ws'];
         const ohlcv = await this.watch (url, messageHash, request, messageHash);
@@ -584,8 +577,7 @@ export default class polymarket extends polymarketRest {
         const interval = this.safeString (wsTimeframes, timeframe, timeframe);
         const subMessageHash = 'candles:' + timeframe + ':' + symbolResolved;
         const messageHash = 'unsubscribe:' + subMessageHash;
-        const marketId = this.safeString (market, 'id', '');
-        const channel = 'klines::' + marketId + '::' + interval;
+        const channel = 'klines::' + this.safeString (market, 'id', '') + '::' + interval;
         const context: Dict = {
             'topic': 'ohlcv',
             'symbol': symbolResolved,

@@ -1268,9 +1268,7 @@ export default class dydx extends Exchange {
         let privateKey = this.safeString (this.options, 'privateKey');
         if (privateKey === undefined) {
             const signature: Dict = this.signOnboardingAction ();
-            const signatureR = this.safeString (signature, 'r', '');
-            const signatureS = this.safeString (signature, 's', '');
-            privateKey = this.hashMessage (this.base16ToBinary (signatureR + signatureS));
+            privateKey = this.hashMessage (this.base16ToBinary (this.safeString (signature, 'r', '') + this.safeString (signature, 's', '')));
         }
         credentials = this.retrieveDydxCredentials (privateKey);
         credentials['privateKey'] = this.binaryToBase16 (credentials['privateKey']);

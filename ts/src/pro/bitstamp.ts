@@ -70,10 +70,9 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const marketId = this.safeString (market, 'id', '');
         const symbolValue: string = market['symbol'];
         const messageHash = 'orderbook:' + symbolValue;
-        const channel = 'diff_order_book_' + marketId;
+        const channel = 'diff_order_book_' + this.safeString (market, 'id', '');
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'event': 'bts:subscribe',
@@ -100,9 +99,8 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const marketId = this.safeString (market, 'id', '');
         const symbolValue: string = market['symbol'];
-        const channel = 'diff_order_book_' + marketId;
+        const channel = 'diff_order_book_' + this.safeString (market, 'id', '');
         const subHash = 'orderbook:' + symbolValue;
         return await this.unWatchChannel (channel, subHash, 'orderbook', [ symbolValue ], params);
     }
@@ -247,11 +245,10 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const marketId = this.safeString (market, 'id', '');
         const symbolValue: string = market['symbol'];
         const messageHash = 'trades:' + symbolValue;
         const url = this.urls['api']['ws'];
-        const channel = 'live_trades_' + marketId;
+        const channel = 'live_trades_' + this.safeString (market, 'id', '');
         const request: Dict = {
             'event': 'bts:subscribe',
             'data': {
@@ -281,9 +278,8 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const marketId = this.safeString (market, 'id', '');
         const symbolValue: string = market['symbol'];
-        const channel = 'live_trades_' + marketId;
+        const channel = 'live_trades_' + this.safeString (market, 'id', '');
         const subHash = 'trades:' + symbolValue;
         return await this.unWatchChannel (channel, subHash, 'trades', [ symbolValue ], params);
     }
@@ -388,11 +384,10 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const marketId = this.safeString (market, 'id', '');
         const symbolValue: string = market['symbol'];
         const messageHash = 'fundingRate:' + symbolValue;
         const url = this.urls['api']['ws'];
-        const channel = 'funding_rate_' + marketId;
+        const channel = 'funding_rate_' + this.safeString (market, 'id', '');
         const request: Dict = {
             'event': 'bts:subscribe',
             'data': {
@@ -450,10 +445,9 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const marketId = this.safeString (market, 'id', '');
         const symbolValue: Str = market['symbol'];
         const channel = 'private-my_orders';
-        const messageHash = channel + '_' + marketId;
+        const messageHash = channel + '_' + this.safeString (market, 'id', '');
         const subscription: Dict = {
             'symbol': symbolValue,
             'limit': limit,
@@ -515,10 +509,9 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const marketId = this.safeString (market, 'id', '');
         const symbolValue: Str = market['symbol'];
         const channel = 'private-my_trades';
-        const messageHash = channel + '_' + marketId;
+        const messageHash = channel + '_' + this.safeString (market, 'id', '');
         const subscription: Dict = {
             'symbol': symbolValue,
             'limit': limit,
