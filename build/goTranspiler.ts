@@ -2796,16 +2796,20 @@ function nativeLoopBoundedSliceReads (content: string): string {
             }
             const maskedFunc = maskedLines.slice (fn.open + 1, fn.close + 1).join ('\n');
             const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], slice);
-            if ((decl === undefined) || (decl.type !== '[]string')) {
+            // hx11 w7: a `[]any` unboxed from a SafeList accessor holds plain JSON values (no *T box
+            // for GetValue to deref), so its in-range element is the slice element itself
+            const jsonList = (decl !== undefined) && (decl.type === '[]any') && (decl.line !== undefined) && GO_GUARDED_READ_SAFE_LIST.test (decl.line);
+            if ((decl === undefined) || ((decl.type !== '[]string') && !jsonList)) {
                 return match;
             }
+            const declRx = new RegExp ('^[ \\t]*var ' + slice + (jsonList ? ' \\[\\]any\\b' : ' \\[\\]string\\b'));
             for (let k = fn.open + 1; k < fn.close; k++) {
-                const line = (decl.line !== undefined) ? maskedLines[k].replace (new RegExp ('^\\s*var ' + slice + ' \\[\\]string\\b'), '') : maskedLines[k];
+                const line = (decl.line !== undefined) ? maskedLines[k].replace (declRx, '') : maskedLines[k];
                 if (goTextWritesName (line, slice)) {
                     return match;
                 }
             }
-            if ((decl.line !== undefined) && !(maskedLines.slice (fn.open + 1, body.open).some ((l: string) => new RegExp ('^[ \\t]*var ' + slice + ' \\[\\]string\\b').test (l)))) {
+            if ((decl.line !== undefined) && !(maskedLines.slice (fn.open + 1, body.open).some ((l: string) => declRx.test (l)))) {
                 return match; // declared after the loop header
             }
             for (let k = body.open + 1; k < body.close; k++) {
@@ -2894,7 +2898,7 @@ function goGuardedReadStripParens (text: string): string {
 
 // the container of a guarded read: a `[]any`/`[]string` local or parameter this func
 // declares exactly once and never writes (a write could change len() or replace the slice)
-function goGuardedReadContainer (maskedLines: string[], fn: any, name: string): any {
+function goGuardedReadContainer (maskedLines: string[], fn: any, name: string, lines?: string[]): any {
     const maskedFunc = maskedLines.slice (fn.open + 1, fn.close + 1).join ('\n');
     const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], name);
     if ((decl === undefined) || ((decl.type !== '[]any') && (decl.type !== '[]string'))) {
@@ -2906,7 +2910,57 @@ function goGuardedReadContainer (maskedLines: string[], fn: any, name: string): 
             return undefined;
         }
     }
-    return { 'type': decl.type, 'json': (decl.line !== undefined) && GO_GUARDED_READ_SAFE_LIST.test (decl.line) };
+    const init = ((lines !== undefined) && (declareLine >= 0)) ? lines[declareLine] : undefined;
+    return { 'type': decl.type, 'json': (decl.line !== undefined) && GO_GUARDED_READ_SAFE_LIST.test (decl.line), 'init': init };
+}
+
+// hx11 w7: top-level comma split of a call's argument text (string/rune aware)
+function goGuardedReadSplitArgs (text: string): string[] {
+    const parts: string[] = [];
+    let depth = 0;
+    let from = 0;
+    let quote = '';
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (quote !== '') {
+            if (c === '\\') { i++; } else if (c === quote) { quote = ''; }
+            continue;
+        }
+        if ((c === '"') || (c === '`') || (c === '\'')) { quote = c; continue; }
+        depth += ('([{'.indexOf (c) >= 0) ? 1 : ((')]}'.indexOf (c) >= 0) ? -1 : 0);
+        if ((depth === 0) && (c === ',')) {
+            parts.push (text.substring (from, i).trim ());
+            from = i + 1;
+        }
+    }
+    parts.push (text.substring (from).trim ());
+    return parts;
+}
+
+// hx11 w7: the declaration's own initializer proves the literal index `key` is in range:
+//  - strings.Split(x, "<non-empty literal>") always returns at least one element (index 0)
+//  - this.MarketSymbols(s, t, false, ...) panics on an empty list, so index 0 exists
+//  - a `[]any{a, b, c}` literal the func never writes has exactly its listed elements
+function goGuardedReadInitProvesIndex (init: string | undefined, key: string): boolean {
+    if ((init === undefined) || !/^\d+$/.test (key)) {
+        return false;
+    }
+    const index = Number (key);
+    const split = /^[ \t]*var [A-Za-z_]\w* \[\]string = (?:ccxt\.)?strings\.Split\(.*, \"[^\"\\\\]+\"\)[ \t]*(?:\/\/.*)?$/.exec (init);
+    if (split !== null) {
+        return index === 0;
+    }
+    const symbols = /^[ \t]*var [A-Za-z_]\w* \[\]string = this\.MarketSymbols\((.*)\)[ \t]*(?:\/\/.*)?$/.exec (init);
+    if (symbols !== null) {
+        const args = goGuardedReadSplitArgs (symbols[1]);
+        return (index === 0) && (args.length >= 3) && (args[2] === 'false');
+    }
+    const literal = /^[ \t]*var [A-Za-z_]\w* \[\]any = \[\]any\{(.*)\}[ \t]*$/.exec (init);
+    if (literal !== null) {
+        const items = goGuardedReadSplitArgs (literal[1]);
+        return (items.length > 0) && (items[0] !== '') && (index < items.length);
+    }
+    return false;
 }
 
 // names bound to `len(container)` that still hold at the block, declared once and unwritten
@@ -3042,14 +3096,14 @@ function nativeGuardedListElementReads (content: string): string {
             out.push (lines[index]);
             continue;
         }
-        const read = goGuardedReadContainer (maskedLines, fn, container);
+        const read = goGuardedReadContainer (maskedLines, fn, container, lines);
         if (read === undefined) {
             out.push (lines[index]);
             continue;
         }
         const isWrapped = (maskedLines[index + 1] === wrapped);
         const readText = (isWrapped && !read.json) ? (deref + '(' + container + '[' + key + '])') : (container + '[' + key + ']');
-        if (goGuardedReadIsInRange (maskedLines, blocks, depth, fn, index, container, key)) {
+        if (goGuardedReadIsInRange (maskedLines, blocks, depth, fn, index, container, key) || goGuardedReadInitProvesIndex (read.init, key)) {
             const roof = maskedLines[index - 1];
             const roofClose = roof.lastIndexOf ('func() any {');
             let suffix = lines[index + 4].substring (closes.length);
@@ -3096,6 +3150,20 @@ function nativeGuardedListElementReadsSelfTest (): string[] {
         ok (g (lists + '\tif len(markets) > 0 {\n\t\tmarkets = []any{}\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('func() any {') >= 0, 'a written slice keeps the literal');
         ok (g (lists + '\tif len(markets) > 1 {\n' + read ('1', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('var m any = markets[1]') >= 0, 'len() > key');
         ok (g (lists + '\tif len(markets) > 0 {\n' + read ('1', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('func() any {') >= 0, 'len() > 0 does not cover index 1');
+        // hx11 w7: the declaration's own initializer proves the literal index
+        const split = (index: string, sep: string) => g ('\tvar parts []string = strings.Split(x, ' + sep + ')\n' + read (index, 'parts', ''));
+        ok (split ('0', '\"/\"').indexOf ('var m any = parts[0]') >= 0, 'strings.Split with a literal separator has element 0');
+        ok (split ('1', '\"/\"').indexOf ('func() any {') >= 0, 'strings.Split does not prove element 1');
+        ok (split ('0', 'sep').indexOf ('func() any {') >= 0, 'strings.Split with a variable separator keeps the literal');
+        ok (split ('0', '\"\"').indexOf ('func() any {') >= 0, 'strings.Split with an empty separator keeps the literal');
+        const symbols = (allowEmpty: string, index: string) => g ('\tvar syms []string = this.MarketSymbols(symbols, nil, ' + allowEmpty + ', true)\n' + read (index, 'syms', ''));
+        ok (symbols ('false', '0').indexOf ('var m any = syms[0]') >= 0, 'MarketSymbols(allowEmpty=false) has element 0');
+        ok (symbols ('true', '0').indexOf ('func() any {') >= 0, 'MarketSymbols(allowEmpty=true) may answer an empty list');
+        ok (symbols ('false', '1').indexOf ('func() any {') >= 0, 'MarketSymbols does not prove element 1');
+        const listed = (index: string) => g ('\tvar pair []any = []any{a, b}\n' + read (index, 'pair', 'DerefScalar('));
+        ok (listed ('1').indexOf ('var m any = DerefScalar(pair[1])') >= 0, 'a slice literal proves its listed indexes');
+        ok (listed ('2').indexOf ('func() any {') >= 0, 'a slice literal does not prove an index past its end');
+        ok (g ('\tvar pair []any = []any{}\n' + read ('0', 'pair', 'DerefScalar(')).indexOf ('func() any {') >= 0, 'an empty slice literal proves nothing');
         const once = g (lists + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n');
         ok (nativeGuardedListElementReads (once) === once, 'idempotent');
         const wired = formatGoSource ('selftest.go', 'package ccxt\n\nfunc (this *X) f() any {\n' + lists + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n\treturn nil\n}\n');
