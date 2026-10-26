@@ -21,21 +21,21 @@ pub async fn testFetchHistoryBase() -> Value {
     let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
         exchange.fetch2(Value::Str("sample1".into()), &[]).await;
      #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
         assert!(ccxt::runtime::is_true(&(trueAssertion.clone()))); // just skip
     }
     assert!(ccxt::runtime::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(1.0)))));
     let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
         exchange.fetch2(Value::Str("sample2".into()), &[]).await;
      #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
         assert!(ccxt::runtime::is_true(&(trueAssertion.clone()))); // just skip
     }
     assert!(ccxt::runtime::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(2.0)))));
     let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
         exchange.fetch2(Value::Str("sample3".into()), &[]).await;
      #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
         assert!(ccxt::runtime::is_true(&(trueAssertion.clone()))); // just skip
     }
     assert!(ccxt::runtime::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(2.0)))));

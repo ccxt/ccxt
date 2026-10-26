@@ -371,11 +371,11 @@ impl DeribitCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_301: bool = true;
             while { if !__for_first_301 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_301 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencies.len() as i64) as f64) } {
-            let mut currencyCode: Value = self.safe_string(currencies.clone(), i.clone(), &[]);
+            let currencyCode: String = self.safe_string_opt(currencies.clone(), i.clone(), &[Value::Str("".into())]).unwrap_or_default();
             channels.push(Value::Str(format!("{}{}", Value::Str("user.portfolio.".into()), currencyCode).into()));
         }
         }
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("method".to_string(), Value::Str("private/subscribe".into()));
@@ -387,7 +387,7 @@ impl DeribitCore {
                 m.insert("id".to_string(), self.request_id());
             m
         });
-        let mut request: Value = self.deep_extend(subscribe, &[params]);
+        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[params]);
         return self.watch(url, messageHash.clone(), &[request.clone(), messageHash.clone(), request.clone()]).await;
 
     Value::Null
@@ -486,20 +486,21 @@ impl DeribitCore {
         if (interval.as_str() == Some("raw")) {
             self.authenticate(&[]).await;
         }
-        let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".".into())).into()), interval).into());
-        let mut message: Value = Value::Map({
+        let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
+        let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), marketId).into()), Value::Str(".".into())).into()), interval).into());
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("method".to_string(), Value::Str("public/subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".".into())).into()), interval).into())]));
+        m.insert("channels".to_string(), Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), marketId).into()), Value::Str(".".into())).into()), interval).into())]));
     m
 }));
                 m.insert("id".to_string(), self.request_id());
             m
         });
-        let mut request: Value = self.deep_extend(message, &[paramsOmitted]);
+        let mut request: Value = self.deep_extend(Value::Map(message), &[paramsOmitted]);
         return self.watch(url, channel.clone(), &[request.clone(), channel.clone(), request.clone()]).await;
 
     Value::Null
@@ -540,10 +541,10 @@ impl DeribitCore {
             let mut __for_first_302: bool = true;
             while { if !__for_first_302 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_302 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-            append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".".into())).into()), interval).into()));
+            if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval).into())); };
         }
         }
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("method".to_string(), Value::Str("public/subscribe".into()));
@@ -555,18 +556,18 @@ impl DeribitCore {
                 m.insert("id".to_string(), self.request_id());
             m
         });
-        let mut request: Value = self.deep_extend(message, &[paramsOmitted]);
+        let mut request: Value = self.deep_extend(Value::Map(message), &[paramsOmitted]);
         let mut newTickers: Value = self.watch_multiple(url, channels.clone(), &[request.clone(), channels.clone(), request.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut tickers: Value = Value::Map({
+            let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut newTickersSymbol: Value = self.safe_string_k(newTickers.clone(), "symbol", &[]);
             if (newTickersSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickersSymbol), newTickers); }
+                tickers.insert(crate::runtime::stringify_param(&newTickersSymbol), newTickers);
             }
-            return tickers;
+            return Value::Map(tickers);
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -646,11 +647,11 @@ impl DeribitCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_303: bool = true;
             while { if !__for_first_303 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_303 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
-            let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-            append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str("quote.".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
+            let mut market: indexmap::IndexMap<String, Value> = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
+            if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("quote.".into()), market.get("id").cloned().unwrap_or(Value::Null)).into())); };
         }
         }
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("method".to_string(), Value::Str("public/subscribe".into()));
@@ -662,18 +663,18 @@ impl DeribitCore {
                 m.insert("id".to_string(), self.request_id());
             m
         });
-        let mut request: Value = self.deep_extend(message, &[params]);
+        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
         let mut newTickers: Value = self.watch_multiple(url, channels.clone(), &[request.clone(), channels.clone(), request.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
-            let mut tickers: Value = Value::Map({
+            let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             let mut newTickersSymbol: Value = self.safe_string_k(newTickers.clone(), "symbol", &[]);
             if (newTickersSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&newTickersSymbol), newTickers); }
+                tickers.insert(crate::runtime::stringify_param(&newTickersSymbol), newTickers);
             }
-            return tickers;
+            return Value::Map(tickers);
         }
         return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
@@ -709,7 +710,7 @@ impl DeribitCore {
             m
         })]);
         let mut ticker: Value = self.parse_ws_bid_ask(data, &[]);
-        let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         let mut messageHash: Value = self.safe_string_k(params, "channel", &[]);
         client.resolve(&[ticker, messageHash]);
@@ -780,9 +781,9 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut intervalparamsIntervalVariable = self.handle_option_string_and_params(params, Value::Str("watchTradesForSymbols".into()), Value::Str("interval".into()), &[Value::Str("100ms".into())]);
-        let mut interval: Value = intervalparamsIntervalVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut paramsInterval: Value = intervalparamsIntervalVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let intervalparamsIntervalVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchTradesForSymbols".into()), Value::Str("interval".into()), &[Value::Str("100ms".into())]).as_array().cloned().unwrap_or_default();
+        let mut interval: Value = intervalparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paramsInterval: Value = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null);
         if (interval.as_str() == Some("raw")) {
             self.authenticate(&[]).await;
         }
@@ -827,12 +828,11 @@ impl DeribitCore {
     m
 }) });
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[Value::Str("".into())]);
-        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(".").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
-        let mut interval: Value = self.safe_string(parts, Value::Int(2), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut market: Value = self.safe_market(&[marketId]);
-        let mut trades: Value = self.safe_list_k(params, "data", &[Value::from(vec![])]);
+        let mut trades: Vec<Value> = self.safe_list_k(params, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         if (self.safe_dict(self.trades.clone(), symbol.clone(), &[]) == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ArrayCache::new(limit)); }
@@ -842,12 +842,13 @@ impl DeribitCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_304: bool = true;
             while { if !__for_first_304 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_304 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
-            let mut trade: Value = trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = trades.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_trade(trade, &[market.clone()]);
             stored.append(parsed);
         }
         }
         if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored); }
+        let interval: String = self.safe_string_opt(parts, Value::Int(2), &[Value::Str("".into())]).unwrap_or_default();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trades|".into()), symbol).into()), Value::Str("|".into())).into()), interval).into());
         client.resolve(&[self.trades.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash]);
 }
@@ -878,10 +879,10 @@ impl DeribitCore {
         }
         let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { Value::Null });
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut interval: Value = self.safe_string_k(params.clone(), "interval", &[Value::Str("raw".into())]);
+        let interval: String = self.safe_string_k_opt(params.clone(), "interval", &[Value::Str("raw".into())]).unwrap_or_default();
         let mut paramsOmitted: Value = self.omit(params, Value::Str("interval".into()), &[]);
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str("user.trades.any.any.".into()), interval).into());
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("method".to_string(), Value::Str("private/subscribe".into()));
@@ -893,7 +894,7 @@ impl DeribitCore {
                 m.insert("id".to_string(), self.request_id());
             m
         });
-        let mut request: Value = self.deep_extend(message, &[paramsOmitted]);
+        let mut request: Value = self.deep_extend(Value::Map(message), &[paramsOmitted]);
         let mut trades: Value = self.watch(url, channel.clone(), &[request.clone(), channel.clone(), request.clone()]).await;
         return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limit, Value::Bool(true)]);
 
@@ -957,7 +958,7 @@ impl DeribitCore {
             while { if !__for_first_305 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_305 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsed.len() as i64) as f64) } {
             let mut trade: Value = parsed.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             cachedTrades.append(trade.clone());
-            let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = self.safe_string_k(trade, "symbol", &[]);
             if let Value::Dict(__d) = &mut marketIds { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
         }
         }
@@ -1003,22 +1004,22 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut intervalparamsIntervalVariable = self.handle_option_string_and_params(params, Value::Str("watchOrderBookForSymbols".into()), Value::Str("interval".into()), &[Value::Str("100ms".into())]);
-        let mut interval: Value = intervalparamsIntervalVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut paramsInterval: Value = intervalparamsIntervalVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let intervalparamsIntervalVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBookForSymbols".into()), Value::Str("interval".into()), &[Value::Str("100ms".into())]).as_array().cloned().unwrap_or_default();
+        let mut interval: Value = intervalparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paramsInterval: Value = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null);
         if (interval.as_str() == Some("raw")) {
             self.authenticate(&[]).await;
         }
         // for more info on useDepthEndpoint, see comment in .options
-        let mut useDepthEndpointparamsUseDepthEndpointVariable = self.handle_option_bool_and_params(paramsInterval, Value::Str("watchOrderBookForSymbols".into()), Value::Str("useDepthEndpoint".into()), &[Value::Bool(false)]);
-        let mut useDepthEndpoint: Value = useDepthEndpointparamsUseDepthEndpointVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut paramsUseDepthEndpoint: Value = useDepthEndpointparamsUseDepthEndpointVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut depthparamsDepthVariable = self.handle_option_string_and_params(paramsUseDepthEndpoint.clone(), Value::Str("watchOrderBookForSymbols".into()), Value::Str("depth".into()), &[Value::Str("20".into())]);
-        let mut depth: Value = depthparamsDepthVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut paramsDepth: Value = depthparamsDepthVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut groupparamsGroupVariable = self.handle_option_string_and_params(paramsDepth, Value::Str("watchOrderBookForSymbols".into()), Value::Str("group".into()), &[Value::Str("none".into())]);
-        let mut group: Value = groupparamsGroupVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut paramsGroup: Value = groupparamsGroupVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let useDepthEndpointparamsUseDepthEndpointVariable: Vec<Value> = self.handle_option_bool_and_params(paramsInterval, Value::Str("watchOrderBookForSymbols".into()), Value::Str("useDepthEndpoint".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+        let mut useDepthEndpoint: Value = useDepthEndpointparamsUseDepthEndpointVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paramsUseDepthEndpoint: Value = useDepthEndpointparamsUseDepthEndpointVariable.get(1).cloned().unwrap_or(Value::Null);
+        let depthparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(paramsUseDepthEndpoint.clone(), Value::Str("watchOrderBookForSymbols".into()), Value::Str("depth".into()), &[Value::Str("20".into())]).as_array().cloned().unwrap_or_default();
+        let mut depth: Value = depthparamsDepthVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paramsDepth: Value = depthparamsDepthVariable.get(1).cloned().unwrap_or(Value::Null);
+        let groupparamsGroupVariable: Vec<Value> = self.handle_option_string_and_params(paramsDepth, Value::Str("watchOrderBookForSymbols".into()), Value::Str("group".into()), &[Value::Str("none".into())]).as_array().cloned().unwrap_or_default();
+        let mut group: Value = groupparamsGroupVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paramsGroup: Value = groupparamsGroupVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut descriptor: Value = interval.clone();
         if useDepthEndpoint.as_bool() == Some(true) {
             descriptor = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", group, Value::Str(".".into())).into()), depth).into()), Value::Str(".".into())).into()), interval).into());
@@ -1090,17 +1091,15 @@ impl DeribitCore {
             m
         })]);
         let mut channel: Value = self.safe_string_k(params, "channel", &[]);
-        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(".").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
         let mut descriptor: Value = Value::Str("".into());
         let mut partsLength: f64 = ((parts.len() as i64) as f64);
         let mut isDetailed: bool = partsLength == 5.0;
         if isDetailed {
-            let mut group: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
-            let mut depth: Value = self.safe_string(parts.clone(), Value::Int(3), &[]);
-            let mut interval: Value = self.safe_string(parts.clone(), Value::Int(4), &[]);
-            descriptor = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", group, Value::Str(".".into())).into()), depth).into()), Value::Str(".".into())).into()), interval).into());
+            let interval: String = self.safe_string_opt(parts.clone(), Value::Int(4), &[Value::Str("".into())]).unwrap_or_default();
+            descriptor = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(parts.clone(), Value::Int(2), &[Value::Str("".into())]), Value::Str(".".into())).into()), self.safe_string(parts.clone(), Value::Int(3), &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval).into());
         }  else {
-            let mut interval: Value = self.safe_string(parts, Value::Int(2), &[]);
+            let mut interval: Value = self.safe_string(parts, Value::Int(2), &[Value::Str("".into())]);
             descriptor = interval;
         }
         let mut marketId: Value = self.safe_string_k(data.clone(), "instrument_name", &[]);
@@ -1131,7 +1130,8 @@ impl DeribitCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_306: bool = true;
             while { if !__for_first_306 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_306 = false; i.as_f64().unwrap_or(f64::NAN) < ((bids.len() as i64) as f64) } {
-            if let Value::Arr(__a) = &mut cleanedBids { std::sync::Arc::make_mut(__a).push(Value::from(vec![get_value(&bids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &Value::Int(1)), get_value(&bids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &Value::Int(2))])); }
+            let mut bid: Vec<Value> = self.safe_list(bids.clone(), i.clone(), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            if let Value::Arr(__a) = &mut cleanedBids { std::sync::Arc::make_mut(__a).push(Value::from(vec![bid.get(1).cloned().unwrap_or(Value::Null), bid.get(2).cloned().unwrap_or(Value::Null)])); }
         }
         }
         let mut cleanedAsks: Value = Value::from(vec![]);
@@ -1139,7 +1139,8 @@ impl DeribitCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_307: bool = true;
             while { if !__for_first_307 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_307 = false; i.as_f64().unwrap_or(f64::NAN) < ((asks.len() as i64) as f64) } {
-            if let Value::Arr(__a) = &mut cleanedAsks { std::sync::Arc::make_mut(__a).push(Value::from(vec![get_value(&asks.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &Value::Int(1)), get_value(&asks.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &Value::Int(2))])); }
+            let mut ask: Vec<Value> = self.safe_list(asks.clone(), i.clone(), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            if let Value::Arr(__a) = &mut cleanedAsks { std::sync::Arc::make_mut(__a).push(Value::from(vec![ask.get(1).cloned().unwrap_or(Value::Null), ask.get(2).cloned().unwrap_or(Value::Null)])); }
         }
         }
         if let Value::Dict(__d) = &mut data { std::sync::Arc::make_mut(__d).insert("bids".into(), cleanedBids); }
@@ -1150,8 +1151,8 @@ impl DeribitCore {
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
-        let mut price: Value = get_value(&delta, &Value::Int(1));
-        let mut amount: Value = get_value(&delta, &Value::Int(2));
+        let mut price: Value = self.safe_value(delta.clone(), Value::Int(1), &[]);
+        let mut amount: Value = self.safe_value(delta.clone(), Value::Int(2), &[]);
         let mut action: Option<String> = self.safe_string(delta, Value::Int(0), &[]).as_str().map(str::to_owned);
         if (action.as_deref() == Some("new")) || (action.as_deref() == Some("change")) {
             bookside.store_array(Value::from(vec![price.clone(), amount.clone(), Value::Int(1)]));
@@ -1161,11 +1162,13 @@ impl DeribitCore {
 }
 
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
+        let __deltas_empty = Vec::new();
+        let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_308: bool = true;
             while { if !__for_first_308 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_308 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
-            self.handle_delta(bookside.clone(), deltas.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+            self.handle_delta(bookside.clone(), deltas.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
         }
         }
 }
@@ -1195,12 +1198,12 @@ impl DeribitCore {
         self.authenticate(&[params.clone()]).await;
         let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { Value::Null });
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut currency: Value = self.safe_string_k(params.clone(), "currency", &[Value::Str("any".into())]);
-        let mut interval: Value = self.safe_string_k(params.clone(), "interval", &[Value::Str("raw".into())]);
-        let mut kind: Value = self.safe_string_k(params.clone(), "kind", &[Value::Str("any".into())]);
+        let currency: String = self.safe_string_k_opt(params.clone(), "currency", &[Value::Str("any".into())]).unwrap_or_default();
+        let interval: String = self.safe_string_k_opt(params.clone(), "interval", &[Value::Str("raw".into())]).unwrap_or_default();
+        let kind: String = self.safe_string_k_opt(params.clone(), "kind", &[Value::Str("any".into())]).unwrap_or_default();
         let mut paramsOmitted: Value = self.omit(params, Value::Str("interval".into()), &[Value::Str("currency".into()), Value::Str("kind".into())]);
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.orders.".into()), kind).into()), Value::Str(".".into())).into()), currency).into()), Value::Str(".".into())).into()), interval).into());
-        let mut message: Value = Value::Map({
+        let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("method".to_string(), Value::Str("private/subscribe".into()));
@@ -1212,7 +1215,7 @@ impl DeribitCore {
                 m.insert("id".to_string(), self.request_id());
             m
         });
-        let mut request: Value = self.deep_extend(message, &[paramsOmitted]);
+        let mut request: Value = self.deep_extend(Value::Map(message), &[paramsOmitted]);
         let mut orders: Value = self.watch(url, channel.clone(), &[request.clone(), channel.clone(), request.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1383,7 +1386,7 @@ impl DeribitCore {
     m
 }) });
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[Value::Str("".into())]);
-        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(".").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
+        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
         let mut rawTimeframe: Value = self.safe_string(parts, Value::Int(3), &[]);
         let mut market: Value = self.safe_market(&[marketId]);
@@ -1403,7 +1406,7 @@ impl DeribitCore {
 })]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         if (self.safe_dict(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), unifiedTimeframe.clone(), &[]) == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-            add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &unifiedTimeframe, ArrayCacheByTimestamp::new(limit));
+            if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&unifiedTimeframe), ArrayCacheByTimestamp::new(limit)); }
         }
         let mut stored: Value = self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| unifiedTimeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         let mut ohlcv: Value = self.safe_dict_k(params, "data", &[Value::Map({
@@ -1413,7 +1416,7 @@ impl DeribitCore {
         // data contains a single OHLCV candle
         let mut parsed: Value = self.parse_ws_ohlcv(ohlcv, &[market]);
         stored.append(parsed);
-        add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &unifiedTimeframe, stored.clone());
+        if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&unifiedTimeframe), stored.clone()); }
         let mut resolveData: Value = Value::from(vec![symbol.clone(), unifiedTimeframe, stored]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("chart.trades|".into()), symbol).into()), Value::Str("|".into())).into()), rawTimeframe).into());
         client.resolve(&[resolveData, messageHash]);
@@ -1447,7 +1450,7 @@ impl DeribitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_310: bool = true;
-            while { if !__for_first_310 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_310 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&symbolsArray).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_310 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_310 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbolsArray.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             if (symbolsArray == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMultipleWrapper() symbolsArray is required".into()))));
             }
@@ -1456,19 +1459,20 @@ impl DeribitCore {
             let mut market: Value = Value::Null;
             let mut currentDescriptor: Value = Value::Null;
             if isOHLCV {
-                market = self.market(get_value(&current, &Value::Int(0)));
-                let mut unifiedTf: Value = get_value(&current, &Value::Int(1));
+                let mut currentPair: Vec<Value> = self.safe_list(symbolsArray.clone(), i.clone(), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                market = self.market(currentPair.get(0).cloned().unwrap_or(Value::Null));
+                let mut unifiedTf: Value = currentPair.get(1).cloned().unwrap_or(Value::Null);
                 currentDescriptor = self.safe_string(self.timeframes.clone(), unifiedTf.clone(), &[unifiedTf.clone()]);
             }  else {
                 market = self.market(current);
                 currentDescriptor = channelDescriptor.clone();
             }
-            let mut message: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, Value::Str(".".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".".into())).into()), currentDescriptor).into());
+            let mut message: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, Value::Str(".".into())).into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), currentDescriptor).into());
             rawSubscriptions.push(message);
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, Value::Str("|".into())).into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), Value::Str("|".into())).into()), currentDescriptor).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, Value::Str("|".into())).into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into()), Value::Str("|".into())).into()), currentDescriptor).into()));
         }
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("method".to_string(), Value::Str("public/subscribe".into()));
@@ -1480,7 +1484,7 @@ impl DeribitCore {
                 m.insert("id".to_string(), self.request_id());
             m
         });
-        let mut extendedRequest: Value = self.deep_extend(request, &[params]);
+        let mut extendedRequest: Value = self.deep_extend(Value::Map(request), &[params]);
         let mut maxMessageByteLimit: f64 = ((32767i64) as f64); // 'Message Too Big: limit 32768B'
         let mut jsonedText: Value = json_stringify(&extendedRequest);
         if ((jsonedText.len() as i64) as f64) >= maxMessageByteLimit {
@@ -1560,26 +1564,26 @@ impl DeribitCore {
         let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         let mut channel: Value = self.safe_string_k(params, "channel", &[]);
         if (channel != Value::Null) {
-            let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(".").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
+            let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
             let mut channelId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
-            let mut userHandlers: Value = Value::Map({
+            let mut userHandlers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("trades".to_string(), Value::Str("handle_my_trades".into()).clone());
                     m.insert("portfolio".to_string(), Value::Str("handle_balance".into()).clone());
                     m.insert("orders".to_string(), Value::Str("handle_orders".into()).clone());
                 m
             });
-            let mut handlers: Value = Value::Map({
+            let mut handlers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ticker".to_string(), Value::Str("handle_ticker".into()).clone());
                     m.insert("quote".to_string(), Value::Str("handle_bid_ask".into()).clone());
                     m.insert("book".to_string(), Value::Str("handle_order_book".into()).clone());
                     m.insert("trades".to_string(), Value::Str("handle_trades".into()).clone());
                     m.insert("chart".to_string(), Value::Str("handle_ohlcv".into()).clone());
-                    m.insert("user".to_string(), self.safe_value(userHandlers, self.safe_string(parts, Value::Int(1), &[]), &[]));
+                    m.insert("user".to_string(), self.safe_value(Value::Map(userHandlers), self.safe_string(parts, Value::Int(1), &[]), &[]));
                 m
             });
-            let mut handler: Value = self.safe_value(handlers, channelId, &[]);
+            let mut handler: Value = self.safe_value(Value::Map(handlers), channelId, &[]);
             if (handler != Value::Null) {
                 self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
                 return;
@@ -1628,17 +1632,18 @@ impl DeribitCore {
 }));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut client: Value = self.client(&[url.clone()]);
+        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut time: Value = self.milliseconds();
         let mut timeString: Value = self.number_to_string(time.clone());
         let mut nonce: Value = timeString.clone();
         let mut messageHash: Value = Value::Str("authenticated".into());
-        let mut future: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[]);
+        let mut future: Value = self.safe_value(__ch.subscriptions.clone(), messageHash.clone(), &[]);
         if (future == Value::Null) {
             self.check_required_credentials(&[]);
             let mut requestId: Value = self.request_id();
             let mut lineBreak: Value = Value::Str("\n".into()); // eslint-disable-line quotes
             let mut signature: Value = self.hmac(self.encode(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timeString, lineBreak).into()), nonce).into()), lineBreak).into())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                     m.insert("id".to_string(), requestId);
@@ -1655,9 +1660,9 @@ impl DeribitCore {
 }));
                 m
             });
-            let __ws_arg_0 = self.extend(request, &[params]);
+            let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
             future = self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
-            add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash, future.clone());
+            add_element_to_object(&mut __ch.subscriptions, &messageHash, future.clone());
         }
         return future;
 

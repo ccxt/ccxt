@@ -284,25 +284,29 @@ impl NdaxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
+        let marketId: String = self.safe_string_k_opt(market.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
         let mut name: Value = Value::Str("SubscribeLevel1".into());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId).into());
+        let mut url: Value = self.safe_string(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]), Value::Str("ws".into()), &[]);
         let mut requestId: Value = self.request_id();
-        let mut payload: Value = Value::Map({
+        let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), omsId);
                 m.insert("InstrumentId".to_string(), self.safe_integer_k(market, "id", &[]));
             m
         });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("m".to_string(), Value::Int(0));
                 m.insert("i".to_string(), requestId);
                 m.insert("n".to_string(), name);
-                m.insert("o".to_string(), json_stringify(&payload));
+                m.insert("o".to_string(), json_stringify(&Value::Map(payload)));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
 
     Value::Null
@@ -341,13 +345,14 @@ impl NdaxCore {
         //     }
         //
         let mut ticker: Value = self.parse_ticker(payload, &[]);
-        let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         let mut market: Value = self.market(symbol.clone());
         if (symbol != Value::Null) {
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         }
+        let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
         let mut name: Value = Value::Str("SubscribeLevel1".into());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId).into());
         client.resolve(&[ticker, messageHash]);
 }
 
@@ -374,27 +379,31 @@ impl NdaxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut symbolValue: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
+        let marketId: String = self.safe_string_k_opt(market.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
         let mut name: Value = Value::Str("SubscribeTrades".into());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId).into());
+        let mut url: Value = self.safe_string(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]), Value::Str("ws".into()), &[]);
         let mut requestId: Value = self.request_id();
-        let mut payload: Value = Value::Map({
+        let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), omsId);
                 m.insert("InstrumentId".to_string(), self.safe_integer_k(market, "id", &[]));
                 m.insert("IncludeLastCount".to_string(), Value::Int(100));
             m
         });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("m".to_string(), Value::Int(0));
                 m.insert("i".to_string(), requestId);
                 m.insert("n".to_string(), name);
-                m.insert("o".to_string(), json_stringify(&payload));
+                m.insert("o".to_string(), json_stringify(&Value::Map(payload)));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -408,7 +417,7 @@ impl NdaxCore {
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut payload: Value = (match message.get("o") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut payload: Vec<Value> = (match message.get("o") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         //
         // initial snapshot
         //
@@ -437,8 +446,8 @@ impl NdaxCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_528: bool = true;
             while { if !__for_first_528 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_528 = false; i.as_f64().unwrap_or(f64::NAN) < ((payload.len() as i64) as f64) } {
-            let mut trade: Value = self.parse_trade(payload.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
-            let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = self.parse_trade(payload.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[]);
+            let mut symbol: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
             let mut tradesArray: Value = (if (symbol == Value::Null) { Value::Null } else { self.safe_value(self.trades.clone(), symbol.clone(), &[]) });
             if (tradesArray == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -453,14 +462,15 @@ impl NdaxCore {
             }
         }
         }
-        let mut symbols: Value = object_keys(&updates);
+        let mut symbols: Vec<Value> = Value::Array(updates.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_529: bool = true;
             while { if !__for_first_529 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_529 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-            let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut symbol: Value = symbols.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
+            let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId).into());
             let mut tradesArray: Value = self.safe_value(self.trades.clone(), symbol, &[]);
             client.resolve(&[tradesArray, messageHash]);
         }
@@ -492,12 +502,16 @@ impl NdaxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut symbolValue: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
+        let marketId: String = self.safe_string_k_opt(market.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
         let mut name: Value = Value::Str("SubscribeTicker".into());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), timeframe).into()), Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), timeframe).into()), Value::Str(":".into())).into()), marketId).into());
+        let mut url: Value = self.safe_string(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]), Value::Str("ws".into()), &[]);
         let mut requestId: Value = self.request_id();
-        let mut payload: Value = Value::Map({
+        let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), omsId);
                 m.insert("InstrumentId".to_string(), self.safe_integer_k(market, "id", &[]));
@@ -505,15 +519,15 @@ impl NdaxCore {
                 m.insert("IncludeLastCount".to_string(), Value::Int(100));
             m
         });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("m".to_string(), Value::Int(0));
                 m.insert("i".to_string(), requestId);
                 m.insert("n".to_string(), name);
-                m.insert("o".to_string(), json_stringify(&payload));
+                m.insert("o".to_string(), json_stringify(&Value::Map(payload)));
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
         let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -552,7 +566,7 @@ impl NdaxCore {
         //         ]
         //     ]
         //
-        let mut updates: Value = Value::Map({
+        let mut updates: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -563,23 +577,21 @@ impl NdaxCore {
             let mut ohlcv: Value = self.safe_list(payload.clone(), i.clone(), &[]);
             let mut marketId: Value = self.safe_string(ohlcv.clone(), Value::Int(8), &[]);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
-            let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            if (marketId != Value::Null) {
-                if let Value::Dict(__d) = &mut updates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketId), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})); }
-            }
+            let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
+            let mut marketUpdates: indexmap::IndexMap<String, Value> = ({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
             { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-            let mut keys: Value = Value::Array(self.timeframes.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+            let mut keys: Vec<Value> = Value::Array(self.timeframes.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_530: bool = true;
                 while { if !__for_first_530 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_530 = false; j.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-                let mut timeframe: Value = keys.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut timeframe: Value = keys.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
                 let mut duration: Value = (match (&(self.parse_to_int(interval)), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
                 let mut timestamp: Value = self.safe_integer(ohlcv.clone(), Value::Int(0), &[]);
@@ -589,9 +601,10 @@ impl NdaxCore {
                 let mut candleTimestamp: Value = self.parse_to_int((match (&(((match ((timestamp).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
                 let mut parsed: Value = Value::from(vec![candleTimestamp.clone(), self.safe_float(ohlcv.clone(), Value::Int(3), &[]), self.safe_float(ohlcv.clone(), Value::Int(1), &[]), self.safe_float(ohlcv.clone(), Value::Int(2), &[]), self.safe_float(ohlcv.clone(), Value::Int(4), &[]), self.safe_float(ohlcv.clone(), Value::Int(5), &[])]);
                 let mut stored: Value = self.safe_value(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), timeframe.clone(), &[Value::from(vec![])]);
-                let mut length: Value = get_array_length(&stored);
-                if (length.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && (candleTimestamp.as_f64() == self.safe_integer(get_value(&stored, &(match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), Value::Int(0), &[]).as_f64()) {
-                    let mut previous: Value = get_value(&stored, &(match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+                let mut length: Value = Value::Int(stored.len() as i64);
+                let mut previous: Value = self.safe_value(stored.clone(), (match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
+                let mut previousTimestamp: Value = self.safe_integer(previous.clone(), Value::Int(0), &[]);
+                if (length.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && (previousTimestamp != Value::Null) && (previousTimestamp.as_f64() == candleTimestamp.as_f64()) {
                     let mut parsedHigh: Value = self.safe_float(ohlcv.clone(), Value::Int(1), &[]);
                     let mut previousHigh: Value = self.safe_float(previous.clone(), Value::Int(1), &[]);
                     let mut high: Value = previousHigh.clone();
@@ -610,48 +623,50 @@ impl NdaxCore {
                             low = previousLow;
                         }
                     }
-                    add_element_to_object(&mut stored, &(match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), Value::from(vec![parsed.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), get_value(&previous, &Value::Int(1)), high, low, parsed.as_array().and_then(|__arr| __arr.get(4)).cloned().unwrap_or(Value::Null), self.sum(&[parsed.as_array().and_then(|__arr| __arr.get(5)).cloned().unwrap_or(Value::Null), get_value(&previous, &Value::Int(5))])]));
+                    add_element_to_object(&mut stored, &(match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), Value::from(vec![candleTimestamp.clone(), self.safe_float(previous.clone(), Value::Int(1), &[]), high, low, self.safe_float(ohlcv.clone(), Value::Int(4), &[]), self.sum(&[self.safe_float(ohlcv.clone(), Value::Int(5), &[]), self.safe_float(previous, Value::Int(5), &[])])]));
                     if (marketId != Value::Null) {
-                        add_element_to_object(get_value_mut(&mut updates, &marketId), &timeframe, Value::Bool(true));
+                        marketUpdates.insert(crate::runtime::stringify_param(&timeframe), Value::Bool(true));
                     }
                 }  else {
                     if length.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-                        let mut lastTimestamp: Value = self.safe_integer(get_value(&stored, &(match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), Value::Int(0), &[]);
-                        if (lastTimestamp != Value::Null) && (lastTimestamp.as_f64().unwrap_or(f64::NAN) > candleTimestamp.as_f64().unwrap_or(f64::NAN)) {
+                        if (previousTimestamp != Value::Null) && (previousTimestamp.as_f64().unwrap_or(f64::NAN) > candleTimestamp.as_f64().unwrap_or(f64::NAN)) {
                             continue;
                         }
                     }
-                    append_to_array(&mut stored, parsed);
+                    if let Value::Arr(__a) = &mut stored { std::sync::Arc::make_mut(__a).push(parsed); };
                     let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
                     if length.as_f64().unwrap_or(f64::NAN) >= limit.as_f64().unwrap_or(f64::NAN) {
                         shift(stored.clone());
                     }
                     if (marketId != Value::Null) {
-                        add_element_to_object(get_value_mut(&mut updates, &marketId), &timeframe, Value::Bool(true));
+                        marketUpdates.insert(crate::runtime::stringify_param(&timeframe), Value::Bool(true));
                     }
                 }
-                add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
+                if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); }
             }
+            }
+            if (marketId != Value::Null) {
+                updates.insert(crate::runtime::stringify_param(&marketId), Value::Map(marketUpdates));
             }
         }
         }
         let mut name: Value = Value::Str("SubscribeTicker".into());
-        let mut marketIds: Value = object_keys(&updates);
+        let mut marketIds: Vec<Value> = Value::Array(updates.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_533: bool = true;
             while { if !__for_first_533 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_533 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
-            let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut timeframes: Value = object_keys(&updates.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
+            let mut marketId: Value = marketIds.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut timeframes: Vec<Value> = object_keys(&updates.get(marketId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_532: bool = true;
                 while { if !__for_first_532 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_532 = false; j.as_f64().unwrap_or(f64::NAN) < ((timeframes.len() as i64) as f64) } {
-                let mut timeframe: Value = timeframes.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut timeframe: Value = timeframes.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), timeframe).into()), Value::Str(":".into())).into()), marketId).into());
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
-                let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-                let mut stored: Value = self.safe_list(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), timeframe, &[Value::from(vec![])]);
+                let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
+                let mut stored: Value = self.safe_list(self.safe_value(self.ohlcvs.clone(), symbol, &[]), timeframe, &[Value::from(vec![])]);
                 client.resolve(&[stored, messageHash]);
             }
             }
@@ -680,28 +695,32 @@ impl NdaxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut symbolValue: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
+        let marketId: String = self.safe_string_k_opt(market.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
         let mut name: Value = Value::Str("SubscribeLevel2".into());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
-        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId).into());
+        let mut url: Value = self.safe_string(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]), Value::Str("ws".into()), &[]);
         let mut requestId: Value = self.request_id();
         let mut limitValue: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() });
-        let mut payload: Value = Value::Map({
+        let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), omsId);
                 m.insert("InstrumentId".to_string(), self.safe_integer_k(market.clone(), "id", &[]));
                 m.insert("Depth".to_string(), limitValue.clone());
             m
         });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("m".to_string(), Value::Int(0));
                 m.insert("i".to_string(), requestId.clone());
                 m.insert("n".to_string(), name.clone());
-                m.insert("o".to_string(), json_stringify(&payload));
+                m.insert("o".to_string(), json_stringify(&Value::Map(payload)));
             m
         });
-        let mut subscription: Value = Value::Map({
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId);
                 m.insert("messageHash".to_string(), messageHash.clone());
@@ -713,8 +732,8 @@ impl NdaxCore {
                 m.insert("params".to_string(), params.clone());
             m
         });
-        let mut message: Value = self.extend(request, &[params]);
-        let mut orderbook: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone(), subscription]).await;
+        let mut message: Value = self.extend(Value::Map(request), &[params]);
+        let mut orderbook: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone(), Value::Map(subscription)]).await;
         return orderbook.limit();
 
     Value::Null
@@ -752,7 +771,7 @@ impl NdaxCore {
             return;
         }
         let mut market: Value = self.safe_market(&[marketId.clone()]);
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         if (orderbook == Value::Null) {
             return;
@@ -857,6 +876,7 @@ impl NdaxCore {
 }
 
     pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) {
+        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -867,7 +887,7 @@ impl NdaxCore {
         //         "o": "[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]"
         //     }
         //
-        let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".into())), Value::Str("id".into()));
+        let mut subscriptionsById: Value = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
         let mut id: Value = (match __pro_message.get("i").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         let mut subscription: Value = (if (id == Value::Null) { Value::Null } else { self.safe_dict(subscriptionsById, id, &[]) });
         if (subscription != Value::Null) {
@@ -906,7 +926,7 @@ impl NdaxCore {
             return;
         }
         if let Value::Dict(__d) = &mut message { std::sync::Arc::make_mut(__d).insert("o".into(), json_parse(&payload)); }
-        let mut methods: Value = Value::Map({
+        let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("SubscribeLevel2".to_string(), Value::Str("handle_subscription_status".into()).clone());
                 m.insert("SubscribeLevel1".to_string(), Value::Str("handle_ticker".into()).clone());
@@ -919,7 +939,7 @@ impl NdaxCore {
             m
         });
         let mut event: Value = self.safe_string_k(message.clone(), "n", &[]);
-        let mut method: Value = (if (event == Value::Null) { Value::Null } else { self.safe_value(methods, event, &[]) });
+        let mut method: Value = (if (event == Value::Null) { Value::Null } else { self.safe_value(Value::Map(methods), event, &[]) });
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client, message]);
         }

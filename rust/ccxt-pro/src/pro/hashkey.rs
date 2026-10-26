@@ -320,7 +320,7 @@ impl HashkeyCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("topic".to_string(), topic);
@@ -328,7 +328,7 @@ impl HashkeyCore {
             m
         });
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
-        let __ws_arg_0 = self.deep_extend(request, &[params]);
+        let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
 
     Value::Null
@@ -336,7 +336,7 @@ impl HashkeyCore {
 
     pub async fn watch_private(&mut self, mut messageHash: Value) -> Value {
         let mut listenKey: Value = self.authenticate(&[]).await;
-        let mut url: Value = self.get_private_url(listenKey).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut url: Value = self.get_private_url(listenKey).map(Value::from).unwrap_or(Value::Null);
         return self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone()]).await;
 
     Value::Null
@@ -430,9 +430,9 @@ impl HashkeyCore {
         let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         let mut klineType: Value = self.safe_string_k(params, "klineType", &[]);
         let mut timeframe: Value = self.find_timeframe(klineType, &[]);
-        if !(in_op(&self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe)) {
+        if !(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-            add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, ArrayCacheByTimestamp::new(limit));
+            if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), ArrayCacheByTimestamp::new(limit)); }
         }
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         let mut stored: Value = self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
@@ -522,7 +522,7 @@ impl HashkeyCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]), &[]);
-        let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
         client.resolve(&[self.tickers.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash]);
@@ -722,7 +722,7 @@ impl HashkeyCore {
         let mut messageHash: Value = Value::Str("orders".into());
         let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { symbol.clone() });
         if (symbol != Value::Null) {
-            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved).into());
+            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str(":".into())).into()), symbolResolved).into());
         }
         let mut orders: Value = self.watch_private(messageHash).await;
         let mut limitResolved: Value = limit.clone();
@@ -779,7 +779,7 @@ impl HashkeyCore {
         orders.append(parsed.clone());
         let mut messageHash: Value = Value::Str("orders".into());
         client.resolve(&[orders.clone(), messageHash.clone()]);
-        let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let symbol: String = self.safe_string_k_opt(parsed, "symbol", &[Value::Str("".into())]).unwrap_or_default();
         let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
         client.resolve(&[orders, symbolSpecificMessageHash]);
 }
@@ -791,11 +791,11 @@ impl HashkeyCore {
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "O", &[]);
         let mut side: Value = self.safe_string_lower_k(order.clone(), "S", &[]);
         let mut reduceOnly: Value = Value::Null;
-        { let __destr_tmp = self.parent.parse_order_side_and_reduce_only(side.clone()); side = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); reduceOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut type_var: Value = self.parent.parse_order_type(self.safe_string_k(order.clone(), "o", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        { let __destr_tmp: Vec<Value> = self.parent.parse_order_side_and_reduce_only(side.clone()).as_array().cloned().unwrap_or_default(); side = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); reduceOnly = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut type_var: Value = self.parent.parse_order_type(self.safe_string_k(order.clone(), "o", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "f", &[]);
         let mut postOnly: Value = Value::Null;
-        { let __destr_tmp = self.parent.parse_order_type_time_in_force_and_post_only(type_var.clone(), timeInForce.clone()); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); timeInForce = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.parent.parse_order_type_time_in_force_and_post_only(type_var.clone(), timeInForce.clone()).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); timeInForce = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); postOnly = __destr_tmp.get(2).cloned().unwrap_or(Value::Null); }
         if (marketResolved.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             type_var = Value::Null;
         }
@@ -807,7 +807,7 @@ impl HashkeyCore {
         m.insert("timestamp".to_string(), timestamp);
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(order.clone(), "X", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(order.clone(), "X", &[])).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce);
@@ -863,7 +863,7 @@ impl HashkeyCore {
         let mut messageHash: Value = Value::Str("myTrades".into());
         let mut symbolResolved: Value = (if (symbol != Value::Null) { self.symbol(symbol.clone()) } else { symbol.clone() });
         if (symbol != Value::Null) {
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbolResolved).into())).into());
+            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str(":".into())).into()), symbolResolved).into());
         }
         let mut trades: Value = self.watch_private(messageHash).await;
         let mut limitResolved: Value = limit.clone();
@@ -906,7 +906,7 @@ impl HashkeyCore {
         self.myTrades = tradesArray.clone();
         let mut messageHash: Value = Value::Str("myTrades".into());
         client.resolve(&[tradesArray.clone(), messageHash.clone()]);
-        let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let symbol: String = self.safe_string_k_opt(parsed, "symbol", &[Value::Str("".into())]).unwrap_or_default();
         let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
         client.resolve(&[tradesArray, symbolSpecificMessageHash]);
 }
@@ -1014,7 +1014,7 @@ impl HashkeyCore {
             }
             }
         }
-        let mut url: Value = self.get_private_url(listenKey).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut url: Value = self.get_private_url(listenKey).map(Value::from).unwrap_or(Value::Null);
         let mut positions: Value = self.watch_multiple(url, messageHashes.clone(), &[Value::Null, messageHashes.clone()]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
@@ -1054,7 +1054,7 @@ impl HashkeyCore {
         positions.append(parsed.clone());
         let mut messageHash: Value = Value::Str("positions".into());
         client.resolve(&[parsed.clone(), messageHash.clone()]);
-        let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let symbol: String = self.safe_string_k_opt(parsed.clone(), "symbol", &[Value::Str("".into())]).unwrap_or_default();
         client.resolve(&[parsed, Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into())]);
 }
 
@@ -1120,7 +1120,7 @@ impl HashkeyCore {
         let mut type_var: Value = Value::Str("spot".into());
         let mut typeMarketType: Value = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params, type_var]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("balance:".into()), typeMarketType).into());
-        let mut url: Value = self.get_private_url(listenKey).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut url: Value = self.get_private_url(listenKey).map(Value::from).unwrap_or(Value::Null);
         let mut client: Value = self.client(&[url.clone()]);
         self.set_balance_cache(client.clone(), typeMarketType.clone(), messageHash.clone());
         let mut fetchBalanceSnapshot: Value = self.handle_option_bool_and_params(self.options.clone(), Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -1134,14 +1134,15 @@ impl HashkeyCore {
 }
 
     pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value, mut subscribeHash: Value) {
-        if (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscribeHash)) {
+        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        if (matches!((&__ch.subscriptions.clone(), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut snapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(true)]);
         if snapshot.as_bool() == Some(true) {
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":".into())).into()), Value::Str("fetchBalanceSnapshot".into())).into());
-            if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+            if !(matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var.clone()]);
             }
@@ -1153,6 +1154,7 @@ impl HashkeyCore {
 }
 
     pub async fn load_balance_snapshot(&mut self, mut client: Value, mut messageHash: Value, mut type_var: Value) -> Value {
+        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut response: Value = self.fetch_balance(&[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), type_var.clone());
@@ -1164,8 +1166,8 @@ impl HashkeyCore {
 })]);
         { let __be_tmp = self.extend(response, &[__ws_arg_1]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         // don't remove the future from the .futures cache
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
-            let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
+        if (matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            let mut future: Value = get_value(&__ch.futures.clone(), &messageHash);
             future.resolve(&[]);
             client.resolve(&[self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str("balance:".into()), type_var).into())]);
         }
@@ -1208,16 +1210,16 @@ impl HashkeyCore {
     m
 })); }
         }
-        add_element_to_object(get_value_mut(&mut self.balance, &type_var), &Value::Str("info".into()), message);
+        if let Value::Dict(__r05d) = get_value_mut(&mut self.balance, &type_var) { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message); }
         let mut currencyId: Value = self.safe_string_k(balanceUpdate.clone(), "a", &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[]);
-        let mut account: Value = self.account();
-        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balanceUpdate.clone(), "f", &[])); }
-        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balanceUpdate, "l", &[])); }
+        let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
+        account.insert("free".into(), self.safe_string_k(balanceUpdate.clone(), "f", &[]));
+        account.insert("used".into(), self.safe_string_k(balanceUpdate, "l", &[]));
         if (code != Value::Null) {
-            add_element_to_object(get_value_mut(&mut self.balance, &type_var), &code, account);
+            if let Value::Dict(__r05d) = get_value_mut(&mut self.balance, &type_var) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); }
         }
-        { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
+        { let __be_tmp = self.safe_balance(self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("balance:".into()), type_var).into());
         client.resolve(&[self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash]);
 }
@@ -1242,7 +1244,8 @@ impl HashkeyCore {
         // the client's own accessors
         let mut messageHash: Value = Value::Str("authenticateFlight".into());
         let mut client: Value = self.client(&[Value::Str("authenticationFlights".into())]);
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
+        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        if (matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             // a flight is already in progress - wake when the leader
             // settles it: the listenKey is then in the bucket
             crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
@@ -1290,19 +1293,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (listenKey == Value::Null) {
             return Value::Null;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("listenKey".to_string(), listenKey.clone());
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let __ws_arg_2 = self.extend(request, &[params.clone()]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[params.clone()]);
             self.parent.private_put_api_v1_user_data_stream(&[__ws_arg_2]).await;
             let mut listenKeyRefreshRate: Value = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(1200000)]);
             self.delay(listenKeyRefreshRate, &[Value::Str("keep_alive_listen_key".into()).clone(), listenKey.clone(), params]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
-            let mut url: Value = self.get_private_url(listenKey).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+            let mut url: Value = self.get_private_url(listenKey).map(Value::from).unwrap_or(Value::Null);
             let mut client: Value = self.client(&[url.clone()]);
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), Value::Null); }
             client.reject(&[Value::from(error)]);

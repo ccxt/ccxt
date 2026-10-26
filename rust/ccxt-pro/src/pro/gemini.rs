@@ -522,42 +522,41 @@ impl GeminiCore {
 }
 
     pub fn handle_trades_for_multidata(&mut self, mut client: Value, mut trades: Value, mut timestamp: Value) {
-        if (trades != Value::Null) {
-            let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            let mut storesForSymbols: Value = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
-            {
-                                let mut i: Value = Value::Int(0);
-                let mut __for_first_356: bool = true;
-                while { if !__for_first_356 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_356 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
-                let mut marketId: Value = (self.safe_string(trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-                let mut market: Value = self.safe_market(&[marketId]);
-                let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-                let mut trade: Value = self.parse_ws_trade(trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market]);
-                add_element_to_object(&mut trade, &Value::Str("timestamp".into()), timestamp.clone());
-                add_element_to_object(&mut trade, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
-                let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
-                if (stored == Value::Null) {
-                    stored = ArrayCache::new(tradesLimit.clone());
-                    if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
-                }
-                stored.append(trade);
-                if let Value::Dict(__d) = &mut storesForSymbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
+        let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+        let mut storesForSymbols: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_356: bool = true;
+            while { if !__for_first_356 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_356 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+            let mut rawTrade: Value = self.safe_value(trades.clone(), i.clone(), &[]);
+            let mut marketId: Value = (self.safe_string_k(rawTrade.clone(), "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+            let mut market: Value = self.safe_market(&[marketId]);
+            let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = self.parse_ws_trade(rawTrade, &[market]);
+            if let Value::Dict(__rda) = &mut trade { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
+            if let Value::Dict(__rda) = &mut trade { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp.clone())); }
+            let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
+            if (stored == Value::Null) {
+                stored = ArrayCache::new(tradesLimit.clone());
+                if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
             }
-            }
-            let mut symbols: Value = object_keys(&storesForSymbols);
-            {
-                                let mut i: Value = Value::Int(0);
-                let mut __for_first_357: bool = true;
-                while { if !__for_first_357 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_357 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-                let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                let mut stored: Value = storesForSymbols.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
-                client.resolve(&[stored, messageHash]);
-            }
-            }
+            stored.append(trade);
+            if let Value::Dict(__d) = &mut storesForSymbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
+        }
+        }
+        let mut symbols: Vec<Value> = Value::Array(storesForSymbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_357: bool = true;
+            while { if !__for_first_357 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_357 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut symbol: Value = symbols.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut stored: Value = storesForSymbols.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
+            client.resolve(&[stored, messageHash]);
+        }
         }
 }
 
@@ -642,7 +641,7 @@ impl GeminiCore {
         //     }
         //
         let mut type_var: Value = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut timeframeIdFull: Value = type_var.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(8); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut timeframeIdFull: Value = type_var.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(8); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
         let mut timeframeEndIndex: Value = Value::Int(timeframeIdFull.as_str().and_then(|__s| __s.find("_")).map(|__i| __i as i64).unwrap_or(-1));
         let mut timeframeId: Value = (match (&(timeframeIdFull), (match &(Value::Int(0)) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(timeframeEndIndex) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
         let mut marketId: Value = (self.safe_string_k(message.clone(), "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
@@ -662,7 +661,7 @@ impl GeminiCore {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit);
             if (symbol != Value::Null) && (timeframe != Value::Null) {
-                add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
+                if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); }
             }
         }
         let mut changesLength: Value = Value::Int(changes.len() as i64);
@@ -671,7 +670,7 @@ impl GeminiCore {
             let mut __for_first_358: bool = true;
             while { if !__for_first_358 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_358 = false; i.as_f64().unwrap_or(f64::NAN) < changesLength.as_f64().unwrap_or(f64::NAN) } {
             let mut index: Value = (match (&((match (&(changesLength), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            let mut parsed: Value = self.parse_ohlcv(get_value(&changes, &index), &[market.clone()]);
+            let mut parsed: Value = self.parse_ohlcv(self.safe_value(changes.clone(), index, &[]), &[market.clone()]);
             stored.append(parsed);
         }
         }
@@ -734,7 +733,7 @@ impl GeminiCore {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut isInitial: bool = (matches!(&message, Value::Dict(__d) if __d.contains_key("auction_events"))) && (matches!(&message, Value::Dict(__d) if __d.contains_key("trades"))) && (matches!(&message, Value::Dict(__d) if __d.contains_key("changes")));
-        let mut changes: Value = (match __pro_message.get("changes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        let mut changes: Vec<Value> = (match __pro_message.get("changes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut marketId: Value = self.safe_string_lower_k(message, "symbol", &[]);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -751,7 +750,7 @@ impl GeminiCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_359: bool = true;
                 while { if !__for_first_359 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_359 = false; i.as_f64().unwrap_or(f64::NAN) < ((changes.len() as i64) as f64) } {
-                let mut delta: Value = changes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut delta: Value = changes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 let mut bidAsk: Value = Value::from(vec![self.safe_number(delta.clone(), Value::Int(1), &[]), self.safe_number(delta.clone(), Value::Int(2), &[])]);
                 if (self.safe_string(delta.clone(), Value::Int(0), &[]).as_str() == Some("buy")) {
                     bidsSnapshot.push(bidAsk.clone());
@@ -774,7 +773,7 @@ impl GeminiCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_360: bool = true;
             while { if !__for_first_360 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_360 = false; i.as_f64().unwrap_or(f64::NAN) < ((changes.len() as i64) as f64) } {
-            let mut delta: Value = changes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut delta: Value = changes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut price: Value = self.safe_number(delta.clone(), Value::Int(1), &[]);
             let mut size: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
             let mut side: Value = (if (self.safe_string(delta, Value::Int(0), &[]).as_str() == Some("buy")) { Value::Str("bids".into()) } else { Value::Str("asks".into()) });
@@ -931,8 +930,8 @@ impl GeminiCore {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", itemHashName, Value::Str(":".into())).into()), symbol).into());
             messageHashes.push(messageHash);
-            let mut market: Value = self.market(symbol);
-            marketIds.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut market: indexmap::IndexMap<String, Value> = self.market(symbol).as_map().cloned().unwrap_or_default();
+            marketIds.push(market.get("id").cloned().unwrap_or(Value::Null));
         }
         }
         let mut queryStr: Value = Value::Str(marketIds.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into());
@@ -1075,12 +1074,12 @@ impl GeminiCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut authParams: Value = Value::Map({
+        let mut authParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("url".to_string(), url.clone());
             m
         });
-        self.authenticate(&[authParams]).await;
+        self.authenticate(&[Value::Map(authParams)]).await;
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
@@ -1153,7 +1152,7 @@ impl GeminiCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_364: bool = true;
             while { if !__for_first_364 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_364 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
-            let mut order: Value = self.parse_ws_order(message.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
+            let mut order: Value = self.parse_ws_order(self.safe_value(message.clone(), i.clone(), &[]), &[]);
             orders.append(order);
         }
         }
@@ -1206,9 +1205,9 @@ impl GeminiCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parse_ws_order_status(status).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_ws_order_status(status).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market.clone()]));
-        m.insert("type".to_string(), self.parse_ws_order_type(typeId).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("type".to_string(), self.parse_ws_order_type(typeId).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), postOnly);
         m.insert("side".to_string(), self.safe_string_k(order.clone(), "side", &[]));
@@ -1228,7 +1227,7 @@ impl GeminiCore {
 }
 
     pub fn parse_ws_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accepted".to_string(), Value::Str("open".into()));
                 m.insert("booked".to_string(), Value::Str("open".into()));
@@ -1238,18 +1237,18 @@ impl GeminiCore {
                 m.insert("rejected".to_string(), Value::Str("rejected".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_ws_order_type(&self, mut type_var: Value) -> Option<String> {
-        let mut types: Value = Value::Map({
+        let mut types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("exchange limit".to_string(), Value::Str("limit".into()));
                 m.insert("market buy".to_string(), Value::Str("market".into()));
                 m.insert("market sell".to_string(), Value::Str("market".into()));
             m
         });
-        return self.safe_string(types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(Value::Map(types), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn handle_error(&self, mut client: Value, mut message: Value) {
@@ -1301,7 +1300,7 @@ impl GeminiCore {
         if (reason.as_deref() == Some("error")) {
             self.handle_error(client.clone(), message.clone());
         }
-        let mut methods: Value = Value::Map({
+        let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("l2_updates".to_string(), Value::Str("handle_l2_updates".into()).clone());
                 m.insert("trade".to_string(), Value::Str("handle_trade".into()).clone());
@@ -1314,7 +1313,7 @@ impl GeminiCore {
             self.handle_ohlcv(client.clone(), message.clone());
             return;
         }
-        let mut method: Value = self.safe_value(methods, type_var.clone(), &[]);
+        let mut method: Value = self.safe_value(Value::Map(methods), type_var.clone(), &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
@@ -1385,15 +1384,15 @@ impl GeminiCore {
         let mut urlLength: Value = Value::Int(url.len() as i64);
         let mut endIndex: Value = (if (urlParamsIndex.as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) { urlParamsIndex } else { urlLength });
         let mut request: Value = (match (&(url), (match &(startIndex) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(endIndex) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
-        let mut payload: Value = Value::Map({
+        let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("request".to_string(), request);
                 m.insert("nonce".to_string(), self.incrementing_nonce());
             m
         });
-        let mut b64: Value = self.string_to_base64(json_stringify(&payload), &[]);
+        let mut b64: Value = self.string_to_base64(json_stringify(&Value::Map(payload)), &[]);
         let mut signature: Value = self.hmac(self.encode(b64.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[Value::Str("hex".into())]);
-        let mut defaultOptions: Value = Value::Map({
+        let mut defaultOptions: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ws".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1410,18 +1409,43 @@ impl GeminiCore {
             m
         });
         // this.options = this.extend (defaultOptions, this.options);
-        self.extend_exchange_options(&[defaultOptions]);
-        let mut originalHeaders: Value = crate::value::get_value_k(&crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "options"), "headers");
-        let mut headers: Value = Value::Map({
+        self.extend_exchange_options(&[Value::Map(defaultOptions)]);
+        let mut wsOptions: Value = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut wsSubOptions: Value = self.safe_dict_k(wsOptions, "options", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut originalHeaders: indexmap::IndexMap<String, Value> = self.safe_dict_k(wsSubOptions, "headers", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
+        let mut headers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("X-GEMINI-APIKEY".to_string(), self.apiKey.clone());
                 m.insert("X-GEMINI-PAYLOAD".to_string(), b64);
                 m.insert("X-GEMINI-SIGNATURE".to_string(), signature);
             m
         });
-        add_element_to_object(get_value_mut(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("options".into())), &Value::Str("headers".into()), headers);
+        if let Value::Dict(__bf03d0) = &mut self.options {
+            let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("ws".to_string()).or_insert(Value::Null);
+            if let Value::Dict(__bf03d1) = __bf03e1 {
+                let __bf03e2 = std::sync::Arc::make_mut(__bf03d1).entry("options".to_string()).or_insert(Value::Null);
+                if let Value::Dict(__r05d) = __bf03e2 { std::sync::Arc::make_mut(__r05d).insert("headers".to_string(), Value::Map(headers));
+                }
+            }
+        }
         self.client(&[url]);
-        add_element_to_object(get_value_mut(get_value_mut(&mut self.options, &Value::Str("ws".into())), &Value::Str("options".into())), &Value::Str("headers".into()), originalHeaders);
+        if let Value::Dict(__bf03d0) = &mut self.options {
+            let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("ws".to_string()).or_insert(Value::Null);
+            if let Value::Dict(__bf03d1) = __bf03e1 {
+                let __bf03e2 = std::sync::Arc::make_mut(__bf03d1).entry("options".to_string()).or_insert(Value::Null);
+                if let Value::Dict(__r05d) = __bf03e2 { std::sync::Arc::make_mut(__r05d).insert("headers".to_string(), Value::Map(originalHeaders));
+                }
+            }
+        }
 
     Value::Null
 }

@@ -36,62 +36,62 @@ fn helperTestHandleMarketTypeAndParams() {
     //
     // case #1, should prevail: param
     //
-    let mut marketType1params1Variable = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), &[market.clone(), initialParams.clone(), Value::Str("valueDefault".into())]);
-    let mut marketType1: Value = marketType1params1Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut params1: Value = marketType1params1Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+    let marketType1params1Variable: Vec<Value> = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), &[market.clone(), initialParams.clone(), Value::Str("valueDefault".into())]).as_array().cloned().unwrap_or_default();
+    let mut marketType1: Value = marketType1params1Variable.get(0).cloned().unwrap_or(Value::Null);
+    let mut params1: Value = marketType1params1Variable.get(1).cloned().unwrap_or(Value::Null);
     assert!(ccxt::runtime::is_true(&(Value::Bool(matches!(&initialParams, Value::Dict(__d) if __d.contains_key("defaultType"))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&params1, Value::Dict(__d) if __d.contains_key("defaultType"))))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(marketType1.as_str() == Some("valueFromParam")))));
     //
     // case #2, should prevail: market.type
     //
-    let mut marketType2params2Variable = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), &[market.clone(), Value::Map({
+    let marketType2params2Variable: Vec<Value> = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), &[market.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Str("valueDefault".into())]);
-    let mut marketType2: Value = marketType2params2Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut params2: Value = marketType2params2Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+}), Value::Str("valueDefault".into())]).as_array().cloned().unwrap_or_default();
+    let mut marketType2: Value = marketType2params2Variable.get(0).cloned().unwrap_or(Value::Null);
+    let mut params2: Value = marketType2params2Variable.get(1).cloned().unwrap_or(Value::Null);
     assert!(ccxt::runtime::is_true(&(Value::Bool(marketType2.as_str() == Some("spot")))));
     //
     // case #3, should prevail: valueDefault
     //
-    let mut marketType3params3Variable = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), &[Value::Null, Value::Map({
+    let marketType3params3Variable: Vec<Value> = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), &[Value::Null, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Str("valueDefault".into())]);
-    let mut marketType3: Value = marketType3params3Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut params3: Value = marketType3params3Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+}), Value::Str("valueDefault".into())]).as_array().cloned().unwrap_or_default();
+    let mut marketType3: Value = marketType3params3Variable.get(0).cloned().unwrap_or(Value::Null);
+    let mut params3: Value = marketType3params3Variable.get(1).cloned().unwrap_or(Value::Null);
     assert!(ccxt::runtime::is_true(&(Value::Bool(marketType3.as_str() == Some("valueDefault")))));
     //
     // case #4, should prevail: method options
     //
-    let mut marketType4params4Variable = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), &[Value::Null, Value::Map({
+    let marketType4params4Variable: Vec<Value> = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), &[Value::Null, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-    let mut marketType4: Value = marketType4params4Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut params4: Value = marketType4params4Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+})]).as_array().cloned().unwrap_or_default();
+    let mut marketType4: Value = marketType4params4Variable.get(0).cloned().unwrap_or(Value::Null);
+    let mut params4: Value = marketType4params4Variable.get(1).cloned().unwrap_or(Value::Null);
     assert!(ccxt::runtime::is_true(&(Value::Bool(marketType4.as_str() == Some("valueFromMethodOptions")))));
     //
     // case #5, should prevail: options
     //
-    let mut marketType5params5Variable = exchange.handle_market_type_and_params(Value::Str("fetchY".into()), &[Value::Null, Value::Map({
+    let marketType5params5Variable: Vec<Value> = exchange.handle_market_type_and_params(Value::Str("fetchY".into()), &[Value::Null, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Null]);
-    let mut marketType5: Value = marketType5params5Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut params5: Value = marketType5params5Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+}), Value::Null]).as_array().cloned().unwrap_or_default();
+    let mut marketType5: Value = marketType5params5Variable.get(0).cloned().unwrap_or(Value::Null);
+    let mut params5: Value = marketType5params5Variable.get(1).cloned().unwrap_or(Value::Null);
     assert!(ccxt::runtime::is_true(&(Value::Bool(marketType5.as_str() == Some("option")))));
     //
     // case #6, should prevail: spot (because hardcoded in base)
     //
     add_element_to_object(&mut exchange.options, &Value::Str("defaultType".into()), Value::Null);
-    let mut marketType6params6Variable = exchange.handle_market_type_and_params(Value::Str("fetchY".into()), &[Value::Null, Value::Map({
+    let marketType6params6Variable: Vec<Value> = exchange.handle_market_type_and_params(Value::Str("fetchY".into()), &[Value::Null, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Null]);
-    let mut marketType6: Value = marketType6params6Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut params6: Value = marketType6params6Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+}), Value::Null]).as_array().cloned().unwrap_or_default();
+    let mut marketType6: Value = marketType6params6Variable.get(0).cloned().unwrap_or(Value::Null);
+    let mut params6: Value = marketType6params6Variable.get(1).cloned().unwrap_or(Value::Null);
     assert!(ccxt::runtime::is_true(&(Value::Bool(marketType6.as_str() == Some("spot")))));
     // fake assertion to avoid unused vars
     assert!(ccxt::runtime::is_true(&(Value::Bool((params1 != Value::Null) || (params2 != Value::Null) || (params3 != Value::Null) || (params4 != Value::Null) || (params5 != Value::Null) || (params6 != Value::Null)))));
@@ -114,58 +114,58 @@ fn helperTestHandleTypedOptions() {
 }));
         m
     }));
-    let mut marginModeparams1Variable = exchange.handle_margin_mode_and_params(Value::Str("fetchX".into()), &[Value::Map({
+    let marginModeparams1Variable: Vec<Value> = exchange.handle_margin_mode_and_params(Value::Str("fetchX".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Str("cross".into())]);
-    let mut marginMode: Value = marginModeparams1Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut params1: Value = marginModeparams1Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+}), Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
+    let mut marginMode: Value = marginModeparams1Variable.get(0).cloned().unwrap_or(Value::Null);
+    let mut params1: Value = marginModeparams1Variable.get(1).cloned().unwrap_or(Value::Null);
     assert!(ccxt::runtime::is_true(&(Value::Bool(marginMode.as_str() == Some("isolated")))));
-    let mut utaparams2Variable = exchange.handle_option_bool_and_params(Value::Map({
+    let utaparams2Variable: Vec<Value> = exchange.handle_option_bool_and_params(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Str("fetchX".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
-    let mut uta: Value = utaparams2Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut params2: Value = utaparams2Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+}), Value::Str("fetchX".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+    let mut uta: Value = utaparams2Variable.get(0).cloned().unwrap_or(Value::Null);
+    let mut params2: Value = utaparams2Variable.get(1).cloned().unwrap_or(Value::Null);
     assert!(ccxt::runtime::is_true(&(uta.clone())));
-    let mut absentparams3Variable = exchange.handle_option_string_and_params(Value::Map({
+    let absentparams3Variable: Vec<Value> = exchange.handle_option_string_and_params(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Str("fetchX".into()), Value::Str("absentKey".into()), &[Value::Str("fallback".into())]);
-    let mut absent: Value = absentparams3Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut params3: Value = absentparams3Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+}), Value::Str("fetchX".into()), Value::Str("absentKey".into()), &[Value::Str("fallback".into())]).as_array().cloned().unwrap_or_default();
+    let mut absent: Value = absentparams3Variable.get(0).cloned().unwrap_or(Value::Null);
+    let mut params3: Value = absentparams3Variable.get(1).cloned().unwrap_or(Value::Null);
     assert!(ccxt::runtime::is_true(&(Value::Bool(absent.as_str() == Some("fallback")))));
-    let mut fromParamsparams4Variable = exchange.handle_option_string_and_params(Value::Map({
+    let fromParamsparams4Variable: Vec<Value> = exchange.handle_option_string_and_params(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("absentKey".to_string(), Value::Str("p".into()));
     m
-}), Value::Str("fetchX".into()), Value::Str("absentKey".into()), &[Value::Str("fallback".into())]);
-    let mut fromParams: Value = fromParamsparams4Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut params4: Value = fromParamsparams4Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+}), Value::Str("fetchX".into()), Value::Str("absentKey".into()), &[Value::Str("fallback".into())]).as_array().cloned().unwrap_or_default();
+    let mut fromParams: Value = fromParamsparams4Variable.get(0).cloned().unwrap_or(Value::Null);
+    let mut params4: Value = fromParamsparams4Variable.get(1).cloned().unwrap_or(Value::Null);
     assert!(ccxt::runtime::is_true(&(Value::Bool(fromParams.as_str() == Some("p")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&params4, Value::Dict(__d) if __d.contains_key("absentKey"))))))));
     // "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws
-    let mut boolStringparams5Variable = exchange.handle_option_bool_and_params(Value::Map({
+    let boolStringparams5Variable: Vec<Value> = exchange.handle_option_bool_and_params(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Str("fetchX".into()), Value::Str("boolString".into()), &[Value::Bool(true)]);
-    let mut boolString: Value = boolStringparams5Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut params5: Value = boolStringparams5Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+}), Value::Str("fetchX".into()), Value::Str("boolString".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
+    let mut boolString: Value = boolStringparams5Variable.get(0).cloned().unwrap_or(Value::Null);
+    let mut params5: Value = boolStringparams5Variable.get(1).cloned().unwrap_or(Value::Null);
     assert!(ccxt::runtime::is_true(&(Value::Bool(boolString.as_bool() == Some(false)))));
-    let mut boolNumberparams6Variable = exchange.handle_option_bool_and_params(Value::Map({
+    let boolNumberparams6Variable: Vec<Value> = exchange.handle_option_bool_and_params(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("boolNumber".to_string(), Value::Int(1));
     m
-}), Value::Str("fetchX".into()), Value::Str("boolNumber".into()), &[Value::Bool(false)]);
-    let mut boolNumber: Value = boolNumberparams6Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut params6: Value = boolNumberparams6Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+}), Value::Str("fetchX".into()), Value::Str("boolNumber".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+    let mut boolNumber: Value = boolNumberparams6Variable.get(0).cloned().unwrap_or(Value::Null);
+    let mut params6: Value = boolNumberparams6Variable.get(1).cloned().unwrap_or(Value::Null);
     assert!(ccxt::runtime::is_true(&(Value::Bool(boolNumber.as_bool() == Some(true)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&params6, Value::Dict(__d) if __d.contains_key("boolNumber"))))))));
     let mut caught: Value = Value::Bool(false);
     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         exchange.check_option_bool(Value::Str("fetchX".into()), Value::Str("wrongBool".into()), Value::Str("yes".into()));
      #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
+if _try_result.is_err() {
         caught = Value::Bool(true);
     }
     assert!(ccxt::runtime::is_true(&(caught.clone())));
