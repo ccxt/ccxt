@@ -580,7 +580,7 @@ export default class aster extends asterRest {
         client.resolve (ticker, messageHash);
     }
 
-    parseWsBidAsk (message: Dict, market: Market = undefined): Ticker {
+    parseWsBidAsk (message: Dict, market: Market): Ticker {
         const timestamp = this.safeInteger (message, 'T');
         let bidAskSymbol: Str = undefined;
         if (market !== undefined) {

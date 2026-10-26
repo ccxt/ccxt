@@ -2084,8 +2084,9 @@ export default class aster extends Exchange {
 
     override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict (response, i);
+        const rows = this.toArray (response);
+        for (let i = 0; i < rows.length; i++) {
+            const balance = this.safeDict (rows, i);
             const currencyId = this.safeString (balance, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -2165,7 +2166,7 @@ export default class aster extends Exchange {
      */
     override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}) {
         let strValue: Str = 'false';
-        if (hedged) {
+        if (hedged === true) {
             strValue = 'true';
         }
         const request: Dict = {
@@ -3843,8 +3844,8 @@ export default class aster extends Exchange {
             const isPositionOpen = (maintenanceMargin !== '0') && (maintenanceMargin !== '0.00000000');
             if (!filterClosed || isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
-                if (code in balances) {
-                    const balance = this.safeDict (balances, code);
+                const balance = this.safeDict (balances, code);
+                if (balance !== undefined) {
                     const parsed = this.parseAccountPosition (this.extend (position, {
                         'crossMargin': this.safeString (balance, 'crossMargin'),
                         'crossWalletBalance': this.safeString (balance, 'crossWalletBalance'),
@@ -4466,7 +4467,7 @@ export default class aster extends Exchange {
         //        }
         //    ]
         //
-        const approvedBuilders = result;
+        const approvedBuilders = this.toArray (result);
         const length = approvedBuilders.length;
         let found = false;
         const builderAddress = this.safeString (this.options, 'builder');
