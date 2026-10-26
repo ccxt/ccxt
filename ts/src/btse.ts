@@ -2791,7 +2791,7 @@ export default class btse extends Exchange {
         const responseList = this.arrayConcat ([], rows);
         const result: Dict = {};
         for (let i = 0; i < responseList.length; i++) {
-            const feeInfo = responseList[i];
+            const feeInfo = this.safeDict (responseList, i, {});
             const marketId = this.safeString (feeInfo, 'symbol');
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
@@ -2875,13 +2875,13 @@ export default class btse extends Exchange {
         // filter and returned the whole mixed ledger
         const allowed: Dict = {};
         for (let i = 0; i < typesList.length; i++) {
-            const historyType = typesList[i];
+            const historyType = this.safeString (typesList, i, '');
             allowed[historyType] = true;
             allowed[this.capitalize (historyType.toLowerCase ())] = true;
         }
         const rows: Dict[] = [];
         for (let i = 0; i < rawRows.length; i++) {
-            const entry = rawRows[i];
+            const entry = this.safeDict (rawRows, i, {});
             const type = this.safeString (entry, 'type', '');
             if (type in allowed) {
                 rows.push (entry);
@@ -3779,7 +3779,7 @@ export default class btse extends Exchange {
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384);
             requestHeaders = {
                 'request-api': this.apiKey,
-                'request-nonce': nonce.toString (),
+                'request-nonce': this.numberToString (nonce),
                 'request-sign': signature,
                 'Content-Type': 'application/json',
                 'BROKER-ID': 'ccxt',
