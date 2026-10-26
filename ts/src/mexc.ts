@@ -1571,7 +1571,7 @@ export default class mexc extends Exchange {
             swapOrderbook['nonce'] = this.safeInteger (data, 'version');
             return swapOrderbook;
         }
-        throw new NotSupported (this.id + ' fetchOrderBook() does not support ' + market['type'] + ' markets');
+        throw new NotSupported (this.id + ' fetchOrderBook() does not support ' + this.safeString (market, 'type', '') + ' markets');
     }
 
     override parseOrderBookBidAsk (bidask: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
@@ -2000,8 +2000,7 @@ export default class mexc extends Exchange {
         if (symbols !== undefined) {
             const length = symbols.length;
             isSingularMarket = length === 1;
-            const firstSymbol = this.safeString (symbols, 0);
-            market = this.market (firstSymbol);
+            market = this.market (symbols[0]);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let tickers: Dict | List | undefined = undefined;
@@ -2574,7 +2573,7 @@ export default class mexc extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createSwapOrder() marginMode parameter should be either "cross" or "isolated"');
             }
         }
-        if ((type !== 'limit') && (type !== 'market') && (type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
+        if ((type !== 'limit') && (type !== 'market') && (!this.inArray (type, [ 1, 2, 3, 4, 5, 6 ]))) {
             throw new InvalidOrder (this.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', type === 2, params);
@@ -2595,7 +2594,7 @@ export default class mexc extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
             // 'price': parseFloat (this.priceToPrecision (symbol, price)),
-            'vol': parseFloat (volString),
+            'vol': this.parseNumber (volString),
             // 'leverage': int, // required for isolated margin
             // 'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
             // order types: 1 limit, 2 post only (PO), 3 IOC, 4 FOK, 5 market, 6 convert market price to current price
@@ -2614,7 +2613,7 @@ export default class mexc extends Exchange {
             if (priceString === undefined) {
                 priceString = '0';
             }
-            request['price'] = parseFloat (priceString);
+            request['price'] = this.parseNumber (priceString);
         }
         if (openType === 1) {
             const leverage = this.safeInteger (paramsPostOnly, 'leverage');
@@ -3731,7 +3730,7 @@ export default class mexc extends Exchange {
         let timeInForce = this.parseOrderTimeInForce (this.safeString (order, 'timeInForce'));
         const typeRaw = this.safeString (order, 'type');
         if (timeInForce === undefined) {
-            timeInForce = this.getTifFromRawOrderType (typeRaw) as string;
+            timeInForce = this.getTifFromRawOrderType (typeRaw);
         }
         const marketId = this.safeString (order, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
@@ -4495,7 +4494,10 @@ export default class mexc extends Exchange {
         if (positionId === undefined) {
             const openType = this.safeNumber (params, 'openType'); // 1 or 2
             const positionType = this.safeNumber (params, 'positionType'); // 1 or 2
-            const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+            let market: Market = undefined;
+            if (symbol !== undefined) {
+                market = this.market (symbol);
+            }
             if ((openType === undefined) || (positionType === undefined) || (market === undefined)) {
                 throw new ArgumentsRequired (this.id + ' setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions');
             } else {

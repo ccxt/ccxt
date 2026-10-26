@@ -352,12 +352,12 @@ export default class mexc extends mexcRest {
             } else {
                 ticker = this.parseTicker (entry);
             }
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 this.tickers[symbol] = ticker;
             }
             result.push (ticker);
-            const messageHash = 'ticker:' + symbol;
+            const messageHash = 'ticker:' + this.safeString (ticker, 'symbol', '');
             client.resolve (ticker, messageHash);
         }
         client.resolve (result, topic);
@@ -1754,11 +1754,11 @@ export default class mexc extends mexcRest {
         //
         const data = this.safeDict (message, 'data', {});
         const fundingRate = this.parseFundingRate (data);
-        const symbol = fundingRate['symbol'];
+        const symbol = this.safeString (fundingRate, 'symbol');
         if (symbol !== undefined) {
             this.fundingRates[symbol] = fundingRate;
         }
-        const messageHash = 'fundingRate:' + symbol;
+        const messageHash = 'fundingRate:' + this.safeString (fundingRate, 'symbol', '');
         client.resolve (fundingRate, messageHash);
     }
 
@@ -2009,7 +2009,7 @@ export default class mexc extends mexcRest {
 
     handleUnsubscriptions (client: Client, messageHashes: string[]) {
         for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
+            const messageHash = this.safeString (messageHashes, i, '');
             const subMessageHash = messageHash.replace ('unsubscribe:', '');
             this.cleanUnsubscription (client, subMessageHash, messageHash);
             if (messageHash.indexOf ('ticker') >= 0) {
@@ -2030,13 +2030,13 @@ export default class mexc extends mexcRest {
                 }
             } else if (messageHash.indexOf ('candles') >= 0) {
                 const splitHashes = messageHash.split (':');
-                let symbol = this.safeString (splitHashes, 2);
+                let candlesSymbol = this.safeString (splitHashes, 2);
                 const splitHashesLength = splitHashes.length; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if (splitHashesLength > 4) {
-                    symbol += ':' + this.safeString (splitHashes, 3);
+                    candlesSymbol += ':' + this.safeString (splitHashes, 3);
                 }
-                if ((symbol !== undefined) && (symbol in this.ohlcvs)) {
-                    delete this.ohlcvs[symbol];
+                if ((candlesSymbol !== undefined) && (candlesSymbol in this.ohlcvs)) {
+                    delete this.ohlcvs[candlesSymbol];
                 }
             } else if (messageHash.indexOf ('orderbook') >= 0) {
                 const symbol = messageHash.replace ('unsubscribe:orderbook:', '');
@@ -2238,8 +2238,8 @@ export default class mexc extends mexcRest {
             'pong': this.handlePong,
             'push.funding.rate': this.handleFundingRate,
         };
-        if ((channel !== undefined) && (channel in methods)) {
-            const method = methods[channel];
+        const method = this.safeValue (methods, channel);
+        if (method !== undefined) {
             method.call (this, client, message);
         }
     }
