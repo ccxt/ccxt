@@ -4316,6 +4316,214 @@ function dropNoOpMapTyped (content: string): string {
     return out + content.substring (cursor);
 }
 
+// ------------------------------------------------------------------------------------
+// gofmt's block, blank-line and table rules
+// ------------------------------------------------------------------------------------
+// A pass that splices statement text cannot keep gofmt's layout: it puts a body on the
+// control line, leaves a second blank line behind, or writes literal entries unaligned.
+// These rules run once on the finished file, per file (not per splice).
+type GoCompositeEntryAligner = { 'alignGoCompositeEntries': (entries: string[]) => string[] };
+
+// same as goTextMaskLiteralsAndComments but the comments stay readable: the layout rules below
+// have to see a trailing `//` (it takes the line out of every rule) while a `//` inside a
+// string literal must not count
+function goTextMaskLiteralsOnly (content: string): string {
+    const out = content.split ('');
+    let state = 'code';
+    let escaped = false;
+    for (let i = 0; i < content.length; i++) {
+        const c = content[i];
+        if (state === 'code') {
+            if (c === '"') { state = 'dq'; out[i] = ' '; continue; }
+            if (c === '`') { state = 'raw'; out[i] = ' '; continue; }
+            if (c === '\'') { state = 'rune'; out[i] = ' '; continue; }
+            continue;
+        }
+        if (c !== '\n') {
+            out[i] = ' ';
+        }
+        if (state === 'dq') { if (escaped) { escaped = false; } else if (c === '\\') { escaped = true; } else if (c === '"') { state = 'code'; } continue; }
+        if (state === 'rune') { if (escaped) { escaped = false; } else if (c === '\\') { escaped = true; } else if (c === '\'') { state = 'code'; } continue; }
+        if (state === 'raw') { if (c === '`') { state = 'code'; } continue; }
+    }
+    return out.join ('');
+}
+
+// one flag per line: it starts outside a raw string and a block comment, so the layout rules may
+// rewrite it (a quote or a comment keeps its own spacing in the source)
+function goTextCodeLineStarts (content: string): boolean[] {
+    const starts: boolean[] = [ true ];
+    let state = 'code';
+    for (let i = 0; i < content.length; i++) {
+        const c = content[i];
+        if (state === 'code') {
+            if ((c === '/') && (content[i + 1] === '/')) { state = 'line'; i++; continue; }
+            if ((c === '/') && (content[i + 1] === '*')) { state = 'block'; i++; continue; }
+            if (c === '"') { state = 'dq'; continue; }
+            if (c === '`') { state = 'raw'; continue; }
+            if (c === '\'') { state = 'rune'; continue; }
+            if (c === '\n') { starts.push (true); }
+            continue;
+        }
+        if (c === '\n') {
+            if (state === 'line') { state = 'code'; }
+            starts.push (state === 'code');
+            continue;
+        }
+        if (state === 'line') { continue; }
+        if (state === 'block') { if ((c === '*') && (content[i + 1] === '/')) { state = 'code'; i++; } continue; }
+        if (state === 'dq') { if (c === '\\') { i++; } else if (c === '"') { state = 'code'; } continue; }
+        if (state === 'rune') { if (c === '\\') { i++; } else if (c === '\'') { state = 'code'; } continue; }
+        if (state === 'raw') { if (c === '`') { state = 'code'; } continue; }
+    }
+    return starts;
+}
+
+// gofmt always breaks a block: `if x { y }` comes back as three lines. The body is split into
+// statements only when it holds one, and a nested block is broken too.
+function goGofmtExpandBlockLine (line: string, code: string, commentFree: string): string[] | null {
+    if (!/^\t*(?:if|for|switch|select)\b/.test (code) || (commentFree.indexOf ('//') >= 0)) {
+        return null;
+    }
+    const open = code.indexOf ('{');
+    const trimmed = code.trimEnd ();
+    if ((open < 0) || !trimmed.endsWith ('}')) {
+        return null;
+    }
+    const maskedBody = code.slice (open + 1, trimmed.length - 1);
+    let level = 0;
+    for (let i = 0; i < maskedBody.length; i++) {
+        const c = maskedBody[i];
+        if (c === '{') { level += 1; } else if (c === '}') { level -= 1; }
+        if ((level < 0) || (maskedBody.indexOf (';') >= 0)) {
+            return null;
+        }
+    }
+    if (level !== 0) {
+        return null;
+    }
+    const indent = /^\t*/.exec (line)![0];
+    const head = line.slice (indent.length, open).trimEnd ();
+    const body = line.slice (open + 1, line.trimEnd ().length - 1).trim ();
+    if ((body.length === 0) || (head.length === 0)) {
+        return null;
+    }
+    const inner = goGofmtExpandBlockLine (indent + '\t' + body, '\t' + body, goTextMaskLiteralsOnly (body));
+    if (inner !== null) {
+        return [ indent + head + ' {', ...inner, indent + '}' ];
+    }
+    return [ indent + head + ' {', indent + '\t' + body, indent + '}' ];
+}
+
+// gofmt puts a keyed literal's entries one tab inside its opening line, their values in one
+// column and the closing brace on the opening line's indent; only a literal whose body is all
+// single-line keyed entries is rewritten, so anything else keeps the printer's text.
+function goGofmtAlignTables (content: string, aligner: GoCompositeEntryAligner): string {
+    const lines = content.split ('\n');
+    const live = goTextCodeLineStarts (content);
+    const depth = (l: string) => /^\t*/.exec (l)![0].length;
+    const keyed = /^(\t*)"((?:[^"\\]|\\.)*)": (.*?)(,?)$/;
+    for (let i = 0; i < lines.length; i++) {
+        if (!live[i] || !lines[i].trimEnd ().endsWith ('{')) {
+            continue;
+        }
+        const ind = depth (lines[i]);
+        const entries: string[] = [];
+        let j = i + 1;
+        let bad = false;
+        while ((j < lines.length) && !((depth (lines[j]) <= ind) && /^\t*\}/.test (lines[j]))) {
+            if (!live[j] || (lines[j].trim ().length === 0) || !keyed.test (lines[j]) || (depth (lines[j]) > ind + 1)) {
+                bad = true;
+                break;
+            }
+            entries.push (lines[j]);
+            j += 1;
+        }
+        if (bad || (j >= lines.length) || (entries.length === 0)) {
+            continue;
+        }
+        const close = lines[j].replace (/^\t*/, '');
+        if (!/^\}[)\]\s,]*$/.test (close)) {
+            continue;
+        }
+        const texts: string[] = [];
+        let usable = true;
+        for (const entry of entries) {
+            const m = keyed.exec (entry)!;
+            const mask = goTextMaskLiteralsAndComments (m[3]);
+            const value = m[3].replace (/^ +/, '');
+            // a nested literal, an unbalanced bracket, a second entry on the line or a trailing
+            // comment ends gofmt's alignment section: leave that literal to the printer
+            if ((value.length === 0) || /[{}]/.test (mask) || (mask.split ('[').length !== mask.split (']').length) || (m[3].indexOf ('": ') >= 0) || (goTextMaskLiteralsOnly (entry).indexOf ('//') >= 0)) {
+                usable = false;
+                break;
+            }
+            texts.push ('\t'.repeat (ind + 1) + '"' + m[2] + '": ' + value);
+        }
+        if (!usable) {
+            continue;
+        }
+        const aligned = aligner.alignGoCompositeEntries (texts);
+        if (aligned.length !== entries.length) {
+            continue;
+        }
+        for (let k = 0; k < entries.length; k++) {
+            lines[i + 1 + k] = aligned[k];
+        }
+        lines[j] = '\t'.repeat (ind) + close;
+        i = j;
+    }
+    return lines.join ('\n');
+}
+
+export function goGofmtLayout (content: string, aligner: GoCompositeEntryAligner = hx4G36Aligner ()): string {
+    const code = goTextMaskLiteralsAndComments (content).split ('\n');
+    const commentFree = goTextMaskLiteralsOnly (content).split ('\n');
+    const live = goTextCodeLineStarts (content);
+    const lines = content.split ('\n');
+    const out: string[] = [];
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (!live[i]) {
+            out.push (line);
+            continue;
+        }
+        if (line.trim ().length === 0) {
+            if ((out.length > 0) && (out[out.length - 1].trim ().length === 0)) {
+                continue;                     // gofmt keeps at most one blank line
+            }
+            out.push ('');
+            continue;
+        }
+        const expanded = goGofmtExpandBlockLine (line, code[i], commentFree[i]);
+        if (expanded !== null) {
+            out.push (...expanded);
+            continue;
+        }
+        out.push (line);
+    }
+    return goGofmtAlignTables (out.join ('\n'), aligner);
+}
+
+function goGofmtLayoutSelfTest (): string[] {
+    let problems: string[] = [];
+    const check = (label: string, actual: string, expected: string) => {
+        if (actual !== expected) {
+            problems.push ('gofmt layout ' + label + ': ' + JSON.stringify (actual));
+        }
+    };
+    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\n';
+    const aligner = hx4G36Aligner ();
+    const fixed = goGofmtLayout (head + 'func (this *X) f(p any) any {\n\tif p != nil { p = map[string]any{} }\n\treturn p\n}\n', aligner);
+    check ('block', fixed, head + 'func (this *X) f(p any) any {\n\tif p != nil {\n\t\tp = map[string]any{}\n\t}\n\treturn p\n}\n');
+    check ('blank run', goGofmtLayout ('package ccxt\n\n\nfunc f() {\n}\n', aligner), 'package ccxt\n\nfunc f() {\n}\n');
+    check ('table', goGofmtLayout (head + 'func (this *X) f() any {\n\treturn map[string]any{\n\t\t"id": 1,\n\t\t"symbol": "BTC/USDT",\n\t}\n}\n', aligner),
+        head + 'func (this *X) f() any {\n\treturn map[string]any{\n\t\t"id":     1,\n\t\t"symbol": "BTC/USDT",\n\t}\n}\n');
+    const clean = head + 'func f() int {\n\treturn 1\n}\n';
+    check ('idempotent', goGofmtLayout (clean, aligner), clean);
+    return problems;
+}
+
 function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
@@ -4369,6 +4577,14 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = path.endsWith ('.go') ? hx10w6G11Pass (content) : content;  // hx10w6 G11: the identity MapTyped wrap
     content = path.endsWith ('.go') ? hx10w7G14Pass (content) : content;  // hx10w7 G14: field / multi-value binding operands it could not read
     content = path.endsWith ('.go') ? hx10w10Gp26TypedReads (content) : content;  // hx10w10 GP26: GetValue on a declared map local
+    // gofmt's block/blank/table layout, once, on the text every pass above has finished
+    if (process.env.CCXT_GOFMT_DEBUG) {
+        const before = (content.match (/^\t*(?:if|for|switch)\b.*\{.*\}\s*$/gm) ?? []).length;
+        const laid = goGofmtLayout (content, hx4G36Aligner ());
+        const after = (laid.match (/^\t*(?:if|for|switch)\b.*\{.*\}\s*$/gm) ?? []).length;
+        console.error ('[layout] ' + path + ' oneline-before=' + before + ' after=' + after + ' same=' + (laid === content));
+    }
+    content = path.endsWith ('.go') ? goGofmtLayout (content, hx4G36Aligner ()) : content;
     overwriteFile (path, content);
 }
 
@@ -6538,7 +6754,7 @@ ${constStatements.join('\n')}
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, hx10w10GP24BaseImports (gp19Pass (hx10w7G14Pass ((hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx5X29ParseNative (hx4G45InlineStr (hx5X27StringHelpers (hx5X26CaseAffix (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx10w9GO05Pass (hx10w8GO04Pass (og06SyncMapArmsPass (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file)))))))))))))), hx4G36Aligner ()))), hx4G36Aligner ())), hx4G36Aligner ()), hx4G36Aligner ()))))), goPredictionBase))));  // hx10 w9 GP19: this base file bypasses formatGoSource
+            fs.writeFileSync (goPredictionBase, goGofmtLayout (hx10w10GP24BaseImports (gp19Pass (hx10w7G14Pass ((hx4G37InlineComparisons (alignGoTrailingComments (hx4G40InlineIsEqual (hx4G42InlineTypeChecks (hx5X29ParseNative (hx4G45InlineStr (hx5X27StringHelpers (hx5X26CaseAffix (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx10w9GO05Pass (hx10w8GO04Pass (og06SyncMapArmsPass (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file)))))))))))))), hx4G36Aligner ()))), hx4G36Aligner ())), hx4G36Aligner ()), hx4G36Aligner ()))))), goPredictionBase)))));  // hx10 w9 GP19: this base file bypasses formatGoSource
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -9057,7 +9273,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10w2G07SelfCheck ()).concat (hx10G08Check ()).concat (g09Check ()).concat (hx10G10SelfTest ()).concat (g01SubsCheck ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og05Check ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (og06SelfCheck ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w9Gp18SelfTest ()).concat (hx10w9Gp18Wired ()).concat (hx10w8GO04Check ()).concat (gp14SelfTest ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (hx10w10GP24Check ()).concat (hx10w10GP24Wired ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10w2G07SelfCheck ()).concat (hx10G08Check ()).concat (g09Check ()).concat (hx10G10SelfTest ()).concat (g01SubsCheck ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og05Check ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (og06SelfCheck ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w9Gp18SelfTest ()).concat (hx10w9Gp18Wired ()).concat (hx10w8GO04Check ()).concat (gp14SelfTest ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (hx10w10GP24Check ()).concat (hx10w10GP24Wired ()).concat (goGofmtLayoutSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
