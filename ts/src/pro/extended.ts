@@ -188,7 +188,7 @@ export default class extended extends extendedRest {
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbolResolved = this.safeString (market, 'symbol', '');
-            messageHash = 'orders:' + symbolResolved;
+            messageHash = 'orders:' + this.safeString (market, 'symbol', '');
         }
         const orders = await this.watchPrivate (messageHash, {
             'symbol': symbolResolved,
@@ -302,7 +302,7 @@ export default class extended extends extendedRest {
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbolResolved = this.safeString (market, 'symbol', '');
-            messageHash = 'myTrades:' + symbolResolved;
+            messageHash = 'myTrades:' + this.safeString (market, 'symbol', '');
         }
         const trades = await this.watchPrivate (messageHash, {
             'symbol': symbolResolved,
