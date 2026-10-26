@@ -1999,7 +1999,7 @@ export default class bigone extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
+            const nonce = this.numberToString (this.nonce ());
             const request: Dict = {
                 'type': 'OpenAPIV2',
                 'sub': this.apiKey,
