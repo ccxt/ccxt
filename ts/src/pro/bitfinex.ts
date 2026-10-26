@@ -268,8 +268,7 @@ export default class bitfinex extends bitfinexRest {
         }
         const ohlcvsLength = ohlcvs.length;
         for (let i = 0; i < ohlcvsLength; i++) {
-            const ohlcv = ohlcvs[ohlcvsLength - i - 1];
-            const parsed = this.parseOHLCV (ohlcv, market);
+            const parsed = this.parseOHLCV (this.safeList (ohlcvs, ohlcvsLength - i - 1), market);
             stored.append (parsed);
         }
         client.resolve (stored, messageHash);
@@ -449,7 +448,7 @@ export default class bitfinex extends bitfinexRest {
             const length = trades.length;
             for (let i = 0; i < length; i++) {
                 const index = length - i - 1;
-                const parsed = this.parseWsTrade ({ 'result': trades[index] }, market);
+                const parsed = this.parseWsTrade ({ 'result': this.safeList (trades, index) }, market);
                 stored.append (parsed);
             }
         } else {
