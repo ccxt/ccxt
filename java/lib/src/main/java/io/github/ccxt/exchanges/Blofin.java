@@ -632,7 +632,9 @@ public class Blofin extends BlofinApi
                     put( "linear", new HashMap<String, Object>() {{
                         put( "extends", "forDerivatives" );
                     }} );
-                    put( "inverse", null );
+                    put( "inverse", new HashMap<String, Object>() {{
+                        put( "extends", "forDerivatives" );
+                    }} );
                 }} );
                 put( "future", new HashMap<String, Object>() {{
                     put( "linear", null );
