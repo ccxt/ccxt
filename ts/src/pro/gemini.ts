@@ -249,32 +249,30 @@ export default class gemini extends geminiRest {
     }
 
     handleTradesForMultidata (client: Client, trades: any[], timestamp: Int) {
-        if (trades !== undefined) {
-            const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            const storesForSymbols: Dict = {};
-            for (let i = 0; i < trades.length; i++) {
-                const rawTrade = this.safeValue (trades, i);
-                const marketId = this.safeString (rawTrade, 'symbol', '').toLowerCase ();
-                const market = this.safeMarket (marketId);
-                const symbol = market['symbol'];
-                const trade = this.parseWsTrade (rawTrade, market);
-                trade['timestamp'] = timestamp;
-                trade['datetime'] = this.iso8601 (timestamp);
-                let stored = this.safeValue (this.trades, symbol);
-                if (stored === undefined) {
-                    stored = new ArrayCache (tradesLimit);
-                    this.trades[symbol] = stored;
-                }
-                stored.append (trade);
-                storesForSymbols[symbol] = stored;
+        const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+        const storesForSymbols: Dict = {};
+        for (let i = 0; i < trades.length; i++) {
+            const rawTrade = this.safeValue (trades, i);
+            const marketId = this.safeString (rawTrade, 'symbol', '').toLowerCase ();
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            const trade = this.parseWsTrade (rawTrade, market);
+            trade['timestamp'] = timestamp;
+            trade['datetime'] = this.iso8601 (timestamp);
+            let stored = this.safeValue (this.trades, symbol);
+            if (stored === undefined) {
+                stored = new ArrayCache (tradesLimit);
+                this.trades[symbol] = stored;
             }
-            const symbols = Object.keys (storesForSymbols);
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                const stored = storesForSymbols[symbol];
-                const messageHash = 'trades:' + symbol;
-                client.resolve (stored, messageHash);
-            }
+            stored.append (trade);
+            storesForSymbols[symbol] = stored;
+        }
+        const symbols = Object.keys (storesForSymbols);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const stored = storesForSymbols[symbol];
+            const messageHash = 'trades:' + symbol;
+            client.resolve (stored, messageHash);
         }
     }
 

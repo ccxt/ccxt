@@ -892,7 +892,7 @@ export default class gemini extends Exchange {
         }
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
-        if (settleId !== undefined) {
+        if (settle !== undefined) {
             symbol = base + '/' + quote + ':' + settle;
             swap = true;
             contractSize = tickSize; // always same
