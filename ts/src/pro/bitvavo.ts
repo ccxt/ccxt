@@ -221,7 +221,7 @@ export default class bitvavo extends bitvavoRest {
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
             const ticker = this.parseWsBidAsk (data);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString (ticker, 'symbol', '');
             this.bidsasks[symbol as string] = ticker;
             result.push (ticker);
             const messageHash = event + ':' + symbol;
@@ -469,7 +469,7 @@ export default class bitvavo extends bitvavoRest {
         const marketId = this.safeString (message, 'market');
         const market = this.safeMarket (marketId, undefined, '-');
         const symbol = market['symbol'];
-        const interval = this.safeString (message, 'interval');
+        const interval = this.safeString (message, 'interval', '');
         // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe (interval);
         const messageHash = name + '@' + this.safeString (message, 'market', '') + '_' + interval;
@@ -792,7 +792,7 @@ export default class bitvavo extends bitvavoRest {
         //         "asks": []
         //     }
         //
-        const event = this.safeString (message, 'event');
+        const event = this.safeString (message, 'event', '');
         const marketId = this.safeString (message, 'market');
         const market = this.safeMarket (marketId, undefined, '-');
         const symbol = market['symbol'];
