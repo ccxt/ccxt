@@ -2827,11 +2827,11 @@ export default class tokocrypto extends Exchange {
     override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
         const paramsDict: Dict = this.extend ({}, params);
         if (('noCoin' in paramsDict) && !('coin' in paramsDict)) {
-            return config['noCoin'];
+            return this.safeInteger (config, 'noCoin');
         } else if (('noSymbol' in paramsDict) && !('symbol' in paramsDict)) {
-            return config['noSymbol'];
+            return this.safeInteger (config, 'noSymbol');
         } else if (('noPoolId' in paramsDict) && !('poolId' in paramsDict)) {
-            return config['noPoolId'];
+            return this.safeInteger (config, 'noPoolId');
         } else if (('byLimit' in config) && ('limit' in paramsDict)) {
             const limit = this.safeInteger (paramsDict, 'limit');
             const byLimit: Num[][] = this.safeList (config, 'byLimit', []);
@@ -2839,7 +2839,7 @@ export default class tokocrypto extends Exchange {
                 const entry = byLimit[i];
                 const entryLimit = this.safeInteger (entry, 0);
                 if ((limit !== undefined) && (entryLimit !== undefined) && (limit <= entryLimit)) {
-                    return entry[1];
+                    return this.safeInteger (entry, 1);
                 }
             }
         }
