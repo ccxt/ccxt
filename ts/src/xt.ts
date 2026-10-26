@@ -1203,7 +1203,7 @@ export default class xt extends Exchange {
     override parseMarkets (markets: any) {
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
-            const parsed = this.parseMarket (markets[i]);
+            const parsed = this.parseMarket (this.safeValue (markets, i));
             if (parsed !== undefined) {
                 result.push (parsed);
             }
@@ -4675,7 +4675,7 @@ export default class xt extends Exchange {
                     result[symbol] = this.parseMarketLeverageTiers (entry, market);
                 }
             } else {
-                result[symbol] = this.parseMarketLeverageTiers (response[i], market);
+                result[symbol] = this.parseMarketLeverageTiers (entry, market);
             }
         }
         return result as LeverageTiers;
@@ -5874,7 +5874,7 @@ export default class xt extends Exchange {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + payload;
-        const query = this.omit (params, this.extractParams (path));
+        const query: Dict = this.omit (params, this.extractParams (path));
         const urlencoded = this.urlencode (this.keysort (query));
         const headersValue: NullableDict = {
             'Content-Type': 'application/json',
