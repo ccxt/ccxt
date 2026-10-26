@@ -1282,7 +1282,7 @@ export default class coinmate extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0, '');
         let bodySigned: Str = undefined;
         let headersSigned: NullableDict = undefined;
         const apiUrl = this.safeString (this.urls['api'], 'rest');
