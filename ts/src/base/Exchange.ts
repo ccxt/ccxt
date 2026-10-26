@@ -4352,7 +4352,7 @@ export class BaseExchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' orderbookChecksumMessage() requires a symbol argument');
         }
-        return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
+        return symbol + ' : orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
     }
 
     getDefaultOptions () {
@@ -4577,7 +4577,7 @@ export class BaseExchange {
         if (market !== undefined) {
             const result = this.extend (cleanStructure, market);
             // set undefined swap/future/etc
-            if (result['spot'] === true) {
+            if (this.safeBool (result, 'spot') === true) {
                 if (result['contract'] === undefined) {
                     result['contract'] = false;
                 }
@@ -4630,9 +4630,9 @@ export class BaseExchange {
                 'precision': this.precision,
                 'limits': this.limits,
             }, this.fees['trading'], valueDefined);
-            if (market['linear'] === true) {
+            if (this.safeBool (market, 'linear') === true) {
                 market['subType'] = 'linear';
-            } else if (market['inverse'] === true) {
+            } else if (this.safeBool (market, 'inverse') === true) {
                 market['subType'] = 'inverse';
             } else {
                 market['subType'] = undefined;
@@ -5790,7 +5790,7 @@ export class BaseExchange {
                 throw new BadRequest (this.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
             }
             marketType = this.safeString (market, 'type');
-            if (market['spot'] !== true) {
+            if (this.safeBool (market, 'spot') !== true) {
                 isLinearSubType = this.safeBool (market, 'linear');
             }
             const symbol = this.safeString (market, 'symbol', symbols[i]);
@@ -6942,7 +6942,7 @@ export class BaseExchange {
                     const marketTypeResolved: string = (marketType === undefined) ? this.safeString (market, 'type', '') : marketType;
                     for (let i = 0; i < markets.length; i++) {
                         const currentMarket = markets[i];
-                        if (currentMarket[marketTypeResolved] === true) {
+                        if (this.safeBool (currentMarket, marketTypeResolved) === true) {
                             return currentMarket;
                         }
                     }
@@ -7301,9 +7301,9 @@ export class BaseExchange {
         } else {
             // at first, check from market object
             if (market !== undefined) {
-                if (market['linear'] === true) {
+                if (this.safeBool (market, 'linear') === true) {
                     subType = 'linear';
-                } else if (market['inverse'] === true) {
+                } else if (this.safeBool (market, 'inverse') === true) {
                     subType = 'inverse';
                 }
             }
@@ -7691,7 +7691,7 @@ export class BaseExchange {
             const defaultType = this.safeString2 (this.options, 'defaultType', 'defaultSubType', 'spot');
             for (let i = 0; i < marketsList.length; i++) {
                 const market = marketsList[i];
-                if (market[defaultType] === true) {
+                if (this.safeBool (market, defaultType) === true) {
                     return market;
                 }
             }
@@ -8689,7 +8689,7 @@ export class BaseExchange {
                     const response = await this[method] (symbol, undefined, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest);
                     const responseLength: number = response.length;
                     if (this.verbose) {
-                        let backwardMessage = 'Dynamic pagination call ' + this.numberToString (calls) + ' method ' + method + ' response length ' + this.numberToString (responseLength);
+                        let backwardMessage = 'Dynamic pagination call ' + this.numberToString (calls) + ' method ' + method + ' response length ' + responseLength.toString ();
                         if (paginationTimestamp !== undefined) {
                             backwardMessage += ' timestamp ' + this.numberToString (paginationTimestamp);
                         }
@@ -8716,7 +8716,7 @@ export class BaseExchange {
                     const response = await this[method] (symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest);
                     const responseLength: number = response.length;
                     if (this.verbose) {
-                        let forwardMessage = 'Dynamic pagination call ' + this.numberToString (calls) + ' method ' + method + ' response length ' + this.numberToString (responseLength);
+                        let forwardMessage = 'Dynamic pagination call ' + this.numberToString (calls) + ' method ' + method + ' response length ' + responseLength.toString ();
                         if (paginationTimestamp !== undefined) {
                             forwardMessage += ' timestamp ' + this.numberToString (paginationTimestamp);
                         }
