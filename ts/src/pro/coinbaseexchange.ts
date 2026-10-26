@@ -664,11 +664,9 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         //         "reason": "filled"
         //     }
         //
-        let currentOrders = this.orders;
-        if (currentOrders === undefined) {
+        if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            currentOrders = new ArrayCacheBySymbolById (limit);
-            this.orders = currentOrders;
+            this.orders = new ArrayCacheBySymbolById (limit);
         }
         const type = this.safeString (message, 'type');
         const marketId = this.safeString (message, 'product_id');
@@ -678,10 +676,10 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             const orderId = this.safeString (message, 'order_id');
             const makerOrderId = this.safeString (message, 'maker_order_id');
             const takerOrderId = this.safeString (message, 'taker_order_id');
-            const orders = this.orders;
-            if (orders === undefined) {
+            if (this.orders === undefined) {
                 return;
             }
+            const orders = this.orders;
             const previousOrders = this.safeDict (orders.hashmap, symbol, {});
             let previousOrder = this.safeDict (previousOrders, orderId);
             if (previousOrder === undefined) {
@@ -719,11 +717,11 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                         const previousOrderFilled = this.safeString (previousOrder, 'filled');
                         if (previousOrderFilled !== undefined) {
                             previousOrder['filled'] = this.parseNumber (Precise.stringAdd (previousOrderFilled, this.safeString (trade, 'amount')));
-                            if (previousOrder['amount'] !== undefined) {
+                            if (this.safeString (previousOrder, 'amount') !== undefined) {
                                 previousOrder['remaining'] = this.parseNumber (Precise.stringSub (this.safeString (previousOrder, 'amount'), this.safeString (previousOrder, 'filled')));
                             }
                         }
-                        if (previousOrder['fee'] === undefined) {
+                        if (this.safeDict (previousOrder, 'fee') === undefined) {
                             previousOrder['fee'] = {
                                 'cost': 0,
                                 'currency': this.safeString (trade['fee'], 'currency'),
@@ -750,7 +748,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                             }
                         }
                         // update the newUpdates count
-                        if (orders === undefined) {
+                        if (this.orders === undefined) {
                             return;
                         }
                         orders.append (previousOrder);

@@ -1629,14 +1629,10 @@ export default class coinbaseexchange extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
             request['size'] = this.amountToPrecision (symbol, amount);
         } else if (type === 'market') {
-            let cost: Num = costParam;
-            if (cost === undefined) {
-                if (price !== undefined) {
-                    cost = amount * price;
-                }
-            }
-            if (cost !== undefined) {
-                request['funds'] = this.costToPrecision (symbol, cost);
+            if (costParam !== undefined) {
+                request['funds'] = this.costToPrecision (symbol, costParam);
+            } else if (price !== undefined) {
+                request['funds'] = this.costToPrecision (symbol, amount * price);
             } else {
                 request['size'] = this.amountToPrecision (symbol, amount);
             }
