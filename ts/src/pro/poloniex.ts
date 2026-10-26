@@ -151,7 +151,7 @@ export default class poloniex extends poloniexRest {
      */
     async subscribe (name: string, messageHash: string, isPrivate: boolean, symbols: Strings = undefined, params: Dict = {}) {
         let publicOrPrivate: Str = 'public';
-        if (isPrivate) {
+        if (isPrivate === true) {
             publicOrPrivate = 'private';
         }
         const url = this.safeString (this.urls['api']['ws'], publicOrPrivate);

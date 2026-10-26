@@ -869,7 +869,7 @@ export default class poloniex extends Exchange {
     }
 
     override parseMarket (market: Dict): Market {
-        if ('ctType' in market) {
+        if (this.safeString (market, 'ctType') !== undefined) {
             return this.parseSwapMarket (market);
         } else {
             return this.parseSpotMarket (market);
@@ -3563,7 +3563,7 @@ export default class poloniex extends Exchange {
         status = this.parseTransactionStatus (status) as string;
         const txid = this.safeString (transactionValue, 'txid');
         let type: Str = 'deposit';
-        if ('withdrawalRequestsId' in transactionValue) {
+        if (this.safeString (transactionValue, 'withdrawalRequestsId') !== undefined) {
             type = 'withdrawal';
         }
         const id = this.safeString2 (transactionValue, 'withdrawalRequestsId', 'depositNumber');
@@ -3625,7 +3625,7 @@ export default class poloniex extends Exchange {
         }
         const [ hedged, paramsHedged ] = this.handleParamBool (paramsMarginMode, 'hedged', false);
         if (hedged === true) {
-            if (!('posSide' in paramsHedged)) {
+            if (this.safeString (paramsHedged, 'posSide') === undefined) {
                 throw new ArgumentsRequired (this.id + ' setLeverage() requires a posSide parameter for hedged mode: "LONG" or "SHORT"');
             }
         }
@@ -4006,30 +4006,28 @@ export default class poloniex extends Exchange {
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const isArray = Array.isArray (params);
-        let url: string = this.urls['api']['spot'];
-        if (this.inArray (apiName, [ 'swapPublic', 'swapPrivate' ])) {
-            url = this.urls['api']['swap'];
-        }
         if (method === 'GET' && ('symbol' in params)) {
             params['symbol'] = this.encodeURIComponent (params['symbol']); // handle symbols like 索拉拉/USDT'
         }
         const query: Dict = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
+        let url: string = this.safeString (this.urls['api'], 'spot', '') + '/' + implodedPath;
+        if (this.inArray (apiName, [ 'swapPublic', 'swapPrivate' ])) {
+            url = this.safeString (this.urls['api'], 'swap', '') + '/' + implodedPath;
+        }
         // keep `Object.keys (query).length` inline and evaluated lazily: PHP only rewrites that exact
         // shape into count(x) (a hoisted key list becomes strlen() on an array) and the C#/Java key-list
         // cast throws on a bare-list params (the batch endpoints pass one), so `isArray ||` guards it.
         let bodyJson: Str = undefined;
         let signedHeaders: NullableDict = undefined;
         if (apiName === 'public' || apiName === 'swapPublic') {
-            url += '/' + implodedPath;
             if (Object.keys (query).length > 0) {
-                url += '?' + this.urlencode (query);
+                url = url + '?' + this.urlencode (query);
             }
         } else {
             this.checkRequiredCredentials ();
             const timestamp = this.numberToString (this.nonce ());
             let auth = method + "\n"; // eslint-disable-line quotes
-            url += '/' + implodedPath;
             auth += '/' + implodedPath;
             if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
                 auth += "\n"; // eslint-disable-line quotes
@@ -4043,7 +4041,7 @@ export default class poloniex extends Exchange {
                 sortedQuery = this.keysort (sortedQuery);
                 auth += "\n" + this.urlencode (sortedQuery); // eslint-disable-line quotes
                 if (Object.keys (query).length > 0) {
-                    url += '?' + this.urlencode (query);
+                    url = url + '?' + this.urlencode (query);
                 }
             }
             signedHeaders = {
