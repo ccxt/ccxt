@@ -1329,8 +1329,9 @@ export default class htx extends htxRest {
         if (messageHash === undefined) {
             return;
         }
-        let genericMessageHash = messageHash.replace ('.' + market['lowercaseId'], '');
-        const lowerCaseBaseId = this.safeStringLower (market, 'baseId');
+        const lowercaseId = this.safeStringLower (market, 'lowercaseId', '');
+        let genericMessageHash = messageHash.replace ('.' + lowercaseId, '');
+        const lowerCaseBaseId = this.safeStringLower (market, 'baseId', '');
         genericMessageHash = genericMessageHash.replace ('.' + lowerCaseBaseId, '');
         client.resolve (this.orders, genericMessageHash);
     }
@@ -1895,7 +1896,7 @@ export default class htx extends htxRest {
                     if (marginMode === 'isolated') {
                         // isolated margin only allows filtering by symbol3
                         if ((symbol !== undefined) && (market !== undefined)) {
-                            messageHash += '.' + market['id'];
+                            messageHash += '.' + this.safeString (market, 'id', '');
                             channel = messageHash;
                         } else {
                             // subscribe to all
@@ -1904,7 +1905,7 @@ export default class htx extends htxRest {
                     } else {
                         // cross margin
                         if (currencyCode !== undefined) {
-                            channel = prefix + '.' + currencyCode['id'];
+                            channel = prefix + '.' + this.safeString (currencyCode, 'id', '');
                             messageHash = channel;
                         } else {
                             // subscribe to all
@@ -1915,7 +1916,7 @@ export default class htx extends htxRest {
             } else if (type === 'future') {
                 // inverse futures account
                 if (currencyCode !== undefined) {
-                    messageHash += '.' + currencyCode['id'];
+                    messageHash += '.' + this.safeString (currencyCode, 'id', '');
                     channel = messageHash;
                 } else {
                     // subscribe to all
@@ -1924,7 +1925,7 @@ export default class htx extends htxRest {
             } else {
                 // inverse swaps account
                 if (market !== undefined) {
-                    messageHash += '.' + market['id'];
+                    messageHash += '.' + this.safeString (market, 'id', '');
                     channel = messageHash;
                 } else {
                     // subscribe to all
@@ -2775,8 +2776,9 @@ export default class htx extends htxRest {
                 // however it is returned with the specific order update symbol: ch = orders_cross.btc-usd
                 // since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
                 // so we must remove it
-                let genericOrderHash = messageHash.replace ('.' + market['lowercaseId'], '');
-                const lowerCaseBaseId = this.safeStringLower (market, 'baseId');
+                const lowercaseId = this.safeStringLower (market, 'lowercaseId', '');
+                let genericOrderHash = messageHash.replace ('.' + lowercaseId, '');
+                const lowerCaseBaseId = this.safeStringLower (market, 'baseId', '');
                 genericOrderHash = genericOrderHash.replace ('.' + lowerCaseBaseId, '');
                 const genericTradesHash = genericOrderHash + ':' + 'trade';
                 client.resolve (this.myTrades, genericTradesHash);

@@ -2018,7 +2018,7 @@ export default class htx extends Exchange {
         let ask: Str = undefined;
         let askVolume: Str = undefined;
         if ('bid' in ticker) {
-            if (ticker['bid'] !== undefined && Array.isArray (ticker['bid'])) {
+            if (Array.isArray (ticker['bid'])) {
                 bid = this.safeString (ticker['bid'], 0);
                 bidVolume = this.safeString (ticker['bid'], 1);
             } else {
@@ -2027,7 +2027,7 @@ export default class htx extends Exchange {
             }
         }
         if ('ask' in ticker) {
-            if (ticker['ask'] !== undefined && Array.isArray (ticker['ask'])) {
+            if (Array.isArray (ticker['ask'])) {
                 ask = this.safeString (ticker['ask'], 0);
                 askVolume = this.safeString (ticker['ask'], 1);
             } else {
@@ -3455,14 +3455,13 @@ export default class htx extends Exchange {
         }
         const [ type, paramsType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, paramsUnified);
         const [ subTypeOption, paramsSubType ] = this.handleOptionStringAndParams2 (paramsType, 'fetchBalance', 'defaultSubType', 'subType');
-        const subType: Str = (subTypeOption === undefined) ? 'linear' : subTypeOption;
         const [ isMultiAssetMode, paramsMultiAsset ] = this.handleOptionBoolAndParams (paramsSubType, 'fetchBalance', 'multiAssetMode', false);
         const request: Dict = {};
         const spot = (type === 'spot');
         const future = (type === 'future');
         const swap = (type === 'swap');
-        const inverse = (subType === 'inverse');
-        const linear = (subType === 'linear');
+        const linear = (subTypeOption === undefined) || (subTypeOption === 'linear');
+        const inverse = subTypeOption !== undefined && subTypeOption === 'inverse';
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchBalance', paramsMultiAsset);
         const isolated = (marginMode === 'isolated');
         const cross = (marginMode === 'cross');
@@ -3793,8 +3792,8 @@ export default class htx extends Exchange {
                         throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
                     }
                     request['contract_code'] = this.safeString (market, 'id');
-                    const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchOrder', paramsClientOrderId);
-                    request['margin_mode'] = (marginMode === undefined) ? 'cross' : marginMode;
+                    const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchOrder', paramsClientOrderId, 'cross');
+                    request['margin_mode'] = marginMode;
                     response = await this.contractPrivateGetV5TradeOrder (this.extend (request, paramsMarginMode));
                 }
             } else if (this.safeBool (market, 'inverse', false)) {
@@ -4042,8 +4041,8 @@ export default class htx extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchContractOrders', paramsUntil);
-            request['margin_mode'] = (marginMode === undefined) ? 'cross' : marginMode;
+            const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchContractOrders', paramsUntil, 'cross');
+            request['margin_mode'] = marginMode;
             request['contract_code'] = market['id'];
             if (isAlgo) {
                 if (trigger === true) {
@@ -7490,7 +7489,6 @@ export default class htx extends Exchange {
             await this.loadMarkets ();
         }
         const [ marginModeOption, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params);
-        const marginMode: Str = (marginModeOption === undefined) ? 'cross' : marginModeOption;
         const request: Dict = {};
         if (since !== undefined) {
             request['start-date'] = this.yyyymmdd (since);
@@ -7500,7 +7498,7 @@ export default class htx extends Exchange {
         }
         let market: Market = undefined;
         let response = undefined;
-        if (marginMode === 'isolated') {
+        if (marginModeOption === 'isolated') {
             if (symbol !== undefined) {
                 market = this.market (symbol);
                 request['symbol'] = market['id'];
@@ -7846,8 +7844,8 @@ export default class htx extends Exchange {
         let response = undefined;
         if (marketType === 'swap') {
             if (market['linear'] === true) {
-                const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchFundingHistory', paramsUntil);
-                request['margin_mode'] = (marginMode === undefined) ? 'cross' : marginMode;
+                const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchFundingHistory', paramsUntil, 'cross');
+                request['margin_mode'] = marginMode;
                 request['contract_code'] = market['id'];
                 if (limit !== undefined) {
                     request['limit'] = limit;
@@ -7935,9 +7933,9 @@ export default class htx extends Exchange {
         }
         let response: Dict | undefined = undefined;
         if (market['linear'] === true) {
-            const marginModeAndParams = this.handleMarginModeAndParams ('setLeverage', params);
+            const marginModeAndParams = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
             const marginMode: Str = marginModeAndParams[0];
-            request['margin_mode'] = (marginMode === undefined) ? 'cross' : marginMode;
+            request['margin_mode'] = marginMode;
             response = await this.contractPrivatePostV5PositionLever (this.extend (request, query));
             //
             //     {
@@ -8326,13 +8324,12 @@ export default class htx extends Exchange {
         }
         const market = this.market (symbol);
         const [ marginModeOption, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchPosition', params);
-        const marginMode: Str = (marginModeOption === undefined) ? 'cross' : marginModeOption;
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPosition', market, paramsMarginMode);
         const request: Dict = {};
         if ((market['future'] === true) && (market['inverse'] === true)) {
             request['symbol'] = market['settleId'];
         } else {
-            if ((market['linear'] !== true) && (marginMode === 'cross')) {
+            if ((market['linear'] !== true) && ((marginModeOption === undefined) || (marginModeOption === 'cross'))) {
                 request['margin_account'] = 'USDT'; // only allowed value
             }
             request['contract_code'] = market['id'];
@@ -8457,7 +8454,7 @@ export default class htx extends Exchange {
             return this.parsePosition (linearPosition, market);
         }
         let account: NullableDict = undefined;
-        if (marginMode === 'cross') {
+        if ((marginModeOption === undefined) || (marginModeOption === 'cross')) {
             account = data;
         } else {
             account = this.safeDict (data, 0);
