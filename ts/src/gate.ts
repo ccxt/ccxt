@@ -3895,7 +3895,10 @@ export default class gate extends Exchange {
         let marginMode: Str = undefined;
         let request: Dict = {};
         let query: Dict;
-        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const until = this.safeInteger (paramsPaginate, 'until');
         const paramsOmitted = this.omit (paramsPaginate, [ 'until' ]);
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, paramsOmitted);
@@ -5439,7 +5442,10 @@ export default class gate extends Exchange {
     }
 
     fetchOrderRequest (id: string, symbol: Str = undefined, params: Dict = {}): [Dict, Dict] {
-        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const trigger = this.safeBoolN (params, [ 'trigger', 'is_stop_order', 'stop' ], false);
         const paramsOmitted = this.omit (params, [ 'is_stop_order', 'stop', 'trigger' ]);
         const clientOrderIdRaw = this.safeString2 (paramsOmitted, 'text', 'clientOrderId');
@@ -5485,7 +5491,10 @@ export default class gate extends Exchange {
             await this.loadMarkets ();
         }
         await this.loadUnifiedStatus ();
-        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const type = this.handleMarketTypeAndParams ('fetchOrder', market, params)[0];
         const trigger = this.safeBoolN (params, [ 'trigger', 'is_stop_order', 'stop' ], false);
         const [ request, requestParams ] = this.fetchOrderRequest (id, symbol, params);
@@ -5857,7 +5866,10 @@ export default class gate extends Exchange {
             await this.loadMarkets ();
         }
         await this.loadUnifiedStatus ();
-        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const trigger = this.safeBoolN (params, [ 'is_stop_order', 'stop', 'trigger' ], false);
         const paramsOmitted: Dict = this.omit (params, [ 'is_stop_order', 'stop', 'trigger' ]);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, paramsOmitted);
@@ -6091,7 +6103,10 @@ export default class gate extends Exchange {
             await this.loadMarkets ();
         }
         await this.loadUnifiedStatus ();
-        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, paramsOmitted);
@@ -7946,7 +7961,10 @@ export default class gate extends Exchange {
      * @returns {object} response from the exchange
      */
     override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}) {
-        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const [ request, query ] = this.prepareRequest (market, 'swap', params);
         request['dual_mode'] = hedged;
         return await this.privateFuturesPostSettleDualMode (this.extend (request, query));
@@ -8220,7 +8238,7 @@ export default class gate extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'underlying': market['info']['underlying'],
+            'underlying': this.safeString (market['info'], 'underlying'),
         };
         const response = await this.publicOptionsGetTickers (this.extend (request, params));
         //
@@ -8300,7 +8318,7 @@ export default class gate extends Exchange {
             'askPrice': this.parseNumber (this.safeNumber (greeks, 'ask1_price')),
             'markPrice': this.parseNumber (this.safeNumber (greeks, 'mark_price')),
             'lastPrice': this.parseNumber (this.safeNumber (greeks, 'last_price')),
-            'underlyingPrice': this.parseNumber (market['info']['underlying_price']),
+            'underlyingPrice': this.parseNumber (this.safeString (market['info'], 'underlying_price')),
             'info': greeks,
         };
     }
