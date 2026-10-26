@@ -747,7 +747,7 @@ export default class krakenfutures extends Exchange {
         //
         const marketId = this.safeString (ticker, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.parse8601 (this.safeString (ticker, 'lastTime'));
         const open = this.safeString (ticker, 'open24h');
         const last = this.safeString (ticker, 'last');
@@ -1020,14 +1020,16 @@ export default class krakenfutures extends Exchange {
         let rawTrades: Dict[] = [];
         const isFullHistoryEndpoint = (method === 'historyGetMarketSymbolExecutions');
         if (isFullHistoryEndpoint) {
-            const [ requestUntil, paramsUntil ] = this.handleUntilOption ('before', request, paramsMethod);
+            // handleUntilOption returns the request it was given, so the filters
+            // can be set on it directly instead of through the returned tuple
             if (since !== undefined) {
-                requestUntil['since'] = since;
-                requestUntil['sort'] = 'asc';
+                request['since'] = since;
+                request['sort'] = 'asc';
             }
             if (limit !== undefined) {
-                requestUntil['count'] = limit;
+                request['count'] = limit;
             }
+            const [ requestUntil, paramsUntil ] = this.handleUntilOption ('before', request, paramsMethod);
             const response = await this.historyGetMarketSymbolExecutions (this.extend (requestUntil, paramsUntil));
             //
             //    {
@@ -1277,7 +1279,7 @@ export default class krakenfutures extends Exchange {
             throw new ArgumentsRequired (this.id + ' requires a side argument');
         }
         const market = this.market (symbol);
-        const symbolValue: Str = market['symbol'];
+        const symbolValue: Str = this.safeString (market, 'symbol');
         let typeValue: Str = this.safeString (params, 'orderType', type);
         const timeInForce = this.safeString (params, 'timeInForce');
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (typeValue === 'market', typeValue === 'post', params);
@@ -3617,8 +3619,8 @@ export default class krakenfutures extends Exchange {
             return accountByType[account];
         } else if ((this.markets !== undefined) && (account in this.markets)) {
             const market = this.market (account);
-            const marketId = market['id'];
-            const splitId = (marketId as string).split ('_');
+            const marketId = this.safeString (market, 'id', '');
+            const splitId = marketId.split ('_');
             const splitMarketId: string = this.safeString (splitId, 1, '');
             if (market['inverse'] === true) {
                 return 'fi_' + splitMarketId;
