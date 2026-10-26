@@ -836,8 +836,8 @@ export default class indodax extends Exchange {
         const marketResolved: Market = this.safeMarket (marketId, market);
         if (marketResolved !== undefined) {
             symbol = marketResolved['symbol'];
-            let quoteId = marketResolved['quoteId'];
-            let baseId = marketResolved['baseId'];
+            let quoteId = this.safeString (marketResolved, 'quoteId', '');
+            let baseId = this.safeString (marketResolved, 'baseId', '');
             if ((marketResolved['quoteId'] === 'idr') && ('order_rp' in order)) {
                 quoteId = 'rp';
             }
@@ -1173,10 +1173,14 @@ export default class indodax extends Exchange {
         //
         const data = this.safeDict (response, 'return', {});
         const result = this.depositWithdrawFee (response);
-        result['withdraw']['fee'] = this.safeNumber (data, 'withdraw_fee');
-        result['withdraw']['percentage'] = false;
-        result['deposit']['fee'] = 0;
-        result['deposit']['percentage'] = false;
+        result['withdraw'] = {
+            'fee': this.safeNumber (data, 'withdraw_fee'),
+            'percentage': false,
+        };
+        result['deposit'] = {
+            'fee': 0,
+            'percentage': false,
+        };
         return this.assignDefaultDepositWithdrawFees (result, currency) as DepositWithdrawFee;
     }
 
@@ -1536,9 +1540,9 @@ export default class indodax extends Exchange {
         if (isPublic) {
             const query = this.omit (params, this.extractParams (path));
             const requestPath = '/' + this.implodeParams (path, params);
-            url += requestPath;
+            url = apiUrl + requestPath;
             if (Object.keys (query).length > 0) {
-                url += '?' + this.urlencodeWithArrayRepeat (query);
+                url = apiUrl + requestPath + '?' + this.urlencodeWithArrayRepeat (query);
             }
         } else {
             this.checkRequiredCredentials ();
