@@ -1673,12 +1673,12 @@ export default class hyperliquid extends Exchange {
 
     override amountToPrecision (symbol: Str, amount: any): string {
         const market = this.market (symbol);
-        const result = this.decimalToPrecision (amount, ROUND, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        const result = this.decimalToPrecision (amount, ROUND, this.safeNumber (market['precision'], 'amount'), this.precisionMode, this.paddingMode);
         // a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
         // with grouping positionTpsl and size 0, so only reject a positive amount that
         // became zero after rounding, never an explicitly requested zero
         if (Precise.stringEq (result, '0') && Precise.stringGt (this.numberToString (amount), '0')) {
-            throw new InvalidOrder (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (market['precision']['amount']));
+            throw new InvalidOrder (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (this.safeNumber (market['precision'], 'amount')));
         }
         return result;
     }
@@ -2686,13 +2686,13 @@ export default class hyperliquid extends Exchange {
             for (let i = 0; i < clientOrderId.length; i++) {
                 cancelReq.push ({
                     'asset': baseId,
-                    'cloid': clientOrderId[i],
+                    'cloid': this.safeString (clientOrderId, i),
                 });
             }
         } else {
             cancelAction['type'] = 'cancel';
             for (let i = 0; i < ids.length; i++) {
-                const o = this.parseToNumeric (ids[i]);
+                const o = this.parseToNumeric (this.safeString (ids, i));
                 cancelReq.push ({
                     'a': baseId,
                     'o': o,
@@ -5357,7 +5357,7 @@ export default class hyperliquid extends Exchange {
         const market = this.market (symbol);
         const [ vaultAddressOption, params2 ] = this.handleOptionStringAndParams2 (params, 'createOrder', 'vaultAddress', 'subAccountAddress');
         const vaultAddress: Str = this.formatVaultAddress (vaultAddressOption);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const order: Dict = {
             'symbol': symbolValue,
             'type': type,

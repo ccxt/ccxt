@@ -240,7 +240,7 @@ export default class hyperliquid extends hyperliquidRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'orderbook:' + symbolValue;
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
@@ -270,7 +270,7 @@ export default class hyperliquid extends hyperliquidRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const subMessageHash = 'orderbook:' + symbolValue;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
@@ -350,7 +350,7 @@ export default class hyperliquid extends hyperliquidRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         // the single-symbol path subscribes to the per-coin context channel, which hyperliquid
         // pushes at block cadence with full ticker fields (mark, oracle, funding, volume),
         // instead of the aggregate allMids broadcast that only carries mids and arrives at the
@@ -385,7 +385,7 @@ export default class hyperliquid extends hyperliquidRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const subMessageHash = 'ticker:' + symbolValue;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
@@ -493,7 +493,7 @@ export default class hyperliquid extends hyperliquidRest {
         let messageHash = 'myTrades';
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbolResolved !== undefined) {
-            messageHash += ':' + symbolResolved;
+            messageHash = 'myTrades:' + symbolResolved;
         }
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
@@ -818,7 +818,7 @@ export default class hyperliquid extends hyperliquidRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'trade:' + symbolValue;
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
@@ -852,7 +852,7 @@ export default class hyperliquid extends hyperliquidRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const subMessageHash = 'trade:' + symbolValue;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
@@ -990,7 +990,7 @@ export default class hyperliquid extends hyperliquidRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
             'method': 'subscribe',
@@ -1026,7 +1026,7 @@ export default class hyperliquid extends hyperliquidRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
             'method': 'unsubscribe',
@@ -1485,7 +1485,7 @@ export default class hyperliquid extends hyperliquidRest {
         let messageHash = 'order';
         if (symbol !== undefined) {
             market = this.market (symbol);
-            messageHash = messageHash + ':' + market['symbol'];
+            messageHash = 'order:' + market['symbol'];
         }
         const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : symbol;
         const url = this.urls['api']['ws']['public'];
