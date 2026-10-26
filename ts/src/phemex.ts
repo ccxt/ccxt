@@ -1449,7 +1449,7 @@ export default class phemex extends Exchange {
                     } else {
                         // when since is defined 'to' is mandatory
                         const now = this.seconds ();
-                        const to = this.parseToInt (fromSeconds + (maxLimit * candleDuration));
+                        const to = this.parseToInt (this.parseToInt (fromSeconds) + (maxLimit * candleDuration));
                         request['to'] = (to > now) ? now : to;
                     }
                 } else if (until !== undefined) {
