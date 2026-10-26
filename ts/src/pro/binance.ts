@@ -880,8 +880,7 @@ export default class binance extends binanceRest {
             const market = this.market (symbol);
             subMessageHashes.push ('orderbook::' + symbol);
             messageHashes.push ('unsubscribe:orderbook:' + symbol);
-            const streamId = market['lowercaseId'];
-            const subscriptionHash = streamId + '@' + name;
+            const subscriptionHash = this.safeString (market, 'lowercaseId', '') + '@' + name;
             const symbolHash = subscriptionHash + '@' + watchOrderBookRate + 'ms';
             subParams.push (symbolHash);
         }
@@ -1335,7 +1334,7 @@ export default class binance extends binanceRest {
                 const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
                 messageHashes.push ('trade::' + symbol);
-                const rawHash = market['lowercaseId'] + '@' + name;
+                const rawHash = this.safeString (market, 'lowercaseId', '') + '@' + name;
                 subParams.push (rawHash);
             }
         }
@@ -1425,7 +1424,7 @@ export default class binance extends binanceRest {
                 const market = this.market (symbol);
                 subMessageHashes.push ('trade::' + symbol);
                 messageHashes.push ('unsubscribe:trade:' + symbol);
-                const rawHash = market['lowercaseId'] + '@' + name;
+                const rawHash = this.safeString (market, 'lowercaseId', '') + '@' + name;
                 subParams.push (rawHash);
             }
         }
@@ -1750,11 +1749,11 @@ export default class binance extends binanceRest {
             const stockMessageHashes: string[] = [];
             for (let i = 0; i < symbolsAndTimeframes.length; i++) {
                 const stockSymAndTf = symbolsAndTimeframes[i];
-                const stockSymbolString = this.symbol (stockSymAndTf[0]);
+                const stockSymbolString = this.symbol (this.safeString (stockSymAndTf, 0, ''));
                 const stockMarket = this.market (stockSymbolString);
                 const stockTicker = this.safeString2 (stockMarket, 'base', 'id');
                 const stockTickerString = (stockTicker === undefined) ? '' : stockTicker.toLowerCase ();
-                const stockTimeframeString = stockSymAndTf[1];
+                const stockTimeframeString = this.safeString (stockSymAndTf, 1, '');
                 const stockInterval = this.safeString (this.timeframes, stockTimeframeString, stockTimeframeString);
                 if ((stockInterval !== '5m') && (stockInterval !== '1h') && (stockInterval !== '1d') && (stockInterval !== '1w') && (stockInterval !== '1M')) {
                     throw new BadRequest (this.id + ' watchOHLCVForSymbols only supports 5m, 1h, 1d, 1w, and 1M timeframes');
@@ -1791,8 +1790,8 @@ export default class binance extends binanceRest {
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symAndTf = symbolsAndTimeframes[i];
-            const symbolString = symAndTf[0];
-            const timeframeString = symAndTf[1];
+            const symbolString = this.safeString (symAndTf, 0, '');
+            const timeframeString = this.safeString (symAndTf, 1, '');
             const interval = this.safeString (this.timeframes, timeframeString, timeframeString);
             const market = this.market (symbolString);
             let marketId: Str = this.safeString (market, 'lowercaseId');
@@ -1872,8 +1871,8 @@ export default class binance extends binanceRest {
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symAndTf = symbolsAndTimeframes[i];
-            const symbolString = symAndTf[0];
-            const timeframeString = symAndTf[1];
+            const symbolString = this.safeString (symAndTf, 0, '');
+            const timeframeString = this.safeString (symAndTf, 1, '');
             const interval = this.safeString (this.timeframes, timeframeString, timeframeString);
             const market = this.market (symbolString);
             let marketId: Str = this.safeString (market, 'lowercaseId');
@@ -2497,8 +2496,7 @@ export default class binance extends binanceRest {
                         subscriptionArgs.push (subscriptionArg);
                     }
                 } else {
-                    const streamId = market['lowercaseId'];
-                    subscriptionArgs.push (streamId + '@' + channelName + suffix);
+                    subscriptionArgs.push (this.safeString (market, 'lowercaseId', '') + '@' + channelName + suffix);
                 }
             }
         } else {
