@@ -1241,7 +1241,7 @@ export default class bittrade extends Exchange {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            const account: Dict = ((code !== undefined) && (code in result)) ? result[code] : this.account ();
+            const account: Dict = this.safeDict (result, code, this.account ());
             if (this.safeString (balance, 'type') === 'trade') {
                 account['free'] = this.safeString (balance, 'balance');
             }
@@ -1597,8 +1597,7 @@ export default class bittrade extends Exchange {
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if (clientOrderId === undefined) {
-            const broker = this.safeDict (this.options, 'broker', {});
-            const brokerId = this.safeString (broker, 'id');
+            const brokerId = this.safeString (this.options['broker'], 'id', '');
             request['client-order-id'] = brokerId + this.uuid ();
         } else {
             request['client-order-id'] = clientOrderId;
@@ -2073,12 +2072,11 @@ export default class bittrade extends Exchange {
         if (tagWithdrawTag !== undefined) {
             request['addr-tag'] = tagWithdrawTag; // only for XRP?
         }
-        const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (paramsWithdrawTag, 'network');
         if (network !== undefined) {
             network = this.safeString (this.networkAliases, network, network); // accepts aliases like ETH for ERC20
         }
-        network = this.safeStringLower (networks, network, network); // handle ETH>ERC20 alias
+        network = this.safeStringLower (this.options['networks'], network, network); // handle ETH>ERC20 alias
         if (network !== undefined) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if (network === 'erc20') {

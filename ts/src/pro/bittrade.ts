@@ -65,7 +65,6 @@ export default class bittrade extends bittradeRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
         // only supports a limit of 150 at this time
         const marketId = this.safeString (market, 'id', '');
         const messageHash = 'market.' + marketId + '.detail';
@@ -83,7 +82,7 @@ export default class bittrade extends bittradeRest {
         const subscription: Dict = {
             'id': requestId,
             'messageHash': messageHash,
-            'symbol': symbolValue,
+            'symbol': market['symbol'],
             'params': params,
         };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
