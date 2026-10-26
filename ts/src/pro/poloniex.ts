@@ -197,7 +197,7 @@ export default class poloniex extends poloniexRest {
      */
     async tradeRequest (name: string, params: Dict = {}) {
         const url = this.urls['api']['ws']['private'];
-        const messageHash = this.nonce ().toString ();
+        const messageHash = this.numberToString (this.nonce ());
         const subscribe: Dict = {
             'id': messageHash,
             'event': name,
@@ -745,7 +745,7 @@ export default class poloniex extends poloniexRest {
                 const trade = this.parseWsTrade (item);
                 const symbol = trade['symbol'];
                 const type = 'trades';
-                const messageHash = type + '::' + symbol;
+                const messageHash = type + '::' + this.safeString (trade, 'symbol', '');
                 let tradesArray = (symbol === undefined) ? undefined : this.safeValue (this.trades, symbol);
                 if (tradesArray === undefined) {
                     const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1286,7 +1286,7 @@ export default class poloniex extends poloniexRest {
         if (this.balance === undefined) {
             this.balance = {};
         }
-        this.balance['info'] = data;
+        this.balance['info'] = this.safeList (message, 'data', []);
         const firstBalance = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (firstBalance, 'ts');
         this.balance['timestamp'] = timestamp;
@@ -1309,7 +1309,7 @@ export default class poloniex extends poloniexRest {
     handleMyTrades (client: Client, parsedTrade: Trade) {
         // emulated using the orders' stream
         const messageHash = 'myTrades';
-        const symbol = parsedTrade['symbol'];
+        const symbol = this.safeString (parsedTrade, 'symbol', '');
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);

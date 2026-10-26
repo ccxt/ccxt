@@ -978,10 +978,10 @@ export default class poloniex extends Exchange {
         const linear = this.safeString (market, 'ctType') === 'LINEAR';
         let symbol = base + '/' + quote;
         if (linear) {
-            symbol += ':' + settle;
+            symbol = base + '/' + quote + ':' + settle;
         } else {
             // actually, exchange does not have any inverse future now
-            symbol += ':' + base;
+            symbol = base + '/' + quote + ':' + base;
         }
         const alias = this.safeString (market, 'alias');
         let type = 'swap';
@@ -2221,7 +2221,8 @@ export default class poloniex extends Exchange {
         if (isContract) {
             if (marginMode !== undefined) {
                 this.checkRequiredArgument ('createOrder', marginMode, 'marginMode', [ 'cross', 'isolated' ]);
-                result['mgnMode'] = marginMode.toUpperCase ();
+                // the argument check above leaves only 'cross' or 'isolated'
+                result['mgnMode'] = (marginMode === 'isolated') ? 'ISOLATED' : 'CROSS';
             }
             if ((hedged !== undefined) && (hedged !== '')) {
                 if (marginMode === undefined) {
@@ -2238,7 +2239,7 @@ export default class poloniex extends Exchange {
         let queryOmitted: Dict = this.omit (query, [ 'postOnly', 'triggerPrice', 'stopPrice' ]);
         if (triggerPrice !== undefined) {
             if (market['spot'] !== true) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support trigger orders for ' + market['type'] + ' markets');
+                throw new InvalidOrder (this.id + ' createOrder() does not support trigger orders for ' + this.safeString (market, 'type', '') + ' markets');
             }
             upperCaseType = (price === undefined) ? 'STOP' : 'STOP_LIMIT';
             result['stopPrice'] = triggerPrice;
@@ -2326,7 +2327,7 @@ export default class poloniex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['spot'] !== true) {
-            throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+            throw new NotSupported (this.id + ' editOrder() does not support ' + this.safeString (market, 'type', '') + ' orders, only spot orders are accepted');
         }
         const request: Dict = {
             'id': id,
@@ -4003,6 +4004,9 @@ export default class poloniex extends Exchange {
         }
         const query: Dict = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
+        // keep `Object.keys (query).length` inline and evaluated lazily: PHP only rewrites that exact
+        // shape into count(x) (a hoisted key list becomes strlen() on an array) and the C#/Java key-list
+        // cast throws on a bare-list params (the batch endpoints pass one), so `isArray ||` guards it.
         let bodyJson: Str = undefined;
         let signedHeaders: NullableDict = undefined;
         if (apiName === 'public' || apiName === 'swapPublic') {
@@ -4012,7 +4016,7 @@ export default class poloniex extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const timestamp = this.nonce ().toString ();
+            const timestamp = this.numberToString (this.nonce ());
             let auth = method + "\n"; // eslint-disable-line quotes
             url += '/' + implodedPath;
             auth += '/' + implodedPath;
