@@ -7842,10 +7842,12 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Value = Value::Null;
-        let mut section: Value = self.safe_string(api.clone(), Value::Int(0), &[]);
-        let mut access: Value = self.safe_string(api, Value::Int(1), &[]);
+        let mut section: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut access: Value = api.get(1).cloned().unwrap_or(Value::Null);
         let mut pathValue: Value = self.implode_params(path.clone(), params.clone());
         let mut paramsValue: Value = self.omit(params, self.extract_params(path), &[]);
         let mut url: Value = Value::Null;
