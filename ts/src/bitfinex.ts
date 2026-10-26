@@ -2764,7 +2764,7 @@ export default class bitfinex extends Exchange {
         const takerFeeFiat = this.safeNumber (takerData, 2);
         const takerFeeDeriv = this.safeNumber (takerData, 5);
         for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+            const symbol = this.safeString (this.symbols, i, '');
             const market = this.market (symbol);
             const fee: Dict = {
                 'info': response,
@@ -4100,10 +4100,10 @@ export default class bitfinex extends Exchange {
         //         "Submitting update to exchange limit buy order for 0.0002 BTC."
         //     ]
         //
-        const status = this.safeString (response, 6);
+        const status = this.safeString (response, 6, '');
         if (status !== 'SUCCESS') {
-            const errorCode = this.safeString (response, 5);
-            const errorText = this.safeString (response, 7);
+            const errorCode = this.safeString (response, 5, '');
+            const errorText = this.safeString (response, 7, '');
             throw new ExchangeError (this.id + ' ' + status + ': ' + errorText + ' (#' + errorCode + ')');
         }
         const order = this.safeList (response, 4, []);

@@ -1171,15 +1171,15 @@ export default class bitfinex extends bitfinexRest {
             for (let i = 0; i < data.length; i++) {
                 const value = data[i];
                 const parsed = this.parseWsOrder (value);
-                const symbol = parsed['symbol'];
-                symbolIds[(symbol as string)] = true;
+                const symbol = this.safeString (parsed, 'symbol', '');
+                symbolIds[symbol] = true;
                 orders.append (parsed);
             }
         } else {
             const parsed = this.parseWsOrder (data);
             orders.append (parsed);
-            const symbol = parsed['symbol'];
-            symbolIds[(symbol as string)] = true;
+            const symbol = this.safeString (parsed, 'symbol', '');
+            symbolIds[symbol] = true;
         }
         const name = 'orders';
         client.resolve (this.orders, name);
