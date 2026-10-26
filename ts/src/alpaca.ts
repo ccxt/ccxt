@@ -2194,8 +2194,8 @@ export default class alpaca extends Exchange {
         }
         for (let i = 0; i < positions.length; i++) {
             const position = this.safeDict (positions, i);
-            const positionSymbol = this.safeString (position, 'symbol');
-            if (positionSymbol === undefined) {
+            const positionSymbol = this.safeString (position, 'symbol', '');
+            if (positionSymbol === '') {
                 continue;
             }
             let baseId: Str = undefined;
