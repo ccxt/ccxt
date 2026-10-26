@@ -2375,13 +2375,12 @@ export default class kraken extends Exchange {
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
-        let allTriggerPrices = this.safeStringN (paramsOmitted, [ 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent' ]);
+        const allTriggerPrices = this.safeStringN (paramsOmitted, [ 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent' ]);
         if (allTriggerPrices !== undefined) {
             const offset = this.safeString (paramsOmitted, 'offset');
             paramsOmitted = this.omit (paramsOmitted, [ 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent', 'offset' ]);
             if (offset !== undefined) {
-                allTriggerPrices = offset + allTriggerPrices;
-                request['trigger_price'] = allTriggerPrices;
+                request['trigger_price'] = offset + allTriggerPrices;
             } else {
                 request['trigger_price'] = this.priceToPrecision (symbol, allTriggerPrices);
             }
