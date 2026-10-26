@@ -760,8 +760,7 @@ export default class blofin extends blofinRest {
                 let channel = channelName;
                 if (isOHLCV) {
                     market = this.market (current);
-                    const tfArray = symbolsArray[i];
-                    const tf = tfArray[1];
+                    const tf = this.safeString (this.safeValue (symbolsArray, i), 1);
                     const interval = this.safeString (this.timeframes, tf, tf);
                     channel = channel + interval;
                 } else {

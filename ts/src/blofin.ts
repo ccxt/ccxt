@@ -1747,11 +1747,11 @@ export default class blofin extends Exchange {
             request['clientOrderId'] = clientOrderId;
         } else {
             if ((!isTrigger) && (!isTpsl)) {
-                request['orderId'] = id.toString ();
+                request['orderId'] = this.numberToString (id);
             } else if (isTpsl) {
-                request['tpslId'] = id.toString ();
+                request['tpslId'] = this.numberToString (id);
             } else if (isTrigger) {
-                request['algoId'] = id.toString ();
+                request['algoId'] = this.numberToString (id);
             }
         }
         const query = this.omit (params, [ 'orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl' ]);
@@ -3559,7 +3559,7 @@ export default class blofin extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0);
         let request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const apiUrl = this.safeString (this.urls['api'], 'rest');
