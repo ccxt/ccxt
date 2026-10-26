@@ -6798,7 +6798,7 @@ export default class htx extends Exchange {
         if (amountPrecision === undefined) {
             amountPrecision = '0';
         }
-        let amountValue = parseFloat (amountPrecision);
+        let amountValue = this.parseNumber (amountPrecision);
         const withdrawOptions = this.safeDict (this.options, 'withdraw', {});
         const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
         let paramsFee: Dict = paramsNetwork;
@@ -6824,17 +6824,16 @@ export default class htx extends Exchange {
             if (amountSubtractedParsed === undefined) {
                 amountSubtractedParsed = '0';
             }
-            const amountSubtracted = parseFloat (amountSubtractedParsed);
             let feeParsed = feeString;
             if (feeParsed === undefined) {
                 feeParsed = '0';
             }
-            request['fee'] = parseFloat (feeParsed);
-            let amountAfterFee = this.currencyToPrecision (code, amountSubtracted, networkCode);
+            request['fee'] = this.parseNumber (feeParsed);
+            let amountAfterFee = this.currencyToPrecision (code, this.parseNumber (amountSubtractedParsed), networkCode);
             if (amountAfterFee === undefined) {
                 amountAfterFee = '0';
             }
-            amountValue = parseFloat (amountAfterFee);
+            amountValue = this.parseNumber (amountAfterFee);
         }
         request['amount'] = amountValue;
         const response = await this.spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, paramsFee));
@@ -6934,7 +6933,7 @@ export default class htx extends Exchange {
         }
         const request: Dict = {
             'currency': currency['id'],
-            'amount': parseFloat (transferAmount),
+            'amount': this.parseNumber (transferAmount),
         };
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('transfer', undefined, params);
         let fromAccountId = this.convertTypeToAccount (fromAccount);
@@ -7620,7 +7619,7 @@ export default class htx extends Exchange {
         const apiLength = api.length;
         if (apiLength === 1) {
             // signing implementation for the old endpoints
-            const apiName = api[0];
+            const apiName = this.safeString (api, 0, '');
             if ((apiName === 'public') || (apiName === 'private')) {
                 url += this.version;
             } else if ((apiName === 'v2Public') || (apiName === 'v2Private')) {
