@@ -647,10 +647,8 @@ export default class coinbase extends Exchange {
         const accounts: Dict[] = this.safeList (response, 'data', []);
         const length = accounts.length;
         const lastIndex = length - 1;
-        const last = this.safeDict (accounts, lastIndex, {});
         if ((cursor !== undefined) && (cursor !== '')) {
-            last['next_starting_after'] = cursor;
-            accounts[lastIndex] = last;
+            accounts[lastIndex] = this.extend (this.safeDict (accounts, lastIndex, {}), { 'next_starting_after': cursor });
         }
         return this.parseAccounts (data, paramsPaginate);
     }
@@ -702,9 +700,7 @@ export default class coinbase extends Exchange {
         const cursor = this.safeString (response, 'cursor');
         if ((accountsLength > 0) && (cursor !== undefined) && (cursor !== '')) {
             const lastIndex = accountsLength - 1;
-            const last = this.safeDict (accounts, lastIndex, {});
-            last['cursor'] = cursor;
-            accounts[lastIndex] = last;
+            accounts[lastIndex] = this.extend (this.safeDict (accounts, lastIndex, {}), { 'cursor': cursor });
         }
         return this.parseAccounts (accounts, paramsPaginate);
     }
@@ -2579,9 +2575,11 @@ export default class coinbase extends Exchange {
                     }
                     cursor = nextCursor;
                 }
-                response['accounts'] = accounts;
-                response['has_next'] = this.safeBool (page, 'has_next', false);
-                response['cursor'] = this.safeString (page, 'cursor');
+                response = this.extend (response, {
+                    'accounts': accounts,
+                    'has_next': this.safeBool (page, 'has_next', false),
+                    'cursor': this.safeString (page, 'cursor'),
+                });
             }
         } else {
             request['limit'] = 250;
@@ -2658,8 +2656,7 @@ export default class coinbase extends Exchange {
         //         "size": 9
         //     }
         //
-        paramsMarketType['type'] = marketType;
-        return this.parseCustomBalance (response, paramsMarketType);
+        return this.parseCustomBalance (response, this.extend (paramsMarketType, { 'type': marketType }));
     }
 
     /**
@@ -3794,11 +3791,9 @@ export default class coinbase extends Exchange {
         //     }
         //
         const orders = this.safeList (response, 'orders', []);
-        const first = this.safeDict (orders, 0, {});
         const cursor = this.safeString (response, 'cursor');
         if ((cursor !== undefined) && (cursor !== '')) {
-            first['cursor'] = cursor;
-            orders[0] = first;
+            orders[0] = this.extend (this.safeDict (orders, 0, {}), { 'cursor': cursor });
         }
         return this.parseOrders (orders, market, since, limit);
     }
@@ -3871,11 +3866,9 @@ export default class coinbase extends Exchange {
         //     }
         //
         const orders = this.safeList (response, 'orders', []);
-        const first = this.safeDict (orders, 0, {});
         const cursor = this.safeString (response, 'cursor');
         if ((cursor !== undefined) && (cursor !== '')) {
-            first['cursor'] = cursor;
-            orders[0] = first;
+            orders[0] = this.extend (this.safeDict (orders, 0, {}), { 'cursor': cursor });
         }
         return this.parseOrders (orders, market, since, limitResolved);
     }
@@ -4168,11 +4161,9 @@ export default class coinbase extends Exchange {
         //     }
         //
         const trades = this.safeList (response, 'fills', []);
-        const first = this.safeDict (trades, 0, {});
         const cursor = this.safeString (response, 'cursor');
         if ((cursor !== undefined) && (cursor !== '')) {
-            first['cursor'] = cursor;
-            trades[0] = first;
+            trades[0] = this.extend (this.safeDict (trades, 0, {}), { 'cursor': cursor });
         }
         return this.parseTrades (trades, market, since, limit);
     }
