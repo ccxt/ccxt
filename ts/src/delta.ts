@@ -1661,25 +1661,18 @@ export default class delta extends Exchange {
             limitValue = limit; // max 2000
             windowSeconds = limit * duration;
         }
-        let until = this.safeIntegerProduct (params, 'until', 0.001);
-        const untilIsDefined = until !== undefined;
-        if (untilIsDefined) {
-            until = this.parseToInt (until);
-        }
+        const until: Int = this.safeIntegerProduct (params, 'until', 0.001);
         if (since === undefined) {
             let end: Int = this.seconds ();
-            if (untilIsDefined) {
+            if (until !== undefined) {
                 end = this.parseToInt (until);
             }
             request['end'] = end;
-            if (end === undefined) {
-                throw new ExchangeError (this.id + ' fetchOHLCV() missing end');
-            }
             request['start'] = end - windowSeconds;
         } else {
             const start = this.parseToInt (since / 1000);
             request['start'] = start;
-            request['end'] = untilIsDefined ? until : this.sum (start, windowSeconds);
+            request['end'] = (until !== undefined) ? until : this.sum (start, windowSeconds);
         }
         const price = this.safeString (params, 'price');
         const marketId = this.safeString (market, 'id', '');
@@ -2371,7 +2364,7 @@ export default class delta extends Exchange {
             request['product_ids'] = market['numericId']; // accepts a comma-separated list of ids
         }
         if (since !== undefined) {
-            request['start_time'] = since.toString () + '000';
+            request['start_time'] = this.numberToString (since * 1000);
         }
         if (limit !== undefined) {
             request['page_size'] = limit;
@@ -2437,7 +2430,7 @@ export default class delta extends Exchange {
             request['product_ids'] = market['numericId']; // accepts a comma-separated list of ids
         }
         if (since !== undefined) {
-            request['start_time'] = since.toString () + '000';
+            request['start_time'] = this.numberToString (since * 1000);
         }
         if (limit !== undefined) {
             request['page_size'] = limit;
@@ -4197,7 +4190,7 @@ export default class delta extends Exchange {
         } else if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.seconds ().toString ();
-            requestHeaders = {
+            const privateHeaders: Dict = {
                 'api-key': this.apiKey,
                 'timestamp': timestamp,
             };
@@ -4211,10 +4204,11 @@ export default class delta extends Exchange {
             } else {
                 requestBody = this.json (query);
                 auth += requestBody;
-                requestHeaders['Content-Type'] = 'application/json';
+                privateHeaders['Content-Type'] = 'application/json';
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            requestHeaders['signature'] = signature;
+            privateHeaders['signature'] = signature;
+            requestHeaders = privateHeaders;
         }
         const bodyResult = requestBody;
         const headersResult = requestHeaders;
