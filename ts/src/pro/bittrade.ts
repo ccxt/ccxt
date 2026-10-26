@@ -139,7 +139,7 @@ export default class bittrade extends bittradeRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         // only supports a limit of 150 at this time
         const marketId = this.safeString (market, 'id', '');
         const messageHash = 'market.' + marketId + '.trade.detail';
@@ -229,7 +229,7 @@ export default class bittrade extends bittradeRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const marketId = this.safeString (market, 'id', '');
         const messageHash = 'market.' + marketId + '.kline.' + interval;
@@ -316,7 +316,7 @@ export default class bittrade extends bittradeRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         // only supports a limit of 150 at this time
         const limitValue: Int = 150;
         const marketId = this.safeString (market, 'id', '');

@@ -1317,7 +1317,7 @@ export default class bittrade extends Exchange {
         //                                 "state": "filled",
         //                         "canceled-at":  0                      }  ] }
         //
-        return this.parseOrders (response['data'], market, since, limit);
+        return this.parseOrders (this.safeList (response, 'data', []), market, since, limit);
     }
 
     /**
@@ -2097,7 +2097,7 @@ export default class bittrade extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0, '');
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         let url = '/';
