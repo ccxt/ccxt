@@ -274,8 +274,8 @@ export default class zaif extends Exchange {
             throw new ExchangeError (this.id + ' parseMarket() missing name');
         }
         const nameParts = name.split ('/');
-        const baseId = nameParts[0];
-        const quoteId = nameParts[1];
+        const baseId = this.safeString (nameParts, 0);
+        const quoteId = this.safeString (nameParts, 1);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         if ((base === undefined) || (quote === undefined)) {
@@ -849,8 +849,7 @@ export default class zaif extends Exchange {
     }
 
     customNonce (): string {
-        const num = this.numberToString (this.milliseconds () / 1000);
-        const nonce = parseFloat (num);
+        const nonce: number = this.milliseconds () / 1000;
         return nonce.toFixed (8);
     }
 
