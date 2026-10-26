@@ -2066,7 +2066,7 @@ export default class paradex extends Exchange {
         }
         const clientOrderIds = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const paramsOmitted: Dict = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
-        const hasOrderIds = (ids !== undefined) && (Array.isArray (ids));
+        const hasOrderIds = Array.isArray (ids);
         const hasClientOrderIds = (clientOrderIds !== undefined) && (Array.isArray (clientOrderIds));
         if (!hasOrderIds && !hasClientOrderIds) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter');
@@ -3443,7 +3443,7 @@ export default class paradex extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0);
         let version = this.version;
         let pathValue: any = path;
         if (path.indexOf ('v2/') === 0) {
@@ -3478,7 +3478,7 @@ export default class paradex extends Exchange {
                 privateHeaders['PARADEX-ETHEREUM-ACCOUNT'] = this.walletAddress;
                 privateHeaders['PARADEX-STARKNET-ACCOUNT'] = this.safeString (query, 'account');
                 privateHeaders['PARADEX-STARKNET-SIGNATURE'] = this.safeString (query, 'signature');
-                privateHeaders['PARADEX-TIMESTAMP'] = this.nonce ().toString ();
+                privateHeaders['PARADEX-TIMESTAMP'] = this.numberToString (this.nonce ());
                 privateHeaders['Content-Type'] = 'application/json';
                 privateBody = this.json ({
                     'public_key': this.safeString (query, 'public_key'),
