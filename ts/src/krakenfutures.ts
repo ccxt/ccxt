@@ -1584,7 +1584,7 @@ export default class krakenfutures extends Exchange {
             }
         } else {
             for (let i = 0; i < ids.length; i++) {
-                orders.push ({ 'order': 'cancel', 'order_id': ids[i] });
+                orders.push ({ 'order': 'cancel', 'order_id': this.safeString (ids, i) });
             }
         }
         const request: Dict = {
@@ -3830,7 +3830,7 @@ export default class krakenfutures extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0, '');
         const apiVersions = this.safeDict (this.options['versions'], apiName, {});
         const methodVersions = this.safeDict (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.version);
