@@ -790,7 +790,7 @@ export default class derive extends Exchange {
     async getMarketsPaginated (request: Dict, params: Dict = {}): Promise<Dict[]> {
         let allInstruments: Dict[] = [];
         const [ maxPages, paramsMaxPages ] = this.handleOptionIntegerAndParams (params, 'getMarketsPaginated', 'maxMarketPages', 25);
-        const [ pageSize, paramsOmitted ] = this.handleOptionAndParams (paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000);
+        const [ pageSize, paramsOmitted ] = this.handleOptionIntegerAndParams (paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000);
         for (let i = 0; i < maxPages; i++) {
             const page = i + 1;
             const requestExtension: Dict = {
@@ -1594,7 +1594,7 @@ export default class derive extends Exchange {
         // todo: check active spot markets after launch of v3
         const market = this.market (symbol);
         const period = this.safeString (this.timeframes, timeframe, timeframe);
-        const [ priceType, paramsPrice ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'price');
+        const [ priceType, paramsPrice ] = this.handleOptionStringAndParams (params, 'fetchOHLCV', 'price');
         const until = this.safeInteger (paramsPrice, 'until');
         const paramsOmitted: Dict = this.omit (paramsPrice, [ 'until' ]);
         const duration = this.parseTimeframe (timeframe);

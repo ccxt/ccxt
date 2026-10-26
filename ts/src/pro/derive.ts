@@ -608,8 +608,9 @@ export default class derive extends deriveRest {
         const subaccountIdString = this.numberToString (subaccountId) as string;
         const topic = subaccountIdString + '.orders';
         let messageHash = topic;
-        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
-        if (symbolResolved !== undefined) {
+        let symbolResolved: Str = undefined;
+        if (symbol !== undefined) {
+            symbolResolved = this.symbol (symbol);
             messageHash += ':' + symbolResolved;
         }
         const request: Dict = {
@@ -767,8 +768,9 @@ export default class derive extends deriveRest {
         const subaccountIdString = this.numberToString (subaccountId) as string;
         const topic = subaccountIdString + '.trades';
         let messageHash = topic;
-        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
-        if (symbolResolved !== undefined) {
+        let symbolResolved: Str = undefined;
+        if (symbol !== undefined) {
+            symbolResolved = this.symbol (symbol);
             messageHash += ':' + symbolResolved;
         }
         const request: Dict = {
