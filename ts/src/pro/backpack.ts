@@ -314,7 +314,7 @@ export default class backpack extends backpackRest {
             } else if (messageHash.indexOf ('orders') >= 0) {
                 if (messageHash === 'unsubscribe:orders') {
                     const cache = this.orders as Dict;
-                    if (cache !== undefined) {
+                    if (this.orders !== undefined) {
                         const keys = Object.keys (cache);
                         for (let j = 0; j < keys.length; j++) {
                             const symbol = keys[j];
@@ -324,14 +324,13 @@ export default class backpack extends backpackRest {
                 } else {
                     const symbol = messageHash.replace ('unsubscribe:orders:', '');
                     const cache = this.orders as Dict;
-                    if ((cache !== undefined) && (symbol in cache)) {
+                    if ((this.orders !== undefined) && (symbol in cache)) {
                         delete cache[symbol];
                     }
                 }
             } else if (messageHash.indexOf ('positions') >= 0) {
                 if (messageHash === 'unsubscribe:positions') {
-                    const cache: ArrayCacheBySymbolById = this.positions;
-                    const keys = Object.keys (cache);
+                    const keys = Object.keys (this.positions);
                     for (let j = 0; j < keys.length; j++) {
                         const symbol = keys[j];
                         delete this.positions[symbol];
@@ -729,7 +728,7 @@ export default class backpack extends backpackRest {
         }
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+        for (let i = 0; i < symbolsLength; i++) {
             const symbolAndTimeframe = this.safeList (symbolsAndTimeframes, i);
             const marketId = this.safeString (symbolAndTimeframe, 0);
             const market = this.market (marketId);
@@ -769,7 +768,7 @@ export default class backpack extends backpackRest {
         }
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+        for (let i = 0; i < symbolsLength; i++) {
             const symbolAndTimeframe = this.safeList (symbolsAndTimeframes, i);
             const marketId = this.safeString (symbolAndTimeframe, 0);
             const market = this.market (marketId);

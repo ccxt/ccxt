@@ -1413,8 +1413,10 @@ export default class backpack extends Exchange {
         if (symbols !== undefined) {
             symbolsLength = symbols.length;
         }
-        const symbolsNormalized = (symbolsLength === 0) ? undefined : this.marketSymbols (symbols, undefined, false);
-        const symbolsResolved: Strings = (symbolsNormalized === undefined) ? Object.keys (this.markets as Dict) : symbolsNormalized;
+        let symbolsResolved: string[] = Object.keys (this.markets as Dict);
+        if (symbolsLength !== 0) {
+            symbolsResolved = this.marketSymbols (symbols, undefined, false);
+        }
         let hasRfqSymbol = false;
         let hasStockSymbol = false;
         if (symbols !== undefined) {
@@ -3455,12 +3457,13 @@ export default class backpack extends Exchange {
 
     generateBatchPayload (params: any, ts: string, recvWindow: string, instruction: string): string {
         let payload = '';
-        for (let i = 0; i < params.length; i++) {
+        const paramsLength = params.length;
+        for (let i = 0; i < paramsLength; i++) {
             const order = this.safeDict (params, i, {});
             const sortedOrder = this.keysort (order);
             const orderQuery = this.urlencode (sortedOrder);
             payload += 'instruction=' + instruction + '&' + orderQuery + '&';
-            if (i === (params.length - 1)) {
+            if (i === (paramsLength - 1)) {
                 payload += 'timestamp=' + ts + '&window=' + recvWindow;
             }
         }
