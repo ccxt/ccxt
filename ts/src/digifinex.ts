@@ -772,7 +772,9 @@ export default class digifinex extends Exchange {
             if (id === undefined) {
                 throw new ExchangeError (this.id + ' fetchMarketsV1() missing id');
             }
-            const [ baseId, quoteId ] = id.split ('_');
+            const idParts = id.split ('_');
+            const baseId = this.safeString (idParts, 0);
+            const quoteId = this.safeString (idParts, 1);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             if ((base === undefined) || (quote === undefined)) {
@@ -1107,7 +1109,7 @@ export default class digifinex extends Exchange {
         for (let i = 0; i < tickers.length; i++) {
             const rawTicker = this.extend ({
                 'date': date,
-            }, tickers[i]);
+            }, this.safeValue (tickers, i));
             const ticker = this.parseTicker (rawTicker);
             const symbol = ticker['symbol'];
             if (symbol !== undefined) {
@@ -1832,7 +1834,7 @@ export default class digifinex extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);
             const individualOrder: Dict = {};
-            individualOrder['order_id'] = data[i];
+            individualOrder['order_id'] = this.safeValue (data, i);
             individualOrder['instrument_id'] = market['id'];
             individualOrder['amount'] = this.safeNumber (rawOrder, 'amount');
             individualOrder['price'] = this.safeNumber (rawOrder, 'price');
@@ -1999,7 +2001,7 @@ export default class digifinex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const idValue: string = id.toString ();
+        const idValue = this.numberToString (id);
         let marketType: Str = undefined;
         let paramsMarketType = undefined;
         [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
@@ -2117,9 +2119,8 @@ export default class digifinex extends Exchange {
             const marketSymbol = market['symbol'];
             const orders: CancellationRequest[] = [];
             for (let i = 0; i < ids.length; i++) {
-                const orderId = ids[i];
                 const orderItem: CancellationRequest = {
-                    'id': orderId,
+                    'id': this.safeString (ids, i, ''),
                     'symbol': marketSymbol,
                 };
                 orders.push (orderItem);
