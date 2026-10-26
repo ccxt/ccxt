@@ -1001,7 +1001,7 @@ export default class pacifica extends Exchange {
         const settingsBySymbol: Dict = {};
         for (let i = 0; i < settingsLen; i++) {
             const setting = settings[i];
-            const marketId = setting['symbol'];
+            const marketId = this.safeString (setting, 'symbol');
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             settingsBySymbol[symbol] = setting;
@@ -1880,7 +1880,7 @@ export default class pacifica extends Exchange {
     cancelOrdersRequest (ids: Str[], symbol: Str = undefined, params: Dict = {}): Dict {
         const actions: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id = this.safeString (ids, i);
             const request = this.cancelOrderRequest (id, symbol, params);
             const action: Dict = {
                 'type': 'Cancel',
@@ -2782,7 +2782,10 @@ export default class pacifica extends Exchange {
         const symbol = marketResolved['symbol'];
         const margin = this.safeString (position, 'margin');
         const rawIsolated = this.safeBool (position, 'isolated');
-        const isIsolated: Bool = (rawIsolated !== undefined) ? rawIsolated : (margin !== undefined && margin !== '0');
+        let isIsolated: boolean = (margin !== undefined) && (margin !== '0');
+        if (rawIsolated !== undefined) {
+            isIsolated = (rawIsolated === true);
+        }
         const marginMode = isIsolated ? 'isolated' : 'cross';
         let side = this.safeString (position, 'side');
         if (side !== undefined) {
@@ -3707,7 +3710,7 @@ export default class pacifica extends Exchange {
         if (isTestnet) {
             urlKey = 'test';
         }
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0, '');
         const baseApiUrl = this.safeString (this.urls[urlKey], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
@@ -3755,7 +3758,7 @@ export default class pacifica extends Exchange {
             const keys = Object.keys (value);
             const sortedKeys: string[] = this.sort (keys);
             for (let i = 0; i < sortedKeys.length; i++) {
-                const key = sortedKeys[i];
+                const key = this.safeString (sortedKeys, i, '');
                 result[key] = this.sortJsonKeys (value[key]);
             }
             return result;
@@ -3793,7 +3796,7 @@ export default class pacifica extends Exchange {
         return signatureBase58;
     }
 
-    postActionRequest (operationType: Str, sigPayload: Dict, params: Dict): Dict {
+    postActionRequest (operationType: string, sigPayload: Dict, params: Dict): Dict {
         this.checkRequiredCredentials (); // check credentials every post action
         if (operationType === 'undefined') {
             throw new ArgumentsRequired (this.id + ' action: ' + operationType + ' postActionRequest() requires "operationType"');
