@@ -7751,7 +7751,10 @@ export default class binance extends Exchange {
         [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'fetchOrder', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = this.safeBool (market, 'stock', false);
+            stock = false;
+            if (this.safeBool (market, 'stock', false)) {
+                stock = true;
+            }
             if (!stock) {
                 request['symbol'] = market['id'];
             }
@@ -8229,7 +8232,10 @@ export default class binance extends Exchange {
         [ stock, paramsMarginMode ] = this.handleOptionBoolAndParams (paramsMarginMode, 'fetchOpenOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = this.safeBool (market, 'stock', false);
+            stock = false;
+            if (this.safeBool (market, 'stock', false)) {
+                stock = true;
+            }
             if (!stock) {
                 request['symbol'] = market['id'];
             }
@@ -8703,7 +8709,10 @@ export default class binance extends Exchange {
         [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'cancelOrder', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = this.safeBool (market, 'stock', false);
+            stock = false;
+            if (this.safeBool (market, 'stock', false)) {
+                stock = true;
+            }
             if (!stock) {
                 request['symbol'] = market['id'];
             }
@@ -8837,7 +8846,10 @@ export default class binance extends Exchange {
         [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'cancelAllOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = this.safeBool (market, 'stock', false);
+            stock = false;
+            if (this.safeBool (market, 'stock', false)) {
+                stock = true;
+            }
             if (!stock) {
                 request['symbol'] = market['id'];
             }
@@ -14415,7 +14427,7 @@ export default class binance extends Exchange {
         const request: Dict = {};
         if (market['option'] === true) {
             request['underlyingAsset'] = market['baseId'];
-            if (market['expiry'] === undefined) {
+            if (this.safeInteger (market, 'expiry') === undefined) {
                 throw new NotSupported (this.id + ' fetchOpenInterest does not support ' + symbol);
             }
             request['expiration'] = this.yymmdd (market['expiry']);
