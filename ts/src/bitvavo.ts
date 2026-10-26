@@ -474,9 +474,6 @@ export default class bitvavo extends Exchange {
 
     override parseMarkets (markets: any) {
         const result: Market[] = [];
-        const tradingFees: Dict = this.safeDict (this.fees, 'trading', {});
-        const taker = this.safeNumber (tradingFees, 'taker');
-        const maker = this.safeNumber (tradingFees, 'maker');
         for (let i = 0; i < markets.length; i++) {
             const market = this.safeDict (markets, i);
             const id = this.safeString (market, 'market');
@@ -512,8 +509,8 @@ export default class bitvavo extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'taker': taker,
-                'maker': maker,
+                'taker': this.safeNumber (this.fees['trading'], 'taker'),
+                'maker': this.safeNumber (this.fees['trading'], 'maker'),
                 'precision': {
                     'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityDecimals'))),
                     'price': this.safeNumber (market, 'tickSize'),
