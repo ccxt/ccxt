@@ -1152,7 +1152,7 @@ export default class bitso extends Exchange {
         // convert it to an integer unconditionally
         let paramsMarker: Dict = params;
         if (markerInParams) {
-            paramsMarker = this.extend (params, { 'marker': parseInt (params['marker']) });
+            paramsMarker = this.extend (params, { 'marker': this.parseToInt (params['marker']) });
         }
         const request: Dict = {
             'book': market['id'],
@@ -1385,7 +1385,7 @@ export default class bitso extends Exchange {
         // convert it to an integer unconditionally
         let paramsMarker: Dict = params;
         if (markerInParams) {
-            paramsMarker = this.extend (params, { 'marker': parseInt (params['marker']) });
+            paramsMarker = this.extend (params, { 'marker': this.parseToInt (params['marker']) });
         }
         const request: Dict = {
             'book': market['id'],
