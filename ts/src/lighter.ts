@@ -629,7 +629,7 @@ export default class lighter extends Exchange {
     signL1AndPrepareTxInfo (txInfo: string, message: string, privateKey: string): string {
         const hashMessage = this.hashMessage (message);
         const signature = this.signHash (hashMessage, privateKey);
-        const decTxInfo: Dict = this.parseJson (txInfo);
+        const decTxInfo: Dict = this.extend ({}, this.parseJson (txInfo));
         decTxInfo['L1Sig'] = signature;
         return this.json (decTxInfo);
     }
@@ -1258,7 +1258,8 @@ export default class lighter extends Exchange {
             const marketSymbol = this.safeString (market, 'symbol');
             let baseId = marketSymbol;
             if (marketSymbol !== undefined && marketSymbol.indexOf ('/') !== -1) {
-                baseId = marketSymbol.split ('/')[0];
+                const symbolParts = marketSymbol.split ('/');
+                baseId = symbolParts[0];
             }
             const quoteId = 'USDC';
             const settleId = (type === 'swap') ? 'USDC' : undefined;
@@ -1907,7 +1908,7 @@ export default class lighter extends Exchange {
                     const asset = this.safeDict (assets, j);
                     const codeId = this.safeString (asset, 'symbol');
                     const code = this.safeCurrencyCode (codeId);
-                    const balance = this.safeDict (result, code, this.account ());
+                    const balance = this.extend (this.account (), this.safeDict (result, code, {}));
                     balance['total'] = Precise.stringAdd (balance['total'], this.safeString (asset, 'balance'));
                     balance['used'] = Precise.stringAdd (balance['used'], this.safeString (asset, 'locked_balance'));
                     if (code !== undefined) {
@@ -1915,7 +1916,7 @@ export default class lighter extends Exchange {
                     }
                 }
             } else {
-                const perpBalance = this.safeDict (result, 'USDC', this.account ());
+                const perpBalance = this.extend (this.account (), this.safeDict (result, 'USDC', {}));
                 const perpTotal = this.safeString (perpBalance, 'total', '0');
                 const perpFree = this.safeString (perpBalance, 'free', '0');
                 const perpUSDCTotal = this.safeString (account, 'collateral', '0');
