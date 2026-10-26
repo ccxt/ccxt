@@ -1770,7 +1770,7 @@ export default class okx extends Exchange {
         const promises: List = [];
         let result: List = [];
         for (let i = 0; i < types.length; i++) {
-            promises.push (this.fetchMarketsByType (types[i], params));
+            promises.push (this.fetchMarketsByType (this.safeString (types, i, ''), params));
         }
         const responses = await Promise.all (promises);
         for (let i = 0; i < responses.length; i++) {
@@ -6853,7 +6853,7 @@ export default class okx extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0);
         const isArray = Array.isArray (params);
         const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -7198,7 +7198,7 @@ export default class okx extends Exchange {
             // "limit": "100", // default 100, max 100
         };
         if (limit !== undefined) {
-            request['limit'] = limit.toString (); // default 100, max 100
+            request['limit'] = this.numberToString (limit); // default 100, max 100
         }
         let market: Market = undefined;
         if (symbol !== undefined) {

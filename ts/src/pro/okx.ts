@@ -741,7 +741,7 @@ export default class okx extends okxRest {
         const data = this.safeList (message, 'data', []);
         const ticker = this.safeDict (data, 0, {});
         const parsedTicker = this.parseWsBidAsk (ticker, market);
-        const symbol = parsedTicker['symbol'];
+        const symbol = this.safeString (parsedTicker, 'symbol');
         if (symbol !== undefined) {
             this.bidsasks[symbol] = parsedTicker;
         }
@@ -1334,7 +1334,7 @@ export default class okx extends okxRest {
             if (this.safeString (client.subscriptions, messageHashes[i]) === 'resync') {
                 // okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
                 resyncTopics.push (topics[i]);
-                resyncHashes.push ('unsubscribe:orderbook:' + symbolsNormalized[i]);
+                resyncHashes.push ('unsubscribe:orderbook:' + this.safeString (symbolsNormalized, i, ''));
                 resyncNeeded = true;
             }
         }
@@ -2281,7 +2281,7 @@ export default class okx extends okxRest {
             const rawTrade = filteredOrders[i];
             const trade = this.orderToTrade (rawTrade);
             myTrades.append (trade);
-            const symbol = trade['symbol'];
+            const symbol = this.safeString (trade, 'symbol');
             if (symbol !== undefined) {
                 symbols[symbol] = true;
             }
