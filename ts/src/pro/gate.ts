@@ -1152,13 +1152,19 @@ export default class gate extends gateRest {
         };
         // mirrors the subscription shape base cleanCache() expects for ohlcv
         // (same pattern as binance unWatchOHLCVForSymbols), so the ohlcvs
-        // cache entry is dropped when the unsubscribe is acknowledged
+        // cache entry is dropped when the unsubscribe is acknowledged;
+        // handleOHLCV keys the cache by findTimeframe (interval), so the
+        // exchange interval id is mapped back to the cache key here -
+        // this matters for aliased timeframes such as gate's '1w': '7d';
+        // an unsupported timeframe falls back to the caller's key, matching
+        // the previous no-op cleanup instead of an undefined cache key
+        const cacheTimeframe = this.findTimeframe (interval);
         const subscription: Dict = {
             'id': requestId.toString (),
             'topic': 'ohlcv',
             'unsubscribe': true,
             'symbols': [ symbolValue ],
-            'symbolsAndTimeframes': [ [ symbolValue, timeframe ] ],
+            'symbolsAndTimeframes': [ [ symbolValue, (cacheTimeframe !== undefined) ? cacheTimeframe : timeframe ] ],
             'messageHashes': [ messageHash ],
             'subMessageHashes': [ subMessageHash ],
         };
