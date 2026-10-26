@@ -2082,14 +2082,19 @@ export default class kraken extends Exchange {
         let fee: NullableDict = undefined;
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         // const cost = this.safeString (order, 'cost');
-        price = this.safeString (description, 'price', price);
+        // the guarded write keeps `price` a proven string local: a defaulted safeString returns `any`
+        if (this.safeString (description, 'price') !== undefined) {
+            price = this.safeString (description, 'price');
+        }
         // when type = trailing stop returns price = '+50.0000%'
         if ((price !== undefined) && (price.endsWith ('%') || Precise.stringEquals (price, '0.00000') || Precise.stringEquals (price, '0'))) {
             price = undefined; // this is not the price we want
         }
         if (price === undefined) {
             price = this.safeString (description, 'price2');
-            price = this.safeString2 (orderOmitted, 'limitprice', 'price', price);
+            if (this.safeString2 (orderOmitted, 'limitprice', 'price') !== undefined) {
+                price = this.safeString2 (orderOmitted, 'limitprice', 'price');
+            }
         }
         const flags = this.safeString (orderOmitted, 'oflags', '');
         let isPostOnly: Bool = flags.indexOf ('post') > -1;
@@ -2136,10 +2141,16 @@ export default class kraken extends Exchange {
         if (rawType !== undefined) {
             if (rawType.startsWith ('take-profit')) {
                 takeProfitPrice = this.safeString (description, 'price');
-                price = this.omitZero (this.safeString (description, 'price2'));
+                price = this.safeString (description, 'price2');
+                if ((price !== undefined) && ((price === '') || Precise.stringEquals (price, '0'))) {
+                    price = undefined; // kraken pads an absent price with zeros, so the omit-zero rule applies
+                }
             } else if (rawType.startsWith ('stop-loss')) {
                 stopLossPrice = this.safeString (description, 'price');
-                price = this.omitZero (this.safeString (description, 'price2'));
+                price = this.safeString (description, 'price2');
+                if ((price !== undefined) && ((price === '') || Precise.stringEquals (price, '0'))) {
+                    price = undefined; // kraken pads an absent price with zeros, so the omit-zero rule applies
+                }
             } else if (rawType === 'take profit') {
                 takeProfitPrice = triggerPrice;
             } else if (rawType === 'stop loss') {
