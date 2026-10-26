@@ -1375,24 +1375,26 @@ export default class p2b extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0);
         const baseApiUrl = this.safeString (this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         const baseUrl: string = baseApiUrl;
         let url = baseUrl + '/' + this.implodeParams (path, params);
-        const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
+        let paramsOmitted: Dict = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
             if (Object.keys (paramsOmitted).length > 0) {
                 url += '?' + this.urlencode (paramsOmitted);
             }
         }
         if (apiName === 'private') {
-            paramsOmitted['request'] = '/api/v2/' + path;
             // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
-            paramsOmitted['nonce'] = this.incrementingNonce ().toString ();
+            paramsOmitted = this.extend (paramsOmitted, {
+                'request': '/api/v2/' + path,
+                'nonce': this.incrementingNonce ().toString (),
+            });
             const payload = this.stringToBase64 (this.json (paramsOmitted));  // Body json encoded in base64
             const headersSigned: NullableDict = {
                 'Content-Type': 'application/json',
