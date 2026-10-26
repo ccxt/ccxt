@@ -1116,8 +1116,8 @@ export default class bitstamp extends Exchange {
             throw new ExchangeError (this.id + ' getMarketFromTrade() too many keys: ' + this.json (currencyIds) + ' in the trade: ' + this.json (tradeOmitted));
         }
         if (numCurrencyIds === 2) {
-            const firstCurrencyId: string = currencyIds[0];
-            const secondCurrencyId: string = currencyIds[1];
+            const firstCurrencyId = this.safeString (currencyIds, 0, '');
+            const secondCurrencyId = this.safeString (currencyIds, 1, '');
             let marketId = firstCurrencyId + secondCurrencyId;
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 return this.safeMarket (marketId);
@@ -2412,8 +2412,9 @@ export default class bitstamp extends Exchange {
             let market: Market = undefined;
             const keys = Object.keys (item);
             for (let i = 0; i < keys.length; i++) {
-                if (keys[i].indexOf ('_') >= 0) {
-                    const marketId = keys[i].replace ('_', '');
+                const currentKey: string = keys[i];
+                if (currentKey.indexOf ('_') >= 0) {
+                    const marketId = currentKey.replace ('_', '');
                     market = this.safeMarket (marketId, market);
                 }
             }
@@ -2778,7 +2779,7 @@ export default class bitstamp extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0, '');
         const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
@@ -2822,8 +2823,8 @@ export default class bitstamp extends Exchange {
                 privateHeaders['Content-Type'] = contentType;
             }
             let authBody = '';
-            if (requestBody !== undefined && requestBody !== '') {
-                authBody = requestBody;
+            if (isPrivatePost && postBody !== '') {
+                authBody = postBody;
             }
             const auth = xAuth + method + url.replace ('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
