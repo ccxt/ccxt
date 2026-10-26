@@ -169,7 +169,8 @@ export default class backpack extends backpackRest {
                     const quoteChannel = (source === 'External') ? 'stockPrice' : 'stockIndicativeQuote';
                     topic = quoteChannel + '.' + ticker;
                 } else {
-                    topic = 'bookTicker.' + this.wsVenueMarketId (methodName, market, query);
+                    this.wsVenueMarketId (methodName, market, query);
+                    topic = 'bookTicker.' + this.safeString (market, 'id', '');
                 }
             } else if (source === 'External') {
                 const externalBaseId = this.safeString (market, 'baseId', '');
@@ -734,7 +735,8 @@ export default class backpack extends backpackRest {
             const market = this.market (marketId);
             const tf = this.safeString (symbolAndTimeframe, 1);
             const interval = this.safeString (this.timeframes, tf, tf);
-            topics.push ('kline.' + interval + '.' + this.wsVenueMarketId ('watchOHLCVForSymbols', market, query));
+            this.wsVenueMarketId ('watchOHLCVForSymbols', market, query);
+            topics.push ('kline.' + interval + '.' + this.safeString (market, 'id', ''));
             messageHashes.push ('candles:' + market['symbol'] + ':' + interval);
         }
         const [ symbol, timeframe, candles ] = await this.watchPublic (topics, messageHashes, this.omit (query, [ 'stock', 'source' ]));
@@ -774,7 +776,8 @@ export default class backpack extends backpackRest {
             const market = this.market (marketId);
             const tf = this.safeString (symbolAndTimeframe, 1);
             const interval = this.safeString (this.timeframes, tf, tf);
-            topics.push ('kline.' + interval + '.' + this.wsVenueMarketId ('watchOHLCVForSymbols', market, query));
+            this.wsVenueMarketId ('watchOHLCVForSymbols', market, query);
+            topics.push ('kline.' + interval + '.' + this.safeString (market, 'id', ''));
             messageHashes.push ('unsubscribe:candles:' + market['symbol'] + ':' + interval);
         }
         return await this.watchPublic (topics, messageHashes, this.omit (query, [ 'stock', 'source' ]), true);
@@ -1277,7 +1280,7 @@ export default class backpack extends backpackRest {
             if (this.safeString (market, 'executionModel') === 'rfq') {
                 topic = 'account.rfqUpdate.' + this.safeString (market, 'id', '');
             }
-            messageHash = 'orders:' + symbolResolved;
+            messageHash = 'orders:' + this.safeString (market, 'symbol', '');
         }
         const topics = [ topic ];
         if (market === undefined) {
@@ -1822,7 +1825,7 @@ export default class backpack extends backpackRest {
         const code = this.safeInteger (error, 'code');
         try {
             if (code !== undefined) {
-                const msg = this.safeString (error, 'message');
+                const msg = this.safeString (error, 'message', '');
                 throw new ExchangeError (this.id + ' ' + msg);
             }
             return true;
