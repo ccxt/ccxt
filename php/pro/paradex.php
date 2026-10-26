@@ -140,12 +140,10 @@ class paradex extends \ccxt\async\paradex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $messageHash = 'trades.';
+        $messageHash = 'trades.ALL';
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $messageHash .= $market['id'];
-        } else {
-            $messageHash .= 'ALL';
+            $messageHash = 'trades.' . $market['id'];
         }
         $url = $this->get_ws_url();
         $request = array(
@@ -403,14 +401,12 @@ class paradex extends \ccxt\async\paradex {
         }
         Async\await($this->authenticate());
         $messageHash = 'orders';
-        $channel = 'orders.';
+        $channel = 'orders.ALL';
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $channel .= $market['id'];
-            $messageHash .= ':' . $symbolResolved;
-        } else {
-            $channel .= 'ALL';
+            $channel = 'orders.' . $market['id'];
+            $messageHash = 'orders:' . $symbolResolved;
         }
         $url = $this->get_ws_url();
         $request = array(
@@ -494,14 +490,12 @@ class paradex extends \ccxt\async\paradex {
         }
         Async\await($this->authenticate());
         $messageHash = 'myTrades';
-        $channel = 'fills.';
+        $channel = 'fills.ALL';
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $channel .= $market['id'];
-            $messageHash .= ':' . $symbolResolved;
-        } else {
-            $channel .= 'ALL';
+            $channel = 'fills.' . $market['id'];
+            $messageHash = 'myTrades:' . $symbolResolved;
         }
         $url = $this->get_ws_url();
         $request = array(
@@ -914,7 +908,7 @@ class paradex extends \ccxt\async\paradex {
         $params = $this->safe_dict($message, 'params', array());
         $data = $this->safe_dict($params, 'data', array());
         $fundingRate = $this->parse_funding_rate_ws($data);
-        $symbol = $fundingRate['symbol'];
+        $symbol = $this->safe_string($fundingRate, 'symbol');
         $this->fundingRates[$symbol] = $fundingRate;
         $channel = $this->safe_string($params, 'channel');
         // watchFundingRates without symbols waits on the bare channel
@@ -994,12 +988,12 @@ class paradex extends \ccxt\async\paradex {
         if ($templateId === 1) {
             $data = $this->parse_sbe_trade($frameHex, $blockLength, $frameLength);
             if ($data !== null) {
-                $channel = 'trades.' . $data['market'];
+                $channel = 'trades.' . $this->safe_string($data, 'market');
             }
         } elseif ($templateId === 3) {
             $data = $this->parse_sbe_order_book($frameHex, $blockLength, $frameLength);
             if ($data !== null) {
-                $channel = $this->get_order_book_channel($data['market']);
+                $channel = $this->get_order_book_channel($this->safe_string($data, 'market'));
             }
         } elseif ($templateId === 4) {
             $data = $this->parse_sbe_market_summary($frameHex, $blockLength, $frameLength);
@@ -1010,12 +1004,12 @@ class paradex extends \ccxt\async\paradex {
         } elseif ($templateId === 20) {
             $data = $this->parse_sbe_order($frameHex, $blockLength, $frameLength);
             if ($data !== null) {
-                $channel = 'orders.' . $data['market'];
+                $channel = 'orders.' . $this->safe_string($data, 'market');
             }
         } elseif ($templateId === 21) {
             $data = $this->parse_sbe_fill($frameHex, $blockLength, $frameLength);
             if ($data !== null) {
-                $channel = 'fills.' . $data['market'];
+                $channel = 'fills.' . $this->safe_string($data, 'market');
             }
         } elseif ($templateId === 22) {
             $data = $this->parse_sbe_position($frameHex, $blockLength, $frameLength);
@@ -1124,10 +1118,11 @@ class paradex extends \ccxt\async\paradex {
         return '0x' . mb_substr($raw, $start, 64 - $start);
     }
 
-    public function sbe_read_var_strings(string $frameHex, float $offset, float $count, float $frameLength): mixed {
-        // the var-data section: count strings, each prefixed with a uint8 length. Returns undefined
+    public function sbe_read_var_strings(string $frameHex, float $offset, float $count, float $frameLength): array {
+        // the var-data section: count strings, each prefixed with a uint8 length. Returns an empty list
         // when the frame ends before all of them, and only the strings present when a trailing one is
-        // absent, which is how a field appended to var-data reads on a frame from before it
+        // absent, which is how a field appended to var-data reads on a frame from before it.
+        // Every caller guards on the count it needs, so an empty list and a short one read alike
         $result = array();
         $end = $this->parse_to_int($frameLength);
         $total = $this->parse_to_int($count);
@@ -1139,7 +1134,7 @@ class paradex extends \ccxt\async\paradex {
             $length = $this->parse_to_int($this->sbe_read_uint($frameHex, $position, 1));
             $next = $this->parse_to_int($this->sum($position, 1, $length));
             if ($next > $end) {
-                return null;
+                return array();
             }
             $result[] = $this->sbe_read_string($frameHex, $position + 1, $length);
             $position = $next;
@@ -1159,7 +1154,7 @@ class paradex extends \ccxt\async\paradex {
             return null;
         }
         $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 2, $frameLength);
-        $stringsLength = ($strings === null) ? 0 : count($strings);
+        $stringsLength = count($strings);
         if ($stringsLength < 1) {
             return null;
         }
@@ -1168,7 +1163,7 @@ class paradex extends \ccxt\async\paradex {
         return array(
             // the full trade id, absent only on frames that predate it, the int64 tradeId cannot hold it
             'id' => $this->safe_string($strings, 1),
-            'market' => $strings[0],
+            'market' => $this->safe_string($strings, 0),
             'side' => $this->sbe_read_enum($frameHex, 32, $sides),
             'size' => $this->sbe_read_decimal($frameHex, 41),
             'price' => $this->sbe_read_decimal($frameHex, 33),
@@ -1217,13 +1212,13 @@ class paradex extends \ccxt\async\paradex {
             }
         }
         $strings = $this->sbe_read_var_strings($frameHex, $position, 1, $frameLength);
-        $stringsLength = ($strings === null) ? 0 : count($strings);
+        $stringsLength = count($strings);
         if ($stringsLength < 1) {
             return null;
         }
         return array(
             'seq_no' => $this->sbe_read_int64($frameHex, 16),
-            'market' => $strings[0],
+            'market' => $this->safe_string($strings, 0),
             'last_updated_at' => $this->sbe_read_timestamp($frameHex, 8),
             'update_type' => 's',
             'inserts' => $inserts,
@@ -1246,7 +1241,7 @@ class paradex extends \ccxt\async\paradex {
             return null;
         }
         $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 1, $frameLength);
-        $stringsLength = ($strings === null) ? 0 : count($strings);
+        $stringsLength = count($strings);
         if ($stringsLength < 1) {
             return null;
         }
@@ -1256,7 +1251,7 @@ class paradex extends \ccxt\async\paradex {
             $settlementTwapEstimate = $this->sbe_read_decimal($frameHex, 248);
         }
         return array(
-            'symbol' => $strings[0],
+            'symbol' => $this->safe_string($strings, 0),
             'mark_price' => $this->sbe_read_decimal($frameHex, 24),
             'last_traded_price' => $this->sbe_read_decimal($frameHex, 40),
             'bid' => $this->sbe_read_decimal($frameHex, 72),
@@ -1284,12 +1279,12 @@ class paradex extends \ccxt\async\paradex {
             return null;
         }
         $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 1, $frameLength);
-        $stringsLength = ($strings === null) ? 0 : count($strings);
+        $stringsLength = count($strings);
         if ($stringsLength < 1) {
             return null;
         }
         return array(
-            'market' => $strings[0],
+            'market' => $this->safe_string($strings, 0),
             'funding_index' => $this->sbe_read_decimal($frameHex, 32),
             'funding_premium' => $this->sbe_read_decimal($frameHex, 48),
             'funding_rate' => $this->sbe_read_decimal($frameHex, 24),
@@ -1313,7 +1308,7 @@ class paradex extends \ccxt\async\paradex {
             return null;
         }
         $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 4, $frameLength);
-        $stringsLength = ($strings === null) ? 0 : count($strings);
+        $stringsLength = count($strings);
         if ($stringsLength < 4) {
             return null;
         }
@@ -1326,13 +1321,13 @@ class paradex extends \ccxt\async\paradex {
         $order = array(
             'account' => $this->sbe_read_address($frameHex, 84),
             'avg_fill_price' => $this->sbe_read_decimal($frameHex, 60),
-            'client_id' => $strings[1],
+            'client_id' => $this->safe_string($strings, 1),
             'created_at' => $this->sbe_read_timestamp($frameHex, 68),
             'flags' => $flags,
-            'id' => $strings[0],
+            'id' => $this->safe_string($strings, 0),
             'instruction' => $this->sbe_read_enum($frameHex, 27, $timeInForces),
             'last_updated_at' => $this->sbe_read_timestamp($frameHex, 76),
-            'market' => $strings[2],
+            'market' => $this->safe_string($strings, 2),
             'price' => $this->sbe_read_decimal($frameHex, 28),
             'published_at' => $this->sbe_read_timestamp($frameHex, 124),
             'received_at' => $this->sbe_read_timestamp($frameHex, 116),
@@ -1347,8 +1342,9 @@ class paradex extends \ccxt\async\paradex {
             'type' => $this->sbe_read_enum($frameHex, 26, $orderTypes),
         );
         // an empty cancel reason is sent for every live order, parseOrder reads any reason as canceled
-        if ($strings[3] !== '') {
-            $order['cancel_reason'] = $strings[3];
+        $cancelReason = $this->safe_string($strings, 3, '');
+        if ($cancelReason !== '') {
+            $order['cancel_reason'] = $cancelReason;
         }
         return $order;
     }
@@ -1381,7 +1377,7 @@ class paradex extends \ccxt\async\paradex {
             return null;
         }
         $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 6, $frameLength);
-        $stringsLength = ($strings === null) ? 0 : count($strings);
+        $stringsLength = count($strings);
         if ($stringsLength < 5) {
             return null;
         }
@@ -1390,15 +1386,15 @@ class paradex extends \ccxt\async\paradex {
         $liquidities = array( '1' => 'MAKER', '2' => 'TAKER' );
         $fill = array(
             'account' => $this->sbe_read_address($frameHex, 67),
-            'client_id' => $strings[2],
+            'client_id' => $this->safe_string($strings, 2),
             'created_at' => $this->sbe_read_timestamp($frameHex, 59),
             'fee' => $this->sbe_read_decimal($frameHex, 43),
             'fee_currency' => $this->safe_string($strings, 5),
             'fill_type' => $this->sbe_read_enum($frameHex, 24, $fillTypes),
-            'id' => $strings[0],
+            'id' => $this->safe_string($strings, 0),
             'liquidity' => $this->sbe_read_enum($frameHex, 26, $liquidities),
-            'market' => $strings[4],
-            'order_id' => $strings[1],
+            'market' => $this->safe_string($strings, 4),
+            'order_id' => $this->safe_string($strings, 1),
             'price' => $this->sbe_read_decimal($frameHex, 27),
             'realized_funding' => $this->sbe_read_decimal($frameHex, 107),
             'realized_pnl' => $this->sbe_read_decimal($frameHex, 51),
@@ -1429,7 +1425,7 @@ class paradex extends \ccxt\async\paradex {
             return null;
         }
         $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 2, $frameLength);
-        $stringsLength = ($strings === null) ? 0 : count($strings);
+        $stringsLength = count($strings);
         if ($stringsLength < 1) {
             return null;
         }
@@ -1450,12 +1446,12 @@ class paradex extends \ccxt\async\paradex {
             'cost' => $this->sbe_read_decimal($frameHex, 129),
             'cost_usd' => $this->sbe_read_decimal($frameHex, 137),
             // the JSON channel's id, one position per account and market
-            'id' => $account . '-' . $strings[0],
+            'id' => $account . '-' . $this->safe_string($strings, 0),
             'last_fill_id' => $this->safe_string($strings, 1),
             'last_updated_at' => $this->sbe_read_timestamp($frameHex, 81),
             'leverage' => $this->sbe_read_decimal($frameHex, 73),
             'liquidation_price' => $this->sbe_read_decimal($frameHex, 65),
-            'market' => $strings[0],
+            'market' => $this->safe_string($strings, 0),
             'realized_positional_pnl' => $this->sbe_read_decimal($frameHex, 49),
             'seq_no' => $this->sbe_read_int64($frameHex, 16),
             'side' => $side,
@@ -1480,7 +1476,7 @@ class paradex extends \ccxt\async\paradex {
             return null;
         }
         $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 1, $frameLength);
-        $stringsLength = ($strings === null) ? 0 : count($strings);
+        $stringsLength = count($strings);
         if ($stringsLength < 1) {
             return null;
         }
@@ -1493,7 +1489,7 @@ class paradex extends \ccxt\async\paradex {
             'maintenance_margin_requirement' => $this->sbe_read_decimal($frameHex, 48),
             'margin_cushion' => $this->sbe_read_decimal($frameHex, 112),
             'seq_no' => $this->sbe_read_int64($frameHex, 16),
-            'settlement_asset' => $strings[0],
+            'settlement_asset' => $this->safe_string($strings, 0),
             'status' => $this->sbe_read_enum($frameHex, 120, $statuses),
             'total_collateral' => $this->sbe_read_decimal($frameHex, 24),
             'updated_at' => $this->sbe_read_timestamp($frameHex, 72),

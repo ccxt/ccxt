@@ -109,7 +109,7 @@ class mexc extends \ccxt\async\mexc {
         $market = $this->market($symbol);
         $messageHash = 'ticker:' . $market['symbol'];
         if ($market['spot'] === true) {
-            $channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' . $market['id'];
+            $channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' . $this->safe_string($market, 'id', '');
             return Async\await($this->watch_spot_public($channel, $messageHash, $params));
         } else {
             $channel = 'sub.ticker';
@@ -192,7 +192,7 @@ class mexc extends \ccxt\async\mexc {
         $marketId = $this->safe_string_2($message, 's', 'symbol');
         $timestamp = $this->safe_integer_2($message, 't', 'sendTime');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         if ($market['spot'] === true) {
             $this->handle_bid_ask($client, $message); // the bids-asks channel is spot only
             $ticker = $this->parse_ws_ticker($rawTicker, $market);
@@ -363,12 +363,12 @@ class mexc extends \ccxt\async\mexc {
             } else {
                 $ticker = $this->parse_ticker($entry);
             }
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $this->tickers[$symbol] = $ticker;
             }
             $result[] = $ticker;
-            $messageHash = 'ticker:' . $symbol;
+            $messageHash = 'ticker:' . $this->safe_string($ticker, 'symbol', '');
             $client->resolve($ticker, $messageHash);
         }
         $client->resolve($result, $topic);
@@ -466,7 +466,7 @@ class mexc extends \ccxt\async\mexc {
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             if ($isSpot) {
                 $market = $this->market($symbolsNormalized[$i]);
-                $topics[] = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' . $market['id'];
+                $topics[] = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' . $this->safe_string($market, 'id', '');
             }
             $messageHashes[] = 'bidask:' . $symbolsNormalized[$i];
         }
@@ -642,13 +642,13 @@ class mexc extends \ccxt\async\mexc {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $timeframeId = $this->safe_string($timeframes, $timeframe);
         $messageHash = 'candles:' . $symbolValue . ':' . $timeframe;
         $ohlcv = null;
         if ($market['spot'] === true) {
-            $channel = 'spot@public.kline.v3.api.pb@' . $market['id'] . '@' . $timeframeId;
+            $channel = 'spot@public.kline.v3.api.pb@' . $this->safe_string($market, 'id', '') . '@' . $timeframeId;
             $ohlcv = Async\await($this->watch_spot_public($channel, $messageHash, $params));
         } else {
             $channel = 'sub.kline';
@@ -846,12 +846,11 @@ class mexc extends \ccxt\async\mexc {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $messageHash = 'orderbook:' . $symbolValue;
+        $messageHash = 'orderbook:' . $this->safe_string($market, 'symbol', '');
         $orderbook = null;
         if ($market['spot'] === true) {
             list($frequency, $paramsFrequency) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'frequency', '100ms');
-            $channel = 'spot@public.aggre.depth.v3.api.pb@' . $frequency . '@' . $market['id'];
+            $channel = 'spot@public.aggre.depth.v3.api.pb@' . $frequency . '@' . $this->safe_string($market, 'id', '');
             $orderbook = Async\await($this->watch_spot_public($channel, $messageHash, $paramsFrequency));
         } else {
             $channel = 'sub.depth';
@@ -1067,11 +1066,11 @@ class mexc extends \ccxt\async\mexc {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trades:' . $symbolValue;
         $trades = null;
         if ($market['spot'] === true) {
-            $channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' . $market['id'];
+            $channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' . $this->safe_string($market, 'id', '');
             $trades = Async\await($this->watch_spot_public($channel, $messageHash, $params));
         } else {
             $channel = 'sub.deal';
@@ -1141,7 +1140,7 @@ class mexc extends \ccxt\async\mexc {
         //
         $marketId = $this->safe_string_2($message, 's', 'symbol');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trades:' . $symbol;
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
@@ -1192,7 +1191,7 @@ class mexc extends \ccxt\async\mexc {
         }
         $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : null;
         if ($symbol !== null) {
-            $messageHash = $messageHash . ':' . $symbolResolved;
+            $messageHash = 'myTrades' . ':' . $this->safe_string($market, 'symbol', '');
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
         $trades = null;
@@ -1250,7 +1249,7 @@ class mexc extends \ccxt\async\mexc {
         $futuresMarketId = $this->safe_string($data, 'symbol');
         $marketId = $this->safe_string_2($message, 's', 'symbol', $futuresMarketId);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         if ($market['spot'] === true) {
             $trade = $this->parse_ws_trade($data, $market);
         } elseif ($data !== null) {
@@ -1384,7 +1383,7 @@ class mexc extends \ccxt\async\mexc {
         }
         $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : null;
         if ($symbol !== null) {
-            $messageHash = $messageHash . ':' . $symbolResolved;
+            $messageHash = 'orders' . ':' . $this->safe_string($market, 'symbol', '');
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchOrders', $market, $params);
         $orders = null;
@@ -1480,7 +1479,7 @@ class mexc extends \ccxt\async\mexc {
         $futuresMarketId = $this->safe_string($data, 'symbol');
         $marketId = $this->safe_string_2($message, 's', 'symbol', $futuresMarketId);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         if ($market['spot'] === true) {
             $parsed = $this->parse_ws_order($data, $market);
             $sendTime = $this->safe_integer($message, 'sendTime');
@@ -1814,11 +1813,11 @@ class mexc extends \ccxt\async\mexc {
         //
         $data = $this->safe_dict($message, 'data', array());
         $fundingRate = $this->parse_funding_rate($data);
-        $symbol = $fundingRate['symbol'];
+        $symbol = $this->safe_string($fundingRate, 'symbol');
         if ($symbol !== null) {
             $this->fundingRates[$symbol] = $fundingRate;
         }
-        $messageHash = 'fundingRate:' . $symbol;
+        $messageHash = 'fundingRate:' . $this->safe_string($fundingRate, 'symbol', '');
         $client->resolve($fundingRate, $messageHash);
     }
 
@@ -1841,7 +1840,7 @@ class mexc extends \ccxt\async\mexc {
         $url = null;
         $channel = null;
         if ($market['spot'] === true) {
-            $channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' . $market['id'];
+            $channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' . $this->safe_string($market, 'id', '');
             $url = $this->urls['api']['ws']['spot'];
             $params['unsubscribed'] = true;
             $this->spawn(array($this, 'watch_spot_public'), $channel, $messageHash, $params);
@@ -1951,7 +1950,7 @@ class mexc extends \ccxt\async\mexc {
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             if ($isSpot) {
                 $market = $this->market($symbolsNormalized[$i]);
-                $topics[] = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' . $market['id'];
+                $topics[] = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' . $this->safe_string($market, 'id', '');
             }
             $messageHashes[] = 'unsubscribe:bidask:' . $symbolsNormalized[$i];
         }
@@ -1983,14 +1982,13 @@ class mexc extends \ccxt\async\mexc {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $timeframeId = $this->safe_string($timeframes, $timeframe);
-        $messageHash = 'unsubscribe:candles:' . $symbolValue . ':' . $timeframe;
+        $messageHash = 'unsubscribe:candles:' . $this->safe_string($market, 'symbol', '') . ':' . $timeframe;
         $url = null;
         if ($market['spot'] === true) {
             $url = $this->urls['api']['ws']['spot'];
-            $channel = 'spot@public.kline.v3.api.pb@' . $market['id'] . '@' . $timeframeId;
+            $channel = 'spot@public.kline.v3.api.pb@' . $this->safe_string($market, 'id', '') . '@' . $timeframeId;
             $params['unsubscribed'] = true;
             $this->spawn(array($this, 'watch_spot_public'), $channel, $messageHash, $params);
         } else {
@@ -2023,13 +2021,12 @@ class mexc extends \ccxt\async\mexc {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $messageHash = 'unsubscribe:orderbook:' . $symbolValue;
+        $messageHash = 'unsubscribe:orderbook:' . $this->safe_string($market, 'symbol', '');
         $url = null;
         if ($market['spot'] === true) {
             $url = $this->urls['api']['ws']['spot'];
             list($frequency, $paramsFrequency) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'frequency', '100ms');
-            $channel = 'spot@public.aggre.depth.v3.api.pb@' . $frequency . '@' . $market['id'];
+            $channel = 'spot@public.aggre.depth.v3.api.pb@' . $frequency . '@' . $this->safe_string($market, 'id', '');
             $paramsFrequency['unsubscribed'] = true;
             $this->spawn(array($this, 'watch_spot_public'), $channel, $messageHash, $paramsFrequency);
         } else {
@@ -2061,12 +2058,11 @@ class mexc extends \ccxt\async\mexc {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $messageHash = 'unsubscribe:trades:' . $symbolValue;
+        $messageHash = 'unsubscribe:trades:' . $this->safe_string($market, 'symbol', '');
         $url = null;
         if ($market['spot'] === true) {
             $url = $this->urls['api']['ws']['spot'];
-            $channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' . $market['id'];
+            $channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' . $this->safe_string($market, 'id', '');
             $params['unsubscribed'] = true;
             $this->spawn(array($this, 'watch_spot_public'), $channel, $messageHash, $params);
         } else {
@@ -2084,7 +2080,7 @@ class mexc extends \ccxt\async\mexc {
 
     public function handle_unsubscriptions(Client $client, array $messageHashes) {
         for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
+            $messageHash = $this->safe_string($messageHashes, $i, '');
             $subMessageHash = str_replace('unsubscribe:', '', $messageHash);
             $this->clean_unsubscription($client, $subMessageHash, $messageHash);
             if (mb_strpos($messageHash, 'ticker') !== false) {
@@ -2105,13 +2101,13 @@ class mexc extends \ccxt\async\mexc {
                 }
             } elseif (mb_strpos($messageHash, 'candles') !== false) {
                 $splitHashes = explode(':', $messageHash);
-                $symbol = $this->safe_string($splitHashes, 2);
+                $candlesSymbol = $this->safe_string($splitHashes, 2);
                 $splitHashesLength = count($splitHashes); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if ($splitHashesLength > 4) {
-                    $symbol .= ':' . $this->safe_string($splitHashes, 3);
+                    $candlesSymbol .= ':' . $this->safe_string($splitHashes, 3);
                 }
-                if (($symbol !== null) && (is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
-                    unset($this->ohlcvs[$symbol]);
+                if (($candlesSymbol !== null) && (is_array($this->ohlcvs) && array_key_exists($candlesSymbol ?? '', $this->ohlcvs))) {
+                    unset($this->ohlcvs[$candlesSymbol]);
                 }
             } elseif (mb_strpos($messageHash, 'orderbook') !== false) {
                 $symbol = str_replace('unsubscribe:orderbook:', '', $messageHash);
@@ -2321,8 +2317,8 @@ class mexc extends \ccxt\async\mexc {
             'pong' => array($this, 'handle_pong'),
             'push.funding.rate' => array($this, 'handle_funding_rate'),
         );
-        if (($channel !== null) && (is_array($methods) && array_key_exists($channel ?? '', $methods))) {
-            $method = $methods[$channel];
+        $method = $this->safe_value($methods, $channel);
+        if ($method !== null) {
             $method($client, $message);
         }
     }

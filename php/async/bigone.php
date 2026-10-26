@@ -1144,7 +1144,7 @@ class bigone extends Exchange {
         }
     }
 
-    public function parse_contract_bids_asks(mixed $bidsAsks) {
+    public function parse_contract_bids_asks(array $bidsAsks) {
         $bidsAsksKeys = is_array($bidsAsks) ? array_keys($bidsAsks) : array();
         $result = array();
         for ($i = 0; $i < count($bidsAsksKeys); $i++) {
@@ -1156,8 +1156,8 @@ class bigone extends Exchange {
     }
 
     public function parse_contract_order_book(array $orderbook, string $symbol, ?int $limit = null): array {
-        $responseBids = $this->safe_dict($orderbook, 'bids');
-        $responseAsks = $this->safe_dict($orderbook, 'asks');
+        $responseBids = $this->safe_dict($orderbook, 'bids', array());
+        $responseAsks = $this->safe_dict($orderbook, 'asks', array());
         $bids = $this->parse_contract_bids_asks($responseBids);
         $asks = $this->parse_contract_bids_asks($responseAsks);
         return array(
@@ -2070,7 +2070,7 @@ class bigone extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
+            $nonce = $this->number_to_string($this->nonce());
             $request = array(
                 'type' => 'OpenAPIV2',
                 'sub' => $this->apiKey,

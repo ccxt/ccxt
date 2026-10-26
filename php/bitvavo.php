@@ -468,7 +468,6 @@ class bitvavo extends Exchange {
 
     public function parse_markets(mixed $markets) {
         $result = array();
-        $fees = $this->fees;
         for ($i = 0; $i < count($markets); $i++) {
             $market = $this->safe_dict($markets, $i);
             $id = $this->safe_string($market, 'market');
@@ -504,8 +503,8 @@ class bitvavo extends Exchange {
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
-                'taker' => $fees['trading']['taker'],
-                'maker' => $fees['trading']['maker'],
+                'taker' => $this->safe_number($this->fees['trading'], 'taker'),
+                'maker' => $this->safe_number($this->fees['trading'], 'maker'),
                 'precision' => array(
                     'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityDecimals'))),
                     'price' => $this->safe_number($market, 'tickSize'),
@@ -991,7 +990,7 @@ class bitvavo extends Exchange {
         $taker = $this->safe_number($feesValue, 'taker');
         $result = array();
         for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+            $symbol = $this->safe_string($this->symbols, $i, '');
             $result[$symbol] = array(
                 'info' => $fees,
                 'symbol' => $symbol,
@@ -1124,16 +1123,16 @@ class bitvavo extends Exchange {
             $sinceLimit = ($limit === null) ? 1440 : min($limit, 1440);
             $request['end'] = $this->sum($since, $sinceLimit * $duration * 1000);
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('end', $request, $params);
         if ($limit !== null) {
-            $requestUntil['limit'] = min($limit, 1440); // default 1440, max 1440
+            $request['limit'] = min($limit, 1440); // default 1440, max 1440
         } elseif ($since !== null) {
-            $requestUntil['limit'] = 1440;
+            $request['limit'] = 1440;
         }
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end', $request, $params);
         return $this->extend($requestUntil, $paramsUntil);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/
@@ -2686,7 +2685,7 @@ class bitvavo extends Exchange {
         $url = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $getOrDelete = ($method === 'GET') || ($method === 'DELETE');
         if ($getOrDelete) {
-            if (count($query) > 0) {
+            if (!$this->is_empty($query)) {
                 $url .= '?' . $this->urlencode($query);
             }
         }
@@ -2694,9 +2693,9 @@ class bitvavo extends Exchange {
             $this->check_required_credentials();
             $payload = '';
             if (!$getOrDelete) {
-                if (count($query) > 0) {
-                    $requestBody = $this->json($query);
-                    $payload = $requestBody;
+                if (!$this->is_empty($query)) {
+                    $payload = $this->json($query);
+                    $requestBody = $payload;
                 }
             }
             $timestamp = (string) $this->milliseconds();
@@ -2741,7 +2740,7 @@ class bitvavo extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('noMarket' ?? '', $config)) && !(is_array($params) && array_key_exists('market' ?? '', $params))) {
             return $config['noMarket'];
         }

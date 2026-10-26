@@ -84,13 +84,8 @@ class coinbase extends \ccxt\async\coinbase {
         $productIds = array();
         if ((gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol)))) {
             $symbols = $this->market_symbols($symbol);
-            $marketIds = $this->market_ids($symbols);
-            if ($marketIds === null) {
-                $productIds = array();
-            } else {
-                $productIds = $marketIds;
-            }
-            $messageHash = $messageHash . '::' . implode(',', $symbols);
+            $productIds = $this->market_ids($symbols);
+            $messageHash = $name . '::' . implode(',', $symbols);
         } elseif ($symbol !== null) {
             $market = $this->market($symbol);
             $messageHash = $name . '::' . $symbol;
@@ -141,18 +136,13 @@ class coinbase extends \ccxt\async\coinbase {
         $productIds = array();
         if ((gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol)))) {
             $symbols = $this->market_symbols($symbol);
-            $marketIds = $this->market_ids($symbols);
-            if ($marketIds === null) {
-                $productIds = array();
-            } else {
-                $productIds = $marketIds;
-            }
-            $watchMessageHash = $watchMessageHash . '::' . implode(',', $symbols);
-            $unWatchMessageHash = $unWatchMessageHash . '::' . implode(',', $symbols);
+            $productIds = $this->market_ids($symbols);
+            $watchMessageHash = $name . '::' . implode(',', $symbols);
+            $unWatchMessageHash = 'unsubscribe:' . $name . '::' . implode(',', $symbols);
         } elseif ($symbol !== null) {
             $market = $this->market($symbol);
             $watchMessageHash = $name . '::' . $symbol;
-            $unWatchMessageHash = $unWatchMessageHash . '::' . $symbol;
+            $unWatchMessageHash = 'unsubscribe:' . $name . '::' . $symbol;
             $productIds = array( $this->safe_string($market, 'id') );
         }
         $url = $this->urls['api']['ws'];
@@ -296,7 +286,7 @@ class coinbase extends \ccxt\async\coinbase {
                 throw new ArgumentsRequired($this->id . ' apiKey should contain the name (eg => organizations/3b910e93....) and not the public key');
             }
             $currentToken = $this->safe_string($this->options, 'wsToken');
-            $tokenTimestamp = $this->safe_integer($this->options, 'wsTokenTimestamp', 0);
+            $tokenTimestamp = $this->parse_to_int($this->safe_integer($this->options, 'wsTokenTimestamp', 0));
             $seconds = $this->seconds();
             $tokenExpiry = $tokenTimestamp + 120;
             if ($currentToken === null || $tokenExpiry < $seconds) {
@@ -377,7 +367,7 @@ class coinbase extends \ccxt\async\coinbase {
         $ticker = Async\await($this->subscribe_multiple($name, false, $symbolsResolved, $params));
         if ($this->newUpdates) {
             $tickers = array();
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol', '');
             $tickers[$symbol] = $ticker;
             return $tickers;
         }
@@ -514,7 +504,7 @@ class coinbase extends \ccxt\async\coinbase {
                 $result = $this->parse_ws_ticker($ticker);
                 $result['timestamp'] = $timestamp;
                 $result['datetime'] = $datetime;
-                $symbol = $result['symbol'];
+                $symbol = $this->safe_string($result, 'symbol', '');
                 if ($symbol !== null) {
                     $this->tickers[$symbol] = $result;
                 }
@@ -744,7 +734,7 @@ class coinbase extends \ccxt\async\coinbase {
         }
         $name = 'level2';
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $orderbook = Async\await($this->subscribe($name, false, $symbolValue, $params));
         return $orderbook->limit();
     }
@@ -1021,7 +1011,7 @@ class coinbase extends \ccxt\async\coinbase {
             $marketId = $this->safe_string($event, 'product_id');
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $messageHash = 'level2::' . $symbol;
             $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
             $limit = $this->safe_integer($subscription, 'limit');

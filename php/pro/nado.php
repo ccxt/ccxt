@@ -506,8 +506,9 @@ class nado extends \ccxt\async\nado {
         if ($symbolsNormalized !== null) {
             $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
-                $market = $this->market($symbolsNormalized[0]);
-                $messageHash = 'ticker:' . $market['symbol'];
+                $symbolMarket = $this->market($symbolsNormalized[0]);
+                $market = $symbolMarket;
+                $messageHash = 'ticker:' . $this->safe_string($symbolMarket, 'symbol', '');
                 $streamType = 'best_bid_offer';
             }
         }
@@ -548,8 +549,9 @@ class nado extends \ccxt\async\nado {
         if ($symbolsNormalized !== null) {
             $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
-                $market = $this->market($symbolsNormalized[0]);
-                $messageHash = 'ticker:' . $market['symbol'];
+                $symbolMarket = $this->market($symbolsNormalized[0]);
+                $market = $symbolMarket;
+                $messageHash = 'ticker:' . $this->safe_string($symbolMarket, 'symbol', '');
                 $streamType = 'best_bid_offer';
             }
         }
@@ -578,8 +580,9 @@ class nado extends \ccxt\async\nado {
         if ($symbolsNormalized !== null) {
             $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
-                $market = $this->market($symbolsNormalized[0]);
-                $messageHash = 'bidask:' . $market['symbol'];
+                $symbolMarket = $this->market($symbolsNormalized[0]);
+                $market = $symbolMarket;
+                $messageHash = 'bidask:' . $this->safe_string($symbolMarket, 'symbol', '');
                 $streamType = 'best_bid_offer';
             }
         }
@@ -620,8 +623,9 @@ class nado extends \ccxt\async\nado {
         if ($symbolsNormalized !== null) {
             $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
-                $market = $this->market($symbolsNormalized[0]);
-                $messageHash = 'bidask:' . $market['symbol'];
+                $symbolMarket = $this->market($symbolsNormalized[0]);
+                $market = $symbolMarket;
+                $messageHash = 'bidask:' . $this->safe_string($symbolMarket, 'symbol', '');
                 $streamType = 'best_bid_offer';
             }
         }
@@ -655,8 +659,11 @@ class nado extends \ccxt\async\nado {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $this->safe_string($market, 'symbol');
-            $messageHash .= ':' . $symbolResolved;
+            $marketSymbol = $this->safe_string($market, 'symbol');
+            $symbolResolved = $marketSymbol;
+            if ($marketSymbol !== null) {
+                $messageHash .= ':' . $marketSymbol;
+            }
             $productId = $this->parse_to_int($market['id']);
         }
         list($subaccount, $paramsSubaccount) = $this->handle_option_string_and_params($params, 'watchOrders', 'subaccount', 'default');
@@ -695,11 +702,12 @@ class nado extends \ccxt\async\nado {
         $market = null;
         $messageHash = 'orders';
         $productId = null;
-        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
-            $messageHash .= ':' . $symbolResolved;
+            $marketSymbol = $this->safe_string($market, 'symbol');
+            if ($marketSymbol !== null) {
+                $messageHash .= ':' . $marketSymbol;
+            }
             $productId = $this->parse_to_int($market['id']);
         }
         list($subaccount, $paramsSubaccount) = $this->handle_option_string_and_params($params, 'unWatchOrders', 'subaccount', 'default');
@@ -739,8 +747,11 @@ class nado extends \ccxt\async\nado {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $this->safe_string($market, 'symbol');
-            $messageHash .= ':' . $symbolResolved;
+            $marketSymbol = $this->safe_string($market, 'symbol');
+            $symbolResolved = $marketSymbol;
+            if ($marketSymbol !== null) {
+                $messageHash .= ':' . $marketSymbol;
+            }
             $productId = $this->parse_to_int($market['id']);
         }
         list($subaccount, $paramsSubaccount) = $this->handle_option_string_and_params($params, 'watchMyTrades', 'subaccount', 'default');
@@ -779,11 +790,12 @@ class nado extends \ccxt\async\nado {
         $market = null;
         $messageHash = 'myTrades';
         $productId = null;
-        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
-            $messageHash .= ':' . $symbolResolved;
+            $marketSymbol = $this->safe_string($market, 'symbol');
+            if ($marketSymbol !== null) {
+                $messageHash .= ':' . $marketSymbol;
+            }
             $productId = $this->parse_to_int($market['id']);
         }
         list($subaccount, $paramsSubaccount) = $this->handle_option_string_and_params($params, 'unWatchMyTrades', 'subaccount', 'default');
@@ -824,7 +836,10 @@ class nado extends \ccxt\async\nado {
             $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
                 $market = $this->market($symbolsNormalized[0]);
-                $messageHash .= ':' . $market['symbol'];
+                $marketSymbol = $this->safe_string($market, 'symbol');
+                if ($marketSymbol !== null) {
+                    $messageHash .= ':' . $marketSymbol;
+                }
                 $productId = $this->parse_to_int($market['id']);
             }
         }
@@ -867,7 +882,10 @@ class nado extends \ccxt\async\nado {
             $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
                 $market = $this->market($symbolsNormalized[0]);
-                $messageHash .= ':' . $market['symbol'];
+                $marketSymbol = $this->safe_string($market, 'symbol');
+                if ($marketSymbol !== null) {
+                    $messageHash .= ':' . $marketSymbol;
+                }
                 $productId = $this->parse_to_int($market['id']);
             }
         }
@@ -1126,7 +1144,7 @@ class nado extends \ccxt\async\nado {
         if ($requestIdString === null) {
             throw new ArgumentsRequired($this->id . ' watchExecuteRequest() requires requestIdString');
         }
-        $url = $this->urls['api']['ws']['gateway'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'gateway');
         $messageHash = 'execute:' . $requestIdString;
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
@@ -1136,12 +1154,12 @@ class nado extends \ccxt\async\nado {
     }
 
     private function do_watch_public(?string $streamType, mixed $market, string $messageHash, $params = array()) {
-        $url = $this->urls['api']['ws']['subscriptions'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'subscriptions');
         $stream = array(
             'type' => $streamType,
         );
         if ($market !== null) {
-            $stream['product_id'] = $this->parse_to_int($market['id']);
+            $stream['product_id'] = $this->parse_to_int($this->safe_string($market, 'id'));
         }
         $request = array(
             'method' => 'subscribe',
@@ -1156,8 +1174,7 @@ class nado extends \ccxt\async\nado {
         $client = $this->client($url);
         $clientSubscription = $this->safe_value($client->subscriptions, $subscribeHash);
         if ($clientSubscription === null) {
-            $id = $this->safe_string($request, 'id');
-            $client->subscriptions['subscription:' . $id] = array(
+            $client->subscriptions['subscription:' . $this->safe_string($request, 'id', '')] = array(
                 'subscribeHash' => $subscribeHash,
             );
             $this->watch_multiple($url, array( $subscribeHash ), $request, array( $subscribeHash ), $subscription);
@@ -1170,7 +1187,7 @@ class nado extends \ccxt\async\nado {
     }
 
     private function do_watch_private(?string $streamType, array $stream, string $messageHash, $params = array()) {
-        $url = $this->urls['api']['ws']['subscriptions'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'subscriptions');
         $client = $this->client($url);
         $clientSubscription = $this->safe_value($client->subscriptions, $messageHash);
         if ($clientSubscription !== null) {
@@ -1186,7 +1203,7 @@ class nado extends \ccxt\async\nado {
         $subscription = array(
             'streamType' => $streamType,
         );
-        $client->subscriptions['subscription:' . $this->number_to_string($id)] = array(
+        $client->subscriptions['subscription:' . $this->safe_string($request, 'id', '')] = array(
             'subscribeHash' => $subscribeHash,
         );
         $this->watch_multiple($url, array( $subscribeHash ), $request, array( $messageHash ), $subscription);
@@ -1198,7 +1215,7 @@ class nado extends \ccxt\async\nado {
     }
 
     private function do_un_watch_private(array $stream, string $messageHash, $params = array()) {
-        $url = $this->urls['api']['ws']['subscriptions'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'subscriptions');
         $id = $this->request_id();
         $unsubscribeHash = 'unsubscribe:' . $messageHash;
         $request = array(
@@ -1211,7 +1228,7 @@ class nado extends \ccxt\async\nado {
             'messageHash' => $messageHash,
         );
         $client = $this->client($url);
-        $client->subscriptions['unsubscription:' . $this->number_to_string($id)] = array(
+        $client->subscriptions['unsubscription:' . $this->safe_string($request, 'id', '')] = array(
             'messageHash' => $messageHash,
             'unsubscribeHash' => $unsubscribeHash,
         );
@@ -1224,7 +1241,7 @@ class nado extends \ccxt\async\nado {
 
     private function do_authenticate($params = array()) {
         $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['subscriptions'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'subscriptions');
         $client = $this->client($url);
         $messageHash = 'authenticated';
         $authenticated = $this->safe_value($client->subscriptions, $messageHash);
@@ -1257,7 +1274,7 @@ class nado extends \ccxt\async\nado {
             'tx' => $tx,
             'signature' => $signature,
         );
-        $client->subscriptions['authentication:' . $this->number_to_string($id)] = $messageHash;
+        $client->subscriptions['authentication:' . $this->safe_string($request, 'id', '')] = $messageHash;
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $paramsSubaccount), $messageHash));
     }
 
@@ -1284,7 +1301,7 @@ class nado extends \ccxt\async\nado {
             'type' => $streamType,
         );
         if ($market !== null) {
-            $stream['product_id'] = $this->parse_to_int($market['id']);
+            $stream['product_id'] = $this->parse_to_int($this->safe_string($market, 'id'));
         }
         return array(
             'method' => $method,
@@ -1298,10 +1315,10 @@ class nado extends \ccxt\async\nado {
     }
 
     private function do_watch_public_multiple(?string $streamType, array $markets, array $messageHashes, $params = array(), ?array $subscriptionParams = null) {
-        $url = $this->urls['api']['ws']['subscriptions'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'subscriptions');
         $client = $this->client($url);
         for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
+            $messageHash = $this->safe_string($messageHashes, $i, '');
             $clientSubscription = $this->safe_value($client->subscriptions, $messageHash);
             if ($clientSubscription === null) {
                 $market = $markets[$i];
@@ -1315,7 +1332,7 @@ class nado extends \ccxt\async\nado {
                         'streamType' => $streamType,
                         'symbol' => $this->safe_string($market, 'symbol'),
                     );
-                    $client->subscriptions['subscription:' . $this->number_to_string($id)] = array(
+                    $client->subscriptions['subscription:' . $this->safe_string($request, 'id', '')] = array(
                         'subscribeHash' => $subscribeHash,
                     );
                     $this->watch_multiple($url, array( $subscribeHash ), $request, array( $subscribeHash ), $subscription);
@@ -1330,7 +1347,7 @@ class nado extends \ccxt\async\nado {
     }
 
     private function do_un_watch_public(?string $streamType, array $market, string $messageHash, $params = array()) {
-        $url = $this->urls['api']['ws']['subscriptions'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'subscriptions');
         $id = $this->request_id();
         $request = $this->create_public_subscription_request('unsubscribe', $streamType, $market, $id, $params);
         $subscription = array(
@@ -1339,7 +1356,7 @@ class nado extends \ccxt\async\nado {
         );
         $unsubscribeHash = 'unsubscribe:' . $messageHash;
         $client = $this->client($url);
-        $client->subscriptions['unsubscription:' . $this->number_to_string($id)] = array(
+        $client->subscriptions['unsubscription:' . $this->safe_string($request, 'id', '')] = array(
             'messageHash' => $messageHash,
             'unsubscribeHash' => $unsubscribeHash,
         );
@@ -1351,10 +1368,10 @@ class nado extends \ccxt\async\nado {
     }
 
     private function do_un_watch_public_multiple(?string $streamType, array $markets, array $messageHashes, $params = array(), ?array $subscriptionParams = null) {
-        $url = $this->urls['api']['ws']['subscriptions'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'subscriptions');
         $client = $this->client($url);
         for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
+            $messageHash = $this->safe_string($messageHashes, $i, '');
             $id = $this->request_id();
             $unsubscribeHash = 'unsubscribe:' . $messageHash;
             $requestParams = ($subscriptionParams === null) ? $params : $subscriptionParams[$i];
@@ -1363,7 +1380,7 @@ class nado extends \ccxt\async\nado {
                 'id' => $id,
                 'messageHash' => $messageHash,
             );
-            $client->subscriptions['unsubscription:' . $this->number_to_string($id)] = array(
+            $client->subscriptions['unsubscription:' . $this->safe_string($request, 'id', '')] = array(
                 'messageHash' => $messageHash,
                 'unsubscribeHash' => $unsubscribeHash,
             );
@@ -1486,7 +1503,7 @@ class nado extends \ccxt\async\nado {
     public function handle_trade(Client $client, array $message) {
         $marketId = $this->safe_string($message, 'product_id');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trade:' . $symbol;
         $trades = $this->safe_value($this->trades, $symbol);
         if ($trades === null) {
@@ -1507,9 +1524,8 @@ class nado extends \ccxt\async\nado {
         }
         $trades = $this->myTrades;
         $trades->append($trade);
-        $symbol = $trade['symbol'];
         $client->resolve($trades, 'myTrades');
-        $client->resolve($trades, 'myTrades:' . $symbol);
+        $client->resolve($trades, 'myTrades:' . $this->safe_string($trade, 'symbol', ''));
     }
 
     public function handle_ohlcv(Client $client, array $message) {
@@ -1528,7 +1544,7 @@ class nado extends \ccxt\async\nado {
         //
         $marketId = $this->safe_string($message, 'product_id');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $granularity = $this->safe_integer($message, 'granularity');
         $timeframe = $this->find_timeframe($granularity);
         if ($timeframe === null) {
@@ -1621,9 +1637,8 @@ class nado extends \ccxt\async\nado {
         }
         $orders = $this->orders;
         $orders->append($order);
-        $symbol = $order['symbol'];
         $client->resolve($orders, 'orders');
-        $client->resolve($orders, 'orders:' . $symbol);
+        $client->resolve($orders, 'orders:' . $this->safe_string($order, 'symbol', ''));
     }
 
     public function parse_ws_position(array $position, ?array $market = null): array {
@@ -1709,9 +1724,8 @@ class nado extends \ccxt\async\nado {
         } else {
             $positions->append($position);
         }
-        $symbol = $position['symbol'];
         $client->resolve($positions, 'positions');
-        $client->resolve($positions, 'positions:' . $symbol);
+        $client->resolve($positions, 'positions:' . $this->safe_string($position, 'symbol', ''));
     }
 
     public function parse_ws_bid_ask(array $bidask, ?array $market = null): array {
@@ -1897,6 +1911,9 @@ class nado extends \ccxt\async\nado {
 
     public function handle_subscription(Client $client, array $message) {
         $id = $this->safe_string($message, 'id');
+        if ($id === null) {
+            return;
+        }
         $subscription = $this->safe_dict($client->subscriptions, 'subscription:' . $id);
         if ($subscription !== null) {
             $subscribeHash = $this->safe_string($subscription, 'subscribeHash');
@@ -1907,6 +1924,9 @@ class nado extends \ccxt\async\nado {
 
     public function handle_authentication(Client $client, array $message) {
         $id = $this->safe_string($message, 'id');
+        if ($id === null) {
+            return;
+        }
         $messageHash = $this->safe_string($client->subscriptions, 'authentication:' . $id);
         if ($messageHash !== null) {
             unset($client->subscriptions['authentication:' . $id]);
@@ -1916,7 +1936,7 @@ class nado extends \ccxt\async\nado {
     }
 
     public function handle_unsubscription(Client $client, array $message) {
-        $id = $this->safe_string($message, 'id');
+        $id = $this->safe_string($message, 'id', '');
         $unsubscription = $this->safe_dict($client->subscriptions, 'unsubscription:' . $id);
         if ($unsubscription !== null) {
             $messageHash = $this->safe_string($unsubscription, 'messageHash');
@@ -1947,10 +1967,7 @@ class nado extends \ccxt\async\nado {
         }
     }
 
-    public function handle_unsubscription_cache(?string $messageHash) {
-        if ($messageHash === null) {
-            return;
-        }
+    public function handle_unsubscription_cache(string $messageHash) {
         if (mb_strpos($messageHash, 'trade:') === 0) {
             $symbol = str_replace('trade:', '', $messageHash);
             if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
@@ -1976,7 +1993,8 @@ class nado extends \ccxt\async\nado {
         } elseif ($messageHash === 'ticker') {
             $symbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
             for ($i = 0; $i < count($symbols); $i++) {
-                unset($this->tickers[$symbols[$i]]);
+                $tickerSymbol = $symbols[$i];
+                unset($this->tickers[$tickerSymbol]);
             }
         } elseif (mb_strpos($messageHash, 'bidask:') === 0) {
             $symbol = str_replace('bidask:', '', $messageHash);
@@ -1986,7 +2004,8 @@ class nado extends \ccxt\async\nado {
         } elseif ($messageHash === 'bidask') {
             $symbols = is_array($this->bidsasks) ? array_keys($this->bidsasks) : array();
             for ($i = 0; $i < count($symbols); $i++) {
-                unset($this->bidsasks[$symbols[$i]]);
+                $bidaskSymbol = $symbols[$i];
+                unset($this->bidsasks[$bidaskSymbol]);
             }
         } elseif (mb_strpos($messageHash, 'orders') === 0) {
             $this->orders = null;
@@ -1998,7 +2017,7 @@ class nado extends \ccxt\async\nado {
     }
 
     public function ping(Client $client) {
-        $gatewayUrl = $this->urls['api']['ws']['gateway'];
+        $gatewayUrl = $this->safe_string($this->urls['api']['ws'], 'gateway');
         if ($client->url === $gatewayUrl) {
             // the v2 gateway is kept alive with protocol-level ping frames,
             // returning undefined makes the client send one instead of a message
@@ -2034,7 +2053,7 @@ class nado extends \ccxt\async\nado {
             return false;
         }
         $feedback = new ExchangeError($this->id . ' ' . $this->json($message));
-        $id = $this->safe_string($message, 'id');
+        $id = $this->safe_string($message, 'id', '');
         if ($id !== null) {
             $executeHash = 'execute:' . $id;
             $executeSubscription = $this->safe_value($client->subscriptions, $executeHash);

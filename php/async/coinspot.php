@@ -297,11 +297,13 @@ class coinspot extends Exchange {
         $result = array( 'info' => $response );
         $balances = $this->safe_value_2($response, 'balance', 'balances');
         if ((gettype($balances) === 'array' && array_keys($balances) === array_keys(array_keys($balances)))) {
-            for ($i = 0; $i < count($balances); $i++) {
-                $currencies = $balances[$i];
-                $currencyIds = is_array($currencies) ? array_keys($currencies) : array();
-                for ($j = 0; $j < count($currencyIds); $j++) {
-                    $currencyId = $currencyIds[$j];
+            $rows = $this->to_array($balances);
+            $numRows = count($rows);
+            for ($i = 0; $i < $numRows; $i++) {
+                $currencies = $this->safe_dict($rows, $i, array());
+                $currencyIdsList = is_array($currencies) ? array_keys($currencies) : array();
+                for ($j = 0; $j < count($currencyIdsList); $j++) {
+                    $currencyId = $currencyIdsList[$j];
                     $balance = $this->safe_dict($currencies, $currencyId);
                     $code = $this->safe_currency_code($currencyId);
                     $account = $this->account();
@@ -312,9 +314,9 @@ class coinspot extends Exchange {
                 }
             }
         } else {
-            $currencyIds = is_array($balances) ? array_keys($balances) : array();
-            for ($i = 0; $i < count($currencyIds); $i++) {
-                $currencyId = $currencyIds[$i];
+            $currencyIdsMap = is_array($balances) ? array_keys($balances) : array();
+            for ($i = 0; $i < count($currencyIdsMap); $i++) {
+                $currencyId = $currencyIdsMap[$i];
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['total'] = $this->safe_string($balances, $currencyId);

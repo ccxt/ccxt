@@ -1285,8 +1285,9 @@ class coinmate extends Exchange {
         }
         $url = $apiUrl . '/' . $path;
         if ($apiName === 'public') {
-            if (count($params) > 0) {
-                $url .= '?' . $this->urlencode($params);
+            $publicQuery = $this->extend(array(), $params);
+            if (count($publicQuery) > 0) {
+                $url .= '?' . $this->urlencode($publicQuery);
             }
         } else {
             $this->check_required_credentials();

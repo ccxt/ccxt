@@ -82,8 +82,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $productIds = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $messageHash .= ':' . $market['id'];
-            $productIds[] = $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $messageHash .= ':' . $marketId;
+            $productIds[] = $marketId;
         }
         $url = $this->safe_string($this->urls['api'], 'ws');
         if ($url === null) {
@@ -122,8 +123,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
-            $productIds[] = $market['id'];
-            $messageHashes[] = $messageHashStart . ':' . $market['symbol'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $productIds[] = $marketId;
+            $messageHashes[] = $messageHashStart . ':' . $this->safe_string($market, 'symbol', '');
         }
         $url = $this->safe_string($this->urls['api'], 'ws');
         if ($url === null) {
@@ -399,8 +401,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $marketIds = $this->market_ids($symbolsNormalized);
         $messageHashes = array();
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $marketId = $marketIds[$i];
-            $messageHashes[] = $name . ':' . $marketId;
+            $messageHashes[] = $name . ':' . $this->safe_string($marketIds, $i, '');
         }
         $url = $this->urls['api']['ws'];
         $subscribe = array(
@@ -440,7 +441,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         }
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
-        $messageHash = $name . ':' . $market['id'];
+        $messageHash = $name . ':' . $this->safe_string($market, 'id', '');
         $url = $this->urls['api']['ws'];
         $subscribe = array(
             'type' => 'subscribe',
@@ -582,7 +583,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             $feeRate = $this->safe_string($trade, 'taker_fee_rate');
             // side always represents the maker side of the trade
             // so if we're taker, we invert it
-            $currentSide = $parsed['side'];
+            $currentSide = $this->safe_string($parsed, 'side');
             $parsed['side'] = $this->safe_string(array(
                 'buy' => 'sell',
                 'sell' => 'buy',
@@ -593,11 +594,12 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             $idKey = 'maker_order_id';
         }
         $parsed['order'] = $this->safe_string($trade, $idKey);
-        $marketResolved = $this->market($parsed['symbol']);
+        $parsedSymbol = $parsed['symbol'];
+        $marketResolved = $this->market($parsedSymbol);
         $feeCurrency = $marketResolved['quote'];
         $feeCost = null;
-        if (($parsed['cost'] !== null) && ($feeRate !== null)) {
-            $cost = $this->safe_string($parsed, 'cost');
+        $cost = $this->safe_string($parsed, 'cost');
+        if (($cost !== null) && ($feeRate !== null)) {
             $feeCost = Precise::string_mul($cost, $feeRate);
         }
         $parsed['fee'] = array(
@@ -695,11 +697,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         //         "reason": "filled"
         //     }
         //
-        $currentOrders = $this->orders;
-        if ($currentOrders === null) {
+        if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $currentOrders = new ArrayCacheBySymbolById($limit);
-            $this->orders = $currentOrders;
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $type = $this->safe_string($message, 'type');
         $marketId = $this->safe_string($message, 'product_id');
@@ -709,10 +709,10 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             $orderId = $this->safe_string($message, 'order_id');
             $makerOrderId = $this->safe_string($message, 'maker_order_id');
             $takerOrderId = $this->safe_string($message, 'taker_order_id');
-            $orders = $this->orders;
-            if ($orders === null) {
+            if ($this->orders === null) {
                 return;
             }
+            $orders = $this->orders;
             $previousOrders = $this->safe_dict($orders->hashmap, $symbol, array());
             $previousOrder = $this->safe_dict($previousOrders, $orderId);
             if ($previousOrder === null) {
@@ -732,16 +732,14 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                 if (($previousSequence === null) || ($sequence > $previousSequence)) {
                     if ($type === 'match') {
                         $trade = $this->parse_ws_trade($message);
-                        if ($previousOrder['trades'] === null) {
-                            $previousOrder['trades'] = array();
-                        }
-                        $previousOrder['trades'][] = $trade;
+                        $previousTrades = $this->safe_list($previousOrder, 'trades', array());
+                        $previousTrades[] = $trade;
+                        $previousOrder['trades'] = $previousTrades;
                         $previousOrder['lastTradeTimestamp'] = $trade['timestamp'];
                         $totalCost = '0';
                         $totalAmount = '0';
-                        $trades = $previousOrder['trades'];
-                        for ($i = 0; $i < count($trades); $i++) {
-                            $tradeEntry = $this->safe_dict($trades, $i);
+                        for ($i = 0; $i < count($previousTrades); $i++) {
+                            $tradeEntry = $this->safe_dict($previousTrades, $i);
                             $totalCost = $this->safe_string($tradeEntry, 'cost', '0');
                             $totalAmount = $this->safe_string($tradeEntry, 'amount', '0');
                         }
@@ -752,19 +750,19 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                         $previousOrderFilled = $this->safe_string($previousOrder, 'filled');
                         if ($previousOrderFilled !== null) {
                             $previousOrder['filled'] = $this->parse_number(Precise::string_add($previousOrderFilled, $this->safe_string($trade, 'amount')));
-                            if ($previousOrder['amount'] !== null) {
+                            if ($this->safe_string($previousOrder, 'amount') !== null) {
                                 $previousOrder['remaining'] = $this->parse_number(Precise::string_sub($this->safe_string($previousOrder, 'amount'), $this->safe_string($previousOrder, 'filled')));
                             }
                         }
-                        if ($previousOrder['fee'] === null) {
+                        if ($this->safe_dict($previousOrder, 'fee') === null) {
                             $previousOrder['fee'] = array(
                                 'cost' => 0,
                                 'currency' => $this->safe_string($trade['fee'], 'currency'),
                             );
                         }
-                        if (($previousOrder['fee']['cost'] !== null) && ($this->safe_number($trade['fee'], 'cost') !== null)) {
-                            $previousOrder['fee']['cost'] = $this->sum($previousOrder['fee']['cost'], $this->safe_number($trade['fee'], 'cost'));
-                            $previousOrderFee = $this->safe_dict($previousOrder, 'fee');
+                        $previousOrderFee = $this->safe_dict($previousOrder, 'fee', array());
+                        if (($previousOrderFee['cost'] !== null) && ($this->safe_number($trade['fee'], 'cost') !== null)) {
+                            $previousOrder['fee']['cost'] = $this->sum($previousOrderFee['cost'], $this->safe_number($trade['fee'], 'cost'));
                             $tradeFee = $this->safe_dict($trade, 'fee');
                             $previousOrder['fee']['cost'] = $this->parse_number(Precise::string_add($this->safe_string($previousOrderFee, 'cost'), $this->safe_string($tradeFee, 'cost')));
                         }
@@ -772,7 +770,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                         $orders->append($previousOrder);
                         $client->resolve($orders, $messageHash);
                     } elseif (($type === 'received') || ($type === 'done')) {
-                        $info = $this->extend($previousOrder['info'], $message);
+                        $info = $this->extend($previousInfo, $message);
                         $order = $this->parse_ws_order($info);
                         $keys = is_array($order) ? array_keys($order) : array();
                         // update the reference
@@ -783,7 +781,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                             }
                         }
                         // update the newUpdates count
-                        if ($orders === null) {
+                        if ($this->orders === null) {
                             return;
                         }
                         $orders->append($previousOrder);
@@ -976,7 +974,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $market = $this->safe_market($marketId, null, '-');
         $symbol = $market['symbol'];
         $name = 'level2';
-        $messageHash = $name . ':' . $marketId;
+        $messageHash = $name . ':' . $this->safe_string($market, 'id', '');
         $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
         $limit = $this->safe_integer($subscription, 'limit');
         if ($type === 'snapshot') {

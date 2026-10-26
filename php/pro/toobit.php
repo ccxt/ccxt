@@ -192,9 +192,9 @@ class toobit extends \ccxt\async\toobit {
         /**
          * get the list of most recent $trades for a list of $symbols
          *
-         * @see https://api-docs.toobit.com/api/spot-websocket-$market-data.html#trade-streams
+         * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams
          *
-         * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
+         * @param {string[]} $symbols unified $symbol of the market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -206,22 +206,17 @@ class toobit extends \ccxt\async\toobit {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $messageHashes = array();
-        $subParams = array();
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
-            $market = $this->market($symbol);
             $messageHashes[] = 'trade::' . $symbol;
-            $rawHash = $market['id'];
-            $subParams[] = $rawHash;
         }
         $marketIds = $this->market_ids($symbolsNormalized);
-        $url = $this->safe_string($this->urls['api']['ws'], 'common') . '/quote/ws/v1';
         $request = array(
             'symbol' => implode(',', $marketIds),
             'topic' => 'trade',
             'event' => 'sub',
         );
-        $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
+        $trades = Async\await($this->watch_multiple($this->safe_string($this->urls['api']['ws'], 'common', '') . '/quote/ws/v1', $messageHashes, $this->extend($request, $params), $messageHashes));
         $first = $this->safe_dict($trades, 0);
         $tradeSymbol = $this->safe_string($first, 'symbol');
         $limitResolved = $limit;
@@ -257,18 +252,16 @@ class toobit extends \ccxt\async\toobit {
         //
         $marketId = $this->safe_string($message, 'symbol');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->trades[$symbol] = new ArrayCache($limit);
         }
         $stored = $this->trades[$symbol];
         $data = $this->safe_list($message, 'data', array());
-        $parsed = $this->parse_ws_trades($data, $market);
-        for ($i = 0; $i < count($parsed); $i++) {
-            $trade = $parsed[$i];
-            $trade['symbol'] = $symbol;
-            $stored->append($trade);
+        $parsedTrades = $this->array_concat($this->parse_ws_trades($data, $market), array());
+        for ($i = 0; $i < count($parsedTrades); $i++) {
+            $stored->append($parsedTrades[$i]);
         }
         $messageHash = 'trade::' . $symbol;
         $client->resolve($stored, $messageHash);
@@ -321,14 +314,14 @@ class toobit extends \ccxt\async\toobit {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $url = $this->safe_string($this->urls['api']['ws'], 'common') . '/quote/ws/v1';
+        $url = $this->safe_string($this->urls['api']['ws'], 'common', '') . '/quote/ws/v1';
         $messageHashes = array();
         $timeframes = $this->safe_dict($this->options['ws'], 'timeframes', array());
         $marketIds = array();
         $selectedTimeframe = null;
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
             $data = $this->safe_list($symbolsAndTimeframes, $i);
-            $symbolStr = $this->safe_string($data, 0);
+            $symbolStr = $this->safe_string($data, 0, '');
             $market = $this->market($symbolStr);
             $marketId = $market['id'];
             $unfiedTimeframe = $this->safe_string($data, 1, '1m');
@@ -383,7 +376,7 @@ class toobit extends \ccxt\async\toobit {
         //
         $marketId = $this->safe_string($message, 'symbol');
         $market = $this->market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $params = $this->safe_dict($message, 'params', array());
         $timeframeId = $this->safe_string($params, 'klineType');
         $timeframe = $this->find_timeframe($timeframeId);
@@ -456,11 +449,11 @@ class toobit extends \ccxt\async\toobit {
     private function do_watch_tickers(?array $symbols = null, $params = array()) {
         /**
          *
-         * @see https://api-docs.toobit.com/api/spot-websocket-$market-data.html#individual-$symbol-$ticker-streams
-         * @see https://api-docs.toobit.com/api/usdt-m-websocket-$market-data.html#individual-$symbol-$ticker-streams
+         * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-$symbol-$ticker-streams
+         * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-$symbol-$ticker-streams
          *
          * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {string[]} $symbols unified $symbol of the $market to fetch the $ticker for
+         * @param {string[]} $symbols unified $symbol of the market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
@@ -469,22 +462,17 @@ class toobit extends \ccxt\async\toobit {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $messageHashes = array();
-        $subParams = array();
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
-            $market = $this->market($symbol);
             $messageHashes[] = 'ticker::' . $symbol;
-            $rawHash = $market['id'];
-            $subParams[] = $rawHash;
         }
         $marketIds = $this->market_ids($symbolsNormalized);
-        $url = $this->safe_string($this->urls['api']['ws'], 'common') . '/quote/ws/v1';
         $request = array(
             'symbol' => implode(',', $marketIds),
             'topic' => 'realtimes',
             'event' => 'sub',
         );
-        $ticker = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
+        $ticker = Async\await($this->watch_multiple($this->safe_string($this->urls['api']['ws'], 'common', '') . '/quote/ws/v1', $messageHashes, $this->extend($request, $params), $messageHashes));
         if ($this->newUpdates) {
             $result = array();
             $tickerSymbol = $this->safe_string($ticker, 'symbol');
@@ -538,7 +526,7 @@ class toobit extends \ccxt\async\toobit {
         }
         $newTickers = array();
         for ($i = 0; $i < count($data); $i++) {
-            $ticker = $data[$i];
+            $ticker = $this->safe_dict($data, $i, array());
             $parsed = $this->parse_ws_ticker($ticker);
             $symbol = $parsed['symbol'];
             if ($symbol !== null) {
@@ -547,8 +535,7 @@ class toobit extends \ccxt\async\toobit {
             if ($symbol !== null) {
                 $newTickers[$symbol] = $parsed;
             }
-            $messageHash = 'ticker::' . $symbol;
-            $client->resolve($parsed, $messageHash);
+            $client->resolve($parsed, 'ticker::' . $this->safe_string($parsed, 'symbol', ''));
         }
         $client->resolve($newTickers, 'tickers');
     }
@@ -582,10 +569,10 @@ class toobit extends \ccxt\async\toobit {
         /**
          * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
-         * @see https://api-docs.toobit.com/api/spot-websocket-$market-data.html#partial-book-depth-streams
-         * @see https://api-docs.toobit.com/api/spot-websocket-$market-data.html#diff-depth-stream
-         * @see https://api-docs.toobit.com/api/usdt-m-websocket-$market-data.html#partial-book-depth-streams
-         * @see https://api-docs.toobit.com/api/usdt-m-websocket-$market-data.html#diff-book-depth-streams
+         * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+         * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+         * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+         * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
          *
          * @param {string[]} $symbols unified array of $symbols
          * @param {int} [$limit] the maximum amount of order book entries to return.
@@ -598,16 +585,12 @@ class toobit extends \ccxt\async\toobit {
         $symbolsNormalized = $this->market_symbols($symbols, null, false);
         list($channel, $paramsChannel) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'channel', 'depth');
         $messageHashes = array();
-        $subParams = array();
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
-            $market = $this->market($symbol);
             $messageHashes[] = 'orderBook::' . $symbol . '::' . $channel;
-            $rawHash = $market['id'];
-            $subParams[] = $rawHash;
         }
         $marketIds = $this->market_ids($symbolsNormalized);
-        $url = $this->safe_string($this->urls['api']['ws'], 'common') . '/quote/ws/v1';
+        $url = $this->safe_string($this->urls['api']['ws'], 'common', '') . '/quote/ws/v1';
         $request = array(
             'symbol' => implode(',', $marketIds),
             'topic' => $channel,
@@ -823,7 +806,7 @@ class toobit extends \ccxt\async\toobit {
         if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }
-        $this->balance[$type]['info'] = $data;
+        $this->balance[$type]['info'] = $this->safe_list($message, 'B', array());
         $this->balance[$type]['timestamp'] = $timestamp;
         $this->balance[$type]['datetime'] = $this->iso8601($timestamp);
         for ($i = 0; $i < count($data); $i++) {
@@ -887,7 +870,7 @@ class toobit extends \ccxt\async\toobit {
         $symbolValue = $this->safe_string($market, 'symbol', $symbol);
         $messageHash = 'orders';
         if ($symbolValue !== null) {
-            $messageHash = $messageHash . ':' . $symbolValue;
+            $messageHash = 'orders' . ':' . $symbolValue;
         }
         $url = $this->get_user_stream_url();
         $orders = Async\await($this->watch($url, $messageHash, $params, $messageHash));
@@ -939,7 +922,7 @@ class toobit extends \ccxt\async\toobit {
         $orders->append($order);
         $messageHash = 'orders';
         $client->resolve($orders, $messageHash);
-        $messageHash = 'orders:' . $this->safe_string($order, 'symbol');
+        $messageHash = 'orders:' . $this->safe_string($order, 'symbol', '');
         $client->resolve($orders, $messageHash);
     }
 
@@ -1015,7 +998,7 @@ class toobit extends \ccxt\async\toobit {
         $symbolValue = $this->safe_string($market, 'symbol', $symbol);
         $messageHash = 'myTrades';
         if ($symbolValue !== null) {
-            $messageHash = $messageHash . ':' . $symbolValue;
+            $messageHash = 'myTrades' . ':' . $symbolValue;
         }
         $url = $this->get_user_stream_url();
         $trades = Async\await($this->watch($url, $messageHash, $params, $messageHash));
@@ -1050,7 +1033,7 @@ class toobit extends \ccxt\async\toobit {
         }
         $trade = $this->parse_my_trade($message);
         $myTrades->append($trade);
-        $messageHash = 'myTrades:' . $trade['symbol'];
+        $messageHash = 'myTrades:' . $this->safe_string($trade, 'symbol', '');
         $client->resolve($myTrades, $messageHash);
         $messageHash = 'myTrades';
         $client->resolve($myTrades, $messageHash);
@@ -1212,9 +1195,6 @@ class toobit extends \ccxt\async\toobit {
         for ($i = 0; $i < count($rawPositions); $i++) {
             $rawPosition = $rawPositions[$i];
             $position = $this->parse_ws_position($rawPosition);
-            $timestamp = $this->safe_integer($rawPosition, 'E');
-            $position['timestamp'] = $timestamp;
-            $position['datetime'] = $this->iso8601($timestamp);
             $newPositions[] = $position;
             $cache->append($position);
         }
@@ -1238,6 +1218,7 @@ class toobit extends \ccxt\async\toobit {
 
     public function parse_ws_position(array $position, ?array $market = null): array {
         $marketId = $this->safe_string($position, 's');
+        $timestamp = $this->safe_integer($position, 'E');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -1254,8 +1235,8 @@ class toobit extends \ccxt\async\toobit {
             'markPrice' => $this->safe_string($position, 'mp'),
             'side' => $this->safe_string_lower($position, 'S'),
             'hedged' => null,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'maintenanceMargin' => $this->safe_string($position, 'mm'),
             'maintenanceMarginPercentage' => null,
             'collateral' => null,
@@ -1352,7 +1333,9 @@ class toobit extends \ccxt\async\toobit {
     }
 
     public function get_user_stream_url(): string {
-        return $this->safe_string($this->urls['api']['ws'], 'common') . '/api/v1/ws/' . $this->safe_string($this->options['ws'], 'listenKey');
+        $wsBaseUrl = $this->safe_string($this->urls['api']['ws'], 'common', '');
+        $listenKey = $this->safe_string($this->options['ws'], 'listenKey', '');
+        return $wsBaseUrl . '/api/v1/ws/' . $listenKey;
     }
 
     public function handle_error_message(Client $client, array $message): ?bool {
@@ -1364,7 +1347,7 @@ class toobit extends \ccxt\async\toobit {
         //
         $code = $this->safe_string($message, 'code');
         if ($code !== null) {
-            $desc = $this->safe_string($message, 'desc');
+            $desc = $this->safe_string($message, 'desc', '');
             $msg = $this->id . ' code => ' . $code . ' message => ' . $desc;
             $exception = new ExchangeError($msg); // c# fix
             $client->reject($exception);

@@ -349,8 +349,8 @@ class bitflyer extends Exchange {
                 continue;
             }
             $symbol = $base . '/' . $quote;
-            $taker = $this->fees['trading']['taker'];
-            $maker = $this->fees['trading']['maker'];
+            $taker = $this->safe_number($this->fees['trading'], 'taker');
+            $maker = $this->safe_number($this->fees['trading'], 'maker');
             $contract = $swap || $future;
             if ($contract) {
                 $maker = 0.0;
@@ -573,10 +573,7 @@ class bitflyer extends Exchange {
         }
         $order = null;
         if ($side !== null) {
-            $idInner = $side . '_child_order_acceptance_id';
-            if (is_array($trade) && array_key_exists($idInner ?? '', $trade)) {
-                $order = $this->safe_string($trade, $idInner);
-            }
+            $order = $this->safe_string($trade, $side . '_child_order_acceptance_id');
         }
         if ($order === null) {
             $order = $this->safe_string($trade, 'child_order_acceptance_id');
@@ -878,8 +875,8 @@ class bitflyer extends Exchange {
         }
         $orders = $this->fetch_orders($symbol);
         $ordersById = $this->index_by($orders, 'id');
-        if (is_array($ordersById) && array_key_exists($id ?? '', $ordersById)) {
-            $found = $this->safe_dict($ordersById, $id);
+        $found = $this->safe_dict($ordersById, $id);
+        if ($found !== null) {
             return $found;
         }
         throw new OrderNotFound($this->id . ' No order found with id ' . $id);
@@ -1266,8 +1263,7 @@ class bitflyer extends Exchange {
         if ($apiName === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
-            $content = array( $nonce, $method, $request );
-            $auth = implode('', $content);
+            $auth = $nonce . $method . $request;
             if (count($params) > 0) {
                 if ($method !== 'GET') {
                     $body = $this->json($params);

@@ -535,10 +535,9 @@ class cryptomus extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'currency_pair');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
         $last = $this->safe_string($ticker, 'last_price');
         return $this->safe_ticker(array(
-            'symbol' => $symbol,
+            'symbol' => $marketResolved['symbol'],
             'timestamp' => null,
             'datetime' => null,
             'high' => null,
@@ -786,7 +785,8 @@ class cryptomus extends Exchange {
         $sideBuy = $side === 'buy';
         $amountToString = $this->number_to_string($amount);
         $priceToString = $this->number_to_string($price);
-        list($costParam, $paramsCost) = $this->handle_param_string($paramsOmitted, 'cost');
+        $paramsCost = $this->omit($paramsOmitted, 'cost');
+        $costParam = $this->safe_string($paramsOmitted, 'cost');
         $cost = $costParam;
         if ($type === 'market') {
             $requiresPriceAndParams = $this->handle_option_bool_and_params($paramsCost, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -797,13 +797,13 @@ class cryptomus extends Exchange {
             if ($sideBuy) {
                 $createMarketBuyOrderRequiresPrice = $requiresPriceAndParams[0];
                 if ($createMarketBuyOrderRequiresPrice) {
-                    if (($price === null) && ($cost === null)) {
+                    if (($price === null) && ($costParam === null)) {
                         throw new InvalidOrder($this->id . ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument');
-                    } elseif ($cost === null) {
+                    } elseif ($costParam === null) {
                         $cost = Precise::string_mul($amountToString, $priceToString);
                     }
                 } else {
-                    $cost = ($cost !== null && $cost !== '') ? $cost : $amountToString;
+                    $cost = ($costParam !== null && $costParam !== '') ? $costParam : $amountToString;
                 }
                 $request['value'] = $cost;
             } else {
@@ -1270,16 +1270,16 @@ class cryptomus extends Exchange {
         if ($response === null) {
             return null;
         }
-        if (is_array($response) && array_key_exists('code' ?? '', $response)) {
-            $code = $this->safe_string($response, 'code');
+        $code = $this->safe_string($response, 'code');
+        $message = $this->safe_string($response, 'message');
+        if ($code !== null) {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
             throw new ExchangeError($feedback);
-        } elseif (is_array($response) && array_key_exists('message' ?? '', $response)) {
+        } elseif ($message !== null) {
             //
             //      {"message":"Minimum amount 15 USDT","state":1}
             //
-            $message = $this->safe_string($response, 'message');
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);

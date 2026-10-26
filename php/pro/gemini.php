@@ -263,31 +263,30 @@ class gemini extends \ccxt\async\gemini {
     }
 
     public function handle_trades_for_multidata(Client $client, array $trades, ?int $timestamp) {
-        if ($trades !== null) {
-            $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $storesForSymbols = array();
-            for ($i = 0; $i < count($trades); $i++) {
-                $marketId = strtolower($this->safe_string($trades[$i], 'symbol', ''));
-                $market = $this->safe_market($marketId);
-                $symbol = $market['symbol'];
-                $trade = $this->parse_ws_trade($trades[$i], $market);
-                $trade['timestamp'] = $timestamp;
-                $trade['datetime'] = $this->iso8601($timestamp);
-                $stored = $this->safe_value($this->trades, $symbol);
-                if ($stored === null) {
-                    $stored = new ArrayCache($tradesLimit);
-                    $this->trades[$symbol] = $stored;
-                }
-                $stored->append($trade);
-                $storesForSymbols[$symbol] = $stored;
+        $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+        $storesForSymbols = array();
+        for ($i = 0; $i < count($trades); $i++) {
+            $rawTrade = $this->safe_value($trades, $i);
+            $marketId = strtolower($this->safe_string($rawTrade, 'symbol', ''));
+            $market = $this->safe_market($marketId);
+            $symbol = $market['symbol'];
+            $trade = $this->parse_ws_trade($rawTrade, $market);
+            $trade['timestamp'] = $timestamp;
+            $trade['datetime'] = $this->iso8601($timestamp);
+            $stored = $this->safe_value($this->trades, $symbol);
+            if ($stored === null) {
+                $stored = new ArrayCache($tradesLimit);
+                $this->trades[$symbol] = $stored;
             }
-            $symbols = is_array($storesForSymbols) ? array_keys($storesForSymbols) : array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $stored = $storesForSymbols[$symbol];
-                $messageHash = 'trades:' . $symbol;
-                $client->resolve($stored, $messageHash);
-            }
+            $stored->append($trade);
+            $storesForSymbols[$symbol] = $stored;
+        }
+        $symbols = is_array($storesForSymbols) ? array_keys($storesForSymbols) : array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $stored = $storesForSymbols[$symbol];
+            $messageHash = 'trades:' . $symbol;
+            $client->resolve($stored, $messageHash);
         }
     }
 
@@ -389,7 +388,7 @@ class gemini extends \ccxt\async\gemini {
         // reverse order of array to store candles in ascending order
         for ($i = 0; $i < $changesLength; $i++) {
             $index = $changesLength - $i - 1;
-            $parsed = $this->parse_ohlcv($changes[$index], $market);
+            $parsed = $this->parse_ohlcv($this->safe_value($changes, $index), $market);
             $stored->append($parsed);
         }
         $messageHash = 'ohlcv:' . $symbol . ':' . $timeframeId;
@@ -815,7 +814,7 @@ class gemini extends \ccxt\async\gemini {
         }
         $orders = $this->orders;
         for ($i = 0; $i < count($message); $i++) {
-            $order = $this->parse_ws_order($message[$i]);
+            $order = $this->parse_ws_order($this->safe_value($message, $i));
             $orders->append($order);
         }
         $client->resolve($this->orders, $messageHash);
@@ -1046,7 +1045,9 @@ class gemini extends \ccxt\async\gemini {
         );
         // this.options = this.extend (defaultOptions, this.options);
         $this->extend_exchange_options($defaultOptions);
-        $originalHeaders = $this->options['ws']['options']['headers'];
+        $wsOptions = $this->safe_dict($this->options, 'ws', array());
+        $wsSubOptions = $this->safe_dict($wsOptions, 'options', array());
+        $originalHeaders = $this->safe_dict($wsSubOptions, 'headers', array());
         $headers = array(
             'X-GEMINI-APIKEY' => $this->apiKey,
             'X-GEMINI-PAYLOAD' => $b64,

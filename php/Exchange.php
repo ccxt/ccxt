@@ -3644,7 +3644,7 @@ class BaseExchange {
         return $defaultValue;
     }
 
-    public function store_by_key(mixed $dict, int|string|null $key, mixed $value) {
+    public function store_by_key(array $dict, int|string|null $key, mixed $value) {
         /**
          * @ignore
          * store $value under $key if $key is defined (no-op on null)
@@ -3675,7 +3675,7 @@ class BaseExchange {
         throw new NotSupported($this->id . ' handleBookDelta not supported yet');
     }
 
-    public function handle_deltas_with_keys(mixed $bookSide, mixed $deltas, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+    public function handle_deltas_with_keys(mixed $bookSide, array $deltas, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         for ($i = 0; $i < count($deltas); $i++) {
             $bidAsk = $this->parse_order_book_bid_ask($deltas[$i], $priceKey, $amountKey, $countOrIdKey);
             $bookSide->storeArray($bidAsk);
@@ -3838,7 +3838,7 @@ class BaseExchange {
         return array( $wsProxy, $wssProxy, $wsSocksProxy );
     }
 
-    public function check_conflicting_proxies(mixed $proxyAgentSet, mixed $proxyUrlSet) {
+    public function check_conflicting_proxies(?string $proxyAgentSet, ?string $proxyUrlSet) {
         $proxyAgentIsSet = ($proxyAgentSet !== null) && ($proxyAgentSet !== null) && ($proxyAgentSet !== '');
         $proxyUrlIsSet = ($proxyUrlSet !== null) && ($proxyUrlSet !== null) && ($proxyUrlSet !== '');
         if ($proxyAgentIsSet && $proxyUrlIsSet) {
@@ -4711,7 +4711,7 @@ class BaseExchange {
         if ($length !== 0) {
             for ($i = 0; $i < $length; $i++) {
                 $key = $keys[$i];
-                $network = $networks[$key];
+                $network = $this->safe_dict($networks, $key, array());
                 $deposit = $this->safe_bool($network, 'deposit');
                 $currencyDeposit = $this->safe_bool($currency, 'deposit');
                 if ($currencyDeposit === null || ($deposit === true)) {
@@ -4900,7 +4900,7 @@ class BaseExchange {
         // we insert spot markets first
         $marketValues = $this->sort_by($this->to_array($markets), 'spot', true, true);
         for ($i = 0; $i < count($marketValues); $i++) {
-            $value = $marketValues[$i];
+            $value = $this->safe_dict($marketValues, $i, array());
             if (is_array($marketsById) && array_key_exists($value['id'] ?? '', $marketsById)) {
                 $marketsByIdArray = ($marketsById[$value['id']]);
                 $marketsByIdArray[] = $value;
@@ -5084,7 +5084,7 @@ class BaseExchange {
         }
         $debtBalanceArray = is_array($debtBalance) ? array_keys($debtBalance) : array();
         $length = count($debtBalanceArray);
-        if (($length !== null) && ($length !== 0)) {
+        if ($length !== 0) {
             $balance['debt'] = $debtBalance;
         }
         return $balance;
@@ -5184,7 +5184,7 @@ class BaseExchange {
                         }
                     }
                     if ($shouldParseFees) {
-                        $tradeFees = $this->safe_value($trade, 'fees');
+                        $tradeFees = $this->safe_list($trade, 'fees');
                         if ($tradeFees !== null) {
                             for ($j = 0; $j < count($tradeFees); $j++) {
                                 $tradeFee = $tradeFees[$j];
@@ -5423,7 +5423,7 @@ class BaseExchange {
         if ($markets === null) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
-        $market = $markets[$symbol];
+        $market = $this->safe_dict($markets, $symbol, array());
         $feeSide = $this->safe_string($market, 'feeSide', 'quote');
         $useQuote = null;
         if ($feeSide === 'get') {
@@ -5531,10 +5531,10 @@ class BaseExchange {
                 $id .= '-' . $side;
             }
             if ($amount !== null) {
-                $id .= '-' . $this->number_to_string($amount);
+                $id .= '-' . $amount;
             }
             if ($price !== null) {
-                $id .= '-' . $this->number_to_string($price);
+                $id .= '-' . $price;
             }
             if ($takerOrMaker !== null) {
                 $id .= '-' . $takerOrMaker;
@@ -6845,10 +6845,11 @@ class BaseExchange {
         if ($code === null) {
             return $code;
         }
-        $currency = $this->safe_dict($this->currencies, $code);
-        if ($currency === null) {
-            $currency = $this->safe_currency($code);
+        $currencyById = $this->safe_dict($this->currencies, $code);
+        if ($currencyById !== null) {
+            return $currencyById['id'];
         }
+        $currency = $this->safe_currency($code);
         if ($currency !== null) {
             return $currency['id'];
         }
@@ -6915,10 +6916,7 @@ class BaseExchange {
     }
 
     public function get_list_from_object_values(mixed $objects, int|string $key) {
-        $newArray = $objects;
-        if ((gettype($objects) !== 'array' || array_keys($objects) !== array_keys(array_keys($objects)))) {
-            $newArray = $this->to_array($objects);
-        }
+        $newArray = $this->to_array($objects);
         $results = array();
         for ($i = 0; $i < count($newArray); $i++) {
             $results[] = $newArray[$i][$key];
@@ -7084,7 +7082,7 @@ class BaseExchange {
         $options = $this->safe_dict($this->options, 'buildOHLCVC', array());
         $skipZeroPrices = $this->safe_bool($options, 'skipZeroPrices', true);
         for ($i = 0; $i < $oldest; $i++) {
-            $trade = $trades[$i];
+            $trade = $this->safe_dict($trades, $i, array());
             $ts = $this->safe_integer($trade, 'timestamp');
             $price = $trade['price'];
             if (($ts === null) || ($price === null)) {
@@ -7203,7 +7201,7 @@ class BaseExchange {
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null) {
         if ($marketId !== null) {
             if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
-                $markets = $this->markets_by_id[$marketId];
+                $markets = $this->safe_list($this->markets_by_id, $marketId, array());
                 $numMarkets = count($markets);
                 if ($numMarkets === 1) {
                     return $markets[0];
@@ -7595,7 +7593,7 @@ class BaseExchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
         return $this->safe_value($config, 'cost', 1);
     }
 
@@ -8336,7 +8334,7 @@ class BaseExchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function handle_trigger_prices_and_params(mixed $symbol, mixed $params, $omitParams = true) {
+    public function handle_trigger_prices_and_params(mixed $symbol, array $params, $omitParams = true) {
         //
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $triggerPriceStr = null;
@@ -8370,7 +8368,7 @@ class BaseExchange {
         return array( $triggerPriceStr, $stopLossPriceStr, $takeProfitPriceStr, $paramsOmitted );
     }
 
-    public function handle_trigger_direction_and_params(mixed $params, ?string $exchangeSpecificKey = null, ?bool $allowEmpty = false) {
+    public function handle_trigger_direction_and_params(array $params, ?string $exchangeSpecificKey = null, ?bool $allowEmpty = false) {
         /**
          * @ignore
          * @return array([string, object]) the trigger-direction value and omited $params
@@ -8450,7 +8448,7 @@ class BaseExchange {
             } elseif ($isMarketOrder) {
                 throw new InvalidOrder($this->id . ' market orders cannot be postOnly');
             } else {
-                $keysToOmit = null;
+                $keysToOmit = array();
                 if ($po) {
                     $keysToOmit = array( 'timeInForce', 'postOnly' );
                 } else {
@@ -8714,7 +8712,7 @@ class BaseExchange {
         throw new NotSupported($this->id . ' parseDepositWithdrawFee() is not supported yet');
     }
 
-    public function deposit_withdraw_fee(mixed $info) {
+    public function deposit_withdraw_fee(?array $info) {
         return array(
             'info' => $info,
             'withdraw' => array(
@@ -8729,7 +8727,7 @@ class BaseExchange {
         );
     }
 
-    public function assign_default_deposit_withdraw_fees(mixed $fee, ?array $currency = null) {
+    public function assign_default_deposit_withdraw_fees(array $fee, ?array $currency = null) {
         /**
          * @ignore
          * Takes a depositWithdrawFee structure and assigns the default values for withdraw and deposit
@@ -8799,7 +8797,7 @@ class BaseExchange {
         return $market;
     }
 
-    public function parse_ws_ohlcvs(mixed $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
+    public function parse_ws_ohlcvs(mixed $ohlcvs, ?array $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
         $results = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
             $results[] = $this->parse_ws_ohlcv($ohlcvs[$i], $market);
@@ -8906,7 +8904,7 @@ class BaseExchange {
                     }
                     $errors = 0;
                     $result = $this->array_concat($result, $response);
-                    $firstElement = $this->safe_value($response, 0);
+                    $firstElement = $this->safe_dict($response, 0);
                     $paginationTimestamp = $this->safe_integer_2($firstElement, 'timestamp', 0);
                     if ($paginationTimestamp === null) {
                         $shouldBreak = true;
@@ -8933,7 +8931,7 @@ class BaseExchange {
                     }
                     $errors = 0;
                     $result = $this->array_concat($result, $response);
-                    $last = $this->safe_value($response, $responseLength - 1);
+                    $last = $this->safe_dict($response, $responseLength - 1);
                     $lastTimestamp = $this->safe_integer($last, 'timestamp', 0);
                     if ($lastTimestamp === null) {
                         $shouldBreak = true;
@@ -9100,9 +9098,7 @@ class BaseExchange {
                     $shouldBreak = true;
                     break;
                 }
-                if ($response !== null) {
-                    $result = $this->array_concat($result, $response);
-                }
+                $result = $this->array_concat($result, $response);
                 $last = $this->safe_dict($response, $responseLength - 1);
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 $cursorValue = null; // search for the cursor
@@ -9222,27 +9218,17 @@ class BaseExchange {
             $entry = $input[$i];
             $id = $this->safe_string($entry, 'id');
             if ($id === null) {
-                $price = $this->safe_string($entry, 'price');
-                $amount = $this->safe_string($entry, 'amount');
+                $price = $this->safe_string($entry, 'price', '');
+                $amount = $this->safe_string($entry, 'amount', '');
                 $timestamp = $this->safe_string($entry, 'timestamp');
-                $side = $this->safe_string($entry, 'side');
+                $side = $this->safe_string($entry, 'side', '');
                 // unique trade identifier
                 if ($timestamp === null) {
                     throw new ExchangeError($this->id . ' removeRepeatedTradesFromArray() missing timestamp');
                 }
-                // optional parts are appended only when present, separators keep positions distinct
-                $id = 't_' . (string) $timestamp . '_';
-                if ($side !== null) {
-                    $id = $id . $side;
-                }
-                $id = $id . '_';
-                if ($price !== null) {
-                    $id = $id . $price;
-                }
-                $id = $id . '_';
-                if ($amount !== null) {
-                    $id = $id . $amount;
-                }
+                // optional parts are empty when absent, separators keep positions distinct
+                $id = 't_' . (string) $timestamp . '_' . $side . '_';
+                $id = $id . ($price . '_' . $amount);
             }
             if ($id !== null && !(is_array($uniqueResult) && array_key_exists($id ?? '', $uniqueResult))) {
                 $uniqueResult[$id] = $entry;

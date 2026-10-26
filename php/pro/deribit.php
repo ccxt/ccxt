@@ -102,7 +102,7 @@ class deribit extends \ccxt\async\deribit {
         $currencies = $this->safe_list($this->options, 'currencies', array());
         $channels = array();
         for ($i = 0; $i < count($currencies); $i++) {
-            $currencyCode = $this->safe_string($currencies, $i);
+            $currencyCode = $this->safe_string($currencies, $i, '');
             $channels[] = 'user.portfolio.' . $currencyCode;
         }
         $subscribe = array(
@@ -202,12 +202,13 @@ class deribit extends \ccxt\async\deribit {
         if ($interval === 'raw') {
             Async\await($this->authenticate());
         }
-        $channel = 'ticker.' . $market['id'] . '.' . $interval;
+        $marketId = $this->safe_string($market, 'id', '');
+        $channel = 'ticker.' . $marketId . '.' . $interval;
         $message = array(
             'jsonrpc' => '2.0',
             'method' => 'public/subscribe',
             'params' => array(
-                'channels' => array( 'ticker.' . $market['id'] . '.' . $interval ),
+                'channels' => array( 'ticker.' . $marketId . '.' . $interval ),
             ),
             'id' => $this->request_id(),
         );
@@ -246,7 +247,7 @@ class deribit extends \ccxt\async\deribit {
         $channels = array();
         for ($i = 0; $i < count(($symbolsNormalized)); $i++) {
             $market = $this->market(($symbolsNormalized)[$i]);
-            $channels[] = 'ticker.' . $market['id'] . '.' . $interval;
+            $channels[] = 'ticker.' . $this->safe_string($market, 'id', '') . '.' . $interval;
         }
         $message = array(
             'jsonrpc' => '2.0',
@@ -375,7 +376,7 @@ class deribit extends \ccxt\async\deribit {
         $params = $this->safe_dict($message, 'params', array());
         $data = $this->safe_dict($params, 'data', array());
         $ticker = $this->parse_ws_bid_ask($data);
-        $symbol = $ticker['symbol'];
+        $symbol = $this->safe_string($ticker, 'symbol');
         $this->bidsasks[$symbol] = $ticker;
         $messageHash = $this->safe_string($params, 'channel');
         $client->resolve($ticker, $messageHash);
@@ -475,7 +476,6 @@ class deribit extends \ccxt\async\deribit {
         $channel = $this->safe_string($params, 'channel', '');
         $parts = explode('.', $channel);
         $marketId = $this->safe_string($parts, 1);
-        $interval = $this->safe_string($parts, 2);
         $symbol = $this->safe_symbol($marketId);
         $market = $this->safe_market($marketId);
         $trades = $this->safe_list($params, 'data', array());
@@ -490,6 +490,7 @@ class deribit extends \ccxt\async\deribit {
             $stored->append($parsed);
         }
         $this->trades[$symbol] = $stored;
+        $interval = $this->safe_string($parts, 2, '');
         $messageHash = 'trades|' . $symbol . '|' . $interval;
         $client->resolve($this->trades[$symbol], $messageHash);
     }
@@ -579,7 +580,7 @@ class deribit extends \ccxt\async\deribit {
         for ($i = 0; $i < count($parsed); $i++) {
             $trade = $parsed[$i];
             $cachedTrades->append($trade);
-            $symbol = $trade['symbol'];
+            $symbol = $this->safe_string($trade, 'symbol');
             $marketIds[$symbol] = true;
         }
         $client->resolve($cachedTrades, $channel);
@@ -694,12 +695,10 @@ class deribit extends \ccxt\async\deribit {
         $partsLength = count($parts);
         $isDetailed = $partsLength === 5;
         if ($isDetailed) {
-            $group = $this->safe_string($parts, 2);
-            $depth = $this->safe_string($parts, 3);
-            $interval = $this->safe_string($parts, 4);
-            $descriptor = $group . '.' . $depth . '.' . $interval;
+            $interval = $this->safe_string($parts, 4, '');
+            $descriptor = $this->safe_string($parts, 2, '') . '.' . $this->safe_string($parts, 3, '') . '.' . $interval;
         } else {
-            $interval = $this->safe_string($parts, 2);
+            $interval = $this->safe_string($parts, 2, '');
             $descriptor = $interval;
         }
         $marketId = $this->safe_string($data, 'instrument_name');
@@ -727,11 +726,13 @@ class deribit extends \ccxt\async\deribit {
         $asks = $this->safe_list($data, 'asks', array());
         $cleanedBids = array();
         for ($i = 0; $i < count($bids); $i++) {
-            $cleanedBids[] = array( $bids[$i][1], $bids[$i][2] );
+            $bid = $this->safe_list($bids, $i, array());
+            $cleanedBids[] = array( $bid[1], $bid[2] );
         }
         $cleanedAsks = array();
         for ($i = 0; $i < count($asks); $i++) {
-            $cleanedAsks[] = array( $asks[$i][1], $asks[$i][2] );
+            $ask = $this->safe_list($asks, $i, array());
+            $cleanedAsks[] = array( $ask[1], $ask[2] );
         }
         $data['bids'] = $cleanedBids;
         $data['asks'] = $cleanedAsks;
@@ -739,8 +740,8 @@ class deribit extends \ccxt\async\deribit {
     }
 
     public function handle_delta(mixed $bookside, mixed $delta) {
-        $price = $delta[1];
-        $amount = $delta[2];
+        $price = $this->safe_value($delta, 1);
+        $amount = $this->safe_value($delta, 2);
         $action = $this->safe_string($delta, 0);
         if ($action === 'new' || $action === 'change') {
             $bookside->storeArray(array( $price, $amount, 1 ));
@@ -1001,16 +1002,17 @@ class deribit extends \ccxt\async\deribit {
             $market = null;
             $currentDescriptor = null;
             if ($isOHLCV) {
-                $market = $this->market($current[0]);
-                $unifiedTf = $current[1];
+                $currentPair = $this->safe_list($symbolsArray, $i, array());
+                $market = $this->market($currentPair[0]);
+                $unifiedTf = $currentPair[1];
                 $currentDescriptor = $this->safe_string($this->timeframes, $unifiedTf, $unifiedTf);
             } else {
                 $market = $this->market($current);
                 $currentDescriptor = $channelDescriptor;
             }
-            $message = $channelName . '.' . $market['id'] . '.' . $currentDescriptor;
+            $message = $channelName . '.' . $this->safe_string($market, 'id', '') . '.' . $currentDescriptor;
             $rawSubscriptions[] = $message;
-            $messageHashes[] = $channelName . '|' . $market['symbol'] . '|' . $currentDescriptor;
+            $messageHashes[] = $channelName . '|' . $this->safe_string($market, 'symbol', '') . '|' . $currentDescriptor;
         }
         $request = array(
             'jsonrpc' => '2.0',

@@ -70,7 +70,7 @@ class coincheck extends \ccxt\async\coincheck {
         $url = $this->urls['api']['ws'];
         $request = array(
             'type' => 'subscribe',
-            'channel' => $market['id'] . '-orderbook',
+            'channel' => $this->safe_string($market, 'id', '') . '-orderbook',
         );
         $message = $this->extend($request, $params);
         $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash));
@@ -107,7 +107,6 @@ class coincheck extends \ccxt\async\coincheck {
             $orderbook = $this->order_book($snapshot);
             $this->orderbooks[$symbol] = $orderbook;
         } else {
-            $orderbook = $this->orderbooks[$symbol];
             $orderbook->reset($snapshot);
         }
         $messageHash = 'orderbook:' . $symbol;
@@ -134,18 +133,17 @@ class coincheck extends \ccxt\async\coincheck {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
         $messageHash = 'trade:' . $market['symbol'];
         $url = $this->urls['api']['ws'];
         $request = array(
             'type' => 'subscribe',
-            'channel' => $market['id'] . '-trades',
+            'channel' => $this->safe_string($market, 'id', '') . '-trades',
         );
         $message = $this->extend($request, $params);
         $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
         $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $trades->getLimit($symbolValue, $limit);
+            $limitResolved = $trades->getLimit($market['symbol'], $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }

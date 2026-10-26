@@ -1524,27 +1524,25 @@ class okx extends Exchange {
         $quote = 'USD';
         $optionParts = explode('-', $symbol);
         $symbolBase = explode('/', $symbol);
-        $base = null;
         if (mb_strpos($symbol, '/') > -1) {
-            $base = $this->safe_string($symbolBase, 0);
+            $base = $this->safe_string($symbolBase, 0, '');
         } else {
-            $base = $this->safe_string($optionParts, 0);
+            $base = $this->safe_string($optionParts, 0, '');
         }
-        $settle = $base;
-        $expiry = $this->safe_string($optionParts, 2);
-        $strike = $this->safe_string($optionParts, 3);
-        $optionType = $this->safe_string($optionParts, 4);
-        $datetime = ($expiry === null) ? null : $this->convert_expire_date($expiry);
+        $expiry = $this->safe_string($optionParts, 2, '');
+        $strike = $this->safe_string($optionParts, 3, '');
+        $optionType = $this->safe_string($optionParts, 4, '');
+        $datetime = ($expiry === '') ? null : $this->convert_expire_date($expiry);
         $timestamp = $this->parse8601($datetime);
         return array(
             'id' => $base . '-' . $quote . '-' . $expiry . '-' . $strike . '-' . $optionType,
-            'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
+            'symbol' => $base . '/' . $quote . ':' . $base . '-' . $expiry . '-' . $strike . '-' . $optionType,
             'base' => $base,
             'quote' => $quote,
-            'settle' => $settle,
+            'settle' => $base,
             'baseId' => $base,
             'quoteId' => $quote,
-            'settleId' => $settle,
+            'settleId' => $base,
             'active' => false,
             'type' => 'option',
             'linear' => null,
@@ -1794,7 +1792,7 @@ class okx extends Exchange {
         $promises = array();
         $result = array();
         for ($i = 0; $i < count($types); $i++) {
-            $promises[] = $this->fetch_markets_by_type($types[$i], $params);
+            $promises[] = $this->fetch_markets_by_type($this->safe_string($types, $i, ''), $params);
         }
         $responses = Async\await(Promise\all($promises));
         for ($i = 0; $i < count($responses); $i++) {
@@ -2833,7 +2831,8 @@ class okx extends Exchange {
                 $response = Async\await($this->publicGetMarketMarkPriceCandles($this->extend($request, $paramsType)));
             }
         } elseif ($priceType === 'index') {
-            $request['instId'] = $market['info']['instFamily']; // okx index candles require instFamily instead of instId
+            $marketInfo = $this->safe_dict($market, 'info', array());
+            $request['instId'] = $marketInfo['instFamily']; // okx index candles require instFamily instead of instId
             if ($isHistoryCandles) {
                 $response = Async\await($this->publicGetMarketHistoryIndexCandles($this->extend($request, $paramsType)));
             } else {
@@ -3051,7 +3050,7 @@ class okx extends Exchange {
         if ($market['spot'] === true) {
             $request['instId'] = $market['id'];
         } elseif (($market['swap'] === true) || ($market['future'] === true) || ($market['option'] === true)) {
-            $request['uly'] = $market['baseId'] . '-' . $market['quoteId'];
+            $request['uly'] = $this->safe_string($market, 'baseId', '') . '-' . $this->safe_string($market, 'quoteId', '');
         } else {
             throw new NotSupported($this->id . ' fetchTradingFee() supports spot, swap, future or option markets only');
         }
@@ -3312,8 +3311,8 @@ class okx extends Exchange {
         if (!$shouldOmitSize) {
             $request['sz'] = $this->amount_to_precision($symbol, $amount);
         }
-        $spot = $market['spot'];
-        $contract = $market['contract'];
+        $spot = $this->safe_bool($market, 'spot');
+        $contract = $this->safe_bool($market, 'contract');
         $triggerPrice = $this->safe_value_n($params, array( 'triggerPrice', 'stopPrice', 'triggerPx' ));
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
@@ -4087,7 +4086,7 @@ class okx extends Exchange {
             if ($algoIds !== null) {
                 for ($i = 0; $i < count($algoIds); $i++) {
                     $request[] = array(
-                        'algoId' => $algoIds[$i],
+                        'algoId' => $this->safe_string($algoIds, $i),
                         'instId' => $market['id'],
                     );
                 }
@@ -4095,12 +4094,12 @@ class okx extends Exchange {
             for ($i = 0; $i < count($orderIds); $i++) {
                 if (($trailing) || $isTrigger) {
                     $request[] = array(
-                        'algoId' => $orderIds[$i],
+                        'algoId' => $this->safe_string($orderIds, $i),
                         'instId' => $market['id'],
                     );
                 } else {
                     $request[] = array(
-                        'ordId' => $orderIds[$i],
+                        'ordId' => $this->safe_string($orderIds, $i),
                         'instId' => $market['id'],
                     );
                 }
@@ -4110,12 +4109,12 @@ class okx extends Exchange {
                 if (($trailing) || $isTrigger) {
                     $request[] = array(
                         'instId' => $market['id'],
-                        'algoClOrdId' => $clientOrderIds[$i],
+                        'algoClOrdId' => $this->safe_string($clientOrderIds, $i),
                     );
                 } else {
                     $request[] = array(
                         'instId' => $market['id'],
-                        'clOrdId' => $clientOrderIds[$i],
+                        'clOrdId' => $this->safe_string($clientOrderIds, $i),
                     );
                 }
             }
@@ -7046,7 +7045,7 @@ class okx extends Exchange {
         $jsonBody = null;
         // const type = this.getPathAuthenticationType (path);
         if ($apiName === 'public') {
-            if (count($query) > 0) {
+            if (!$this->is_empty($query)) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($apiName === 'private') {
@@ -7072,7 +7071,7 @@ class okx extends Exchange {
                     }
                 }
             }
-            $hasJsonBody = ($method !== 'GET') && ($isArray || (count($query) > 0));
+            $hasJsonBody = ($method !== 'GET') && ($isArray || (!$this->is_empty($query)));
             $jsonBody = $hasJsonBody ? $this->json($query) : null;
             $timestamp = $this->iso8601($this->nonce());
             $privateHeaders = array(
@@ -7085,7 +7084,7 @@ class okx extends Exchange {
             );
             $auth = $timestamp . $method . $request;
             if ($method === 'GET') {
-                if (count($query) > 0) {
+                if (!$this->is_empty($query)) {
                     $urlencodedQuery = '?' . $this->urlencode($query);
                     $url .= $urlencodedQuery;
                     $auth .= $urlencodedQuery;
@@ -7271,7 +7270,7 @@ class okx extends Exchange {
                 $ruleType = $this->safe_string($marketInfo, 'ruleType');
                 $isExtendedPerpetual = ($ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
                 if (($market['swap'] !== true) && !$isExtendedPerpetual) {
-                    throw new BadRequest($this->id . ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' . $symbolsNormalized[$i] . ' is not');
+                    throw new BadRequest($this->id . ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' . $this->safe_string($symbolsNormalized, $i, '') . ' is not');
                 }
             }
         }
@@ -7393,7 +7392,7 @@ class okx extends Exchange {
             // "limit": "100", // default 100, max 100
         );
         if ($limit !== null) {
-            $request['limit'] = (string) $limit; // default 100, max 100
+            $request['limit'] = $this->number_to_string($limit); // default 100, max 100
         }
         $market = null;
         if ($symbol !== null) {
@@ -8945,9 +8944,10 @@ class okx extends Exchange {
             'type' => '3', // delivery
         );
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['instId'] = $market['id'];
-            $request['instType'] = $this->convert_to_instrument_type($market['type']);
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['instId'] = $symbolMarket['id'];
+            $request['instType'] = $this->convert_to_instrument_type($symbolMarket['type']);
         }
         if ($since !== null) {
             $request['begin'] = $since;
@@ -9105,9 +9105,10 @@ class okx extends Exchange {
         $market = $this->market($symbol);
         $marketId = $this->safe_string($market, 'id', '');
         $optionParts = explode('-', $marketId);
+        $marketInfo = $this->safe_dict($market, 'info', array());
         $request = array(
-            'uly' => $market['info']['uly'],
-            'instFamily' => $market['info']['instFamily'],
+            'uly' => $marketInfo['uly'],
+            'instFamily' => $marketInfo['instFamily'],
             'expTime' => $this->safe_string($optionParts, 2),
         );
         $response = Async\await($this->publicGetPublicOptSummary($this->extend($request, $params)));
@@ -9192,8 +9193,9 @@ class okx extends Exchange {
                 $market = $this->market($symbolsNormalized[0]);
                 $marketId = $this->safe_string($market, 'id', '');
                 $optionParts = explode('-', $marketId);
-                $request['uly'] = $market['info']['uly'];
-                $request['instFamily'] = $market['info']['instFamily'];
+                $marketInfo = $this->safe_dict($market, 'info', array());
+                $request['uly'] = $marketInfo['uly'];
+                $request['instFamily'] = $marketInfo['instFamily'];
                 $request['expTime'] = $this->safe_string($optionParts, 2);
             }
         }

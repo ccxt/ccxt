@@ -567,7 +567,7 @@ class backpack extends Exchange {
         //
         $currencies = array();
         for ($i = 0; $i < count($response); $i++) {
-            $currency = $this->parse_currency($response[$i]);
+            $currency = $this->parse_currency($this->safe_dict($response, $i, array()));
             if (($stock !== true) || ($this->safe_string($currency, 'type') === 'stock')) {
                 $currencies[$currency['code']] = $currency;
             }
@@ -691,7 +691,7 @@ class backpack extends Exchange {
         $markets = array();
         $marketIds = array();
         for ($i = 0; $i < count($response); $i++) {
-            $rawMarket = $response[$i];
+            $rawMarket = $this->safe_dict($response, $i, array());
             $rawType = $this->safe_string($rawMarket, 'marketType', '');
             if (!$this->in_array($rawType, $marketTypes)) {
                 continue;
@@ -705,7 +705,7 @@ class backpack extends Exchange {
                     continue;
                 }
                 $marketIds[$marketId] = true;
-                if (($stock !== true) || ($market['stock'] === true)) {
+                if (($stock !== true) || $this->safe_bool($market, 'stock', false)) {
                     $markets[] = $market;
                 }
             }
@@ -919,7 +919,7 @@ class backpack extends Exchange {
             $inverse = false;
             $settleId = $this->safe_string($market, 'quoteSymbol');
             $settle = $this->safe_currency_code($settleId);
-            $symbol .= ':' . $settle;
+            $symbol = $base . '/' . $quote . ':' . $settle;
             $contractSize = 1;
         } else {
             return null;
@@ -1090,7 +1090,7 @@ class backpack extends Exchange {
         $fee = $this->safe_dict($order, 'fee');
         $timestamp = $this->safe_integer($order, 'timestamp');
         return array(
-            'info' => $order['info'],
+            'info' => $this->safe_dict($order, 'info'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'id' => $this->safe_string($order, 'id'),
@@ -1122,7 +1122,7 @@ class backpack extends Exchange {
         }
         $this->load_markets();
         $market = $this->rfq_conversion_market($fromCode, $toCode);
-        $fromIsBase = $fromCode === $market['base'];
+        $fromIsBase = $fromCode === $this->safe_string($market, 'base');
         $side = ($fromIsBase) ? 'sell' : 'buy';
         if (!$fromIsBase) {
             $initialQuote = $this->fetch_stock_indicative_quote($market['symbol'], $side, 1, array( 'stock' => true ));
@@ -1214,13 +1214,13 @@ class backpack extends Exchange {
         $quoteId = $this->safe_string($query, 'quoteId');
         if ($quoteId !== null) {
             $acceptParams = $this->omit($query, array( 'quoteId', 'price', 'baseAmount', 'clientOrderId' ));
-            $accepted = $this->accept_rfq_quote($id, $quoteId, $market['symbol'], $acceptParams);
+            $accepted = $this->accept_rfq_quote($id, $quoteId, $this->safe_symbol(null, $market), $acceptParams);
             return $this->parse_conversion($accepted, $this->currency($fromCode), $this->currency($toCode));
         }
         if (($amount === null) || !Precise::string_gt($this->number_to_string($amount), '0')) {
             throw new ArgumentsRequired($this->id . ' createConvertTrade() requires a positive amount');
         }
-        $fromIsBase = $fromCode === $market['base'];
+        $fromIsBase = $fromCode === $this->safe_string($market, 'base');
         $side = ($fromIsBase) ? 'sell' : 'buy';
         $quantity = $this->number_to_string($amount);
         $price = $this->safe_number($query, 'price');
@@ -1230,7 +1230,7 @@ class backpack extends Exchange {
                 $quantity = $this->number_to_string($baseAmount);
             } else {
                 if (($price === null) || !Precise::string_gt($this->number_to_string($price), '0')) {
-                    $indicative = $this->fetch_stock_indicative_quote($market['symbol'], $side, 1, array( 'stock' => true ));
+                    $indicative = $this->fetch_stock_indicative_quote($this->safe_symbol(null, $market), $side, 1, array( 'stock' => true ));
                     if (!$this->safe_bool($indicative, 'available', false)) {
                         throw new InvalidOrder($this->id . ' createConvertTrade() stock indicative quote unavailable => ' . $this->safe_string($indicative, 'reason', 'priceUnavailable'));
                     }
@@ -1240,14 +1240,14 @@ class backpack extends Exchange {
                     throw new InvalidOrder($this->id . ' createConvertTrade() buying stock requires a positive price bound');
                 }
                 $rawQuantity = Precise::string_div($this->number_to_string($amount), $this->number_to_string($price), 18);
-                $preciseQuantity = $this->amount_to_precision($market['symbol'], $this->parse_number($rawQuantity));
+                $preciseQuantity = $this->amount_to_precision($this->safe_symbol(null, $market), $this->parse_number($rawQuantity));
                 if ($preciseQuantity === null) {
                     throw new InvalidOrder($this->id . ' createConvertTrade() could not determine a stock quantity');
                 }
                 $quantity = $preciseQuantity;
             }
             if (($price === null) || !Precise::string_gt($this->number_to_string($price), '0')) {
-                $indicative = $this->fetch_stock_indicative_quote($market['symbol'], $side, $this->parse_number($quantity), array( 'stock' => true ));
+                $indicative = $this->fetch_stock_indicative_quote($this->safe_symbol(null, $market), $side, $this->parse_number($quantity), array( 'stock' => true ));
                 if (!$this->safe_bool($indicative, 'available', false)) {
                     throw new InvalidOrder($this->id . ' createConvertTrade() stock indicative quote unavailable => ' . $this->safe_string($indicative, 'reason', 'priceUnavailable'));
                 }
@@ -1282,7 +1282,7 @@ class backpack extends Exchange {
         if ($clientOrderId !== null) {
             $orderParams['clientOrderId'] = $clientOrderId;
         }
-        $order = $this->create_rfq_order($market['symbol'], 'market', $side, $this->parse_number($quantity), $price, $this->extend($orderParams, array( 'stock' => true )));
+        $order = $this->create_rfq_order($this->safe_symbol(null, $market), 'market', $side, $this->parse_number($quantity), $price, $this->extend($orderParams, array( 'stock' => true )));
         return $this->parse_conversion($order, $this->currency($fromCode), $this->currency($toCode));
     }
 
@@ -1300,7 +1300,8 @@ class backpack extends Exchange {
         $query = $this->safe_dict($selection, 1, array());
         $request = $this->extend(array(), $query);
         $source = $this->safe_string($query, 'source');
-        $isRfq = ($market !== null) && ($this->safe_string($market['info'], 'marketType') === 'RFQ');
+        $marketInfo = $this->safe_dict($market, 'info', array());
+        $isRfq = ($market !== null) && ($this->safe_string($marketInfo, 'marketType') === 'RFQ');
         if ($source === null) {
             $source = ($isRfq) ? 'External' : 'Venue';
         }
@@ -1311,7 +1312,7 @@ class backpack extends Exchange {
             if (!$stock) {
                 throw new BadRequest($this->id . ' ' . $methodName . '() External provider data requires a stock market symbol or params.stock=true when no symbol is provided');
             }
-            if (($market !== null) && ($market['stock'] !== true)) {
+            if (($market !== null) && !$this->safe_bool($market, 'stock', false)) {
                 throw new BadSymbol($this->id . ' ' . $methodName . '() External data requires a stock market');
             }
             $request['source'] = $source;
@@ -1331,11 +1332,11 @@ class backpack extends Exchange {
             }
         }
         if ($market !== null) {
-            $marketId = $market['id'];
-            if ($this->safe_string($market['info'], 'marketType') === 'RFQ') {
-                $marketId = $market['baseId'] . '_' . $market['quoteId'];
+            if ($isRfq) {
+                $request['symbol'] = $this->safe_string($market, 'baseId', '') . '_' . $this->safe_string($market, 'quoteId', '');
+            } else {
+                $request['symbol'] = $this->safe_string($market, 'id');
             }
-            $request['symbol'] = $marketId;
         }
         return $request;
     }
@@ -1396,13 +1397,15 @@ class backpack extends Exchange {
         if ($symbols !== null) {
             $symbolsLength = count($symbols);
         }
-        $symbolsNormalized = ($symbolsLength === 0) ? null : $this->market_symbols($symbols, null, false);
-        $symbolsResolved = ($symbolsNormalized === null) ? is_array($this->markets) ? array_keys($this->markets) : array() : $symbolsNormalized;
+        $symbolsResolved = is_array($this->markets) ? array_keys($this->markets) : array();
+        if ($symbolsLength !== 0) {
+            $symbolsResolved = $this->market_symbols($symbols, null, false);
+        }
         $hasRfqSymbol = false;
         $hasStockSymbol = false;
         if ($symbols !== null) {
             for ($i = 0; $i < count($symbolsResolved); $i++) {
-                $market = $this->market($symbolsResolved[$i]);
+                $market = $this->market($this->safe_string($symbolsResolved, $i));
                 if ($market['stock'] === true) {
                     $hasStockSymbol = true;
                 }
@@ -1440,7 +1443,7 @@ class backpack extends Exchange {
             if (($ticker !== null) && (($source !== 'External') || ($market['stock'] === true))) {
                 $result[$marketSymbol] = $ticker;
             } elseif ($marketIsRfq) {
-                $underlyingId = $market['baseId'] . '_' . $market['quoteId'];
+                $underlyingId = $this->safe_string($market, 'baseId', '') . '_' . $this->safe_string($market, 'quoteId', '');
                 $useExternal = ($source === 'External') || $needsExternalRfqTickers;
                 $tickerSource = ($useExternal) ? $externalResponseById : $responseById;
                 $underlyingTicker = $this->safe_dict($tickerSource, $underlyingId);
@@ -1493,7 +1496,6 @@ class backpack extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $marketResolved = ($market === null) ? $this->safe_market($marketId) : $market;
-        $symbol = $marketResolved['symbol'];
         $open = $this->safe_string($ticker, 'firstPrice');
         $last = $this->safe_string($ticker, 'lastPrice');
         $high = $this->safe_string($ticker, 'high');
@@ -1508,7 +1510,7 @@ class backpack extends Exchange {
         }
         $change = $this->safe_string($ticker, 'priceChange');
         $parsedTicker = $this->safe_ticker(array(
-            'symbol' => $symbol,
+            'symbol' => $this->safe_string($marketResolved, 'symbol'),
             'timestamp' => null,
             'datetime' => null,
             'high' => $high,
@@ -1588,7 +1590,7 @@ class backpack extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches venue or external stock candlestick data for the underlying $market
          *
@@ -1907,7 +1909,7 @@ class backpack extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         $selection = $this->handle_stock_params('fetchMyTrades', $params, $market);
         $stock = $this->safe_bool($selection, 0, false);
@@ -1922,7 +1924,7 @@ class backpack extends Exchange {
         if ($rfq || $aggregate) {
             $rfqRequest = array();
             if ($market !== null) {
-                $rfqRequest['symbol'] = $market['id'];
+                $rfqRequest['symbol'] = $this->safe_string($market, 'id');
             }
             if ($limit !== null) {
                 $rfqRequest['limit'] = min($limit, 1000);
@@ -2793,7 +2795,7 @@ class backpack extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         $selection = $this->handle_stock_params('fetchOpenOrders', $params, $market);
         $stock = $this->safe_bool($selection, 0, false);
@@ -2844,7 +2846,7 @@ class backpack extends Exchange {
         if ($this->safe_string($market['info'], 'marketType') === 'RFQ') {
             $rfqResponse = $this->privateGetApiV1Rfqs($this->extend($query, array( 'symbol' => $market['id'], 'rfqId' => $id )));
             for ($i = 0; $i < count($rfqResponse); $i++) {
-                $order = $this->parse_order($rfqResponse[$i], $market);
+                $order = $this->parse_order($this->safe_dict($rfqResponse, $i, array()), $market);
                 if ($order['id'] === $id) {
                     return $order;
                 }
@@ -2894,7 +2896,7 @@ class backpack extends Exchange {
             $response = $this->privateGetWapiV1HistoryOrders($this->extend($query, $request));
         }
         for ($i = 0; $i < count($response); $i++) {
-            $order = $this->parse_order($response[$i], $market);
+            $order = $this->parse_order($this->safe_dict($response, $i, array()), $market);
             if ($order['id'] === $id) {
                 return $order;
             }
@@ -3001,7 +3003,7 @@ class backpack extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -3331,7 +3333,7 @@ class backpack extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -3386,11 +3388,11 @@ class backpack extends Exchange {
         }
         $requestParams = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) ? $params : $this->omit($params, array( 'stock', 'defaultStock', 'rfq', 'callerMethodName' ));
         $sortedParams = (gettype($requestParams) === 'array' && array_keys($requestParams) === array_keys(array_keys($requestParams))) ? $requestParams : $this->keysort($requestParams);
-        $headersSigned = null;
+        $headersSigned = array();
         $bodySigned = null;
         if ($apiName === 'private') {
             $this->check_required_credentials();
-            $ts = (string) $this->nonce();
+            $ts = $this->number_to_string($this->nonce());
             $recvWindow = $this->safe_string_2($this->options, 'recvWindow', 'X-Window', '5000');
             $optionInstructions = $this->safe_dict($this->options, 'instructions', array());
             $optionPathInstructions = $this->safe_dict($optionInstructions, $path, array());
@@ -3437,12 +3439,13 @@ class backpack extends Exchange {
 
     public function generate_batch_payload(mixed $params, string $ts, string $recvWindow, string $instruction): string {
         $payload = '';
-        for ($i = 0; $i < count($params); $i++) {
+        $paramsLength = count($params);
+        for ($i = 0; $i < $paramsLength; $i++) {
             $order = $this->safe_dict($params, $i, array());
             $sortedOrder = $this->keysort($order);
             $orderQuery = $this->urlencode($sortedOrder);
             $payload .= 'instruction=' . $instruction . '&' . $orderQuery . '&';
-            if ($i === (strlen($params) - 1)) {
+            if ($i === ($paramsLength - 1)) {
                 $payload .= 'timestamp=' . $ts . '&window=' . $recvWindow;
             }
         }

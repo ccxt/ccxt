@@ -124,7 +124,7 @@ class okx extends \ccxt\async\okx {
         }
         $isBusiness = ($access === 'business');
         $isPublic = ($access === 'public');
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws', '');
         if ($isBusiness || (mb_strpos($channel, 'candle') > -1) || ($channel === 'orders-algo')) {
             return $url . '/business' . $sandboxSuffix;
         } elseif ($isPublic) {
@@ -189,7 +189,7 @@ class okx extends \ccxt\async\okx {
         $messageHashResolved = $messageHash;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $messageHashResolved .= ':' . $market['id'];
+            $messageHashResolved = $messageHash . ':' . $this->safe_string($market, 'id', '');
             $firstArgument['instId'] = $market['id'];
         }
         $request = array(
@@ -401,7 +401,7 @@ class okx extends \ccxt\async\okx {
         }
         $symbolValue = $this->symbol($symbol);
         $fr = Async\await($this->watch_funding_rates(array( $symbolValue ), $params));
-        return $fr[$symbolValue];
+        return $this->safe_value($fr, $symbolValue);
     }
 
     public function watch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
@@ -483,7 +483,7 @@ class okx extends \ccxt\async\okx {
             if ($symbol !== null) {
                 $this->fundingRates[$symbol] = $fundingRate;
             }
-            $client->resolve($fundingRate, 'funding-rate' . ':' . $fundingRate['symbol']);
+            $client->resolve($fundingRate, 'funding-rate' . ':' . $this->safe_string($fundingRate, 'symbol', ''));
         }
     }
 
@@ -577,7 +577,7 @@ class okx extends \ccxt\async\okx {
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
         $ticker = Async\await($this->watch_mark_prices(array( $symbolValue ), $paramsChannel));
-        return $ticker[$symbolValue];
+        return $this->safe_value($ticker, $symbolValue);
     }
 
     public function watch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {
@@ -792,7 +792,7 @@ class okx extends \ccxt\async\okx {
         $data = $this->safe_list($message, 'data', array());
         $ticker = $this->safe_dict($data, 0, array());
         $parsedTicker = $this->parse_ws_bid_ask($ticker, $market);
-        $symbol = $parsedTicker['symbol'];
+        $symbol = $this->safe_string($parsedTicker, 'symbol');
         if ($symbol !== null) {
             $this->bidsasks[$symbol] = $parsedTicker;
         }
@@ -1317,8 +1317,7 @@ class okx extends \ccxt\async\okx {
                 }
             }
             $stored->append($parsed);
-            $messageHash = $channel . ':' . $market['id'];
-            $client->resolve($stored, $messageHash);
+            $client->resolve($stored, $channel . ':' . $this->safe_string($market, 'id', ''));
             // for multiOHLCV we need special object, as opposed to other "multi"
             // methods, because OHLCV response item does not contain symbol
             // or timeframe, thus otherwise it would be unrecognizable
@@ -1410,7 +1409,7 @@ class okx extends \ccxt\async\okx {
             if ($this->safe_string($client->subscriptions, $messageHashes[$i]) === 'resync') {
                 // okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
                 $resyncTopics[] = $topics[$i];
-                $resyncHashes[] = 'unsubscribe:orderbook:' . $symbolsNormalized[$i];
+                $resyncHashes[] = 'unsubscribe:orderbook:' . $this->safe_string($symbolsNormalized, $i, '');
                 $resyncNeeded = true;
             }
         }
@@ -1547,7 +1546,7 @@ class okx extends \ccxt\async\okx {
         $symbol = $this->safe_symbol($marketId, $market);
         $seqId = $this->safe_integer($message, 'seqId');
         $prevSeqId = $this->safe_integer($message, 'prevSeqId');
-        $nonce = $orderbook['nonce'];
+        $nonce = $this->safe_integer($orderbook, 'nonce');
         if ($prevSeqId !== null && $prevSeqId !== -1 && $nonce !== $prevSeqId) {
             $error = new InvalidNonce($this->id . ' watchOrderBook received invalid nonce');
             unset($client->subscriptions[$messageHash]);
@@ -1901,7 +1900,7 @@ class okx extends \ccxt\async\okx {
             if ($this->in_array($key, $reserved)) {
                 continue;
             }
-            $this->balance[$key] = $balance[$key];
+            $this->balance[$key] = $this->safe_value($balance, $key);
         }
         $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, $channel);
@@ -2381,7 +2380,7 @@ class okx extends \ccxt\async\okx {
             $rawTrade = $filteredOrders[$i];
             $trade = $this->order_to_trade($rawTrade);
             $myTrades->append($trade);
-            $symbol = $trade['symbol'];
+            $symbol = $this->safe_string($trade, 'symbol');
             if ($symbol !== null) {
                 $symbols[$symbol] = true;
             }
@@ -2609,7 +2608,7 @@ class okx extends \ccxt\async\okx {
         );
         for ($i = 0; $i < $idsLength; $i++) {
             $arg = $this->extend($instParams, array(
-                'ordId' => $ids[$i],
+                'ordId' => $this->safe_string($ids, $i),
             ));
             $args[] = $arg;
         }

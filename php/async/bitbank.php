@@ -585,7 +585,7 @@ class bitbank extends Exchange {
             $pair = $pairs[$i];
             $marketId = $this->safe_string($pair, 'name');
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $result[$symbol] = array(
                 'info' => $pair,
                 'symbol' => $symbol,
@@ -1071,7 +1071,7 @@ class bitbank extends Exchange {
         $tagWithdrawTag = $tagAndParams[0];
         $paramsWithdrawTag = $tagAndParams[1];
         $this->check_address($address, $code, $tagWithdrawTag);
-        if (!(is_array($paramsWithdrawTag) && array_key_exists('uuid' ?? '', $paramsWithdrawTag))) {
+        if (!(is_array($params) && array_key_exists('uuid' ?? '', $params))) {
             throw new ExchangeError($this->id . ' uuid is required for withdrawal');
         }
         if ($this->markets === null) {
@@ -1153,7 +1153,7 @@ class bitbank extends Exchange {
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
-        $query = $this->omit($params, $this->extract_params($path));
+        $query = $this->extend(array(), $this->omit($params, $this->extract_params($path)));
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
@@ -1200,10 +1200,9 @@ class bitbank extends Exchange {
                 'ACCESS-SIGNATURE' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'),
             );
             if ($isTimeWindow) {
-                $requestHeaders['ACCESS-REQUEST-TIME'] = $requestTime;
-                $requestHeaders['ACCESS-TIME-WINDOW'] = $timeWindow;
+                $requestHeaders = $this->extend($requestHeaders, array( 'ACCESS-REQUEST-TIME' => $requestTime, 'ACCESS-TIME-WINDOW' => $timeWindow ));
             } else {
-                $requestHeaders['ACCESS-NONCE'] = $nonce;
+                $requestHeaders = $this->extend($requestHeaders, array( 'ACCESS-NONCE' => $nonce ));
             }
         }
         $bodyResolved = $requestBody;

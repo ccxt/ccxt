@@ -1098,8 +1098,8 @@ class bingx extends Exchange {
     public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'symbol');
         $symbolParts = explode('-', $id);
-        $baseId = $symbolParts[0];
-        $quoteId = $symbolParts[1];
+        $baseId = $this->safe_string($symbolParts, 0);
+        $quoteId = $this->safe_string($symbolParts, 1);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         if (($base === null) || ($quote === null)) {
@@ -2284,7 +2284,7 @@ class bingx extends Exchange {
         $symbolsLength = ($symbolsNormalized === null) ? 0 : count($symbolsNormalized);
         if ($type === 'spot') {
             if (($market !== null) && ($symbolsLength === 1)) {
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
             }
             $response = Async\await($this->spotV2PublicGetQuoteBookTicker($this->extend($request, $paramsMarketType)));
             $rows = $this->safe_list($response, 'data', array());
@@ -2292,7 +2292,7 @@ class bingx extends Exchange {
             if (($market === null) || ($market['inverse'] === true) || ($symbolsLength !== 1)) {
                 throw new ArgumentsRequired($this->id . ' fetchBidsAsks() requires exactly one linear swap symbol for contract markets');
             }
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
             $response = Async\await($this->swapV2PublicGetQuoteBookTicker($this->extend($request, $paramsMarketType)));
             $data = $this->safe_dict($response, 'data', array());
             $rows = array( $this->safe_dict($data, 'book_ticker', array()) );
@@ -2567,7 +2567,7 @@ class bingx extends Exchange {
             $type = $market['type'];
         }
         $marketResolved = $this->safe_market($marketId, $market, null, $type);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $open = $this->safe_string($ticker, 'openPrice');
         $high = $this->safe_string($ticker, 'highPrice');
         $low = $this->safe_string($ticker, 'lowPrice');
@@ -4645,7 +4645,7 @@ class bingx extends Exchange {
         }
         $parsedIds = array();
         for ($i = 0; $i < count($idsToParse); $i++) {
-            $id = $idsToParse[$i];
+            $id = $this->safe_string($idsToParse, $i, '');
             $stringId = (string) $id;
             $parsedIds[] = $stringId;
         }
@@ -5530,25 +5530,12 @@ class bingx extends Exchange {
         $currency = $this->currency($code);
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('transfer', null, $params);
-        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
-        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-        if ($fromAccount === 'swap') {
-            if ($subType === 'inverse') {
-                $fromId = 'coinMPerp';
-            } else {
-                $fromId = 'USDTMPerp';
-            }
-        }
-        if ($toAccount === 'swap') {
-            if ($subType === 'inverse') {
-                $toId = 'coinMPerp';
-            } else {
-                $toId = 'USDTMPerp';
-            }
-        }
+        $fromIdMapped = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toIdMapped = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        $swapId = ($subType === 'inverse') ? 'coinMPerp' : 'USDTMPerp';
         $request = array(
-            'fromAccount' => $fromId,
-            'toAccount' => $toId,
+            'fromAccount' => ($fromAccount === 'swap') ? $swapId : $fromIdMapped,
+            'toAccount' => ($toAccount === 'swap') ? $swapId : $toIdMapped,
             'asset' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
         );
@@ -5783,7 +5770,7 @@ class bingx extends Exchange {
         $tag = $this->safe_string($depositAddress, 'tag');
         $currencyId = $this->safe_string($depositAddress, 'coin');
         $currencyResolved = $this->safe_currency($currencyId, $currency);
-        $code = $currencyResolved['code'];
+        $code = $this->safe_string($currencyResolved, 'code');
         $rawAddress = $this->safe_string_2($depositAddress, 'addressWithPrefix', 'address');
         $networkId = $this->safe_string($depositAddress, 'network');
         $networkCode = $this->network_id_to_code($networkId, $code);
@@ -6538,15 +6525,17 @@ class bingx extends Exchange {
         );
         if ($networksLength !== 0) {
             for ($i = 0; $i < $networksLength; $i++) {
-                $networkCode = $networkCodes[$i];
+                $networkCode = $this->safe_string($networkCodes, $i, '');
                 $network = $this->safe_dict($networks, $networkCode);
                 $result['networks'][$networkCode] = array(
                     'deposit' => array( 'fee' => null, 'percentage' => null ),
                     'withdraw' => array( 'fee' => $this->safe_number($network, 'fee'), 'percentage' => false ),
                 );
                 if ($networksLength === 1) {
-                    $result['withdraw']['fee'] = $this->safe_number($network, 'withdrawFee');
-                    $result['withdraw']['percentage'] = false;
+                    $result['withdraw'] = array(
+                        'fee' => $this->safe_number($network, 'withdrawFee'),
+                        'percentage' => false,
+                    );
                 }
             }
         }
@@ -6644,13 +6633,13 @@ class bingx extends Exchange {
     }
 
     public function parse_params(array $params): array {
-        // const sortedParams = this.keysort (params);
         $copied = $this->clone($params);
-        $rawKeys = is_array($params) ? array_keys($params) : array();
-        $keys = $this->sort($rawKeys);
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            $value = $params[$key];
+        $sortedParams = $this->keysort($params);
+        $rawKeys = is_array($sortedParams) ? array_keys($sortedParams) : array();
+        $rawKeysLength = count($rawKeys);
+        for ($i = 0; $i < $rawKeysLength; $i++) {
+            $key = $rawKeys[$i];
+            $value = $sortedParams[$key];
             if ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
                 $arrStr = '[';
                 for ($j = 0; $j < count($value); $j++) {
@@ -7352,14 +7341,14 @@ class bingx extends Exchange {
     }
 
     public function custom_encode(array $params): ?string {
-        // const sortedParams = this.keysort (params);
-        $rawKeys = is_array($params) ? array_keys($params) : array();
-        $keys = $this->sort($rawKeys);
+        $sortedParams = $this->keysort($params);
+        $rawKeys = is_array($sortedParams) ? array_keys($sortedParams) : array();
+        $rawKeysLength = count($rawKeys);
         $adjustedValue = null;
         $result = null;
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            $value = $params[$key];
+        for ($i = 0; $i < $rawKeysLength; $i++) {
+            $key = $rawKeys[$i];
+            $value = $sortedParams[$key];
             if ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
                 $arrStr = null;
                 for ($j = 0; $j < count($value); $j++) {

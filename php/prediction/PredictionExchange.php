@@ -139,7 +139,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         if (($eventId !== null) || ($slug !== null)) {
             $filtered = array();
             for ($i = 0; $i < count($result); $i++) {
-                $event = $result[$i];
+                $event = $this->safe_value($result, $i);
                 $idMatch = ($eventId !== null) && ($this->safe_string($event, 'id') === $eventId);
                 $slugMatch = ($slug !== null) && ($this->safe_string($event, 'slug') === $slug);
                 if ($idMatch || $slugMatch) {
@@ -201,7 +201,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $wantActive = ($status === 'active');
         $result = array();
         for ($i = 0; $i < count($events); $i++) {
-            $event = $events[$i];
+            $event = $this->safe_value($events, $i);
             $isActive = $this->safe_bool($event, 'active');
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if (($isActive === null) || ($isActive === $wantActive)) {
@@ -218,19 +218,19 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         if ($queries !== null) {
             $queriesLength = count($queries);
         }
-        if (($searchIn === null) || ($queries === null) || ($queriesLength === 0)) {
+        if (($searchIn === null) || ($queriesLength === 0)) {
             return $events;
         }
         $checkTitle = ($searchIn === 'title') || ($searchIn === 'both');
         $checkDescription = ($searchIn === 'description') || ($searchIn === 'both');
         $result = array();
         for ($i = 0; $i < count($events); $i++) {
-            $event = $events[$i];
+            $event = $this->safe_value($events, $i);
             $title = $this->safe_string_lower($event, 'title', '');
             $description = $this->safe_string_lower($event, 'description', '');
             $matched = false;
-            for ($qi = 0; $qi < count($queries); $qi++) {
-                $q = strtolower($queries[$qi]);
+            for ($qi = 0; $qi < $queriesLength; $qi++) {
+                $q = strtolower($this->safe_string($queries, $qi, ''));
                 if ($title === null) {
                     throw new ExchangeError($this->id . ' filterEventsBySearchIn() missing title');
                 }
@@ -282,12 +282,16 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     public function filter_events_by_tags(array $events, ?array $tags = null) {
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
-        if (($tags === null) || (strlen($tags) === 0)) {
+        $tagsLength = 0;
+        if ($tags !== null) {
+            $tagsLength = count($tags);
+        }
+        if ($tagsLength === 0) {
             return $events;
         }
         $wanted = array();
-        for ($i = 0; $i < count($tags); $i++) {
-            $wantedKey = $this->normalize_tag_key($tags[$i]);
+        for ($i = 0; $i < $tagsLength; $i++) {
+            $wantedKey = $this->normalize_tag_key($this->safe_string($tags, $i, ''));
             if ($wantedKey !== '') {
                 // an empty normalized key would substring-match every tag
                 $wanted[] = $wantedKey;
@@ -295,7 +299,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         }
         $result = array();
         for ($i = 0; $i < count($events); $i++) {
-            $event = $events[$i];
+            $event = $this->safe_value($events, $i);
             $eventTags = $this->safe_list($event, 'tags', array());
             $matched = false;
             for ($ti = 0; $ti < count($eventTags); $ti++) {
@@ -345,7 +349,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $this->events_by_slug = array();
         }
         for ($i = 0; $i < count($events); $i++) {
-            $event = $events[$i];
+            $event = $this->safe_value($events, $i);
             $id = $this->safe_string($event, 'id');
             $slug = $this->safe_string($event, 'slug');
             $handle = $this->safe_string($event, 'event');
@@ -412,10 +416,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
         // through fetchEvents; this never fetches
         if (($this->events !== null) && (is_array($this->events) && array_key_exists($eventIdOrSlug ?? '', $this->events))) {
-            return $this->events[$eventIdOrSlug];
+            return $this->safe_value($this->events, $eventIdOrSlug);
         }
         if (($this->events_by_slug !== null) && (is_array($this->events_by_slug) && array_key_exists($eventIdOrSlug ?? '', $this->events_by_slug))) {
-            return $this->events_by_slug[$eventIdOrSlug];
+            return $this->safe_value($this->events_by_slug, $eventIdOrSlug);
         }
         throw new BadSymbol($this->id . ' has no cached event ' . $eventIdOrSlug . " - call fetchEvents (array( 'query' => ... )) first");
     }
@@ -428,10 +432,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             throw new ExchangeError($this->id . ' outcomes not loaded - call loadOutcomes () or an outcome-addressed method first');
         }
         if (is_array($this->outcomes) && array_key_exists($outcomeSymbol ?? '', $this->outcomes)) {
-            return $this->outcomes[$outcomeSymbol];
+            return $this->safe_value($this->outcomes, $outcomeSymbol);
         }
         if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeSymbol ?? '', $this->outcomes_by_id))) {
-            return $this->outcomes_by_id[$outcomeSymbol];
+            return $this->safe_value($this->outcomes_by_id, $outcomeSymbol);
         }
         throw new BadSymbol($this->id . ' does not have outcome ' . $outcomeSymbol . ' - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first');
     }
@@ -455,10 +459,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     public function safe_outcome(?string $outcomeIdOrSymbol, mixed $outcomeObj = null) {
         if ($outcomeIdOrSymbol !== null) {
             if (($this->outcomes !== null) && (is_array($this->outcomes) && array_key_exists($outcomeIdOrSymbol ?? '', $this->outcomes))) {
-                return $this->outcomes[$outcomeIdOrSymbol];
+                return $this->safe_value($this->outcomes, $outcomeIdOrSymbol);
             }
             if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeIdOrSymbol ?? '', $this->outcomes_by_id))) {
-                return $this->outcomes_by_id[$outcomeIdOrSymbol];
+                return $this->safe_value($this->outcomes_by_id, $outcomeIdOrSymbol);
             }
         }
         if ($outcomeObj !== null) {
@@ -611,7 +615,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $marketKeys = is_array($stored) ? array_keys($stored) : array();
         for ($i = 0; $i < count($marketKeys); $i++) {
             $key = $marketKeys[$i];
-            $stored[$key] = $this->omit($stored[$key], 'symbol');
+            $stored[$key] = $this->omit($this->safe_dict($stored, $key, array()), 'symbol');
         }
         $this->populate_outcomes();
         return $stored;
@@ -1313,23 +1317,25 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $reduced = $this->reduce_fees_by_currency($feeList);
             $reducedLength = count($reduced);
             if ($reducedLength > 0) {
-                $fee = $reduced[0];
+                $fee = $this->safe_dict($reduced, 0);
             }
         }
         // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         $orderType = $this->safe_string($outcomeOrder, 'type');
         $timeInForce = $this->safe_string($outcomeOrder, 'timeInForce');
-        $postOnly = $this->safe_bool($outcomeOrder, 'postOnly');
+        // the venue flag and the derived one are each written once, so neither local widens
+        $postOnlyValue = $this->safe_bool($outcomeOrder, 'postOnly');
+        $derivedPostOnly = null;
         if ($timeInForce === null) {
             if ($orderType === 'market') {
                 $timeInForce = 'IOC';
             }
-            if ($postOnly === true) {
+            if ($postOnlyValue === true) {
                 $timeInForce = 'PO';
             }
-        } elseif ($postOnly === null) {
-            $postOnly = ($timeInForce === 'PO');
+        } elseif ($postOnlyValue === null) {
+            $derivedPostOnly = ($timeInForce === 'PO');
         }
         $timestamp = $this->safe_integer($outcomeOrder, 'timestamp');
         $datetime = $this->safe_string($outcomeOrder, 'datetime');
@@ -1355,7 +1361,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             'cost' => $this->parse_number($cost),
             'fee' => $fee,
             'reduceOnly' => $this->safe_bool($outcomeOrder, 'reduceOnly'),
-            'postOnly' => $postOnly,
+            'postOnly' => ($postOnlyValue !== null) ? $postOnlyValue : $derivedPostOnly,
             'trades' => $trades,
             'outcome' => $this->safe_string($outcomeOrder, 'outcome'),
             'outcomeId' => $this->safe_string($outcomeOrder, 'outcomeId'),
@@ -1670,7 +1676,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     public function rlp_encode_list(array $items) {
         $concatenated = '';
         for ($i = 0; $i < count($items); $i++) {
-            $concatenated = $concatenated . $items[$i];
+            $concatenated = $concatenated . $this->safe_string($items, $i, '');
         }
         $byteLength = $this->parse_to_int(strlen($concatenated) / 2);
         if ($byteLength < 56) {
@@ -1702,17 +1708,14 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             return '';
         }
         $h = $this->remove0x_prefix($hexValue);
-        $start = 0;
         $total = count($h);
-        while (($start < $total) && (mb_substr($h, $start, $start + 1 - $start) === '0')) {
-            $start = $start + 1;
+        for ($i = 0; $i < $total; $i++) {
+            if (mb_substr($h, $i, $i + 1 - $i) === '0') {
+                continue;
+            }
+            return $this->pad_hex_to_even(mb_substr($h, $i));
         }
-        $h = mb_substr($h, $start);
-        if ($h === '') {
-            return '';
-        }
-        $h = $this->pad_hex_to_even($h);
-        return $h;
+        return '';
     }
 
     public function sign_evm_transaction(array $tx, string $privateKey) {

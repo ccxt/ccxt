@@ -89,8 +89,7 @@ class whitebit extends \ccxt\async\whitebit {
         }
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
-        $timeframes = $this->safe_dict($this->options, 'timeframes', array());
-        $interval = $this->safe_integer($timeframes, $timeframe);
+        $interval = $this->safe_integer($this->options['timeframes'], $timeframe);
         $marketId = $market['id'];
         // currently there is no way of knowing
         // the interval upon getting an update
@@ -134,11 +133,9 @@ class whitebit extends \ccxt\async\whitebit {
             $symbol = $market['symbol'];
             $messageHash = 'candles' . ':' . $symbol;
             $parsed = $this->parse_ohlcv($data, $market);
-            // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
             if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
                 $this->ohlcvs[$symbol] = array();
             }
-            // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
             if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists('unknown' ?? '', $this->ohlcvs[$symbol]))) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);
@@ -173,8 +170,7 @@ class whitebit extends \ccxt\async\whitebit {
         $limitValue = ($limit === null) ? 10 : $limit;
         $messageHash = 'orderbook' . ':' . $market['symbol'];
         $method = 'depth_subscribe';
-        $options = $this->safe_dict($this->options, 'watchOrderBook', array());
-        $defaultPriceInterval = $this->safe_string($options, 'priceInterval', '0');
+        $defaultPriceInterval = $this->safe_string($this->options['watchOrderBook'], 'priceInterval', '0');
         $priceInterval = $this->safe_string($params, 'priceInterval', $defaultPriceInterval);
         $paramsOmitted = $this->omit($params, 'priceInterval');
         $reqParams = array(
@@ -308,7 +304,7 @@ class whitebit extends \ccxt\async\whitebit {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $method = 'market_subscribe';
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $id = $this->incrementing_nonce();
         $messageHashes = array();
         $args = array();
@@ -448,7 +444,7 @@ class whitebit extends \ccxt\async\whitebit {
         for ($j = 0; $j < count($parsedTrades); $j++) {
             $stored->append($parsedTrades[$j]);
         }
-        $messageHash = 'trades:' . $market['symbol'];
+        $messageHash = 'trades:' . $symbol;
         $client->resolve($stored, $messageHash);
     }
 
@@ -515,7 +511,7 @@ class whitebit extends \ccxt\async\whitebit {
         $stored = $this->myTrades;
         $parsed = $this->parse_ws_trade($trade);
         $stored->append($parsed);
-        $symbol = $parsed['symbol'];
+        $symbol = $this->safe_string($parsed, 'symbol', '');
         $messageHash = 'myTrades:' . $symbol;
         $client->resolve($stored, $messageHash);
     }
@@ -661,7 +657,7 @@ class whitebit extends \ccxt\async\whitebit {
         $status = $this->safe_integer($params, 0);
         $parsed = $this->parse_ws_order($this->extend($data, array( 'status' => $status )));
         $stored->append($parsed);
-        $symbol = $parsed['symbol'];
+        $symbol = $this->safe_string($parsed, 'symbol', '');
         $messageHash = 'orders:' . $symbol;
         $client->resolve($this->orders, $messageHash);
     }
@@ -806,7 +802,7 @@ class whitebit extends \ccxt\async\whitebit {
             $method = 'balanceMargin_subscribe';
             $messageHash .= 'margin';
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $client = $this->client($url);
         $this->set_balance_cache($client, $type, $messageHash);
         list($fetchBalanceSnapshot, $paramsFetchBalanceSnapshot) = $this->handle_option_bool_and_params($paramsMarketType, 'watchBalance', 'fetchBalanceSnapshot', true);
@@ -893,7 +889,7 @@ class whitebit extends \ccxt\async\whitebit {
         $data = $this->safe_list($message, 'params', array());
         for ($i = 0; $i < count($data); $i++) {
             $balanceDict = $this->safe_dict($data, $i, array());
-            $this->balance['info'] = $balanceDict;
+            $this->balance['info'] = $this->safe_dict($data, $i, array());
             if ($isMargin) {
                 $currencyId = $this->safe_string($balanceDict, 'a');
                 $code = $this->safe_currency_code($currencyId);
@@ -934,7 +930,7 @@ class whitebit extends \ccxt\async\whitebit {
     }
 
     private function do_watch_public(string $messageHash, string $method, array $reqParams = array(), $params = array()) {
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $id = $this->incrementing_nonce();
         $request = array(
             'id' => $id,
@@ -953,7 +949,7 @@ class whitebit extends \ccxt\async\whitebit {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $id = $this->incrementing_nonce();
         $client = $this->safe_value($this->clients, $url);
         $request = null;
@@ -1018,7 +1014,7 @@ class whitebit extends \ccxt\async\whitebit {
     private function do_watch_private(string $messageHash, string $method, array $reqParams = array(), $params = array()) {
         $this->check_required_credentials();
         Async\await($this->authenticate());
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $id = $this->incrementing_nonce();
         $request = array(
             'id' => $id,
@@ -1035,7 +1031,7 @@ class whitebit extends \ccxt\async\whitebit {
 
     private function do_authenticate($params = array()) {
         $this->check_required_credentials();
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $client = $this->client($url);
         $subscribeHash = 'authenticated';
         // handleAuthenticate () resolves the handshake future with 1, so 1 is

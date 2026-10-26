@@ -877,13 +877,13 @@ class coinbaseinternational extends Exchange {
             throw new NotSupported($this->id . ' fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments');
         }
         $limitResolved = $limit;
-        $duration = $this->parse_timeframe($timeframe);
+        $duration = $this->parse_to_int($this->parse_timeframe($timeframe));
         $now = $this->milliseconds();
         if ($since === null) {
             if ($limitResolved === null) {
                 $limitResolved = 100;
             }
-            $request['start_timestamp'] = $this->sum($now, -$limitResolved * $duration * 1000);
+            $request['start_timestamp'] = $this->sum($now, $this->parse_to_int($limitResolved) * $duration * -1000);
             $request['end_timestamp'] = $now;
         } else {
             $sinceResolved = max($since - 1, 0);
@@ -891,7 +891,7 @@ class coinbaseinternational extends Exchange {
             if ($limitResolved === null) {
                 $request['end_timestamp'] = $now;
             } else {
-                $request['end_timestamp'] = $this->sum($sinceResolved, $limitResolved * $duration * 1000);
+                $request['end_timestamp'] = $this->sum($sinceResolved, $this->parse_to_int($limitResolved) * $duration * 1000);
             }
         }
         $until = $this->safe_integer($paramsPaginate, 'until');
@@ -978,7 +978,7 @@ class coinbaseinternational extends Exchange {
         $duration = $this->parse_timeframe('1h') * 1000;
         $now = $this->milliseconds();
         $sinceResolved = $since;
-        if ($sinceResolved === null) {
+        if ($since === null) {
             $sinceResolved = $now - (30 * 24 * 60 * 60 * 1000);
         }
         $request = array(
@@ -1255,8 +1255,8 @@ class coinbaseinternational extends Exchange {
                     throw new BadRequest($this->id . ' fetchOrderBook() limit must be between 1 and 10000');
                 }
                 for ($i = 0; $i < count($depths); $i++) {
-                    if ($limit <= $depths[$i]) {
-                        $request['depth'] = $depths[$i];
+                    if ($limit <= $this->parse_to_int($depths[$i])) {
+                        $request['depth'] = $this->parse_to_int($depths[$i]);
                         break;
                     }
                 }
@@ -1657,7 +1657,7 @@ class coinbaseinternational extends Exchange {
         $currency = $this->currency($code);
         $now = $this->milliseconds();
         $sinceResolved = $since;
-        if ($sinceResolved === null) {
+        if ($since === null) {
             $sinceResolved = $now - (30 * 24 * 60 * 60 * 1000);
         }
         $request = array(
@@ -2000,7 +2000,7 @@ class coinbaseinternational extends Exchange {
         $currency = $this->currency($code);
         $now = $this->milliseconds();
         $sinceResolved = $since;
-        if ($sinceResolved === null) {
+        if ($since === null) {
             $sinceResolved = $now - (30 * 24 * 60 * 60 * 1000);
         }
         $request = array(
@@ -3244,7 +3244,7 @@ class coinbaseinternational extends Exchange {
         return $response;
     }
 
-    public function create_auth_token(?int $seconds, ?string $method = null, ?string $url = null, $useEddsa = false) {
+    public function create_auth_token(?int $seconds, ?string $method = null, ?string $url = null, bool $useEddsa = false) {
         /**
          * @ignore
          * signs a short-lived CDP JWT that public/auth exchanges for a gateway access token
@@ -3287,7 +3287,7 @@ class coinbaseinternational extends Exchange {
             'sub' => $this->apiKey,
             'iss' => $iss,
             'nbf' => $seconds,
-            'exp' => $seconds + 120,
+            'exp' => $this->parse_to_int($seconds) + 120,
             'iat' => $seconds,
         );
         if ($uri !== null) {
@@ -3381,8 +3381,8 @@ class coinbaseinternational extends Exchange {
         return $this->token;
     }
 
-    public function sign(string $path, mixed $api = 'public', string $method = 'GET', $params = array()): array {
-        $access = (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api))) ? $api[0] : $api;
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $access = $api[0];
         $rpcMethod = $access . '/' . $path;
         $requestParams = $this->handle_route_and_params('sign', $params);
         $isNativeDeribit = $this->is_native_deribit_credentials();
@@ -3475,7 +3475,7 @@ class coinbaseinternational extends Exchange {
          * @param {string} [$params->route] auto (default), $deribit, or coinbase; overrides options.route
          * @return {array} cleaned parameters; options.route persists the selection for nested calls and Pro
          */
-        list($route, $paramsResolved) = $this->handle_option_and_params($params, $methodName, 'route', 'auto');
+        list($route, $paramsResolved) = $this->handle_option_string_and_params($params, $methodName, 'route', 'auto');
         $deribit = $this->resolve_route($route);
         $previousBackend = $this->safe_bool($this->options, 'routeBackend');
         $configuredBackend = $this->is_native_deribit_credentials();

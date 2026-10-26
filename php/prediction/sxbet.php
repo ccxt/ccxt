@@ -2412,8 +2412,8 @@ class sxbet extends Exchange {
          */
         Async\await($this->load_outcome($outcome));
         $outcomeObj = $this->outcome($outcome);
-        $sym = $this->safe_string($outcomeObj, 'outcome');
-        $marketHash = $this->safe_string($outcomeObj['info'], 'marketHash');
+        $sym = $this->safe_string($outcomeObj, 'outcome', '');
+        $marketHash = $this->safe_string($outcomeObj['info'], 'marketHash', '');
         $channel = 'orderbook_v3:' . $marketHash;
         $messageHash = 'orderbook::' . $sym;
         $url = $this->safe_string($this->urls['api'], 'ws');
@@ -2536,7 +2536,7 @@ class sxbet extends Exchange {
          */
         Async\await($this->load_outcome($outcome));
         $outcomeObj = $this->outcome($outcome);
-        $sym = $this->safe_string($outcomeObj, 'outcome');
+        $sym = $this->safe_string($outcomeObj, 'outcome', '');
         $marketHash = $this->safe_string($outcomeObj['info'], 'marketHash');
         $messageHash = 'ticker::' . $sym;
         $watchedTickers = $this->safe_dict($this->options, 'wsWatchedTickers');
@@ -2628,7 +2628,7 @@ class sxbet extends Exchange {
          */
         Async\await($this->load_outcome($outcome));
         $outcomeObj = $this->outcome($outcome);
-        $sym = $this->safe_string($outcomeObj, 'outcome');
+        $sym = $this->safe_string($outcomeObj, 'outcome', '');
         $messageHash = 'trades::' . $sym;
         $trades = Async\await($this->subscribe_sxbet_channel($messageHash, 'recent_trades_v3:global'));
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
@@ -2729,7 +2729,7 @@ class sxbet extends Exchange {
         if ($outcome !== null) {
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
-            $sym = $this->safe_string($outcomeObj, 'outcome');
+            $sym = $this->safe_string($outcomeObj, 'outcome', '');
             $messageHash = 'myTrades::' . $sym;
         }
         $channel = 'account:fills_v3_#' . $this->walletAddress;
@@ -2784,7 +2784,7 @@ class sxbet extends Exchange {
         if ($outcome !== null) {
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
-            $sym = $this->safe_string($outcomeObj, 'outcome');
+            $sym = $this->safe_string($outcomeObj, 'outcome', '');
             $messageHash = 'orders::' . $sym;
         }
         $channel = 'account:orders_v3_#' . $this->walletAddress;

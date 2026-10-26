@@ -211,8 +211,6 @@ class revolutx extends Exchange {
         $requestBody = null;
         $implodedPath = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $queryKeys = is_array($query) ? array_keys($query) : array();
-        $queryLength = count($queryKeys);
         $apiName = $api[0];
         $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
@@ -225,13 +223,13 @@ class revolutx extends Exchange {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
             if ($method === 'GET') {
-                if ($queryLength > 0) {
-                    $queryString = $this->urlencode($query);
+                $queryString = $this->urlencode($query);
+                if ($queryString !== '') {
                     $url .= '?' . $queryString;
                 }
             } elseif ($method === 'DELETE') {
-                if ($queryLength > 0) {
-                    $queryString = $this->urlencode($query);
+                $queryString = $this->urlencode($query);
+                if ($queryString !== '') {
                     $url .= '?' . $queryString;
                 }
             } else {
@@ -248,12 +246,12 @@ class revolutx extends Exchange {
                 'X-Revx-Signature' => $signature,
             );
             if ($method === 'POST' || $method === 'PUT') {
-                $requestHeaders['Content-Type'] = 'application/json';
+                $requestHeaders = $this->extend($requestHeaders, array( 'Content-Type' => 'application/json' ));
             }
         } else {
             if ($method === 'GET') {
-                if ($queryLength > 0) {
-                    $queryString = $this->urlencode($query);
+                $queryString = $this->urlencode($query);
+                if ($queryString !== '') {
                     $url .= '?' . $queryString;
                 }
             } else {
@@ -837,7 +835,11 @@ class revolutx extends Exchange {
         //         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
         //     ]
         //
-        $data = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) ? $response : $this->safe_list($response, 'data', array());
+        $payload = $response;
+        if ((gettype($payload) === 'array' && array_keys($payload) === array_keys(array_keys($payload)))) {
+            $payload = array( 'data' => $payload );
+        }
+        $data = $this->safe_list($payload, 'data', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($data); $i++) {
             $balance = $this->safe_dict($data, $i, array());

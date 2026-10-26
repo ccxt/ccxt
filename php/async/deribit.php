@@ -528,48 +528,48 @@ class deribit extends Exchange {
     public function create_expired_option_market(string $symbol): array {
         // support expired option contracts
         $quote = 'USD';
-        $settle = null;
+        $settle = '';
         $optionParts = explode('-', $symbol);
         $symbolBase = explode('/', $symbol);
+        $hasSlash = mb_strpos($symbol, '/') > -1;
+        $hasUsdc = mb_strpos($symbol, 'USDC') > -1;
         $base = null;
         $expiry = null;
-        if (mb_strpos($symbol, '/') > -1) {
-            $base = $this->safe_string($symbolBase, 0);
+        if ($hasSlash) {
+            $base = $this->safe_string($symbolBase, 0, '');
             $expiry = $this->safe_string($optionParts, 1);
-            if (mb_strpos($symbol, 'USDC') > -1) {
-                $base = $base . '_USDC';
-            }
         } else {
-            $base = $this->safe_string($optionParts, 0);
+            $base = $this->safe_string($optionParts, 0, '');
             $expiry = $this->convert_market_id_expire_date($this->safe_string($optionParts, 1));
         }
-        if (mb_strpos($symbol, 'USDC') > -1) {
-            $quote = 'USDC';
-            $settle = 'USDC';
-        } else {
-            $settle = $base;
-        }
-        $splitBase = $base;
         if ($base === null) {
             throw new ExchangeError($this->id . ' createExpiredOptionMarket() missing base');
         }
-        if (mb_strpos($base, '_') > -1) {
-            $splitSymbol = explode('_', $base);
-            $splitBase = $this->safe_string($splitSymbol, 0);
+        // the slash form of a usdc instrument carries its settlement currency in the base
+        $baseSuffix = '';
+        if ($hasSlash && $hasUsdc) {
+            $baseSuffix = '_USDC';
         }
-        $strike = $this->safe_string($optionParts, 2);
-        $optionType = $this->safe_string($optionParts, 3);
+        $baseResolved = $base . $baseSuffix;
+        if ($hasUsdc) {
+            $quote = 'USDC';
+            $settle = 'USDC';
+        } else {
+            // no usdc suffix on this path, so the resolved base is the settle currency
+            $settle = $baseResolved;
+        }
+        // the part of the base before the first underscore, or the whole base when it has none
+        $splitBase = $this->safe_string(explode('_', $baseResolved), 0, '');
+        $strike = $this->safe_string($optionParts, 2, '');
+        $optionType = $this->safe_string($optionParts, 3, '');
         $datetime = $this->convert_expire_date($expiry);
-        $timestamp = $this->parse8601($datetime);
-        $id = $base . '-' . $this->convert_expire_date_to_market_id_date($expiry) . '-' . $strike . '-' . $optionType;
-        $symbolExpired = $splitBase . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType;
         return array(
-            'id' => $id,
-            'symbol' => $symbolExpired,
-            'base' => $base,
+            'id' => $baseResolved . '-' . $this->convert_expire_date_to_market_id_date($expiry) . ('-' . $strike . '-' . $optionType),
+            'symbol' => $splitBase . '/' . $quote . ':' . $settle . '-' . $expiry . ('-' . $strike . '-' . $optionType),
+            'base' => $baseResolved,
             'quote' => $quote,
             'settle' => $settle,
-            'baseId' => $base,
+            'baseId' => $baseResolved,
             'quoteId' => $quote,
             'settleId' => $settle,
             'active' => false,
@@ -583,7 +583,7 @@ class deribit extends Exchange {
             'margin' => false,
             'contract' => true,
             'contractSize' => null,
-            'expiry' => $timestamp,
+            'expiry' => $this->parse8601($datetime),
             'expiryDatetime' => $datetime,
             'optionType' => ($optionType === 'C') ? 'call' : 'put',
             'strike' => $this->parse_number($strike),
@@ -2324,9 +2324,7 @@ class deribit extends Exchange {
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        $order = $this->safe_value($result, 'order');
-        $trades = $this->safe_list($result, 'trades', array());
-        $order['trades'] = $trades;
+        $order = $this->extend($this->safe_value($result, 'order'), array( 'trades' => $this->safe_list($result, 'trades', array()) ));
         return $this->parse_order($order, $market);
     }
 
@@ -2379,9 +2377,7 @@ class deribit extends Exchange {
         }
         $response = Async\await($this->privateGetEdit($this->extend($request, $paramsOmitted)));
         $result = $this->safe_dict($response, 'result', array());
-        $order = $this->safe_value($result, 'order');
-        $trades = $this->safe_list($result, 'trades', array());
-        $order['trades'] = $trades;
+        $order = $this->extend($this->safe_value($result, 'order'), array( 'trades' => $this->safe_list($result, 'trades', array()) ));
         return $this->parse_order($order);
     }
 
@@ -3478,7 +3474,7 @@ class deribit extends Exchange {
         $month = 30 * 24 * 60 * 60 * 1000;
         $defaultSince = $now - $month;
         $sinceResolved = ($since === null) ? $defaultSince : $since;
-        $time = ($since === null) ? $now : $since . $month;
+        $time = ($since === null) ? $now : $this->parse_to_int($since . $month);
         $request = array(
             'instrument_name' => $market['id'],
             'start_timestamp' => $sinceResolved - 1,
@@ -3595,7 +3591,7 @@ class deribit extends Exchange {
         }
         $market = $this->market($symbol);
         if ($market['spot'] === true) {
-            throw new NotSupported($this->id . ' fetchLiquidations() does not support ' . $market['type'] . ' markets');
+            throw new NotSupported($this->id . ' fetchLiquidations() does not support ' . $this->safe_string($market, 'type', '') . ' markets');
         }
         $request = array(
             'instrument_name' => $market['id'],
@@ -3678,7 +3674,7 @@ class deribit extends Exchange {
         }
         $market = $this->market($symbol);
         if ($market['spot'] === true) {
-            throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $market['type'] . ' markets');
+            throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $this->safe_string($market, 'type', '') . ' markets');
         }
         $request = array(
             'instrument_name' => $market['id'],

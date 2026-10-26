@@ -536,7 +536,7 @@ class apex extends Exchange {
         $code = $this->safe_currency_code($currencyId);
         $name = $this->safe_string($currency, 'displayName');
         $networks = array();
-        $chains = $this->options['_temp_currencies_chains'];
+        $chains = $this->safe_list($this->options, '_temp_currencies_chains', array());
         for ($j = 0; $j < count($chains); $j++) {
             $chain = $this->safe_dict($chains, $j);
             $tokens = $this->safe_list($chain, 'tokens', array());
@@ -1337,15 +1337,14 @@ class apex extends Exchange {
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $marketResolved = $market;
         if ($market === null && $marketId !== null) {
-            $marketsById = $this->markets_by_id;
             if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($marketId ?? '', $this->markets))) {
                 $marketResolved = $this->markets[$marketId];
-            } elseif (($marketsById !== null) && (is_array($marketsById) && array_key_exists($marketId ?? '', $marketsById))) {
-                $marketResolved = $marketsById[$marketId];
+            } elseif (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
+                $marketResolved = $this->markets_by_id[$marketId];
             } else {
                 $newMarketId = $this->add_hyphen_before_usdt($marketId);
-                if (($marketsById !== null) && (is_array($marketsById) && array_key_exists($newMarketId ?? '', $marketsById))) {
-                    $markets = $marketsById[$newMarketId];
+                if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($newMarketId ?? '', $this->markets_by_id))) {
+                    $markets = $this->markets_by_id[$newMarketId];
                     $numMarkets = count($markets);
                     if ($numMarkets > 0) {
                         if ($markets[0]['id2'] === $marketId) {
@@ -1359,9 +1358,8 @@ class apex extends Exchange {
     }
 
     public function generate_random_client_id_omni(?string $_accountId): string {
-        $hasAccountId = ($_accountId !== null) && ($_accountId !== '');
-        $accountId = null;
-        if ($hasAccountId) {
+        $accountId = '';
+        if (($_accountId !== null) && ($_accountId !== '')) {
             $accountId = $_accountId;
         } else {
             $accountId = (string) $this->rand_number(12);
@@ -1440,7 +1438,8 @@ class apex extends Exchange {
         $fees = $this->safe_dict($this->fees, 'swap', array());
         $taker = $this->safe_string($fees, 'taker', '0.0005');
         $maker = $this->safe_string($fees, 'maker', '0.0002');
-        $limitFee = $this->decimal_to_precision(Precise::string_add(Precise::string_mul(Precise::string_mul($orderPrice, $orderSize), $taker), $this->number_to_string($market['precision']['price'])), TRUNCATE, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+        $pricePrecision = $market['precision']['price'];
+        $limitFee = $this->decimal_to_precision(Precise::string_add(Precise::string_mul(Precise::string_mul($orderPrice, $orderSize), $taker), $this->number_to_string($pricePrecision)), TRUNCATE, $pricePrecision, $this->precisionMode, $this->paddingMode);
         $timeNow = $this->milliseconds();
         $triggerPrice = $this->safe_string($params, 'triggerPrice');
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
@@ -1554,16 +1553,14 @@ class apex extends Exchange {
         $ethAddress = $this->safe_string($accountData, 'ethereumAddress', '');
         $accountId = $this->safe_string($accountData, 'id', '');
         $currency = array();
-        $assets = array();
         $isContract = strtolower($fromAccount) === 'contract';
+        $assets = $spotAssets;
         if ($isContract) {
             $assets = $contractAssets;
-        } else {
-            $assets = $spotAssets;
         }
         for ($i = 0; $i < count($assets); $i++) {
-            if ($this->safe_string($assets[$i], 'token', '') === $code) {
-                $currency = $assets[$i];
+            if ($this->safe_string($this->safe_dict($assets, $i, array()), 'token', '') === $code) {
+                $currency = $this->safe_dict($assets, $i, array());
             }
         }
         $tokenId = $this->safe_string($currency, 'tokenId', '');
@@ -1626,10 +1623,9 @@ class apex extends Exchange {
                 'timestampSeconds' => $timestampSeconds,
             );
             $signature = Async\await($this->get_zk_transfer_signature_obj($this->remove0x_prefix($this->get_seeds()), $orderToSign));
-            $amountStr = (string) $amount;
             $ts = $timestampSeconds; // java req
             $request = array(
-                'amount' => $amountStr,
+                'amount' => $this->number_to_string($amount),
                 'timestamp' => $ts,
                 'clientTransferId' => $finalClientOrderId,
                 'signature' => $signature,

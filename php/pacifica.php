@@ -729,7 +729,7 @@ class pacifica extends Exchange {
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote;
         if ($isSwap) {
-            $symbol = $symbol . ':' . $settle;
+            $symbol = $base . '/' . $quote . ':' . $quote;
         }
         $fees = $this->safe_dict($this->fees, $type, array());
         $taker = $this->safe_number($fees, 'taker');
@@ -889,9 +889,8 @@ class pacifica extends Exchange {
         }
         $market = $this->market($symbol);
         list($userAccount, $paramsOriginAndSingleAddress) = $this->handle_origin_and_single_address('fetchLeverage', $params);
-        $cacheAddress = $this->walletAddress;
         $settings = null;
-        if ($userAccount === $cacheAddress) {
+        if ($userAccount === $this->walletAddress) {
             $settings = $this->handle_option('fetchLeverage', 'settings');
         } else {
             $request = array(
@@ -993,11 +992,12 @@ class pacifica extends Exchange {
             return array();
         }
         $settingsBySymbol = array();
-        for ($i = 0; $i < count($settings); $i++) {
-            $marketId = $settings[$i]['symbol'];
+        for ($i = 0; $i < $settingsLen; $i++) {
+            $setting = $settings[$i];
+            $marketId = $this->safe_string($setting, 'symbol');
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
-            $settingsBySymbol[$symbol] = $settings[$i];
+            $settingsBySymbol[$symbol] = $setting;
         }
         return $settingsBySymbol;
     }
@@ -1015,9 +1015,8 @@ class pacifica extends Exchange {
          */
         $this->load_account_settings();
         list($userAccount, $paramsOriginAndSingleAddress) = $this->handle_origin_and_single_address('fetchMarginMode', $params);
-        $cacheAddress = $this->walletAddress;
         $settings = null;
-        if ($userAccount === $cacheAddress) {
+        if ($userAccount === $this->walletAddress) {
             $settings = $this->handle_option('fetchMarginMode', 'settings');
         } else {
             $request = array(
@@ -1607,7 +1606,7 @@ class pacifica extends Exchange {
             'symbol' => $market['id'],
             'side' => $this->map_side($side),
         );
-        $operationType = null;
+        $operationType = 'create_order';
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only', false);
         $orderType = strtoupper($type);
         $triggerPrice = $this->safe_string($params, 'triggerPrice');
@@ -1871,7 +1870,7 @@ class pacifica extends Exchange {
     public function cancel_orders_request(array $ids, ?string $symbol = null, $params = array()): array {
         $actions = array();
         for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
+            $id = $this->safe_string($ids, $i);
             $request = $this->cancel_order_request($id, $symbol, $params);
             $action = array(
                 'type' => 'Cancel',
@@ -1997,11 +1996,9 @@ class pacifica extends Exchange {
     public function cancel_order_request(mixed $id, ?string $symbol = null, $params = array()): array {
         $market = $this->market($symbol);
         $isStopOrder = $this->safe_bool_2($params, 'trigger', 'stop', false);
-        $operationType = null;
+        $operationType = 'cancel_order';
         if ($isStopOrder) {
             $operationType = 'cancel_stop_order';
-        } else {
-            $operationType = 'cancel_order';
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         $sigPayload = array(
@@ -2773,9 +2770,9 @@ class pacifica extends Exchange {
         $symbol = $marketResolved['symbol'];
         $margin = $this->safe_string($position, 'margin');
         $rawIsolated = $this->safe_bool($position, 'isolated');
-        $isIsolated = ($margin !== null && $margin !== '0');
+        $isIsolated = ($margin !== null) && ($margin !== '0');
         if ($rawIsolated !== null) {
-            $isIsolated = $rawIsolated;
+            $isIsolated = ($rawIsolated === true);
         }
         $marginMode = $isIsolated ? 'isolated' : 'cross';
         $side = $this->safe_string($position, 'side');
@@ -3720,7 +3717,7 @@ class pacifica extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $headersValue );
     }
 
-    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
         $cost = $this->safe_string($config, 'cost', '1');
         $costNumber = $this->parse_number($cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
@@ -3743,23 +3740,26 @@ class pacifica extends Exchange {
             $keys = is_array($value) ? array_keys($value) : array();
             $sortedKeys = $this->sort($keys);
             for ($i = 0; $i < count($sortedKeys); $i++) {
-                $key = $sortedKeys[$i];
+                $key = $this->safe_string($sortedKeys, $i, '');
                 $result[$key] = $this->sort_json_keys($value[$key]);
             }
             return $result;
         } elseif ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
-            $result = array();
+            $sortedList = array();
             for ($i = 0; $i < count($value); $i++) {
-                $result[] = $this->sort_json_keys($value[$i]);
+                $sortedList[] = $this->sort_json_keys($value[$i]);
             }
-            return $result;
+            return $sortedList;
         } else {
             return $value;
         }
     }
 
     public function prepare_message(array $header, array $payload): string {
-        if ($header['type'] === null || $header['timestamp'] === null || $header['expiry_window'] === null) {
+        $headerType = $this->safe_string($header, 'type');
+        $headerTimestamp = $this->safe_integer($header, 'timestamp');
+        $headerExpiryWindow = $this->safe_integer($header, 'expiry_window');
+        if ($headerType === null || $headerTimestamp === null || $headerExpiryWindow === null) {
             throw new ArgumentsRequired($this->id . ' prepareMessage() requires type, timestamp, expiry_window in header');
         }
         $data = $this->extend($header, array( 'data' => $payload ));
@@ -3778,7 +3778,7 @@ class pacifica extends Exchange {
         return $signatureBase58;
     }
 
-    public function post_action_request(?string $operationType, array $sigPayload, array $params): array {
+    public function post_action_request(string $operationType, array $sigPayload, array $params): array {
         $this->check_required_credentials(); // check credentials every post action
         if ($operationType === 'null') {
             throw new ArgumentsRequired($this->id . ' action => ' . $operationType . ' postActionRequest() requires "operationType"');

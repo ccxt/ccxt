@@ -345,23 +345,23 @@ class bitrue extends \ccxt\async\bitrue {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $messageHash = 'orderbook:' . $symbolValue;
+        $messageHash = 'orderbook:' . $symbol;
+        $wsUrls = $this->safe_dict($this->urls['api'], 'ws', array());
         $url = null;
         $channel = null;
         $cbId = null;
         if ($market['swap'] === true) {
-            $baseIdLower = $this->safe_string_lower($market, 'baseId');
-            $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
+            $baseIdLower = $this->safe_string_lower($market, 'baseId', '');
+            $quoteIdLower = $this->safe_string_lower($market, 'quoteId', '');
             $wsId = 'e_' . $baseIdLower . $quoteIdLower;
             $channel = 'market_' . $wsId . '_depth_step0';
             $cbId = $wsId;
-            $url = $this->urls['api']['ws']['futurePublic'];
+            $url = $wsUrls['futurePublic'];
         } else {
-            $marketIdLowercase = $this->safe_string_lower($market, 'id');
+            $marketIdLowercase = $this->safe_string_lower($market, 'id', '');
             $channel = 'market_' . $marketIdLowercase . '_simple_depth_step0';
             $cbId = $marketIdLowercase;
-            $url = $this->urls['api']['ws']['public'];
+            $url = $wsUrls['public'];
         }
         $message = array(
             'event' => 'sub',
@@ -419,7 +419,10 @@ class bitrue extends \ccxt\async\bitrue {
             $marketId = $this->safe_string_upper($parts, 1);
             $market = $this->safe_market($marketId);
         }
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
+        if ($symbol === null) {
+            return;
+        }
         $timestamp = $this->safe_integer($message, 'ts');
         $tick = $this->safe_dict($message, 'tick', array());
         $parseable = $tick;
@@ -442,20 +445,21 @@ class bitrue extends \ccxt\async\bitrue {
     }
 
     public function find_swap_market_by_ws_base_quote(string $wsBaseQuote) {
-        $markets = $this->markets;
-        if ($markets === null) {
+        if ($this->markets === null) {
             return null;
         }
+        $markets = $this->markets;
         $symbols = is_array($markets) ? array_keys($markets) : array();
         for ($i = 0; $i < count($symbols); $i++) {
-            $candidate = $markets[$symbols[$i]];
+            $symbolId = $symbols[$i];
+            $candidate = $this->safe_value($markets, $symbolId);
             if (!$this->safe_bool($candidate, 'swap', false)) {
                 continue;
             }
             $baseId = $this->safe_string_lower($candidate, 'baseId');
             $quoteId = $this->safe_string_lower($candidate, 'quoteId');
             if ($baseId === null || $quoteId === null) {
-                throw new ExchangeError($this->id . ' findSwapMarketByWsBaseQuote() market ' . $symbols[$i] . ' has no baseId or quoteId');
+                throw new ExchangeError($this->id . ' findSwapMarketByWsBaseQuote() market ' . $symbolId . ' has no baseId or quoteId');
             }
             if ($baseId . $quoteId === $wsBaseQuote) {
                 return $candidate;
@@ -511,16 +515,17 @@ class bitrue extends \ccxt\async\bitrue {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' watchTrades is only supported for swap markets');
         }
-        $baseIdLower = $this->safe_string_lower($market, 'baseId');
-        $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
+        $baseIdLower = $this->safe_string_lower($market, 'baseId', '');
+        $quoteIdLower = $this->safe_string_lower($market, 'quoteId', '');
         $wsId = 'e_' . $baseIdLower . $quoteIdLower;
         $channel = 'market_' . $wsId . '_trade_ticker';
         $messageHash = 'trades:' . $symbolValue;
-        $url = $this->urls['api']['ws']['futurePublic'];
+        $wsUrls = $this->safe_dict($this->urls['api'], 'ws', array());
+        $url = $wsUrls['futurePublic'];
         $message = array(
             'event' => 'sub',
             'params' => array(
@@ -562,10 +567,10 @@ class bitrue extends \ccxt\async\bitrue {
         $parts = explode('_', $channel);
         $wsBaseQuote = $this->safe_string_lower($parts, 2);
         $market = $this->find_swap_market_by_ws_base_quote($wsBaseQuote);
-        if ($market === null) {
+        $symbol = $this->safe_string($market, 'symbol');
+        if ($symbol === null) {
             return;
         }
-        $symbol = $market['symbol'];
         $tick = $this->safe_dict($message, 'tick', array());
         $data = $this->safe_list($tick, 'data', array());
         $appended = false;
@@ -587,7 +592,7 @@ class bitrue extends \ccxt\async\bitrue {
     }
 
     public function parse_ws_trade(array $trade, ?array $market = null): array {
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $timestamp = $this->safe_integer($trade, 'ts');
         $sideLower = $this->safe_string_lower($trade, 'side');
         $priceString = $this->safe_string($trade, 'price');
@@ -631,7 +636,6 @@ class bitrue extends \ccxt\async\bitrue {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
         if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' watchOHLCV is only supported for swap markets');
         }
@@ -640,12 +644,13 @@ class bitrue extends \ccxt\async\bitrue {
         if ($interval === null) {
             throw new NotSupported($this->id . ' watchOHLCV does not support timeframe ' . $timeframe);
         }
-        $baseIdLower = $this->safe_string_lower($market, 'baseId');
-        $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
+        $baseIdLower = $this->safe_string_lower($market, 'baseId', '');
+        $quoteIdLower = $this->safe_string_lower($market, 'quoteId', '');
         $wsId = 'e_' . $baseIdLower . $quoteIdLower;
         $channel = 'market_' . $wsId . '_kline_' . $interval;
-        $messageHash = 'ohlcv:' . $symbolValue . ':' . $timeframe;
-        $url = $this->urls['api']['ws']['futurePublic'];
+        $messageHash = 'ohlcv:' . $symbol . ':' . $timeframe;
+        $wsUrls = $this->safe_dict($this->urls['api'], 'ws', array());
+        $url = $wsUrls['futurePublic'];
         $message = array(
             'event' => 'sub',
             'params' => array(
@@ -657,7 +662,7 @@ class bitrue extends \ccxt\async\bitrue {
         $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
         $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
+            $limitResolved = $ohlcv->getLimit($symbol, $limit);
         }
         return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
@@ -685,10 +690,10 @@ class bitrue extends \ccxt\async\bitrue {
         $parts = explode('_', $channel);
         $wsBaseQuote = $this->safe_string_lower($parts, 2);
         $market = $this->find_swap_market_by_ws_base_quote($wsBaseQuote);
-        if ($market === null) {
+        $symbol = $this->safe_string($market, 'symbol');
+        if ($symbol === null) {
             return;
         }
-        $symbol = $market['symbol'];
         $wsInterval = $this->safe_string($parts, 4);
         $futuresTimeframes = $this->safe_dict($this->options, 'futuresTimeframes', array());
         $timeframe = $this->find_timeframe($wsInterval, $futuresTimeframes);
@@ -711,9 +716,8 @@ class bitrue extends \ccxt\async\bitrue {
     }
 
     public function parse_ws_ohlcv(mixed $tick, ?array $market = null): array {
-        $symbol = $market['symbol'];
-        $idSeconds = $this->safe_integer($tick, 'id');
-        $timestamp = ($idSeconds === null) ? null : $idSeconds * 1000;
+        $symbol = $this->safe_string($market, 'symbol', '');
+        $timestamp = $this->safe_timestamp($tick, 'id');
         $open = $this->safe_number($tick, 'open');
         $high = $this->safe_number($tick, 'high');
         $low = $this->safe_number($tick, 'low');
@@ -741,16 +745,16 @@ class bitrue extends \ccxt\async\bitrue {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
         if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' watchTicker is only supported for swap markets');
         }
-        $baseIdLower = $this->safe_string_lower($market, 'baseId');
-        $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
+        $baseIdLower = $this->safe_string_lower($market, 'baseId', '');
+        $quoteIdLower = $this->safe_string_lower($market, 'quoteId', '');
         $wsId = 'e_' . $baseIdLower . $quoteIdLower;
         $channel = 'market_' . $wsId . '_ticker';
-        $messageHash = 'ticker:' . $symbolValue;
-        $url = $this->urls['api']['ws']['futurePublic'];
+        $messageHash = 'ticker:' . $symbol;
+        $wsUrls = $this->safe_dict($this->urls['api'], 'ws', array());
+        $url = $wsUrls['futurePublic'];
         $message = array(
             'event' => 'sub',
             'params' => array(
@@ -783,10 +787,10 @@ class bitrue extends \ccxt\async\bitrue {
         $parts = explode('_', $channel);
         $wsBaseQuote = $this->safe_string_lower($parts, 2);
         $market = $this->find_swap_market_by_ws_base_quote($wsBaseQuote);
-        if ($market === null) {
+        $symbol = $this->safe_string($market, 'symbol');
+        if ($symbol === null) {
             return;
         }
-        $symbol = $market['symbol'];
         $tick = $this->safe_dict($message, 'tick');
         if ($tick === null) {
             return;
@@ -799,7 +803,7 @@ class bitrue extends \ccxt\async\bitrue {
     }
 
     public function parse_ws_ticker(array $tick, mixed $market, ?int $timestamp = null): array {
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $rawVol = $this->safe_number($tick, 'vol');
         $rawAmount = $this->safe_number($tick, 'amount');
         $baseVolume = $this->convert_from_raw_quantity($symbol, $rawVol);
@@ -945,7 +949,8 @@ class bitrue extends \ccxt\async\bitrue {
                     throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
                 }
                 $this->options['listenKey'] = $key;
-                $wsUrl = $this->safe_string($this->urls['api']['ws'], 'private');
+                $wsUrls = $this->safe_dict($this->urls['api'], 'ws', array());
+                $wsUrl = $this->safe_string($wsUrls, 'private');
                 if ($wsUrl === null) {
                     throw new ExchangeError($this->id . ' authenticate() has no private websocket url');
                 }

@@ -690,30 +690,32 @@ class coinsph extends Exchange {
         ));
     }
 
-    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
-        if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
+        $hasSymbolParam = (is_array($params) && array_key_exists('symbol' ?? '', $params));
+        $hasSymbolsParam = (is_array($params) && array_key_exists('symbols' ?? '', $params));
+        $limit = $this->safe_integer($params, 'limit');
+        if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !$hasSymbolParam) {
             return $config['noSymbol'];
-        } elseif ((is_array($config) && array_key_exists('noSymbolAndNoSymbols' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params)) && !(is_array($params) && array_key_exists('symbols' ?? '', $params))) {
+        } elseif ((is_array($config) && array_key_exists('noSymbolAndNoSymbols' ?? '', $config)) && !$hasSymbolParam && !$hasSymbolsParam) {
             return $config['noSymbolAndNoSymbols'];
-        } elseif ((is_array($config) && array_key_exists('byNumberOfSymbols' ?? '', $config)) && (is_array($params) && array_key_exists('symbols' ?? '', $params))) {
-            $symbols = $params['symbols'];
+        } elseif ((is_array($config) && array_key_exists('byNumberOfSymbols' ?? '', $config)) && $hasSymbolsParam) {
+            $symbols = $this->safe_list($params, 'symbols', array());
             $symbolsAmount = count($symbols);
             $byNumberOfSymbols = $this->safe_list($config, 'byNumberOfSymbols', array());
             for ($i = 0; $i < count($byNumberOfSymbols); $i++) {
                 $entry = $byNumberOfSymbols[$i];
                 $threshold = $this->safe_integer($entry, 0);
                 if ($threshold !== null && $symbolsAmount >= $threshold) {
-                    return $entry[1];
+                    return $this->safe_integer($entry, 1);
                 }
             }
-        } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
-            $limit = $this->safe_integer($params, 'limit');
+        } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && ($limit !== null)) {
             $byLimit = $this->safe_list($config, 'byLimit', array());
             for ($i = 0; $i < count($byLimit); $i++) {
                 $entry = $byLimit[$i];
                 $threshold = $this->safe_integer($entry, 0);
-                if ($limit !== null && $threshold !== null && $limit >= $threshold) {
-                    return $entry[1];
+                if ($threshold !== null && $limit >= $threshold) {
+                    return $this->safe_integer($entry, 1);
                 }
             }
         }
@@ -1848,9 +1850,7 @@ class coinsph extends Exchange {
             'buy' => 'BUY',
             'sell' => 'SELL',
         );
-        if ($status === null) {
-            return null;
-        }
+        // safeString returns the status itself when it is absent, so no early return
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -1880,9 +1880,7 @@ class coinsph extends Exchange {
             'take_profit' => 'TAKE_PROFIT',
             'take_profit_limit' => 'TAKE_PROFIT_LIMIT',
         );
-        if ($status === null) {
-            return null;
-        }
+        // safeString returns the status itself when it is absent, so no early return
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -2409,7 +2407,7 @@ class coinsph extends Exchange {
             }
             $signedQuery = $this->url_encode_query($query);
             $signature = $this->hmac($this->encode($signedQuery), $this->encode($this->secret), 'sha256');
-            $url = $url . '?' . $signedQuery . '&signature=' . $signature;
+            $url = $apiUrl . '/' . $endpoint . '?' . $signedQuery . '&signature=' . $signature;
             $signedHeaders = array(
                 'X-COINS-APIKEY' => $this->apiKey,
             );
@@ -2417,7 +2415,7 @@ class coinsph extends Exchange {
         }
         $encodedQuery = $this->url_encode_query($query);
         if (strlen($encodedQuery) !== 0) {
-            $url .= '?' . $encodedQuery;
+            $url = $apiUrl . '/' . $endpoint . '?' . $encodedQuery;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }

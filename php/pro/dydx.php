@@ -57,9 +57,9 @@ class dydx extends \ccxt\async\dydx {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $market = $this->market($symbol);
-        $messageHash = 'trade:' . $market['symbol'];
+        $messageHash = 'trade:' . $this->safe_string($market, 'symbol', '');
         $request = array(
             'type' => 'subscribe',
             'channel' => 'v4_trades',
@@ -90,9 +90,9 @@ class dydx extends \ccxt\async\dydx {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $market = $this->market($symbol);
-        $messageHash = 'trade:' . $market['symbol'];
+        $messageHash = 'trade:' . $this->safe_string($market, 'symbol', '');
         $request = array(
             'type' => 'unsubscribe',
             'channel' => 'v4_trades',
@@ -126,7 +126,7 @@ class dydx extends \ccxt\async\dydx {
         //
         $marketId = $this->safe_string($message, 'id');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $content = $this->safe_dict($message, 'contents');
         $rawTrades = $this->safe_list($content, 'trades', array());
         $stored = $this->safe_value($this->trades, $symbol);
@@ -137,8 +137,7 @@ class dydx extends \ccxt\async\dydx {
         }
         $parsedTrades = $this->parse_trades($rawTrades, $market);
         for ($i = 0; $i < count($parsedTrades); $i++) {
-            $parsed = $parsedTrades[$i];
-            $stored->append($parsed);
+            $stored->append($parsedTrades[$i]);
         }
         $messageHash = 'trade' . ':' . $symbol;
         $client->resolve($stored, $messageHash);
@@ -192,9 +191,9 @@ class dydx extends \ccxt\async\dydx {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $market = $this->market($symbol);
-        $messageHash = 'orderbook:' . $market['symbol'];
+        $messageHash = 'orderbook:' . $this->safe_string($market, 'symbol', '');
         $request = array(
             'type' => 'subscribe',
             'channel' => 'v4_orderbook',
@@ -221,9 +220,9 @@ class dydx extends \ccxt\async\dydx {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $market = $this->market($symbol);
-        $messageHash = 'orderbook:' . $market['symbol'];
+        $messageHash = 'orderbook:' . $this->safe_string($market, 'symbol', '');
         $request = array(
             'type' => 'unsubscribe',
             'channel' => 'v4_orderbook',
@@ -258,7 +257,7 @@ class dydx extends \ccxt\async\dydx {
         //
         $marketId = $this->safe_string($message, 'id');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $content = $this->safe_dict($message, 'contents');
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
@@ -306,14 +305,14 @@ class dydx extends \ccxt\async\dydx {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $market = $this->market($symbol);
-        $messageHash = 'ohlcv:' . $market['symbol'];
+        $messageHash = 'ohlcv:' . $this->safe_string($market, 'symbol', '');
         $resolution = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $request = array(
             'type' => 'subscribe',
             'channel' => 'v4_candles',
-            'id' => $market['id'] . '/' . $resolution,
+            'id' => $this->safe_string($market, 'id', '') . '/' . $resolution,
         );
         $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         $limitResolved = $limit;
@@ -342,14 +341,14 @@ class dydx extends \ccxt\async\dydx {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $market = $this->market($symbol);
-        $messageHash = 'ohlcv:' . $market['symbol'];
+        $messageHash = 'ohlcv:' . $this->safe_string($market, 'symbol', '');
         $resolution = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $request = array(
             'type' => 'unsubscribe',
             'channel' => 'v4_candles',
-            'id' => $market['id'] . '/' . $resolution,
+            'id' => $this->safe_string($market, 'id', '') . '/' . $resolution,
         );
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
     }
@@ -412,7 +411,7 @@ class dydx extends \ccxt\async\dydx {
         $timeframe = $this->find_timeframe($interval);
         $marketId = $this->safe_string($part, 0);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $content = $this->safe_dict($message, 'contents');
         $candles = $this->safe_list($content, 'candles');
         $messageHash = 'ohlcv:' . $symbol;
@@ -439,7 +438,7 @@ class dydx extends \ccxt\async\dydx {
         // }
         //
         try {
-            $msg = $this->safe_string($message, 'message');
+            $msg = $this->safe_string($message, 'message', '');
             throw new ExchangeError($this->id . ' ' . $msg);
         } catch (Exception $e) {
             $client->reject($e);

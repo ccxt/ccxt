@@ -652,7 +652,7 @@ class blofin extends Exchange {
         }
         $symbol = $base . '/' . $quote;
         if ($swap) {
-            $symbol = $symbol . ':' . $settle;
+            $symbol = $base . '/' . $quote . ':' . $settle;
         }
         $expiry = null;
         $strikePrice = null;
@@ -978,7 +978,9 @@ class blofin extends Exchange {
             );
         }
         if ($isSpot) {
-            $spotSymbol = $marketResolved['base'] . '/' . $marketResolved['quote'];
+            $spotBase = $this->safe_string($marketResolved, 'base', '');
+            $spotQuote = $this->safe_string($marketResolved, 'quote', '');
+            $spotSymbol = $spotBase . '/' . $spotQuote;
             $cost = $this->parse_number(Precise::string_mul($price, $amount));
             $result = array(
                 'info' => $trade,
@@ -1181,7 +1183,7 @@ class blofin extends Exchange {
         $rates = array();
         $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
-            $rate = $data[$i];
+            $rate = $this->safe_value($data, $i);
             $timestamp = $this->safe_integer($rate, 'fundingTime');
             $rates[] = array(
                 'info' => $rate,
@@ -1414,8 +1416,7 @@ class blofin extends Exchange {
         $request = array(
         );
         if ($accountType !== null && $accountType !== 'swap') {
-            $options = $this->safe_dict($this->options, 'accountsByType', array());
-            $parsedAccountType = $this->safe_string($options, $accountType, $accountType);
+            $parsedAccountType = $this->safe_string($this->options['accountsByType'], $accountType, $accountType);
             $request['accountType'] = $parsedAccountType;
             $response = Async\await($this->privateGetAssetBalances($this->extend($request, $paramsAccountType)));
         } else {
@@ -1796,11 +1797,11 @@ class blofin extends Exchange {
             $request['clientOrderId'] = $clientOrderId;
         } else {
             if ((!$isTrigger) && (!$isTpsl)) {
-                $request['orderId'] = (string) $id;
+                $request['orderId'] = $this->number_to_string($id);
             } elseif ($isTpsl) {
-                $request['tpslId'] = (string) $id;
+                $request['tpslId'] = $this->number_to_string($id);
             } elseif ($isTrigger) {
-                $request['algoId'] = (string) $id;
+                $request['algoId'] = $this->number_to_string($id);
             }
         }
         $query = $this->omit($params, array( 'orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl' ));
@@ -2070,8 +2071,7 @@ class blofin extends Exchange {
     }
 
     public function network_code_to_chain_id(string $networkCode, ?array $currency = null): ?string {
-        $aliases = $this->safe_dict($this->options, 'networkCodeAliases', array());
-        $aliasedCode = $this->safe_string($aliases, $networkCode, $networkCode);
+        $aliasedCode = $this->safe_string($this->options['networkCodeAliases'], $networkCode, $networkCode);
         $unifiedCode = $this->safe_string($this->networkAliases, $aliasedCode, $aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
@@ -2086,16 +2086,13 @@ class blofin extends Exchange {
         // the live venue identifies chains by display names; the suffix
         // family is built here as prefix + space + parenthesized suffix
         // because such literals are not transpiler-safe in source
-        $networks = $this->safe_dict($this->options, 'networks', array());
-        $direct = $this->safe_string($networks, $unifiedCode);
+        $direct = $this->safe_string($this->options['networks'], $unifiedCode);
         if ($direct !== null) {
             return $direct;
         }
-        $prefixes = $this->safe_dict($this->options, 'networkPrefixes', array());
-        $prefix = $this->safe_string($prefixes, $unifiedCode);
+        $prefix = $this->safe_string($this->options['networkPrefixes'], $unifiedCode);
         if ($prefix !== null) {
-            $suffixes = $this->safe_dict($this->options, 'networkSuffixes', array());
-            $suffix = $this->safe_string($suffixes, $unifiedCode, $unifiedCode);
+            $suffix = $this->safe_string($this->options['networkSuffixes'], $unifiedCode, $unifiedCode);
             return $prefix . ' ' . '(' . $suffix . ')';
         }
         return $unifiedCode;
@@ -2117,8 +2114,7 @@ class blofin extends Exchange {
             $tail = $this->safe_string($parts, 1, '');
             $tailParts = explode(')', $tail);
             $suffix = $this->safe_string($tailParts, 0);
-            $bySuffix = $this->safe_dict($this->options, 'networkCodesBySuffix', array());
-            $suffixCode = $this->safe_string($bySuffix, $suffix);
+            $suffixCode = $this->safe_string($this->options['networkCodesBySuffix'], $suffix);
             if ($suffixCode !== null) {
                 return $suffixCode;
             }
@@ -2277,8 +2273,7 @@ class blofin extends Exchange {
                 if ($networkKeysLength === 1) {
                     $networkCode = $this->safe_string($networkKeys, 0);
                 } else {
-                    $defaultNetworks = $this->safe_dict($this->options, 'defaultNetworks', array());
-                    $networkCode = $this->safe_string($defaultNetworks, $currency['code']);
+                    $networkCode = $this->safe_string($this->options['defaultNetworks'], $currency['code']);
                 }
             }
             if ($networkCode === null) {
@@ -2374,10 +2369,12 @@ class blofin extends Exchange {
         }
         if ($chainsLength === 1) {
             // a single network means the currency-level fee is unambiguous
-            $networkKeys = is_array($result['networks']) ? array_keys($result['networks']) : array();
+            $networks = $this->safe_dict($result, 'networks', array());
+            $networkKeys = is_array($networks) ? array_keys($networks) : array();
             $onlyNetwork = $this->safe_string($networkKeys, 0);
             if ($onlyNetwork !== null) {
-                $result['withdraw'] = $result['networks'][$onlyNetwork]['withdraw'];
+                $networkResolved = $this->safe_dict($networks, $onlyNetwork, array());
+                $result['withdraw'] = $networkResolved['withdraw'];
             }
         }
         return $result;
@@ -2413,7 +2410,7 @@ class blofin extends Exchange {
         // venue ignores the filter and returns the latest records instead
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_value($data, $i);
             if ($this->safe_string($entry, 'depositId') === $id) {
                 return $this->parse_transaction($entry, $currency);
             }
@@ -2457,7 +2454,7 @@ class blofin extends Exchange {
         // case the venue ignores the filter and returns the latest records
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_value($data, $i);
             $matches = false;
             if ($id !== null) {
                 $matches = ($this->safe_string($entry, 'withdrawId') === $id);
@@ -2764,7 +2761,7 @@ class blofin extends Exchange {
         ), $currencyResolved);
     }
 
-    public function parse_ids(mixed $ids) {
+    public function parse_ids(mixed $ids): ?array {
         /**
          * @ignore
          * @param {string[]|string} $ids order $ids
@@ -2870,9 +2867,8 @@ class blofin extends Exchange {
             Async\await($this->load_markets());
         }
         $currency = $this->currency($code);
-        $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
-        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
-        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        $fromId = $this->safe_string($this->options['accountsByType'], $fromAccount, $fromAccount);
+        $toId = $this->safe_string($this->options['accountsByType'], $toAccount, $toAccount);
         $request = array(
             'currency' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
@@ -3218,19 +3214,8 @@ class blofin extends Exchange {
             throw new BadRequest($this->id . ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        $symbolsList = $symbolsNormalized;
-        $instIds = '';
-        for ($i = 0; $i < count($symbolsList); $i++) {
-            $entry = $symbolsList[$i];
-            $entryMarket = $this->market($entry);
-            if ($i > 0) {
-                $instIds = $instIds . ',' . $entryMarket['id'];
-            } else {
-                $instIds = $instIds . $entryMarket['id'];
-            }
-        }
         $request = array(
-            'instId' => $instIds,
+            'instId' => implode(',', $this->market_ids($symbolsNormalized)),
             'marginMode' => $marginMode,
         );
         $response = Async\await($this->privateGetAccountBatchLeverageInfo($this->extend($request, $query)));
@@ -3746,8 +3731,8 @@ class blofin extends Exchange {
                 }
             } else {
                 if (!$this->is_empty($query)) {
-                    $signedBody = $this->json($query);
-                    $sign_body = $signedBody;
+                    $sign_body = $this->json($query);
+                    $signedBody = $sign_body;
                 }
                 $signedHeaders['Content-Type'] = 'application/json';
             }

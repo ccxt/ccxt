@@ -254,7 +254,7 @@ class hashkey extends \ccxt\async\hashkey {
         //
         $data = $this->safe_list($message, 'data', array());
         $ticker = $this->parse_ticker($this->safe_dict($data, 0, array()));
-        $symbol = $ticker['symbol'];
+        $symbol = $this->safe_string($ticker, 'symbol', '');
         $messageHash = 'ticker:' . $symbol;
         $this->tickers[$symbol] = $ticker;
         $client->resolve($this->tickers[$symbol], $messageHash);
@@ -433,7 +433,7 @@ class hashkey extends \ccxt\async\hashkey {
         $messageHash = 'orders';
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
-            $messageHash = $messageHash . ':' . $symbolResolved;
+            $messageHash = 'orders' . ':' . $symbolResolved;
         }
         $orders = Async\await($this->watch_private($messageHash));
         $limitResolved = $limit;
@@ -488,7 +488,7 @@ class hashkey extends \ccxt\async\hashkey {
         $orders->append($parsed);
         $messageHash = 'orders';
         $client->resolve($orders, $messageHash);
-        $symbol = $parsed['symbol'];
+        $symbol = $this->safe_string($parsed, 'symbol', '');
         $symbolSpecificMessageHash = $messageHash . ':' . $symbol;
         $client->resolve($orders, $symbolSpecificMessageHash);
     }
@@ -562,7 +562,7 @@ class hashkey extends \ccxt\async\hashkey {
         $messageHash = 'myTrades';
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
-            $messageHash .= ':' . $symbolResolved;
+            $messageHash = 'myTrades' . ':' . $symbolResolved;
         }
         $trades = Async\await($this->watch_private($messageHash));
         $limitResolved = $limit;
@@ -599,7 +599,7 @@ class hashkey extends \ccxt\async\hashkey {
         $this->myTrades = $tradesArray;
         $messageHash = 'myTrades';
         $client->resolve($tradesArray, $messageHash);
-        $symbol = $parsed['symbol'];
+        $symbol = $this->safe_string($parsed, 'symbol', '');
         $symbolSpecificMessageHash = $messageHash . ':' . $symbol;
         $client->resolve($tradesArray, $symbolSpecificMessageHash);
     }
@@ -733,7 +733,7 @@ class hashkey extends \ccxt\async\hashkey {
         $positions->append($parsed);
         $messageHash = 'positions';
         $client->resolve($parsed, $messageHash);
-        $symbol = $parsed['symbol'];
+        $symbol = $this->safe_string($parsed, 'symbol', '');
         $client->resolve($parsed, $messageHash . ':' . $symbol);
     }
 

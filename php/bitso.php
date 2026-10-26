@@ -490,11 +490,11 @@ class bitso extends Exchange {
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'book');
-            list($baseId, $quoteId) = explode('_', $id);
-            $base = strtoupper($baseId);
-            $quote = strtoupper($quoteId);
-            $base = $this->safe_currency_code($base);
-            $quote = $this->safe_currency_code($quote);
+            $parts = explode('_', $id);
+            $baseId = $this->safe_string($parts, 0, '');
+            $quoteId = $this->safe_string($parts, 1, '');
+            $base = $this->safe_currency_code(strtoupper($baseId));
+            $quote = $this->safe_currency_code(strtoupper($quoteId));
             if (($base === null) || ($quote === null)) {
                 continue;
             }
@@ -1142,7 +1142,7 @@ class bitso extends Exchange {
         // convert it to an integer unconditionally
         $paramsMarker = $params;
         if ($markerInParams) {
-            $paramsMarker = $this->extend($params, array( 'marker' => intval($params['marker']) ));
+            $paramsMarker = $this->extend($params, array( 'marker' => $this->parse_to_int($params['marker']) ));
         }
         $request = array(
             'book' => $market['id'],
@@ -1375,7 +1375,7 @@ class bitso extends Exchange {
         // convert it to an integer unconditionally
         $paramsMarker = $params;
         if ($markerInParams) {
-            $paramsMarker = $this->extend($params, array( 'marker' => intval($params['marker']) ));
+            $paramsMarker = $this->extend($params, array( 'marker' => $this->parse_to_int($params['marker']) ));
         }
         $request = array(
             'book' => $market['id'],
@@ -1405,12 +1405,10 @@ class bitso extends Exchange {
         $response = $this->privateGetOrdersOid(array(
             'oid' => $id,
         ));
-        $payload = $this->safe_list($response, 'payload');
-        if ((gettype($payload) === 'array' && array_keys($payload) === array_keys(array_keys($payload)))) {
-            $numOrders = count($payload);
-            if ($numOrders === 1) {
-                return $this->parse_order($payload[0]);
-            }
+        $payload = $this->safe_list($response, 'payload', array());
+        $numOrders = count($payload);
+        if ($numOrders === 1) {
+            return $this->parse_order($payload[0]);
         }
         throw new OrderNotFound($this->id . ' => The order ' . $id . ' not found.');
     }
@@ -1833,7 +1831,7 @@ class bitso extends Exchange {
             'LTC' => 'Litecoin',
         );
         $currency = $this->currency($code);
-        $method = (is_array($methods) && array_key_exists($code ?? '', $methods)) ? $methods[$code] : null;
+        $method = $this->safe_string($methods, $code);
         if ($method === null) {
             throw new ExchangeError($this->id . ' not valid withdraw coin => ' . $code);
         }
@@ -1974,8 +1972,7 @@ class bitso extends Exchange {
             // bitso rejects a nonce that is not higher than the previous one (error 104)
             $nonce = (string) $this->incrementing_nonce();
             $endpoint = '/api' . $endpoint;
-            $content = array( $nonce, $method, $endpoint );
-            $request = implode('', $content);
+            $request = $nonce . $method . $endpoint;
             if ($method !== 'GET' && $method !== 'DELETE') {
                 if (count($query) > 0) {
                     $jsonBody = $this->json($query);

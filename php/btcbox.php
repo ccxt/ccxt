@@ -376,7 +376,7 @@ class btcbox extends Exchange {
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
             $currency = $this->currency($code);
-            $currencyId = $currency['id'];
+            $currencyId = $this->safe_string($currency, 'id', '');
             $free = $currencyId . '_balance';
             if (is_array($response) && array_key_exists($free ?? '', $response)) {
                 $account = $this->account();
@@ -813,13 +813,13 @@ class btcbox extends Exchange {
         $url = $apiUrl . '/' . $this->version . '/' . $path;
         if ($apiName === 'public') {
             if (count($params) > 0) {
-                $url .= '?' . $this->urlencode($params);
+                $url = $apiUrl . '/' . $this->version . '/' . $path . '?' . $this->urlencode($params);
             }
         } elseif ($apiName === 'webApi') {
-            $url = $this->urls['www'] . '/' . $path;
+            $url = $this->safe_string($this->urls, 'www', '') . '/' . $path;
         } else {
             $this->check_required_credentials();
-            $nonce = (string) $this->nonce();
+            $nonce = $this->number_to_string($this->nonce());
             $query = $this->extend(array(
                 'key' => $this->apiKey,
                 'nonce' => $nonce,
@@ -858,11 +858,11 @@ class btcbox extends Exchange {
         $response = $this->fetch2($path, $api, $method, $params, $config);
         if (gettype($response) === 'string') {
             // sometimes the exchange returns whitespace prepended to json
-            $response = $this->strip($response);
-            if (!$this->is_json_encoded_object($response)) {
-                throw new ExchangeError($this->id . ' ' . $response);
+            $strippedResponse = $this->strip($response);
+            if (!$this->is_json_encoded_object($strippedResponse)) {
+                throw new ExchangeError($this->id . ' ' . $strippedResponse);
             }
-            $response = json_decode($response, $as_associative_array = true);
+            $response = json_decode($strippedResponse, $as_associative_array = true);
         }
         return $response;
     }

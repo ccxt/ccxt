@@ -69,12 +69,15 @@ class bittrade extends \ccxt\async\bittrade {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
         // only supports a limit of 150 at this time
-        $messageHash = 'market.' . $market['id'] . '.detail';
+        $marketId = $this->safe_string($market, 'id', '');
+        $messageHash = 'market.' . $marketId . '.detail';
         $api = $this->safe_string($this->options, 'api', 'api');
+        $apiUrls = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $apiWsUrls = $this->safe_dict($wsUrls, $api, array());
         $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
+        $url = $this->implode_params($apiWsUrls['public'], $hostname);
         $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
@@ -83,7 +86,7 @@ class bittrade extends \ccxt\async\bittrade {
         $subscription = array(
             'id' => $requestId,
             'messageHash' => $messageHash,
-            'symbol' => $symbolValue,
+            'symbol' => $market['symbol'],
             'params' => $params,
         );
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
@@ -142,12 +145,16 @@ class bittrade extends \ccxt\async\bittrade {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         // only supports a limit of 150 at this time
-        $messageHash = 'market.' . $market['id'] . '.trade.detail';
+        $marketId = $this->safe_string($market, 'id', '');
+        $messageHash = 'market.' . $marketId . '.trade.detail';
         $api = $this->safe_string($this->options, 'api', 'api');
+        $apiUrls = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $apiWsUrls = $this->safe_dict($wsUrls, $api, array());
         $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
+        $url = $this->implode_params($apiWsUrls['public'], $hostname);
         $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
@@ -230,12 +237,16 @@ class bittrade extends \ccxt\async\bittrade {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
+        $marketId = $this->safe_string($market, 'id', '');
+        $messageHash = 'market.' . $marketId . '.kline.' . $interval;
         $api = $this->safe_string($this->options, 'api', 'api');
+        $apiUrls = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $apiWsUrls = $this->safe_dict($wsUrls, $api, array());
         $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
+        $url = $this->implode_params($apiWsUrls['public'], $hostname);
         $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
@@ -315,13 +326,17 @@ class bittrade extends \ccxt\async\bittrade {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         // only supports a limit of 150 at this time
         $limitValue = 150;
-        $messageHash = 'market.' . $market['id'] . '.mbp.150';
+        $marketId = $this->safe_string($market, 'id', '');
+        $messageHash = 'market.' . $marketId . '.mbp.150';
         $api = $this->safe_string($this->options, 'api', 'api');
+        $apiUrls = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $apiWsUrls = $this->safe_dict($wsUrls, $api, array());
         $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
+        $url = $this->implode_params($apiWsUrls['public'], $hostname);
         $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
@@ -395,8 +410,11 @@ class bittrade extends \ccxt\async\bittrade {
             $limit = $this->safe_integer($subscription, 'limit');
             $params = $this->safe_dict($subscription, 'params');
             $api = $this->safe_string($this->options, 'api', 'api');
+            $apiUrls = $this->safe_dict($this->urls, 'api', array());
+            $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+            $apiWsUrls = $this->safe_dict($wsUrls, $api, array());
             $hostname = array( 'hostname' => $this->hostname );
-            $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
+            $url = $this->implode_params($apiWsUrls['public'], $hostname);
             $requestId = $this->request_id();
             $request = array(
                 'req' => $messageHash,

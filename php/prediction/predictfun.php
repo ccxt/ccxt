@@ -1999,9 +1999,9 @@ class predictfun extends Exchange {
         $marketFeeRateBps = $this->safe_string($marketRow, 'feeRateBps', '200');  // should be at least 200
         $feeRateBps = $this->safe_string($paramsWarnOnMarketOrderWithoutPrice, 'feeRateBps', $marketFeeRateBps);
         $marketIsNegRisk = $this->safe_bool($marketRow, 'isNegRisk', false);
-        $isNegRisk = $this->safe_bool($paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', $marketIsNegRisk);
+        $isNegRisk = ($this->safe_bool($paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', $marketIsNegRisk) === true);
         $marketIsYieldBearing = $this->safe_bool($marketRow, 'isYieldBearing', false);
-        $isYieldBearing = $this->safe_bool($paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', $marketIsYieldBearing);
+        $isYieldBearing = ($this->safe_bool($paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', $marketIsYieldBearing) === true);
         $defaultExpiration = $this->safe_integer($this->options, 'defaultExpiration', 3600); // 1 hour
         $expirationDelta = $defaultExpiration;
         $expiration = $this->safe_integer($paramsWarnOnMarketOrderWithoutPrice, 'expiration');
@@ -2879,8 +2879,8 @@ class predictfun extends Exchange {
             $marketSymbol = $this->safe_string($outcomeObj, 'market');
             $marketObj = $this->safe_dict($this->markets, $marketSymbol, array());
             $marketRow = $this->safe_dict($marketObj, 'info', array());
-            $isNegRisk = $this->safe_bool($marketRow, 'isNegRisk', false);
-            $isYieldBearing = $this->safe_bool($marketRow, 'isYieldBearing', false);
+            $isNegRisk = ($this->safe_bool($marketRow, 'isNegRisk', false) === true);
+            $isYieldBearing = ($this->safe_bool($marketRow, 'isYieldBearing', false) === true);
         }
         if ($side === 'sell') {
             $ctfToken = $this->safe_string($params, 'token', $this->conditional_tokens_address($isNegRisk, $isYieldBearing));

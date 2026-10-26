@@ -543,7 +543,7 @@ class deepcoin extends Exchange {
             $isLinear = ($quoteId !== 'USD');
             $settleId = $isLinear ? $quoteId : $baseId;
             $settle = $this->safe_currency_code($settleId);
-            $symbol = $symbol . ':' . $settle;
+            $symbol = $base . '/' . $quote . ':' . $settle;
         }
         $fees = $this->safe_dict_2($this->fees, $type, 'trading', array());
         $maxLeverage = $this->safe_string($market, 'lever', '1');
@@ -610,8 +610,9 @@ class deepcoin extends Exchange {
         $symbols = is_array($result) ? array_keys($result) : array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            $market = $result[$symbol];
-            if (($market !== null) && ($market['swap'] === true)) {
+            $market = $this->safe_dict($result, $symbol, array());
+            $isSwap = $this->safe_bool($market, 'swap', false);
+            if ($isSwap) {
                 $additionalId = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', '');
                 if ($this->markets_by_id !== null) {
                     $this->markets_by_id[$additionalId] = array( $market ); // some endpoints return swap market id as base+quote
@@ -3240,7 +3241,7 @@ class deepcoin extends Exchange {
         if ($method === 'GET') {
             $query = $this->urlencode($params);
             if (strlen($query) > 0) {
-                $requestPath .= '?' . $query;
+                $requestPath = $path . '?' . $query;
             }
         }
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);

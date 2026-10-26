@@ -64,7 +64,8 @@ class luno extends \ccxt\async\luno {
         }
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
-        $subscriptionHash = '/stream/' . $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
+        $subscriptionHash = '/stream/' . $marketId;
         $subscription = array( 'symbol' => $symbolValue );
         $wsUrl = $this->safe_string($this->urls['api'], 'ws');
         if ($wsUrl === null) {
@@ -108,20 +109,21 @@ class luno extends \ccxt\async\luno {
         }
         $symbol = $subscription['symbol'];
         $market = $this->market($symbol);
-        $messageHash = 'trades:' . $symbol;
-        $stored = $this->safe_value($this->trades, $symbol);
+        $symbolValue = $market['symbol'];
+        $messageHash = 'trades:' . $symbolValue;
+        $stored = $this->safe_value($this->trades, $symbolValue);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $stored = new ArrayCache($limit);
-            $this->trades[$symbol] = $stored;
+            $this->trades[$symbolValue] = $stored;
         }
         for ($i = 0; $i < count($rawTrades); $i++) {
             $rawTrade = $rawTrades[$i];
             $trade = $this->parse_trade($rawTrade, $market);
             $stored->append($trade);
         }
-        $this->trades[$symbol] = $stored;
-        $client->resolve($this->trades[$symbol], $messageHash);
+        $this->trades[$symbolValue] = $stored;
+        $client->resolve($stored, $messageHash);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -182,7 +184,8 @@ class luno extends \ccxt\async\luno {
         }
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
-        $subscriptionHash = '/stream/' . $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
+        $subscriptionHash = '/stream/' . $marketId;
         $subscription = array( 'symbol' => $symbolValue );
         $wsUrl = $this->safe_string($this->urls['api'], 'ws');
         if ($wsUrl === null) {
@@ -233,7 +236,8 @@ class luno extends \ccxt\async\luno {
         //     }
         //
         $symbol = $subscription['symbol'];
-        $messageHash = 'orderbook:' . $symbol;
+        $symbolValue = $this->safe_string($subscription, 'symbol', '');
+        $messageHash = 'orderbook:' . $symbolValue;
         $timestamp = $this->safe_integer($message, 'timestamp');
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->indexed_order_book(array());
@@ -286,8 +290,7 @@ class luno extends \ccxt\async\luno {
         $amount = $this->safe_number($bidask, $amountKey);
         $result = array( $price, $amount );
         if ($thirdKey !== null) {
-            $thirdValue = $this->safe_string($bidask, $thirdKey);
-            $result[] = $thirdValue;
+            $result[] = $this->safe_string($bidask, $thirdKey);
         }
         return $result;
     }
@@ -427,7 +430,7 @@ class luno extends \ccxt\async\luno {
             // an old or replayed frame, discard it
             return false;
         }
-        $expectedSequence = $storedNonce + 1;
+        $expectedSequence = $this->parse_to_int($storedNonce) + 1;
         if ($messageSequence !== $expectedSequence) {
             // a gap in the sequence means a lost message and the book is
             // unrecoverable on a live connection, because luno only sends
@@ -440,13 +443,15 @@ class luno extends \ccxt\async\luno {
             // the cached book is kept so references returned by earlier
             // watchOrderBook calls stay live: clearing its nonce discards
             // deltas until the fresh snapshot resets the book in place
-            $error = new InvalidNonce($this->id . ' watchOrderBook() received an out-of-sequence update for ' . $symbol . ', expected ' . (string) $expectedSequence . ' but got ' . (string) $messageSequence);
             $orderbook['nonce'] = null;
             $market = $this->market($symbol);
-            $subscriptionHash = '/stream/' . $market['id'];
+            $symbolValue = $this->safe_string($market, 'symbol', '');
+            $marketId = $this->safe_string($market, 'id', '');
+            $subscriptionHash = '/stream/' . $marketId;
             if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$subscriptionHash]);
             }
+            $error = new InvalidNonce($this->id . ' watchOrderBook() received an out-of-sequence update for ' . $symbolValue . ', expected ' . (string) $expectedSequence . ' but got ' . (string) $messageSequence);
             $client->reset($error);
             unset($this->clients[$client->url]);
             return false;

@@ -1002,8 +1002,9 @@ class coincheck extends Exchange {
         }
         $url = $apiUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
+        $hasQuery = count($query) > 0;
         if ($apiName === 'public') {
-            if (count($query) > 0) {
+            if ($hasQuery) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -1011,13 +1012,13 @@ class coincheck extends Exchange {
             $nonce = (string) $this->nonce();
             $queryString = '';
             if ($method === 'GET') {
-                if (count($query) > 0) {
+                if ($hasQuery) {
                     $url .= '?' . $this->urlencode($this->keysort($query));
                 }
             } else {
-                if (count($query) > 0) {
-                    $bodySigned = $this->urlencode($this->keysort($query));
-                    $queryString = $bodySigned;
+                if ($hasQuery) {
+                    $queryString = $this->urlencode($this->keysort($query));
+                    $bodySigned = $queryString;
                 }
             }
             $auth = $nonce . $url . $queryString;
@@ -1047,7 +1048,7 @@ class coincheck extends Exchange {
             $feedback = $this->id . ' ' . $this->json($response);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
-            throw new ExchangeError($this->id . ' ' . $this->json($response));
+            throw new ExchangeError($feedback);
         }
         return null;
     }

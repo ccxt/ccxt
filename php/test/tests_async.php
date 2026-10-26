@@ -2357,7 +2357,8 @@ class testMainClass {
             }
             $accounts = $exchange->safe_list($exchange_data, 'accounts');
             if ($accounts !== null && $accounts !== null) {
-                $exchange->accounts = $accounts;
+                // the field is a List<object>: assign the call, not the untyped local
+                $exchange->accounts = $exchange->safe_list($exchange_data, 'accounts');
             }
             // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
             $exchange->extend_exchange_options($global_options);

@@ -1220,7 +1220,7 @@ class cex extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            'orderId' => intval($id),
+            'orderId' => $this->parse_to_int($id),
         );
         $result = Async\await($this->fetch_open_orders($symbol, null, null, $this->extend($request, $params)));
         $order = $this->safe_dict($result, 0);
@@ -1246,7 +1246,7 @@ class cex extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            'orderId' => intval($id),
+            'orderId' => $this->parse_to_int($id),
         );
         $result = Async\await($this->fetch_closed_orders($symbol, null, null, $this->extend($request, $params)));
         $order = $this->safe_dict($result, 0);
@@ -1469,7 +1469,7 @@ class cex extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            'orderId' => intval($id),
+            'orderId' => $this->parse_to_int($id),
             'cancelRequestId' => 'c_' . (string) ($this->milliseconds()),
             'timestamp' => $this->milliseconds(),
         );
@@ -1967,7 +1967,7 @@ class cex extends Exchange {
         if ($response === null) {
             if ($body === null) {
                 throw new NullResponse($this->id . ' returned empty response');
-            } elseif ($body[0] === '{') {
+            } elseif (str_starts_with($body, '{')) {
                 $fixed = $this->fix_stringified_json_members($body);
                 $responseFixed = $this->parse_json($fixed);
             } else {

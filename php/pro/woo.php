@@ -101,7 +101,8 @@ class woo extends \ccxt\async\woo {
         if (($this->uid !== null) && ($this->uid !== '')) {
             $urlUid = '/' . $this->uid;
         }
-        $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
+        $apiUrl = $this->safe_string($this->urls['api']['ws'], 'public', '');
+        $url = $apiUrl . $urlUid;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -119,7 +120,8 @@ class woo extends \ccxt\async\woo {
         if (($this->uid !== null) && ($this->uid !== '')) {
             $urlUid = '/' . $this->uid;
         }
-        $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
+        $apiUrl = $this->safe_string($this->urls['api']['ws'], 'public', '');
+        $url = $apiUrl . $urlUid;
         $requestId = $this->request_id($url);
         $unsubHash = 'unsubscribe::' . $subHash;
         $message = array(
@@ -165,12 +167,14 @@ class woo extends \ccxt\async\woo {
         }
         list($method, $paramsMethod) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'method', 'orderbook');
         $market = $this->market($symbol);
-        $topic = $market['id'] . '@' . $method;
+        $marketId = $this->safe_string($market, 'id', '');
+        $topic = $marketId . '@' . $method;
         $urlUid = '';
         if (($this->uid !== null) && ($this->uid !== '')) {
             $urlUid = '/' . $this->uid;
         }
-        $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
+        $apiUrl = $this->safe_string($this->urls['api']['ws'], 'public', '');
+        $url = $apiUrl . $urlUid;
         $requestId = $this->request_id($url);
         $request = array(
             'event' => 'subscribe',
@@ -211,7 +215,8 @@ class woo extends \ccxt\async\woo {
         }
         list($method, $paramsMethod) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'method', 'orderbook');
         $market = $this->market($symbol);
-        $subHash = $market['id'] . '@' . $method;
+        $marketId = $this->safe_string($market, 'id', '');
+        $subHash = $marketId . '@' . $method;
         $topic = 'orderbook';
         return Async\await($this->unwatch_public($subHash, $market['symbol'], $topic, $paramsMethod));
     }
@@ -389,7 +394,8 @@ class woo extends \ccxt\async\woo {
         }
         $name = 'ticker';
         $market = $this->market($symbol);
-        $topic = $market['id'] . '@' . $name;
+        $marketId = $this->safe_string($market, 'id', '');
+        $topic = $marketId . '@' . $name;
         $request = array(
             'event' => 'subscribe',
             'topic' => $topic,
@@ -414,7 +420,8 @@ class woo extends \ccxt\async\woo {
         }
         list($method, $paramsMethod) = $this->handle_option_string_and_params($params, 'watchTicker', 'method', 'ticker');
         $market = $this->market($symbol);
-        $subHash = $market['id'] . '@' . $method;
+        $marketId = $this->safe_string($market, 'id', '');
+        $subHash = $marketId . '@' . $method;
         $topic = 'ticker';
         return Async\await($this->unwatch_public($subHash, $market['symbol'], $topic, $paramsMethod));
     }
@@ -473,7 +480,7 @@ class woo extends \ccxt\async\woo {
         //         }
         //     }
         //
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data', array());
         $topic = $this->safe_string($message, 'topic');
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
@@ -720,9 +727,10 @@ class woo extends \ccxt\async\woo {
             throw new ExchangeError($this->id . ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
         }
         $market = $this->market($symbol);
+        $marketId = $this->safe_string($market, 'id', '');
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $name = 'kline';
-        $topic = $market['id'] . '@' . $name . '_' . $interval;
+        $topic = $marketId . '@' . $name . '_' . $interval;
         $request = array(
             'event' => 'subscribe',
             'topic' => $topic,
@@ -756,10 +764,11 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        $marketId = $this->safe_string($market, 'id', '');
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $topic = 'ohlcv';
         $name = 'kline';
-        $subHash = $market['id'] . '@' . $name . '_' . $interval;
+        $subHash = $marketId . '@' . $name . '_' . $interval;
         $params['symbolsAndTimeframes'] = array( array( $market['symbol'], $timeframe ) );
         return Async\await($this->unwatch_public($subHash, $market['symbol'], $topic, $params));
     }
@@ -831,8 +840,9 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $topic = $market['id'] . '@trade';
+        $symbolValue = $this->safe_string($market, 'symbol');
+        $marketId = $this->safe_string($market, 'id', '');
+        $topic = $marketId . '@trade';
         $request = array(
             'event' => 'subscribe',
             'topic' => $topic,
@@ -864,8 +874,9 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        $marketId = $this->safe_string($market, 'id', '');
         $topic = 'trades';
-        $subHash = $market['id'] . '@trade';
+        $subHash = $marketId . '@trade';
         return Async\await($this->unwatch_public($subHash, $market['symbol'], $topic, $params));
     }
 
@@ -942,7 +953,7 @@ class woo extends \ccxt\async\woo {
         //
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $price = $this->safe_string_2($trade, 'executedPrice', 'price');
         $amount = $this->safe_string_2($trade, 'executedQuantity', 'size');
         $cost = Precise::string_mul($price, $amount);
@@ -996,7 +1007,8 @@ class woo extends \ccxt\async\woo {
 
     private function do_authenticate($params = array()) {
         $this->check_required_credentials();
-        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->uid;
+        $apiUrl = $this->safe_string($this->urls['api']['ws'], 'private', '');
+        $url = $apiUrl . '/' . $this->uid;
         $client = $this->client($url);
         $messageHash = 'authenticated';
         $event = 'auth';
@@ -1026,7 +1038,8 @@ class woo extends \ccxt\async\woo {
 
     private function do_watch_private(string $messageHash, array $message, $params = array()) {
         Async\await($this->authenticate($params));
-        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->uid;
+        $apiUrl = $this->safe_string($this->urls['api']['ws'], 'private', '');
+        $url = $apiUrl . '/' . $this->uid;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -1041,7 +1054,8 @@ class woo extends \ccxt\async\woo {
 
     private function do_watch_private_multiple(array $messageHashes, array $message, $params = array()) {
         Async\await($this->authenticate($params));
-        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->uid;
+        $apiUrl = $this->safe_string($this->urls['api']['ws'], 'private', '');
+        $url = $apiUrl . '/' . $this->uid;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -1080,7 +1094,7 @@ class woo extends \ccxt\async\woo {
         $messageHash = $topic;
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : null;
         if ($symbolResolved !== null) {
-            $messageHash .= ':' . $symbolResolved;
+            $messageHash = $topic . ':' . $symbolResolved;
         }
         $request = array(
             'event' => 'subscribe',
@@ -1125,7 +1139,7 @@ class woo extends \ccxt\async\woo {
         $messageHash = 'myTrades';
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : null;
         if ($symbolResolved !== null) {
-            $messageHash .= ':' . $symbolResolved;
+            $messageHash = 'myTrades' . ':' . $symbolResolved;
         }
         $request = array(
             'event' => 'subscribe',
@@ -1211,7 +1225,7 @@ class woo extends \ccxt\async\woo {
         $orderId = $this->safe_string_2($order, 'orderId', 'algoOrderId');
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->market($marketId);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($order, 'timestamp');
         $fee = array(
             'cost' => $this->safe_string($order, 'totalFee'),
@@ -1381,7 +1395,8 @@ class woo extends \ccxt\async\woo {
         }
         $trade = $this->parse_ws_trade($message);
         $myTrades->append($trade);
-        $messageHash = 'myTrades:' . $trade['symbol'];
+        $tradeSymbol = $this->safe_string($trade, 'symbol', '');
+        $messageHash = 'myTrades:' . $tradeSymbol;
         $client->resolve($myTrades, $messageHash);
         $messageHash = 'myTrades';
         $client->resolve($myTrades, $messageHash);
@@ -1422,7 +1437,8 @@ class woo extends \ccxt\async\woo {
         } else {
             $messageHashes[] = 'positions';
         }
-        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->uid;
+        $apiUrl = $this->safe_string($this->urls['api']['ws'], 'private', '');
+        $url = $apiUrl . '/' . $this->uid;
         $client = $this->client($url);
         $this->set_positions_cache($client, $symbolsNormalized);
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
@@ -1519,7 +1535,8 @@ class woo extends \ccxt\async\woo {
             $position = $this->parse_position($rawPosition, $market);
             $newPositions[] = $position;
             $cache->append($position);
-            $messageHash = 'positions::' . $market['symbol'];
+            $marketSymbol = $this->safe_string($market, 'symbol', '');
+            $messageHash = 'positions::' . $marketSymbol;
             $client->resolve($position, $messageHash);
         }
         $client->resolve($newPositions, 'positions');
@@ -1626,7 +1643,8 @@ class woo extends \ccxt\async\woo {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $topic = $market['id'] . '@estfundingrate';
+        $marketId = $this->safe_string($market, 'id', '');
+        $topic = $marketId . '@estfundingrate';
         $request = array(
             'event' => 'subscribe',
             'topic' => $topic,
@@ -1649,7 +1667,7 @@ class woo extends \ccxt\async\woo {
         //
         $data = $this->safe_dict($message, 'data', array());
         $fundingRate = $this->parse_funding_rate($data);
-        $symbol = $fundingRate['symbol'];
+        $symbol = $this->safe_string($fundingRate, 'symbol');
         if ($symbol !== null) {
             $this->fundingRates[$symbol] = $fundingRate;
         }
@@ -1699,7 +1717,7 @@ class woo extends \ccxt\async\woo {
         //         "data": "SPOT_BTC_USDT@orderbook"
         //     }
         //
-        $subscribeHash = $this->safe_string($message, 'data');
+        $subscribeHash = $this->safe_string($message, 'data', '');
         $unsubscribeHash = 'unsubscribe::' . $subscribeHash;
         $subscription = $this->safe_dict($client->subscriptions, $unsubscribeHash, array());
         $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());

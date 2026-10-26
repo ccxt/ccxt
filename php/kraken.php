@@ -569,7 +569,9 @@ class kraken extends Exchange {
     }
 
     public function fee_to_precision(?string $symbol, mixed $fee): string {
-        return $this->decimal_to_precision($fee, TRUNCATE, $this->market($symbol)['precision']['amount'], $this->precisionMode);
+        $market = $this->market($symbol);
+        $marketPrecision = $this->safe_dict($market, 'precision', array());
+        return $this->decimal_to_precision($fee, TRUNCATE, $marketPrecision['amount'], $this->precisionMode);
     }
 
     public function fetch_markets($params = array()): array {
@@ -702,7 +704,7 @@ class kraken extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'settleId' => null,
-                'altname' => $market['altname'],
+                'altname' => $this->safe_string($market, 'altname'),
                 'type' => 'spot',
                 'spot' => $spot,
                 'margin' => ($leverageBuyLength > 0),
@@ -1832,7 +1834,7 @@ class kraken extends Exchange {
         return $this->parse_orders($this->safe_list($result, 'orders'));
     }
 
-    public function find_market_by_altname_or_id(mixed $id) {
+    public function find_market_by_altname_or_id(mixed $id): array {
         $marketsByAltname = $this->safe_dict($this->options, 'marketsByAltname', array());
         if (is_array($marketsByAltname) && array_key_exists($id ?? '', $marketsByAltname)) {
             return $marketsByAltname[$id];
@@ -2025,9 +2027,9 @@ class kraken extends Exchange {
         $orderDescriptionObj = $this->safe_dict($orderOmitted, 'descr'); // can be null
         $orderDescription = ($orderDescriptionObj !== null) ? $this->safe_string($orderDescriptionObj, 'order') : $this->safe_string($orderOmitted, 'descr');
         $side = null;
-        $rawType = null;
+        $descriptionType = null;
         $marketId = null;
-        $price = null;
+        $price = $this->safe_string($description, 'price');
         $amount = null;
         $cost = null;
         $triggerPrice = null;
@@ -2043,36 +2045,47 @@ class kraken extends Exchange {
             $part4 = $this->safe_string($parts, 4);
             $part5 = $this->safe_string($parts, 5);
             if ($part4 === 'limit' || $part4 === 'market') {
-                $rawType = $part4; // eg, limit, market
+                $descriptionType = $part4; // eg, limit, market
             } else {
-                $rawType = $part4 . ' ' . $part5; // eg. stop loss, take profit, trailing stop
+                $descriptionType = $part4 . ' ' . $part5; // eg. stop loss, take profit, trailing stop
             }
-            if ($rawType === 'stop loss' || $rawType === 'take profit') {
+            if ($descriptionType === 'stop loss' || $descriptionType === 'take profit') {
                 $triggerPrice = $this->safe_string($parts, 6);
                 $price = $this->safe_string($parts, 9);
-            } elseif ($rawType === 'limit') {
+            } elseif ($descriptionType === 'limit') {
                 $price = $this->safe_string($parts, 5);
             }
         }
-        $side = $this->safe_string($description, 'type', $side);
-        $rawType = $this->safe_string($description, 'ordertype', $rawType); // orderType has dash, e.g. trailing-stop
+        $descriptionSide = $this->safe_string($description, 'type');
+        if ($descriptionSide !== null) {
+            $side = $descriptionSide;
+        }
+        $rawType = $this->safe_string($description, 'ordertype', $descriptionType); // orderType has dash, e.g. trailing-stop
         $marketId = $this->safe_string($description, 'pair', $marketId);
         $marketResolved = $this->resolve_market_by_altname_or_id($marketId, $market);
         $symbol = null;
         $timestamp = $this->safe_timestamp($orderOmitted, 'opentm');
-        $amount = $this->safe_string($orderOmitted, 'vol', $amount);
+        $orderAmount = $this->safe_string($orderOmitted, 'vol');
+        if ($orderAmount !== null) {
+            $amount = $orderAmount;
+        }
         $filled = $this->safe_string($orderOmitted, 'vol_exec');
         $fee = null;
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         // const cost = this.safeString (order, 'cost');
-        $price = $this->safe_string($description, 'price', $price);
+        // the guarded write keeps `price` a proven string local: a defaulted safeString returns `any`
+        if ($this->safe_string($description, 'price') !== null) {
+            $price = $this->safe_string($description, 'price');
+        }
         // when type = trailing stop returns price = '+50.0000%'
         if (($price !== null) && (str_ends_with($price, '%') || Precise::string_equals($price, '0.00000') || Precise::string_equals($price, '0'))) {
             $price = null; // this is not the price we want
         }
         if ($price === null) {
             $price = $this->safe_string($description, 'price2');
-            $price = $this->safe_string_2($orderOmitted, 'limitprice', 'price', $price);
+            if ($this->safe_string_2($orderOmitted, 'limitprice', 'price') !== null) {
+                $price = $this->safe_string_2($orderOmitted, 'limitprice', 'price');
+            }
         }
         $flags = $this->safe_string($orderOmitted, 'oflags', '');
         $isPostOnly = mb_strpos($flags, 'post') > -1;
@@ -2086,9 +2099,9 @@ class kraken extends Exchange {
                     'rate' => null,
                 );
                 if (mb_strpos($flags, 'fciq') !== false) {
-                    $fee['currency'] = $marketResolved['quote'];
+                    $fee['currency'] = $this->safe_string($marketResolved, 'quote');
                 } elseif (mb_strpos($flags, 'fcib') !== false) {
-                    $fee['currency'] = $marketResolved['base'];
+                    $fee['currency'] = $this->safe_string($marketResolved, 'base');
                 }
             }
         }
@@ -2119,10 +2132,16 @@ class kraken extends Exchange {
         if ($rawType !== null) {
             if (str_starts_with($rawType, 'take-profit')) {
                 $takeProfitPrice = $this->safe_string($description, 'price');
-                $price = $this->omit_zero($this->safe_string($description, 'price2'));
+                $price = $this->safe_string($description, 'price2');
+                if (($price !== null) && (($price === '') || Precise::string_equals($price, '0'))) {
+                    $price = null; // kraken pads an absent price with zeros, so the omit-zero rule applies
+                }
             } elseif (str_starts_with($rawType, 'stop-loss')) {
                 $stopLossPrice = $this->safe_string($description, 'price');
-                $price = $this->omit_zero($this->safe_string($description, 'price2'));
+                $price = $this->safe_string($description, 'price2');
+                if (($price !== null) && (($price === '') || Precise::string_equals($price, '0'))) {
+                    $price = null; // kraken pads an absent price with zeros, so the omit-zero rule applies
+                }
             } elseif ($rawType === 'take profit') {
                 $takeProfitPrice = $triggerPrice;
             } elseif ($rawType === 'stop loss') {
@@ -2324,7 +2343,7 @@ class kraken extends Exchange {
         }
         $market = $this->market($symbol);
         if ($market['spot'] !== true) {
-            throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
+            throw new NotSupported($this->id . ' editOrder() does not support ' . $this->safe_string($market, 'type', '') . ' orders, only spot orders are accepted');
         }
         $request = array(
             'txid' => $id,
@@ -2352,8 +2371,7 @@ class kraken extends Exchange {
             $offset = $this->safe_string($paramsOmitted, 'offset');
             $paramsOmitted = $this->omit($paramsOmitted, array( 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent', 'offset' ));
             if ($offset !== null) {
-                $allTriggerPrices = $offset . $allTriggerPrices;
-                $request['trigger_price'] = $allTriggerPrices;
+                $request['trigger_price'] = $offset . $allTriggerPrices;
             } else {
                 $request['trigger_price'] = $this->price_to_precision($symbol, $allTriggerPrices);
             }
@@ -2454,7 +2472,7 @@ class kraken extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
-        $orderTrades = $this->safe_value($params, 'trades');
+        $orderTrades = $this->safe_list($params, 'trades');
         $tradeIds = array();
         if ($orderTrades === null) {
             throw new ArgumentsRequired($this->id . " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)");
@@ -2464,7 +2482,7 @@ class kraken extends Exchange {
                 if (gettype($orderTrade) === 'string') {
                     $tradeIds[] = $orderTrade;
                 } else {
-                    $tradeIds[] = $orderTrade['id'];
+                    $tradeIds[] = $this->safe_string($orderTrade, 'id');
                 }
             }
         }
@@ -3082,7 +3100,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function parse_transactions_by_type(string $type, mixed $transactions, ?string $code = null, ?int $since = null, ?int $limit = null) {
+    public function parse_transactions_by_type(string $type, mixed $transactions, ?string $code = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($transactions); $i++) {
             $transaction = $this->parse_transaction($this->extend(array(
@@ -3752,11 +3770,12 @@ class kraken extends Exchange {
         if ($body[0] === '{') {
             if (gettype($response) !== 'string') {
                 $message = $this->id . ' ' . $body;
-                if (is_array($response) && array_key_exists('error' ?? '', $response)) {
-                    $numErrors = count($response['error']);
+                $errors = $this->safe_list($response, 'error');
+                if ($errors !== null) {
+                    $numErrors = count($errors);
                     if ($numErrors > 0) {
-                        for ($i = 0; $i < count($response['error']); $i++) {
-                            $error = $response['error'][$i];
+                        for ($i = 0; $i < $numErrors; $i++) {
+                            $error = $errors[$i];
                             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $message);
                             $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $message);
                         }

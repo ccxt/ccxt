@@ -230,7 +230,7 @@ class lighter extends \ccxt\async\lighter {
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
         $request = array(
-            'channel' => 'order_book/' . $market['id'],
+            'channel' => 'order_book/' . $this->safe_string($market, 'id', ''),
         );
         $messageHash = $this->get_message_hash('orderbook', $symbolValue);
         $orderbook = Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
@@ -257,7 +257,7 @@ class lighter extends \ccxt\async\lighter {
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
         $request = array(
-            'channel' => 'order_book/' . $market['id'],
+            'channel' => 'order_book/' . $this->safe_string($market, 'id', ''),
         );
         $subMessageHash = $this->get_message_hash('orderbook', $symbolValue);
         $messageHash = 'unsubscribe:' . $subMessageHash;
@@ -362,7 +362,7 @@ class lighter extends \ccxt\async\lighter {
             throw new NotSupported($this->id . ' watchTicker() is only supported for swap markets');
         }
         $request = array(
-            'channel' => 'market_stats/' . $market['id'],
+            'channel' => 'market_stats/' . $this->safe_string($market, 'id', ''),
         );
         $messageHash = $this->get_message_hash('ticker', $symbolValue);
         return Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
@@ -391,7 +391,7 @@ class lighter extends \ccxt\async\lighter {
             throw new NotSupported($this->id . ' unWatchTicker() is only supported for swap markets');
         }
         $request = array(
-            'channel' => 'market_stats/' . $market['id'],
+            'channel' => 'market_stats/' . $this->safe_string($market, 'id', ''),
         );
         $subMessageHash = $this->get_message_hash('ticker', $symbolValue);
         $messageHash = 'unsubscribe:' . $subMessageHash;
@@ -641,7 +641,7 @@ class lighter extends \ccxt\async\lighter {
         }
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $iReversed = $dataLength - 1 - $i;
+            $iReversed = $this->parse_to_int($dataLength - 1 - $i);
             $trade = $this->parse_ws_trade($data[$iReversed], $market);
             $stored->append($trade);
         }
@@ -670,7 +670,7 @@ class lighter extends \ccxt\async\lighter {
         }
         $market = $this->market($symbol);
         $request = array(
-            'channel' => 'trade/' . $market['id'],
+            'channel' => 'trade/' . $this->safe_string($market, 'id', ''),
         );
         $messageHash = $this->get_message_hash('trade', $this->safe_string($market, 'symbol'));
         $trades = Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
@@ -696,7 +696,7 @@ class lighter extends \ccxt\async\lighter {
         }
         $market = $this->market($symbol);
         $request = array(
-            'channel' => 'trade/' . $market['id'],
+            'channel' => 'trade/' . $this->safe_string($market, 'id', ''),
         );
         $subMessageHash = $this->get_message_hash('trade', $this->safe_string($market, 'symbol'));
         $messageHash = 'unsubscribe:' . $subMessageHash;
@@ -850,11 +850,11 @@ class lighter extends \ccxt\async\lighter {
             $tradesLength = count($trades);
             for ($j = 0; $j < $tradesLength; $j++) {
                 $jReversed = $tradesLength - 1 - $j;
-                $tradeRaw = $trades[$jReversed];
+                $tradeRaw = $this->safe_dict($trades, $jReversed, array());
                 $tradeRaw['accountIndex'] = $accountIndex;
                 $trade = $this->parse_ws_order_trade($tradeRaw, $market);
                 $stored->append($trade);
-                $symbol = $trade['symbol'];
+                $symbol = $this->safe_string($trade, 'symbol');
                 if ($symbol !== null) {
                     $symbolSpecificMessageHash = $this->get_message_hash('myTrades', $symbol);
                     $client->resolve($stored, $symbolSpecificMessageHash);
@@ -1038,7 +1038,7 @@ class lighter extends \ccxt\async\lighter {
         }
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $iReversed = $dataLength - 1 - $i;
+            $iReversed = $this->parse_to_int($dataLength - 1 - $i);
             $liquidation = $this->parse_ws_liquidation($data[$iReversed], $market);
             $stored->append($liquidation);
         }
@@ -1067,7 +1067,7 @@ class lighter extends \ccxt\async\lighter {
         }
         $market = $this->market($symbol);
         $request = array(
-            'channel' => 'trade/' . $market['id'],
+            'channel' => 'trade/' . $this->safe_string($market, 'id', ''),
         );
         $messageHash = $this->get_message_hash('liquidations', $symbol);
         return Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
@@ -1222,7 +1222,7 @@ class lighter extends \ccxt\async\lighter {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $messageHash = $this->get_message_hash('orders', $this->safe_string($market, 'symbol'));
-            $request['channel'] = 'account_orders/' . $market['id'] . '/' . $this->number_to_string($accountIndex);
+            $request['channel'] = 'account_orders/' . $this->safe_string($market, 'id', '') . '/' . $this->number_to_string($accountIndex);
         } else {
             $messageHash = $this->get_message_hash('orders');
             $request['channel'] = 'account_all_orders/' . $this->number_to_string($accountIndex);
@@ -1258,7 +1258,7 @@ class lighter extends \ccxt\async\lighter {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $subMessageHash = $this->get_message_hash('orders', $this->safe_string($market, 'symbol'));
-            $request['channel'] = 'account_orders/' . $market['id'] . '/' . $this->number_to_string($accountIndex);
+            $request['channel'] = 'account_orders/' . $this->safe_string($market, 'id', '') . '/' . $this->number_to_string($accountIndex);
         } else {
             $subMessageHash = $this->get_message_hash('orders');
             $request['channel'] = 'account_all_orders/' . $this->number_to_string($accountIndex);

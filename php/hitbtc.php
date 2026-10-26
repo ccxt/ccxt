@@ -853,9 +853,9 @@ class hitbtc extends Exchange {
                 $settle = $settleCode;
                 $linear = ($quote === $settleCode);
                 $inverse = !$linear;
-                $symbol = $symbol . ':' . $settle;
+                $symbol = $base . '/' . $quote . ':' . $settle;
                 if ($future) {
-                    $symbol = $symbol . '-' . $expiry;
+                    $symbol = $base . '/' . $quote . ':' . $settle . '-' . $this->number_to_string($expiry);
                     $type = 'future';
                 } else {
                     $type = 'swap';
@@ -978,7 +978,7 @@ class hitbtc extends Exchange {
     }
 
     public function parse_currency(array $currency): array {
-        $currencyId = $currency['_coin_id'];
+        $currencyId = $this->safe_string($currency, '_coin_id');
         $code = $this->safe_currency_code($currencyId);
         $entry = $currency;
         $rawNetworks = $this->safe_list($entry, 'networks', array());
@@ -988,7 +988,12 @@ class hitbtc extends Exchange {
             $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
             $rawNetworkCode = $this->network_id_to_code($networkId, $code);
             $networkCodeUpper = ($rawNetworkCode !== null) ? strtoupper($rawNetworkCode) : null;
-            $networkCode = ($networkCodeUpper !== null) ? $this->safe_string($this->networkAliases, $networkCodeUpper, $networkCodeUpper) : $code; // as hitbtc is white label, ensure we safeguard from possible bugs
+            $networkCode = null;
+            if ($networkCodeUpper !== null) {
+                $networkCode = $this->safe_string($this->networkAliases, $networkCodeUpper, $networkCodeUpper);
+            } else {
+                $networkCode = $code; // as hitbtc is white label, ensure we safeguard from possible bugs
+            }
             if ($networkCode !== null) {
                 $networks[$networkCode] = array(
                     'info' => $rawNetwork,
@@ -1251,7 +1256,7 @@ class hitbtc extends Exchange {
         for ($i = 0; $i < count($keys); $i++) {
             $marketId = $keys[$i];
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_symbol($marketId, $market);
             $entry = $this->safe_dict($response, $marketId, array());
             $result[$symbol] = $this->parse_ticker($entry, $market);
         }
@@ -1272,7 +1277,7 @@ class hitbtc extends Exchange {
         //       "timestamp": "2021-10-22T07:29:14.585Z"
         //     }
         //
-        $timestamp = $this->parse8601($ticker['timestamp']);
+        $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
         $symbol = $this->safe_symbol(null, $market);
         $baseVolume = $this->safe_string($ticker, 'volume');
         $quoteVolume = $this->safe_string($ticker, 'volume_quote');
@@ -1452,10 +1457,10 @@ class hitbtc extends Exchange {
         //      "liquidation": false
         //  }
         //
-        $timestamp = $this->parse8601($trade['timestamp']);
+        $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_symbol($marketId, $marketResolved);
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'fee');
         $taker = $this->safe_bool($trade, 'taker');
@@ -1509,7 +1514,7 @@ class hitbtc extends Exchange {
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['currencies'] = $currency['id'];
+            $request['currencies'] = $this->safe_string($currency, 'id');
         }
         if ($since !== null) {
             $request['from'] = $this->iso8601($since);
@@ -1850,7 +1855,7 @@ class hitbtc extends Exchange {
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $fee = $this->parse_trading_fee($response[$i]);
+            $fee = $this->parse_trading_fee($this->safe_dict($response, $i, array()));
             $symbol = $fee['symbol'];
             if ($symbol !== null) {
                 $result[$symbol] = $fee;
@@ -2454,11 +2459,12 @@ class hitbtc extends Exchange {
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
         $isPostOnly = $this->is_post_only($type === 'market', null, $params);
+        $resolvedMarketType = $this->safe_string($market, 'type');
         $request = array(
             'type' => $type,
             'side' => $side,
             'quantity' => $this->amount_to_precision($market['symbol'], $amount),
-            'symbol' => $market['id'],
+            'symbol' => $this->safe_string($market, 'id'),
             // 'client_order_id': 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4', // Optional
             // 'time_in_force': 'GTC', // Optional GTC, IOC, FOK, Day, GTD
             // 'price': this.priceToPrecision (symbol, price), // Required if type is limit, stopLimit, or takeProfitLimit
@@ -2472,7 +2478,7 @@ class hitbtc extends Exchange {
             // 'make_rate': 0.001, // Optional
         );
         if ($reduceOnly !== null) {
-            if (($market['type'] !== 'swap') && ($market['type'] !== 'margin')) {
+            if (($resolvedMarketType !== 'swap') && ($resolvedMarketType !== 'margin')) {
                 throw new InvalidOrder($this->id . ' createOrder() does not support reduce_only for ' . $market['type'] . ' orders, reduce_only orders are supported for swap and margin markets only');
             }
         }
@@ -2616,7 +2622,7 @@ class hitbtc extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_symbol($marketId, $marketResolved);
         $postOnly = $this->safe_bool($order, 'post_only');
         $timeInForce = $this->safe_string($order, 'time_in_force');
         $rawTrades = $this->safe_list($order, 'trades');
@@ -2925,7 +2931,7 @@ class hitbtc extends Exchange {
             }
             $rawFundingRate = $this->safe_dict($response, $marketId);
             $marketInner = $this->market($marketId);
-            $symbol = $marketInner['symbol'];
+            $symbol = $this->safe_symbol($marketId, $marketInner);
             $fundingRate = $this->parse_funding_rate($rawFundingRate, $marketInner);
             $fundingRates[$symbol] = $fundingRate;
         }
@@ -3084,7 +3090,7 @@ class hitbtc extends Exchange {
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $result[] = $this->parse_position($response[$i]);
+            $result[] = $this->parse_position($this->safe_dict($response, $i, array()));
         }
         return $result;
     }
@@ -3212,7 +3218,7 @@ class hitbtc extends Exchange {
         }
         $marketId = $this->safe_string($position, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_symbol($marketId, $marketResolved);
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -3667,12 +3673,13 @@ class hitbtc extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        if ($params['margin_balance'] === null) {
+        $amount = $this->safe_number($params, 'margin_balance');
+        if ($amount === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair');
         }
         $market = $this->market($symbol);
-        $amount = $this->safe_number($params, 'margin_balance');
-        $maxLeverage = $this->safe_integer($market['limits']['leverage'], 'max', 50);
+        $limits = $this->safe_dict($market, 'limits', array());
+        $maxLeverage = $this->safe_integer($limits['leverage'], 'max', 50);
         if ($market['type'] !== 'swap') {
             throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
         }
@@ -3762,7 +3769,10 @@ class hitbtc extends Exchange {
             $code = $this->safe_string($currency, 'code');
             $rawNetworkCode = $this->network_id_to_code($networkId, $code);
             $networkCodeUpper = ($rawNetworkCode !== null) ? strtoupper($rawNetworkCode) : null;
-            $networkCode = ($networkCodeUpper !== null) ? $this->safe_string($this->networkAliases, $networkCodeUpper, $networkCodeUpper) : null;
+            $networkCode = null;
+            if ($networkCodeUpper !== null) {
+                $networkCode = $this->safe_string($this->networkAliases, $networkCodeUpper, $networkCodeUpper);
+            }
             $withdrawFee = $this->safe_number($networkEntry, 'payout_fee');
             $isDefault = $this->safe_bool($networkEntry, 'default');
             $withdrawResult = array(
@@ -3879,26 +3889,25 @@ class hitbtc extends Exchange {
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $url = $apiUrl . '/' . $implodedPath;
-        $getRequest = null;
-        $keys = is_array($query) ? array_keys($query) : array();
-        $queryLength = count($keys);
+        $baseUrl = $apiUrl . '/' . $implodedPath;
+        $getRequest = '';
+        $queryString = $this->urlencode($query);
         $headersValue = array(
             'Content-Type' => 'application/json',
         );
         if ($method === 'GET') {
-            if ($queryLength !== 0) {
-                $getRequest = '?' . $this->urlencode($query);
-                $url = $url . $getRequest;
+            if (strlen($queryString) !== 0) {
+                $getRequest = '?' . $queryString;
             }
         }
+        $url = $baseUrl . $getRequest;
         $bodyResolved = ($method === 'GET') ? null : $this->json($params);
         if ($apiName === 'private') {
             $this->check_required_credentials();
-            $timestamp = (string) $this->nonce();
+            $timestamp = $this->number_to_string($this->nonce());
             $payload = array( $method, '/api/3/' . $implodedPath );
             if ($method === 'GET') {
-                if ($getRequest !== null) {
+                if ($getRequest !== '') {
                     $payload[] = $getRequest;
                 }
             } else {
@@ -3910,8 +3919,7 @@ class hitbtc extends Exchange {
             $payloadString = implode('', $payload);
             $signature = $this->hmac($this->encode($payloadString), $this->encode($this->secret), 'sha256', 'hex');
             $secondPayload = $this->apiKey . ':' . $signature . ':' . $timestamp;
-            $encoded = base64_encode($secondPayload);
-            $headersValue['Authorization'] = 'HS256 ' . $encoded;
+            $headersValue['Authorization'] = 'HS256 ' . base64_encode($secondPayload);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersValue );
     }

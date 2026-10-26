@@ -1123,7 +1123,9 @@ class onetrading extends Exchange {
         if ($periodUnit === null) {
             throw new ExchangeError($this->id . ' fetchOHLCV() missing periodUnit');
         }
-        list($period, $unit) = explode('/', $periodUnit);
+        $periodUnitParts = explode('/', $periodUnit);
+        $period = $periodUnitParts[0];
+        $unit = $periodUnitParts[1];
         $durationInSeconds = $this->parse_timeframe($timeframe);
         $duration = $durationInSeconds * 1000;
         $limitResolved = ($limit === null) ? 1500 : $limit;

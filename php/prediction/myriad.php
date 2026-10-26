@@ -282,8 +282,8 @@ class myriad extends Exchange {
             $found = ($responseIsArray) ? $response : $this->safe_list($response, 'data', array());
             for ($j = 0; $j < count($found); $j++) {
                 $raw = $found[$j];
-                $networkId = $this->safe_string($raw, 'networkId');
-                $marketId = $this->safe_string($raw, 'id');
+                $networkId = $this->safe_string($raw, 'networkId', '');
+                $marketId = $this->safe_string($raw, 'id', '');
                 $key = $networkId . ':' . $marketId;
                 if (!(is_array($seen) && array_key_exists($key ?? '', $seen))) {
                     $seen[$key] = true;
@@ -716,7 +716,7 @@ class myriad extends Exchange {
         return $this->parse_trade_quote($this->extend($response, array( 'action' => $sideStr )), $outcomeObj);
     }
 
-    public function parse_trade_quote(array $quote, mixed $market = null): array {
+    public function parse_trade_quote(array $quote, ?array $market = null): array {
         /**
          * @ignore
          * parses a raw myriad $quote response into a unified-ish $quote object
@@ -2098,7 +2098,7 @@ class myriad extends Exchange {
         return Precise::string_div($decimalString, $scale);
     }
 
-    public function parse_trade_tx(?string $txHash, array $quote, mixed $market, ?string $side): array {
+    public function parse_trade_tx(?string $txHash, array $quote, array $market, ?string $side): array {
         return $this->safe_prediction_order(array(
             'id' => $txHash,
             'clientOrderId' => null,
@@ -2787,8 +2787,8 @@ class myriad extends Exchange {
          */
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
-        $networkId = $this->safe_string($outcomeObj['info'], 'networkId');
-        $marketId = $this->safe_string($outcomeObj['info'], 'marketId');
+        $networkId = $this->safe_string($outcomeInfo, 'networkId');
+        $marketId = $this->safe_string($outcomeInfo, 'marketId');
         $outcomeId = $this->safe_string($outcomeInfo, 'outcomeId', $this->safe_string($outcomeInfo, 'id'));
         $outcomeTitle = $this->safe_string($outcomeInfo, 'outcomeLabel', $this->safe_string($outcomeInfo, 'label', $this->safe_string($outcomeInfo, 'title')));
         $bucketKey = $this->safe_string($this->timeframes, $timeframe, '30d');
@@ -2860,7 +2860,7 @@ class myriad extends Exchange {
             }
         } else {
             $chartsDict = $this->safe_dict($selectedOutcome, 'price_charts', array());
-            $chart = $this->safe_value($chartsDict, $bucketKey);
+            $chart = $this->safe_dict($chartsDict, $bucketKey);
         }
         $pointsList = $this->safe_list($chart, 'prices', $this->safe_list($chart, 'data', $chart));
         $points = ($pointsList !== null) ? $pointsList : array();
@@ -2942,8 +2942,8 @@ class myriad extends Exchange {
         for ($i = 0; $i < count($outcomes); $i++) {
             $outcomeObj = $this->outcome($outcomes[$i]);
             $info = $this->safe_dict($outcomeObj, 'info', array());
-            $networkId = $this->safe_string($info, 'networkId');
-            $marketId = $this->safe_string($info, 'marketId');
+            $networkId = $this->safe_string($info, 'networkId', '');
+            $marketId = $this->safe_string($info, 'marketId', '');
             $key = $networkId . ':' . $marketId;
             if (!(is_array($outcomesByMarket) && array_key_exists($key ?? '', $outcomesByMarket))) {
                 $outcomesByMarket[$key] = array();
@@ -3319,11 +3319,11 @@ class myriad extends Exchange {
         return Async\await($client->future('centrifugoConnected'));
     }
 
-    public function pong(Client $client, mixed $message = null) {
+    public function pong(Client $client, ?array $message = null) {
         return Async\async(self::do_pong(...))($client, $message);
     }
 
-    private function do_pong(Client $client, mixed $message = null) {
+    private function do_pong(Client $client, ?array $message = null) {
         // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
         Async\await($client->send('{}'));
     }
@@ -3415,8 +3415,8 @@ class myriad extends Exchange {
          */
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $info = $this->safe_dict($outcomeObj, 'info', array());
-        $networkId = $this->safe_string($info, 'networkId');
-        $marketId = $this->safe_string($info, 'marketId');
+        $networkId = $this->safe_string($info, 'networkId', '');
+        $marketId = $this->safe_string($info, 'marketId', '');
         $sym = $this->safe_outcome_symbol($outcome, $outcomeObj);
         $channel = 'orderbook:' . $networkId . ':' . $marketId;
         $messageHash = 'orderbook::' . $sym;
@@ -3506,8 +3506,8 @@ class myriad extends Exchange {
          */
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $info = $this->safe_dict($outcomeObj, 'info', array());
-        $networkId = $this->safe_string($info, 'networkId');
-        $marketId = $this->safe_string($info, 'marketId');
+        $networkId = $this->safe_string($info, 'networkId', '');
+        $marketId = $this->safe_string($info, 'marketId', '');
         $sym = $this->safe_outcome_symbol($outcome, $outcomeObj);
         $channel = 'trades:' . $networkId . ':' . $marketId;
         $messageHash = 'trades::' . $sym;
@@ -3537,8 +3537,8 @@ class myriad extends Exchange {
         }
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $info = $this->safe_dict($outcomeObj, 'info', array());
-        $networkId = $this->safe_string($info, 'networkId');
-        $marketId = $this->safe_string($info, 'marketId');
+        $networkId = $this->safe_string($info, 'networkId', '');
+        $marketId = $this->safe_string($info, 'marketId', '');
         $sym = $this->safe_outcome_symbol($outcome, $outcomeObj);
         $channel = 'trades:' . $networkId . ':' . $marketId;
         $messageHash = 'myTrades';
@@ -3677,8 +3677,8 @@ class myriad extends Exchange {
          */
         $outcomeObj = Async\await($this->load_outcome($outcome));
         $info = $this->safe_dict($outcomeObj, 'info', array());
-        $networkId = $this->safe_string($info, 'networkId');
-        $marketId = $this->safe_string($info, 'marketId');
+        $networkId = $this->safe_string($info, 'networkId', '');
+        $marketId = $this->safe_string($info, 'marketId', '');
         $sym = $this->safe_outcome_symbol($outcome, $outcomeObj);
         $channel = 'prices:' . $networkId . ':' . $marketId;
         $messageHash = 'ticker::' . $sym;
@@ -3712,8 +3712,8 @@ class myriad extends Exchange {
         for ($i = 0; $i < $symbolsLength; $i++) {
             $outcomeObj = $this->outcome($outcomes[$i]);
             $info = $this->safe_dict($outcomeObj, 'info', array());
-            $networkId = $this->safe_string($info, 'networkId');
-            $marketId = $this->safe_string($info, 'marketId');
+            $networkId = $this->safe_string($info, 'networkId', '');
+            $marketId = $this->safe_string($info, 'marketId', '');
             $channel = 'prices:' . $networkId . ':' . $marketId;
             $resolvedSymbols[] = $this->safe_outcome_symbol($outcomes[$i], $outcomeObj);
             if (!(is_array($seenChannels) && array_key_exists($channel ?? '', $seenChannels))) {

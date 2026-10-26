@@ -461,20 +461,19 @@ class btcmarkets extends Exchange {
         }
         $cryptoPaymentDetail = $this->safe_dict($transaction, 'paymentDetail', array());
         $txid = $this->safe_string($cryptoPaymentDetail, 'txId');
-        $address = $this->safe_string($cryptoPaymentDetail, 'address');
+        $addressRaw = $this->safe_string($cryptoPaymentDetail, 'address');
+        $address = null;
         $tag = null;
-        if ($address !== null) {
-            $addressParts = explode('?dt=', $address);
+        if ($addressRaw !== null) {
+            $addressParts = explode('?dt=', $addressRaw);
             $numParts = count($addressParts);
             if ($numParts > 1) {
                 $address = $addressParts[0];
                 $tag = $addressParts[1];
+            } else {
+                $address = $addressRaw;
             }
         }
-        $addressTo = $address;
-        $tagTo = $tag;
-        $addressFrom = null;
-        $tagFrom = null;
         $fee = $this->safe_string($transaction, 'fee');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $currencyId = $this->safe_string($transaction, 'assetName');
@@ -490,11 +489,11 @@ class btcmarkets extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'network' => null,
             'address' => $address,
-            'addressTo' => $addressTo,
-            'addressFrom' => $addressFrom,
+            'addressTo' => $address,
+            'addressFrom' => null,
             'tag' => $tag,
-            'tagTo' => $tagTo,
-            'tagFrom' => $tagFrom,
+            'tagTo' => $tag,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $this->parse_number($amount),
             'currency' => $code,
@@ -805,7 +804,6 @@ class btcmarkets extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'marketId');
         $marketResolved = $this->safe_market($marketId, $market, '-');
-        $symbol = $marketResolved['symbol'];
         $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
         $last = $this->safe_string($ticker, 'lastPrice');
         $baseVolume = $this->safe_string($ticker, 'volume24h');
@@ -813,7 +811,7 @@ class btcmarkets extends Exchange {
         $change = $this->safe_string($ticker, 'price24h');
         $percentage = $this->safe_string($ticker, 'pricePct24h');
         return $this->safe_ticker(array(
-            'symbol' => $symbol,
+            'symbol' => $marketResolved['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($ticker, 'high24h'),
@@ -1127,7 +1125,7 @@ class btcmarkets extends Exchange {
         $numericIds = array();
         for ($i = 0; $i < count($ids); $i++) {
             // numericIds[i] = parseInt (ids[i]);
-            $numericIds[] = intval($ids[$i]);
+            $numericIds[] = $this->parse_to_int($this->safe_string($ids, $i));
         }
         $request = array(
             'ids' => $numericIds,
@@ -1223,7 +1221,7 @@ class btcmarkets extends Exchange {
             'type' => $takerOrMaker,
             'currency' => $currency,
             'rate' => $rate,
-            'cost' => floatval($feeCost),
+            'cost' => $this->parse_number($feeCost),
         );
     }
 
@@ -1542,8 +1540,9 @@ class btcmarkets extends Exchange {
                     $request .= '?' . $this->urlencode($query);
                 }
             } else {
-                $requestBody = $this->json($query);
-                $auth .= $requestBody;
+                $jsonBody = $this->json($query);
+                $requestBody = $jsonBody;
+                $auth = $method . $request . $nonce . $jsonBody;
             }
             $signature = $this->hmac($this->encode($auth), $secret, 'sha512', 'base64');
             $requestHeaders = array(

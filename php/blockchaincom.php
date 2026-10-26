@@ -868,11 +868,11 @@ class blockchaincom extends Exchange {
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $datetime = $this->iso8601($timestamp);
         $marketResolved = $this->safe_market($marketId, $market, '-');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'fee');
         if ($feeCostString !== null) {
-            $feeCurrency = $marketResolved['quote'];
+            $feeCurrency = $this->safe_string($marketResolved, 'quote', '');
             $fee = array( 'cost' => $feeCostString, 'currency' => $feeCurrency );
         }
         return $this->safe_trade(array(
@@ -1000,12 +1000,14 @@ class blockchaincom extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $state = $this->safe_string($transaction, 'state');
-        if (is_array($transaction) && array_key_exists('depositId' ?? '', $transaction)) {
+        $depositId = $this->safe_string($transaction, 'depositId');
+        $withdrawalId = $this->safe_string($transaction, 'withdrawalId');
+        if ($depositId !== null) {
             $type = 'deposit';
-            $id = $this->safe_string($transaction, 'depositId');
-        } elseif (is_array($transaction) && array_key_exists('withdrawalId' ?? '', $transaction)) {
+            $id = $depositId;
+        } elseif ($withdrawalId !== null) {
             $type = 'withdrawal';
-            $id = $this->safe_string($transaction, 'withdrawalId');
+            $id = $withdrawalId;
         }
         $feeCost = ($type === 'withdrawal') ? $this->safe_number($transaction, 'fee') : null;
         $fee = null;
@@ -1322,11 +1324,10 @@ class blockchaincom extends Exchange {
         }
         $errorCode = $this->safe_string($response, 'status');
         $errorMessage = $this->safe_string($response, 'error');
-        if ($code !== null) {
-            $feedback = $this->id . ' ' . $this->json($response);
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
-        }
+        // code is an int: it is never undefined, the guard was dead
+        $feedback = $this->id . ' ' . $this->json($response);
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+        $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
         return null;
     }
 }

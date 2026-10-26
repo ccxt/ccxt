@@ -848,7 +848,7 @@ class bullish extends Exchange {
             $margin = $this->safe_bool($market, 'marginTradingEnabled');
         } else {
             $contractSize = $this->safe_number($market, 'contractMultiplier');
-            $symbol .= ':' . $settle;
+            $symbol = $base . '/' . $quote . ':' . $settle;
             $linear = $settle === $quote;
             $inverse = !$linear;
             if ($type === 'swap') {
@@ -869,6 +869,7 @@ class bullish extends Exchange {
                 }
             }
         }
+        $tradingFees = $this->safe_dict($this->fees, 'trading', array());
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -887,8 +888,8 @@ class bullish extends Exchange {
             'contract' => $contract,
             'linear' => $linear,
             'inverse' => $inverse,
-            'taker' => $this->fees['trading']['taker'],
-            'maker' => $this->fees['trading']['maker'],
+            'taker' => $tradingFees['taker'],
+            'maker' => $tradingFees['maker'],
             'contractSize' => $contractSize,
             'expiry' => $this->parse8601($expiryDatetime),
             'expiryDatetime' => $expiryDatetime,
@@ -1185,13 +1186,13 @@ class bullish extends Exchange {
         //
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($trade, 'createdAtTimestamp');
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'quantity');
         $side = $this->safe_string_lower($trade, 'side');
         $isTaker = $this->safe_bool($trade, 'isTaker');
-        $currency = $marketResolved['quote'];
+        $currency = $this->safe_string($marketResolved, 'quote');
         $code = $this->safe_currency_code($currency);
         $feeCost = $this->safe_number($trade, 'quoteFee');
         $fee = null;
@@ -1361,7 +1362,7 @@ class bullish extends Exchange {
         if (($method !== 'fetchOHLCV') && ($method !== 'fetchFundingRateHistory') && ($method !== 'fetchTrades')) {
             throw new NotSupported($this->id . ' safeDeterministicCall() does not support the ' . $method . ' method');
         }
-        $errors = 0;
+        $errors = $this->parse_to_int(0);
         $paramsOmitted = $this->omit($paramsMaxRetries, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
@@ -1378,7 +1379,7 @@ class bullish extends Exchange {
                 if ($e instanceof RateLimitExceeded) {
                     throw $e; // if we are rate limited, we should not retry and fail fast
                 }
-                $errors += 1;
+                $errors = $this->parse_to_int($errors + 1);
                 if ($errors > $maxRetries) {
                     throw $e;
                 }
@@ -1439,9 +1440,9 @@ class bullish extends Exchange {
         } elseif ($untilParam === null) {
             $until = $this->sum($startTime, $maxDelta);
         }
-        $requestUntil['createdAtDatetime[gte]'] = $this->iso8601($startTime);
-        $requestUntil['createdAtDatetime[lte]'] = $this->iso8601($until);
-        $response = Async\await($this->publicGetV1MarketsSymbolCandle($this->extend($requestUntil, $paramsUntil)));
+        $request['createdAtDatetime[gte]'] = $this->iso8601($startTime);
+        $request['createdAtDatetime[lte]'] = $this->iso8601($until);
+        $response = Async\await($this->publicGetV1MarketsSymbolCandle($this->extend($request, $paramsUntil)));
         //
         //     [
         //         {
@@ -1582,11 +1583,9 @@ class bullish extends Exchange {
         if ($limit !== null) {
             $request['_pageSize'] = $this->get_closest_limit($limit);
         }
-        $method = 'privateGetV2HistoryOrders';
-        $paramsMethod = null;
-        list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsSinceAndUntil, 'fetchOrders', 'method', $method);
+        list($methodResolved, $paramsMethod) = $this->handle_option_string_and_params($paramsSinceAndUntil, 'fetchOrders', 'method', 'privateGetV2HistoryOrders');
         $response = array();
-        if ($method === 'privateGetV2Orders') {
+        if ($methodResolved === 'privateGetV2Orders') {
             //
             //     [
             //         {
@@ -1617,7 +1616,7 @@ class bullish extends Exchange {
             //     ]
             //
             $response = Async\await($this->privateGetV2Orders($this->extend($request, $paramsMethod)));
-        } elseif ($method === 'privateGetV2HistoryOrders') {
+        } elseif ($methodResolved === 'privateGetV2HistoryOrders') {
             $response = Async\await($this->privateGetV2HistoryOrders($this->extend($request, $paramsMethod)));
         } else {
             throw new BadRequest($this->id . ' fetchOrders() method parameter must be either "privateGetV2Orders" or "privateGetV2HistoryOrders"');
@@ -1648,10 +1647,7 @@ class bullish extends Exchange {
             $until = $untilParam;
         }
         $sinceFromUntil = ($since === null) && ($untilParam !== null);
-        $paramsResult = $params;
-        if ($sinceFromUntil) {
-            $paramsResult = $this->omit($params, 'until');
-        }
+        $paramsResult = $sinceFromUntil ? $this->omit($params, 'until') : $params;
         if (($since !== null) || ($untilParam !== null)) {
             $timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
             $sinceResolved = $since;
@@ -1667,10 +1663,8 @@ class bullish extends Exchange {
                     $until = $this->sum($since, $timeDelta);
                 }
             }
-            $sinceDate = $this->iso8601($sinceResolved);
-            $untilDate = $this->iso8601($until);
-            $paramsResult[$sinceKey] = $sinceDate;
-            $paramsResult[$untilKey] = $untilDate;
+            $paramsResult[$sinceKey] = $this->iso8601($sinceResolved);
+            $paramsResult[$untilKey] = $this->iso8601($until);
         }
         return $paramsResult;
     }
@@ -1882,8 +1876,8 @@ class bullish extends Exchange {
         if ($postOnly) {
             $orderType = 'POST_ONLY';
         }
-        list($timeInForce, $paramsTimeInForce) = $this->handle_option_string_and_params($paramsPostOnly, 'createOrder', 'timeInForce', 'GTC'); // is mandatory
-        $paramsTimeInForce['timeInForce'] = strtoupper($timeInForce);
+        list($timeInForce, $paramsTimeInForceRaw) = $this->handle_option_string_and_params($paramsPostOnly, 'createOrder', 'timeInForce', 'GTC'); // is mandatory
+        $paramsTimeInForce = $this->extend($paramsTimeInForceRaw, array( 'timeInForce' => strtoupper($timeInForce) ));
         if (!$isMarketOrder) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -2184,12 +2178,12 @@ class bullish extends Exchange {
         list($requestUntil, $paramsUntil) = $this->handle_until_option('createdAtDatetime[lte]', $request, $params);
         $until = $this->safe_integer($requestUntil, 'createdAtDatetime[lte]');
         if ($until !== null) {
-            $requestUntil['createdAtDatetime[lte]'] = $this->iso8601($until);
+            $request['createdAtDatetime[lte]'] = $this->iso8601($until);
         }
         if ($since !== null) {
-            $requestUntil['createdAtDatetime[gte]'] = $this->iso8601($since);
+            $request['createdAtDatetime[gte]'] = $this->iso8601($since);
         }
-        $response = Async\await($this->privateGetV1WalletsTransactions($this->extend($requestUntil, $paramsUntil)));
+        $response = Async\await($this->privateGetV1WalletsTransactions($this->extend($request, $paramsUntil)));
         //
         //     {
         //         "data": [
@@ -2645,8 +2639,9 @@ class bullish extends Exchange {
         $result = array(
             'info' => $response,
         );
-        for ($i = 0; $i < count($response); $i++) {
-            $balance = $this->safe_dict($response, $i);
+        $rows = $this->to_array($response);
+        for ($i = 0; $i < count($rows); $i++) {
+            $balance = $this->safe_dict($rows, $i);
             $symbol = $this->safe_string($balance, 'assetSymbol');
             $code = $this->safe_currency_code($symbol);
             $account = $this->account();
@@ -2728,7 +2723,7 @@ class bullish extends Exchange {
         //     ]
         //
         $marketResolved = $this->safe_market($this->safe_string($position, 'symbol'), $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($position, 'createdAtTimestamp');
         $side = $this->safe_string($position, 'side');
         return $this->safe_position(array(
@@ -2968,9 +2963,9 @@ class bullish extends Exchange {
         if ($until === null) {
             $until = $now;
         }
-        $requestUntil['createdAtDatetime[gte]'] = $this->iso8601($startTimestamp);
-        $requestUntil['createdAtDatetime[lte]'] = $this->iso8601($until);
-        $response = Async\await($this->privateGetV1HistoryBorrowInterest($this->extend($requestUntil, $paramsUntil)));
+        $request['createdAtDatetime[gte]'] = $this->iso8601($startTimestamp);
+        $request['createdAtDatetime[lte]'] = $this->iso8601($until);
+        $response = Async\await($this->privateGetV1HistoryBorrowInterest($this->extend($request, $paramsUntil)));
         //
         //     [
         //         {
@@ -3143,10 +3138,11 @@ class bullish extends Exchange {
             $this->check_required_credentials();
             $nonce = (string) $this->microseconds();
             $timestamp = (string) $this->get_timestamp();
+            $headers = array();
             if ($method === 'GET') {
                 $payload = $timestamp . $nonce . $method . '/trading-api/' . $path;
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'hex');
-                $requestHeaders = array(
+                $headers = array(
                     'BX-TIMESTAMP' => $timestamp,
                     'BX-NONCE' => $nonce,
                     'BX-SIGNATURE' => $signature,
@@ -3156,30 +3152,28 @@ class bullish extends Exchange {
                 $payload = $timestamp . $nonce . $method . '/trading-api/' . $path . $requestBody;
                 $digest = $this->hash($this->encode($payload), 'sha256', 'hex');
                 $signature = $this->hmac($this->encode($digest), $this->encode($this->secret), 'sha256', 'hex');
-                $requestHeaders = array(
+                $headers = array(
                     'BX-TIMESTAMP' => $timestamp,
                     'BX-NONCE' => $nonce,
                     'BX-SIGNATURE' => $signature,
                     'Content-Type' => 'application/json',
                 );
-                $requestHeaders['Content-Type'] = 'application/json';
                 $rateLimitToken = $this->safe_string($request, 'rateLimitToken');
                 if ($rateLimitToken !== null) {
-                    $requestHeaders['BX-RATE-LIMIT-TOKEN'] = $rateLimitToken;
+                    $headers['BX-RATE-LIMIT-TOKEN'] = $rateLimitToken;
                 }
             }
             if ($path === 'v1/users/hmac/login') {
-                $requestHeaders = ($requestHeaders === null) ? array() : $requestHeaders;
-                $requestHeaders['BX-PUBLIC-KEY'] = $this->apiKey;
+                $headers['BX-PUBLIC-KEY'] = $this->apiKey;
             } else {
                 $token = $this->token;
                 if (($token === null)) {
                     throw new AuthenticationError($this->id . ' requires a token, please call signIn() first');
                 }
-                $requestHeaders = ($requestHeaders === null) ? array() : $requestHeaders;
-                $requestHeaders['Authorization'] = 'Bearer ' . $token;
+                $headers['Authorization'] = 'Bearer ' . $token;
                 // headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
             }
+            $requestHeaders = $headers;
         }
         if ($method === 'GET') {
             $query = $this->urlencode($request);

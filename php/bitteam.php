@@ -677,7 +677,7 @@ class bitteam extends Exchange {
             $fee = $this->parse_number($withdrawCommissionFixed);
             $feesByNetworkId[$blockChain] = $fee;
         } else {
-            $feesByNetworkId = $withdrawCommissionFixed;
+            $feesByNetworkId = $this->extend($withdrawCommissionFixed, array());
         }
         $statuses = $this->safe_dict($statusesResponse, $numericId, array());
         $deposit = $this->safe_bool($statuses, 'depositStatus');
@@ -2468,12 +2468,12 @@ class bitteam extends Exchange {
             if ($code === 404) {
                 if ((mb_strpos($url, '/ccxt/order/') !== false) && ($method === 'GET')) {
                     $parts = explode('/order/', $url);
-                    $orderId = $this->safe_string($parts, 1);
+                    $orderId = $this->safe_string($parts, 1, '');
                     throw new OrderNotFound($this->id . ' order ' . $orderId . ' not found');
                 }
                 if (mb_strpos($url, '/cmc/orderbook/') !== false) {
                     $parts = explode('/cmc/orderbook/', $url);
-                    $symbolId = $this->safe_string($parts, 1);
+                    $symbolId = $this->safe_string($parts, 1, '');
                     throw new BadSymbol($this->id . ' symbolId ' . $symbolId . ' not found');
                 }
             }

@@ -285,11 +285,11 @@ class hibachi extends Exchange {
         $quoteId = $this->safe_string($market, 'settlementSymbol');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        if (($base === null) || ($quote === null)) {
-            return null;
-        }
         $settleId = $this->safe_string($market, 'settlementSymbol');
         $settle = $this->safe_currency_code($settleId);
+        if (($base === null) || ($quote === null) || ($settle === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote . ':' . $settle;
         $created = $this->safe_integer_product($market, 'marketCreationTimestamp', 1000);
         return $this->safe_market_structure(array(
@@ -844,8 +844,7 @@ class hibachi extends Exchange {
         $amountStr = $this->amount_to_precision($this->safe_string($market, 'symbol'), $amount);
         $feeRateStr = $this->number_to_string($feeRate);
         $info = $this->safe_dict($market, 'info');
-        $underlying = '1e' . $this->safe_string($info, 'underlyingDecimals');
-        $settlement = '1e' . $this->safe_string($info, 'settlementDecimals');
+        $underlying = '1e' . $this->safe_string($info, 'underlyingDecimals', '');
         $one = '1';
         $feeRateFactor = '100000000'; // 10^8
         $priceFactor = '4294967296'; // 2^32
@@ -870,7 +869,7 @@ class hibachi extends Exchange {
         $encodedPrice = $this->binary_concat();
         if ($type === 'limit') {
             $priceStr = $this->price_to_precision($this->safe_string($market, 'symbol'), $price);
-            $priceInternal = Precise::string_div(Precise::string_div(Precise::string_mul(Precise::string_mul($priceStr, $priceFactor), $settlement), $underlying), $one, 0);
+            $priceInternal = Precise::string_div(Precise::string_div(Precise::string_mul(Precise::string_mul($priceStr, $priceFactor), '1e' . $this->safe_string($info, 'settlementDecimals', '')), $underlying), $one, 0);
             $price16 = $this->int_to_base16($this->parse_to_int($priceInternal));
             $pricePadded = str_pad($price16, 16, '0', STR_PAD_LEFT);
             // @ts-expect-error
@@ -978,7 +977,8 @@ class hibachi extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $nonce = $this->incrementing_nonce();
+        $nonceValue = $this->incrementing_nonce();
+        $nonce = $this->parse_to_int($nonceValue);
         $requestOrders = array();
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
@@ -1084,7 +1084,8 @@ class hibachi extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $nonce = $this->incrementing_nonce();
+        $nonceValue = $this->incrementing_nonce();
+        $nonce = $this->parse_to_int($nonceValue);
         $requestOrders = array();
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
@@ -1170,7 +1171,7 @@ class hibachi extends Exchange {
          */
         $orders = array();
         for ($i = 0; $i < count($ids); $i++) {
-            $orderRequest = $this->cancel_order_request($ids[$i]);
+            $orderRequest = $this->cancel_order_request($this->safe_string($ids, $i, ''));
             $orderRequest['action'] = 'cancel';
             $orders[] = $orderRequest;
         }
@@ -1342,8 +1343,8 @@ class hibachi extends Exchange {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             $hash = $this->hash($message, 'sha256', 'hex');
             $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
-            $r = $signature['r'];
-            $s = $signature['s'];
+            $r = $this->safe_string($signature, 'r', '');
+            $s = $this->safe_string($signature, 's', '');
             $v = $this->int_to_base16($signature['v']);
             return str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . str_pad($v, 2, '0', STR_PAD_LEFT);
         }
@@ -1840,11 +1841,11 @@ class hibachi extends Exchange {
         if ($response === null) {
             return null; // fallback to default error handler
         }
-        if (is_array($response) && array_key_exists('status' ?? '', $response)) {
-            //
-            //     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
-            //
-            $status = $this->safe_string($response, 'status');
+        $status = $this->safe_string($response, 'status');
+        //
+        //     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
+        //
+        if ($status !== null) {
             if ($status === 'failed') {
                 $code = $this->safe_string($response, 'errorCode');
                 $feedback = $this->id . ' ' . $body;

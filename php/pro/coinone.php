@@ -333,7 +333,7 @@ class coinone extends \ccxt\async\coinone {
         //
         $data = $this->safe_dict($message, 'data', array());
         $trade = $this->parse_ws_trade($data);
-        $symbol = $trade['symbol'];
+        $symbol = $this->safe_string($trade, 'symbol', '');
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -430,7 +430,7 @@ class coinone extends \ccxt\async\coinone {
             $keys = is_array($methods) ? array_keys($methods) : array();
             for ($i = 0; $i < count($keys); $i++) {
                 $key = $keys[$i];
-                if (mb_strpos($topic, $keys[$i]) !== false) {
+                if (mb_strpos($topic, $key) !== false) {
                     $method = $methods[$key];
                     $method($client, $message);
                     return;

@@ -77,7 +77,8 @@ class hollaex extends \ccxt\async\hollaex {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $messageHash = 'orderbook' . ':' . $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
+        $messageHash = 'orderbook' . ':' . $marketId;
         $orderbook = Async\await($this->watch_public($messageHash, $params));
         return $orderbook->limit();
     }
@@ -107,28 +108,28 @@ class hollaex extends \ccxt\async\hollaex {
         $marketId = $this->safe_string($message, 'symbol');
         $channel = $this->safe_string($message, 'topic');
         $market = $this->safe_market($marketId);
+        $marketIdValue = $this->safe_string($market, 'id', '');
         $symbol = $market['symbol'];
-        if ($symbol === null) {
-            return;
-        }
-        $data = $this->safe_dict($message, 'data');
-        $timestamp = $this->safe_string($data, 'timestamp');
-        $timestampMs = $this->parse8601($timestamp);
-        $snapshot = $this->parse_order_book($data, $symbol, $timestampMs);
-        $orderbook = null;
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
-            $orderbook = $this->order_book($snapshot);
-            $this->orderbooks[$symbol] = $orderbook;
-        } else {
-            $orderbook = $this->orderbooks[$symbol];
-            if ($orderbook === null) {
-                return;
+        if ($symbol !== null) {
+            $data = $this->safe_dict($message, 'data');
+            $timestamp = $this->safe_string($data, 'timestamp');
+            $timestampMs = $this->parse8601($timestamp);
+            $snapshot = $this->parse_order_book($data, $symbol, $timestampMs);
+            $orderbook = null;
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                $orderbook = $this->order_book($snapshot);
+                $this->orderbooks[$symbol] = $orderbook;
+            } else {
+                $orderbook = $this->orderbooks[$symbol];
+                if ($orderbook === null) {
+                    return;
+                }
+                $orderbook->reset($snapshot);
             }
-            $orderbook->reset($snapshot);
-        }
-        if ($channel !== null) {
-            $messageHash = $channel . ':' . $marketId;
-            $client->resolve($orderbook, $messageHash);
+            if ($channel !== null) {
+                $messageHash = $channel . ':' . $marketIdValue;
+                $client->resolve($orderbook, $messageHash);
+            }
         }
     }
 
@@ -153,7 +154,8 @@ class hollaex extends \ccxt\async\hollaex {
         }
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
-        $messageHash = 'trade' . ':' . $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
+        $messageHash = 'trade' . ':' . $marketId;
         $trades = Async\await($this->watch_public($messageHash, $params));
         $limitResolved = $limit;
         if ($this->newUpdates) {
@@ -181,6 +183,7 @@ class hollaex extends \ccxt\async\hollaex {
         $channel = $this->safe_string($message, 'topic');
         $marketId = $this->safe_string($message, 'symbol');
         $market = $this->safe_market($marketId);
+        $marketIdValue = $this->safe_string($market, 'id', '');
         $symbol = $market['symbol'];
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
@@ -190,11 +193,11 @@ class hollaex extends \ccxt\async\hollaex {
         }
         $data = $this->safe_list($message, 'data', array());
         $parsedTrades = $this->parse_trades($data, $market);
-        for ($j = 0; $j < count($parsedTrades); $j++) {
-            $stored->append($parsedTrades[$j]);
+        for ($i = 0; $i < count($parsedTrades); $i++) {
+            $stored->append($this->safe_value($parsedTrades, $i));
         }
         if ($channel !== null) {
-            $messageHash = $channel . ':' . $marketId;
+            $messageHash = $channel . ':' . $marketIdValue;
             $client->resolve($stored, $messageHash);
         }
         $client->resolve($stored, $channel);
@@ -220,12 +223,12 @@ class hollaex extends \ccxt\async\hollaex {
             Async\await($this->load_markets());
         }
         $messageHash = 'usertrade';
-        $market = null;
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbolResolved = $this->safe_string($market, 'symbol');
-            $messageHash .= ':' . $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $messageHash = $messageHash . ':' . $marketId;
         }
         $trades = Async\await($this->watch_private($messageHash, $params));
         $limitResolved = $limit;
@@ -276,7 +279,7 @@ class hollaex extends \ccxt\async\hollaex {
             $trade = $rawTrades[$i];
             $parsed = $this->parse_trade($trade);
             $stored->append($parsed);
-            $symbol = $trade['symbol'];
+            $symbol = $this->safe_string($trade, 'symbol');
             $market = $this->market($symbol);
             $marketId = $market['id'];
             if ($marketId !== null) {
@@ -315,12 +318,12 @@ class hollaex extends \ccxt\async\hollaex {
             Async\await($this->load_markets());
         }
         $messageHash = 'order';
-        $market = null;
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbolResolved = $this->safe_string($market, 'symbol');
-            $messageHash .= ':' . $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $messageHash = $messageHash . ':' . $marketId;
         }
         $orders = Async\await($this->watch_private($messageHash, $params));
         $limitResolved = $limit;
@@ -408,10 +411,10 @@ class hollaex extends \ccxt\async\hollaex {
         }
         $marketIds = array();
         for ($i = 0; $i < count($rawOrders); $i++) {
-            $order = $rawOrders[$i];
+            $order = $this->safe_value($rawOrders, $i);
             $parsed = $this->parse_order($order);
             $stored->append($parsed);
-            $symbol = $order['symbol'];
+            $symbol = $this->safe_string($order, 'symbol');
             $market = $this->market($symbol);
             $marketId = $market['id'];
             if ($marketId !== null) {
@@ -468,7 +471,7 @@ class hollaex extends \ccxt\async\hollaex {
         $data = $this->safe_dict($message, 'data', array());
         $keys = is_array($data) ? array_keys($data) : array();
         $timestamp = $this->safe_timestamp($message, 'time');
-        $this->balance['info'] = $data;
+        $this->balance['info'] = $this->safe_dict($message, 'data', array());
         $this->balance['timestamp'] = $timestamp;
         $this->balance['datetime'] = $this->iso8601($timestamp);
         for ($i = 0; $i < count($keys); $i++) {
@@ -496,7 +499,7 @@ class hollaex extends \ccxt\async\hollaex {
     }
 
     private function do_watch_public(string $messageHash, $params = array()) {
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
         $request = array(
             'op' => 'subscribe',
             'args' => array( $messageHash ),
@@ -524,7 +527,7 @@ class hollaex extends \ccxt\async\hollaex {
             // that would trigger a new connection on each received message
             $this->options['ws-expires'] = $expires;
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws', '');
         $auth = 'CONNECT' . '/stream' . $expires;
         $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
         $authParams = array(

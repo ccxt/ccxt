@@ -399,7 +399,7 @@ class bithumb extends Exchange {
 
     public function amount_to_precision(?string $symbol, mixed $amount): ?string {
         $market = $this->market($symbol);
-        return $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], DECIMAL_PLACES);
+        return $this->decimal_to_precision($amount, TRUNCATE, $this->safe_value($market['precision'], 'amount'), DECIMAL_PLACES);
     }
 
     public function get_gen2_market_id(array $market): string {
@@ -407,8 +407,8 @@ class bithumb extends Exchange {
         if (($marketId !== null) && (mb_strpos($marketId, '-') !== false)) {
             return $marketId;
         }
-        $quoteId = $this->safe_string_2($market, 'quoteId', 'quote');
-        $baseId = $this->safe_string_2($market, 'baseId', 'base');
+        $quoteId = $this->safe_string_2($market, 'quoteId', 'quote', '');
+        $baseId = $this->safe_string_2($market, 'baseId', 'base', '');
         return $quoteId . '-' . $baseId;
     }
 
@@ -662,7 +662,7 @@ class bithumb extends Exchange {
                 $code = $codes[$i];
                 $account = $this->account();
                 $currency = $this->currency($code);
-                $lowerCurrencyId = $this->safe_string_lower($currency, 'id');
+                $lowerCurrencyId = $this->safe_string_lower($currency, 'id', '');
                 $account['total'] = $this->safe_string($balances, 'total_' . $lowerCurrencyId);
                 $account['used'] = $this->safe_string($balances, 'in_use_' . $lowerCurrencyId);
                 $account['free'] = $this->safe_string($balances, 'available_' . $lowerCurrencyId);
@@ -979,7 +979,10 @@ class bithumb extends Exchange {
             // Bithumb v2 ticker payloads are inconsistent for all-market calls,
             // so we aggregate 300 markets per request only when symbols are not provided.
             $marketIds = array();
-            $symbolsForMarketIds = ($symbols === null) ? $this->symbols : $symbols;
+            $symbolsForMarketIds = $this->symbols;
+            if ($symbols !== null) {
+                $symbolsForMarketIds = $symbols;
+            }
             $symbolsForMarketIdsLength = count($symbolsForMarketIds);
             for ($i = 0; $i < $symbolsForMarketIdsLength; $i++) {
                 $market = $this->market($symbolsForMarketIds[$i]);
@@ -1041,9 +1044,9 @@ class bithumb extends Exchange {
             $responses = $promises;
             $responsesLength = count($responses);
             for ($i = 0; $i < $responsesLength; $i++) {
-                $response = $responses[$i];
-                if ($this->is_dictionary($response) && (is_array($response) && array_key_exists('data' ?? '', $response)) && ($response['data'] !== null)) {
-                    $response = $response['data'];
+                $response = $this->safe_value($responses, $i);
+                if ($this->is_dictionary($response) && ($this->safe_value($response, 'data') !== null)) {
+                    $response = $this->safe_value($response, 'data');
                 }
                 $expectedMarketId = null;
                 $requestedMarketIds = $this->safe_list($marketIdsChunks, $i, array());
@@ -1836,8 +1839,7 @@ class bithumb extends Exchange {
         if ($generation !== 2) {
             throw new BadRequest($this->id . ' createMarketBuyOrderWithCost() is only supported for the generation 2 API');
         }
-        $paramsGeneration['createMarketBuyOrderRequiresPrice'] = false;
-        return $this->create_order($symbol, 'market', 'buy', $cost, null, $paramsGeneration);
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $this->extend($paramsGeneration, array( 'createMarketBuyOrderRequiresPrice' => false )));
     }
 
     public function create_twap_order(string $symbol, string $side, float $amount, float $duration, $params = array()): array {
@@ -2297,12 +2299,7 @@ class bithumb extends Exchange {
         $response = null;
         if ($generation === 2) {
             $twap = $this->safe_bool($paramsGeneration, 'twap', false);
-            if ($twap) {
-                $paramsGeneration['state'] = 'progress';
-            } else {
-                $paramsGeneration['state'] = 'wait';
-            }
-            $orders = $this->fetch_orders($symbol, $since, $limit, $paramsGeneration);
+            $orders = $this->fetch_orders($symbol, $since, $limit, $this->extend($paramsGeneration, array( 'state' => $twap ? 'progress' : 'wait' )));
             return $this->filter_by_since_limit($orders, $since, $limit);
         } else {
             if ($symbol === null) {
@@ -2633,9 +2630,9 @@ class bithumb extends Exchange {
 
     public function cancel_unified_order(array $order, $params = array()): array {
         $request = array(
-            'side' => $order['side'],
+            'side' => $this->safe_string($order, 'side'),
         );
-        return $this->cancel_order(($order['id']), $order['symbol'], $this->extend($request, $params));
+        return $this->cancel_order($this->safe_string($order, 'id', ''), $this->safe_string($order, 'symbol'), $this->extend($request, $params));
     }
 
     public function withdraw(string $code, float $amount, string $address, $params = array()): array {
@@ -2669,7 +2666,8 @@ class bithumb extends Exchange {
             $this->load_markets();
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'withdraw', 'generation', 2);
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($paramsGeneration, 'tag');
+        $tagWithdrawTag = $this->safe_string($paramsGeneration, 'tag');
+        $paramsWithdrawTag = $this->omit($paramsGeneration, 'tag');
         $this->check_address($address, $code, $tagWithdrawTag);
         $network = $this->safe_string_2($paramsWithdrawTag, 'network', 'net_type');
         $paramsNetwork = $this->omit($paramsWithdrawTag, 'network');
@@ -3271,7 +3269,7 @@ class bithumb extends Exchange {
         $result = '';
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $value = $query[$key];
+            $value = $this->safe_value($query, $key);
             if ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
                 $encodedKey = $this->encode_uri_component($key) . '[]';
                 for ($j = 0; $j < count($value); $j++) {
@@ -3300,7 +3298,7 @@ class bithumb extends Exchange {
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
-        $requestHeaders = null;
+        $requestHeaders = array();
         $requestBody = null;
         $endpoint = '/' . $this->implode_params($path, $params);
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
@@ -3317,7 +3315,7 @@ class bithumb extends Exchange {
                 'OPEN-API-PARTNER' => 'CCXT',
             );
             if ($hasQuery) {
-                $url .= '?' . $this->urlencode($query);
+                $url = $this->implode_hostname($apiUrl) . $endpoint . '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
@@ -3332,7 +3330,7 @@ class bithumb extends Exchange {
                     'nonce' => $this->uuid(),
                     'timestamp' => $this->milliseconds(),
                 );
-                $auth = null;
+                $auth = '';
                 if (($method !== 'GET') && ($method !== 'DELETE')) {
                     $requestHeaders['Content-Type'] = 'application/json';
                     if ($hasQuery) {
@@ -3341,11 +3339,10 @@ class bithumb extends Exchange {
                     }
                 } elseif ($hasQuery) {
                     $auth = $this->urlencode_with_array_brackets($query);
-                    $url .= '?' . $auth;
+                    $url = $this->implode_hostname($apiUrl) . $endpoint . '?' . $auth;
                 }
                 if ($hasQuery) {
-                    $authString = ($auth === null) ? '' : $auth;
-                    $request['query_hash'] = $this->hash($this->encode($authString), 'sha512');
+                    $request['query_hash'] = $this->hash($this->encode($auth), 'sha512');
                     $request['query_hash_alg'] = 'SHA512';
                 }
                 $token = $this->jwt($request, $this->encode($this->secret), 'sha256');
@@ -3357,9 +3354,9 @@ class bithumb extends Exchange {
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
                 $bodyParts = explode('%20', $encodedBody);
                 $requestBody = implode('+', $bodyParts);
-                $nonce = (string) $this->nonce();
-                $auth = $endpoint . "\0" . $requestBody . "\0" . $nonce; // eslint-disable-line quotes
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');
+                $nonce = $this->number_to_string($this->nonce());
+                $authPayload = $endpoint . "\0" . $requestBody . "\0" . $nonce; // eslint-disable-line quotes
+                $signature = $this->hmac($this->encode($authPayload), $this->encode($this->secret), 'sha512');
                 $signature64 = base64_encode($signature);
                 $requestHeaders = array(
                     'Accept' => 'application/json',
@@ -3397,25 +3394,23 @@ class bithumb extends Exchange {
             }
             throw new ExchangeError($feedback);
         }
-        if (is_array($response) && array_key_exists('status' ?? '', $response)) {
-            // generation 1:
-            //
-            //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
-            //
-            $status = $this->safe_string($response, 'status');
+        // generation 1:
+        //
+        //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+        //
+        $status = $this->safe_string($response, 'status');
+        if ($status !== null) {
             $message = $this->safe_string($response, 'message');
-            if ($status !== null) {
-                if ($status === '0000') {
-                    return null; // no error
-                } elseif ($message === '거래 진행중인 내역이 존재하지 않습니다.') {
-                    // https://github.com/ccxt/ccxt/issues/9017
-                    return null; // no error
-                }
-                $feedback = $this->id . ' ' . $message;
-                $this->throw_exactly_matched_exception($this->exceptions, $status, $feedback);
-                $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
-                throw new ExchangeError($feedback);
+            if ($status === '0000') {
+                return null; // no error
+            } elseif ($message === '거래 진행중인 내역이 존재하지 않습니다.') {
+                // https://github.com/ccxt/ccxt/issues/9017
+                return null; // no error
             }
+            $feedback = $this->id . ' ' . $message;
+            $this->throw_exactly_matched_exception($this->exceptions, $status, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
+            throw new ExchangeError($feedback);
         }
         return null;
     }

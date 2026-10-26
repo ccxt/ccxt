@@ -776,15 +776,16 @@ class btcturk extends Exchange {
         } elseif ($since === null) {
             $limitResolved = 100; // default value
         }
-        if ($limitResolved !== null) {
+        if (($limit !== null) || ($since === null)) {
             if ($timeframe === '1y') { // difficult with leap years
                 throw new BadRequest($this->id . ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             $seconds = $this->parse_timeframe($timeframe);
             $limitCount = ($limit === null) ? 100 : min($limit, 11000);
-            $limitSeconds = $seconds * ($limitCount - 1);
+            $limitSeconds = $this->parse_to_int($seconds * ($limitCount - 1));
             if ($since !== null) {
-                $to = $this->parse_to_int($since / 1000) . $limitSeconds;
+                $sinceSeconds = $this->parse_to_int($since / 1000);
+                $to = $sinceSeconds . $limitSeconds;
                 if ($to < $untilSeconds) {
                     $request['to'] = $to;
                 }
@@ -1159,8 +1160,9 @@ class btcturk extends Exchange {
         $url = $apiUrl . '/' . $path;
         $isQueryMethod = ($method === 'GET') || ($method === 'DELETE');
         if ($isQueryMethod) {
-            if (count($params) > 0) {
-                $url .= '?' . $this->urlencode($params);
+            $query = $this->urlencode($params);
+            if (strlen($query) > 0) {
+                $url .= '?' . $query;
             }
         }
         $requestBody = null;
@@ -1182,8 +1184,7 @@ class btcturk extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        $requestHeaders = $privateHeaders;
-        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $privateHeaders );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

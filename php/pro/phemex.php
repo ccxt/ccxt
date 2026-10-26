@@ -302,7 +302,7 @@ class phemex extends \ccxt\async\phemex {
         }
         for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $tickers[$i];
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol', '');
             $messageHash = 'ticker:' . $symbol;
             $timestamp = $this->safe_integer_product($message, 'timestamp', 0.000001);
             $ticker['timestamp'] = $timestamp;
@@ -333,8 +333,10 @@ class phemex extends \ccxt\async\phemex {
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $params);
         $usePerpetualApi = $this->safe_string($paramsMarketType, 'settle') === 'USDT';
-        $messageHash = ':balance';
-        $messageHash = $usePerpetualApi ? 'perpetual' . $messageHash : $type . $messageHash;
+        $messageHash = 'perpetual:balance';
+        if (!$usePerpetualApi) {
+            $messageHash = $type . ':balance';
+        }
         return Async\await($this->subscribe_private($type, $messageHash, $paramsMarketType));
     }
 
@@ -875,7 +877,7 @@ class phemex extends \ccxt\async\phemex {
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $messageHash = $messageHash . $market['symbol'];
+            $messageHash = 'trades:' . $this->safe_string($market, 'symbol', '');
         }
         $isUsdtMarket = ($market !== null) && ($market['settle'] === 'USDT');
         $settleRequest = array();
@@ -885,7 +887,11 @@ class phemex extends \ccxt\async\phemex {
         list($type, $paramsType) = $this->handle_market_type_and_params('watchMyTrades', $market, $this->extend($params, $settleRequest));
         if ($symbolResolved === null) {
             $settle = $this->safe_string($paramsType, 'settle');
-            $messageHash = ($settle === 'USDT') ? ($messageHash . 'perpetual') : ($messageHash . $type);
+            if ($settle === 'USDT') {
+                $messageHash = 'trades:perpetual';
+            } else {
+                $messageHash = 'trades:' . $type;
+            }
         }
         $trades = Async\await($this->subscribe_private($type, $messageHash, $paramsType));
         $limitResolved = $limit;
@@ -1001,7 +1007,7 @@ class phemex extends \ccxt\async\phemex {
         }
         $marketIds = array();
         $type = null;
-        for ($i = 0; $i < count($message); $i++) {
+        for ($i = 0; $i < $tradesLength; $i++) {
             $rawTrade = $message[$i];
             $marketId = $this->safe_string($rawTrade, 'symbol');
             $market = $this->safe_market($marketId);
@@ -1048,7 +1054,7 @@ class phemex extends \ccxt\async\phemex {
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $messageHash = $messageHash . $market['symbol'];
+            $messageHash = 'orders:' . $this->safe_string($market, 'symbol', '');
         }
         $isUsdtMarket = ($market !== null) && ($market['settle'] === 'USDT');
         $settleRequest = array();
@@ -1058,7 +1064,11 @@ class phemex extends \ccxt\async\phemex {
         list($type, $paramsType) = $this->handle_market_type_and_params('watchOrders', $market, $this->extend($params, $settleRequest));
         $isUSDTSettled = $this->safe_string($paramsType, 'settle') === 'USDT';
         if ($symbolResolved === null) {
-            $messageHash = ($isUSDTSettled) ? ($messageHash . 'perpetual') : ($messageHash . $type);
+            if ($isUSDTSettled) {
+                $messageHash = 'orders:perpetual';
+            } else {
+                $messageHash = 'orders:' . $type;
+            }
         }
         $orders = Async\await($this->subscribe_private($type, $messageHash, $paramsType));
         $limitResolved = $limit;
@@ -1248,7 +1258,7 @@ class phemex extends \ccxt\async\phemex {
             if ($messageLength === 0) {
                 return;
             }
-            for ($i = 0; $i < count($message); $i++) {
+            for ($i = 0; $i < $messageLength; $i++) {
                 $update = $message[$i];
                 $action = $this->safe_string($update, 'action');
                 if (($action !== null) && ($action !== 'Cancel')) {

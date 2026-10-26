@@ -54,7 +54,7 @@ class upbit extends \ccxt\async\upbit {
         $symbolsMarket = $this->market_symbols($symbolsRequested);
         $symbolsNormalized = ($symbolsMarket === null) ? array() : $symbolsMarket;
         $marketIds = $this->market_ids($symbolsNormalized);
-        $url = $this->implode_params($this->urls['api']['ws'], array(
+        $url = $this->implode_params($this->safe_string($this->urls['api'], 'ws'), array(
             'hostname' => $this->hostname,
         ));
         $client = $this->client($url);
@@ -62,11 +62,11 @@ class upbit extends \ccxt\async\upbit {
         if (!(is_array($client->subscriptions) && array_key_exists($subscriptionsKey ?? '', $client->subscriptions))) {
             $client->subscriptions[$subscriptionsKey] = $this->create_safe_dictionary(true);
         }
-        $subscriptions = $client->subscriptions[$subscriptionsKey];
+        $subscriptions = $this->safe_dict($client->subscriptions, $subscriptionsKey, array());
         $messageHashes = array();
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $marketId = $marketIds[$i];
-            $symbol = $symbolsNormalized[$i];
+            $marketId = $this->safe_string($marketIds, $i, '');
+            $symbol = $this->safe_string($symbolsNormalized, $i, '');
             $messageHash = $channel . ':' . $symbol;
             $messageHashes[] = $messageHash;
             if (!(is_array($subscriptions) && array_key_exists($messageHash ?? '', $subscriptions))) {
@@ -397,34 +397,26 @@ class upbit extends \ccxt\async\upbit {
         $request = array(
             'type' => $channel,
         );
-        $symbolResolved = null;
+        $messageHashResolved = $messageHash;
+        $channelKey = $channel;
         if ($symbol !== null) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
-            $symbols = array( $symbolResolved );
-            $marketIds = $this->market_ids($symbols);
-            $request['codes'] = $marketIds;
-        }
-        $messageHashResolved = $messageHash;
-        if ($symbolResolved !== null) {
+            $symbolResolved = $this->safe_string($market, 'symbol', '');
+            $request['codes'] = $this->market_ids(array( $symbolResolved ));
             $messageHashResolved = $messageHash . ':' . $symbolResolved;
+            $channelKey = $channel . ':' . $symbolResolved;
         }
-        $url = $this->implode_params($this->urls['api']['ws'], array(
+        $url = $this->implode_params($this->safe_string($this->urls['api'], 'ws'), array(
             'hostname' => $this->hostname,
-        ));
-        $url .= '/private';
+        )) . '/private';
         $client = $this->client($url);
         // Track private channel subscriptions to support multiple concurrent watches
         $subscriptionsKey = 'upbitPrivateSubscriptions';
         if (!(is_array($client->subscriptions) && array_key_exists($subscriptionsKey ?? '', $client->subscriptions))) {
             $client->subscriptions[$subscriptionsKey] = $this->create_safe_dictionary(true);
         }
-        $channelKey = $channel;
-        if ($symbolResolved !== null) {
-            $channelKey = $channel . ':' . $symbolResolved;
-        }
-        $subscriptions = $client->subscriptions[$subscriptionsKey];
+        $subscriptions = $this->safe_dict($client->subscriptions, $subscriptionsKey, array());
         $isNewChannel = !(is_array($subscriptions) && array_key_exists($channelKey ?? '', $subscriptions));
         if ($isNewChannel) {
             $subscriptions[$channelKey] = $request;
@@ -673,8 +665,7 @@ class upbit extends \ccxt\async\upbit {
         $myTrades->append($trade);
         $messageHash = 'myTrades';
         $client->resolve($myTrades, $messageHash);
-        $messageHash = 'myTrades:' . $trade['symbol'];
-        $client->resolve($myTrades, $messageHash);
+        $client->resolve($myTrades, 'myTrades:' . $this->safe_string($trade, 'symbol', ''));
     }
 
     public function handle_order(Client $client, array $message) {
@@ -727,8 +718,7 @@ class upbit extends \ccxt\async\upbit {
         $cachedOrders->append($parsed);
         $messageHash = 'myOrder';
         $client->resolve($this->orders, $messageHash);
-        $messageHash = $messageHash . ':' . $symbol;
-        $client->resolve($this->orders, $messageHash);
+        $client->resolve($this->orders, $messageHash . ':' . $this->safe_string($parsed, 'symbol', ''));
     }
 
     public function watch_balance($params = array()): PromiseInterface {

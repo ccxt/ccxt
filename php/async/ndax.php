@@ -715,7 +715,7 @@ class ndax extends Exchange {
             'nonce' => null,
         );
         for ($i = 0; $i < count($orderbook); $i++) {
-            $level = $orderbook[$i];
+            $level = $this->safe_value($orderbook, $i);
             $newTimestamp = $this->safe_integer($level, 2);
             if (($newTimestamp !== null) && (($latestTimestamp === null) || ($newTimestamp > $latestTimestamp))) {
                 $latestTimestamp = $newTimestamp;
@@ -1337,11 +1337,8 @@ class ndax extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_accounts());
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId');
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->safe_string($this->safe_dict($this->accounts, 0), 'id')));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-        if ($accountId === null) {
-            $accountId = $this->parse_to_int($this->accounts[0]['id']);
-        }
         $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
         $request = array(
             'omsId' => $omsId,
@@ -1479,7 +1476,7 @@ class ndax extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_accounts());
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->safe_string($this->safe_dict($this->accounts, 0), 'id')));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
         $request = array(
@@ -1650,10 +1647,10 @@ class ndax extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_accounts());
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->safe_string($this->safe_dict($this->accounts, 0), 'id')));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $clientOrderId = $this->safe_integer_2($params, 'ClientOrderId', 'clientOrderId');
-        $orderType = $this->safe_integer($this->options['orderTypes'], $this->capitalize($type));
+        $orderType = $this->safe_integer($this->safe_dict($this->options, 'orderTypes', array()), $this->capitalize($type));
         $triggerPrice = $this->safe_string($params, 'triggerPrice');
         if ($triggerPrice !== null) {
             if ($type === 'market') {
@@ -1686,11 +1683,7 @@ class ndax extends Exchange {
         );
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if ($price !== null) {
-            $limitPriceString = $this->price_to_precision($symbol, $price);
-            if ($limitPriceString === null) {
-                $limitPriceString = '0';
-            }
-            $request['LimitPrice'] = $this->parse_number($limitPriceString);
+            $request['LimitPrice'] = $this->parse_number($this->price_to_precision($symbol, $price));
         }
         if ($clientOrderId !== null) {
             $request['ClientOrderId'] = $clientOrderId;
@@ -1733,7 +1726,7 @@ class ndax extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_accounts());
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->safe_string($this->safe_dict($this->accounts, 0), 'id')));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $clientOrderId = $this->safe_integer_2($params, 'ClientOrderId', 'clientOrderId');
         $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId' ));
@@ -1755,17 +1748,13 @@ class ndax extends Exchange {
             // 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side' => $orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
             'Quantity' => ($amountString === null) ? null : $this->parse_number($amountString),
-            'OrderType' => $this->safe_integer($this->options['orderTypes'], $this->capitalize($type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
+            'OrderType' => $this->safe_integer($this->safe_dict($this->options, 'orderTypes', array()), $this->capitalize($type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
         );
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if ($price !== null) {
-            $limitPriceString = $this->price_to_precision($symbol, $price);
-            if ($limitPriceString === null) {
-                $limitPriceString = '0';
-            }
-            $request['LimitPrice'] = $this->parse_number($limitPriceString);
+            $request['LimitPrice'] = $this->parse_number($this->price_to_precision($symbol, $price));
         }
         if ($clientOrderId !== null) {
             $request['ClientOrderId'] = $clientOrderId;
@@ -1803,7 +1792,7 @@ class ndax extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_accounts());
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->safe_string($this->safe_dict($this->accounts, 0), 'id')));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
         $request = array(
@@ -1896,7 +1885,7 @@ class ndax extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_accounts());
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->safe_string($this->safe_dict($this->accounts, 0), 'id')));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
         $request = array(
@@ -1944,7 +1933,7 @@ class ndax extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_accounts());
-        // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
+        // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.safeString (this.safeDict (this.accounts, 0), 'id')));
         // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         // params = this.omit (params, [ 'accountId', 'AccountId' ]);
         $market = null;
@@ -1991,7 +1980,7 @@ class ndax extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_accounts());
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->safe_string($this->safe_dict($this->accounts, 0), 'id')));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
         $market = null;
@@ -2077,7 +2066,7 @@ class ndax extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_accounts());
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->safe_string($this->safe_dict($this->accounts, 0), 'id')));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
         $request = array(
@@ -2178,7 +2167,7 @@ class ndax extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_accounts());
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->safe_string($this->safe_dict($this->accounts, 0), 'id')));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
         $market = null;
@@ -2264,7 +2253,7 @@ class ndax extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_accounts());
-        // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
+        // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.safeString (this.safeDict (this.accounts, 0), 'id')));
         // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         // params = this.omit (params, [ 'accountId', 'AccountId' ]);
         $market = null;
@@ -2348,7 +2337,7 @@ class ndax extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_accounts());
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->safe_string($this->safe_dict($this->accounts, 0), 'id')));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
         $currency = $this->currency($code);
@@ -2448,7 +2437,7 @@ class ndax extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_accounts());
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->safe_string($this->safe_dict($this->accounts, 0), 'id')));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
         $currency = null;
@@ -2515,7 +2504,7 @@ class ndax extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_accounts());
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->safe_string($this->safe_dict($this->accounts, 0), 'id')));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $paramsOmitted = $this->omit($params, array( 'accountId', 'AccountId' ));
         $currency = null;
@@ -2719,7 +2708,8 @@ class ndax extends Exchange {
          * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $tagWithdrawTag = $this->safe_string($params, 'tag');
+        $paramsWithdrawTag = $this->omit($params, 'tag');
         // this method required login, password and twofa key
         $sessionToken = $this->safe_string($this->options, 'sessionToken');
         if ($sessionToken === null) {
@@ -2734,7 +2724,7 @@ class ndax extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->load_accounts());
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->safe_string($this->safe_dict($this->accounts, 0), 'id')));
         $accountId = $this->safe_integer_2($paramsWithdrawTag, 'accountId', 'AccountId', $defaultAccountId);
         $paramsOmitted = $this->omit($paramsWithdrawTag, array( 'accountId', 'AccountId' ));
         $currency = $this->currency($code);

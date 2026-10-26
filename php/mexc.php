@@ -1564,7 +1564,7 @@ class mexc extends Exchange {
             $swapOrderbook['nonce'] = $this->safe_integer($data, 'version');
             return $swapOrderbook;
         }
-        throw new NotSupported($this->id . ' fetchOrderBook() does not support ' . $market['type'] . ' markets');
+        throw new NotSupported($this->id . ' fetchOrderBook() does not support ' . $this->safe_string($market, 'type', '') . ' markets');
     }
 
     public function parse_order_book_bid_ask(mixed $bidask, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
@@ -1992,8 +1992,7 @@ class mexc extends Exchange {
         if ($symbols !== null) {
             $length = count($symbols);
             $isSingularMarket = $length === 1;
-            $firstSymbol = $this->safe_string($symbols, 0);
-            $market = $this->market($firstSymbol);
+            $market = $this->market($symbols[0]);
         }
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         $tickers = null;
@@ -2407,8 +2406,8 @@ class mexc extends Exchange {
         }
     }
 
-    public function create_spot_order_request(mixed $market, ?string $type, ?string $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
-        $symbol = $market['symbol'];
+    public function create_spot_order_request(array $market, ?string $type, ?string $side, ?float $amount, ?float $price = null, ?string $marginMode = null, $params = array()): array {
+        $symbol = $this->safe_string($market, 'symbol', '');
         if (($type === null) || ($side === null)) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a type and a side argument');
         }
@@ -2465,7 +2464,7 @@ class mexc extends Exchange {
         return $this->extend($request, $paramsWithoutTif);
     }
 
-    public function create_spot_order(mixed $market, string $type, mixed $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()): array {
+    public function create_spot_order(array $market, string $type, string $side, ?float $amount, ?float $price = null, ?string $marginMode = null, $params = array()): array {
         /**
          * @ignore
          * create a trade $order
@@ -2524,7 +2523,7 @@ class mexc extends Exchange {
         return $order;
     }
 
-    public function create_swap_order(mixed $market, mixed $type, string $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()): array {
+    public function create_swap_order(array $market, mixed $type, string $side, ?float $amount, ?float $price = null, ?string $marginMode = null, $params = array()): array {
         /**
          * @ignore
          * create a trade order
@@ -2554,30 +2553,30 @@ class mexc extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $openType = $this->safe_integer($params, 'openType', 2); // defaulting to cross margin
         if ($marginMode !== null) {
             if ($marginMode === 'cross') {
-                $openType = $this->parse_to_int(2);
+                $openType = 2;
             } elseif ($marginMode === 'isolated') {
-                $openType = $this->parse_to_int(1);
+                $openType = 1;
             } else {
                 throw new ArgumentsRequired($this->id . ' createSwapOrder() marginMode parameter should be either "cross" or "isolated"');
             }
         }
-        if (($type !== 'limit') && ($type !== 'market') && ($type !== 1) && ($type !== 2) && ($type !== 3) && ($type !== 4) && ($type !== 5) && ($type !== 6)) {
+        if (($type !== 'limit') && ($type !== 'market') && (!$this->in_array($type, array( 1, 2, 3, 4, 5, 6 )))) {
             throw new InvalidOrder($this->id . ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', $type === 2, $params);
-        $orderType = null;
+        $orderType = $this->parse_to_int(0); // typed seed, every branch below assigns it
         if ($postOnly) {
-            $orderType = 2;
+            $orderType = $this->parse_to_int(2);
         } elseif ($type === 'limit') {
-            $orderType = 1;
+            $orderType = $this->parse_to_int(1);
         } elseif ($type === 'market') {
-            $orderType = 6;
+            $orderType = $this->parse_to_int(6);
         } else {
-            $orderType = $type;
+            $orderType = $this->parse_to_int($type);
         }
         $volString = $this->amount_to_precision($symbol, $amount);
         if ($volString === null) {
@@ -2586,7 +2585,7 @@ class mexc extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             // 'price': parseFloat (this.priceToPrecision (symbol, price)),
-            'vol' => floatval($volString),
+            'vol' => $this->parse_number($volString),
             // 'leverage': int, // required for isolated margin
             // 'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
             // order types: 1 limit, 2 post only (PO), 3 IOC, 4 FOK, 5 market, 6 convert market price to current price
@@ -2600,12 +2599,12 @@ class mexc extends Exchange {
             // 'trend': 1, // Required for trigger order 1: latest price, 2: fair price, 3: index price
             // 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         );
-        if (($orderType !== 5) && ($orderType !== 6) && ($orderType !== 'market')) {
+        if (($orderType !== 5) && ($orderType !== 6)) {
             $priceString = $this->price_to_precision($symbol, $price);
             if ($priceString === null) {
                 $priceString = '0';
             }
-            $request['price'] = floatval($priceString);
+            $request['price'] = $this->parse_number($priceString);
         }
         if ($openType === 1) {
             $leverage = $this->safe_integer($paramsPostOnly, 'leverage');
@@ -2895,7 +2894,7 @@ class mexc extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         $until = $this->safe_integer($params, 'until');
         $paramsOmitted = $this->omit($params, 'until');
@@ -3084,7 +3083,7 @@ class mexc extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOrdersByIds', $market, $params);
         if ($marketType === 'spot') {
@@ -3311,7 +3310,7 @@ class mexc extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
         list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrder', $paramsMarketType);
@@ -4479,12 +4478,15 @@ class mexc extends Exchange {
         if ($positionId === null) {
             $openType = $this->safe_number($params, 'openType'); // 1 or 2
             $positionType = $this->safe_number($params, 'positionType'); // 1 or 2
-            $market = ($symbol !== null) ? $this->market($symbol) : null;
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
             if (($openType === null) || ($positionType === null) || ($market === null)) {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions');
             } else {
                 $request['openType'] = $openType;
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $this->safe_string($market, 'id');
                 $request['positionType'] = $positionType;
             }
         } else {
@@ -4517,7 +4519,7 @@ class mexc extends Exchange {
         );
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         if ($limit !== null) {
             $request['page_size'] = $limit;
@@ -5080,11 +5082,12 @@ class mexc extends Exchange {
         }
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['coin'] = $currency['id'];
+            $currencyId = $currency['id'];
+            $request['coin'] = $currencyId;
             // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
             // due to that I'm applying the network parameter directly so the user can control it on its side
             if ($rawNetwork !== null) {
-                $request['coin'] = $currency['id'] . '-' . $rawNetwork;
+                $request['coin'] = $currencyId . '-' . $rawNetwork;
             }
         }
         if ($since !== null) {
@@ -5475,7 +5478,7 @@ class mexc extends Exchange {
         //    }
         //
         $marketResolved = $this->safe_market($this->safe_string($position, 'symbol'), $market, null, 'swap');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $contracts = $this->safe_string($position, 'holdVol');
         $entryPrice = $this->safe_number($position, 'openAvgPrice');
         $initialMargin = $this->omit_zero($this->safe_string($position, 'im'));
@@ -6393,7 +6396,7 @@ class mexc extends Exchange {
                 }
                 $url = $apiUrl . '/api/' . $this->version . '/' . $pathValue;
             }
-            $urlParams = $paramsValue;
+            $urlParams = $this->extend($paramsValue, array());
             if ($access === 'private') {
                 if ($section === 'broker' && (($method === 'POST') || ($method === 'PUT') || ($method === 'DELETE'))) {
                     $urlParams = array(

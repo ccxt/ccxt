@@ -280,8 +280,8 @@ class limitless extends Exchange {
                     if ($pageMarketsLength === 0) {
                         break;
                     }
-                    for ($i = 0; $i < count($page_markets); $i++) {
-                        $raw = $page_markets[$i];
+                    for ($i = 0; $i < $pageMarketsLength; $i++) {
+                        $raw = $this->safe_value($page_markets, $i);
                         $allRaw[] = $raw;
                     }
                     $allRawCount = count($allRaw);
@@ -1202,8 +1202,8 @@ class limitless extends Exchange {
         for ($i = 0; $i < count($slugs); $i++) {
             $slug = $slugs[$i];
             $detailIndex = $i * 2;
-            $detail = $responses[$detailIndex];
-            $book = $responses[$this->sum($detailIndex, 1)];
+            $detail = $this->safe_value($responses, $detailIndex);
+            $book = $this->safe_value($responses, $this->sum($detailIndex, 1));
             $tickerInput = array( 'market' => $detail, 'book' => $book );
             $grouped = $this->safe_list($outcomesBySlug, $slug, array());
             for ($j = 0; $j < count($grouped); $j++) {
@@ -1340,22 +1340,22 @@ class limitless extends Exchange {
         $bids = array();
         $asks = array();
         for ($bi = 0; $bi < count($bidsSource); $bi++) {
-            $priceStr = $this->safe_string($bidsSource[$bi], 'price');
+            $priceStr = $this->safe_string($this->safe_value($bidsSource, $bi), 'price');
             if (!$isYes && ($priceStr !== null)) {
                 $priceStr = Precise::string_sub('1', $priceStr);
             }
-            $sizeStr = $this->safe_string($bidsSource[$bi], 'size');
+            $sizeStr = $this->safe_string($this->safe_value($bidsSource, $bi), 'size');
             if ($sizeStr !== null) {
                 $sizeStr = Precise::string_div($sizeStr, $scaleStr);
             }
             $bids[] = array( $this->parse_number($priceStr), $this->parse_number($sizeStr) );
         }
         for ($ai = 0; $ai < count($asksSource); $ai++) {
-            $priceStr = $this->safe_string($asksSource[$ai], 'price');
+            $priceStr = $this->safe_string($this->safe_value($asksSource, $ai), 'price');
             if (!$isYes && ($priceStr !== null)) {
                 $priceStr = Precise::string_sub('1', $priceStr);
             }
-            $sizeStr = $this->safe_string($asksSource[$ai], 'size');
+            $sizeStr = $this->safe_string($this->safe_value($asksSource, $ai), 'size');
             if ($sizeStr !== null) {
                 $sizeStr = Precise::string_div($sizeStr, $scaleStr);
             }
@@ -1442,7 +1442,7 @@ class limitless extends Exchange {
             $firstPrices = $this->safe_list($first, 'prices');
             if ($firstPrices !== null) {
                 $selectedSeries = $first;
-                for ($i = 0; $i < count($rawHistory); $i++) {
+                for ($i = 0; $i < $rawHistoryLength; $i++) {
                     $series = $this->safe_dict($rawHistory, $i, array());
                     $title = $this->safe_string_upper($series, 'title', '');
                     if ($title === null) {
@@ -1515,7 +1515,7 @@ class limitless extends Exchange {
         }
         $result = array();
         for ($i = 0; $i < count($bucketOrder); $i++) {
-            $result[] = $candles[$bucketOrder[$i]];
+            $result[] = $this->safe_value($candles, $bucketOrder[$i]);
         }
         return $this->filter_by_since_limit($result, $since, $limit, 0);
     }
@@ -3097,7 +3097,7 @@ class limitless extends Exchange {
         $eventKeys = is_array($eventGroups) ? array_keys($eventGroups) : array();
         $eventKeysLength = count($eventKeys);
         for ($i = 0; $i < $eventKeysLength; $i++) {
-            $g = $eventGroups[$eventKeys[$i]];
+            $g = $this->safe_value($eventGroups, $eventKeys[$i]);
             $ev = $this->parse_event($g);
             $result[] = $ev;
         }

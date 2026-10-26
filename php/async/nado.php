@@ -538,8 +538,7 @@ class nado extends Exchange {
         $isTriggerOrder = $isStopOrder || $isStopLossOrder || $isTakeProfitOrder;
         if ($isStopOrder) {
             // the final omit drops triggerDirection from the request
-            $triggerDirectionAndParams = $this->handle_trigger_direction_and_params($paramsRecvWindow);
-            $triggerDirection = $triggerDirectionAndParams[0];
+            $triggerDirection = $this->safe_string($this->handle_trigger_direction_and_params($paramsRecvWindow), 0);
             $directionSuffix = 'below';
             if ($triggerDirection === 'ascending') {
                 $directionSuffix = 'above';
@@ -1274,10 +1273,10 @@ class nado extends Exchange {
         if ($market !== null) {
             $ordersRequest['product_ids'] = array( $this->parse_to_int($market['id']) );
         }
-        list($ordersRequestUntil, $paramsUntil) = $this->handle_until_option('max_time', $ordersRequest, $paramsSubaccount, 0.001);
         if ($limit !== null) {
-            $ordersRequestUntil['limit'] = min($limit, 500);
+            $ordersRequest['limit'] = min($limit, 500);
         }
+        list($ordersRequestUntil, $paramsUntil) = $this->handle_until_option('max_time', $ordersRequest, $paramsSubaccount, 0.001);
         $request = array(
             'orders' => $ordersRequestUntil,
         );
@@ -1395,10 +1394,10 @@ class nado extends Exchange {
         if ($market !== null) {
             $matchesRequest['product_ids'] = array( $this->parse_to_int($market['id']) );
         }
-        list($matchesRequestUntil, $paramsUntil) = $this->handle_until_option('max_time', $matchesRequest, $paramsSubaccount, 0.001);
         if ($limit !== null) {
-            $matchesRequestUntil['limit'] = min($limit, 500);
+            $matchesRequest['limit'] = min($limit, 500);
         }
+        list($matchesRequestUntil, $paramsUntil) = $this->handle_until_option('max_time', $matchesRequest, $paramsSubaccount, 0.001);
         $request = array(
             'matches' => $matchesRequestUntil,
         );
@@ -1860,7 +1859,7 @@ class nado extends Exchange {
             $settle = $contract ? $quote : null;
             $symbol = $base . '/' . $quote;
             if ($contract) {
-                $symbol .= ':' . $settle;
+                $symbol = $base . '/' . $quote . ':' . $quote;
             }
             $tradingStatus = $this->safe_string($market, 'trading_status');
             $active = ($tradingStatus !== 'not_tradable');
@@ -1945,7 +1944,7 @@ class nado extends Exchange {
         $result = array();
         $assets = $this->to_array($response);
         for ($i = 0; $i < count($assets); $i++) {
-            $currency = $assets[$i];
+            $currency = $this->safe_value($assets, $i);
             $parsed = $this->parse_currency($currency);
             $code = $this->safe_string($parsed, 'code');
             if ($code === null) {
@@ -2018,7 +2017,7 @@ class nado extends Exchange {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $tickers = Async\await($this->fetch_tickers(array( $symbolValue ), $params));
         $ticker = $this->safe_dict($tickers, $symbolValue);
         if ($ticker === null) {
@@ -2402,18 +2401,19 @@ class nado extends Exchange {
         $market = $this->market($symbol);
         $until = $this->safe_integer($params, 'until');
         $paramsOmitted = $this->omit($params, 'until');
-        $request = array(
-            'candlesticks' => array(
-                'product_id' => $this->parse_to_int($market['id']),
-                'granularity' => $this->safe_integer($this->timeframes, $timeframe, $this->parse_timeframe($timeframe)),
-            ),
+        $candlesticks = array(
+            'product_id' => $this->parse_to_int($market['id']),
+            'granularity' => $this->safe_integer($this->timeframes, $timeframe, $this->parse_timeframe($timeframe)),
         );
         if ($limit !== null) {
-            $request['candlesticks']['limit'] = min($limit, 500);
+            $candlesticks['limit'] = min($limit, 500);
         }
         if ($until !== null) {
-            $request['candlesticks']['max_time'] = $this->parse_to_int($until / 1000);
+            $candlesticks['max_time'] = $this->parse_to_int($until / 1000);
         }
+        $request = array(
+            'candlesticks' => $candlesticks,
+        );
         $response = Async\await($this->archivePost($this->deep_extend($request, $paramsOmitted)));
         //
         //     {
@@ -3140,7 +3140,7 @@ class nado extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function convert_to_x18(?string $value) {
+    public function convert_to_x18(?string $value): ?string {
         if ($value === null) {
             throw new ArgumentsRequired($this->id . ' convertToX18() requires a value');
         }
@@ -3222,7 +3222,8 @@ class nado extends Exchange {
     }
 
     private function do_query_contracts($params = array()) {
-        if ($this->safe_dict($this->options, 'gatewayContracts') === null) {
+        $gatewayContracts = $this->safe_dict($this->options, 'gatewayContracts');
+        if ($gatewayContracts === null) {
             $request = array(
                 'type' => 'contracts',
             );
@@ -3357,7 +3358,10 @@ class nado extends Exchange {
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $pathSuffix = ($path !== '') ? ('/' . $this->implode_params($path, $params)) : '';
+        $pathSuffix = '';
+        if ($path !== '') {
+            $pathSuffix = '/' . $this->implode_params($path, $params);
+        }
         $url = $baseApiUrl . $pathSuffix;
         $query = $this->omit($params, $this->extract_params($path));
         $headersValue = array();
@@ -3366,7 +3370,7 @@ class nado extends Exchange {
         }
         if ($method === 'GET') {
             if (count($query) > 0) {
-                $url .= '?' . $this->urlencode($query);
+                $url = $baseApiUrl . $pathSuffix . '?' . $this->urlencode($query);
             }
         } else {
             $headersValue['Content-Type'] = 'application/json';

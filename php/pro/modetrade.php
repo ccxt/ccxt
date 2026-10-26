@@ -89,16 +89,17 @@ class modetrade extends \ccxt\async\modetrade {
     }
 
     private function do_watch_public(string $messageHash, array $message) {
-        // the default id
-        $id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
-        if ($this->accountId !== null && $this->accountId !== '') {
-            $id = $this->accountId;
-        }
-        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'public');
+        $apiUrls = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $wsUrl = $this->safe_string($wsUrls, 'public');
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' watchPublic() has no public websocket url');
         }
-        $url = $wsUrl . '/' . $id;
+        // the default id
+        $url = $wsUrl . '/' . 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
+        if ($this->accountId !== null && $this->accountId !== '') {
+            $url = $wsUrl . '/' . $this->accountId;
+        }
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -127,7 +128,8 @@ class modetrade extends \ccxt\async\modetrade {
         }
         $name = 'orderbook';
         $market = $this->market($symbol);
-        $topic = $market['id'] . '@' . $name;
+        $marketId = $this->safe_string($market, 'id', '');
+        $topic = $marketId . '@' . $name;
         $request = array(
             'event' => 'subscribe',
             'topic' => $topic,
@@ -193,7 +195,8 @@ class modetrade extends \ccxt\async\modetrade {
         }
         $name = 'ticker';
         $market = $this->market($symbol);
-        $topic = $market['id'] . '@' . $name;
+        $marketId = $this->safe_string($market, 'id', '');
+        $topic = $marketId . '@' . $name;
         $request = array(
             'event' => 'subscribe',
             'topic' => $topic,
@@ -383,7 +386,7 @@ class modetrade extends \ccxt\async\modetrade {
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $this->parse_ws_bid_ask($this->extend($data[$i], array( 'ts' => $timestamp )));
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $this->tickers[$symbol] = $ticker;
             }
@@ -435,7 +438,8 @@ class modetrade extends \ccxt\async\modetrade {
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $name = 'kline';
-        $topic = $market['id'] . '@' . $name . '_' . $interval;
+        $marketId = $this->safe_string($market, 'id', '');
+        $topic = $marketId . '@' . $name . '_' . $interval;
         $request = array(
             'event' => 'subscribe',
             'topic' => $topic,
@@ -493,7 +497,7 @@ class modetrade extends \ccxt\async\modetrade {
             $stored = new ArrayCacheByTimestamp($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
-        $ohlcvCache = $this->ohlcvs[$symbol][$timeframe];
+        $ohlcvCache = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
         $ohlcvCache->append($parsed);
         $client->resolve($ohlcvCache, $topic);
     }
@@ -518,8 +522,8 @@ class modetrade extends \ccxt\async\modetrade {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $topic = $market['id'] . '@trade';
+        $marketId = $this->safe_string($market, 'id', '');
+        $topic = $marketId . '@trade';
         $request = array(
             'event' => 'subscribe',
             'topic' => $topic,
@@ -530,7 +534,7 @@ class modetrade extends \ccxt\async\modetrade {
         if ($this->newUpdates) {
             $limitResolved = $trades->getLimit($market['symbol'], $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbolValue, $since, $limitResolved, true);
+        return $this->filter_by_symbol_since_limit($trades, $market['symbol'], $since, $limitResolved, true);
     }
 
     public function handle_trade(Client $client, array $message) {
@@ -669,7 +673,9 @@ class modetrade extends \ccxt\async\modetrade {
 
     private function do_authenticate($params = array()) {
         $this->check_required_credentials();
-        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'private');
+        $apiUrls = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $wsUrl = $this->safe_string($wsUrls, 'private');
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' authenticate() has no private websocket url');
         }
@@ -683,8 +689,8 @@ class modetrade extends \ccxt\async\modetrade {
             $ts = (string) $this->nonce();
             $auth = $ts;
             $secret = $this->secret;
-            if (mb_strpos($secret, 'ed25519:') !== false) {
-                $parts = explode('ed25519:', $secret);
+            if (mb_strpos($this->secret, 'ed25519:') !== false) {
+                $parts = explode('ed25519:', $this->secret);
                 $secret = $parts[1];
             }
             $signature = $this->eddsa($this->encode($auth), $this->base58_to_binary($secret), 'ed25519');
@@ -708,7 +714,9 @@ class modetrade extends \ccxt\async\modetrade {
 
     private function do_watch_private(string $messageHash, array $message, $params = array()) {
         Async\await($this->authenticate($params));
-        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'private');
+        $apiUrls = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $wsUrl = $this->safe_string($wsUrls, 'private');
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' watchPrivate() has no private websocket url');
         }
@@ -727,7 +735,9 @@ class modetrade extends \ccxt\async\modetrade {
 
     private function do_watch_private_multiple(array $messageHashes, array $message, $params = array()) {
         Async\await($this->authenticate($params));
-        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'private');
+        $apiUrls = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $wsUrl = $this->safe_string($wsUrls, 'private');
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' watchPrivateMultiple() has no private websocket url');
         }
@@ -772,7 +782,7 @@ class modetrade extends \ccxt\async\modetrade {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbolResolved = $this->safe_string($market, 'symbol');
-            $messageHash .= ':' . $symbolResolved;
+            $messageHash = $topic . ':' . $symbolResolved;
         }
         $request = array(
             'event' => 'subscribe',
@@ -819,7 +829,7 @@ class modetrade extends \ccxt\async\modetrade {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbolResolved = $this->safe_string($market, 'symbol');
-            $messageHash .= ':' . $symbolResolved;
+            $messageHash = 'myTrades' . ':' . $symbolResolved;
         }
         $request = array(
             'event' => 'subscribe',
@@ -986,10 +996,13 @@ class modetrade extends \ccxt\async\modetrade {
         //
         $topic = $this->safe_string($message, 'topic');
         $data = $this->safe_value($message, 'data');
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
+        $dataIsArray = (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)));
+        if ($dataIsArray) {
             // algoexecutionreport
-            for ($i = 0; $i < count($data); $i++) {
-                $order = $data[$i];
+            $dataList = $this->safe_list($message, 'data', array());
+            $dataListLength = count($dataList);
+            for ($i = 0; $i < $dataListLength; $i++) {
+                $order = $dataList[$i];
                 $tradeIdStr = $this->safe_string($data, 'tradeId');
                 $tradeId = ($tradeIdStr === null) ? null : $this->omit_zero($tradeIdStr);
                 if ($tradeId !== null) {
@@ -1035,8 +1048,7 @@ class modetrade extends \ccxt\async\modetrade {
             }
             $cachedOrders->append($parsed);
             $client->resolve($this->orders, $topic);
-            $messageHashSymbol = $topic . ':' . $symbol;
-            $client->resolve($this->orders, $messageHashSymbol);
+            $client->resolve($this->orders, $topic . ':' . $symbol);
         }
     }
 
@@ -1115,7 +1127,9 @@ class modetrade extends \ccxt\async\modetrade {
         } else {
             $messageHashes[] = 'positions';
         }
-        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'private');
+        $apiUrls = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $wsUrl = $this->safe_string($wsUrls, 'private');
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' watchPositions() has no private websocket url');
         }
@@ -1168,8 +1182,8 @@ class modetrade extends \ccxt\async\modetrade {
             }
         }
         // don't remove the future from the .futures cache
-        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
-            $future = $client->futures[$messageHash];
+        $future = $this->safe_value($client->futures, $messageHash);
+        if ($future !== null) {
             $future->resolve($cache);
             $client->resolve($cache, 'positions');
         }
@@ -1222,7 +1236,8 @@ class modetrade extends \ccxt\async\modetrade {
             $position = $this->parse_ws_position($rawPosition, $market);
             $newPositions[] = $position;
             $cache->append($position);
-            $messageHash = 'positions::' . $market['symbol'];
+            $marketSymbol = $this->safe_string($market, 'symbol', '');
+            $messageHash = 'positions::' . $marketSymbol;
             $client->resolve($position, $messageHash);
         }
         $client->resolve($newPositions, 'positions');
@@ -1368,7 +1383,10 @@ class modetrade extends \ccxt\async\modetrade {
             $code = $this->safe_currency_code($key);
             $account = $this->account();
             if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {
-                $account = $this->balance[$code];
+                $cachedAccount = $this->safe_dict($this->balance, $code);
+                if ($cachedAccount !== null) {
+                    $account = $cachedAccount;
+                }
             }
             $total = $this->safe_string($value, 'holding');
             $used = $this->safe_string($value, 'frozen');

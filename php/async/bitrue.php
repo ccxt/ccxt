@@ -883,8 +883,8 @@ class bitrue extends Exchange {
         }
         $promises = Async\await(Promise\all($promisesRaw));
         $spotMarkets = $this->safe_list($this->safe_dict($promises, 0), 'symbols', array());
-        $futureMarkets = $this->safe_value($promises, 1);
-        $deliveryMarkets = $this->safe_value($promises, 2);
+        $futureMarkets = $this->safe_list($promises, 1, array());
+        $deliveryMarkets = $this->safe_list($promises, 2, array());
         $markets = $spotMarkets;
         $markets = $this->array_concat($markets, $futureMarkets);
         $markets = $this->array_concat($markets, $deliveryMarkets);
@@ -2188,7 +2188,7 @@ class bitrue extends Exchange {
         } elseif ($market['spot'] === true) {
             $request['symbol'] = $market['id'];
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-            $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
+            $validOrderTypes = $this->safe_list($market['info'], 'orderTypes', array());
             if (!$this->in_array($uppercaseType, $validOrderTypes)) {
                 throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order type in market ' . $symbol);
             }
@@ -3068,6 +3068,7 @@ class bitrue extends Exchange {
         //
         $chainDetails = $this->safe_list($fee, 'chainDetail', array());
         $chainDetailLength = count($chainDetails);
+        $networks = array();
         $result = array(
             'info' => $fee,
             'withdraw' => array(
@@ -3078,7 +3079,6 @@ class bitrue extends Exchange {
                 'fee' => null,
                 'percentage' => null,
             ),
-            'networks' => array(),
         );
         if ($chainDetailLength !== 0) {
             for ($i = 0; $i < $chainDetailLength; $i++) {
@@ -3087,17 +3087,17 @@ class bitrue extends Exchange {
                 $currencyCode = $this->safe_string($currency, 'code');
                 $networkCode = $this->network_id_to_code($networkId, $currencyCode);
                 if ($networkCode !== null) {
-                    $result['networks'][$networkCode] = array(
+                    $networks[$networkCode] = array(
                         'deposit' => array( 'fee' => null, 'percentage' => null ),
                         'withdraw' => array( 'fee' => $this->safe_number($chainDetail, 'withdrawFee'), 'percentage' => false ),
                     );
                 }
                 if ($chainDetailLength === 1) {
-                    $result['withdraw']['fee'] = $this->safe_number($chainDetail, 'withdrawFee');
-                    $result['withdraw']['percentage'] = false;
+                    $result['withdraw'] = array( 'fee' => $this->safe_number($chainDetail, 'withdrawFee'), 'percentage' => false );
                 }
             }
         }
+        $result['networks'] = $networks;
         return $result;
     }
 
@@ -3378,17 +3378,17 @@ class bitrue extends Exchange {
         $requestBody = null;
         $requestHeaders = null;
         $type = $this->safe_string($api, 0);
-        $version = $this->safe_string($api, 1);
+        $version = $this->safe_string($api, 1, '');
         $access = $this->safe_string($api, 2);
         $apiUrl = $this->safe_string($this->urls['api'], $type);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $url = $apiUrl;
+        $endpointPath = $this->implode_params($path, $params);
+        $url = $apiUrl . '/' . $endpointPath;
         if (!(($type === 'api' && $version === 'kline') || ($type === 'open' && mb_strpos($path, 'listenKey') !== false))) {
-            $url .= '/' . $version;
+            $url = $apiUrl . '/' . $version . '/' . $endpointPath;
         }
-        $url .= '/' . $this->implode_params($path, $params);
         $paramsOmitted = $this->omit($params, $this->extract_params($path));
         if ($access === 'private') {
             $this->check_required_credentials();
@@ -3400,25 +3400,27 @@ class bitrue extends Exchange {
                 ), $paramsOmitted));
                 $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha256');
                 $query .= '&' . 'signature=' . $signature;
-                $requestHeaders = array(
-                    'X-MBX-APIKEY' => $this->apiKey,
-                );
                 if (($method === 'GET') || ($method === 'DELETE')) {
                     $url .= '?' . $query;
+                    $requestHeaders = array(
+                        'X-MBX-APIKEY' => $this->apiKey,
+                    );
                 } else {
                     $requestBody = $query;
-                    $requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
+                    $requestHeaders = array(
+                        'X-MBX-APIKEY' => $this->apiKey,
+                        'Content-Type' => 'application/x-www-form-urlencoded',
+                    );
                 }
             } else {
                 $timestamp = (string) $this->nonce();
-                $signPath = null;
+                $signPrefix = '';
                 if ($type === 'fapi') {
-                    $signPath = '/fapi';
+                    $signPrefix = '/fapi';
                 } elseif ($type === 'dapi') {
-                    $signPath = '/dapi';
+                    $signPrefix = '/dapi';
                 }
-                $signPath = $signPath . '/' . $version . '/' . $path;
-                $signMessage = $timestamp . $method . $signPath;
+                $signMessage = $timestamp . $method . ($signPrefix . '/' . $version . '/' . $path);
                 if ($method === 'GET') {
                     $keys = is_array($paramsOmitted) ? array_keys($paramsOmitted) : array();
                     $keysLength = count($keys);
@@ -3459,7 +3461,7 @@ class bitrue extends Exchange {
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (($code === 418) || ($code === 429)) {
-            throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
+            throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . (' ' . $body));
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
@@ -3524,7 +3526,7 @@ class bitrue extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             return $config['noSymbol'];
         } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
@@ -3534,7 +3536,7 @@ class bitrue extends Exchange {
                 $entry = $byLimit[$i];
                 $threshold = $this->safe_integer($entry, 0);
                 if ($limit !== null && $threshold !== null && $limit <= $threshold) {
-                    return $entry[1];
+                    return $this->safe_number($entry, 1);
                 }
             }
         }

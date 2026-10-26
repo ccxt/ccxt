@@ -157,10 +157,9 @@ class cryptocom extends \ccxt\async\cryptocom {
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
-            $currentTopic = 'book' . '.' . $market['id'] . '.' . (string) $limitResolved;
-            $messageHash = 'orderbook:' . $market['symbol'];
-            $messageHashes[] = $messageHash;
-            $topics[] = $currentTopic;
+            $limitString = $this->number_to_string($limitResolved);
+            $messageHashes[] = 'orderbook:' . $market['symbol'];
+            $topics[] = 'book.' . $this->safe_string($market, 'id', '') . '.' . $limitString;
         }
         $orderbook = Async\await($this->watch_public_multiple($messageHashes, $topics, $paramsBookUpdateFrequency2));
         return $orderbook->limit();
@@ -206,11 +205,9 @@ class cryptocom extends \ccxt\async\cryptocom {
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
-            $currentTopic = 'book' . '.' . $market['id'] . '.' . (string) $limit;
-            $messageHash = 'orderbook:' . $market['symbol'];
-            $subMessageHashes[] = $messageHash;
-            $messageHashes[] = 'unsubscribe:' . $messageHash;
-            $topics[] = $currentTopic;
+            $subMessageHashes[] = 'orderbook:' . $market['symbol'];
+            $messageHashes[] = 'unsubscribe:orderbook:' . $market['symbol'];
+            $topics[] = 'book.' . $this->safe_string($market, 'id', '') . '.' . (string) $limit;
         }
         return Async\await($this->un_watch_public_multiple('orderbook', $symbolsNormalized, $messageHashes, $subMessageHashes, $topics, $paramsBookUpdateFrequency2));
     }
@@ -224,7 +221,7 @@ class cryptocom extends \ccxt\async\cryptocom {
 
     public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta($bookside, $deltas[$i]);
+            $this->handle_delta($bookside, $this->safe_value($deltas, $i));
         }
     }
 
@@ -306,7 +303,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         } else {
             $books = $this->safe_dict($data, 'update', array());
             $previousNonce = $this->safe_integer($data, 'pu');
-            $currentNonce = $orderbook['nonce'];
+            $currentNonce = $this->safe_integer($orderbook, 'nonce');
             if ($currentNonce !== $previousNonce) {
                 $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
                 if ($checksum === true) {
@@ -374,8 +371,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
-            $currentTopic = 'trade' . '.' . $market['id'];
-            $topics[] = $currentTopic;
+            $topics[] = 'trade.' . $this->safe_string($market, 'id', '');
         }
         $trades = Async\await($this->watch_public_multiple($topics, $topics, $params));
         $first = $this->safe_dict($trades, 0);
@@ -410,7 +406,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
-            $currentTopic = 'trade' . '.' . $market['id'];
+            $currentTopic = 'trade.' . $this->safe_string($market, 'id', '');
             $messageHashes[] = 'unsubscribe:trades:' . $market['symbol'];
             $topics[] = $currentTopic;
         }
@@ -461,7 +457,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
         $parsedTrades = $this->parse_trades($data, $market);
         for ($j = 0; $j < count($parsedTrades); $j++) {
-            $stored->append($parsedTrades[$j]);
+            $stored->append($this->safe_value($parsedTrades, $j));
         }
         $channelReplaced = str_replace('.' . $marketId, '', $channel);
         $client->resolve($stored, $symbolSpecificMessageHash);
@@ -494,7 +490,9 @@ class cryptocom extends \ccxt\async\cryptocom {
             $symbolResolved = $this->safe_string($market, 'symbol');
         }
         $messageHash = 'user.trade';
-        $messageHash = ($market !== null) ? ($messageHash . '.' . $market['id']) : $messageHash;
+        if ($market !== null) {
+            $messageHash = 'user.trade.' . $this->safe_string($market, 'id', '');
+        }
         $trades = Async\await($this->watch_private_subscribe($messageHash, $params));
         $limitResolved = $limit;
         if ($this->newUpdates) {
@@ -521,8 +519,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $messageHash = 'ticker' . '.' . $market['id'];
-        return Async\await($this->watch_public($messageHash, $params));
+        return Async\await($this->watch_public('ticker.' . $this->safe_string($market, 'id', ''), $params));
     }
 
     public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -543,7 +540,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $subMessageHash = 'ticker' . '.' . $market['id'];
+        $subMessageHash = 'ticker.' . $this->safe_string($market, 'id', '');
         $messageHash = 'unsubscribe:ticker:' . $market['symbol'];
         return Async\await($this->un_watch_public_multiple('ticker', array( $market['symbol'] ), array( $messageHash ), array( $subMessageHash ), array( $subMessageHash ), $params));
     }
@@ -558,7 +555,7 @@ class cryptocom extends \ccxt\async\cryptocom {
          *
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#$ticker-instrument_name
          *
-         * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
+         * @param {string[]} $symbols unified $symbol of the market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=$ticker-structure $ticker structure~
          */
@@ -567,10 +564,9 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $messageHashes = array();
-        $marketIds = $this->market_ids($symbolsNormalized);
-        for ($i = 0; $i < count($marketIds); $i++) {
-            $marketId = $marketIds[$i];
-            $messageHashes[] = 'ticker.' . $marketId;
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
+            $messageHashes[] = 'ticker.' . $this->safe_string($this->market($symbol), 'id', '');
         }
         $url = $this->urls['api']['ws']['public'];
         $id = $this->incrementing_nonce();
@@ -613,11 +609,9 @@ class cryptocom extends \ccxt\async\cryptocom {
         $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $messageHashes = array();
         $subMessageHashes = array();
-        $marketIds = $this->market_ids($symbolsNormalized);
-        for ($i = 0; $i < count($marketIds); $i++) {
-            $marketId = $marketIds[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
-            $subMessageHashes[] = 'ticker.' . $marketId;
+            $subMessageHashes[] = 'ticker.' . $this->safe_string($this->market($symbol), 'id', '');
             $messageHashes[] = 'unsubscribe:ticker:' . $symbol;
         }
         return Async\await($this->un_watch_public_multiple('ticker', $symbolsNormalized, $messageHashes, $subMessageHashes, $subMessageHashes, $params));
@@ -721,7 +715,7 @@ class cryptocom extends \ccxt\async\cryptocom {
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
          *
          * watches best bid & ask for $symbols
-         * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+         * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=ticker-structure ticker structure~
          */
@@ -731,11 +725,10 @@ class cryptocom extends \ccxt\async\cryptocom {
         $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $messageHashes = array();
         $topics = array();
-        $marketIds = $this->market_ids($symbolsNormalized);
-        for ($i = 0; $i < count($marketIds); $i++) {
-            $marketId = $marketIds[$i];
-            $messageHashes[] = 'bidask.' . $symbolsNormalized[$i];
-            $topics[] = 'ticker.' . $marketId;
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
+            $messageHashes[] = 'bidask.' . $symbol;
+            $topics[] = 'ticker.' . $this->safe_string($this->market($symbol), 'id', '');
         }
         $url = $this->urls['api']['ws']['public'];
         $id = $this->incrementing_nonce();
@@ -762,8 +755,8 @@ class cryptocom extends \ccxt\async\cryptocom {
         $data = $this->safe_list($message, 'data', array());
         $ticker = $this->safe_dict($data, 0, array());
         $parsedTicker = $this->parse_ws_bid_ask($ticker);
-        $symbol = $parsedTicker['symbol'];
-        if ($symbol !== null) {
+        $symbol = $this->safe_string($parsedTicker, 'symbol', '');
+        if ($symbol !== '') {
             $this->bidsasks[$symbol] = $parsedTicker;
         }
         $messageHash = 'bidask.' . $symbol;
@@ -808,13 +801,11 @@ class cryptocom extends \ccxt\async\cryptocom {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $messageHash = 'candlestick' . '.' . $interval . '.' . $market['id'];
-        $ohlcv = Async\await($this->watch_public($messageHash, $params));
+        $ohlcv = Async\await($this->watch_public('candlestick.' . $interval . '.' . $this->safe_string($market, 'id', ''), $params));
         $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
+            $limitResolved = $ohlcv->getLimit($market['symbol'], $limit);
         }
         return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
@@ -839,7 +830,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $subMessageHash = 'candlestick' . '.' . $interval . '.' . $market['id'];
+        $subMessageHash = 'candlestick.' . $interval . '.' . $this->safe_string($market, 'id', '');
         $messageHash = 'unsubscribe:ohlcv:' . $market['symbol'] . ':' . $timeframe;
         $subExtend = array(
             'symbolsAndTimeframes' => array( array( $market['symbol'], $timeframe ) ),
@@ -908,7 +899,9 @@ class cryptocom extends \ccxt\async\cryptocom {
             $symbolResolved = $this->safe_string($market, 'symbol');
         }
         $messageHash = 'user.order';
-        $messageHash = ($market !== null) ? ($messageHash . '.' . $market['id']) : $messageHash;
+        if ($market !== null) {
+            $messageHash = 'user.order.' . $this->safe_string($market, 'id', '');
+        }
         $orders = Async\await($this->watch_private_subscribe($messageHash, $params));
         $limitResolved = $limit;
         if ($this->newUpdates) {
@@ -1398,10 +1391,10 @@ class cryptocom extends \ccxt\async\cryptocom {
                 'channels' => $topics,
             ),
             'nonce' => $id,
-            'id' => (string) $id,
+            'id' => $this->number_to_string($id),
         );
         $subscription = array(
-            'id' => (string) $id,
+            'id' => $this->number_to_string($id),
             'topic' => $topic,
             'symbols' => $symbols,
             'subMessageHashes' => $subMessageHashes,
@@ -1423,7 +1416,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             'nonce' => $nonce,
         );
         $message = $this->extend($request, $params);
-        return Async\await($this->watch($url, (string) $nonce, $message, true));
+        return Async\await($this->watch($url, $this->number_to_string($nonce), $message, true));
     }
 
     public function watch_private_subscribe(?string $messageHash, $params = array()) {
@@ -1578,7 +1571,8 @@ class cryptocom extends \ccxt\async\cryptocom {
         $authenticated = $this->safe_value($client->subscriptions, $messageHash);
         if ($authenticated === null) {
             $method = 'public/auth';
-            $nonce = (string) $this->incrementing_nonce();
+            $nonceValue = $this->incrementing_nonce();
+            $nonce = $this->number_to_string($nonceValue);
             $auth = $method . $nonce . $this->apiKey . $nonce;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $request = array(
@@ -1616,7 +1610,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 // the previous iteration can have deleted the messageHash from the subscriptions
             }
             if (str_starts_with($messageHash, 'unsubscribe')) {
-                $subscription = $client->subscriptions[$messageHash];
+                $subscription = $this->safe_value($client->subscriptions, $messageHash);
                 $subId = $this->safe_string($subscription, 'id');
                 if ($id !== $subId) {
                     continue;

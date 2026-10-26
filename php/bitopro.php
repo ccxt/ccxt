@@ -944,10 +944,11 @@ class bitopro extends Exchange {
             return $candles;
         }
         $result = array();
-        $copyFrom = $candles[0];
+        $firstCandle = $this->safe_list($candles, 0, array());
+        $copyFrom = $firstCandle;
         $timestamp = null;
         if ($since === null) {
-            $timestamp = $copyFrom[0];
+            $timestamp = $this->safe_value($firstCandle, 0);
         } else {
             $timestamp = $since;
         }
@@ -955,23 +956,18 @@ class bitopro extends Exchange {
         $candleLength = count($candles);
         $resultLength = 0;
         while (($resultLength < $limit) && ($i < $candleLength)) {
-            $candle = $candles[$i];
+            $candle = $this->safe_list($candles, $i, array());
             if ($candle[0] === $timestamp) {
                 $result[] = $candle;
                 $i = $this->sum($i, 1);
             } else {
-                $copy = $this->array_concat(array(), $copyFrom);
-                $copy[0] = $timestamp;
                 // set open, high, low to close
-                $copy[1] = $copy[4];
-                $copy[2] = $copy[4];
-                $copy[3] = $copy[4];
-                $copy[5] = $this->parse_number('0');
-                $result[] = $copy;
+                $closeValue = $this->safe_value($copyFrom, 4);
+                $result[] = array( $timestamp, $closeValue, $closeValue, $closeValue, $closeValue, $this->parse_number('0') );
             }
             $timestamp = $this->sum($timestamp, $distanceInMs);
             $resultLength = count($result);
-            $copyFrom = $result[$resultLength - 1];
+            $copyFrom = $this->safe_value($result, $resultLength - 1);
         }
         return $result;
     }
@@ -989,8 +985,9 @@ class bitopro extends Exchange {
         $result = array(
             'info' => $response,
         );
-        for ($i = 0; $i < count($response); $i++) {
-            $balance = $this->safe_dict($response, $i);
+        $rows = $this->to_array($response);
+        for ($i = 0; $i < count($rows); $i++) {
+            $balance = $this->safe_dict($rows, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $amount = $this->safe_string($balance, 'amount');
@@ -1245,7 +1242,7 @@ class bitopro extends Exchange {
         $orders = array();
         for ($i = 0; $i < count($dataKeys); $i++) {
             $marketId = $dataKeys[$i];
-            $orderIds = $data[$marketId];
+            $orderIds = $this->safe_list($data, $marketId, array());
             for ($j = 0; $j < count($orderIds); $j++) {
                 $orders[] = $this->safe_order(array(
                     'info' => $orderIds[$j],
@@ -1910,6 +1907,9 @@ class bitopro extends Exchange {
         $apiName = $api[0];
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
+        // keep `Object.keys (x).length` in one expression: the PHP transpiler rewrites that exact shape into
+        // count(x), while a hoisted key list is printed as an array and `.length` then becomes strlen(array)
+        $queryLength = count($query);
         $requestHeaders = array();
         $isSignedBody = ($apiName === 'private') && (($method === 'POST') || ($method === 'PUT'));
         $signedBody = $this->json($params);
@@ -1927,7 +1927,7 @@ class bitopro extends Exchange {
                 $requestHeaders['X-BITOPRO-PAYLOAD'] = $payload;
                 $requestHeaders['X-BITOPRO-SIGNATURE'] = $signature;
             } elseif ($method === 'GET' || $method === 'DELETE') {
-                if (count($query) > 0) {
+                if ($queryLength > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
                 $nonce = $this->milliseconds();
@@ -1942,7 +1942,7 @@ class bitopro extends Exchange {
                 $requestHeaders['X-BITOPRO-SIGNATURE'] = $signature;
             }
         } elseif ($apiName === 'public' && $method === 'GET') {
-            if (count($query) > 0) {
+            if ($queryLength > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }

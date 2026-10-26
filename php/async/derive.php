@@ -824,9 +824,9 @@ class derive extends Exchange {
          */
         $allInstruments = array();
         list($maxPages, $paramsMaxPages) = $this->handle_option_integer_and_params($params, 'getMarketsPaginated', 'maxMarketPages', 25);
-        list($pageSize, $paramsOmitted) = $this->handle_option_and_params($paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000);
-        $page = 1;
+        list($pageSize, $paramsOmitted) = $this->handle_option_integer_and_params($paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000);
         for ($i = 0; $i < $maxPages; $i++) {
+            $page = $i + 1;
             $requestExtension = array(
                 'page' => $page,
                 'page_size' => $pageSize,
@@ -842,7 +842,6 @@ class derive extends Exchange {
             if ($collected >= $totalCount) {
                 break;
             }
-            $page += 1;
         }
         return $allInstruments;
     }
@@ -1074,8 +1073,9 @@ class derive extends Exchange {
         $amount = $this->safe_string($stats, 'oi');
         $markPrice = $this->safe_string($interest, 'M');
         $value = null;
+        $isOption = $this->safe_bool($market, 'option', false);
         // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
-        if (($market !== null) && ($market['option'] !== true)) {
+        if (($market !== null) && ($isOption !== true)) {
             $value = Precise::string_mul($amount, $markPrice);
         }
         return $this->safe_open_interest(array(
@@ -1660,7 +1660,7 @@ class derive extends Exchange {
         // todo: check active spot markets after launch of v3
         $market = $this->market($symbol);
         $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        list($priceType, $paramsPrice) = $this->handle_option_and_params($params, 'fetchOHLCV', 'price');
+        list($priceType, $paramsPrice) = $this->handle_option_string_and_params($params, 'fetchOHLCV', 'price');
         $until = $this->safe_integer($paramsPrice, 'until');
         $paramsOmitted = $this->omit($paramsPrice, array( 'until' ));
         $duration = $this->parse_timeframe($timeframe);
@@ -2034,8 +2034,8 @@ class derive extends Exchange {
     public function sign_hash(string $hash, string $privateKey): string {
         $this->check_required_credentials();
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
-        $r = $signature['r'];
-        $s = $signature['s'];
+        $r = $this->safe_string($signature, 'r', '');
+        $s = $this->safe_string($signature, 's', '');
         $v = $this->int_to_base16($this->sum(27, $signature['v']));
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
@@ -2095,19 +2095,19 @@ class derive extends Exchange {
         $ACTION_TYPEHASH = $this->base16_to_binary('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         $TRADE_MODULE_ADDRESS = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'; // shared across mainnet and testnet in v3
         $priceString = $this->number_to_string($price);
-        $maxFee = null;
-        $paramsMaxFee = array();
-        list($maxFee, $paramsMaxFee) = $this->handle_option_and_params($paramsDeriveSubaccountId, 'createOrder', 'max_fee');
-        if ($maxFee === null) {
+        $maxFeeOptionAndParams = $this->handle_option_and_params($paramsDeriveSubaccountId, 'createOrder', 'max_fee');
+        $maxFeeString = $this->safe_string($maxFeeOptionAndParams, 0);
+        if ($maxFeeString === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a max_fee argument in params');
         }
-        $maxFeeString = $this->number_to_string($maxFee);
+        $paramsMaxFee = $this->safe_dict($maxFeeOptionAndParams, 1, array());
         $amountString = $this->number_to_string($amount);
+        $marketInfo = $this->safe_dict($market, 'info', array());
         $tradeModuleDataHash = $this->hash($this->eth_abi_encode(array(
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ), array(
-            $market['info']['base_asset_address'],
-            $this->convert_to_big_int($market['info']['base_asset_sub_id']), // options carry a huge encoded sub_id that overflows double precision, so it must stay integral
+            $marketInfo['base_asset_address'],
+            $this->convert_to_big_int($marketInfo['base_asset_sub_id']), // options carry a huge encoded sub_id that overflows double precision, so it must stay integral
             $this->convert_to_big_int(($this->parse_units($priceString))),
             $this->convert_to_big_int(($this->parse_units(($this->amount_to_precision($symbol, $amountString))))),
             $this->convert_to_big_int(($this->parse_units($maxFeeString))),
@@ -2271,11 +2271,12 @@ class derive extends Exchange {
         $priceString = $this->number_to_string($price);
         $maxFeeString = $this->safe_string($paramsDeriveSubaccountId, 'max_fee', '0');
         $amountString = $this->number_to_string($amount);
+        $marketInfo = $this->safe_dict($market, 'info', array());
         $tradeModuleDataHash = $this->hash($this->eth_abi_encode(array(
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ), array(
-            $market['info']['base_asset_address'],
-            $this->convert_to_big_int($market['info']['base_asset_sub_id']), // options carry a huge encoded sub_id that overflows double precision, so it must stay integral
+            $marketInfo['base_asset_address'],
+            $this->convert_to_big_int($marketInfo['base_asset_sub_id']), // options carry a huge encoded sub_id that overflows double precision, so it must stay integral
             $this->convert_to_big_int(($this->parse_units($priceString))),
             $this->convert_to_big_int(($this->parse_units(($this->amount_to_precision($symbol, $amountString))))),
             $this->convert_to_big_int(($this->parse_units($maxFeeString))),
@@ -2901,10 +2902,7 @@ class derive extends Exchange {
         //         "algo_slices_completed": null
         //     }
         //
-        $order = $this->safe_dict($rawOrder, 'data');
-        if ($order === null) {
-            $order = $rawOrder;
-        }
+        $order = $this->safe_dict($rawOrder, 'data', $rawOrder);
         $timestamp = $this->safe_integer($rawOrder, 'creation_timestamp'); // the nonce is no longer a usable fallback: v3 nonces are nanosecond-scale values with a random suffix
         $orderId = $this->safe_string($order, 'order_id');
         $marketId = $this->safe_string($order, 'instrument_name');
@@ -3742,7 +3740,8 @@ class derive extends Exchange {
                     $account['total'] = $this->safe_string($balance, 'amount');
                 } else {
                     $amount = $this->safe_string($balance, 'amount');
-                    $account['total'] = Precise::string_add($account['total'], $amount);
+                    $previousTotal = $this->safe_string($account, 'total');
+                    $account['total'] = Precise::string_add($previousTotal, $amount);
                 }
                 if ($code !== null) {
                     $result[$code] = $account;
@@ -4426,7 +4425,8 @@ class derive extends Exchange {
         }
         $optionsWallet = $this->safe_integer($this->options, 'subaccount_id');
         if ($optionsWallet !== null) {
-            return array( $optionsWallet, $paramsSubaccountId );
+            // parsed, not returned raw: every arm of this tuple has to hand back a plain value so the statically typed ports read the slot natively instead of through a runtime helper
+            return array( $this->parse_to_int($optionsWallet), $paramsSubaccountId );
         }
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.');
     }

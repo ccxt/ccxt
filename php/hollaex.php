@@ -356,13 +356,13 @@ class hollaex extends Exchange {
             $market = $this->safe_dict($pairs, $key);
             $baseId = $this->safe_string($market, 'pair_base');
             $quoteId = $this->safe_string($market, 'pair_2');
-            $base = $this->common_currency_code(strtoupper($baseId));
-            $quote = $this->common_currency_code(strtoupper($quoteId));
+            $baseCode = $this->common_currency_code(strtoupper($baseId));
+            $quoteCode = $this->common_currency_code(strtoupper($quoteId));
             $result[] = array(
                 'id' => $this->safe_string($market, 'name'),
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
+                'symbol' => $baseCode . '/' . $quoteCode,
+                'base' => $baseCode,
+                'quote' => $quoteCode,
                 'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
@@ -693,7 +693,7 @@ class hollaex extends Exchange {
         $keys = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $ticker = $tickers[$key];
+            $ticker = $this->safe_value($tickers, $key);
             $marketId = $this->safe_string($ticker, 'symbol', $key);
             $market = $this->safe_market($marketId, null, '-');
             $symbol = $market['symbol'];
@@ -860,7 +860,7 @@ class hollaex extends Exchange {
          * @see https://apidocs.hollaex.com/#tiers
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by $market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by $market $symbols
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -899,8 +899,9 @@ class hollaex extends Exchange {
         $makerFees = $this->safe_dict($fees, 'maker', array());
         $takerFees = $this->safe_dict($fees, 'taker', array());
         $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->symbols;
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $market = $this->market($symbol);
             $makerString = $this->safe_string($makerFees, $market['id']);
             $takerString = $this->safe_string($takerFees, $market['id']);
@@ -1007,7 +1008,7 @@ class hollaex extends Exchange {
         }
         $currencyIds = is_array($currenciesById) ? array_keys($currenciesById) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
+            $currencyId = $this->safe_string($currencyIds, $i, '');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $account['free'] = $this->safe_string($response, $currencyId . '_available');
@@ -1130,14 +1131,14 @@ class hollaex extends Exchange {
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
-         * fetches information on an $order made by the user
+         * fetches information on an order made by the user
          *
-         * @see https://apidocs.hollaex.com/#get-$order
+         * @see https://apidocs.hollaex.com/#get-order
          *
          * @param {string} $id
-         * @param {string} $symbol unified $symbol of the market the $order was made in
+         * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1168,11 +1169,10 @@ class hollaex extends Exchange {
         //                     "exchange_id": 176
         //                 }
         //             }
-        $order = $response;
-        if ($order === null) {
+        if ($response === null) {
             throw new OrderNotFound($this->id . ' fetchOrder() could not find order id ' . $id);
         }
-        return $this->parse_order($order);
+        return $this->parse_order($response);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {

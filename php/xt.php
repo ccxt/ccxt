@@ -1197,7 +1197,7 @@ class xt extends Exchange {
     public function parse_markets(mixed $markets) {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
-            $parsed = $this->parse_market($markets[$i]);
+            $parsed = $this->parse_market($this->safe_value($markets, $i));
             if ($parsed !== null) {
                 $result[] = $parsed;
             }
@@ -1775,10 +1775,11 @@ class xt extends Exchange {
         //         }
         //     }
         //
-        $ticker = $this->safe_value($response, 'result');
         if ($market['spot'] === true) {
-            return $this->parse_ticker($ticker[0], $market);
+            $tickers = $this->safe_list($response, 'result', array());
+            return $this->parse_ticker($tickers[0], $market);
         }
+        $ticker = $this->safe_dict($response, 'result', array());
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -4667,7 +4668,7 @@ class xt extends Exchange {
                     $result[$symbol] = $this->parse_market_leverage_tiers($entry, $market);
                 }
             } else {
-                $result[$symbol] = $this->parse_market_leverage_tiers($response[$i], $market);
+                $result[$symbol] = $this->parse_market_leverage_tiers($entry, $market);
             }
         }
         return $result;
@@ -5204,8 +5205,7 @@ class xt extends Exchange {
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            $key = $this->safe_string($breakEntry, 'symbol') . '_' . $this->safe_string($breakEntry, 'positionSide');
-            $breakBySymbolSide[$key] = $breakEntry;
+            $breakBySymbolSide[$this->safe_string($breakEntry, 'symbol', '') . '_' . $this->safe_string($breakEntry, 'positionSide', '')] = $breakEntry;
         }
         return $breakBySymbolSide;
     }
@@ -5216,9 +5216,7 @@ class xt extends Exchange {
          * @param {array} $entry a single $entry from a position/list response
          * @param {array} $breakBySymbolSide the result of indexPositionBreakList()
          */
-        $marketId = $this->safe_string($entry, 'symbol');
-        $key = $marketId . '_' . $this->safe_string($entry, 'positionSide');
-        $breakEntry = $this->safe_dict($breakBySymbolSide, $key);
+        $breakEntry = $this->safe_dict($breakBySymbolSide, $this->safe_string($entry, 'symbol', '') . '_' . $this->safe_string($entry, 'positionSide', ''));
         if ($breakEntry === null) {
             return $entry;
         }
@@ -5866,7 +5864,7 @@ class xt extends Exchange {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . $payload;
-        $query = $this->omit($params, $this->extract_params($path));
+        $query = $this->extend($this->omit($params, $this->extract_params($path)));
         $urlencoded = $this->urlencode($this->keysort($query));
         $headersValue = array(
             'Content-Type' => 'application/json',
@@ -5895,7 +5893,7 @@ class xt extends Exchange {
                 $payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' . $this->apiKey . '&xt-validate-recvwindow=' . $recvWindow . '&xt-validate-t' . 'imestamp=' . $timestamp;
                 if ($isUndefinedBody) {
                     if ($urlencoded !== '') {
-                        $url .= '?' . $urlencoded;
+                        $url = $apiUrl . $payload . '?' . $urlencoded;
                         $payloadString .= '#' . $method . '#' . $payload . '#' . $this->rawencode($this->keysort($query));
                     } else {
                         $payloadString .= '#' . $method . '#' . $payload;
@@ -5909,7 +5907,7 @@ class xt extends Exchange {
                 $payloadString = 'xt-validate-appkey=' . $this->apiKey . '&xt-validate-t' . 'imestamp=' . $timestamp; // we can't glue timestamp, breaks in php
                 if ($method === 'GET') {
                     if ($urlencoded !== '') {
-                        $url .= '?' . $urlencoded;
+                        $url = $apiUrl . $payload . '?' . $urlencoded;
                         $payloadString .= '#' . $payload . '#' . $urlencoded;
                     } else {
                         $payloadString .= '#' . $payload;
@@ -5924,7 +5922,7 @@ class xt extends Exchange {
             $headersValue['xt-validate-signature'] = $signature;
         } else {
             if ($urlencoded !== '') {
-                $url .= '?' . $urlencoded;
+                $url = $apiUrl . $payload . '?' . $urlencoded;
             }
         }
         $bodyValue = null;

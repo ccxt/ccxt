@@ -781,8 +781,8 @@ class btse extends Exchange {
             'contract' => $isSwap || $isFuture,
             'linear' => $isSpot ? null : true,
             'inverse' => $isSpot ? null : false,
-            'taker' => $fees['taker'],
-            'maker' => $fees['maker'],
+            'taker' => $this->safe_number($fees, 'taker'),
+            'maker' => $this->safe_number($fees, 'maker'),
             'contractSize' => $this->parse_number($contractSize),
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
@@ -1692,7 +1692,7 @@ class btse extends Exchange {
         $request = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -1741,8 +1741,8 @@ class btse extends Exchange {
         } else {
             // the futures endpoint does not support a count parameter, the limit is applied client-side
             $request = $this->omit($request, 'count');
-            if ($market !== null) {
-                $request['symbol'] = $this->futures_request_id($market);
+            if ($symbol !== null) {
+                $request['symbol'] = $this->futures_request_id($this->market($symbol));
             }
             //
             //     {
@@ -2106,16 +2106,21 @@ class btse extends Exchange {
                 $triggerPriceToSend = null;
                 if ($isStopLossOrder) {
                     $triggerOrderType = 'STOP_LOSS';
+                    if ($isLimitOrder) {
+                        $triggerOrderType = 'STOP_LOSS_LIMIT';
+                    }
                     $triggerPriceToSend = $stopLossPrice;
                 } else {
                     $triggerOrderType = 'TAKE_PROFIT';
+                    if ($isLimitOrder) {
+                        $triggerOrderType = 'TAKE_PROFIT_LIMIT';
+                    }
                     $triggerPriceToSend = $triggerPrice;
                     if ($triggerPriceToSend === null) {
                         $triggerPriceToSend = $takeProfitPrice;
                     }
                 }
                 if ($isLimitOrder) {
-                    $triggerOrderType = $triggerOrderType . '_LIMIT';
                     $request['orderPrice'] = $this->price_to_precision($symbol, $price);
                 }
                 $request['triggerOrderType'] = $triggerOrderType;
@@ -2610,16 +2615,16 @@ class btse extends Exchange {
         $response = null;
         if ($marketTypeOption === 'spot') {
             // the literal ALL value cancels every open order across all pairs
-            $request['symbol'] = ($market !== null) ? $market['id'] : 'ALL';
+            $request['symbol'] = ($symbol !== null) ? $this->safe_string($market, 'id') : 'ALL';
             $response = Async\await($this->privateDeleteSpotApiV4TradeOrdersAll($this->extend($request, $paramsMarketType)));
         } else {
-            if ($market === null) {
+            if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument for contract markets');
             }
             // the unified futures api has no cancel all endpoint, the legacy
             // endpoint cancels every order for the symbol when no order id is
             // sent, and it identifies contracts by the short symbol form
-            $request['symbol'] = $this->futures_request_id($market);
+            $request['symbol'] = $this->futures_request_id($this->market($symbol));
             $response = Async\await($this->privateDeleteFuturesApiV23Order($this->extend($request, $paramsMarketType)));
         }
         return $this->parse_orders($response, $market);
@@ -2685,13 +2690,13 @@ class btse extends Exchange {
         list($marketTypeOption, $paramsMarketType) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params, $marketType);
         $response = null;
         if ($marketTypeOption === 'spot') {
-            if ($market !== null) {
-                $request['symbol'] = $market['id'];
+            if ($symbol !== null) {
+                $request['symbol'] = $this->safe_string($market, 'id');
             }
             $response = Async\await($this->privateGetSpotApiV4TradeOrders($this->extend($request, $paramsMarketType)));
         } else {
-            if ($market !== null) {
-                $request['symbol'] = $this->futures_request_id($market);
+            if ($symbol !== null) {
+                $request['symbol'] = $this->futures_request_id($this->market($symbol));
             }
             $response = Async\await($this->privateGetFuturesApiV3TradeOrders($this->extend($request, $paramsMarketType)));
         }
@@ -2902,7 +2907,7 @@ class btse extends Exchange {
         $responseList = $this->array_concat(array(), $rows);
         $result = array();
         for ($i = 0; $i < count($responseList); $i++) {
-            $feeInfo = $responseList[$i];
+            $feeInfo = $this->safe_dict($responseList, $i, array());
             $marketId = $this->safe_string($feeInfo, 'symbol');
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
@@ -2920,7 +2925,7 @@ class btse extends Exchange {
         return $result;
     }
 
-    public function request_wallet_history_rows(string $methodName, array $historyTypes, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function request_wallet_history_rows(string $methodName, array $historyTypes, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_request_wallet_history_rows(...))($methodName, $historyTypes, $code, $since, $limit, $params);
     }
 
@@ -2941,7 +2946,7 @@ class btse extends Exchange {
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['asset'] = $currency['id'];
+            $request['asset'] = $this->safe_string($currency, 'id');
         } elseif ($walletType === 'SPOT') {
             // the exchange rejects spot wallet history queries without an asset,
             // verified live, and omitting walletType still defaults to spot
@@ -2990,19 +2995,19 @@ class btse extends Exchange {
         // filter and returned the whole mixed ledger
         $allowed = array();
         for ($i = 0; $i < count($typesList); $i++) {
-            $historyType = $typesList[$i];
+            $historyType = $this->safe_string($typesList, $i, '');
             $allowed[$historyType] = true;
             $allowed[$this->capitalize(strtolower($historyType))] = true;
         }
         $rows = array();
         for ($i = 0; $i < count($rawRows); $i++) {
-            $entry = $rawRows[$i];
+            $entry = $this->safe_dict($rawRows, $i, array());
             $type = $this->safe_string($entry, 'type', '');
             if (is_array($allowed) && array_key_exists($type ?? '', $allowed)) {
                 $rows[] = $entry;
             }
         }
-        return array( $rows, $currency );
+        return $this->parse_transactions($rows, $currency, $since, $limit);
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -3015,7 +3020,7 @@ class btse extends Exchange {
          *
          * @see https://docs.btse.com/wallet/rest/get-user-wallet-history
          *
-         * @param {string} [$code] unified $currency $code, required for the default spot wallet
+         * @param {string} [$code] unified currency $code, required for the default spot wallet
          * @param {int} [$since] the earliest time in ms to fetch transactions for
          * @param {int} [$limit] the maximum number of transaction structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3023,8 +3028,7 @@ class btse extends Exchange {
          * @param {string} [$params->walletType] wallet to query, SPOT by default, ISOLATED requires $params->walletName
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
-        list($rows, $currency) = Async\await($this->request_wallet_history_rows('fetchDepositsWithdrawals', array( 'DEPOSIT', 'WITHDRAW' ), $code, $since, $limit, $params));
-        return $this->parse_transactions($rows, $currency, $since, $limit);
+        return Async\await($this->request_wallet_history_rows('fetchDepositsWithdrawals', array( 'DEPOSIT', 'WITHDRAW' ), $code, $since, $limit, $params));
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -3037,7 +3041,7 @@ class btse extends Exchange {
          *
          * @see https://docs.btse.com/wallet/rest/get-user-wallet-history
          *
-         * @param {string} [$code] unified $currency $code, required for the default spot wallet
+         * @param {string} [$code] unified currency $code, required for the default spot wallet
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of transaction structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3045,8 +3049,7 @@ class btse extends Exchange {
          * @param {string} [$params->walletType] wallet to query, SPOT by default, ISOLATED requires $params->walletName
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
-        list($rows, $currency) = Async\await($this->request_wallet_history_rows('fetchDeposits', array( 'DEPOSIT' ), $code, $since, $limit, $params));
-        return $this->parse_transactions($rows, $currency, $since, $limit);
+        return Async\await($this->request_wallet_history_rows('fetchDeposits', array( 'DEPOSIT' ), $code, $since, $limit, $params));
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -3059,7 +3062,7 @@ class btse extends Exchange {
          *
          * @see https://docs.btse.com/wallet/rest/get-user-wallet-history
          *
-         * @param {string} [$code] unified $currency $code, required for the default spot wallet
+         * @param {string} [$code] unified currency $code, required for the default spot wallet
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of transaction structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3067,8 +3070,7 @@ class btse extends Exchange {
          * @param {string} [$params->walletType] wallet to query, SPOT by default, ISOLATED requires $params->walletName
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
-        list($rows, $currency) = Async\await($this->request_wallet_history_rows('fetchWithdrawals', array( 'WITHDRAW' ), $code, $since, $limit, $params));
-        return $this->parse_transactions($rows, $currency, $since, $limit);
+        return Async\await($this->request_wallet_history_rows('fetchWithdrawals', array( 'WITHDRAW' ), $code, $since, $limit, $params));
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -3174,7 +3176,7 @@ class btse extends Exchange {
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['asset'] = $currency['id'];
+            $request['asset'] = $this->safe_string($currency, 'id');
         } elseif ($walletType === 'SPOT') {
             // the exchange rejects spot wallet history queries without an asset,
             // verified live, and omitting walletType still defaults to spot
@@ -3950,7 +3952,7 @@ class btse extends Exchange {
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384');
             $requestHeaders = array(
                 'request-api' => $this->apiKey,
-                'request-nonce' => (string) $nonce,
+                'request-nonce' => $this->number_to_string($nonce),
                 'request-sign' => $signature,
                 'Content-Type' => 'application/json',
                 'BROKER-ID' => 'ccxt',
@@ -3961,11 +3963,12 @@ class btse extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function futures_request_id(mixed $market) {
+    public function futures_request_id(array $market) {
         // the futures v3 trading api identifies contracts by the short trade-currency
         // form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read
         // from the raw market info so that cached markets resolve it as well
-        return $this->safe_string($market['info'], 'tradeCurrency', $market['id']);
+        $marketInfo = $this->safe_dict($market, 'info', array());
+        return $this->safe_string($marketInfo, 'tradeCurrency', $this->safe_string($market, 'id'));
     }
 
     public function clean_path(string $path): string {

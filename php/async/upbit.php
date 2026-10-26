@@ -558,12 +558,16 @@ class upbit extends Exchange {
         if ($id === null) {
             throw new ExchangeError($this->id . ' parseMarket() missing id');
         }
-        list($quoteId, $baseId) = explode('-', $id);
+        $parts = explode('-', $id);
+        $quoteId = $this->safe_string($parts, 0);
+        $baseId = $this->safe_string($parts, 1);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         if (($base === null) || ($quote === null)) {
             return null;
         }
+        $tradingFeesByQuoteCurrency = $this->safe_dict($this->options, 'tradingFeesByQuoteCurrency', array());
+        $tradingFees = $this->safe_dict($this->fees, 'trading', array());
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
@@ -583,8 +587,8 @@ class upbit extends Exchange {
             'contract' => false,
             'linear' => null,
             'inverse' => null,
-            'taker' => $this->safe_number($this->options['tradingFeesByQuoteCurrency'], $quote, $this->fees['trading']['taker']),
-            'maker' => $this->safe_number($this->options['tradingFeesByQuoteCurrency'], $quote, $this->fees['trading']['maker']),
+            'taker' => $this->safe_number($tradingFeesByQuoteCurrency, $quote, $this->safe_number($tradingFees, 'taker')),
+            'maker' => $this->safe_number($tradingFeesByQuoteCurrency, $quote, $this->safe_number($tradingFees, 'maker')),
             'contractSize' => null,
             'expiry' => null,
             'expiryDatetime' => null,
@@ -691,9 +695,8 @@ class upbit extends Exchange {
         }
         $ids = null;
         if ($symbols === null) {
-            $allIds = $this->ids;
-            if ($allIds !== null) {
-                $ids = implode(',', $allIds);
+            if ($this->ids !== null) {
+                $ids = implode(',', $this->ids);
             }
         } else {
             $marketIds = $this->market_ids($symbols);
@@ -738,7 +741,7 @@ class upbit extends Exchange {
         $result = array();
         $orderbooks = $this->to_array($response);
         for ($i = 0; $i < count($orderbooks); $i++) {
-            $orderbook = $orderbooks[$i];
+            $orderbook = $this->safe_dict($orderbooks, $i, array());
             $marketId = $this->safe_string($orderbook, 'market');
             $symbol = $this->safe_symbol($marketId, null, '-');
             $timestamp = $this->safe_integer($orderbook, 'timestamp');
@@ -875,7 +878,7 @@ class upbit extends Exchange {
                 if ($quoteCurrencies !== '') {
                     $quoteCurrencies = $quoteCurrencies . ',';
                 }
-                $quoteCurrencies = $quoteCurrencies . $sortedQuoteIds[$i];
+                $quoteCurrencies = $quoteCurrencies . $this->safe_string($sortedQuoteIds, $i, '');
             }
             $request = array(
                 'quote_currencies' => $quoteCurrencies,
@@ -930,11 +933,10 @@ class upbit extends Exchange {
         $idsString = '';
         $queries = array();
         for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
             if ($idsString !== '') {
                 $idsString = $idsString . ',';
             }
-            $idsString = $idsString . $id;
+            $idsString = $idsString . $this->safe_string($ids, $i, '');
             if (strlen($idsString) >= $maxQueryLength) {
                 $queries[] = $idsString;
                 $idsString = '';
@@ -1002,7 +1004,7 @@ class upbit extends Exchange {
             $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         }
         $side = null;
-        $askOrBid = $this->safe_string_lower_2($trade, 'ask_bid', 'side');
+        $askOrBid = $this->safe_string_lower_2($trade, 'ask_bid', 'side', '');
         if ($askOrBid === 'ask') {
             $side = 'sell';
         } elseif ($askOrBid === 'bid') {
@@ -1179,14 +1181,15 @@ class upbit extends Exchange {
         $fetchMarketResponse = Async\await($this->fetch_markets($params));
         $response = array();
         for ($i = 0; $i < count($fetchMarketResponse); $i++) {
+            $item = $this->safe_dict($fetchMarketResponse, $i);
             $element = array();
-            $element['maker'] = $this->safe_number($fetchMarketResponse[$i], 'maker');
-            $element['taker'] = $this->safe_number($fetchMarketResponse[$i], 'taker');
-            $element['symbol'] = $this->safe_string($fetchMarketResponse[$i], 'symbol');
+            $element['maker'] = $this->safe_number($item, 'maker');
+            $element['taker'] = $this->safe_number($item, 'taker');
+            $element['symbol'] = $this->safe_string($item, 'symbol');
             $element['percentage'] = true;
             $element['tierBased'] = false;
-            $element['info'] = $fetchMarketResponse[$i];
-            $feeSymbol = $this->safe_string($fetchMarketResponse[$i], 'symbol');
+            $element['info'] = $item;
+            $feeSymbol = $this->safe_string($item, 'symbol');
             if ($feeSymbol !== null) {
                 $response[$feeSymbol] = $element;
             }
@@ -2030,7 +2033,8 @@ class upbit extends Exchange {
         $numTrades = count($trades);
         if ($numTrades > 0) {
             // the timestamp in fetchOrder trades is missing
-            $lastTradeTimestamp = $trades[$numTrades - 1]['timestamp'];
+            $lastTrade = $this->safe_dict($trades, $numTrades - 1, array());
+            $lastTradeTimestamp = $lastTrade['timestamp'];
             $getFeesFromTrades = false;
             if ($feeCost === null) {
                 $getFeesFromTrades = true;
@@ -2041,7 +2045,7 @@ class upbit extends Exchange {
                 $trade = $this->safe_dict($trades, $i);
                 $cost = Precise::string_add($cost, $this->safe_string($trade, 'cost'));
                 if ($getFeesFromTrades) {
-                    $tradeFee = $this->safe_dict($trades[$i], 'fee', array());
+                    $tradeFee = $this->safe_dict($trade, 'fee', array());
                     $tradeFeeCost = $this->safe_string($tradeFee, 'cost');
                     if ($tradeFeeCost !== null) {
                         $feeCost = Precise::string_add($feeCost, $tradeFeeCost);
@@ -2558,8 +2562,9 @@ class upbit extends Exchange {
         ));
         $url .= '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
+        $numQueryKeys = count($query);
         if ($method !== 'POST') {
-            if (count($query) > 0) {
+            if ($numQueryKeys > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }
@@ -2568,21 +2573,19 @@ class upbit extends Exchange {
         if ($hasBody) {
             $requestBody = $this->json($params);
         }
-        $privateHeaders = null;
+        $headers = array();
         if ($apiName === 'private') {
             $this->check_required_credentials();
-            $privateHeaders = array();
             $nonce = $this->uuid();
             $request = array(
                 'access_key' => $this->apiKey,
                 'nonce' => $nonce,
             );
-            $hasQuery = count($query);
             $auth = null;
             if ($hasBody) {
-                $privateHeaders['Content-Type'] = 'application/json';
+                $headers['Content-Type'] = 'application/json';
             }
-            if ($hasQuery !== 0) {
+            if ($numQueryKeys !== 0) {
                 $auth = $this->rawencode($query);
             }
             if ($auth !== null) {
@@ -2591,9 +2594,9 @@ class upbit extends Exchange {
                 $request['query_hash_alg'] = 'SHA512';
             }
             $token = $this->jwt($request, $this->encode($this->secret), 'sha256');
-            $privateHeaders['Authorization'] = 'Bearer ' . $token;
+            $headers['Authorization'] = 'Bearer ' . $token;
         }
-        $requestHeaders = ($apiName === 'private') ? $privateHeaders : null;
+        $requestHeaders = ($apiName === 'private') ? $headers : null;
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 

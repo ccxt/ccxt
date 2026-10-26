@@ -163,9 +163,8 @@ class paymium extends Exchange {
             $free = 'balance_' . $currencyId;
             if (is_array($response) && array_key_exists($free ?? '', $response)) {
                 $account = $this->account();
-                $used = 'locked_' . $currencyId;
                 $account['free'] = $this->safe_string($response, $free);
-                $account['used'] = $this->safe_string($response, $used);
+                $account['used'] = $this->safe_string($response, 'locked_' . $currencyId);
                 $result[$code] = $account;
             }
         }
@@ -304,7 +303,8 @@ class paymium extends Exchange {
         $marketResolved = $this->safe_market(null, $market);
         $side = $this->safe_string($trade, 'side');
         $price = $this->safe_string($trade, 'price');
-        $amountField = 'traded_' . strtolower($marketResolved['base']);
+        $baseId = $this->safe_string($marketResolved, 'base', '');
+        $amountField = 'traded_' . strtolower($baseId);
         $amount = $this->safe_string($trade, $amountField);
         return $this->safe_trade(array(
             'info' => $trade,
@@ -638,8 +638,9 @@ class paymium extends Exchange {
         $baseUrl = $baseApiUrl;
         $url = $baseUrl . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
+        $hasQuery = count($query) > 0;
         if ($api[0] === 'public') {
-            if (count($query) > 0) {
+            if ($hasQuery) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -651,7 +652,6 @@ class paymium extends Exchange {
                 'Api-Key' => $this->apiKey,
                 'Api-Nonce' => $nonce,
             );
-            $hasQuery = count($query) > 0;
             $signedBody = null;
             if ($method === 'POST' && $hasQuery) {
                 $signedBody = $this->json($query);
@@ -664,7 +664,7 @@ class paymium extends Exchange {
             } else {
                 if ($hasQuery) {
                     $queryString = $this->urlencode($query);
-                    $auth .= $queryString;
+                    $auth = $nonce . $url . $queryString;
                     $url .= '?' . $queryString;
                 }
             }

@@ -153,7 +153,7 @@ class bullish extends \ccxt\async\bullish {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $messageHash = 'trades::' . $market['symbol'];
+        $messageHash = 'trades::' . $this->safe_string($market, 'symbol', '');
         $url = '/trading-api/v1/market-data/trades';
         $request = array(
             'topic' => 'anonymousTrades',
@@ -204,11 +204,12 @@ class bullish extends \ccxt\async\bullish {
             $this->trades[$symbol] = $tradesArrayCache;
         }
         $tradesArray = $this->trades[$symbol];
-        for ($i = 0; $i < count($trades); $i++) {
-            $tradesArray->append($trades[$i]);
+        $tradesList = $this->to_array($trades);
+        for ($i = 0; $i < count($tradesList); $i++) {
+            $tradesArray->append($tradesList[$i]);
         }
         $this->trades[$symbol] = $tradesArray;
-        $messageHash = 'trades::' . $market['symbol'];
+        $messageHash = 'trades::' . $this->safe_string($market, 'symbol', '');
         $client->resolve($tradesArray, $messageHash);
     }
 
@@ -230,14 +231,13 @@ class bullish extends \ccxt\async\bullish {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $wsUrl = $this->safe_string($this->urls['api']['ws'], 'public');
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' watchTicker() has no public websocket url');
         }
-        $url = $wsUrl . '/trading-api/v1/market-data/tick/' . $market['id'];
         $messageHash = 'ticker::' . $symbolValue;
-        return Async\await($this->watch($url, $messageHash, $params, $messageHash)); // no need to send a subscribe message, the server sends a ticker update on connect
+        return Async\await($this->watch($wsUrl . '/trading-api/v1/market-data/tick/' . $this->safe_string($market, 'id', ''), $messageHash, $params, $messageHash)); // no need to send a subscribe message, the server sends a ticker update on connect
     }
 
     public function handle_ticker(Client $client, array $message) {
@@ -322,7 +322,7 @@ class bullish extends \ccxt\async\bullish {
         }
         $market = $this->market($symbol);
         $url = '/trading-api/v1/market-data/orderbook';
-        $messageHash = 'orderbook::' . $market['symbol'];
+        $messageHash = 'orderbook::' . $this->safe_string($market, 'symbol', '');
         $request = array(
             'topic' => 'l2Orderbook', // 'l2Orderbook' returns only snapshots while 'l1Orderbook' returns only updates
             'symbol' => $market['id'],
@@ -385,13 +385,13 @@ class bullish extends \ccxt\async\bullish {
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
-        for ($i = 0; $i < count($entry); $i++) {
+        $entries = $this->to_array($entry);
+        for ($i = 0; $i < count($entries); $i++) {
             if (fmod($i, 2) !== 0) {
                 continue;
             }
-            $price = $this->safe_string($entry, $i);
-            $amount = $this->safe_string($entry, $i + 1);
-            $result[] = array( $price, $amount );
+            $price = $this->safe_string($entries, $i);
+            $result[] = array( $price, $this->safe_string($entries, $i + 1) );
         }
         return $result;
     }
@@ -421,7 +421,7 @@ class bullish extends \ccxt\async\bullish {
         $symbolResolved = null;
         if ($symbol !== null) {
             $symbolResolved = $this->symbol($symbol);
-            $messageHash = $messageHash . '::' . $symbolResolved;
+            $messageHash = $subscribeHash . '::' . $symbolResolved;
         }
         $request = array(
             'topic' => 'orders',
@@ -545,7 +545,7 @@ class bullish extends \ccxt\async\bullish {
         $symbolResolved = null;
         if ($symbol !== null) {
             $symbolResolved = $this->symbol($symbol);
-            $messageHash .= '::' . $symbolResolved;
+            $messageHash = $subscribeHash . '::' . $symbolResolved;
         }
         $request = array(
             'topic' => 'trades',

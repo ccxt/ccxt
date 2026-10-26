@@ -1295,16 +1295,14 @@ class gate extends Exchange {
         $optionParts = explode('-', $symbol);
         $symbolBase = explode('/', $symbol);
         $marketIdBase = explode('_', $symbol);
-        $base = null;
-        $expiry = $this->safe_string($optionParts, 1);
-        if (mb_strpos($symbol, '/') > -1) {
-            $base = $this->safe_string($symbolBase, 0);
-        } else {
-            $base = $this->safe_string($marketIdBase, 0);
+        $base = $this->safe_string($symbolBase, 0, '');
+        $expiry = $this->safe_string($optionParts, 1, '');
+        if (mb_strpos($symbol, '/') === -1) {
+            $base = $this->safe_string($marketIdBase, 0, '');
             $expiry = mb_substr($expiry, 2, 8 - 2); // convert 20230728 to 230728
         }
-        $strike = $this->safe_string($optionParts, 2);
-        $optionType = $this->safe_string($optionParts, 3);
+        $strike = $this->safe_string($optionParts, 2, '');
+        $optionType = $this->safe_string($optionParts, 3, '');
         $datetime = $this->convert_expire_date($expiry);
         $timestamp = $this->parse8601($datetime);
         return array(
@@ -1826,9 +1824,8 @@ class gate extends Exchange {
                 if (($base === null) || ($quote === null)) {
                     continue;
                 }
-                $symbol = $base . '/' . $quote;
                 $expiry = $this->safe_timestamp($market, 'expiration_time');
-                $strike = $this->safe_string($market, 'strike_price');
+                $strike = $this->safe_string($market, 'strike_price', '');
                 $isCall = $this->safe_bool($market, 'is_call');
                 $optionLetter = 'P';
                 if ($isCall === true) {
@@ -1838,7 +1835,7 @@ class gate extends Exchange {
                 if ($isCall === true) {
                     $optionType = 'call';
                 }
-                $symbol = $symbol . ':' . $quote . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $optionLetter;
+                $symbol = $base . '/' . $quote . ':' . $quote . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $optionLetter;
                 $priceDeviate = $this->safe_string($market, 'order_price_deviate');
                 $markPrice = $this->safe_string($market, 'mark_price');
                 $minMultiplier = Precise::string_sub('1', $priceDeviate);
@@ -2814,7 +2811,7 @@ class gate extends Exchange {
         return $this->parse_funding_histories($response, $symbolResolved, $since, $limit);
     }
 
-    public function parse_funding_histories(mixed $response, ?string $symbol, ?int $since, ?int $limit): array {
+    public function parse_funding_histories(array $response, ?string $symbol, ?int $since, ?int $limit): array {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $this->safe_dict($response, $i);
@@ -3529,9 +3526,10 @@ class gate extends Exchange {
         $paramsOmitted = $this->omit($paramsRequest, 'until');
         if ($since !== null) {
             $duration = $this->parse_timeframe($timeframe);
-            $request['from'] = $this->parse_to_int($since / 1000);
+            $fromTimestamp = $this->parse_to_int($since / 1000);
+            $request['from'] = $fromTimestamp;
             $distance = ($limitValue - 1) * $duration;
-            $toTimestamp = $this->sum($request['from'], $distance);
+            $toTimestamp = $this->sum($fromTimestamp, $distance);
             $currentTimestamp = $this->seconds();
             $to = min($toTimestamp, $currentTimestamp);
             if ($until !== null) {
@@ -3879,7 +3877,10 @@ class gate extends Exchange {
         }
         $marginMode = null;
         $request = array();
-        $market = ($symbol !== null) ? $this->market($symbol) : null;
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         $until = $this->safe_integer($paramsPaginate, 'until');
         $paramsOmitted = $this->omit($paramsPaginate, array( 'until' ));
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchMyTrades', $market, $paramsOmitted);
@@ -4370,7 +4371,7 @@ class gate extends Exchange {
         $type = null;
         $amountString = $this->safe_string($transaction, 'amount');
         if ($id !== null) {
-            if ($id[0] === 'b') {
+            if (str_starts_with($id, 'b')) {
                 // GateCode handling
                 $type = Precise::string_gt($amountString, '0') ? 'deposit' : 'withdrawal';
                 $amountString = Precise::string_abs($amountString);
@@ -4460,9 +4461,9 @@ class gate extends Exchange {
         }
         $this->load_unified_status();
         $market = $this->market($symbol);
-        $trigger = $this->safe_value($params, 'trigger');
-        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
+        $trigger = $this->safe_bool($params, 'trigger');
+        $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_number($params, 'stopLossPrice', $triggerPrice);
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         $isStopLossOrder = $stopLossPrice !== null;
         $isTakeProfitOrder = $takeProfitPrice !== null;
@@ -4644,17 +4645,17 @@ class gate extends Exchange {
         }
         $market = $this->market($symbol);
         $contract = $market['contract'];
-        $trigger = $this->safe_value($params, 'trigger');
-        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
-        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        $trigger = $this->safe_bool($params, 'trigger');
+        $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_number($params, 'stopLossPrice', $triggerPrice);
+        $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
         $isStopLossOrder = $stopLossPrice !== null;
         $isTakeProfitOrder = $takeProfitPrice !== null;
         $isTpsl = $isStopLossOrder || $isTakeProfitOrder;
         if ($isStopLossOrder && $isTakeProfitOrder) {
             throw new ExchangeError($this->id . ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
-        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly');
         $exchangeSpecificTimeInForce = $this->safe_string_lower_n($params, array( 'timeInForce', 'tif', 'time_in_force' ));
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', $exchangeSpecificTimeInForce === 'poc', $params);
         $timeInForce = $this->handle_time_in_force($paramsPostOnly);
@@ -4663,7 +4664,8 @@ class gate extends Exchange {
         }
         // we only omit the unified params here
         // this is because the other params will get extended into the request
-        $clientOrderId = $this->safe_string_2($paramsPostOnly, 'text', 'clientOrderId');
+        $clientOrderIdRaw = $this->safe_string_2($paramsPostOnly, 'text', 'clientOrderId');
+        $clientOrderId = $clientOrderIdRaw;
         $query = $this->omit($paramsPostOnly, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly', 'clientOrderId' ));
         $isLimitOrder = ($type === 'limit');
         $isMarketOrder = ($type === 'market');
@@ -4703,7 +4705,7 @@ class gate extends Exchange {
         if ($useGateFuturesDecimalSize) {
             $sizeRequest = $signedAmount;
         }
-        $request = null;
+        $request = array();
         $nonTriggerOrder = !$isTpsl && ($trigger === null);
         if ($nonTriggerOrder) {
             if ($contract === true) {
@@ -4779,17 +4781,17 @@ class gate extends Exchange {
                 }
             }
             $textIsRequired = $this->safe_bool($query, 'textIsRequired', false);
-            if ($clientOrderId !== null) {
+            if ($clientOrderIdRaw !== null) {
                 // user-defined, must follow the rules if not empty
                 //     prefixed with t-
                 //     no longer than 28 bytes without t- prefix
                 //     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
-                if (strlen($clientOrderId) > 28) {
+                if (strlen($clientOrderIdRaw) > 28) {
                     throw new BadRequest($this->id . ' createOrder () clientOrderId or text param must be up to 28 characters');
                 }
                 $query = $this->omit($query, 'textIsRequired');
-                if ($clientOrderId[0] !== 't') {
-                    $clientOrderId = 't-' . $clientOrderId;
+                if (!str_starts_with($clientOrderIdRaw, 't')) {
+                    $clientOrderId = 't-' . $clientOrderIdRaw;
                 }
                 $request['text'] = $clientOrderId;
             } else {
@@ -4804,28 +4806,38 @@ class gate extends Exchange {
             }
             if ($contract === true) {
                 // contract conditional order
-                $request = array(
-                    'initial' => array(
-                        'contract' => $market['id'],
-                        // positive = buy, negative = sell, set to 0 to close the position
-                        // 'price': (price === 0) ? '0' : this.priceToPrecision (symbol, price), // set to 0 to use market price
-                        // 'close': false, // set to true if trying to close the position
-                        // 'tif': 'gtc', // gtc, ioc, if using market price, only ioc is supported
-                        // 'text': clientOrderId, // web, api, app
-                        // 'reduce_only': false,
-                    ),
-                    'settle' => $market['settleId'],
+                $initial = array(
+                    'contract' => $market['id'],
+                    // positive = buy, negative = sell, set to 0 to close the position
+                    // 'price': (price === 0) ? '0' : this.priceToPrecision (symbol, price), // set to 0 to use market price
+                    // 'close': false, // set to true if trying to close the position
+                    // 'tif': 'gtc', // gtc, ioc, if using market price, only ioc is supported
+                    // 'text': clientOrderId, // web, api, app
+                    // 'reduce_only': false,
                 );
                 if ($useGateFuturesDecimalSize) {
-                    $request['initial']['amount'] = $signedAmount; // FuturesInitialOrder.amount takes precedence over size
+                    $initial['amount'] = $signedAmount; // FuturesInitialOrder.amount takes precedence over size
                 } else {
-                    $request['initial']['size'] = $amountResolved;
+                    $initial['size'] = $amountResolved;
                 }
                 if ($type === 'market') {
-                    $request['initial']['price'] = '0';
+                    $initial['price'] = '0';
                 } else {
-                    $request['initial']['price'] = ($priceResolved === 0) ? '0' : $this->price_to_precision($symbol, $priceResolved);
+                    $initial['price'] = ($priceResolved === 0) ? '0' : $this->price_to_precision($symbol, $priceResolved);
                 }
+                if ($reduceOnly !== null) {
+                    $initial['reduce_only'] = $reduceOnly;
+                }
+                if ($timeInForce !== null) {
+                    $initial['tif'] = $timeInForce;
+                }
+                if ($clientOrderId !== null) {
+                    $initial['text'] = $clientOrderId;
+                }
+                $request = array(
+                    'initial' => $initial,
+                    'settle' => $market['settleId'],
+                );
                 if ($trigger === null) {
                     $rule = null;
                     $triggerOrderPrice = null;
@@ -4893,14 +4905,15 @@ class gate extends Exchange {
                         $rule = ($side === 'buy') ? '<=' : '>=';
                         $triggerOrderPrice = $this->price_to_precision($symbol, $takeProfitPrice);
                     }
-                    $request['trigger'] = array(
+                    $triggerRequest = array(
                         'price' => $this->price_to_precision($symbol, $triggerOrderPrice),
                         'rule' => $rule, // >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
                         'expiration' => $expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
                     );
                     if ($clientOrderId !== null) {
-                        $request['trigger']['text'] = $clientOrderId;
+                        $triggerRequest['text'] = $clientOrderId;
                     }
+                    $request['trigger'] = $triggerRequest;
                 }
             }
         }
@@ -4934,11 +4947,9 @@ class gate extends Exchange {
     public function edit_order_request(string $id, ?string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         $market = $this->market($symbol);
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('editOrder', $market, $params);
-        $account = $this->convert_type_to_account($marketType);
+        $accountParsed = $this->convert_type_to_account($marketType);
         list($isUnifiedAccount, $paramsUnifiedAccount) = $this->handle_option_bool_and_params($paramsMarketType, 'editOrder', 'unifiedAccount', false);
-        if ($isUnifiedAccount) {
-            $account = 'unified';
-        }
+        $account = $isUnifiedAccount ? 'unified' : $accountParsed;
         $isLimitOrder = ($type === 'limit');
         if ($account === 'spot') {
             if (!$isLimitOrder) {
@@ -5375,9 +5386,10 @@ class gate extends Exchange {
         $clientOrderId = $this->safe_string($order, 'text');
         if ($clientOrderId === null) {
             if (is_array($order) && array_key_exists('initial' ?? '', $order)) {
-                $clientOrderId = $this->safe_string($order['initial'], 'text');
+                $clientOrderId = $this->safe_string($initial, 'text');
             } elseif (is_array($order) && array_key_exists('trigger' ?? '', $order)) {
-                $clientOrderId = $this->safe_string($order['trigger'], 'text');
+                $triggerOrder = $this->safe_dict($order, 'trigger', array());
+                $clientOrderId = $this->safe_string($triggerOrder, 'text');
             }
         }
         return $this->safe_order(array(
@@ -5408,18 +5420,22 @@ class gate extends Exchange {
     }
 
     public function fetch_order_request(string $id, ?string $symbol = null, $params = array()): array {
-        $market = ($symbol === null) ? null : $this->market($symbol);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         $trigger = $this->safe_bool_n($params, array( 'trigger', 'is_stop_order', 'stop' ), false);
         $paramsOmitted = $this->omit($params, array( 'is_stop_order', 'stop', 'trigger' ));
-        $clientOrderId = $this->safe_string_2($paramsOmitted, 'text', 'clientOrderId');
+        $clientOrderIdRaw = $this->safe_string_2($paramsOmitted, 'text', 'clientOrderId');
         $orderId = $id;
-        if ($clientOrderId !== null) {
-            if ($clientOrderId[0] !== 't') {
-                $clientOrderId = 't-' . $clientOrderId;
+        if ($clientOrderIdRaw !== null) {
+            if (!str_starts_with($clientOrderIdRaw, 't')) {
+                $orderId = 't-' . $clientOrderIdRaw;
+            } else {
+                $orderId = $clientOrderIdRaw;
             }
-            $orderId = $clientOrderId;
         }
-        $paramsOrder = ($clientOrderId !== null) ? $this->omit($paramsOmitted, array( 'text', 'clientOrderId' )) : $paramsOmitted;
+        $paramsOrder = ($clientOrderIdRaw !== null) ? $this->omit($paramsOmitted, array( 'text', 'clientOrderId' )) : $paramsOmitted;
         list($type, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $paramsOrder);
         $contract = ($type === 'swap') || ($type === 'future') || ($type === 'option');
         list($request, $requestParams) = $contract ? $this->prepare_request($market, $type, $query) : $this->spot_order_prepare_request($market, $trigger, $query);
@@ -5453,7 +5469,10 @@ class gate extends Exchange {
             $this->load_markets();
         }
         $this->load_unified_status();
-        $market = ($symbol === null) ? null : $this->market($symbol);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         $type = $this->handle_market_type_and_params('fetchOrder', $market, $params)[0];
         $trigger = $this->safe_bool_n($params, array( 'trigger', 'is_stop_order', 'stop' ), false);
         list($request, $requestParams) = $this->fetch_order_request($id, $symbol, $params);
@@ -5823,7 +5842,10 @@ class gate extends Exchange {
             $this->load_markets();
         }
         $this->load_unified_status();
-        $market = ($symbol === null) ? null : $this->market($symbol);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         $trigger = $this->safe_bool_n($params, array( 'is_stop_order', 'stop', 'trigger' ), false);
         $paramsOmitted = $this->omit($params, array( 'is_stop_order', 'stop', 'trigger' ));
         list($type, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $paramsOmitted);
@@ -6056,7 +6078,10 @@ class gate extends Exchange {
             $this->load_markets();
         }
         $this->load_unified_status();
-        $market = ($symbol === null) ? null : $this->market($symbol);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         list($type, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $paramsOmitted);
@@ -7151,21 +7176,19 @@ class gate extends Exchange {
         } else {
             $pathImploded = $this->implode_params($path, $params);
         }
-        $endPart = null;
-        if ($pathImploded === '') {
-            $endPart = '';
-        } else {
-            $endPart = ('/' . $pathImploded);
+        $endPart = '';
+        if ($pathImploded !== '') {
+            $endPart = '/' . $pathImploded;
         }
         $entirePath = '/' . $type . $endPart;
         if (($type === 'subAccounts') || ($type === 'withdrawals')) {
             $entirePath = $endPart;
         }
-        $url = $this->urls['api'][$authentication][$type];
-        if ($url === null) {
+        $baseUrl = $this->safe_string($this->urls['api'][$authentication], $type);
+        if ($baseUrl === null) {
             throw new NotSupported($this->id . ' does not have a testnet for the ' . $type . ' market type.');
         }
-        $url .= $entirePath;
+        $url = $baseUrl . $entirePath;
         if ($authentication === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
@@ -7205,8 +7228,7 @@ class gate extends Exchange {
                 $query = $this->omit($query, 'query');
                 $bodyJson = $this->json($query);
             }
-            $bodySigned = $bodyJson;
-            $bodyPayload = ($bodySigned === null) ? '' : $bodySigned;
+            $bodyPayload = ($bodyJson === null) ? '' : $bodyJson;
             $bodySignature = $this->hash($this->encode($bodyPayload), 'sha512');
             $nonce = $this->nonce();
             $timestamp = $this->parse_to_int($nonce / 1000);
@@ -7906,7 +7928,10 @@ class gate extends Exchange {
          * @param {string} $params->settle settle currency
          * @return {array} response from the exchange
          */
-        $market = ($symbol !== null) ? $this->market($symbol) : null;
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         list($request, $query) = $this->prepare_request($market, 'swap', $params);
         $request['dual_mode'] = $hedged;
         return $this->privateFuturesPostSettleDualMode($this->extend($request, $query));
@@ -8179,7 +8204,7 @@ class gate extends Exchange {
         }
         $market = $this->market($symbol);
         $request = array(
-            'underlying' => $market['info']['underlying'],
+            'underlying' => $this->safe_string($market['info'], 'underlying'),
         );
         $response = $this->publicOptionsGetTickers($this->extend($request, $params));
         //
@@ -8259,7 +8284,7 @@ class gate extends Exchange {
             'askPrice' => $this->parse_number($this->safe_number($greeks, 'ask1_price')),
             'markPrice' => $this->parse_number($this->safe_number($greeks, 'mark_price')),
             'lastPrice' => $this->parse_number($this->safe_number($greeks, 'last_price')),
-            'underlyingPrice' => $this->parse_number($market['info']['underlying_price']),
+            'underlyingPrice' => $this->parse_number($this->safe_string($market['info'], 'underlying_price')),
             'info' => $greeks,
         );
     }

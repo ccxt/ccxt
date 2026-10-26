@@ -91,7 +91,8 @@ class xt extends \ccxt\async\xt {
         if ($isContract) {
             $tradeType = 'contract';
         }
-        $url = $this->safe_string($this->urls['api']['ws'], $tradeType);
+        $apiUrls = $this->safe_dict($this->urls, 'api', array());
+        $url = $this->safe_string($apiUrls, $tradeType);
         if (!$isContract) {
             $url = $url . '/private';
         }
@@ -222,7 +223,7 @@ class xt extends \ccxt\async\xt {
         $privateAccess = $access === 'private';
         list($type, $paramsMarketType) = $this->handle_market_type_and_params($methodName, $market, $params);
         $isContract = ($type !== 'spot');
-        $id = $this->number_to_string($this->milliseconds()) . $name; // call back ID
+        $id = (string) $this->milliseconds() . $name; // call back ID
         $subscribe = array(
             'method' => $isContract ? 'SUBSCRIBE' : 'subscribe',
             'id' => $id,
@@ -255,7 +256,8 @@ class xt extends \ccxt\async\xt {
         $subscription = array(
             'id' => $id,
         );
-        $url = $this->safe_string($this->urls['api']['ws'], $tradeType) . '/' . $tail;
+        $apiUrls = $this->safe_dict($this->urls, 'api', array());
+        $url = $this->safe_string($apiUrls, $tradeType, '') . '/' . $tail;
         return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
     }
 
@@ -285,7 +287,7 @@ class xt extends \ccxt\async\xt {
         $privateAccess = $access === 'private';
         list($type, $paramsMarketType) = $this->handle_market_type_and_params($methodName, $market, $params);
         $isContract = ($type !== 'spot');
-        $id = $this->number_to_string($this->milliseconds()) . $name; // call back ID
+        $id = (string) $this->milliseconds() . $name; // call back ID
         $unsubscribe = array(
             'method' => $isContract ? 'UNSUBSCRIBE' : 'unsubscribe',
             'id' => $id,
@@ -312,7 +314,8 @@ class xt extends \ccxt\async\xt {
         if ($isContract) {
             $tail = $privateAccess ? 'user' : 'market';
         }
-        $url = $this->safe_string($this->urls['api']['ws'], $tradeType) . '/' . $tail;
+        $apiUrls = $this->safe_dict($this->urls, 'api', array());
+        $url = $this->safe_string($apiUrls, $tradeType, '') . '/' . $tail;
         $subscription = array(
             'unsubscribe' => true,
             'id' => $id,
@@ -352,8 +355,7 @@ class xt extends \ccxt\async\xt {
         $options = $this->safe_dict($this->options, 'watchTicker');
         $defaultMethod = $this->safe_string($options, 'method', 'ticker');
         $method = $this->safe_string($params, 'method', $defaultMethod);
-        $name = $method . '@' . $market['id'];
-        return Async\await($this->subscribe($name, 'public', 'watchTicker', $market, null, $params));
+        return Async\await($this->subscribe($method . '@' . $this->safe_string($market, 'id', ''), 'public', 'watchTicker', $market, null, $params));
     }
 
     public function un_watch_ticker(string $symbol, $params = array()) {
@@ -379,7 +381,7 @@ class xt extends \ccxt\async\xt {
         $options = $this->safe_dict($this->options, 'unWatchTicker');
         $defaultMethod = $this->safe_string($options, 'method', 'ticker');
         $method = $this->safe_string($params, 'method', $defaultMethod);
-        $name = $method . '@' . $market['id'];
+        $name = $method . '@' . $this->safe_string($market, 'id', '');
         $messageHash = 'unsubscribe::' . $name;
         return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchTicker', $defaultMethod, $market, null, $params));
     }
@@ -468,8 +470,7 @@ class xt extends \ccxt\async\xt {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $name = 'kline@' . $market['id'] . ',' . $timeframe;
-        $ohlcv = Async\await($this->subscribe($name, 'public', 'watchOHLCV', $market, null, $params));
+        $ohlcv = Async\await($this->subscribe('kline@' . $this->safe_string($market, 'id', '') . ',' . $timeframe, 'public', 'watchOHLCV', $market, null, $params));
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $ohlcv->getLimit($symbol, $limit);
@@ -497,7 +498,7 @@ class xt extends \ccxt\async\xt {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $name = 'kline@' . $market['id'] . ',' . $timeframe;
+        $name = 'kline@' . $this->safe_string($market, 'id', '') . ',' . $timeframe;
         $messageHash = 'unsubscribe::' . $name;
         $symbolsAndTimeframes = array( array( $market['symbol'], $timeframe ) );
         return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchOHLCV', 'ohlcv', $market, array( $symbol ), $params, array( 'symbolsAndTimeframes' => $symbolsAndTimeframes )));
@@ -524,8 +525,7 @@ class xt extends \ccxt\async\xt {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $name = 'trade@' . $market['id'];
-        $trades = Async\await($this->subscribe($name, 'public', 'watchTrades', $market, null, $params));
+        $trades = Async\await($this->subscribe('trade@' . $this->safe_string($market, 'id', ''), 'public', 'watchTrades', $market, null, $params));
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $trades->getLimit($symbol, $limit);
@@ -552,7 +552,7 @@ class xt extends \ccxt\async\xt {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $name = 'trade@' . $market['id'];
+        $name = 'trade@' . $this->safe_string($market, 'id', '');
         $messageHash = 'unsubscribe::' . $name;
         return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchTrades', 'trades', $market, array( $symbol ), $params));
     }
@@ -582,9 +582,10 @@ class xt extends \ccxt\async\xt {
         $market = $this->market($symbol);
         $levels = $this->safe_string($params, 'levels');
         $paramsOmitted = $this->omit($params, 'levels');
-        $name = 'depth_update@' . $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
+        $name = 'depth_update@' . $marketId;
         if ($levels !== null) {
-            $name = 'depth@' . $market['id'] . ',' . $levels;
+            $name = 'depth@' . $marketId . ',' . $levels;
         }
         $orderbook = Async\await($this->subscribe($name, 'public', 'watchOrderBook', $market, null, $paramsOmitted));
         return $orderbook->limit();
@@ -614,9 +615,10 @@ class xt extends \ccxt\async\xt {
         $market = $this->market($symbol);
         $levels = $this->safe_string($params, 'levels');
         $paramsOmitted = $this->omit($params, 'levels');
-        $name = 'depth_update@' . $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
+        $name = 'depth_update@' . $marketId;
         if ($levels !== null) {
-            $name = 'depth@' . $market['id'] . ',' . $levels;
+            $name = 'depth@' . $marketId . ',' . $levels;
         }
         $messageHash = 'unsubscribe::' . $name;
         return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchOrderBook', 'orderbook', $market, array( $symbol ), $paramsOmitted));
@@ -728,7 +730,8 @@ class xt extends \ccxt\async\xt {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $url = $this->safe_string($this->urls['api']['ws'], 'contract') . '/' . 'user';
+        $apiUrls = $this->safe_dict($this->urls, 'api', array());
+        $url = $this->safe_string($apiUrls, 'contract', '') . '/' . 'user';
         $client = $this->client($url);
         $this->set_positions_cache($client);
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
@@ -767,8 +770,7 @@ class xt extends \ccxt\async\xt {
         if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' watchFundingRate() supports swap contracts only');
         }
-        $name = 'fund_rate@' . $market['id'];
-        return Async\await($this->subscribe($name, 'public', 'watchFundingRate', $market, null, $params));
+        return Async\await($this->subscribe('fund_rate@' . $this->safe_string($market, 'id', ''), 'public', 'watchFundingRate', $market, null, $params));
     }
 
     public function un_watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
@@ -792,7 +794,7 @@ class xt extends \ccxt\async\xt {
         if ($market['swap'] !== true) {
             throw new NotSupported($this->id . ' unWatchFundingRate() supports swap contracts only');
         }
-        $name = 'fund_rate@' . $market['id'];
+        $name = 'fund_rate@' . $this->safe_string($market, 'id', '');
         $messageHash = 'unsubscribe::' . $name;
         return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchFundingRate', 'fund_rate', $market, null, $params));
     }
@@ -1533,12 +1535,11 @@ class xt extends \ccxt\async\xt {
         //           }
         //    }
         //
-        $orders = $this->orders;
-        if ($orders === null) {
+        if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit');
-            $orders = new ArrayCacheBySymbolById($limit);
-            $this->orders = $orders;
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
+        $orders = $this->orders;
         $order = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string_2($order, 's', 'symbol');
         if ($marketId !== null) {
@@ -1643,12 +1644,11 @@ class xt extends \ccxt\async\xt {
         //    }
         //
         $data = $this->safe_dict($message, 'data', array());
-        $stored = $this->myTrades;
-        if ($stored === null) {
+        if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = new ArrayCacheBySymbolById($limit);
-            $this->myTrades = $stored;
+            $this->myTrades = new ArrayCacheBySymbolById($limit);
         }
+        $stored = $this->myTrades;
         $parsedTrade = $this->parse_trade($data);
         $tradeSymbol = $parsedTrade['symbol'];
         if ($tradeSymbol === null) {

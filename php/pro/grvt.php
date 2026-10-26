@@ -184,8 +184,7 @@ class grvt extends \ccxt\async\grvt {
             throw new ArgumentsRequired($this->id . ' watchTickers requires a symbols argument');
         }
         list($channel, $paramsChannel) = $this->handle_option_string_and_params($params, 'watchTickers', 'channel', 'v1.ticker.s');
-        $interval = 500;
-        list($intervalOption, $paramsInterval) = $this->handle_option_integer_and_params($paramsChannel, 'watchTickers', 'interval', $interval);
+        list($intervalOption, $paramsInterval) = $this->handle_option_integer_and_params($paramsChannel, 'watchTickers', 'interval', 500);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -195,8 +194,7 @@ class grvt extends \ccxt\async\grvt {
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
-            $marketId = $market['id'];
-            $rawHashes[] = $marketId . '@' . (string) $intervalOption;
+            $rawHashes[] = $this->safe_string($market, 'id', '') . '@' . (string) $intervalOption;
             $messageHashes[] = 'ticker::' . $market['symbol'];
         }
         $request = array(
@@ -297,7 +295,7 @@ class grvt extends \ccxt\async\grvt {
         $parts = explode('@', $selector);
         $marketId = $this->safe_string($parts, 0);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $ticker = $this->parse_ws_ticker($data, $market);
         $this->tickers[$symbol] = $ticker;
         $client->resolve($ticker, 'ticker::' . $symbol);
@@ -349,9 +347,8 @@ class grvt extends \ccxt\async\grvt {
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
-            $marketId = $market['id'];
             $limitRaw = $this->safe_integer($params, 'limit', 50); // 50, 200, 500, 1000
-            $rawHashes[] = $marketId . '@' . (string) $limitRaw;
+            $rawHashes[] = $this->safe_string($market, 'id', '') . '@' . (string) $limitRaw;
             $messageHashes[] = 'trade::' . $market['symbol'];
         }
         $request = array(
@@ -396,7 +393,7 @@ class grvt extends \ccxt\async\grvt {
         $parts = explode('@', $selector);
         $marketId = $this->safe_string($parts, 0);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->trades[$symbol] = new ArrayCache($limit);
@@ -463,10 +460,9 @@ class grvt extends \ccxt\async\grvt {
             $data = $this->safe_list($symbolsAndTimeframes, $i);
             $symbolString = $this->safe_string($data, 0);
             $market = $this->market($symbolString);
-            $marketId = $market['id'];
             $unfiedTimeframe = $this->safe_string($data, 1, '1');
             $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
-            $rawHashes[] = $marketId . '@' . $timeframeId . '-TRADE';
+            $rawHashes[] = $this->safe_string($market, 'id', '') . '@' . $timeframeId . '-TRADE';
             $messageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $unfiedTimeframe;
         }
         $request = array(
@@ -508,7 +504,7 @@ class grvt extends \ccxt\async\grvt {
         $parts = explode('@', $selector);
         $marketId = $this->safe_string($parts, 0);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $secondPart = $this->safe_string($parts, 1, '');
         $timeframeId = str_replace('-TRADE', '', $secondPart);
         $timeframe = $this->find_timeframe($timeframeId);
@@ -598,8 +594,7 @@ class grvt extends \ccxt\async\grvt {
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
-            $marketId = $market['id'];
-            $rawHashes[] = $marketId . '@' . $extraPart;
+            $rawHashes[] = $this->safe_string($market, 'id', '') . '@' . $extraPart;
             $messageHashes[] = 'orderbook::' . $market['symbol'];
         }
         $request = array(
@@ -642,7 +637,7 @@ class grvt extends \ccxt\async\grvt {
         $parts = explode('@', $selector);
         $marketId = $this->safe_string($parts, 0);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $timestamp = $this->safe_integer_product($data, 'event_time', 0.000001);
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
@@ -794,7 +789,7 @@ class grvt extends \ccxt\async\grvt {
         }
         $trade = $this->parse_ws_my_trade($data);
         $this->myTrades->append($trade);
-        $client->resolve($this->myTrades, 'myTrades::' . $trade['symbol']);
+        $client->resolve($this->myTrades, 'myTrades::' . $this->safe_string($trade, 'symbol', ''));
         $client->resolve($this->myTrades, 'myTrades');
     }
 
@@ -882,11 +877,10 @@ class grvt extends \ccxt\async\grvt {
         }
         $data = $this->safe_dict($message, 'feed');
         $position = $this->parse_ws_position($data);
-        $symbol = $this->safe_string($position, 'symbol');
         $this->positions->append($position);
         $newPositions = array();
         $newPositions[] = $position;
-        $client->resolve($newPositions, 'positions::' . $symbol);
+        $client->resolve($newPositions, 'positions::' . $this->safe_string($position, 'symbol', ''));
         $client->resolve($newPositions, 'positions');
     }
 
@@ -1011,7 +1005,7 @@ class grvt extends \ccxt\async\grvt {
         $order = $this->parse_ws_order($data);
         $this->orders->append($order);
         $client->resolve($this->orders, 'orders');
-        $client->resolve($this->orders, 'order::' . $order['symbol']);
+        $client->resolve($this->orders, 'order::' . $this->safe_string($order, 'symbol', ''));
     }
 
     public function parse_ws_order(mixed $order, ?array $market = null): array {

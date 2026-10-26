@@ -305,7 +305,7 @@ class mercado extends Exchange {
         $amountLimits = $this->safe_dict($this->options, 'limits', array());
         $coins = $this->to_array($response);
         for ($i = 0; $i < count($coins); $i++) {
-            $coin = $coins[$i];
+            $coin = $this->safe_string($coins, $i, '');
             $baseId = $coin;
             $quoteId = 'BRL';
             $base = $this->safe_currency_code($baseId);
@@ -602,7 +602,7 @@ class mercado extends Exchange {
         // TODO: replace this with a call to parseOrder for unification
         return $this->safe_order(array(
             'info' => $response,
-            'id' => (string) $response['response_data']['order']['order_id'],
+            'id' => $this->safe_string($this->safe_value($this->safe_value($response, 'response_data'), 'order'), 'order_id'),
         ), $market);
     }
 
@@ -753,7 +753,7 @@ class mercado extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'coin_pair' => $market['id'],
-            'order_id' => intval($id),
+            'order_id' => $this->parse_to_int($id),
         );
         $response = $this->privatePostGetOrder($this->extend($request, $params));
         $responseData = $this->safe_dict($response, 'response_data', array());
@@ -893,7 +893,7 @@ class mercado extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            'symbol' => $market['base'] . '-' . $market['quote'], // exceptional endpoint, that needs custom symbol syntax
+            'symbol' => $this->safe_string($market, 'base', '') . '-' . $this->safe_string($market, 'quote', ''), // exceptional endpoint, that needs custom symbol syntax
         );
         // set some default limit, as it's required if user doesn't provide it
         $limitResolved = ($limit === null) ? 100 : $limit;
@@ -993,7 +993,7 @@ class mercado extends Exchange {
     public function orders_to_trades(array $orders): array {
         $result = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $trades = $this->safe_list($orders[$i], 'trades', array());
+            $trades = $this->safe_list($this->safe_value($orders, $i), 'trades', array());
             for ($y = 0; $y < count($trades); $y++) {
                 $result[] = $trades[$y];
             }

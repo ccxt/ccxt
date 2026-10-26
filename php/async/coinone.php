@@ -1056,14 +1056,8 @@ class coinone extends Exchange {
         $id = $this->safe_string_2($order, 'orderId', 'order_id');
         $baseId = $this->safe_string_2($order, 'baseCurrency', 'target_currency');
         $quoteId = $this->safe_string_2($order, 'targetCurrency', 'quote_currency');
-        $base = null;
-        $quote = null;
-        if ($baseId !== null) {
-            $base = $this->safe_currency_code($baseId);
-        }
-        if ($quoteId !== null) {
-            $quote = $this->safe_currency_code($quoteId);
-        }
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
         $symbol = null;
         if (($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
@@ -1381,7 +1375,7 @@ class coinone extends Exchange {
             if ($apiName === 'v2_1Private') {
                 $nonce = $this->uuid();
             } else {
-                $nonce = (string) $this->nonce();
+                $nonce = $this->number_to_string($this->nonce());
             }
             $json = $this->json($this->extend(array(
                 'access_token' => $this->apiKey,

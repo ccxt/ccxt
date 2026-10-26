@@ -75,7 +75,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
          */
         Async\await($this->authenticate($params));
         $messageHash = 'balance';
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws', '');
         $subscribe = array(
             'action' => 'subscribe',
             'channel' => 'balances',
@@ -166,7 +166,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $messageHash = 'ohlcv:' . $symbolValue;
         $request = array(
@@ -176,7 +176,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             'granularity' => $this->parse_number($interval),
         );
         $request = $this->deep_extend($request, $params);
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws', '');
         $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
         $limitResolved = $limit;
         if ($this->newUpdates) {
@@ -249,8 +249,8 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $url = $this->urls['api']['ws'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
+        $url = $this->safe_string($this->urls['api'], 'ws', '');
         $messageHash = 'ticker:' . $symbolValue;
         $request = array(
             'action' => 'subscribe',
@@ -293,7 +293,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $event = $this->safe_string($message, 'event');
         $marketId = $this->safe_string($message, 'symbol');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $ticker = null;
         if ($event === 'subscribed') {
             return;
@@ -365,8 +365,8 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $url = $this->urls['api']['ws'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
+        $url = $this->safe_string($this->urls['api'], 'ws', '');
         $messageHash = 'trades:' . $symbolValue;
         $request = array(
             'action' => 'subscribe',
@@ -417,7 +417,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $parsed = $this->parse_ws_trade($message, $market);
         $stored->append($parsed);
         $this->trades[$symbol] = $stored;
-        $client->resolve($this->trades[$symbol], $messageHash);
+        $client->resolve($stored, $messageHash);
     }
 
     public function parse_ws_trade(array $trade, ?array $market = null): array {
@@ -478,7 +478,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             $market = $this->market($symbol);
             $symbolResolved = $this->safe_string($market, 'symbol');
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws', '');
         $message = array(
             'action' => 'subscribe',
             'channel' => 'trading',
@@ -569,12 +569,11 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //
         $event = $this->safe_string($message, 'event');
         $messageHash = 'orders';
-        $cachedOrders = $this->orders;
-        if ($cachedOrders === null) {
+        if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $cachedOrders = new ArrayCacheBySymbolById($limit);
-            $this->orders = $cachedOrders;
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
+        $cachedOrders = $this->orders;
         if ($event === 'subscribed') {
             return;
         } elseif ($event === 'rejected') {
@@ -697,7 +696,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws', '');
         $type = $this->safe_string($params, 'type', 'l2');
         $paramsOmitted = $this->omit($params, 'type');
         $messageHash = 'orderbook:' . $symbol . ':' . $type;
@@ -746,11 +745,11 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //         "timestamp": "2022-08-08T22:03:19.014680Z"
         //     }
         //
-        $event = $this->safe_string($message, 'event');
+        $event = $this->safe_string($message, 'event', '');
         if ($event === 'subscribed') {
             return;
         }
-        $type = $this->safe_string($message, 'channel');
+        $type = $this->safe_string($message, 'channel', '');
         $marketId = $this->safe_string($message, 'symbol');
         $symbol = $this->safe_symbol($marketId);
         $messageHash = 'orderbook:' . $symbol . ':' . $type;
@@ -787,7 +786,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $channel = $this->safe_string($message, 'channel');
         $handlers = array(
             'ticker' => array($this, 'handle_ticker'),
@@ -831,7 +830,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
     }
 
     private function do_authenticate($params = array()) {
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws', '');
         $client = $this->client($url);
         $messageHash = 'authenticated';
         $future = $client->reusableFuture($messageHash);

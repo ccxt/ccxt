@@ -66,12 +66,14 @@ class independentreserve extends \ccxt\async\independentreserve {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $wsUrl = $this->safe_string($this->urls['api'], 'ws');
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' watchTrades() has no websocket url');
         }
-        $url = $wsUrl . '?subscribe=ticker-' . $market['base'] . '-' . $market['quote'];
+        $baseId = $this->safe_string($market, 'base', '');
+        $quoteId = $this->safe_string($market, 'quote', '');
+        $url = $wsUrl . '?subscribe=ticker-' . $baseId . '-' . $quoteId;
         $messageHash = 'trades:' . $symbolValue;
         $trades = Async\await($this->watch($url, $messageHash, null, $messageHash));
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
@@ -109,7 +111,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         $trade = $this->parse_ws_trade($data);
         $stored->append($trade);
         $this->trades[$symbol] = $stored;
-        $client->resolve($this->trades[$symbol], $messageHash);
+        $client->resolve($stored, $messageHash);
     }
 
     public function parse_ws_trade(array $trade, ?array $market = null): array {
@@ -160,14 +162,16 @@ class independentreserve extends \ccxt\async\independentreserve {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $limitResolved = ($limit === null) ? 100 : $limit;
         $limitString = $this->number_to_string($limitResolved);
         $wsUrl = $this->safe_string($this->urls['api'], 'ws');
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' watchOrderBook() has no websocket url');
         }
-        $url = $wsUrl . '/orderbook/' . $limitString . '?subscribe=' . $market['base'] . '-' . $market['quote'];
+        $baseId = $this->safe_string($market, 'base', '');
+        $quoteId = $this->safe_string($market, 'quote', '');
+        $url = $wsUrl . '/orderbook/' . $limitString . '?subscribe=' . $baseId . '-' . $quoteId;
         $messageHash = 'orderbook:' . $symbolValue . ':' . $limitString;
         $subscription = array(
             'receivedSnapshot' => false,
@@ -205,7 +209,7 @@ class independentreserve extends \ccxt\async\independentreserve {
             return;
         }
         $parts = explode('/', $channel);
-        $depth = $this->safe_string($parts, 1);
+        $depth = $this->safe_string($parts, 1, '');
         $baseId = $this->safe_string($parts, 2);
         $quoteId = $this->safe_string($parts, 3);
         $base = $this->safe_currency_code($baseId);
@@ -249,12 +253,12 @@ class independentreserve extends \ccxt\async\independentreserve {
             $payload = '';
             for ($i = 0; $i < 10; $i++) {
                 if ($i < $bidsLength) {
-                    $payload = $payload . $this->value_to_checksum($storedBids[$i][0]) . $this->value_to_checksum($storedBids[$i][1]);
+                    $payload = $payload . $this->value_to_checksum($this->safe_number($storedBids[$i], 0)) . $this->value_to_checksum($this->safe_number($storedBids[$i], 1));
                 }
             }
             for ($i = 0; $i < 10; $i++) {
                 if ($i < $asksLength) {
-                    $payload = $payload . $this->value_to_checksum($storedAsks[$i][0]) . $this->value_to_checksum($storedAsks[$i][1]);
+                    $payload = $payload . $this->value_to_checksum($this->safe_number($storedAsks[$i], 0)) . $this->value_to_checksum($this->safe_number($storedAsks[$i], 1));
                 }
             }
             $calculatedChecksum = $this->crc32($payload, false);
