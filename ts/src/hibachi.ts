@@ -1352,8 +1352,8 @@ export default class hibachi extends Exchange {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             const hash = this.hash (message, sha256, 'hex');
             const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-            const r = signature['r'];
-            const s = signature['s'];
+            const r = this.safeString (signature, 'r', '');
+            const s = this.safeString (signature, 's', '');
             const v = this.intToBase16 (signature['v']);
             return r.padStart (64, '0') + s.padStart (64, '0') + v.padStart (2, '0');
         }
