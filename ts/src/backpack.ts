@@ -1326,7 +1326,7 @@ export default class backpack extends Exchange {
             if (!stock) {
                 throw new BadRequest (this.id + ' ' + methodName + '() External provider data requires a stock market symbol or params.stock=true when no symbol is provided');
             }
-            if ((market !== undefined) && (market['stock'] !== true)) {
+            if ((market !== undefined) && !this.safeBool (market, 'stock', false)) {
                 throw new BadSymbol (this.id + ' ' + methodName + '() External data requires a stock market');
             }
             request['source'] = source;
@@ -1457,7 +1457,7 @@ export default class backpack extends Exchange {
             if ((ticker !== undefined) && ((source !== 'External') || (market['stock'] === true))) {
                 result[marketSymbol] = ticker as Ticker;
             } else if (marketIsRfq) {
-                const underlyingId = market['baseId'] + '_' + market['quoteId'];
+                const underlyingId = this.safeString (market, 'baseId', '') + '_' + this.safeString (market, 'quoteId', '');
                 const useExternal = (source === 'External') || needsExternalRfqTickers;
                 const tickerSource = (useExternal) ? externalResponseById : responseById;
                 const underlyingTicker = this.safeDict (tickerSource, underlyingId);

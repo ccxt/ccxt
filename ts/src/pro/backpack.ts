@@ -147,7 +147,7 @@ export default class backpack extends backpackRest {
             }
             const requestParams: Dict = this.extend (marketParams, { 'stock': marketStock, 'source': source });
             const request = this.stockDataRequest (methodName, requestParams, market);
-            const tickerSymbol = this.safeString (request, 'symbol');
+            const tickerSymbol = this.safeString (request, 'symbol', '');
             let topic = 'ticker.' + tickerSymbol;
             if (channel !== undefined) {
                 if ((channel !== 'stockPrice') && (channel !== 'stockIndicativeQuote')) {
@@ -1274,9 +1274,9 @@ export default class backpack extends backpackRest {
         let topic = 'account.orderUpdate';
         let messageHash = 'orders';
         if (market !== undefined) {
-            topic = 'account.orderUpdate.' + market['id'];
+            topic = 'account.orderUpdate.' + this.safeString (market, 'id', '');
             if (this.safeString (market, 'executionModel') === 'rfq') {
-                topic = 'account.rfqUpdate.' + market['id'];
+                topic = 'account.rfqUpdate.' + this.safeString (market, 'id', '');
             }
             messageHash = 'orders:' + symbolResolved;
         }
@@ -1320,9 +1320,9 @@ export default class backpack extends backpackRest {
         let topic = 'account.orderUpdate';
         let messageHash = 'unsubscribe:orders';
         if (market !== undefined) {
-            topic = 'account.orderUpdate.' + market['id'];
+            topic = 'account.orderUpdate.' + this.safeString (market, 'id', '');
             if (this.safeString (market, 'executionModel') === 'rfq') {
-                topic = 'account.rfqUpdate.' + market['id'];
+                topic = 'account.rfqUpdate.' + this.safeString (market, 'id', '');
             }
             messageHash = 'unsubscribe:orders:' + symbolResolved;
         }
@@ -1700,7 +1700,7 @@ export default class backpack extends backpackRest {
         parsedPosition['timestamp'] = timestamp;
         parsedPosition['datetime'] = this.iso8601 (timestamp);
         cache.append (parsedPosition);
-        const symbolSpecificMessageHash = messageHash + ':' + parsedPosition['symbol'];
+        const symbolSpecificMessageHash = messageHash + ':' + this.safeString (parsedPosition, 'symbol', '');
         client.resolve ([ parsedPosition ], messageHash);
         client.resolve ([ parsedPosition ], symbolSpecificMessageHash);
     }
