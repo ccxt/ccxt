@@ -816,7 +816,7 @@ export default class btcbox extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0);
         const apiUrl = this.safeString (this.urls['api'], 'rest');
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
@@ -830,7 +830,7 @@ export default class btcbox extends Exchange {
             url = this.safeString (this.urls, 'www', '') + '/' + path;
         } else {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
+            const nonce = this.numberToString (this.nonce ());
             const query = this.extend ({
                 'key': this.apiKey,
                 'nonce': nonce,
