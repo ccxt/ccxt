@@ -116,7 +116,7 @@ export default class dydx extends dydxRest {
         //
         const marketId = this.safeString (message, 'id');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const content = this.safeDict (message, 'contents');
         const rawTrades = this.safeList (content, 'trades', []);
         let stored = this.safeValue (this.trades, symbol);
@@ -240,7 +240,7 @@ export default class dydx extends dydxRest {
         //
         const marketId = this.safeString (message, 'id');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const content = this.safeDict (message, 'contents');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -386,7 +386,7 @@ export default class dydx extends dydxRest {
         const timeframe = this.findTimeframe (interval);
         const marketId = this.safeString (part, 0);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const content = this.safeDict (message, 'contents');
         const candles = this.safeList (content, 'candles');
         const messageHash = 'ohlcv:' + symbol;
