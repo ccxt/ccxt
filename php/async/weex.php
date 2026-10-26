@@ -1650,7 +1650,7 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] whether to automatically $paginate requests $until the required number of candles is returned
-         * @param {boolean} [$params->historical] whether to fetch $historical klines (default is false). If false, will fetch last price klines
+         * @param {boolean} [$params->historical] whether to fetch $historical klines (default is false, forced to true when $since or $until is set because the recent klines endpoints ignore time filters). If false, will fetch last price klines
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
@@ -1676,23 +1676,27 @@ class weex extends Exchange {
         $response = null;
         // hardcap threshold
         $limitResolved = ($limit === null) ? null : min($limit, 1000);
-        if ($historical) {
+        // the recent-klines endpoints ignore startTime and endTime and only ever return the
+        // latest candles, so a request bounded by since or until has to go through the history
+        // endpoint, which honours both (endTime = since + limit * timeframe when until is absent)
+        $useHistory = $historical || ($since !== null) || ($until !== null);
+        if ($useHistory) {
             if ($priceType !== null) {
                 $request['priceType'] = $priceType;
             }
             $startTime = $since;
             $endTime = $until;
+            $now = $this->milliseconds();
             if (($since === null) || ($until === null)) {
-                $now = $this->milliseconds();
                 $duration = $this->parse_timeframe($timeframe) * 1000;
-                $timeDelta = $maxHistoricalLimit * $duration;
+                // the history endpoint returns at most maxHistoricalLimit candles and serves the
+                // newest ones inside the window, so a wider window would silently drop the candles
+                // right after since, keep the window at what one call can return
+                $historyLimit = $maxHistoricalLimit;
                 if ($limit !== null && $limit !== null && $limit !== 0) {
-                    if ($limit > 1000) {
-                        $timeDelta = 1000 * $duration;
-                    } else {
-                        $timeDelta = $limit * $duration;
-                    }
+                    $historyLimit = min($limit, $maxHistoricalLimit);
                 }
+                $timeDelta = $historyLimit * $duration;
                 if (($since === null) && ($until === null)) {
                     $endTime = $now;
                     $startTime = $now - $timeDelta;
@@ -1702,8 +1706,13 @@ class weex extends Exchange {
                     }
                     $startTime = $until - $timeDelta;
                 } else {
-                    $endTime = $since . $timeDelta;
+                    // this.sum, a bare + is string concatenation in the php port
+                    $endTime = $this->sum($since, $timeDelta);
                 }
+            }
+            // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
+            if (($endTime !== null) && ($endTime > $now)) {
+                $endTime = $now;
             }
             $request['startTime'] = $startTime;
             $request['endTime'] = $endTime;
