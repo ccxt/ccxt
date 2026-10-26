@@ -1404,10 +1404,9 @@ export default class htx extends Exchange {
         //         "makerFeeRate":"0.002"
         //     }
         //
-        const marketId = this.safeString (fee, 'symbol');
         return {
             'info': fee,
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': this.safeSymbol (this.safeString (fee, 'symbol'), market),
             'maker': this.safeNumber (fee, 'actualMakerRate'),
             'taker': this.safeNumber (fee, 'actualTakerRate'),
             'percentage': undefined,
@@ -2476,7 +2475,7 @@ export default class htx extends Exchange {
             throw new NullResponse (this.id + ' fetchOrderBook() returned empty response');
         }
         if ('tick' in response) {
-            if ((response['tick'] === undefined) || (response['tick'] === null)) {
+            if (this.safeValue (response, 'tick') === undefined) {
                 throw new BadSymbol (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
             }
             const tick = this.safeDict (response, 'tick');
@@ -4954,7 +4953,7 @@ export default class htx extends Exchange {
         let side = this.safeString2 (order, 'direction', 'side');
         const contractCode = this.safeString (order, 'contract_code');
         const isLinearOrder = (contractCode !== undefined) && (marketResolved !== undefined) && (marketResolved['linear'] === true) && (marketResolved['spot'] !== true);
-        let type: Str = undefined;
+        let type = this.safeString (order, 'order_price_type');
         if (isLinearOrder) {
             type = this.safeString (order, 'type');
             if ((type === undefined) || (type === 'tp') || (type === 'sl') || (type === 'tpsl')) {
@@ -4964,7 +4963,6 @@ export default class htx extends Exchange {
                 type = undefined;
             }
         } else {
-            type = this.safeString (order, 'order_price_type');
             const rawType = this.safeString (order, 'type');
             if (rawType !== undefined) {
                 if (rawType.indexOf ('-') >= 0) {
@@ -4980,7 +4978,8 @@ export default class htx extends Exchange {
         const clientOrderId = this.safeStringN (order, [ 'client_order_id', 'client-or' + 'der-id', 'algo_client_order_id' ]); // transpiler regex trick for php issue
         let cost: Str = undefined;
         let amount: Str = undefined;
-        if ((type !== undefined) && (type.indexOf ('market') >= 0) && (!isLinearOrder)) {
+        const typeResolved: Str = type;
+        if ((typeResolved !== undefined) && (typeResolved.indexOf ('market') >= 0) && (!isLinearOrder)) {
             cost = this.safeString (order, 'field-cash-amount');
         } else {
             amount = this.safeString2 (order, 'volume', 'amount');
@@ -5175,7 +5174,7 @@ export default class htx extends Exchange {
         const clientOrderId = this.safeString2 (paramsPostOnly, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if (clientOrderId === undefined) {
             const broker = this.safeDict (this.options, 'broker', {});
-            const brokerId = this.safeString (broker, 'id');
+            const brokerId = this.safeString (broker, 'id', '');
             request['client-order-id'] = brokerId + this.uuid ();
         } else {
             request['client-order-id'] = clientOrderId;
@@ -9686,7 +9685,7 @@ export default class htx extends Exchange {
             requestUntil['symbol'] = market['id'];
             response = await this.contractPublicGetApiV3ContractLiquidationOrders (this.extend (requestUntil, paramsUntil));
         } else {
-            throw new NotSupported (this.id + ' fetchLiquidations() does not support ' + market['type'] + ' orders');
+            throw new NotSupported (this.id + ' fetchLiquidations() does not support ' + this.safeString (market, 'type', '') + ' orders');
         }
         //
         //     {

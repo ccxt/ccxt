@@ -758,8 +758,8 @@ export default class htx extends htxRest {
                 throw new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
             }
         }
-        const spotConditon = (market['spot'] === true) && (prevSeqNum === orderbook['nonce']);
-        const nonSpotCondition = (market['contract'] === true) && (version !== undefined) && (version - 1 === orderbook['nonce']);
+        const spotConditon = (market['spot'] === true) && (prevSeqNum === this.safeInteger (orderbook, 'nonce'));
+        const nonSpotCondition = (market['contract'] === true) && (version !== undefined) && (version - 1 === this.safeInteger (orderbook, 'nonce'));
         if ((spotConditon) || (nonSpotCondition)) {
             const asks = this.safeList (tick, 'asks', []);
             const bids = this.safeList (tick, 'bids', []);
@@ -837,7 +837,7 @@ export default class htx extends htxRest {
             this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
         const orderbook = this.orderbooks[symbol];
-        if ((event === undefined) && (orderbook['nonce'] === undefined)) {
+        if ((event === undefined) && (this.safeInteger (orderbook, 'nonce') === undefined)) {
             orderbook.cache.push (message);
         } else {
             this.handleOrderBookMessage (client, message);
@@ -2848,9 +2848,8 @@ export default class htx extends htxRest {
             takerOrMaker = this.safeStringLower (trade, 'role');
         }
         let type: Str = undefined;
-        let orderTypeParts: string[] = [];
         if (orderType !== undefined) {
-            orderTypeParts = orderType.split ('-');
+            const orderTypeParts = orderType.split ('-');
             type = this.safeString (orderTypeParts, 1, orderType);
         }
         let fee: FeeString = undefined;
