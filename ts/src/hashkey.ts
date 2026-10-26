@@ -3150,7 +3150,7 @@ export default class hashkey extends Exchange {
             market = this.market (symbol);
         }
         const marketType = 'spot';
-        const marketTypeOption = this.handleMarketTypeAndParams (methodName, market, params, marketType)[0];
+        const [ marketTypeOption ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
         let response: Dict;
         if (marketTypeOption === 'spot') {
             response = await this.privateDeleteApiV1SpotCancelOrderByIds (request);
@@ -3798,16 +3798,14 @@ export default class hashkey extends Exchange {
     parseOrderSideAndReduceOnly (unparsed: any) {
         const parts = unparsed.split ('_');
         const side = parts[0];
-        let reduceOnly: Bool = undefined;
         const secondPart = this.safeString (parts, 1);
-        if (secondPart !== undefined) {
-            if (secondPart === 'open') {
-                reduceOnly = false;
-            } else if ((secondPart === 'close')) {
-                reduceOnly = true;
-            }
+        if (secondPart === 'open') {
+            return [ side, false ];
         }
-        return [ side, reduceOnly ];
+        if (secondPart === 'close') {
+            return [ side, true ];
+        }
+        return [ side, undefined ];
     }
 
     parseOrderStatus (status: Str): Str {
@@ -3826,17 +3824,16 @@ export default class hashkey extends Exchange {
     }
 
     parseOrderTypeTimeInForceAndPostOnly (type: Str, timeInForce: Str): [Str, Str, Bool] {
-        let postOnly: Bool = undefined;
         const isMakerTimeInForce = (timeInForce === 'LIMIT_MAKER') || (timeInForce === 'MAKER');
-        if ((type === 'LIMIT_MAKER') || isMakerTimeInForce) {
-            postOnly = true;
-        }
         let timeInForceParsed: Str = timeInForce;
         if ((type !== 'LIMIT_MAKER') && isMakerTimeInForce) {
             timeInForceParsed = 'PO';
         }
         const typeValue: Str = this.parseOrderType (type);
-        return [ typeValue, timeInForceParsed, postOnly ];
+        if ((type === 'LIMIT_MAKER') || isMakerTimeInForce) {
+            return [ typeValue, timeInForceParsed, true ];
+        }
+        return [ typeValue, timeInForceParsed, undefined ];
     }
 
     parseOrderType (type: Str): Str {
