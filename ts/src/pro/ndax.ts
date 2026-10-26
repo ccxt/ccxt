@@ -133,7 +133,7 @@ export default class ndax extends ndaxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue = this.safeString (market, 'symbol', '');
         const marketId = this.safeString (market, 'id', '');
         const name = 'SubscribeTrades';
         const messageHash = name + ':' + marketId;
@@ -184,7 +184,7 @@ export default class ndax extends ndaxRest {
         const updates: Dict = {};
         for (let i = 0; i < payload.length; i++) {
             const trade = this.parseTrade (payload[i]);
-            const symbol = trade['symbol'];
+            const symbol = this.safeString (trade, 'symbol');
             let tradesArray = (symbol === undefined) ? undefined : this.safeValue (this.trades, symbol);
             if (tradesArray === undefined) {
                 const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -227,7 +227,7 @@ export default class ndax extends ndaxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue = this.safeString (market, 'symbol', '');
         const marketId = this.safeString (market, 'id', '');
         const name = 'SubscribeTicker';
         const messageHash = name + ':' + timeframe + ':' + marketId;
@@ -285,7 +285,7 @@ export default class ndax extends ndaxRest {
             const ohlcv = this.safeList (payload, i);
             const marketId = this.safeString (ohlcv, 8);
             const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString (market, 'symbol', '');
             if (marketId !== undefined) {
                 updates[marketId] = {};
             }
@@ -331,12 +331,12 @@ export default class ndax extends ndaxRest {
                         }
                     }
                     stored[length - 1] = [
-                        parsed[0],
+                        candleTimestamp,
                         this.safeFloat (previous, 1),
                         high,
                         low,
-                        parsed[4],
-                        this.sum (parsed[5], this.safeFloat (previous, 5)),
+                        this.safeFloat (ohlcv, 4),
+                        this.sum (this.safeFloat (ohlcv, 5), this.safeFloat (previous, 5)),
                     ];
                     if (marketId !== undefined) {
                         updates[marketId][timeframe] = true;
@@ -369,7 +369,7 @@ export default class ndax extends ndaxRest {
                 const timeframe = timeframes[j];
                 const messageHash = name + ':' + timeframe + ':' + marketId;
                 const market = this.safeMarket (marketId);
-                const symbol = market['symbol'];
+                const symbol = this.safeString (market, 'symbol', '');
                 const stored = this.safeList (this.ohlcvs[symbol], timeframe, []);
                 client.resolve (stored, messageHash);
             }
@@ -392,7 +392,7 @@ export default class ndax extends ndaxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue = this.safeString (market, 'symbol', '');
         const marketId = this.safeString (market, 'id', '');
         const name = 'SubscribeLevel2';
         const messageHash = name + ':' + marketId;
@@ -456,7 +456,7 @@ export default class ndax extends ndaxRest {
             return;
         }
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
             return;
