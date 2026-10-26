@@ -433,7 +433,7 @@ export default class bitrue extends bitrueRest {
         const symbols = Object.keys (markets);
         for (let i = 0; i < symbols.length; i++) {
             const symbolId: string = symbols[i];
-            const candidate = markets[symbolId];
+            const candidate = this.safeValue (markets, symbolId);
             if (!this.safeBool (candidate, 'swap', false)) {
                 continue;
             }
@@ -544,9 +544,6 @@ export default class bitrue extends bitrueRest {
         const parts = (channel as string).split ('_');
         const wsBaseQuote = this.safeStringLower (parts, 2);
         const market = this.findSwapMarketByWsBaseQuote (wsBaseQuote as string);
-        if (market === undefined) {
-            return;
-        }
         const symbol = this.safeString (market, 'symbol');
         if (symbol === undefined) {
             return;
@@ -666,9 +663,6 @@ export default class bitrue extends bitrueRest {
         const parts = (channel as string).split ('_');
         const wsBaseQuote = this.safeStringLower (parts, 2);
         const market = this.findSwapMarketByWsBaseQuote (wsBaseQuote as string);
-        if (market === undefined) {
-            return;
-        }
         const symbol = this.safeString (market, 'symbol');
         if (symbol === undefined) {
             return;
@@ -696,8 +690,7 @@ export default class bitrue extends bitrueRest {
 
     override parseWsOHLCV (tick: any, market: Market = undefined): OHLCV {
         const symbol: string = this.safeString (market, 'symbol', '');
-        const idSeconds = this.safeInteger (tick, 'id');
-        const timestamp = (idSeconds === undefined) ? undefined : idSeconds * 1000;
+        const timestamp = this.safeTimestamp (tick, 'id');
         const open = this.safeNumber (tick, 'open');
         const high = this.safeNumber (tick, 'high');
         const low = this.safeNumber (tick, 'low');
@@ -763,9 +756,6 @@ export default class bitrue extends bitrueRest {
         const parts = (channel as string).split ('_');
         const wsBaseQuote = this.safeStringLower (parts, 2);
         const market = this.findSwapMarketByWsBaseQuote (wsBaseQuote as string);
-        if (market === undefined) {
-            return;
-        }
         const symbol = this.safeString (market, 'symbol');
         if (symbol === undefined) {
             return;

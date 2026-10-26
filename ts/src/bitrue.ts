@@ -2975,6 +2975,7 @@ export default class bitrue extends Exchange {
         //
         const chainDetails: Dict[] = this.safeList (fee, 'chainDetail', []);
         const chainDetailLength = chainDetails.length;
+        const networks: Dict = {};
         const result: Dict = {
             'info': fee,
             'withdraw': {
@@ -2985,7 +2986,6 @@ export default class bitrue extends Exchange {
                 'fee': undefined,
                 'percentage': undefined,
             },
-            'networks': {},
         };
         if (chainDetailLength !== 0) {
             for (let i = 0; i < chainDetailLength; i++) {
@@ -2994,17 +2994,17 @@ export default class bitrue extends Exchange {
                 const currencyCode = this.safeString (currency, 'code');
                 const networkCode = this.networkIdToCode (networkId, currencyCode);
                 if (networkCode !== undefined) {
-                    result['networks'][networkCode] = {
+                    networks[networkCode] = {
                         'deposit': { 'fee': undefined, 'percentage': undefined },
                         'withdraw': { 'fee': this.safeNumber (chainDetail, 'withdrawFee'), 'percentage': false },
                     };
                 }
                 if (chainDetailLength === 1) {
-                    result['withdraw']['fee'] = this.safeNumber (chainDetail, 'withdrawFee');
-                    result['withdraw']['percentage'] = false;
+                    result['withdraw'] = { 'fee': this.safeNumber (chainDetail, 'withdrawFee'), 'percentage': false };
                 }
             }
         }
+        result['networks'] = networks;
         return result;
     }
 
@@ -3287,14 +3287,17 @@ export default class bitrue extends Exchange {
                 }, paramsOmitted));
                 const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
                 query += '&' + 'signature=' + signature;
-                requestHeaders = {
-                    'X-MBX-APIKEY': this.apiKey,
-                };
                 if ((method === 'GET') || (method === 'DELETE')) {
                     url += '?' + query;
+                    requestHeaders = {
+                        'X-MBX-APIKEY': this.apiKey,
+                    };
                 } else {
                     requestBody = query;
-                    requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
+                    requestHeaders = {
+                        'X-MBX-APIKEY': this.apiKey,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    };
                 }
             } else {
                 const timestamp = this.nonce ().toString ();
@@ -3345,7 +3348,7 @@ export default class bitrue extends Exchange {
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if ((code === 418) || (code === 429)) {
-            throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
+            throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + (' ' + body));
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
