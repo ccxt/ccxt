@@ -1157,7 +1157,7 @@ export default class cex extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {
-            'orderId': parseInt (id),
+            'orderId': this.parseToInt (id),
         };
         const result = await this.fetchOpenOrders (symbol, undefined, undefined, this.extend (request, params));
         const order = this.safeDict (result, 0);
@@ -1179,7 +1179,7 @@ export default class cex extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {
-            'orderId': parseInt (id),
+            'orderId': this.parseToInt (id),
         };
         const result = await this.fetchClosedOrders (symbol, undefined, undefined, this.extend (request, params));
         const order = this.safeDict (result, 0);
@@ -1394,7 +1394,7 @@ export default class cex extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {
-            'orderId': parseInt (id),
+            'orderId': this.parseToInt (id),
             'cancelRequestId': 'c_' + (this.milliseconds ()).toString (),
             'timestamp': this.milliseconds (),
         };
