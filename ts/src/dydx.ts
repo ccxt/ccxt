@@ -1265,12 +1265,13 @@ export default class dydx extends Exchange {
         if (credentials !== undefined) {
             return credentials;
         }
-        let privateKey = this.safeString (this.options, 'privateKey');
-        if (privateKey === undefined) {
+        const privateKeyOption = this.safeString (this.options, 'privateKey');
+        if (privateKeyOption !== undefined) {
+            credentials = this.retrieveDydxCredentials (privateKeyOption);
+        } else {
             const signature: Dict = this.signOnboardingAction ();
-            privateKey = this.hashMessage (this.base16ToBinary (this.safeString (signature, 'r', '') + this.safeString (signature, 's', '')));
+            credentials = this.retrieveDydxCredentials (this.hashMessage (this.base16ToBinary (this.safeString (signature, 'r', '') + this.safeString (signature, 's', ''))));
         }
-        credentials = this.retrieveDydxCredentials (privateKey);
         credentials['privateKey'] = this.binaryToBase16 (credentials['privateKey']);
         credentials['publicKey'] = this.binaryToBase16 (credentials['publicKey']);
         this.options['dydxCredentials'] = credentials;
@@ -1468,7 +1469,7 @@ export default class dydx extends Exchange {
 
     createOrderIdFromParts (address: string, subAccountNumber: number, clientOrderId: number, orderFlags: number, clobPairId: number): string {
         const nameSp = this.safeString (this.options, 'namespace', '0f9da948-a6fb-4c45-9edc-4685c3f3317d');
-        const prefixAddress = address + '-' + subAccountNumber.toString ();
+        const prefixAddress = address + '-' + this.numberToString (subAccountNumber);
         const prefix = this.uuid5 (nameSp, prefixAddress);
         const orderInfo = prefix + '-' + this.numberToString (clientOrderId) + '-' + this.numberToString (clobPairId) + '-' + this.numberToString (orderFlags);
         return this.uuid5 (nameSp, orderInfo);
@@ -1594,7 +1595,7 @@ export default class dydx extends Exchange {
         if (clientOrderId === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.');
         }
-        const idString = id.toString ();
+        const idString = this.numberToString (id);
         if (idString.indexOf ('-') > -1) {
             throw new NotSupported (this.id + ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.');
         }
