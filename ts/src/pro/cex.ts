@@ -619,12 +619,11 @@ export default class cex extends cexRest {
         //         }
         //     }
         const data = this.safeDict (message, 'data', {});
-        let stored = this.myTrades;
-        if (stored === undefined) {
+        if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            stored = new ArrayCacheBySymbolById (limit);
-            this.myTrades = stored;
+            this.myTrades = new ArrayCacheBySymbolById (limit);
         }
+        const stored = this.myTrades;
         const trade = this.parseWsTrade (data);
         stored.append (trade);
         const tradeSymbol = this.safeString (trade, 'symbol', '');
@@ -969,11 +968,11 @@ export default class cex extends cexRest {
         //
         const symbol = this.safeString (message, 'oid', ''); // symbol is set as requestId in watchOrders
         const rawOrders: Dict[] = this.safeList (message, 'data', []);
-        let myOrders = this.orders;
-        if (myOrders === undefined) {
+        if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            myOrders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById (limit);
         }
+        const myOrders = this.orders;
         for (let i = 0; i < rawOrders.length; i++) {
             const rawOrder = rawOrders[i];
             const market = this.safeMarket (symbol);
@@ -981,7 +980,6 @@ export default class cex extends cexRest {
             order['status'] = 'open';
             myOrders.append (order);
         }
-        this.orders = myOrders;
         const messageHash = 'orders:' + symbol;
         const ordersLength = myOrders.length;
         if (ordersLength > 0) {
