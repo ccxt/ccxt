@@ -723,7 +723,7 @@ export default class grvt extends Exchange {
             return undefined;
         }
         const settle = this.safeCurrencyCode (settleId);
-        const symbol = base + '/' + quote + ':' + settle;
+        const symbol = base + '/' + quote + ':' + quote;
         let type: Str = undefined;
         const typeRaw = this.safeString (market, 'kind');
         if (typeRaw === 'PERPETUAL') {
