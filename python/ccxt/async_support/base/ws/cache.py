@@ -269,6 +269,18 @@ class ArrayCacheByOutcomeById(ArrayCacheBySymbolById):
 
 
 class ArrayCacheBySymbolBySide(ArrayCache):
+    def remove(self, symbol: str) -> None:
+        if symbol not in self.hashmap:
+            return
+        retained = [(item, token) for item, token in zip(self._deque, self._index) if item['symbol'] != symbol]
+        self._deque = collections.deque(item for item, _ in retained)
+        self._index = collections.deque(token for _, token in retained)
+        del self.hashmap[symbol]
+        self._all_new_updates -= len(self._seen_updates_all.pop(symbol, set()))
+        self._seen_updates_by_symbol.pop(symbol, None)
+        self._clear_updates_by_symbol.pop(symbol, None)
+        self._new_updates_by_symbol[symbol] = 0
+
     def __init__(self, max_size: int | None = None) -> None:
         # positions are unbounded - the number of (symbol, side) pairs is naturally
         # capped by the account, so max_size is accepted and ignored the way the
