@@ -7618,7 +7618,7 @@ export default class htx extends Exchange {
         const apiLength = api.length;
         if (apiLength === 1) {
             // signing implementation for the old endpoints
-            const apiName = this.safeString (api, 0, '');
+            const apiName = api[0];
             if ((apiName === 'public') || (apiName === 'private')) {
                 url += this.version;
             } else if ((apiName === 'v2Public') || (apiName === 'v2Private')) {

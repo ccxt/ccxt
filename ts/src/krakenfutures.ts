@@ -3825,7 +3825,7 @@ export default class krakenfutures extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = this.safeString (api, 0, '');
+        const apiName = api[0];
         const apiVersions = this.safeDict (this.options['versions'], apiName, {});
         const methodVersions = this.safeDict (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.version);

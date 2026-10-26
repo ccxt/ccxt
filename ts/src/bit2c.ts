@@ -1057,8 +1057,7 @@ export default class bit2c extends Exchange {
         let url = apiUrl + '/' + this.implodeParams (path, params);
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
-        const apiName = this.safeString (api, 0);
-        if (apiName === 'public') {
+        if (api[0] === 'public') {
             url += '.json';
         } else {
             this.checkRequiredCredentials ();

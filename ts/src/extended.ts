@@ -3614,7 +3614,7 @@ export default class extended extends Exchange {
                 requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        let url = this.implodeHostname (baseApiUrl) + '/api/' + this.safeString (api, 0, '') + endpoint;
+        let url = this.implodeHostname (baseApiUrl) + '/api/' + api[0] + endpoint;
         if ((method === 'GET' || method === 'DELETE' || queryPost) && (Object.keys (query).length > 0)) {
             url += '?' + this.urlencodeWithArrayRepeat (query);
         }

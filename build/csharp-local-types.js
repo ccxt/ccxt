@@ -11513,6 +11513,13 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         csharpType = 'IList<object>';
         safe = true;
     }
+    // hx11: a sign/fetch2/request path element takes the identity `(string)` cast too, so its `+` reads bind add(string, *)
+    if (!safe && csharpType === 'string?' && signApiElementInitializer (csharp, declaration.initializer)
+        && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
+        csharpType = 'string';
+        cast = 'string';
+        safe = true;
+    }
     // `object x = this.safeString (obj, key, <default>)`: the proven non-null string default
     // (nonNullStringDefaultCall) lets the scan accept the non-null spelling with its identity
     // `(string)` cast — retried only after `string?` was rejected, never in the prediction tree
@@ -13902,6 +13909,19 @@ const CSHARP_SCALAR_LIST_ELEMENT_TYPES = {
 
 // the scalar element type of `recv[i]` over a receiver whose printed declaration is a scalar list, or
 // undefined. Read-only: it answers the declaration dispatch, the printed read is unchanged.
+function signApiParameterRead (csharp, receiver) {
+    const param = csharp.getChecker ().getSymbolAtLocation (receiver)?.valueDeclaration?.resolve ();
+    const method = param?.parent;
+    return param?.kind === ts.SyntaxKind.Parameter && method?.kind === ts.SyntaxKind.MethodDeclaration
+        && [ 'sign', 'fetch2', 'request' ].includes (String (method.name?.text)) && method.parameters.indexOf (param) === 1
+        && String (param.type?.getText () ?? '').replace (/\s+/g, '') === 'string[]';
+}
+
+function signApiElementInitializer (csharp, node) {
+    return node?.kind === ts.SyntaxKind.ElementAccessExpression && node.expression?.kind === ts.SyntaxKind.Identifier
+        && signApiParameterRead (csharp, node.expression);
+}
+
 function typedListElementReadType (csharp, node) {
     if (node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
         return undefined;
@@ -13912,6 +13932,10 @@ function typedListElementReadType (csharp, node) {
     }
     if (!wsCacheElementSourceOk (node) || typeof csharp.csharpPrintedLocalType !== 'function') {
         return undefined;
+    }
+    // hx11: `api[N]` of sign/fetch2/request (`api: string[]`): every element is a path string
+    if (signApiParameterRead (csharp, receiver)) {
+        return 'string';
     }
     const printed = csharp.csharpPrintedLocalType (receiver);
     if (printed === undefined) {

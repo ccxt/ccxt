@@ -2191,7 +2191,7 @@ export default class coinbaseexchange extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = this.safeString (api, 0);
+        const apiName = api[0];
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         let request = '/' + this.implodeParams (path, params);

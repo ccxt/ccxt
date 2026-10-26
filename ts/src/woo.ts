@@ -3496,7 +3496,7 @@ export default class woo extends Exchange {
     override sign (path: string, section: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
-        const version = this.safeString (section, 0, '');
+        const version = section[0];
         const access = this.safeString (section, 1);
         const pathWithParams = this.implodeParams (path, params);
         const baseApiUrl = this.safeString (this.urls['api'], access);

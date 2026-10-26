@@ -3090,7 +3090,7 @@ export default class lbank extends Exchange {
         }
         let url = apiUrl + '/' + this.version + '/' + this.implodeParams (path, params);
         // Every spot endpoint ends with ".do"
-        if (this.safeString (api, 0) === 'spot') {
+        if (api[0] === 'spot') {
             url += '.do';
         } else {
             const contractUrl = this.safeString (this.urls['api'], 'contract');
@@ -3099,7 +3099,7 @@ export default class lbank extends Exchange {
             }
             url = contractUrl + '/' + this.implodeParams (path, params);
         }
-        if (this.safeString (api, 1) === 'public') {
+        if (api[1] === 'public') {
             if (Object.keys (paramsOmitted).length > 0) {
                 url += '?' + this.urlencode (this.keysort (paramsOmitted));
             }

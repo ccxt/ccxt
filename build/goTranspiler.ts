@@ -59,6 +59,7 @@ import { installCcxtGoParamTypes, g08w3Check } from './hx10w3-G08.js';
 import { installCcxtGoDictParams, hx10w8GB01Check } from './hx10w8-GB01.js';
 import { installCcxtGoGb05ParamTypes, hx10w8GB05Check } from './hx10w8-GB05.js';  // hx10 w8 GB05: parse-family frame parameters
 import { installCcxtGoGb11HandleErrorsCode, hx10w9GB11Check } from './hx10w9-GB11.js';  // hx10 w9 GB11: handleErrors status code
+import { installCcxtGoSignTyping } from './hx11-sign-typing.js';
 import { hx10w10GP24BaseImports, hx10w10GP24PruneImports, installHx10w10GP24BaseImportSeam, hx10w10GP24Check, hx10w10GP24Wired } from './hx10w10-GP24.js';  // hx10 w10 GP24: base-file stdlib import seam
 import { hx10w3G10, g10SelfCheck } from './hx10w3-G10.js';  // hx10w3 G10
 import { hx10w6G01BalanceOwner, hx10w6G01BalanceCheck, g01BalanceWired } from './hx10w6-G01.js';  // hx10 wave6 G01: typed balance account
@@ -5714,6 +5715,7 @@ class NewTranspiler {
         installCcxtGoDictParams (this.transpiler.goTranspiler);
         installCcxtGoGb05ParamTypes (this.transpiler.goTranspiler);
         installCcxtGoGb11HandleErrorsCode (this.transpiler.goTranspiler);
+        installCcxtGoSignTyping (this.transpiler.goTranspiler);
         installHx10w10GP24BaseImportSeam (this.transpiler.goTranspiler);
     }
 

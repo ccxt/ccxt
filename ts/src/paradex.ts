@@ -3443,7 +3443,7 @@ export default class paradex extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = this.safeString (api, 0);
+        const apiName = api[0];
         let version = this.version;
         let pathValue: any = path;
         if (path.indexOf ('v2/') === 0) {

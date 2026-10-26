@@ -7250,9 +7250,9 @@ export default class bingx extends Exchange {
     }
 
     override sign (path: string, section: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        let type = this.safeString (section, 0, '');
-        let version = this.safeString (section, 1, '');
-        let access = this.safeString (section, 2, '');
+        let type = section[0];
+        let version = section[1];
+        let access = section[2];
         const isSandbox = this.safeBool (this.options, 'sandboxMode', false);
         let url = this.implodeHostname (this.urls['api'][type]);
         if ((isSandbox) && url === undefined) {
@@ -7267,8 +7267,8 @@ export default class bingx extends Exchange {
             } else {
                 type = 'api/asset';
             }
-            version = this.safeString (section, 2, '');
-            access = this.safeString (section, 3, '');
+            version = section[2];
+            access = section[3];
         }
         const flatAccountPaths = [ 'account/apiPermissions', 'account/apiRestrictions' ];
         if (!this.inArray (pathValue, flatAccountPaths)) {

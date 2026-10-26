@@ -3493,8 +3493,8 @@ export default class woofipro extends Exchange {
     }
 
     override sign (path: string, section: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const version = this.safeString (section, 0, '');
-        const access = this.safeString (section, 1);
+        const version = section[0];
+        const access = section[1];
         const pathWithParams = this.implodeParams (path, params);
         const apiUrl = this.safeString (this.urls['api'], access);
         if (apiUrl === undefined) {

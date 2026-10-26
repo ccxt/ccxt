@@ -13335,7 +13335,7 @@ export default class binance extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = this.safeString (api, 0, 'public');
+        const apiName = api[0];
         const apiUrls = this.safeDict (this.urls, 'api', {});
         if (!(apiName in apiUrls)) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
@@ -13588,7 +13588,7 @@ export default class binance extends Exchange {
     override async request (path: string, api: string[] = [ 'public' ], method: any = 'GET', params: Dict = {}, config: Dict = {}) {
         const response = await this.fetch2 (path, api, method, params, config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if (this.safeString (api, 0) === 'private') {
+        if (api[0] === 'private') {
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
         }
         return response;

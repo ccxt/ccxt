@@ -2523,7 +2523,7 @@ export default class dydx extends Exchange {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         const pathWithParams = this.implodeParams (path, params);
-        const apiUrl = this.safeString (this.urls['api'], this.safeString (section, 0));
+        const apiUrl = this.safeString (this.urls['api'], section[0]);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }

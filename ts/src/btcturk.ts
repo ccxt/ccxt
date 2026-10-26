@@ -1102,7 +1102,7 @@ export default class btcturk extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = this.safeString (api, 0);
+        const apiName = api[0];
         if (this.id === 'btctrader') {
             throw new ExchangeError (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         }

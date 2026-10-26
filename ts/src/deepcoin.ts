@@ -3100,7 +3100,7 @@ export default class deepcoin extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = this.safeString (api, 0);
+        const apiName = api[0];
         let requestPath: string = path;
         if (method === 'GET') {
             const query = this.urlencode (params);

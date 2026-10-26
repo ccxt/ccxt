@@ -1721,7 +1721,7 @@ const RECEIVER_METHOD_LOCAL_ENTRIES = {
     'toLowerCase': { type: 'String', prefixes: [ '((String)' ], args: [ 0 ], nonNull: true },
     'trim':        { type: 'String', prefixes: [ '((String)' ], args: [ 0 ], nonNull: true },
     'search':      { type: 'Integer', prefixes: [ '((String)' ], args: [ 1 ] },
-    'startsWith':  { type: 'Boolean', prefixes: [ '((String)' ], args: [ 1 ] },
+    'startsWith':  { type: 'Boolean', prefixes: [ '((String)' ], match: /^\w+\.startsWith\(\(\(String\)/, args: [ 1 ] },
     'endsWith':    { type: 'Boolean', prefixes: [ '((String)' ], args: [ 1 ] },
     'split':       { type: JAVA_ARRAY_TYPE, cast: JAVA_ARRAY_CAST, prefixes: [ 'Helpers.split(' ], args: [ 1, 2 ] },
     'join':        { type: 'String', prefixes: [ 'String.join(' ], args: [ 1 ], nonNull: true },
@@ -11976,6 +11976,31 @@ function javaDtoElementUsesAreMapOnly (declaration) {
     return scope !== undefined;
 }
 
+// hx11: `const apiName = api[0]` in sign/fetch2/request, where `api: string[]` prints as an Object list. Every
+// element is a path string, so the guarded read takes the String cast and the local stays a String.
+function javaSignApiElementLocalType (printer, declaration) {
+    const read = unwrapParens (declaration.initializer);
+    if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
+        || !ts.isNumericLiteral (read.argumentExpression)) {
+        return undefined;
+    }
+    const param = printer.getChecker ().getSymbolAtLocation (read.expression)?.valueDeclaration?.resolve ();
+    const method = param?.parent;
+    if (param?.kind !== ts.SyntaxKind.Parameter || method?.kind !== ts.SyntaxKind.MethodDeclaration
+        || ![ 'sign', 'fetch2', 'request' ].includes (String (method.name?.text)) || method.parameters.indexOf (param) !== 1
+        || String (param.type?.getText () ?? '').replace (/\s+/g, '') !== 'string[]') {
+        return undefined;
+    }
+    // `api: string[]` types the element as string, so a `+` on it is the String overload
+    const info = { type: 'String', nonNull: true };
+    if (!isSafeToNarrow (printer, declaration, declaration.name.text, info.type, false, info)) {
+        return undefined;
+    }
+    const list = printer.printNode (read.expression, 0);
+    const k = printer.printNode (read.argumentExpression, 0);
+    return { type: 'String', cast: '(String) ', rhs: `(${list} == null || ${k} >= ((java.util.List<?>)${list}).size() ? null : ((java.util.List<?>)${list}).get(${k}))` };
+}
+
 function javaTypedListElementLocalType (printer, declaration) {
     const read = unwrapParens (declaration.initializer);
     if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
@@ -12019,7 +12044,7 @@ export function patchJavaTypedListElementLocals (transpiler) {
         }
         let found;
         try {
-            found = javaTypedListElementLocalType (printer, declaration);
+            found = javaTypedListElementLocalType (printer, declaration) ?? javaSignApiElementLocalType (printer, declaration);
         } catch (e) {
             return printed;
         }
@@ -12034,7 +12059,7 @@ export function patchJavaTypedListElementLocals (transpiler) {
             return printed;
         }
         retyped.set (declaration, found.type);
-        return printed.slice (0, at) + `${iden}${found.type} ${name} = ` + printed.slice (at + marker.length);
+        return printed.slice (0, at) + `${iden}${found.type} ${name} = ${found.cast ?? ''}` + printed.slice (at + marker.length);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => retyped.get (declaration));
 }

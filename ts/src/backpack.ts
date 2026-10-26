@@ -3398,7 +3398,7 @@ export default class backpack extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = this.safeString (api, 0);
+        const apiName = api[0];
         let endpoint = '/' + path;
         const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {

@@ -12238,7 +12238,7 @@ export default class bitget extends Exchange {
 
     override sign (path: string, api: string[] = [], method: string = 'GET', params: Dict = {}): Dict {
         const signed = api[0] === 'private';
-        const endpoint = this.safeString (api, 1);
+        const endpoint = api[1];
         const pathPart = '/api';
         const request = '/' + this.implodeParams (path, params);
         const payload = pathPart + request;

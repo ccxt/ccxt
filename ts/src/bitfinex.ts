@@ -3075,11 +3075,11 @@ export default class bitfinex extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = this.safeString (api, 0, '');
+        const apiName = api[0];
         let request = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (apiName === 'v1') {
-            request = apiName + request;
+            request = 'v1' + request;
         } else {
             request = this.version + request;
         }

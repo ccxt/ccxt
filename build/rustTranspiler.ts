@@ -11,6 +11,7 @@ import { isMainEntry } from "./transpile.js";
 import { nativeGetValue } from './hx10w2-R01.js';
 import { r01TypedLocals } from "./hx10w3-R01.js";
 import { r07StringNatives } from './hx10w3-R07.js'; // hx10 W3 R07
+import { hx11RustSignApiStr } from './hx11-sign-typing.js'; // hx11 sign api element
 import { hx10w2R08 } from './hx10w2-R08.js';
 import { r05FieldChainInserts } from './hx10w3-R05.js'; // hx10 R05
 import { bf03PlainDictChains } from './hx10w4-BF03.js'; // hx10w4 BF03
@@ -9230,6 +9231,7 @@ impl std::ops::DerefMut for ${coreName} {
                 // hx10 W3 R01: typed locals run last, on the final text.
                 rustContent = r01TypedLocals(rustContent);
                 rustContent = r07StringNatives(rustContent); // hx10 W3 R07
+                rustContent = hx11RustSignApiStr(rustContent);
                 rustContent = hx10w3R03(rustContent); // hx10 wave-3 R03
                 rustContent = r05FieldChainInserts(rustContent); // hx10 R05
                 rustContent = bf03PlainDictChains(rustContent); // hx10w4 BF03
@@ -9981,6 +9983,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = hx10w2R08(finalFile); // hx10 wave-2 R08
         finalFile = r01TypedLocals(finalFile); // hx10 W3 R01
         finalFile = r07StringNatives(finalFile); // hx10 W3 R07
+        finalFile = hx11RustSignApiStr(finalFile);
                 finalFile = hx10w3R03(finalFile); // hx10 wave-3 R03
         finalFile = r05FieldChainInserts(finalFile); // hx10 R05
         finalFile = bf03PlainDictChains(finalFile); // hx10w4 BF03

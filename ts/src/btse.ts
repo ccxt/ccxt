@@ -3736,7 +3736,7 @@ export default class btse extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params = {}) {
-        const apiName = this.safeString (api, 0);
+        const apiName = api[0];
         let requestBody: Str = undefined;
         let requestHeaders = undefined;
         const apiUrl = this.safeString (this.urls['api'], apiName);
