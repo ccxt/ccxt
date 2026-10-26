@@ -856,13 +856,13 @@ export default class coinbaseinternational extends Exchange {
             throw new NotSupported (this.id + ' fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments');
         }
         let limitResolved: Int = limit;
-        const duration = this.parseTimeframe (timeframe);
+        const duration = this.parseToInt (this.parseTimeframe (timeframe));
         const now = this.milliseconds ();
         if (since === undefined) {
             if (limitResolved === undefined) {
                 limitResolved = 100;
             }
-            request['start_timestamp'] = this.sum (now, -limitResolved * duration * 1000);
+            request['start_timestamp'] = this.sum (now, this.parseToInt (limitResolved) * duration * -1000);
             request['end_timestamp'] = now;
         } else {
             const sinceResolved = Math.max (since - 1, 0);
@@ -870,7 +870,7 @@ export default class coinbaseinternational extends Exchange {
             if (limitResolved === undefined) {
                 request['end_timestamp'] = now;
             } else {
-                request['end_timestamp'] = this.sum (sinceResolved, limitResolved * duration * 1000);
+                request['end_timestamp'] = this.sum (sinceResolved, this.parseToInt (limitResolved) * duration * 1000);
             }
         }
         const until = this.safeInteger (paramsPaginate, 'until');
@@ -953,7 +953,7 @@ export default class coinbaseinternational extends Exchange {
         const duration = this.parseTimeframe ('1h') * 1000;
         const now = this.milliseconds ();
         let sinceResolved: Int = since;
-        if (sinceResolved === undefined) {
+        if (since === undefined) {
             sinceResolved = now - (30 * 24 * 60 * 60 * 1000);
         }
         const request: Dict = {
@@ -1218,8 +1218,8 @@ export default class coinbaseinternational extends Exchange {
                     throw new BadRequest (this.id + ' fetchOrderBook() limit must be between 1 and 10000');
                 }
                 for (let i = 0; i < depths.length; i++) {
-                    if (limit <= depths[i]) {
-                        request['depth'] = depths[i];
+                    if (limit <= this.parseToInt (depths[i])) {
+                        request['depth'] = this.parseToInt (depths[i]);
                         break;
                     }
                 }
@@ -1612,7 +1612,7 @@ export default class coinbaseinternational extends Exchange {
         const currency = this.currency (code);
         const now = this.milliseconds ();
         let sinceResolved: Int = since;
-        if (sinceResolved === undefined) {
+        if (since === undefined) {
             sinceResolved = now - (30 * 24 * 60 * 60 * 1000);
         }
         const request: Dict = {
@@ -1943,7 +1943,7 @@ export default class coinbaseinternational extends Exchange {
         const currency = this.currency (code);
         const now = this.milliseconds ();
         let sinceResolved: Int = since;
-        if (sinceResolved === undefined) {
+        if (since === undefined) {
             sinceResolved = now - (30 * 24 * 60 * 60 * 1000);
         }
         const request: Dict = {
@@ -3187,7 +3187,7 @@ export default class coinbaseinternational extends Exchange {
             'sub': this.apiKey,
             'iss': iss,
             'nbf': seconds,
-            'exp': (seconds as number) + 120,
+            'exp': this.parseToInt (seconds) + 120,
             'iat': seconds,
         };
         if (uri !== undefined) {
