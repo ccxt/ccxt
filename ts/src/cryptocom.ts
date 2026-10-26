@@ -1130,7 +1130,7 @@ export default class cryptocom extends Exchange {
         if ((limit !== undefined) && (limit > 300)) {
             limitResolved = 300;
         }
-        if (limitResolved !== undefined) {
+        if (limit !== undefined) {
             request['count'] = limitResolved;
         }
         const now = this.microseconds ();
@@ -1831,10 +1831,10 @@ export default class cryptocom extends Exchange {
         const market = this.market (symbol);
         const orderRequests: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id = this.safeString (ids, i);
             const order: Dict = {
                 'instrument_name': market['id'],
-                'order_id': id.toString (),
+                'order_id': id,
             };
             orderRequests.push (order);
         }
@@ -3441,7 +3441,7 @@ export default class cryptocom extends Exchange {
                 returnString += 'null';
             } else if (Array.isArray (value)) {
                 for (let j = 0; j < value.length; j++) {
-                    returnString += this.paramsToString (value[j], level + 1);
+                    returnString += this.paramsToString (value[j], depth + 1);
                 }
             } else {
                 returnString += value.toString ();
@@ -3580,7 +3580,7 @@ export default class cryptocom extends Exchange {
         const result: Dict = {};
         result['info'] = response;
         for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+            const symbol = this.safeString (this.symbols, i, '');
             const market = this.market (symbol);
             const isSwap = this.safeBool (market, 'swap');
             let takerFeeKey: Str = 'effective_spot_taker_rate_bps';

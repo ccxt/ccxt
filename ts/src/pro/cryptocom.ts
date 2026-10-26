@@ -143,8 +143,7 @@ export default class cryptocom extends cryptocomRest {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const limitString = this.numberToString (limitResolved);
-            const messageHash = 'orderbook:' + market['symbol'];
-            messageHashes.push (messageHash);
+            messageHashes.push ('orderbook:' + market['symbol']);
             topics.push ('book.' + this.safeString (market, 'id', '') + '.' + limitString);
         }
         const orderbook: WsOrderBook = await this.watchPublicMultiple (messageHashes, topics, paramsBookUpdateFrequency2);
@@ -187,9 +186,8 @@ export default class cryptocom extends cryptocomRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const messageHash = 'orderbook:' + market['symbol'];
-            subMessageHashes.push (messageHash);
-            messageHashes.push ('unsubscribe:' + messageHash);
+            subMessageHashes.push ('orderbook:' + market['symbol']);
+            messageHashes.push ('unsubscribe:orderbook:' + market['symbol']);
             topics.push ('book.' + this.safeString (market, 'id', '') + '.' + limit.toString ());
         }
         return await this.unWatchPublicMultiple ('orderbook', symbolsNormalized, messageHashes, subMessageHashes, topics, paramsBookUpdateFrequency2);
@@ -204,7 +202,7 @@ export default class cryptocom extends cryptocomRest {
 
     override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i]);
+            this.handleDelta (bookside, this.safeValue (deltas, i));
         }
     }
 
@@ -432,7 +430,7 @@ export default class cryptocom extends cryptocomRest {
         }
         const parsedTrades = this.parseTrades (data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
-            stored.append (parsedTrades[j]);
+            stored.append (this.safeValue (parsedTrades, j));
         }
         const channelReplaced = channel.replace ('.' + marketId, '');
         client.resolve (stored, symbolSpecificMessageHash);
@@ -748,12 +746,11 @@ export default class cryptocom extends cryptocomRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const ohlcv = await this.watchPublic ('candlestick.' + interval + '.' + this.safeString (market, 'id', ''), params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbolValue, limit);
+            limitResolved = ohlcv.getLimit (market['symbol'], limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
@@ -1498,7 +1495,7 @@ export default class cryptocom extends cryptocomRest {
                 // the previous iteration can have deleted the messageHash from the subscriptions
             }
             if (messageHash.startsWith ('unsubscribe')) {
-                const subscription = client.subscriptions[messageHash];
+                const subscription = this.safeValue (client.subscriptions, messageHash);
                 const subId = this.safeString (subscription, 'id');
                 if (id !== subId) {
                     continue;
