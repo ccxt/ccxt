@@ -601,7 +601,7 @@ export default class woofipro extends Exchange {
         }
         const settleId = this.safeString (parts, 2);
         const settle = this.safeCurrencyCode (settleId);
-        const symbol = base + '/' + quote + ':' + settle;
+        const symbol = base + '/' + quote + ':' + quote;
         return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,

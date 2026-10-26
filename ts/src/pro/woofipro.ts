@@ -85,7 +85,7 @@ export default class woofipro extends woofiproRest {
         if (this.accountId !== undefined && this.accountId !== '') {
             id = this.accountId;
         }
-        const url = this.safeString (this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {}), 'public') + '/' + id;
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {}), 'public', '') + '/' + id;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -630,7 +630,7 @@ export default class woofipro extends woofiproRest {
 
     async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
-        const url = this.safeString (this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {}), 'private') + '/' + this.accountId;
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {}), 'private', '') + '/' + this.accountId;
         const client = this.client (url);
         const messageHash = 'authenticated';
         const event = 'auth';
@@ -661,7 +661,7 @@ export default class woofipro extends woofiproRest {
 
     async watchPrivate (messageHash: string, message: Dict, params: Dict = {}) {
         await this.authenticate (params);
-        const url = this.safeString (this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {}), 'private') + '/' + this.accountId;
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {}), 'private', '') + '/' + this.accountId;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -672,7 +672,7 @@ export default class woofipro extends woofiproRest {
 
     async watchPrivateMultiple (messageHashes: string[], message: Dict, params: Dict = {}) {
         await this.authenticate (params);
-        const url = this.safeString (this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {}), 'private') + '/' + this.accountId;
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {}), 'private', '') + '/' + this.accountId;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -1009,12 +1009,11 @@ export default class woofipro extends woofiproRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const trade = this.parseWsTrade (message, market);
-        let trades = this.myTrades;
-        if (trades === undefined) {
+        if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            trades = new ArrayCacheBySymbolById (limit);
-            this.myTrades = trades;
+            this.myTrades = new ArrayCacheBySymbolById (limit);
         }
+        const trades = this.myTrades;
         trades.append (trade);
         client.resolve (trades, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
@@ -1052,7 +1051,7 @@ export default class woofipro extends woofiproRest {
         } else {
             messageHashes.push ('positions');
         }
-        const url = this.safeString (this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {}), 'private') + '/' + this.accountId;
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {}), 'private', '') + '/' + this.accountId;
         const client = this.client (url);
         this.setPositionsCache (client, symbolsNormalized);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
