@@ -403,7 +403,9 @@ class blofin extends blofin$1["default"] {
                     'linear': {
                         'extends': 'forDerivatives',
                     },
-                    'inverse': undefined,
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
                 },
                 'future': {
                     'linear': undefined,
