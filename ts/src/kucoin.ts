@@ -3436,7 +3436,7 @@ export default class kucoin extends Exchange {
             if (suffix === undefined) {
                 throw new NotSupported (this.id + ' fetchOHLCV() price parameter must be one of "mark", "index", or "premiumIndex"');
             }
-            request['symbol'] = market['id'] + '-' + suffix;
+            request['symbol'] = this.safeString (market, 'id', '') + '-' + suffix;
         }
         const response = await this.utaGetMarketKline (this.extend (request, paramsPrice));
         //
@@ -4036,7 +4036,7 @@ export default class kucoin extends Exchange {
         } else if (market['contract'] === true) {
             return await this.createContractOrder (symbol, type, side, amount, price, paramsUta);
         } else {
-            throw new NotSupported (this.id + ' createOrder() does not support market ' + market['type']);
+            throw new NotSupported (this.id + ' createOrder() does not support market ' + this.safeString (market, 'type', ''));
         }
     }
 
@@ -5500,7 +5500,7 @@ export default class kucoin extends Exchange {
             paramsRequest = this.omit (paramsRequest, 'uta');
             paramsRequest = this.extend (paramsRequest, { 'marketType': marketType });
             return await this.fetchUtaOrdersByStatus (status, symbol, since, limit, paramsRequest);
-        } else if ((marketType === 'spot') || (marketType === 'margin')) {
+        } else if (this.inArray (marketType, [ 'spot', 'margin' ])) {
             return await this.fetchSpotOrdersByStatus (status, symbol, since, limit, paramsRequest);
         } else {
             return await this.fetchContractOrdersByStatus (status, symbol, since, limit, paramsRequest);
@@ -8772,7 +8772,7 @@ export default class kucoin extends Exchange {
     }
 
     isHfOrMining (fromId: Str, toId: Str): boolean {
-        return (fromId === 'trade_hf' || toId === 'trade_hf' || fromId === 'pool' || toId === 'pool');
+        return this.inArray (fromId, [ 'trade_hf', 'pool' ]) || this.inArray (toId, [ 'trade_hf', 'pool' ]);
     }
 
     override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
@@ -11075,14 +11075,14 @@ export default class kucoin extends Exchange {
             });
         }
         for (let i = 0; i < ids.length; i++) {
-            const orderId = ids[i];
+            const orderId = this.safeString (ids, i);
             if (uta) {
                 ordersRequests.push ({
                     'orderId': orderId,
                     'symbol': this.safeString (market, 'id'),
                 });
             } else {
-                ordersRequests.push (ids[i]);
+                ordersRequests.push (orderId);
             }
         }
         const request: Dict = {};
