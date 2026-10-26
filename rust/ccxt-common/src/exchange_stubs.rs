@@ -668,6 +668,35 @@ impl Exchange {
         }
     }
 
+    /// `safe_string_k` without the box: same lookup, empty-string and default
+    /// rules, `None` where the boxed helper yields `Value::Null`.
+    #[inline]
+    pub fn safe_string_k_opt(&self, obj: Value, key: &str, optional_args: &[Value]) -> Option<String> {
+        match self.safe_value_k(obj, key, &[]) {
+            Value::Str(s) => Some(s.to_string()),
+            Value::Int(n) => Some(n.to_string()),
+            Value::Float(f) => Some(f.to_string()),
+            _ => match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            },
+        }
+    }
+
+    /// `safe_string` without the box (Value key): same lookup and default rules.
+    #[inline]
+    pub fn safe_string_opt(&self, obj: Value, key: Value, optional_args: &[Value]) -> Option<String> {
+        match self.safe_value(obj, key, &[]) {
+            Value::Str(s) => Some(s.to_string()),
+            Value::Int(n) => Some(n.to_string()),
+            Value::Float(f) => Some(f.to_string()),
+            _ => match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            },
+        }
+    }
+
     #[inline]
     pub fn safe_integer_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_value_k(obj, key, &[]);
@@ -847,6 +876,19 @@ impl Exchange {
         arg_default(optional_args)
     }
 
+    /// `safe_string_upper_k` without the box: the found value is upper-cased, a
+    /// default is returned verbatim (`None` where the boxed helper yields `Null`).
+    #[inline]
+    pub fn safe_string_upper_k_opt(&self, obj: Value, key: &str, optional_args: &[Value]) -> Option<String> {
+        match self.safe_string_k_opt(obj, key, &[]) {
+            Some(s) => Some(s.to_uppercase()),
+            None => match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            },
+        }
+    }
+
     pub fn safe_string_lower_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
@@ -900,6 +942,19 @@ impl Exchange {
             return v;
         }
         arg_default(optional_args)
+    }
+
+    /// `safe_string_lower_k` without the box: the found value is lower-cased, a
+    /// default is returned verbatim (`None` where the boxed helper yields `Null`).
+    #[inline]
+    pub fn safe_string_lower_k_opt(&self, obj: Value, key: &str, optional_args: &[Value]) -> Option<String> {
+        match self.safe_string_k_opt(obj, key, &[]) {
+            Some(s) => Some(s.to_lowercase()),
+            None => match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            },
+        }
     }
 
     pub fn safe_string_lower2(

@@ -4587,6 +4587,150 @@ export class RustTranspilerBuilder {
     }
 
     /**
+     * `let X: Value = self.safe_string*(obj, key, &[default])` whose every later use is its own
+     * slot of a `format!` becomes a native `String` through the family's `_opt` twin, which has
+     * the same lookup and default rules. Any other use, a `{:?}` sink or a non-`Str` default
+     * keeps `Value`.
+     */
+    narrowStrSinkLocals(content: string): string {
+        // Boxed family -> its `Option<String>` twin on the same `Exchange` impl.
+        const OPT: { [k: string]: string } = {
+            safe_string: 'safe_string_opt',
+            safe_string_k: 'safe_string_k_opt',
+            safe_string_lower_k: 'safe_string_lower_k_opt',
+            safe_string_upper_k: 'safe_string_upper_k_opt',
+        };
+        const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_string[a-z_0-9]*)\(/gm;
+        const strKeyRe = /^"(?:[^"\\]|\\.)*"$/;
+        // Blank string bodies and line comments; same length, quotes kept.
+        const maskText = (src: string): string => {
+            let out = ''; let i = 0;
+            while (i < src.length) {
+                const c = src[i];
+                if (c === '/' && src[i + 1] === '/') {
+                    while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
+                    continue;
+                }
+                if (c === '"') {
+                    out += '"'; i++;
+                    while (i < src.length && src[i] !== '"') {
+                        if (src[i] === '\\') { out += '  '; i += 2; continue; }
+                        out += src[i] === '\n' ? '\n' : ' ';
+                        i++;
+                    }
+                    if (i < src.length) { out += '"'; i++; }
+                    continue;
+                }
+                out += c; i++;
+            }
+            return out;
+        };
+        const closeParen = (src: string, open: number): number => {
+            let depth = 0;
+            for (let k = open; k < src.length; k++) {
+                const c = src[k];
+                if (c === '(') depth++;
+                else if (c === ')') { depth--; if (depth === 0) return k + 1; }
+            }
+            return -1;
+        };
+        const braceEnd = (src: string, from: number): number => {
+            let depth = 0;
+            for (let k = from; k < src.length; k++) {
+                const c = src[k];
+                if (c === '{') depth++;
+                else if (c === '}') { depth--; if (depth < 0) return k; }
+            }
+            return src.length;
+        };
+        const argSpans = (src: string): Array<[number, number]> => {
+            const out: Array<[number, number]> = [];
+            let depth = 0; let start = 0;
+            for (let i = 0; i < src.length; i++) {
+                const c = src[i];
+                if (c === '(' || c === '[' || c === '{') depth++;
+                else if (c === ')' || c === ']' || c === '}') depth--;
+                else if (c === ',' && depth === 0) { out.push([start, i]); start = i + 1; }
+            }
+            out.push([start, src.length]);
+            return out;
+        };
+
+        const masked = maskText(content);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        let m: RegExpExecArray | null;
+        while ((m = declRe.exec(masked)) !== null) {
+            const fam = m[4];
+            const opt = OPT[fam];
+            if (opt === undefined) continue;
+            const name = m[3];
+            const callOpen = m.index + m[0].length - 1;
+            const callClose = closeParen(masked, callOpen);
+            if (callClose < 0) continue;
+            const tail = /^\s*;/.exec(masked.slice(callClose, callClose + 3));
+            if (tail === null) continue;
+            const stmtEnd = callClose + tail[0].length;
+            const base = callOpen + 1;
+            const spans = argSpans(masked.slice(base, callClose - 1));
+            if (spans.length !== 3) continue;
+            const obj = content.slice(base + spans[0][0], base + spans[0][1]).trim();
+            const keyRaw = content.slice(base + spans[1][0], base + spans[1][1]).trim();
+            const defRaw = content.slice(base + spans[2][0], base + spans[2][1]).trim();
+            if (obj.length === 0 || keyRaw.length === 0) continue;
+            // The `_k` twins take `&str`, the `safe_string` twin a `Value` key: both pass verbatim.
+            if (fam.endsWith('_k') && !strKeyRe.test(keyRaw)) continue;
+            // A non-`Str` default would print its `Value`, not the `String` accessor's text.
+            if (defRaw !== '&[]' && !/^&\[\s*Value::Str\(/.test(defRaw)) continue;
+            const end = braceEnd(masked, stmtEnd);
+            const body = masked.slice(stmtEnd, end);
+            // A second binding of the name makes the use scan ambiguous.
+            if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(body)) continue;
+            if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(body)) continue;
+            const fRe = /format!\(/g;
+            const fSpans: Array<[number, number, boolean]> = [];
+            let f: RegExpExecArray | null;
+            while ((f = fRe.exec(body)) !== null) {
+                const close = closeParen(body, f.index + f[0].length - 1);
+                if (close < 0) continue;
+                const lit = /^"(?:[^"\\]|\\.)*"/.exec(body.slice(f.index + f[0].length, close));
+                fSpans.push([f.index, close, lit !== null && /:\?/.test(lit[0])]);
+            }
+            const useRe = new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`, 'g');
+            let ok = true; let uses = 0;
+            let u: RegExpExecArray | null;
+            while ((u = useRe.exec(body)) !== null) {
+                const at = u.index;
+                const cand = fSpans.filter(([s, e]) => at > s && at < e);
+                if (cand.length === 0) { ok = false; break; }
+                const hit = cand.reduce((a, b) => (b[0] > a[0] ? b : a));
+                if (hit[2]) { ok = false; break; }
+                // The use must BE a `format!` argument slot, not a block inside one.
+                const inner = hit[0] + 'format!('.length;
+                const slot = argSpans(body.slice(inner, hit[1] - 1))
+                    .filter(([a, b]) => inner + a <= at && at + name.length <= inner + b);
+                if (slot.length === 0) { ok = false; break; }
+                if (body.slice(inner + slot[0][0], inner + slot[0][1]).replace(/\s+/g, '') !== name) { ok = false; break; }
+                uses++;
+            }
+            if (!ok || uses === 0) continue;
+            const indent = m[1];
+            const text = `${indent}let ${name}: String = self.${opt}(${obj}, ${keyRaw}, ${defRaw}).unwrap_or_default();`;
+            if (indent.length + text.length > 400 && stmtEnd - m.index <= 400) continue;
+            rewrites.push({ start: m.index, end: stmtEnd, text });
+        }
+        if (rewrites.length === 0) return content;
+        rewrites.sort((a, b) => a.start - b.start);
+        let out = ''; let last = 0;
+        for (const r of rewrites) {
+            if (r.start < last) continue; // overlapping — should not happen; keep the first
+            out += content.slice(last, r.start) + r.text;
+            last = r.end;
+        }
+        out += content.slice(last);
+        return out;
+    }
+
+    /**
      * Native-typed `safe_list` locals: `let mut X: Value = self.safe_list_k(..)`
      * becomes `let mut X: Vec<Value>`, and every index read of X becomes the
      * `.get()` the runtime's array branch takes.
@@ -9093,6 +9237,8 @@ impl std::ops::DerefMut for ${coreName} {
                 // hx10w7 R10: venue reads of the ws client go through the typed
                 // handle the drive loop owns (field reads, no `get_value` lookup).
                 rustContent = r10ClientHandle(rustContent);
+                // hx11 W4 P1: `safe_string*` locals whose only sink is a `format!` print a `String`.
+                rustContent = this.narrowStrSinkLocals(rustContent);
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -9839,6 +9985,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = r05FieldChainInserts(finalFile); // hx10 R05
         finalFile = bf03PlainDictChains(finalFile); // hx10w4 BF03
         finalFile = r08DictReads(finalFile); // hx10w3 R08
+        finalFile = this.narrowStrSinkLocals(finalFile); // hx11 W4 P1
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
