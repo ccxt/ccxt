@@ -693,7 +693,7 @@ export default class coinsph extends Exchange {
                 const entry = byNumberOfSymbols[i];
                 const threshold = this.safeInteger (entry, 0);
                 if (threshold !== undefined && symbolsAmount >= threshold) {
-                    return entry[1];
+                    return this.safeInteger (entry, 1);
                 }
             }
         } else if (('byLimit' in config) && (limit !== undefined)) {
@@ -702,7 +702,7 @@ export default class coinsph extends Exchange {
                 const entry = byLimit[i];
                 const threshold = this.safeInteger (entry, 0);
                 if (threshold !== undefined && limit >= threshold) {
-                    return entry[1];
+                    return this.safeInteger (entry, 1);
                 }
             }
         }
@@ -2282,12 +2282,12 @@ export default class coinsph extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0);
         const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        const query = this.omit (params, this.extractParams (path));
+        const query: Dict = this.omit (params, this.extractParams (path));
         const endpoint = this.implodeParams (path, params);
         let url: string = apiUrl + '/' + endpoint;
         if (apiName === 'private') {
