@@ -409,15 +409,27 @@ export default class zebpay extends Exchange {
             }
             const withdrawFeeString = this.safeString (chain, 'withdrawalFee');
             if (withdrawFeeString !== undefined) {
-                minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise.stringMin (withdrawFeeString, minWithdrawFeeString);
+                if (minWithdrawFeeString === undefined) {
+                    minWithdrawFeeString = withdrawFeeString;
+                } else {
+                    minWithdrawFeeString = Precise.stringMin (withdrawFeeString, minWithdrawFeeString);
+                }
             }
             const minNetworkWithdrawString = this.safeString (chain, 'withdrawalMinSize');
             if (minNetworkWithdrawString !== undefined) {
-                minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise.stringMin (minNetworkWithdrawString, minWithdrawString);
+                if (minWithdrawString === undefined) {
+                    minWithdrawString = minNetworkWithdrawString;
+                } else {
+                    minWithdrawString = Precise.stringMin (minNetworkWithdrawString, minWithdrawString);
+                }
             }
             const minNetworkDepositString = this.safeString (chain, 'depositMinSize');
             if (minNetworkDepositString !== undefined) {
-                minDepositString = (minDepositString === undefined) ? minNetworkDepositString : Precise.stringMin (minNetworkDepositString, minDepositString);
+                if (minDepositString === undefined) {
+                    minDepositString = minNetworkDepositString;
+                } else {
+                    minDepositString = Precise.stringMin (minNetworkDepositString, minDepositString);
+                }
             }
             if (networkCode !== undefined) {
                 networks[networkCode] = {
@@ -1973,7 +1985,7 @@ export default class zebpay extends Exchange {
                 if (priceType !== undefined) {
                     suffix = '?' + this.urlencode ({ 'priceType': priceType });
                 }
-                bodySigned = JSON.stringify (paramsBody);
+                bodySigned = this.json (paramsBody);
                 headersSigned = {
                     'Referrer': 'ccxt',
                     'Content-Type': 'application/json',
@@ -1997,8 +2009,8 @@ export default class zebpay extends Exchange {
                 'Referrer': 'ccxt',
                 'X-AUTH-APIKEY': this.apiKey,
                 'X-AUTH-SIGNATURE': signature,
+                'Content-Type': 'application/json',
             };
-            headersSigned['Content-Type'] = 'application/json';
         }
         const url: string = baseApiUrl + tail + suffix;
         const headersResolved: NullableDict = headersSigned;
