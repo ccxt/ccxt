@@ -205,6 +205,7 @@ impl crate::exchange_generated::ExchangeBase for GateCore {
                 "subscribe_public_multiple" => self.subscribe_public_multiple(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "subscribe_watch_tickers_and_bids_asks" => self.subscribe_watch_tickers_and_bids_asks(&args[..]).await,
                 "un_subscribe_public_multiple" => self.un_subscribe_public_multiple(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), &args[7.min(args.len())..]).await,
+                "un_watch_ohlcv" => self.un_watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "un_watch_order_book" => self.un_watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "un_watch_trades" => self.un_watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "un_watch_trades_for_symbols" => self.un_watch_trades_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -281,6 +282,7 @@ impl GateCore {
             "subscribe_public_multiple" => { crate::exchange_stubs::enqueue_spawn("subscribe_public_multiple", args.to_vec()); crate::Value::Null },
             "subscribe_watch_tickers_and_bids_asks" => { crate::exchange_stubs::enqueue_spawn("subscribe_watch_tickers_and_bids_asks", args.to_vec()); crate::Value::Null },
             "un_subscribe_public_multiple" => { crate::exchange_stubs::enqueue_spawn("un_subscribe_public_multiple", args.to_vec()); crate::Value::Null },
+            "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
             "un_watch_order_book" => { crate::exchange_stubs::enqueue_spawn("un_watch_order_book", args.to_vec()); crate::Value::Null },
             "un_watch_trades" => { crate::exchange_stubs::enqueue_spawn("un_watch_trades", args.to_vec()); crate::Value::Null },
             "un_watch_trades_for_symbols" => { crate::exchange_stubs::enqueue_spawn("un_watch_trades_for_symbols", args.to_vec()); crate::Value::Null },
@@ -363,7 +365,7 @@ impl GateCore {
         m.insert("watchPositions".to_string(), Value::Bool(true));
         m.insert("unWatchTicker".to_string(), Value::Bool(false));
         m.insert("unWatchTickers".to_string(), Value::Bool(false));
-        m.insert("unWatchOHLCV".to_string(), Value::Bool(false));
+        m.insert("unWatchOHLCV".to_string(), Value::Bool(true));
         m.insert("unWatchOHLCVForSymbols".to_string(), Value::Bool(false));
         m.insert("unWatchOrderBook".to_string(), Value::Bool(true));
         m.insert("unWatchOrderBookForSymbols".to_string(), Value::Bool(false));
@@ -1717,6 +1719,72 @@ impl GateCore {
             limitResolved = ohlcv.get_limit(symbolValue, limit);
         }
         return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name gate#unWatchOHLCV
+ * @see https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-channel
+ * @see https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api
+ * @see https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unsubscription request
+ */
+    pub async fn un_watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if (self.markets.clone() == Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut market: Value = self.market(symbol);
+        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
+        let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
+        let mut messageType: Value = self.get_type_by_market(market.clone());
+        let mut channel: Value = Value::Str(format!("{}{}", messageType, Value::Str(".candlesticks".into())).into());
+        let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), interval).into()), Value::Str(":".into())).into()), symbolValue).into());
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:candles:".into()), interval).into()), Value::Str(":".into())).into()), symbolValue).into());
+        let mut url: Value = self.get_url_by_market(market);
+        let mut requestId: Value = self.request_id();
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("id".to_string(), requestId.clone());
+                m.insert("time".to_string(), self.seconds());
+                m.insert("channel".to_string(), channel);
+                m.insert("event".to_string(), Value::Str("unsubscribe".into()));
+                m.insert("payload".to_string(), Value::from(vec![interval.clone(), marketId]));
+            m
+        });
+        // mirrors the subscription shape base cleanCache() expects for ohlcv
+        // (same pattern as binance unWatchOHLCVForSymbols), so the ohlcvs
+        // cache entry is dropped when the unsubscribe is acknowledged;
+        // handleOHLCV keys the cache by findTimeframe (interval), so the
+        // exchange interval id is mapped back to the cache key here -
+        // this matters for aliased timeframes such as gate's '1w': '7d';
+        // an unsupported timeframe falls back to the caller's key, matching
+        // the previous no-op cleanup instead of an undefined cache key
+        let mut cacheTimeframe: Value = self.find_timeframe(interval, &[]);
+        let mut subscription: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
+                m.insert("topic".to_string(), Value::Str("ohlcv".into()));
+                m.insert("unsubscribe".to_string(), Value::Bool(true));
+                m.insert("symbols".to_string(), Value::from(vec![symbolValue.clone()]));
+                m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![symbolValue, (if (cacheTimeframe != Value::Null) { cacheTimeframe } else { timeframe })])]));
+                m.insert("messageHashes".to_string(), Value::from(vec![messageHash.clone()]));
+                m.insert("subMessageHashes".to_string(), Value::from(vec![subMessageHash]));
+            m
+        });
+        let mut message: Value = self.extend(request, &[params]);
+        return self.watch_multiple(url, Value::from(vec![messageHash.clone()]), &[message, Value::from(vec![messageHash]), subscription]).await;
 
     Value::Null
 }
