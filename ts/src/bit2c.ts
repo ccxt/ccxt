@@ -304,7 +304,7 @@ export default class bit2c extends Exchange {
             const currency = this.currency (code);
             const currencyId = this.safeString (currency, 'id', '');
             const uppercase = currencyId.toUpperCase ();
-            if (uppercase in response) {
+            if (this.safeString (response, uppercase) !== undefined) {
                 account['free'] = this.safeString (response, 'AVAILABLE_' + uppercase);
                 account['total'] = this.safeString (response, uppercase);
             }
@@ -878,10 +878,7 @@ export default class bit2c extends Exchange {
         //         }
         //     ]
         //
-        let responseList: Dict[] = [];
-        if (response !== undefined) {
-            responseList = this.toArray (response);
-        }
+        const responseList = this.toArray (response);
         return this.parseTrades (responseList, market, since, limit);
     }
 
@@ -973,11 +970,8 @@ export default class bit2c extends Exchange {
             tradeMarket = this.safeMarket (undefined, market);
             side = this.safeValue (trade, 'isBid');
             if (side !== undefined) {
-                if ((side !== undefined) && (side !== '')) {
-                    side = 'buy';
-                } else {
-                    side = 'sell';
-                }
+                // safeValue already drops an empty string, so a present isBid is a buy here
+                side = 'buy';
             }
         }
         const marketResolved = this.safeMarket (undefined, tradeMarket);
