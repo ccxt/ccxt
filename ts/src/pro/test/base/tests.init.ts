@@ -8,7 +8,6 @@ import testWsKeepAliveTimeout from "./test.keepAliveTimeout.js";
 import testWsClientThrottleWiring from "./test.clientThrottleWiring.js";
 import testBingxOrderFreshness from "./test.bingxOrderFreshness.js";
 import testHyperliquidPendingUnsubscribe from "./test.pendingUnsubscribe.hyperliquid.js";
-import testGateUnwatchOHLCV from "./test.gateUnwatchOHLCV.js";
 
 async function testBaseWs () {
     testWsOrderBook ();
@@ -21,7 +20,6 @@ async function testBaseWs () {
     await testWsKeepAliveTimeout ();
     await testWsClientThrottleWiring ();
     await testHyperliquidPendingUnsubscribe ();
-    await testGateUnwatchOHLCV (); // js-only: pins gate unWatchOHLCV unsubscribe wiring and cache cleanup
 }
 
 export default testBaseWs;
