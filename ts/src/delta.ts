@@ -2134,7 +2134,7 @@ export default class delta extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'id': parseInt (id),
+            'id': this.parseToInt (id),
             'product_id': market['numericId'],
             // "limit_price": this.priceToPrecision (symbol, price),
             // "size": this.amountToPrecision (symbol, amount),
@@ -2144,7 +2144,7 @@ export default class delta extends Exchange {
             if (sizeString === undefined) {
                 sizeString = '0';
             }
-            request['size'] = parseInt (sizeString);
+            request['size'] = this.parseToInt (sizeString);
         }
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision (symbol, price);
@@ -2188,7 +2188,7 @@ export default class delta extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'id': parseInt (id),
+            'id': this.parseToInt (id),
             'product_id': market['numericId'],
         };
         const response = await this.privateDeleteOrders (this.extend (request, params));
@@ -2925,7 +2925,7 @@ export default class delta extends Exchange {
     async modifyMarginHelper (symbol: string, amount: number, type: string, params: Dict = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const amountString = amount.toString ();
+        const amountString = this.numberToString (amount);
         const deltaMargin = (type === 'reduce') ? Precise.stringMul (amountString, '-1') : amountString;
         const request: Dict = {
             'product_id': market['numericId'],
