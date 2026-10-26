@@ -3443,9 +3443,10 @@ export default class poloniex extends Exchange {
     }
 
     override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
-        const depositWithdrawFee = this.depositWithdrawFee ({});
         const currencyCode = this.safeString (currency, 'code');
-        depositWithdrawFee['info'][currencyCode as string] = fee;
+        const info: Dict = {};
+        info[currencyCode as string] = fee;
+        const depositWithdrawFee = this.depositWithdrawFee (info);
         const networkId = this.safeString (fee, 'blockchain');
         const withdrawFee = this.safeNumber (fee, 'withdrawalFee');
         const withdrawResult: Dict = {
@@ -3460,10 +3461,12 @@ export default class poloniex extends Exchange {
         depositWithdrawFee['deposit'] = depositResult;
         const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
         if (networkCode !== undefined) {
-            depositWithdrawFee['networks'][networkCode] = {
+            const networks: Dict = {};
+            networks[networkCode] = {
                 'withdraw': withdrawResult,
                 'deposit': depositResult,
             };
+            depositWithdrawFee['networks'] = networks;
         }
         return depositWithdrawFee;
     }
@@ -3901,7 +3904,7 @@ export default class poloniex extends Exchange {
             'positionMargin': this.parseNumber (positionMargin),
             'initialMargin': initialMargin,
             'initialMarginPercentage': undefined,
-            'leverage': parseInt (leverage as string),
+            'leverage': this.safeInteger (position, 'lever'),
             'marginRatio': this.safeNumber (position, 'mgnRatio'),
             'stopLossPrice': this.safeNumber (position, 'slTrgPx'),
             'takeProfitPrice': this.safeNumber (position, 'tpTrgPx'),
@@ -4035,12 +4038,11 @@ export default class poloniex extends Exchange {
                     url += '?' + this.urlencode (query);
                 }
             }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
             signedHeaders = {
                 'Content-Type': 'application/json',
                 'key': this.apiKey,
                 'signTimestamp': timestamp,
-                'signature': signature,
+                'signature': this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64'),
             };
         }
         const bodyResolved: Str = bodyJson;

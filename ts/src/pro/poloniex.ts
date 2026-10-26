@@ -931,12 +931,11 @@ export default class poloniex extends poloniexRest {
         //    }
         //
         const data = this.safeList (message, 'data', []);
-        let orders = this.orders;
-        if (orders === undefined) {
+        if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit');
-            orders = new ArrayCacheBySymbolById (limit);
-            this.orders = orders;
+            this.orders = new ArrayCacheBySymbolById (limit);
         }
+        const orders = this.orders;
         const marketIds: string[] = [];
         for (let i = 0; i < data.length; i++) {
             const order = this.safeDict (data, i);
