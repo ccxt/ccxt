@@ -649,7 +649,7 @@ export default class bitfinex extends Exchange {
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const pairObj = this.safeList (markets, i);
-            const id = this.safeStringUpper (pairObj, 0);
+            const id = this.safeStringUpper (pairObj, 0, '');
             const market = this.safeList (pairObj, 1, []);
             let spot = true;
             let type: Str = undefined;
@@ -1925,10 +1925,10 @@ export default class bitfinex extends Exchange {
         //          "Submitting 1 orders."      // Message
         //       ]
         //
-        const status = this.safeString (response, 6);
+        const status = this.safeString (response, 6, '');
         if (status !== 'SUCCESS') {
-            const errorCode = this.safeString (response, 5);
-            const errorText = this.safeString (response, 7);
+            const errorCode = this.safeString (response, 5, '');
+            const errorText = this.safeString (response, 7, '');
             throw new ExchangeError (this.id + ' ' + status + ': ' + errorText + ' (#' + errorCode + ')');
         }
         const orders = this.safeList (response, 4, []);
