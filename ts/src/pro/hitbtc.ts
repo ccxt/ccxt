@@ -791,14 +791,15 @@ export default class hitbtc extends hitbtcRest {
         const period = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'candles/' + period;
         const market = this.market (symbol);
-        const request: Dict = {
-            'params': {
-                'symbols': [ market['id'] ],
-            },
+        const subscribeParams: Dict = {
+            'symbols': [ market['id'] ],
         };
         if (limit !== undefined) {
-            request['params']['limit'] = limit;
+            subscribeParams['limit'] = limit;
         }
+        const request: Dict = {
+            'params': subscribeParams,
+        };
         const ohlcv = await this.subscribePublic (name, 'candles', [ symbol ], this.deepExtend (request, params));
         let limitResolved = limit;
         if (this.newUpdates) {
@@ -1307,7 +1308,7 @@ export default class hitbtc extends hitbtcRest {
             request['symbol'] = market['id'];
         }
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrdersWs', market, params);
-        const marginMode = this.handleMarginModeAndParams ('fetchOpenOrdersWs', paramsMarketType)[0];
+        const [ marginMode ] = this.handleMarginModeAndParams ('fetchOpenOrdersWs', paramsMarketType);
         if (marketType === 'swap') {
             return await this.tradeRequest ('futures_get_orders', request);
         } else if ((marketType === 'margin') || (marginMode !== undefined)) {
