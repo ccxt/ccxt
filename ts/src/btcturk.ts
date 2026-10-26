@@ -1113,8 +1113,9 @@ export default class btcturk extends Exchange {
         let url = apiUrl + '/' + path;
         const isQueryMethod = (method === 'GET') || (method === 'DELETE');
         if (isQueryMethod) {
-            if (Object.keys (params).length > 0) {
-                url += '?' + this.urlencode (params);
+            const query = this.urlencode (params);
+            if (query.length > 0) {
+                url += '?' + query;
             }
         }
         let requestBody: Str = undefined;
@@ -1136,8 +1137,7 @@ export default class btcturk extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
-        const requestHeaders = privateHeaders;
-        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
