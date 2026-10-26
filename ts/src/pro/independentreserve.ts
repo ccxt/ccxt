@@ -242,12 +242,12 @@ export default class independentreserve extends independentreserveRest {
             let payload = '';
             for (let i = 0; i < 10; i++) {
                 if (i < bidsLength) {
-                    payload = payload + this.valueToChecksum (storedBids[i][0]) + this.valueToChecksum (storedBids[i][1]);
+                    payload = payload + this.valueToChecksum (this.safeNumber (storedBids[i], 0)) + this.valueToChecksum (this.safeNumber (storedBids[i], 1));
                 }
             }
             for (let i = 0; i < 10; i++) {
                 if (i < asksLength) {
-                    payload = payload + this.valueToChecksum (storedAsks[i][0]) + this.valueToChecksum (storedAsks[i][1]);
+                    payload = payload + this.valueToChecksum (this.safeNumber (storedAsks[i], 0)) + this.valueToChecksum (this.safeNumber (storedAsks[i], 1));
                 }
             }
             const calculatedChecksum = this.crc32 (payload, false);
