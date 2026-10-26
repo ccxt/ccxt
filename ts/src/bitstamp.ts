@@ -1651,8 +1651,9 @@ export default class bitstamp extends Exchange {
     override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
         const result = this.depositWithdrawFee (fee);
         const code = this.safeString (currency, 'code');
-        for (let j = 0; j < fee.length; j++) {
-            const networkEntry = this.safeDict (fee, j);
+        const feeEntries = this.toArray (fee);
+        for (let j = 0; j < feeEntries.length; j++) {
+            const networkEntry = this.safeDict (feeEntries, j);
             const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'network'), code);
             const withdrawFee = this.safeNumber (networkEntry, 'fee');
             result['withdraw'] = {
@@ -2636,10 +2637,9 @@ export default class bitstamp extends Exchange {
         if (this.isFiat (code)) {
             throw new NotSupported (this.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!');
         }
-        const name = this.getCurrencyName (code);
         // the per-currency implicit methods (privatePostBtcAddress etc.) all route
         // through request(), called here directly to avoid dynamic dispatch
-        const response = await this.request (name + '_address/', [ 'private' ], 'POST', params);
+        const response = await this.request (this.getCurrencyName (code) + '_address/', [ 'private' ], 'POST', params);
         const address = this.safeString (response, 'address');
         const tag = this.safeString2 (response, 'memo_id', 'destination_tag');
         this.checkAddress (address);
@@ -2679,7 +2679,6 @@ export default class bitstamp extends Exchange {
         let currency: Currency = undefined;
         let response = undefined;
         if (!this.isFiat (code)) {
-            const name = this.getCurrencyName (code);
             if (code === 'XRP') {
                 if (tagWithdrawTag !== undefined) {
                     request['destination_tag'] = tagWithdrawTag;
@@ -2692,7 +2691,7 @@ export default class bitstamp extends Exchange {
             request['address'] = address;
             // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
             // route through request(), called here directly to avoid dynamic dispatch
-            response = await this.request (name + '_withdrawal/', [ 'private' ], 'POST', this.extend (request, paramsWithdrawTag));
+            response = await this.request (this.getCurrencyName (code) + '_withdrawal/', [ 'private' ], 'POST', this.extend (request, paramsWithdrawTag));
         } else {
             currency = this.currency (code);
             request['iban'] = address;

@@ -70,7 +70,7 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'orderbook:' + symbolValue;
         const url = this.urls['api']['ws'];
         const request: Dict = {
@@ -98,7 +98,7 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const channel = 'diff_order_book_' + this.safeString (market, 'id', '');
         const subHash = 'orderbook:' + symbolValue;
         return await this.unWatchChannel (channel, subHash, 'orderbook', [ symbolValue ], params);
@@ -172,10 +172,10 @@ export default class bitstamp extends bitstampRest {
         }
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
+            const cacheLength = this.parseToInt (storedOrderBook.cache.length);
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
-            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 6);
+            const snapshotDelay = this.parseToInt (this.handleOption ('watchOrderBook', 'snapshotDelay', 6));
             if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, null, {});
             }
@@ -195,10 +195,8 @@ export default class bitstamp extends bitstampRest {
         orderbook['nonce'] = this.safeInteger (delta, 'microtimestamp');
         const bids = this.safeList (delta, 'bids', []);
         const asks = this.safeList (delta, 'asks', []);
-        const storedBids = orderbook['bids'];
-        const storedAsks = orderbook['asks'];
-        this.handleBidAsks (storedBids, bids);
-        this.handleBidAsks (storedAsks, asks);
+        this.handleBidAsks (orderbook['bids'], bids);
+        this.handleBidAsks (orderbook['asks'], asks);
     }
 
     handleBidAsks (bookSide: any, bidAsks: any[]) {
@@ -244,7 +242,7 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'trades:' + symbolValue;
         const url = this.urls['api']['ws'];
         const request: Dict = {
@@ -276,7 +274,7 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const channel = 'live_trades_' + this.safeString (market, 'id', '');
         const subHash = 'trades:' + symbolValue;
         return await this.unWatchChannel (channel, subHash, 'trades', [ symbolValue ], params);
@@ -382,7 +380,7 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'fundingRate:' + symbolValue;
         const url = this.urls['api']['ws'];
         const request: Dict = {
