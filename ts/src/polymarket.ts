@@ -1237,7 +1237,7 @@ export default class polymarket extends Exchange {
         const fallback = this.safeDict (schedule, 0, {});
         const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+            const symbol = this.safeString (this.symbols, i, '');
             const market = this.market (symbol);
             const category = this.safeString (market['info'], 'category');
             const entry = this.safeDict (byCategory, category, fallback);
@@ -1494,7 +1494,7 @@ export default class polymarket extends Exchange {
         } else {
             const numericIds = [];
             for (let i = 0; i < ids.length; i++) {
-                numericIds.push (this.parseToInt (ids[i]));
+                numericIds.push (this.parseToInt (this.safeString (ids, i)));
             }
             signable = [ 'cancelOrders', numericIds ];
             bodyOp = {
@@ -2446,7 +2446,7 @@ export default class polymarket extends Exchange {
     override async fetchMarginMode (symbol: string, params: Dict = {}): Promise<MarginMode> {
         const leverage = await this.fetchLeverage (symbol, params);
         return {
-            'info': leverage['info'],
+            'info': this.safeDict (leverage, 'info'),
             'symbol': this.safeString (leverage, 'symbol'),
             'marginMode': this.safeString (leverage, 'marginMode'),
         } as MarginMode;

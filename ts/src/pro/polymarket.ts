@@ -131,7 +131,7 @@ export default class polymarket extends polymarketRest {
     override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolResolved: string = market['symbol'];
+        const symbolResolved: string = this.safeString (market, 'symbol', '');
         const messageHash = 'orderbook:' + symbolResolved;
         const request = this.sendSubscription ('sub', [ 'book::' + this.safeString (market, 'id', '') ], [ messageHash ], [ messageHash ], {}, params);
         const url = this.safeString (this.urls['api'], 'ws');
@@ -151,7 +151,7 @@ export default class polymarket extends polymarketRest {
     override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolResolved: string = market['symbol'];
+        const symbolResolved: string = this.safeString (market, 'symbol', '');
         const subMessageHash = 'orderbook:' + symbolResolved;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const channel = 'book::' + this.safeString (market, 'id', '');
@@ -183,7 +183,7 @@ export default class polymarket extends polymarketRest {
         const parts = ch.split ('::');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const data = this.safeDict (message, 'data', {});
         const timestamp = this.safeInteger (message, 'ts');
         const snapshot = this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
@@ -210,7 +210,7 @@ export default class polymarket extends polymarketRest {
     override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolResolved: string = market['symbol'];
+        const symbolResolved: string = this.safeString (market, 'symbol', '');
         const messageHash = 'ticker:' + symbolResolved;
         const request = this.sendSubscription ('sub', [ 'tickers::' + this.safeString (market, 'id', '') ], [ messageHash ], [ messageHash ], {}, params);
         const url = this.safeString (this.urls['api'], 'ws');
@@ -229,7 +229,7 @@ export default class polymarket extends polymarketRest {
     override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolResolved: string = market['symbol'];
+        const symbolResolved: string = this.safeString (market, 'symbol', '');
         const subMessageHash = 'ticker:' + symbolResolved;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const channel = 'tickers::' + this.safeString (market, 'id', '');
@@ -263,7 +263,7 @@ export default class polymarket extends polymarketRest {
         } else {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const market = this.market (symbolsNormalized[i]);
-                messageHashes.push ('ticker:' + market['symbol']);
+                messageHashes.push ('ticker:' + this.safeString (market, 'symbol', ''));
                 channels.push ('tickers::' + this.safeString (market, 'id', ''));
             }
         }
@@ -299,7 +299,7 @@ export default class polymarket extends polymarketRest {
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'iid');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const timestamp = this.safeInteger (message, 'ts');
         const ticker = this.safeTicker ({
             'symbol': symbol,
@@ -333,7 +333,7 @@ export default class polymarket extends polymarketRest {
         const channels: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market (symbolsNormalized[i]);
-            messageHashes.push ('bidask:' + market['symbol']);
+            messageHashes.push ('bidask:' + this.safeString (market, 'symbol', ''));
             channels.push ('bbo::' + this.safeString (market, 'id', ''));
         }
         const request = this.sendSubscription ('sub', channels, messageHashes, messageHashes, {}, params);
@@ -365,7 +365,7 @@ export default class polymarket extends polymarketRest {
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'iid');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const timestamp = this.safeInteger (message, 'ts');
         const ticker = this.safeTicker ({
             'symbol': symbol,
@@ -395,7 +395,7 @@ export default class polymarket extends polymarketRest {
     override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolResolved: string = market['symbol'];
+        const symbolResolved: string = this.safeString (market, 'symbol', '');
         const messageHash = 'trade:' + symbolResolved;
         const request = this.sendSubscription ('sub', [ 'trades::' + this.safeString (market, 'id', '') ], [ messageHash ], [ messageHash ], {}, params);
         const url = this.safeString (this.urls['api'], 'ws');
@@ -419,7 +419,7 @@ export default class polymarket extends polymarketRest {
     override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolResolved: string = market['symbol'];
+        const symbolResolved: string = this.safeString (market, 'symbol', '');
         const subMessageHash = 'trade:' + symbolResolved;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const channel = 'trades::' + this.safeString (market, 'id', '');
@@ -467,7 +467,7 @@ export default class polymarket extends polymarketRest {
         const first = this.safeDict (rows, 0, {});
         const marketId = this.safeString (first, 'iid');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const stored = new ArrayCache (limit);
@@ -536,7 +536,7 @@ export default class polymarket extends polymarketRest {
     override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolResolved: string = market['symbol'];
+        const symbolResolved: string = this.safeString (market, 'symbol', '');
         const wsTimeframes = this.safeDict (this.options, 'wsTimeframes', {});
         const interval = this.safeString (wsTimeframes, timeframe);
         if (interval === undefined) {
@@ -567,7 +567,7 @@ export default class polymarket extends polymarketRest {
     override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolResolved: string = market['symbol'];
+        const symbolResolved: string = this.safeString (market, 'symbol', '');
         const wsTimeframes = this.safeDict (this.options, 'wsTimeframes', {});
         const interval = this.safeString (wsTimeframes, timeframe, timeframe);
         const subMessageHash = 'candles:' + timeframe + ':' + symbolResolved;
@@ -602,7 +602,7 @@ export default class polymarket extends polymarketRest {
         const marketId = this.safeString (parts, 1);
         const interval = this.safeString (parts, 2);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const timeframe = this.findTimeframe (interval);
         if (timeframe === undefined) {
             return;
@@ -686,7 +686,7 @@ export default class polymarket extends polymarketRest {
         let symbolResolved: Str = symbol;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            const resolvedSymbol: string = market['symbol'];
+            const resolvedSymbol: string = this.safeString (market, 'symbol', '');
             symbolResolved = resolvedSymbol;
             messageHash = 'orders:' + resolvedSymbol;
         }
@@ -753,7 +753,7 @@ export default class polymarket extends polymarketRest {
         client.resolve (stored, 'orders');
         const symbolKeys = Object.keys (symbols);
         for (let i = 0; i < symbolKeys.length; i++) {
-            const symbol = symbolKeys[i];
+            const symbol = this.safeString (symbolKeys, i, '');
             client.resolve (stored, 'orders:' + symbol);
         }
     }
@@ -776,7 +776,7 @@ export default class polymarket extends polymarketRest {
         let symbolResolved: Str = symbol;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            const resolvedSymbol: string = market['symbol'];
+            const resolvedSymbol: string = this.safeString (market, 'symbol', '');
             symbolResolved = resolvedSymbol;
             messageHash = 'myTrades:' + resolvedSymbol;
         }
@@ -847,7 +847,7 @@ export default class polymarket extends polymarketRest {
         client.resolve (stored, 'myTrades');
         const symbolKeys = Object.keys (symbols);
         for (let i = 0; i < symbolKeys.length; i++) {
-            const symbol = symbolKeys[i];
+            const symbol = this.safeString (symbolKeys, i, '');
             client.resolve (stored, 'myTrades:' + symbol);
         }
     }
