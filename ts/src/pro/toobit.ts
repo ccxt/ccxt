@@ -194,13 +194,9 @@ export default class toobit extends toobitRest {
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         const messageHashes: List = [];
-        const subParams: List = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
-            const market = this.market (symbol);
             messageHashes.push ('trade::' + symbol);
-            const rawHash = market['id'];
-            subParams.push (rawHash);
         }
         const marketIds = this.marketIds (symbolsNormalized);
         const request: Dict = {
@@ -440,13 +436,9 @@ export default class toobit extends toobitRest {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
         const messageHashes: List = [];
-        const subParams: List = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
-            const market = this.market (symbol);
             messageHashes.push ('ticker::' + symbol);
-            const rawHash = market['id'];
-            subParams.push (rawHash);
         }
         const marketIds = this.marketIds (symbolsNormalized);
         const request: Dict = {
@@ -563,13 +555,9 @@ export default class toobit extends toobitRest {
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         const [ channel, paramsChannel ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'channel', 'depth');
         const messageHashes: List = [];
-        const subParams: List = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
-            const market = this.market (symbol);
             messageHashes.push ('orderBook::' + symbol + '::' + channel);
-            const rawHash = market['id'];
-            subParams.push (rawHash);
         }
         const marketIds = this.marketIds (symbolsNormalized);
         const url = this.safeString (this.urls['api']['ws'], 'common', '') + '/quote/ws/v1';

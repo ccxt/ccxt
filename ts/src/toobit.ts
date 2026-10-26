@@ -985,7 +985,7 @@ export default class toobit extends Exchange {
         const isContract = ('contractMultiplier' in market);
         const inverse = this.safeBool2 (market, 'isInverse', 'inverse');
         if (isContract) {
-            symbol += ':' + settle;
+            symbol = base + '/' + quote + ':' + settle;
         }
         return this.safeMarketStructure ({
             'id': id,
@@ -2165,9 +2165,8 @@ export default class toobit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const idsString = ids.join (',');
         const request: Dict = {
-            'ids': idsString,
+            'ids': ids.join (','),
         };
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -2721,9 +2720,10 @@ export default class toobit extends Exchange {
             if (symbol === undefined) {
                 throw new BadRequest (this.id + ' fetchTradingFees requires a params["symbol"]');
             }
-            market = this.market (symbol);
+            const symbolMarket: Market = this.market (symbol);
+            market = symbolMarket;
             const request: Dict = {
-                'symbol': market['id'],
+                'symbol': symbolMarket['id'],
             };
             response = await this.privateGetApiV1FuturesCommissionRate (this.extend (request, paramsSymbol));
         }
@@ -2737,10 +2737,9 @@ export default class toobit extends Exchange {
         //
         const result: Dict = {};
         const entry = response;
-        const marketId = this.safeString (entry, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const fee = this.parseTradingFee (entry, market);
-        result[market['symbol']] = fee;
+        const marketResolved: Market = this.safeMarket (this.safeString (entry, 'symbol'), market);
+        const fee = this.parseTradingFee (entry, marketResolved);
+        result[marketResolved['symbol']] = fee;
         return result;
     }
 
