@@ -682,7 +682,7 @@ export default class bitteam extends Exchange {
             fee = this.parseNumber (withdrawCommissionFixed);
             feesByNetworkId[blockChain] = fee;
         } else {
-            feesByNetworkId = withdrawCommissionFixed;
+            feesByNetworkId = this.extend (withdrawCommissionFixed, {});
         }
         const statuses = this.safeDict (statusesResponse, numericId, {});
         const deposit = this.safeBool (statuses, 'depositStatus');
