@@ -699,7 +699,7 @@ export default class hollaex extends Exchange {
         const keys = Object.keys (tickers);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const ticker = tickers[key];
+            const ticker = this.safeValue (tickers, key);
             const marketId = this.safeString (ticker, 'symbol', key);
             const market = this.safeMarket (marketId, undefined, '-');
             const symbol = market['symbol'];
@@ -1014,7 +1014,7 @@ export default class hollaex extends Exchange {
         }
         const currencyIds = Object.keys (currenciesById);
         for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
+            const currencyId = this.safeString (currencyIds, i, '');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeString (response, currencyId + '_available');

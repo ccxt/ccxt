@@ -104,27 +104,26 @@ export default class hollaex extends hollaexRest {
         const market = this.safeMarket (marketId);
         const marketIdValue = this.safeString (market, 'id', '');
         const symbol = market['symbol'];
-        if (symbol === undefined) {
-            return;
-        }
-        const data = this.safeDict (message, 'data');
-        const timestamp = this.safeString (data, 'timestamp');
-        const timestampMs = this.parse8601 (timestamp);
-        const snapshot = this.parseOrderBook (data, symbol, timestampMs);
-        let orderbook: WsOrderBook | undefined = undefined;
-        if (!(symbol in this.orderbooks)) {
-            orderbook = this.orderBook (snapshot);
-            this.orderbooks[symbol] = orderbook;
-        } else {
-            orderbook = this.orderbooks[symbol];
-            if (orderbook === undefined) {
-                return;
+        if (symbol !== undefined) {
+            const data = this.safeDict (message, 'data');
+            const timestamp = this.safeString (data, 'timestamp');
+            const timestampMs = this.parse8601 (timestamp);
+            const snapshot = this.parseOrderBook (data, symbol, timestampMs);
+            let orderbook: WsOrderBook | undefined = undefined;
+            if (!(symbol in this.orderbooks)) {
+                orderbook = this.orderBook (snapshot);
+                this.orderbooks[symbol] = orderbook;
+            } else {
+                orderbook = this.orderbooks[symbol];
+                if (orderbook === undefined) {
+                    return;
+                }
+                orderbook.reset (snapshot);
             }
-            orderbook.reset (snapshot);
-        }
-        if (channel !== undefined) {
-            const messageHash = channel + ':' + marketIdValue;
-            client.resolve (orderbook, messageHash);
+            if (channel !== undefined) {
+                const messageHash = channel + ':' + marketIdValue;
+                client.resolve (orderbook, messageHash);
+            }
         }
     }
 
@@ -185,8 +184,7 @@ export default class hollaex extends hollaexRest {
         const data = this.safeList (message, 'data', []);
         const parsedTrades = this.parseTrades (data, market);
         for (let i = 0; i < parsedTrades.length; i++) {
-            const parsedTrade = parsedTrades[i];
-            stored.append (parsedTrade);
+            stored.append (this.safeValue (parsedTrades, i));
         }
         if (channel !== undefined) {
             const messageHash = channel + ':' + marketIdValue;
@@ -395,7 +393,7 @@ export default class hollaex extends hollaexRest {
         }
         const marketIds: Dict = {};
         for (let i = 0; i < rawOrders.length; i++) {
-            const order = rawOrders[i];
+            const order = this.safeValue (rawOrders, i);
             const parsed = this.parseOrder (order);
             stored.append (parsed);
             const symbol = this.safeString (order, 'symbol');
