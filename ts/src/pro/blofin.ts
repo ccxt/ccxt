@@ -337,9 +337,7 @@ export default class blofin extends blofinRest {
         const firstMarket = this.market (symbolsList[0]);
         const channel = 'tickers';
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBidsAsks', firstMarket, params);
-        const apiUrls: Dict = this.safeDict (this.urls, 'api', {});
-        const wsUrls: Dict = this.safeDict (apiUrls, 'ws', {});
-        const typeUrls: Dict = this.safeDict (wsUrls, marketType, {});
+        const typeUrls: Dict = this.safeDict (this.urls['api']['ws'], marketType, {});
         const url = this.safeString (typeUrls, 'public');
         const messageHashes: List = [];
         const args: List = [];
@@ -499,9 +497,7 @@ export default class blofin extends blofinRest {
             'channel': 'account',
         };
         const request = this.getSubscriptionRequest ([ sub ]);
-        const apiUrls: Dict = this.safeDict (this.urls, 'api', {});
-        const wsUrls: Dict = this.safeDict (apiUrls, 'ws', {});
-        const typeUrls: Dict = this.safeDict (wsUrls, marketType, {});
+        const typeUrls: Dict = this.safeDict (this.urls['api']['ws'], marketType, {});
         const url = this.safeString (typeUrls, 'private');
         return await this.watch (url, messageHash, this.deepExtend (request, paramsMarketType), messageHash);
     }
@@ -706,9 +702,7 @@ export default class blofin extends blofinRest {
             'instId': market['id'],
         };
         const request = this.getSubscriptionRequest ([ requestParams ]);
-        const apiUrls: Dict = this.safeDict (this.urls, 'api', {});
-        const wsUrls: Dict = this.safeDict (apiUrls, 'ws', {});
-        const typeUrls: Dict = this.safeDict (wsUrls, marketType, {});
+        const typeUrls: Dict = this.safeDict (this.urls['api']['ws'], marketType, {});
         const url = this.safeString (typeUrls, 'public');
         return await this.watch (url, messageHash, this.deepExtend (request, paramsMarketType), messageHash);
     }
@@ -793,9 +787,7 @@ export default class blofin extends blofinRest {
         if (isPublic) {
             privateOrPublic = 'public';
         }
-        const apiUrls: Dict = this.safeDict (this.urls, 'api', {});
-        const wsUrls: Dict = this.safeDict (apiUrls, 'ws', {});
-        const typeUrls: Dict = this.safeDict (wsUrls, marketType, {});
+        const typeUrls: Dict = this.safeDict (this.urls['api']['ws'], marketType, {});
         const url = this.safeString (typeUrls, privateOrPublic);
         return await this.watchMultiple (url, messageHashes, this.deepExtend (request, paramsMarketType), messageHashes);
     }
@@ -882,9 +874,7 @@ export default class blofin extends blofinRest {
             ],
         };
         const marketType = 'swap'; // for now
-        const apiUrls: Dict = this.safeDict (this.urls, 'api', {});
-        const wsUrls: Dict = this.safeDict (apiUrls, 'ws', {});
-        const typeUrls: Dict = this.safeDict (wsUrls, marketType, {});
+        const typeUrls: Dict = this.safeDict (this.urls['api']['ws'], marketType, {});
         const url = this.safeString (typeUrls, 'private');
         await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }

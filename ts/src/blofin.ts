@@ -1373,8 +1373,7 @@ export default class blofin extends Exchange {
         };
         let response: Dict;
         if (accountType !== undefined && accountType !== 'swap') {
-            const options = this.safeDict (this.options, 'accountsByType', {});
-            const parsedAccountType = this.safeString (options, accountType, accountType);
+            const parsedAccountType = this.safeString (this.options['accountsByType'], accountType, accountType);
             request['accountType'] = parsedAccountType;
             response = await this.privateGetAssetBalances (this.extend (request, paramsAccountType));
         } else {
@@ -2004,8 +2003,7 @@ export default class blofin extends Exchange {
     }
 
     networkCodeToChainId (networkCode: string, currency: Currency = undefined): Str {
-        const aliases = this.safeDict (this.options, 'networkCodeAliases', {});
-        const aliasedCode = this.safeString (aliases, networkCode, networkCode);
+        const aliasedCode = this.safeString (this.options['networkCodeAliases'], networkCode, networkCode);
         const unifiedCode = this.safeString (this.networkAliases, aliasedCode, aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
@@ -2020,16 +2018,13 @@ export default class blofin extends Exchange {
         // the live venue identifies chains by display names; the suffix
         // family is built here as prefix + space + parenthesized suffix
         // because such literals are not transpiler-safe in source
-        const networks = this.safeDict (this.options, 'networks', {});
-        const direct = this.safeString (networks, unifiedCode);
+        const direct = this.safeString (this.options['networks'], unifiedCode);
         if (direct !== undefined) {
             return direct;
         }
-        const prefixes = this.safeDict (this.options, 'networkPrefixes', {});
-        const prefix = this.safeString (prefixes, unifiedCode);
+        const prefix = this.safeString (this.options['networkPrefixes'], unifiedCode);
         if (prefix !== undefined) {
-            const suffixes = this.safeDict (this.options, 'networkSuffixes', {});
-            const suffix = this.safeString (suffixes, unifiedCode, unifiedCode);
+            const suffix = this.safeString (this.options['networkSuffixes'], unifiedCode, unifiedCode);
             return prefix + ' ' + '(' + suffix + ')';
         }
         return unifiedCode;
@@ -2051,8 +2046,7 @@ export default class blofin extends Exchange {
             const tail = this.safeString (parts, 1, '');
             const tailParts = tail.split (')');
             const suffix = this.safeString (tailParts, 0);
-            const bySuffix = this.safeDict (this.options, 'networkCodesBySuffix', {});
-            const suffixCode = this.safeString (bySuffix, suffix);
+            const suffixCode = this.safeString (this.options['networkCodesBySuffix'], suffix);
             if (suffixCode !== undefined) {
                 return suffixCode;
             }
@@ -2203,8 +2197,7 @@ export default class blofin extends Exchange {
                 if (networkKeysLength === 1) {
                     networkCode = this.safeString (networkKeys, 0);
                 } else {
-                    const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
-                    networkCode = this.safeString (defaultNetworks, currency['code']);
+                    networkCode = this.safeString (this.options['defaultNetworks'], currency['code']);
                 }
             }
             if (networkCode === undefined) {
@@ -2773,9 +2766,8 @@ export default class blofin extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const fromId = this.safeString (this.options['accountsByType'], fromAccount, fromAccount);
+        const toId = this.safeString (this.options['accountsByType'], toAccount, toAccount);
         const request: Dict = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
