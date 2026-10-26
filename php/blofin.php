@@ -397,7 +397,9 @@ class blofin extends Exchange {
                     'linear' => array(
                         'extends' => 'forDerivatives',
                     ),
-                    'inverse' => null,
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
                 ),
                 'future' => array(
                     'linear' => null,
