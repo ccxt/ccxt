@@ -828,7 +828,7 @@ export default class bullish extends Exchange {
             margin = this.safeBool (market, 'marginTradingEnabled');
         } else {
             contractSize = this.safeNumber (market, 'contractMultiplier');
-            symbol += ':' + settle;
+            symbol = base + '/' + quote + ':' + settle;
             linear = settle === quote;
             inverse = !linear;
             if (type === 'swap') {
@@ -1393,9 +1393,9 @@ export default class bullish extends Exchange {
         } else if (untilParam === undefined) {
             until = this.sum (startTime, maxDelta);
         }
-        requestUntil['createdAtDatetime[gte]'] = this.iso8601 (startTime);
-        requestUntil['createdAtDatetime[lte]'] = this.iso8601 (until);
-        const response = await this.publicGetV1MarketsSymbolCandle (this.extend (requestUntil, paramsUntil));
+        request['createdAtDatetime[gte]'] = this.iso8601 (startTime);
+        request['createdAtDatetime[lte]'] = this.iso8601 (until);
+        const response = await this.publicGetV1MarketsSymbolCandle (this.extend (request, paramsUntil));
         //
         //     [
         //         {
@@ -1592,10 +1592,7 @@ export default class bullish extends Exchange {
             until = untilParam;
         }
         const sinceFromUntil = (since === undefined) && (untilParam !== undefined);
-        let paramsResult: Dict = params;
-        if (sinceFromUntil) {
-            paramsResult = this.omit (params, 'until');
-        }
+        const paramsResult: Dict = sinceFromUntil ? this.omit (params, 'until') : params;
         if ((since !== undefined) || (untilParam !== undefined)) {
             const timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
             let sinceResolved: Int = since;
@@ -1611,10 +1608,8 @@ export default class bullish extends Exchange {
                     until = this.sum (since, timeDelta);
                 }
             }
-            const sinceDate = this.iso8601 (sinceResolved);
-            const untilDate = this.iso8601 (until);
-            paramsResult[sinceKey] = sinceDate;
-            paramsResult[untilKey] = untilDate;
+            paramsResult[sinceKey] = this.iso8601 (sinceResolved);
+            paramsResult[untilKey] = this.iso8601 (until);
         }
         return paramsResult;
     }
@@ -1802,8 +1797,8 @@ export default class bullish extends Exchange {
         if (postOnly) {
             orderType = 'POST_ONLY';
         }
-        const [ timeInForce, paramsTimeInForce ] = this.handleOptionStringAndParams (paramsPostOnly, 'createOrder', 'timeInForce', 'GTC'); // is mandatory
-        paramsTimeInForce['timeInForce'] = timeInForce.toUpperCase ();
+        const [ timeInForce, paramsTimeInForceRaw ] = this.handleOptionStringAndParams (paramsPostOnly, 'createOrder', 'timeInForce', 'GTC'); // is mandatory
+        const paramsTimeInForce: Dict = this.extend (paramsTimeInForceRaw, { 'timeInForce': timeInForce.toUpperCase () });
         if (!isMarketOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -2088,12 +2083,12 @@ export default class bullish extends Exchange {
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('createdAtDatetime[lte]', request, params);
         const until = this.safeInteger (requestUntil, 'createdAtDatetime[lte]');
         if (until !== undefined) {
-            requestUntil['createdAtDatetime[lte]'] = this.iso8601 (until);
+            request['createdAtDatetime[lte]'] = this.iso8601 (until);
         }
         if (since !== undefined) {
-            requestUntil['createdAtDatetime[gte]'] = this.iso8601 (since);
+            request['createdAtDatetime[gte]'] = this.iso8601 (since);
         }
-        const response = await this.privateGetV1WalletsTransactions (this.extend (requestUntil, paramsUntil));
+        const response = await this.privateGetV1WalletsTransactions (this.extend (request, paramsUntil));
         //
         //     {
         //         "data": [
@@ -2278,10 +2273,7 @@ export default class bullish extends Exchange {
 
     async loadAccount (params: Dict = {}): Promise<Str> {
         const [ tradingAccountIdOption, paramsTradingAccountId ] = this.handleOptionStringAndParams (params, 'loadAccount', 'tradingAccountId');
-        let tradingAccountId: Str = undefined;
-        if (tradingAccountIdOption !== undefined) {
-            tradingAccountId = tradingAccountIdOption;
-        }
+        let tradingAccountId: Str = tradingAccountIdOption;
         if (tradingAccountId === undefined) {
             const response = await this.privateGetV1AccountsTradingAccounts (paramsTradingAccountId);
             const accounts = this.toArray (response);
@@ -2840,9 +2832,9 @@ export default class bullish extends Exchange {
         if (until === undefined) {
             until = now;
         }
-        requestUntil['createdAtDatetime[gte]'] = this.iso8601 (startTimestamp);
-        requestUntil['createdAtDatetime[lte]'] = this.iso8601 (until);
-        const response = await this.privateGetV1HistoryBorrowInterest (this.extend (requestUntil, paramsUntil));
+        request['createdAtDatetime[gte]'] = this.iso8601 (startTimestamp);
+        request['createdAtDatetime[lte]'] = this.iso8601 (until);
+        const response = await this.privateGetV1HistoryBorrowInterest (this.extend (request, paramsUntil));
         //
         //     [
         //         {
@@ -3011,10 +3003,11 @@ export default class bullish extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.microseconds ().toString ();
             const timestamp = this.getTimestamp ().toString ();
+            let headers: Dict = {};
             if (method === 'GET') {
                 const payload = timestamp + nonce + method + '/trading-api/' + path;
                 const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
-                requestHeaders = {
+                headers = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,
                     'BX-SIGNATURE': signature,
@@ -3024,34 +3017,28 @@ export default class bullish extends Exchange {
                 const payload = timestamp + nonce + method + '/trading-api/' + path + requestBody;
                 const digest = this.hash (this.encode (payload), sha256, 'hex');
                 const signature = this.hmac (this.encode (digest), this.encode (this.secret), sha256, 'hex');
-                requestHeaders = {
+                headers = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,
                     'BX-SIGNATURE': signature,
                     'Content-Type': 'application/json',
                 };
-                requestHeaders['Content-Type'] = 'application/json';
                 const rateLimitToken = this.safeString (request, 'rateLimitToken');
                 if (rateLimitToken !== undefined) {
-                    requestHeaders['BX-RATE-LIMIT-TOKEN'] = rateLimitToken;
+                    headers['BX-RATE-LIMIT-TOKEN'] = rateLimitToken;
                 }
             }
             if (path === 'v1/users/hmac/login') {
-                if (requestHeaders === undefined) {
-                    requestHeaders = {};
-                }
-                requestHeaders['BX-PUBLIC-KEY'] = this.apiKey;
+                headers['BX-PUBLIC-KEY'] = this.apiKey;
             } else {
                 const token = this.token;
                 if ((token === undefined)) {
                     throw new AuthenticationError (this.id + ' requires a token, please call signIn() first');
                 }
-                if (requestHeaders === undefined) {
-                    requestHeaders = {};
-                }
-                requestHeaders['Authorization'] = 'Bearer ' + token;
+                headers['Authorization'] = 'Bearer ' + token;
                 // headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
             }
+            requestHeaders = headers;
         }
         if (method === 'GET') {
             const query = this.urlencode (request);
