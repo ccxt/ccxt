@@ -735,7 +735,7 @@ export default class pacifica extends Exchange {
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
         if (isSwap) {
-            symbol = base + '/' + quote + ':' + settle;
+            symbol = base + '/' + quote + ':' + quote;
         }
         const fees = this.safeDict (this.fees, type, {});
         const taker = this.safeNumber (fees, 'taker');
@@ -895,9 +895,8 @@ export default class pacifica extends Exchange {
         }
         const market = this.market (symbol);
         const [ userAccount, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('fetchLeverage', params);
-        const cacheAddress = this.walletAddress;
         let settings: NullableDict = undefined;
-        if (userAccount === cacheAddress) {
+        if (userAccount === this.walletAddress) {
             settings = this.handleOption ('fetchLeverage', 'settings');
         } else {
             const request: Dict = {
@@ -1022,9 +1021,8 @@ export default class pacifica extends Exchange {
     override async fetchMarginMode (symbol: string, params: Dict = {}): Promise<MarginMode> {
         await this.loadAccountSettings ();
         const [ userAccount, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('fetchMarginMode', params);
-        const cacheAddress = this.walletAddress;
         let settings: NullableDict = undefined;
-        if (userAccount === cacheAddress) {
+        if (userAccount === this.walletAddress) {
             settings = this.handleOption ('fetchMarginMode', 'settings');
         } else {
             const request: Dict = {

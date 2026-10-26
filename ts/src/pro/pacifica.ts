@@ -852,7 +852,7 @@ export default class pacifica extends pacificaRest {
         }
         const keys = Object.keys (symbols);
         for (let i = 0; i < keys.length; i++) {
-            const currentMessageHash = 'myTrades:' + keys[i];
+            const currentMessageHash = 'myTrades:' + this.safeString (keys, i, '');
             client.resolve (trades, currentMessageHash);
         }
         // non-symbol specific
@@ -1216,7 +1216,7 @@ export default class pacifica extends pacificaRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbolResolved = this.safeString (market, 'symbol');
-            messageHash = messageHash + ':' + symbolResolved;
+            messageHash = messageHash + ':' + this.safeString (market, 'symbol', '');
         }
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';
