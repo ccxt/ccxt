@@ -5856,8 +5856,8 @@ export default class xt extends Exchange {
     }
 
     override sign (path: string, api: string[] = [], method: string = 'GET', params: Dict = {}) {
-        const signed = api[0] === 'private';
-        const endpoint = api[1];
+        const signed = this.safeString (api, 0) === 'private';
+        const endpoint = this.safeString (api, 1);
         const request = '/' + this.implodeParams (path, params);
         let payload: Str = undefined;
         if ((endpoint === 'spot') || (endpoint === 'user')) {
@@ -5903,7 +5903,7 @@ export default class xt extends Exchange {
                 payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
                 if (isUndefinedBody) {
                     if (urlencoded !== '') {
-                        url += '?' + urlencoded;
+                        url = apiUrl + payload + '?' + urlencoded;
                         payloadString += '#' + method + '#' + payload + '#' + this.rawencode (this.keysort (query));
                     } else {
                         payloadString += '#' + method + '#' + payload;
@@ -5917,7 +5917,7 @@ export default class xt extends Exchange {
                 payloadString = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp; // we can't glue timestamp, breaks in php
                 if (method === 'GET') {
                     if (urlencoded !== '') {
-                        url += '?' + urlencoded;
+                        url = apiUrl + payload + '?' + urlencoded;
                         payloadString += '#' + payload + '#' + urlencoded;
                     } else {
                         payloadString += '#' + payload;
@@ -5932,7 +5932,7 @@ export default class xt extends Exchange {
             headersValue['xt-validate-signature'] = signature;
         } else {
             if (urlencoded !== '') {
-                url += '?' + urlencoded;
+                url = apiUrl + payload + '?' + urlencoded;
             }
         }
         let bodyValue = undefined;

@@ -206,7 +206,7 @@ export default class xt extends xtRest {
         const privateAccess = access === 'private';
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams (methodName, market, params);
         const isContract = (type !== 'spot');
-        const id = this.numberToString (this.milliseconds ()) + name; // call back ID
+        const id = this.milliseconds ().toString () + name; // call back ID
         const subscribe: Dict = {
             'method': isContract ? 'SUBSCRIBE' : 'subscribe',
             'id': id,
@@ -240,7 +240,7 @@ export default class xt extends xtRest {
             'id': id,
         };
         const apiUrls = this.safeDict (this.urls, 'api', {});
-        const url = this.safeString (apiUrls, tradeType) + '/' + tail;
+        const url = this.safeString (apiUrls, tradeType, '') + '/' + tail;
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
@@ -265,7 +265,7 @@ export default class xt extends xtRest {
         const privateAccess = access === 'private';
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams (methodName, market, params);
         const isContract = (type !== 'spot');
-        const id = this.numberToString (this.milliseconds ()) + name; // call back ID
+        const id = this.milliseconds ().toString () + name; // call back ID
         const unsubscribe: Dict = {
             'method': isContract ? 'UNSUBSCRIBE' : 'unsubscribe',
             'id': id,
@@ -293,7 +293,7 @@ export default class xt extends xtRest {
             tail = privateAccess ? 'user' : 'market';
         }
         const apiUrls = this.safeDict (this.urls, 'api', {});
-        const url = this.safeString (apiUrls, tradeType) + '/' + tail;
+        const url = this.safeString (apiUrls, tradeType, '') + '/' + tail;
         const subscription: Dict = {
             'unsubscribe': true,
             'id': id,
@@ -653,7 +653,7 @@ export default class xt extends xtRest {
             await this.loadMarkets ();
         }
         const apiUrls = this.safeDict (this.urls, 'api', {});
-        const url = this.safeString (apiUrls, 'contract') + '/' + 'user';
+        const url = this.safeString (apiUrls, 'contract', '') + '/' + 'user';
         const client = this.client (url);
         this.setPositionsCache (client);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
