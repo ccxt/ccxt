@@ -127,7 +127,10 @@ export default class bithumb extends bithumbRest {
         if (isGenerationTwo && (symbolsLength === 0)) {
             throw new ArgumentsRequired (this.id + ' watchTickers() requires symbols for the generation 2 API');
         }
-        const symbolsResolved: string[] = (symbolsNormalized === undefined) ? this.symbols : symbolsNormalized;
+        let symbolsResolved: string[] = this.symbols;
+        if (symbolsNormalized !== undefined) {
+            symbolsResolved = symbolsNormalized;
+        }
         const symbolsLengthDefined = symbolsResolved.length;
         const wsUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
         const url = isGenerationTwo ? this.safeString (wsUrls, 'publicGen2', '') : this.safeString (wsUrls, 'public', '');
@@ -494,12 +497,9 @@ export default class bithumb extends bithumbRest {
         const orderbook = this.orderbooks[symbol];
         const units: Dict[] = this.safeList (message, 'orderbook_units', []);
         const gen2TimestampStr = this.safeString2 (message, 'timestamp', 'datetime') as string;
-        let timestamp: Int = undefined;
+        let timestamp = this.milliseconds ();
         if (gen2TimestampStr !== undefined) {
             timestamp = this.parseToInt (gen2TimestampStr.slice (0, 13));
-        }
-        if (timestamp === undefined) {
-            timestamp = this.milliseconds ();
         }
         const bidsSnapshot: any[] = [];
         const asksSnapshot: any[] = [];
