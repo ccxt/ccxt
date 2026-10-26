@@ -2302,7 +2302,7 @@ export default class coinsph extends Exchange {
             }
             const signedQuery = this.urlEncodeQuery (query);
             const signature = this.hmac (this.encode (signedQuery), this.encode (this.secret), sha256);
-            url = url + '?' + signedQuery + '&signature=' + signature;
+            url = apiUrl + '/' + endpoint + '?' + signedQuery + '&signature=' + signature;
             const signedHeaders: Dict = {
                 'X-COINS-APIKEY': this.apiKey,
             };
@@ -2310,7 +2310,7 @@ export default class coinsph extends Exchange {
         }
         const encodedQuery = this.urlEncodeQuery (query);
         if (encodedQuery.length !== 0) {
-            url += '?' + encodedQuery;
+            url = apiUrl + '/' + endpoint + '?' + encodedQuery;
         }
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
