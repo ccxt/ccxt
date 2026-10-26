@@ -258,6 +258,22 @@
                 "output": { "product_id": "BIT-26APR24-CDE", "side": "BUY", "order_configuration": { "market_market_ioc": { "base_size": "2" } } }
             },
             {
+                "description": "swap market reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/close_position",
+                "input": [
+                  "BTC/USD:USD",
+                  "market",
+                  "sell",
+                  20,
+                  null,
+                  {
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"client_order_id\":\"ccxt-0f4e1a52-3b1e-4c8a-9a0d-2f7c6d8e9b10\",\"product_id\":\"BIP-20DEC30-CDE\",\"size\":\"20\"}"
+            },
+            {
                 "description": "timeInForce='FOK'",
                 "method": "createOrder",
                 "url": "https://api.coinbase.com/api/v3/brokerage/orders",
@@ -639,6 +655,34 @@
                     "type": "swap"
                   }
                 ]
+            }
+        ],
+        "closePosition": [
+            {
+                "description": "close full position without clientOrderId",
+                "method": "closePosition",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/close_position",
+                "input": [
+                  "BTC/USD:USD"
+                ],
+                "output": "{\"product_id\":\"BIP-20DEC30-CDE\",\"client_order_id\":\"ccxt-5c1d2e3f-4a5b-4c6d-8e7f-901a2b3c4d5e\"}"
+            },
+            {
+                "description": "close partial position with size and clientOrderId",
+                "method": "closePosition",
+                "forceCheckKeys": [
+                    "client_order_id"
+                ],
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/close_position",
+                "input": [
+                  "BTC/USD:USD",
+                  null,
+                  {
+                    "clientOrderId": "my-close-1",
+                    "size": 5
+                  }
+                ],
+                "output": "{\"product_id\":\"BIP-20DEC30-CDE\",\"client_order_id\":\"my-close-1\",\"size\":\"5\"}"
             }
         ],
         "fetchAccounts": [
