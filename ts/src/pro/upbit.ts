@@ -373,18 +373,15 @@ export default class upbit extends upbitRest {
         const request: Dict = {
             'type': channel,
         };
-        let symbolResolved: Str = undefined;
+        let messageHashResolved = messageHash;
+        let channelKey = channel;
         if (symbol !== undefined) {
             await this.loadMarkets ();
             const market = this.market (symbol);
-            symbolResolved = market['symbol'];
-            const symbols = [ symbolResolved ];
-            const marketIds = this.marketIds (symbols);
-            request['codes'] = marketIds;
-        }
-        let messageHashResolved = messageHash;
-        if (symbolResolved !== undefined) {
+            const symbolResolved = this.safeString (market, 'symbol', '');
+            request['codes'] = this.marketIds ([ symbolResolved ]);
             messageHashResolved = messageHash + ':' + symbolResolved;
+            channelKey = channel + ':' + symbolResolved;
         }
         const url = this.implodeParams (this.safeString (this.urls['api'], 'ws'), {
             'hostname': this.hostname,
@@ -394,10 +391,6 @@ export default class upbit extends upbitRest {
         const subscriptionsKey = 'upbitPrivateSubscriptions';
         if (!(subscriptionsKey in client.subscriptions)) {
             client.subscriptions[subscriptionsKey] = this.createSafeDictionary (true);
-        }
-        let channelKey = channel;
-        if (symbolResolved !== undefined) {
-            channelKey = channel + ':' + symbolResolved;
         }
         const subscriptions = this.safeDict (client.subscriptions, subscriptionsKey, {});
         const isNewChannel = !(channelKey in subscriptions);
@@ -640,7 +633,7 @@ export default class upbit extends upbitRest {
         myTrades.append (trade);
         const messageHash = 'myTrades';
         client.resolve (myTrades, messageHash);
-        client.resolve (myTrades, 'myTrades:' + this.safeString (trade, 'symbol'));
+        client.resolve (myTrades, 'myTrades:' + this.safeString (trade, 'symbol', ''));
     }
 
     handleOrder (client: Client, message: Dict) {
@@ -664,7 +657,7 @@ export default class upbit extends upbitRest {
                 }
                 const fees = this.safeList (order, 'fees');
                 if (fees !== undefined) {
-                    (parsed as Dict)['fees'] = fees;
+                    parsed['fees'] = fees;
                 }
             }
             parsed['trades'] = this.safeValue (order, 'trades');
@@ -693,7 +686,7 @@ export default class upbit extends upbitRest {
         cachedOrders.append (parsed);
         const messageHash = 'myOrder';
         client.resolve (this.orders, messageHash);
-        client.resolve (this.orders, messageHash + ':' + symbol);
+        client.resolve (this.orders, messageHash + ':' + this.safeString (parsed, 'symbol', ''));
     }
 
     /**
