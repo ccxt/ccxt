@@ -1301,11 +1301,12 @@ export default class woofipro extends woofiproRest {
             }
             const total = this.safeString (value, 'holding');
             const used = this.safeString (value, 'frozen');
-            account['total'] = total;
-            account['used'] = used;
-            account['free'] = Precise.stringSub (total, used);
             if (code !== undefined) {
-                this.balance[code] = account;
+                this.balance[code] = this.extend (account, {
+                    'total': total,
+                    'used': used,
+                    'free': Precise.stringSub (total, used),
+                });
             }
         }
         this.balance = this.safeBalance (this.balance);

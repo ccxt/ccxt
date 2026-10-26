@@ -866,7 +866,6 @@ export default class woofipro extends Exchange {
         const amount = this.safeString (trade, 'executed_quantity');
         const order_id = this.safeString (trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp (trade, 'fee_asset', 'fee');
-        const cost = Precise.stringMul (price, amount);
         const side = this.safeStringLower (trade, 'side');
         const id = this.safeString (trade, 'id');
         let takerOrMaker: Str = undefined;
@@ -882,7 +881,7 @@ export default class woofipro extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': Precise.stringMul (price, amount),
             'order': order_id,
             'takerOrMaker': takerOrMaker,
             'type': undefined,
@@ -1733,7 +1732,6 @@ export default class woofipro extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const filled = this.safeStringN (order, [ 'total_executed_quantity', 'totalExecutedQuantity', 'executed_quantity', 'executed' ]);
         const average = this.omitZero (this.safeString2 (order, 'average_executed_price', 'averageExecutedPrice'));
-        const remaining = Precise.stringSub (amount, filled);
         const fee = this.safeValue2 (order, 'total_fee', 'totalFee');
         const feeCurrency = this.safeString2 (order, 'fee_asset', 'feeAsset');
         const transactions = this.safeList (order, 'Transactions');
@@ -1774,7 +1772,7 @@ export default class woofipro extends Exchange {
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining, // TO_DO
+            'remaining': Precise.stringSub (amount, filled), // TO_DO
             'cost': cost,
             'trades': transactions,
             'fee': {
@@ -2394,8 +2392,10 @@ export default class woofipro extends Exchange {
         //     }
         // }
         //
-        const orders = this.safeDict (response, 'data', response);
-        const parsedOrders = (orders === undefined) ? {} : orders;
+        let parsedOrders: NullableDict = this.safeDict (response, 'data', response);
+        if (parsedOrders === undefined) {
+            parsedOrders = {};
+        }
         return this.parseOrder (parsedOrders, market);
     }
 
@@ -3015,7 +3015,7 @@ export default class woofipro extends Exchange {
             'chainId': this.parseToInt (chainId),
             'receiver': address,
             'token': codeUpper,
-            'amount': amount.toString (),
+            'amount': this.numberToString (amount),
             'withdrawNonce': withdrawNonce,
             'timestamp': nonce,
         };
