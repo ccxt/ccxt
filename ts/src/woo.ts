@@ -1412,7 +1412,7 @@ export default class woo extends Exchange {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isTrailingPercentOrder = trailingPercent !== undefined;
         const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
-        const isConditional = isTrailing || triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeValue (paramsMarginMode, 'childOrders') !== undefined);
+        const isConditional = isTrailing || triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeList (paramsMarginMode, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower (paramsMarginMode, 'timeInForce');
         const postOnly = this.isPostOnly (isMarket, undefined, paramsMarginMode);
@@ -1636,7 +1636,7 @@ export default class woo extends Exchange {
         }
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         const paramsOmitted: Dict = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent', 'trigger', 'stop' ]);
-        const isConditional = (isTrigger) || isTrailing || (triggerPrice !== undefined) || (this.safeValue (paramsOmitted, 'childOrders') !== undefined);
+        const isConditional = (isTrigger) || isTrailing || (triggerPrice !== undefined) || (this.safeList (paramsOmitted, 'childOrders') !== undefined);
         let response = undefined;
         if (isConditional) {
             if (isByClientOrder) {
@@ -3537,7 +3537,7 @@ export default class woo extends Exchange {
             const ts = this.nonce ().toString ();
             const authBase = ts + method + '/' + version + '/' + pathWithParams;
             url = urlPrefix + pathWithParams;
-            requestHeaders = {
+            const signedHeaders: Dict = {
                 'x-api-key': this.apiKey,
                 'x-api-timestamp': ts,
             };
@@ -3547,7 +3547,7 @@ export default class woo extends Exchange {
                     const jsonBody = this.json (paramsSigned);
                     requestBody = jsonBody;
                     auth = authBase + jsonBody;
-                    requestHeaders['content-type'] = 'application/json';
+                    signedHeaders['content-type'] = 'application/json';
                 } else {
                     if (Object.keys (paramsSigned).length > 0) {
                         const query = this.urlencode (paramsSigned);
@@ -3566,13 +3566,12 @@ export default class woo extends Exchange {
                     }
                 }
                 auth = encodedParams + '|' + ts;
-                requestHeaders['content-type'] = 'application/x-www-form-urlencoded';
+                signedHeaders['content-type'] = 'application/x-www-form-urlencoded';
             }
-            requestHeaders['x-api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+            signedHeaders['x-api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
+            requestHeaders = signedHeaders;
         }
-        const headersResult = requestHeaders;
-        const bodyResult = requestBody;
-        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
