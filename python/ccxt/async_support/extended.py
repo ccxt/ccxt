@@ -3376,7 +3376,7 @@ class extended(Exchange, ImplicitAPI):
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestHeaders = None
         requestBody = None
-        accessibility = self.safe_string(api, 1)
+        accessibility = api[1]
         endpoint = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         queryPost = (path == 'user/deadmanswitch')

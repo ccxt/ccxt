@@ -6021,8 +6021,8 @@ class mexc(Exchange, ImplicitAPI):
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestHeaders = None
         requestBody = None
-        section = self.safe_string(api, 0)
-        access = self.safe_string(api, 1)
+        section = api[0]
+        access = api[1]
         pathValue = self.implode_params(path, params)
         paramsValue = self.omit(params, self.extract_params(path))
         url = None
