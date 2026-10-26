@@ -492,7 +492,7 @@ export default class bitrue extends bitrueRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         if (market['swap'] !== true) {
             throw new NotSupported (this.id + ' watchTrades is only supported for swap markets');
         }
@@ -572,7 +572,7 @@ export default class bitrue extends bitrueRest {
     }
 
     override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
-        const symbol: string = (market as Dict)['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         const timestamp = this.safeInteger (trade, 'ts');
         const sideLower = this.safeStringLower (trade, 'side');
         const priceString = this.safeString (trade, 'price');
@@ -695,7 +695,7 @@ export default class bitrue extends bitrueRest {
     }
 
     override parseWsOHLCV (tick: any, market: Market = undefined): OHLCV {
-        const symbol: string = (market as Dict)['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         const idSeconds = this.safeInteger (tick, 'id');
         const timestamp = (idSeconds === undefined) ? undefined : idSeconds * 1000;
         const open = this.safeNumber (tick, 'open');
@@ -782,7 +782,7 @@ export default class bitrue extends bitrueRest {
     }
 
     parseWsTicker (tick: Dict, market: any, timestamp: Int = undefined): Ticker {
-        const symbol: string = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         const rawVol = this.safeNumber (tick, 'vol');
         const rawAmount = this.safeNumber (tick, 'amount');
         const baseVolume = this.convertFromRawQuantity (symbol, rawVol);
