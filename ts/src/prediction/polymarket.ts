@@ -2717,7 +2717,7 @@ export default class polymarket extends Exchange {
      */
     override sign (path: string, api: string[] = [ 'gamma' ], method: string = 'GET', params: Dict = {}) {
         const apiGroup = api[0];
-        const access = this.safeString (api, 1, 'public');
+        const access = api[1];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['gamma']);
         let url = baseUrl + '/' + this.implodeParams (path, params);

@@ -5286,8 +5286,8 @@ export default class coinbase extends Exchange {
     override sign (path: string, api: string[] = [], method: string = 'GET', params: Dict = {}): Dict {
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
-        const version = this.safeString (api, 0);
-        const signed = this.safeString (api, 1) === 'private';
+        const version = api[0];
+        const signed = api[1] === 'private';
         const isV3 = version === 'v3';
         let pathPart: Str = 'v2';
         if (isV3) {

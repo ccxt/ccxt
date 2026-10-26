@@ -4697,8 +4697,8 @@ export default class digifinex extends Exchange {
     }
 
     override sign (path: string, api: string[] = [], method: string = 'GET', params: Dict = {}): Dict {
-        const signed = this.safeString (api, 0) === 'private';
-        const endpoint = this.safeString (api, 1);
+        const signed = api[0] === 'private';
+        const endpoint = api[1];
         let pathPart: Str = '/swap/v2';
         if (endpoint === 'spot') {
             pathPart = '/v3';

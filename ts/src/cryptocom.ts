@@ -3627,8 +3627,8 @@ export default class cryptocom extends Exchange {
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
-        const type = this.safeString (api, 0);
-        const access = this.safeString (api, 1);
+        const type = api[0];
+        const access = api[1];
         const apiUrl = this.safeString (this.urls['api'], type);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');

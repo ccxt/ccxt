@@ -4265,7 +4265,7 @@ export default class whitebit extends Exchange {
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const query = this.omit (params, this.extractParams (path));
-        const version = this.safeString (api, 0, '');
+        const version = api[0];
         const accessibility = this.safeString (api, 1);
         const publicHeaders: Dict = {};
         publicHeaders['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
