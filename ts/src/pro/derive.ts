@@ -333,7 +333,7 @@ export default class derive extends deriveRest {
         const limit: Int = (limitRaw === undefined) ? 10 : limitRaw;
         const market = this.market (symbol);
         const marketId = this.safeString (market, 'id', '');
-        const topic = 'orderbook.' + marketId + '.10.' + this.numberToString (limit);
+        const topic = 'orderbook.' + marketId + '.10.' + limit.toString ();
         const messageHash = 'unwatch' + topic;
         const request: Dict = {
             'method': 'unsubscribe',
@@ -407,7 +407,7 @@ export default class derive extends deriveRest {
         const parsedTopic = topic.split ('.');
         const marketId = this.safeString (parsedTopic, 1);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         if (symbol in this.trades) {
             delete this.trades[symbol];
         }
