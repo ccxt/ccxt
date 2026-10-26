@@ -565,7 +565,7 @@ export default class bitbank extends Exchange {
             const pair = pairs[i];
             const marketId = this.safeString (pair, 'name');
             const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString (market, 'symbol', '');
             result[symbol] = {
                 'info': pair,
                 'symbol': symbol,
