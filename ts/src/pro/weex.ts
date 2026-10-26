@@ -323,7 +323,7 @@ export default class weex extends weexRest {
         const tickers = this.safeList (message, 'd', []);
         const data = this.safeDict (tickers, 0, {});
         const ticker = this.parseWsTicker (data, market);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const messageHash = 'ticker::' + symbol;
         this.tickers[symbol] = ticker;
         client.resolve (this.tickers[symbol], messageHash);
@@ -518,7 +518,7 @@ export default class weex extends weexRest {
         if (market === undefined) {
             return;
         }
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const messageHash = 'trade::' + symbol;
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -760,7 +760,7 @@ export default class weex extends weexRest {
         if (market === undefined) {
             return;
         }
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -952,7 +952,7 @@ export default class weex extends weexRest {
         if (market === undefined) {
             return;
         }
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const messageHash = 'orderbook::' + symbol;
         if (!(symbol in this.orderbooks)) {
             const subscription = this.safeDict (client.subscriptions, messageHash, {});
