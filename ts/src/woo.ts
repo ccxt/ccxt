@@ -666,13 +666,12 @@ export default class woo extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        let status = this.safeString (data, 'status');
-        if (status === undefined) {
+        const statusCode = this.safeString (data, 'status');
+        let status = 'maintenance';
+        if (statusCode === undefined) {
             status = 'error';
-        } else if (status === '0') {
+        } else if (statusCode === '0') {
             status = 'ok';
-        } else {
-            status = 'maintenance';
         }
         return {
             'status': status,
@@ -935,7 +934,7 @@ export default class woo extends Exchange {
         }
         const marketId = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const price = this.safeString2 (trade, 'executed_price', 'executedPrice');
         const amount = this.safeString2 (trade, 'executed_quantity', 'executedQuantity');
         const order_id = this.safeString2 (trade, 'order_id', 'orderId');
@@ -2225,7 +2224,7 @@ export default class woo extends Exchange {
         const clientOrderId = this.omitZero (this.safeString2 (order, 'clientOrderId', 'clientAlgoOrderId')); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString (order, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'quantity'); // This is base amount
         const orderType = this.safeStringLower (order, 'type');
@@ -3169,7 +3168,7 @@ export default class woo extends Exchange {
         //
         const networkizedCode = this.safeString (transaction, 'token');
         const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
-        const code = currencyDefined['code'];
+        const code = this.safeString (currencyDefined, 'code');
         let movementDirection = this.safeStringLowerN (transaction, [ 'token_side', 'tokenSide', 'type' ]);
         if (movementDirection === 'withdraw') {
             movementDirection = 'withdrawal';
@@ -3879,7 +3878,7 @@ export default class woo extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         const market = this.market (symbol);
-        const symbolValue: Str = market['symbol'];
+        const symbolValue: Str = this.safeString (market, 'symbol');
         const request: Dict = {
             'symbol': market['id'],
         };

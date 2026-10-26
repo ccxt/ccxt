@@ -781,7 +781,7 @@ export default class woo extends wooRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: Str = this.safeString (market, 'symbol');
         const marketId = this.safeString (market, 'id', '');
         const topic = marketId + '@trade';
         const request: Dict = {
@@ -890,7 +890,7 @@ export default class woo extends wooRest {
         //
         const marketId = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const price = this.safeString2 (trade, 'executedPrice', 'price');
         const amount = this.safeString2 (trade, 'executedQuantity', 'size');
         const cost = Precise.stringMul (price, amount);
@@ -1142,7 +1142,7 @@ export default class woo extends wooRest {
         const orderId = this.safeString2 (order, 'orderId', 'algoOrderId');
         const marketId = this.safeString (order, 'symbol');
         const marketResolved: Market = this.market (marketId);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (order, 'timestamp');
         const fee = {
             'cost': this.safeString (order, 'totalFee'),
@@ -1568,7 +1568,7 @@ export default class woo extends wooRest {
         //
         const data = this.safeDict (message, 'data', {});
         const fundingRate = this.parseFundingRate (data);
-        const symbol = fundingRate['symbol'];
+        const symbol = this.safeString (fundingRate, 'symbol');
         if (symbol !== undefined) {
             this.fundingRates[symbol] = fundingRate;
         }
