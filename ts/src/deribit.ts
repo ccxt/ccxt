@@ -2256,9 +2256,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result: Dict = this.safeDict (response, 'result', {});
-        const order = this.safeValue (result, 'order');
-        const trades = this.safeList (result, 'trades', []);
-        order['trades'] = trades;
+        const order = this.extend (this.safeValue (result, 'order'), { 'trades': this.safeList (result, 'trades', []) });
         return this.parseOrder (order, market);
     }
 
@@ -2307,9 +2305,7 @@ export default class deribit extends Exchange {
         }
         const response = await this.privateGetEdit (this.extend (request, paramsOmitted));
         const result: Dict = this.safeDict (response, 'result', {});
-        const order = this.safeValue (result, 'order');
-        const trades = this.safeList (result, 'trades', []);
-        order['trades'] = trades;
+        const order = this.extend (this.safeValue (result, 'order'), { 'trades': this.safeList (result, 'trades', []) });
         return this.parseOrder (order);
     }
 
@@ -3338,7 +3334,7 @@ export default class deribit extends Exchange {
         const month = 30 * 24 * 60 * 60 * 1000;
         const defaultSince = now - month;
         const sinceResolved: int = (since === undefined) ? defaultSince : since;
-        const time: int = (since === undefined) ? now : since + month;
+        const time: int = (since === undefined) ? now : this.parseToInt (since + month);
         const request: Dict = {
             'instrument_name': market['id'],
             'start_timestamp': sinceResolved - 1,

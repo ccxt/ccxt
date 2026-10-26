@@ -93,7 +93,7 @@ export default class deribit extends deribitRest {
         const currencies = this.safeList (this.options, 'currencies', []);
         const channels: List = [];
         for (let i = 0; i < currencies.length; i++) {
-            const currencyCode = this.safeString (currencies, i);
+            const currencyCode = this.safeString (currencies, i, '');
             channels.push ('user.portfolio.' + currencyCode);
         }
         const subscribe: Dict = {
