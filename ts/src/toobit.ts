@@ -952,7 +952,7 @@ export default class toobit extends Exchange {
         const all = this.arrayConcat (symbols, contracts);
         const result: MarketInterface[] = [];
         for (let i = 0; i < all.length; i++) {
-            const market = all[i];
+            const market = this.safeDict (all, i, {});
             const parsed = this.parseMarket (market);
             if (parsed !== undefined) {
                 result.push (parsed);

@@ -251,9 +251,9 @@ export default class toobit extends toobitRest {
         }
         const stored = this.trades[symbol];
         const data = this.safeList (message, 'data', []);
-        const parsed = this.parseWsTrades (data, market);
-        for (let i = 0; i < parsed.length; i++) {
-            const trade = parsed[i];
+        const parsedTrades = this.arrayConcat (this.parseWsTrades (data, market), []);
+        for (let i = 0; i < parsedTrades.length; i++) {
+            const trade = parsedTrades[i];
             trade['symbol'] = symbol;
             stored.append (trade);
         }
@@ -508,7 +508,7 @@ export default class toobit extends toobitRest {
         }
         const newTickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
-            const ticker = data[i];
+            const ticker = this.safeDict (data, i, {});
             const parsed = this.parseWsTicker (ticker);
             const symbol = parsed['symbol'];
             if (symbol !== undefined) {
