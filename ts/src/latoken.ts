@@ -449,7 +449,7 @@ export default class latoken extends Exchange {
         const result: List = [];
         const rawMarkets = this.toArray (response);
         for (let i = 0; i < rawMarkets.length; i++) {
-            const market = rawMarkets[i];
+            const market = this.safeValue (rawMarkets, i);
             const id = this.safeString (market, 'id');
             // the exchange shows them inverted
             const baseId = this.safeString (market, 'baseCurrency');
@@ -591,7 +591,7 @@ export default class latoken extends Exchange {
         const rawCurrencies = this.toArray (response);
         const merged: List = [];
         for (let i = 0; i < rawCurrencies.length; i++) {
-            const rawCurrency = rawCurrencies[i];
+            const rawCurrency = this.safeValue (rawCurrencies, i);
             const bindingEntry = this.safeDict (bindingsById, this.safeString (rawCurrency, 'id'));
             const bindings = this.safeList (bindingEntry, 'bindings');
             let mergedCurrency = rawCurrency;
@@ -1986,7 +1986,7 @@ export default class latoken extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0);
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
