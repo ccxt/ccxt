@@ -187,7 +187,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const extendedRequest = this.deepExtend (request, paramsResolved);
         const channelsLength = channels.length;
         if (channelsLength === 1) {
-            return await this.watch (url, messageHashes[0], extendedRequest, channels[0], extendedRequest);
+            return await this.watch (url, this.safeString (messageHashes, 0, ''), extendedRequest, this.safeString (channels, 0, ''), extendedRequest);
         }
         return await this.watchMultiple (url, messageHashes, extendedRequest, channels, extendedRequest);
     }
@@ -311,7 +311,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             if (this.markets === undefined) {
                 await this.loadMarkets ();
             }
-            channel = 'user.trades.' + this.marketId (symbol) + '.' + interval;
+            channel = 'user.trades.' + this.safeString (this.market (symbol), 'id', '') + '.' + interval;
         }
         return await this.unSubscribe ([ channel ], true, paramsInterval);
     }
@@ -390,7 +390,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const channels: string[] = [];
         const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
-            channels.push ('user.orders.' + this.marketId (symbolsResolved[i]) + '.' + interval);
+            channels.push ('user.orders.' + this.safeString (this.market (symbolsResolved[i]), 'id', '') + '.' + interval);
         }
         const orders = await this.subscribe (channels, channels, true, paramsInterval);
         let limitResolved: Int = limit;
@@ -420,7 +420,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             if (this.markets === undefined) {
                 await this.loadMarkets ();
             }
-            channel = 'user.orders.' + this.marketId (symbol) + '.' + interval;
+            channel = 'user.orders.' + this.safeString (this.market (symbol), 'id', '') + '.' + interval;
         }
         return await this.unSubscribe ([ channel ], true, paramsInterval);
     }
@@ -474,7 +474,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
         if ((symbolsResolved !== undefined) && (symbolsLength > 0)) {
             for (let i = 0; i < symbolsLength; i++) {
-                channels.push ('user.changes.' + this.marketId (symbolsResolved[i]) + '.' + interval);
+                channels.push ('user.changes.' + this.safeString (this.market (symbolsResolved[i]), 'id', '') + '.' + interval);
             }
         } else {
             channels.push ('user.changes.any.any.' + interval);
@@ -511,7 +511,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
         if ((symbolsResolved !== undefined) && (symbolsLength > 0)) {
             for (let i = 0; i < symbolsLength; i++) {
-                channels.push ('user.changes.' + this.marketId (symbolsResolved[i]) + '.' + interval);
+                channels.push ('user.changes.' + this.safeString (this.market (symbolsResolved[i]), 'id', '') + '.' + interval);
             }
         } else {
             channels.push ('user.changes.any.any.' + interval);
@@ -714,7 +714,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const channels: string[] = [];
         const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
-            channels.push ('ticker.' + this.marketId (symbolsResolved[i]) + '.' + interval);
+            channels.push ('ticker.' + this.safeString (this.market (symbolsResolved[i]), 'id', '') + '.' + interval);
         }
         return await this.unSubscribe (channels, interval === 'raw', paramsInterval);
     }
@@ -837,7 +837,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const channels: string[] = [];
         const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
-            channels.push ('quote.' + this.marketId (symbolsResolved[i]));
+            channels.push ('quote.' + this.safeString (this.market (symbolsResolved[i]), 'id', ''));
         }
         return await this.unSubscribe (channels, false, paramsResolved);
     }
@@ -1116,7 +1116,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const channels: string[] = [];
         const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
-            channels.push ('trades.' + this.marketId (symbolsResolved[i]) + '.' + interval);
+            channels.push ('trades.' + this.safeString (this.market (symbolsResolved[i]), 'id', '') + '.' + interval);
         }
         return await this.unSubscribe (channels, interval === 'raw', paramsInterval);
     }
@@ -1247,7 +1247,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const channels: string[] = [];
         const symbolsLength = symbols.length;
         for (let i = 0; i < symbolsLength; i++) {
-            channels.push ('book.' + this.marketId (symbols[i]) + '.' + descriptor);
+            channels.push ('book.' + this.safeString (this.market (symbols[i]), 'id', '') + '.' + descriptor);
         }
         return await this.unSubscribe (channels, interval === 'raw', paramsChannel);
     }
