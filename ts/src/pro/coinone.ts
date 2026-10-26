@@ -321,7 +321,7 @@ export default class coinone extends coinoneRest {
         //
         const data = this.safeDict (message, 'data', {});
         const trade = this.parseWsTrade (data);
-        const symbol = trade['symbol'];
+        const symbol = this.safeString (trade, 'symbol', '');
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);

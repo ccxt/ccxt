@@ -1332,7 +1332,7 @@ export default class coinone extends Exchange {
             if (apiName === 'v2_1Private') {
                 nonce = this.uuid ();
             } else {
-                nonce = this.nonce ().toString ();
+                nonce = this.numberToString (this.nonce ());
             }
             const json = this.json (this.extend ({
                 'access_token': this.apiKey,
