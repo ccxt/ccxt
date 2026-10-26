@@ -2384,7 +2384,6 @@ export default class kucoin extends kucoinRest {
         //
         const data = this.safeDict (message, 'd', {});
         const parsed = this.parseWsUtaOrder (data);
-        const symbol = this.safeString (parsed, 'symbol', '');
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -2392,8 +2391,7 @@ export default class kucoin extends kucoinRest {
         const cachedOrders = this.orders;
         cachedOrders.append (parsed);
         const messageHash = 'uta:orders';
-        const symbolSpecificMessageHash = messageHash + ':' + symbol;
-        client.resolve (cachedOrders, symbolSpecificMessageHash);
+        client.resolve (cachedOrders, messageHash + ':' + this.safeString (parsed, 'symbol', ''));
         client.resolve (cachedOrders, messageHash);
     }
 
@@ -2517,8 +2515,7 @@ export default class kucoin extends kucoinRest {
         const suffix = this.getMyTradesMessageHashSuffix (topic);
         const typeSpecificMessageHash = messageHash + suffix;
         client.resolve (this.myTrades, typeSpecificMessageHash);
-        const parsedSymbol = this.safeString (parsed, 'symbol', '');
-        const symbolSpecificMessageHash = messageHash + ':' + parsedSymbol;
+        const symbolSpecificMessageHash = messageHash + ':' + this.safeString (parsed, 'symbol', '');
         client.resolve (this.myTrades, symbolSpecificMessageHash);
     }
 
@@ -2544,7 +2541,6 @@ export default class kucoin extends kucoinRest {
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
         const trade = this.parseWsUtaTrade (data, market);
-        const symbol = this.safeString (trade, 'symbol', '');
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
@@ -2552,9 +2548,8 @@ export default class kucoin extends kucoinRest {
         const cache = this.myTrades;
         cache.append (trade);
         const messageHash = 'uta:myTrades';
-        const symbolMessageHash = messageHash + ':' + symbol;
         client.resolve (this.myTrades, messageHash);
-        client.resolve (cache, symbolMessageHash);
+        client.resolve (cache, messageHash + ':' + this.safeString (trade, 'symbol', ''));
     }
 
     override parseWsTrade (trade: any, market: Market = undefined): Trade {
@@ -2848,8 +2843,7 @@ export default class kucoin extends kucoinRest {
                 this.balance[uniformType][code] = account;
             }
             this.balance[uniformType] = this.safeBalance (this.balance[uniformType]);
-            const messageHash = uniformType + ':balance';
-            client.resolve (this.balance[uniformType], messageHash);
+            client.resolve (this.balance[uniformType], uniformType + ':balance');
         }
     }
 

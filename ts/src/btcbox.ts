@@ -827,8 +827,7 @@ export default class btcbox extends Exchange {
                 url = apiUrl + '/' + this.version + '/' + path + '?' + this.urlencode (params);
             }
         } else if (apiName === 'webApi') {
-            const wwwUrl = this.safeString (this.urls, 'www', '');
-            url = wwwUrl + '/' + path;
+            url = this.safeString (this.urls, 'www', '') + '/' + path;
         } else {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();

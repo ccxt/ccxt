@@ -98,8 +98,7 @@ export default class apex extends apexRest {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const marketId: Str = this.safeString (market, 'id2', '');
-            const topic = 'recentlyTrade.H.' + marketId;
-            topics.push (topic);
+            topics.push ('recentlyTrade.H.' + marketId);
             const messageHash = 'trade:' + symbol;
             messageHashes.push (messageHash);
         }
@@ -236,8 +235,7 @@ export default class apex extends apexRest {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             const marketId: Str = this.safeString (market, 'id2', '');
-            const topic = 'orderBook' + this.numberToString (limitValue) + '.H.' + marketId;
-            topics.push (topic);
+            topics.push ('orderBook' + this.numberToString (limitValue) + '.H.' + marketId);
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push (messageHash);
         }
@@ -386,8 +384,7 @@ export default class apex extends apexRest {
         const url = this.getWsPublicUrl ();
         const messageHash = 'ticker:' + symbolValue;
         const marketId: Str = this.safeString (market, 'id2', '');
-        const topic = 'instrumentInfo' + '.H.' + marketId;
-        const topics = [ topic ];
+        const topics = [ 'instrumentInfo' + '.H.' + marketId ];
         return await this.watchTopics (url, [ messageHash ], topics, params);
     }
 
@@ -412,8 +409,7 @@ export default class apex extends apexRest {
             const symbol = (symbolsNormalized as string[])[i];
             const market = this.market (symbol);
             const marketId: Str = this.safeString (market, 'id2', '');
-            const topic = 'instrumentInfo' + '.H.' + marketId;
-            topics.push (topic);
+            topics.push ('instrumentInfo' + '.H.' + marketId);
             const messageHash = 'ticker:' + symbol;
             messageHashes.push (messageHash);
         }

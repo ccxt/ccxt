@@ -140,9 +140,7 @@ export default class p2b extends p2bRest {
         this.options['tickerSubs'][market['id'] as string] = true; // we need to re-subscribe to all tickers upon watching a new ticker
         const tickerSubs = this.options['tickerSubs'];
         const request = Object.keys (tickerSubs);
-        const marketSymbol = this.safeString (market, 'symbol', '');
-        const messageHash = nameOption + '::' + marketSymbol;
-        return await this.subscribe (nameOption + '.subscribe', messageHash, request, paramsName);
+        return await this.subscribe (nameOption + '.subscribe', nameOption + '::' + this.safeString (market, 'symbol', ''), request, paramsName);
     }
 
     /**
@@ -168,8 +166,7 @@ export default class p2b extends p2bRest {
         const args: List = [];
         for (let i = 0; i < (symbolsNormalized as string[]).length; i++) {
             const market = this.market ((symbolsNormalized as string[])[i]);
-            const marketSymbol = this.safeString (market, 'symbol', '');
-            messageHashes.push (nameOption + '::' + marketSymbol);
+            messageHashes.push (nameOption + '::' + this.safeString (market, 'symbol', ''));
             args.push (market['id']);
         }
         const url = this.urls['api']['ws'];

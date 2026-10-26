@@ -3304,8 +3304,7 @@ export default class bitrue extends Exchange {
                 } else if (type === 'dapi') {
                     signPrefix = '/dapi';
                 }
-                const signPath = signPrefix + '/' + version + '/' + path;
-                let signMessage = timestamp + method + signPath;
+                let signMessage = timestamp + method + (signPrefix + '/' + version + '/' + path);
                 if (method === 'GET') {
                     const keys = Object.keys (paramsOmitted);
                     const keysLength = keys.length;

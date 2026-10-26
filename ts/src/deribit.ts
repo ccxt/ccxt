@@ -3451,8 +3451,7 @@ export default class deribit extends Exchange {
         }
         const market = this.market (symbol);
         if (market['spot'] === true) {
-            const marketType = this.safeString (market, 'type', '');
-            throw new NotSupported (this.id + ' fetchLiquidations() does not support ' + marketType + ' markets');
+            throw new NotSupported (this.id + ' fetchLiquidations() does not support ' + this.safeString (market, 'type', '') + ' markets');
         }
         const request: Dict = {
             'instrument_name': market['id'],
@@ -3531,8 +3530,7 @@ export default class deribit extends Exchange {
         }
         const market = this.market (symbol);
         if (market['spot'] === true) {
-            const marketType = this.safeString (market, 'type', '');
-            throw new NotSupported (this.id + ' fetchMyLiquidations() does not support ' + marketType + ' markets');
+            throw new NotSupported (this.id + ' fetchMyLiquidations() does not support ' + this.safeString (market, 'type', '') + ' markets');
         }
         const request: Dict = {
             'instrument_name': market['id'],

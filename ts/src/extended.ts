@@ -3593,7 +3593,6 @@ export default class extended extends Exchange {
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
-        const version = this.safeString (api, 0, '');
         const accessibility = this.safeString (api, 1);
         const endpoint = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -3615,7 +3614,7 @@ export default class extended extends Exchange {
                 requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        let url = this.implodeHostname (baseApiUrl) + '/api/' + version + endpoint;
+        let url = this.implodeHostname (baseApiUrl) + '/api/' + this.safeString (api, 0, '') + endpoint;
         if ((method === 'GET' || method === 'DELETE' || queryPost) && (Object.keys (query).length > 0)) {
             url += '?' + this.urlencodeWithArrayRepeat (query);
         }

@@ -2715,8 +2715,7 @@ export default class aster extends Exchange {
         const orderSymbolsResolved = this.marketSymbols (orderSymbols, undefined, false, true, true);
         const market = this.market (orderSymbolsResolved[0]);
         if (market['spot'] === true) {
-            const marketType = this.safeString (market, 'type', '');
-            throw new NotSupported (this.id + ' createOrders() does not support ' + marketType + ' orders');
+            throw new NotSupported (this.id + ' createOrders() does not support ' + this.safeString (market, 'type', '') + ' orders');
         }
         const request: Dict = {
             'batchOrders': ordersRequests,
@@ -3981,8 +3980,8 @@ export default class aster extends Exchange {
             }
             const pricePrecision = this.precisionFromString (this.safeString (marketResolved['precision'], 'price'));
             const pricePrecisionPlusOne = pricePrecision + 1;
-            const pricePrecisionPlusOneString = this.numberToString (pricePrecisionPlusOne);
             // round half up
+            const pricePrecisionPlusOneString = this.numberToString (pricePrecisionPlusOne);
             const rounderString = '5e-' + pricePrecisionPlusOneString;
             const liquidationPriceRoundedString = Precise.stringAdd (rounderString, liquidationPriceStringRaw);
             let truncatedLiquidationPrice = Precise.stringDiv (liquidationPriceRoundedString, '1', pricePrecision);

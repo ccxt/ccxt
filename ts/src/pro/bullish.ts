@@ -213,14 +213,12 @@ export default class bullish extends bullishRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const marketId = this.safeString (market, 'id', '');
         const wsUrl = this.safeString (this.urls['api']['ws'], 'public');
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' watchTicker() has no public websocket url');
         }
-        const url = wsUrl + '/trading-api/v1/market-data/tick/' + marketId;
         const messageHash = 'ticker::' + symbolValue;
-        return await this.watch (url, messageHash, params, messageHash); // no need to send a subscribe message, the server sends a ticker update on connect
+        return await this.watch (wsUrl + '/trading-api/v1/market-data/tick/' + this.safeString (market, 'id', ''), messageHash, params, messageHash); // no need to send a subscribe message, the server sends a ticker update on connect
     }
 
     handleTicker (client: Client, message: Dict) {
@@ -370,8 +368,7 @@ export default class bullish extends bullishRest {
                 continue;
             }
             const price = this.safeString (entries, i);
-            const amount = this.safeString (entries, i + 1);
-            result.push ([ price, amount ]);
+            result.push ([ price, this.safeString (entries, i + 1) ]);
         }
         return result;
     }

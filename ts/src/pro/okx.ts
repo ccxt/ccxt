@@ -456,8 +456,7 @@ export default class okx extends okxRest {
             if (symbol !== undefined) {
                 this.fundingRates[symbol] = fundingRate;
             }
-            const fundingRateSymbol = this.safeString (fundingRate, 'symbol', '');
-            client.resolve (fundingRate, 'funding-rate' + ':' + fundingRateSymbol);
+            client.resolve (fundingRate, 'funding-rate' + ':' + this.safeString (fundingRate, 'symbol', ''));
         }
     }
 
@@ -1247,8 +1246,7 @@ export default class okx extends okxRest {
                 }
             }
             stored.append (parsed);
-            const messageHash = channel + ':' + this.safeString (market, 'id', '');
-            client.resolve (stored, messageHash);
+            client.resolve (stored, channel + ':' + this.safeString (market, 'id', ''));
             // for multiOHLCV we need special object, as opposed to other "multi"
             // methods, because OHLCV response item does not contain symbol
             // or timeframe, thus otherwise it would be unrecognizable

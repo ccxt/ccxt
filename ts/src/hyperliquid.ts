@@ -1701,11 +1701,9 @@ export default class hyperliquid extends Exchange {
 
     signHash (hash: string, privateKey: string): Dict {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        const signatureR = this.safeString (signature, 'r', '');
-        const signatureS = this.safeString (signature, 's', '');
         return {
-            'r': '0x' + signatureR,
-            's': '0x' + signatureS,
+            'r': '0x' + this.safeString (signature, 'r', ''),
+            's': '0x' + this.safeString (signature, 's', ''),
             'v': this.sum (27, signature['v']),
         };
     }
@@ -4472,12 +4470,11 @@ export default class hyperliquid extends Exchange {
             }
             const currency = this.currency (code);
             const currencyInfo = this.safeDict (currency, 'info', {});
-            const token = this.safeString (currencyInfo, 'name', '') + ':' + this.safeString (currencyInfo, 'tokenId', '');
             const action = {
                 'type': 'subAccountSpotTransfer',
                 'subAccountUser': subAccountAddress,
                 'isDeposit': isDeposit,
-                'token': token,
+                'token': this.safeString (currencyInfo, 'name', '') + ':' + this.safeString (currencyInfo, 'tokenId', ''),
                 'amount': this.numberToString (amount),
             };
             const sig = this.signL1Action (action, nonce);

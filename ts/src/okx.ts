@@ -2986,9 +2986,7 @@ export default class okx extends Exchange {
         if (market['spot'] === true) {
             request['instId'] = market['id'];
         } else if ((market['swap'] === true) || (market['future'] === true) || (market['option'] === true)) {
-            const marketBaseId = this.safeString (market, 'baseId', '');
-            const marketQuoteId = this.safeString (market, 'quoteId', '');
-            request['uly'] = marketBaseId + '-' + marketQuoteId;
+            request['uly'] = this.safeString (market, 'baseId', '') + '-' + this.safeString (market, 'quoteId', '');
         } else {
             throw new NotSupported (this.id + ' fetchTradingFee() supports spot, swap, future or option markets only');
         }

@@ -640,9 +640,7 @@ export default class upbit extends upbitRest {
         myTrades.append (trade);
         const messageHash = 'myTrades';
         client.resolve (myTrades, messageHash);
-        const tradeSymbol = this.safeString (trade, 'symbol');
-        const tradeMessageHash = 'myTrades:' + tradeSymbol;
-        client.resolve (myTrades, tradeMessageHash);
+        client.resolve (myTrades, 'myTrades:' + this.safeString (trade, 'symbol'));
     }
 
     handleOrder (client: Client, message: Dict) {
@@ -695,8 +693,7 @@ export default class upbit extends upbitRest {
         cachedOrders.append (parsed);
         const messageHash = 'myOrder';
         client.resolve (this.orders, messageHash);
-        const symbolMessageHash = messageHash + ':' + symbol;
-        client.resolve (this.orders, symbolMessageHash);
+        client.resolve (this.orders, messageHash + ':' + symbol);
     }
 
     /**

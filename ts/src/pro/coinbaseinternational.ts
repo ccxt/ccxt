@@ -286,8 +286,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbolResolved = market['symbol'];
-            const marketId = this.safeString (market, 'id', '');
-            channel = 'user.trades.' + marketId + '.' + interval;
+            channel = 'user.trades.' + this.safeString (market, 'id', '') + '.' + interval;
         }
         const trades = await this.subscribe ([ channel ], [ channel ], true, paramsInterval);
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limit, true);
@@ -358,8 +357,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbolResolved = market['symbol'];
-            const marketId = this.safeString (market, 'id', '');
-            channel = 'user.orders.' + marketId + '.' + interval;
+            channel = 'user.orders.' + this.safeString (market, 'id', '') + '.' + interval;
         }
         const orders = await this.subscribe ([ channel ], [ channel ], true, paramsInterval);
         let limitResolved: Int = limit;
@@ -637,8 +635,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const market = this.market (symbol);
         const [ interval, paramsInterval ] = this.handleOptionStringAndParams (paramsResolved, 'watchTicker', 'interval', '100ms');
         const isPrivate = interval === 'raw';
-        const marketId = this.safeString (market, 'id', '');
-        const channel = 'ticker.' + marketId + '.' + interval;
+        const channel = 'ticker.' + this.safeString (market, 'id', '') + '.' + interval;
         return await this.subscribe ([ channel ], [ channel ], isPrivate, paramsInterval);
     }
 
@@ -682,8 +679,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
             const market = this.market (symbolsResolved[i]);
-            const marketId = this.safeString (market, 'id', '');
-            channels.push ('ticker.' + marketId + '.' + interval);
+            channels.push ('ticker.' + this.safeString (market, 'id', '') + '.' + interval);
         }
         const ticker = await this.subscribe (channels, channels, isPrivate, paramsInterval);
         if (this.newUpdates) {
@@ -810,8 +806,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
             const market = this.market (symbolsResolved[i]);
-            const marketId = this.safeString (market, 'id', '');
-            channels.push ('quote.' + marketId);
+            channels.push ('quote.' + this.safeString (market, 'id', ''));
         }
         const ticker = await this.subscribe (channels, channels, false, paramsResolved);
         if (this.newUpdates) {
@@ -932,11 +927,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const channels: string[] = [];
         for (let i = 0; i < symbolsAndTimeframesLength; i++) {
             const current = symbolsAndTimeframes[i];
-            const market = this.market (current[0]);
             const currentTimeframe = current[1];
             const resolution = this.safeString (this.timeframes, currentTimeframe, currentTimeframe);
-            const marketId = this.safeString (market, 'id', '');
-            channels.push ('chart.trades.' + marketId + '.' + resolution);
+            const market = this.market (current[0]);
+            channels.push ('chart.trades.' + this.safeString (market, 'id', '') + '.' + resolution);
         }
         const resolved = await this.subscribe (channels, channels, false, paramsResolved);
         const symbol = this.safeString (resolved, 0);
@@ -987,11 +981,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbolsAndTimeframesLength = symbolsAndTimeframes.length;
         for (let i = 0; i < symbolsAndTimeframesLength; i++) {
             const current = symbolsAndTimeframes[i];
-            const market = this.market (current[0]);
             const timeframe = current[1];
             const resolution = this.safeString (this.timeframes, timeframe, timeframe);
-            const marketId = this.safeString (market, 'id', '');
-            channels.push ('chart.trades.' + marketId + '.' + resolution);
+            const market = this.market (current[0]);
+            channels.push ('chart.trades.' + this.safeString (market, 'id', '') + '.' + resolution);
         }
         return await this.unSubscribe (channels, false, paramsResolved);
     }
@@ -1074,8 +1067,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbolsLength = symbolsResolved.length;
         for (let i = 0; i < symbolsLength; i++) {
             const market = this.market (symbolsResolved[i]);
-            const marketId = this.safeString (market, 'id', '');
-            channels.push ('trades.' + marketId + '.' + interval);
+            channels.push ('trades.' + this.safeString (market, 'id', '') + '.' + interval);
         }
         const trades = await this.subscribe (channels, channels, isPrivate, paramsInterval);
         let limitResolved: Int = limit;
@@ -1204,8 +1196,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbolsLength = symbols.length;
         for (let i = 0; i < symbolsLength; i++) {
             const market = this.market (symbols[i]);
-            const marketId = this.safeString (market, 'id', '');
-            channels.push ('book.' + marketId + '.' + descriptor);
+            channels.push ('book.' + this.safeString (market, 'id', '') + '.' + descriptor);
         }
         const orderbook = await this.subscribe (channels, channels, isPrivate, paramsChannel);
         return orderbook.limit ();

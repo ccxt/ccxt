@@ -171,8 +171,7 @@ export default class deepcoin extends deepcoinRest {
 
     async watchPrivate (messageHash: string, params: Dict = {}): Promise<any> {
         const listenKey = await this.authenticate ();
-        const url = this.safeString (this.urls['api']['ws'], 'private', '') + '?listenKey=' + listenKey;
-        return await this.watch (url, messageHash, undefined, 'private', params);
+        return await this.watch (this.safeString (this.urls['api']['ws'], 'private', '') + '?listenKey=' + listenKey, messageHash, undefined, 'private', params);
     }
 
     async authenticate (params: Dict = {}): Promise<Str> {

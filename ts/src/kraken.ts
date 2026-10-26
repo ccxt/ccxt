@@ -2340,9 +2340,8 @@ export default class kraken extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const marketType = this.safeString (market, 'type', '');
         if (market['spot'] !== true) {
-            throw new NotSupported (this.id + ' editOrder() does not support ' + marketType + ' orders, only spot orders are accepted');
+            throw new NotSupported (this.id + ' editOrder() does not support ' + this.safeString (market, 'type', '') + ' orders, only spot orders are accepted');
         }
         let request: Dict = {
             'txid': id,

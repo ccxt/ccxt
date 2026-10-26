@@ -619,11 +619,9 @@ export default class blofin extends blofinRest {
         const data = this.safeList (message, 'data') as List;
         for (let i = 0; i < data.length; i++) {
             const order = this.parseWsOrder (data[i]);
-            const symbol = this.safeString (order, 'symbol', '');
             orders.append (order);
             if (channelName !== undefined) {
-                const messageHash = channelName + ':' + symbol;
-                client.resolve (orders, messageHash);
+                client.resolve (orders, channelName + ':' + this.safeString (order, 'symbol', ''));
             }
             client.resolve (orders, channelName);
         }
@@ -675,12 +673,10 @@ export default class blofin extends blofinRest {
         const newPositions: List = [];
         for (let i = 0; i < data.length; i++) {
             const position = this.parseWsPosition (data[i]);
-            const symbol = this.safeString (position, 'symbol', '');
             newPositions.push (position);
             cache.append (position);
             if (channelName !== undefined) {
-                const messageHash = channelName + ':' + symbol;
-                client.resolve (position, messageHash);
+                client.resolve (position, channelName + ':' + this.safeString (position, 'symbol', ''));
             }
         }
     }

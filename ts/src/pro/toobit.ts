@@ -203,14 +203,12 @@ export default class toobit extends toobitRest {
             subParams.push (rawHash);
         }
         const marketIds = this.marketIds (symbolsNormalized);
-        const wsBaseUrl = this.safeString (this.urls['api']['ws'], 'common', '');
-        const url = wsBaseUrl + '/quote/ws/v1';
         const request: Dict = {
             'symbol': marketIds.join (','),
             'topic': 'trade',
             'event': 'sub',
         };
-        const trades: ArrayCache = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const trades: ArrayCache = await this.watchMultiple (this.safeString (this.urls['api']['ws'], 'common', '') + '/quote/ws/v1', messageHashes, this.extend (request, params), messageHashes);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved = limit;
@@ -302,8 +300,7 @@ export default class toobit extends toobitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const wsBaseUrl = this.safeString (this.urls['api']['ws'], 'common', '');
-        const url = wsBaseUrl + '/quote/ws/v1';
+        const url = this.safeString (this.urls['api']['ws'], 'common', '') + '/quote/ws/v1';
         const messageHashes: List = [];
         const timeframes = this.safeDict (this.options['ws'], 'timeframes', {});
         const marketIds: Str[] = [];
@@ -452,14 +449,12 @@ export default class toobit extends toobitRest {
             subParams.push (rawHash);
         }
         const marketIds = this.marketIds (symbolsNormalized);
-        const wsBaseUrl = this.safeString (this.urls['api']['ws'], 'common', '');
-        const url = wsBaseUrl + '/quote/ws/v1';
         const request: Dict = {
             'symbol': marketIds.join (','),
             'topic': 'realtimes',
             'event': 'sub',
         };
-        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const ticker = await this.watchMultiple (this.safeString (this.urls['api']['ws'], 'common', '') + '/quote/ws/v1', messageHashes, this.extend (request, params), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
             const tickerSymbol = this.safeString (ticker, 'symbol');
@@ -522,9 +517,7 @@ export default class toobit extends toobitRest {
             if (symbol !== undefined) {
                 newTickers[symbol] = parsed;
             }
-            const tickerSymbol = this.safeString (parsed, 'symbol', '');
-            const messageHash = 'ticker::' + tickerSymbol;
-            client.resolve (parsed, messageHash);
+            client.resolve (parsed, 'ticker::' + this.safeString (parsed, 'symbol', ''));
         }
         client.resolve (newTickers, 'tickers');
     }
@@ -579,8 +572,7 @@ export default class toobit extends toobitRest {
             subParams.push (rawHash);
         }
         const marketIds = this.marketIds (symbolsNormalized);
-        const wsBaseUrl = this.safeString (this.urls['api']['ws'], 'common', '');
-        const url = wsBaseUrl + '/quote/ws/v1';
+        const url = this.safeString (this.urls['api']['ws'], 'common', '') + '/quote/ws/v1';
         const request: Dict = {
             'symbol': marketIds.join (','),
             'topic': channel,
@@ -898,10 +890,9 @@ export default class toobit extends toobitRest {
         const orders = this.orders;
         const order = this.parseWsOrder (message);
         orders.append (order);
-        const orderSymbol = this.safeString (order, 'symbol', '');
         let messageHash = 'orders';
         client.resolve (orders, messageHash);
-        messageHash = 'orders:' + orderSymbol;
+        messageHash = 'orders:' + this.safeString (order, 'symbol', '');
         client.resolve (orders, messageHash);
     }
 
@@ -1008,8 +999,7 @@ export default class toobit extends toobitRest {
         }
         const trade = this.parseMyTrade (message);
         myTrades.append (trade);
-        const tradeSymbol = this.safeString (trade, 'symbol', '');
-        let messageHash = 'myTrades:' + tradeSymbol;
+        let messageHash = 'myTrades:' + this.safeString (trade, 'symbol', '');
         client.resolve (myTrades, messageHash);
         messageHash = 'myTrades';
         client.resolve (myTrades, messageHash);

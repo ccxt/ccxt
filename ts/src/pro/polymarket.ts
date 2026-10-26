@@ -133,8 +133,7 @@ export default class polymarket extends polymarketRest {
         const market = this.market (symbol);
         const symbolResolved: string = market['symbol'];
         const messageHash = 'orderbook:' + symbolResolved;
-        const channel = 'book::' + this.safeString (market, 'id', '');
-        const request = this.sendSubscription ('sub', [ channel ], [ messageHash ], [ messageHash ], {}, params);
+        const request = this.sendSubscription ('sub', [ 'book::' + this.safeString (market, 'id', '') ], [ messageHash ], [ messageHash ], {}, params);
         const url = this.urls['api']['ws'];
         const orderbook = await this.watch (url, messageHash, request, messageHash);
         return orderbook.limit ();
@@ -213,8 +212,7 @@ export default class polymarket extends polymarketRest {
         const market = this.market (symbol);
         const symbolResolved: string = market['symbol'];
         const messageHash = 'ticker:' + symbolResolved;
-        const channel = 'tickers::' + this.safeString (market, 'id', '');
-        const request = this.sendSubscription ('sub', [ channel ], [ messageHash ], [ messageHash ], {}, params);
+        const request = this.sendSubscription ('sub', [ 'tickers::' + this.safeString (market, 'id', '') ], [ messageHash ], [ messageHash ], {}, params);
         const url = this.urls['api']['ws'];
         return await this.watch (url, messageHash, request, messageHash);
     }
@@ -265,9 +263,8 @@ export default class polymarket extends polymarketRest {
         } else {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const market = this.market (symbolsNormalized[i]);
-                const marketId = this.safeString (market, 'id', '');
                 messageHashes.push ('ticker:' + market['symbol']);
-                channels.push ('tickers::' + marketId);
+                channels.push ('tickers::' + this.safeString (market, 'id', ''));
             }
         }
         const request = this.sendSubscription ('sub', channels, messageHashes, messageHashes, {}, params);
@@ -336,9 +333,8 @@ export default class polymarket extends polymarketRest {
         const channels: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market (symbolsNormalized[i]);
-            const marketId = this.safeString (market, 'id', '');
             messageHashes.push ('bidask:' + market['symbol']);
-            channels.push ('bbo::' + marketId);
+            channels.push ('bbo::' + this.safeString (market, 'id', ''));
         }
         const request = this.sendSubscription ('sub', channels, messageHashes, messageHashes, {}, params);
         const ticker = await this.watchMultiple (url, messageHashes, request, messageHashes);
@@ -401,8 +397,7 @@ export default class polymarket extends polymarketRest {
         const market = this.market (symbol);
         const symbolResolved: string = market['symbol'];
         const messageHash = 'trade:' + symbolResolved;
-        const channel = 'trades::' + this.safeString (market, 'id', '');
-        const request = this.sendSubscription ('sub', [ channel ], [ messageHash ], [ messageHash ], {}, params);
+        const request = this.sendSubscription ('sub', [ 'trades::' + this.safeString (market, 'id', '') ], [ messageHash ], [ messageHash ], {}, params);
         const url = this.urls['api']['ws'];
         const trades = await this.watch (url, messageHash, request, messageHash);
         let limitResolved: Int = limit;

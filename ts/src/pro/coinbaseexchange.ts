@@ -111,9 +111,8 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
             const symbol = symbolsNormalized[i];
             market = this.market (symbol);
             const marketId = this.safeString (market, 'id', '');
-            const marketSymbol = this.safeString (market, 'symbol', '');
             productIds.push (marketId);
-            messageHashes.push (messageHashStart + ':' + marketSymbol);
+            messageHashes.push (messageHashStart + ':' + this.safeString (market, 'symbol', ''));
         }
         let url = this.safeString (this.urls['api'], 'ws');
         if (url === undefined) {
@@ -371,8 +370,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const marketIds = this.marketIds (symbolsNormalized);
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsLength; i++) {
-            const marketId = this.safeString (marketIds, i, '');
-            messageHashes.push (name + ':' + marketId);
+            messageHashes.push (name + ':' + this.safeString (marketIds, i, ''));
         }
         const url = this.urls['api']['ws'];
         const subscribe: Dict = {
@@ -410,8 +408,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const resolvedMarketId = this.safeString (market, 'id', '');
-        const messageHash = name + ':' + resolvedMarketId;
+        const messageHash = name + ':' + this.safeString (market, 'id', '');
         const url = this.urls['api']['ws'];
         const subscribe: Dict = {
             'type': 'subscribe',
@@ -946,8 +943,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const market = this.safeMarket (marketId, undefined, '-');
         const symbol = market['symbol'];
         const name = 'level2';
-        const resolvedMarketId = this.safeString (market, 'id', '');
-        const messageHash = name + ':' + resolvedMarketId;
+        const messageHash = name + ':' + this.safeString (market, 'id', '');
         const subscription = this.safeDict (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
         if (type === 'snapshot') {

@@ -287,12 +287,11 @@ export default class dydx extends dydxRest {
         const url = this.urls['api']['ws'];
         const market = this.market (symbol);
         const messageHash = 'ohlcv:' + market['symbol'];
-        const marketId = this.safeString (market, 'id', '');
         const resolution = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'type': 'subscribe',
             'channel': 'v4_candles',
-            'id': marketId + '/' + resolution,
+            'id': this.safeString (market, 'id', '') + '/' + resolution,
         };
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         let limitResolved = limit;
@@ -320,12 +319,11 @@ export default class dydx extends dydxRest {
         const url = this.urls['api']['ws'];
         const market = this.market (symbol);
         const messageHash = 'ohlcv:' + market['symbol'];
-        const marketId = this.safeString (market, 'id', '');
         const resolution = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'type': 'unsubscribe',
             'channel': 'v4_candles',
-            'id': marketId + '/' + resolution,
+            'id': this.safeString (market, 'id', '') + '/' + resolution,
         };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }

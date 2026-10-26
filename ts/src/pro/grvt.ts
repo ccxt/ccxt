@@ -177,8 +177,7 @@ export default class grvt extends grvtRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const marketId = this.safeString (market, 'id', '');
-            rawHashes.push (marketId + '@' + intervalOption.toString ());
+            rawHashes.push (this.safeString (market, 'id', '') + '@' + intervalOption.toString ());
             messageHashes.push ('ticker::' + market['symbol']);
         }
         const request: Dict = {
@@ -327,9 +326,8 @@ export default class grvt extends grvtRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const marketId = this.safeString (market, 'id', '');
             const limitRaw = this.safeInteger (params, 'limit', 50); // 50, 200, 500, 1000
-            rawHashes.push (marketId + '@' + limitRaw.toString ());
+            rawHashes.push (this.safeString (market, 'id', '') + '@' + limitRaw.toString ());
             messageHashes.push ('trade::' + market['symbol']);
         }
         const request: Dict = {
@@ -433,10 +431,9 @@ export default class grvt extends grvtRest {
             const data = this.safeList (symbolsAndTimeframes, i);
             const symbolString = this.safeString (data, 0);
             const market = this.market (symbolString);
-            const marketId = this.safeString (market, 'id', '');
             const unfiedTimeframe = this.safeString (data, 1, '1');
             const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
-            rawHashes.push (marketId + '@' + timeframeId + '-TRADE');
+            rawHashes.push (this.safeString (market, 'id', '') + '@' + timeframeId + '-TRADE');
             messageHashes.push ('ohlcv::' + market['symbol'] + '::' + unfiedTimeframe);
         }
         const request: Dict = {
@@ -560,8 +557,7 @@ export default class grvt extends grvtRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const marketId = this.safeString (market, 'id', '');
-            rawHashes.push (marketId + '@' + extraPart);
+            rawHashes.push (this.safeString (market, 'id', '') + '@' + extraPart);
             messageHashes.push ('orderbook::' + market['symbol']);
         }
         const request: Dict = {
@@ -748,8 +744,7 @@ export default class grvt extends grvtRest {
         }
         const trade = this.parseWsMyTrade (data);
         this.myTrades.append (trade);
-        const tradeSymbol = this.safeString (trade, 'symbol', '');
-        client.resolve (this.myTrades, 'myTrades::' + tradeSymbol);
+        client.resolve (this.myTrades, 'myTrades::' + this.safeString (trade, 'symbol', ''));
         client.resolve (this.myTrades, 'myTrades');
     }
 
@@ -833,11 +828,10 @@ export default class grvt extends grvtRest {
         }
         const data = this.safeDict (message, 'feed');
         const position = this.parseWsPosition (data);
-        const symbol = this.safeString (position, 'symbol', '');
         this.positions.append (position);
         const newPositions: List = [];
         newPositions.push (position);
-        client.resolve (newPositions, 'positions::' + symbol);
+        client.resolve (newPositions, 'positions::' + this.safeString (position, 'symbol', ''));
         client.resolve (newPositions, 'positions');
     }
 
@@ -958,8 +952,7 @@ export default class grvt extends grvtRest {
         const order = this.parseWsOrder (data);
         this.orders.append (order);
         client.resolve (this.orders, 'orders');
-        const orderSymbol = this.safeString (order, 'symbol', '');
-        client.resolve (this.orders, 'order::' + orderSymbol);
+        client.resolve (this.orders, 'order::' + this.safeString (order, 'symbol', ''));
     }
 
     override parseWsOrder (order: any, market: Market = undefined): Order {

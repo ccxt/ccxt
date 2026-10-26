@@ -748,8 +748,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
         const keys = Object.keys (symbols);
         for (let i = 0; i < keys.length; i++) {
-            const currentMessageHash = 'myTrades:' + this.safeString (keys, i, '');
-            client.resolve (trades, currentMessageHash);
+            client.resolve (trades, 'myTrades:' + this.safeString (keys, i, ''));
         }
         // non-symbol specific
         const messageHash = 'myTrades';

@@ -62,12 +62,11 @@ export default class coincheck extends coincheckRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const marketId = this.safeString (market, 'id', '');
         const messageHash = 'orderbook:' + market['symbol'];
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'type': 'subscribe',
-            'channel': marketId + '-orderbook',
+            'channel': this.safeString (market, 'id', '') + '-orderbook',
         };
         const message = this.extend (request, params);
         const orderbook: WsOrderBook = await this.watch (url, messageHash, message, messageHash);
@@ -128,12 +127,11 @@ export default class coincheck extends coincheckRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const marketId = this.safeString (market, 'id', '');
         const messageHash = 'trade:' + market['symbol'];
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'type': 'subscribe',
-            'channel': marketId + '-trades',
+            'channel': this.safeString (market, 'id', '') + '-trades',
         };
         const message = this.extend (request, params);
         const trades: ArrayCache = await this.watch (url, messageHash, message, messageHash);

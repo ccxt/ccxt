@@ -230,8 +230,7 @@ export default class deribit extends deribitRest {
         const channels: List = [];
         for (let i = 0; i < (symbolsNormalized as string[]).length; i++) {
             const market = this.market ((symbolsNormalized as string[])[i]);
-            const marketId = this.safeString (market, 'id', '');
-            channels.push ('ticker.' + marketId + '.' + interval);
+            channels.push ('ticker.' + this.safeString (market, 'id', '') + '.' + interval);
         }
         const message: Dict = {
             'jsonrpc': '2.0',
@@ -448,7 +447,6 @@ export default class deribit extends deribitRest {
         const channel = this.safeString (params, 'channel', '');
         const parts = channel.split ('.');
         const marketId = this.safeString (parts, 1);
-        const interval = this.safeString (parts, 2, '');
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (marketId);
         const trades: Dict[] = this.safeList (params, 'data', []);
@@ -463,6 +461,7 @@ export default class deribit extends deribitRest {
             stored.append (parsed);
         }
         this.trades[symbol] = stored;
+        const interval = this.safeString (parts, 2, '');
         const messageHash = 'trades|' + symbol + '|' + interval;
         client.resolve (this.trades[symbol], messageHash);
     }
@@ -655,10 +654,8 @@ export default class deribit extends deribitRest {
         const partsLength = parts.length;
         const isDetailed = partsLength === 5;
         if (isDetailed) {
-            const group = this.safeString (parts, 2, '');
-            const depth = this.safeString (parts, 3, '');
             const interval = this.safeString (parts, 4, '');
-            descriptor = group + '.' + depth + '.' + interval;
+            descriptor = this.safeString (parts, 2, '') + '.' + this.safeString (parts, 3, '') + '.' + interval;
         } else {
             const interval = this.safeString (parts, 2, '');
             descriptor = interval;
@@ -956,11 +953,9 @@ export default class deribit extends deribitRest {
                 market = this.market (current);
                 currentDescriptor = channelDescriptor;
             }
-            const marketId = this.safeString (market, 'id', '');
-            const marketSymbol = this.safeString (market, 'symbol', '');
-            const message = channelName + '.' + marketId + '.' + currentDescriptor;
+            const message = channelName + '.' + this.safeString (market, 'id', '') + '.' + currentDescriptor;
             rawSubscriptions.push (message);
-            messageHashes.push (channelName + '|' + marketSymbol + '|' + currentDescriptor);
+            messageHashes.push (channelName + '|' + this.safeString (market, 'symbol', '') + '|' + currentDescriptor);
         }
         const request: Dict = {
             'jsonrpc': '2.0',

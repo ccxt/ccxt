@@ -441,8 +441,7 @@ export default class nado extends nadoRest {
             if (symbolsLength === 1) {
                 const symbolMarket = this.market (symbolsNormalized[0]);
                 market = symbolMarket;
-                const marketSymbol = this.safeString (symbolMarket, 'symbol', '');
-                messageHash = 'ticker:' + marketSymbol;
+                messageHash = 'ticker:' + this.safeString (symbolMarket, 'symbol', '');
                 streamType = 'best_bid_offer';
             }
         }
@@ -481,8 +480,7 @@ export default class nado extends nadoRest {
             if (symbolsLength === 1) {
                 const symbolMarket = this.market (symbolsNormalized[0]);
                 market = symbolMarket;
-                const marketSymbol = this.safeString (symbolMarket, 'symbol', '');
-                messageHash = 'ticker:' + marketSymbol;
+                messageHash = 'ticker:' + this.safeString (symbolMarket, 'symbol', '');
                 streamType = 'best_bid_offer';
             }
         }
@@ -509,8 +507,7 @@ export default class nado extends nadoRest {
             if (symbolsLength === 1) {
                 const symbolMarket = this.market (symbolsNormalized[0]);
                 market = symbolMarket;
-                const marketSymbol = this.safeString (symbolMarket, 'symbol', '');
-                messageHash = 'bidask:' + marketSymbol;
+                messageHash = 'bidask:' + this.safeString (symbolMarket, 'symbol', '');
                 streamType = 'best_bid_offer';
             }
         }
@@ -549,8 +546,7 @@ export default class nado extends nadoRest {
             if (symbolsLength === 1) {
                 const symbolMarket = this.market (symbolsNormalized[0]);
                 market = symbolMarket;
-                const marketSymbol = this.safeString (symbolMarket, 'symbol', '');
-                messageHash = 'bidask:' + marketSymbol;
+                messageHash = 'bidask:' + this.safeString (symbolMarket, 'symbol', '');
                 streamType = 'best_bid_offer';
             }
         }
@@ -1047,8 +1043,7 @@ export default class nado extends nadoRest {
         const client = this.client (url);
         const clientSubscription = this.safeValue (client.subscriptions, subscribeHash);
         if (clientSubscription === undefined) {
-            const id = this.safeString (request, 'id', '');
-            client.subscriptions['subscription:' + id] = {
+            client.subscriptions['subscription:' + this.safeString (request, 'id', '')] = {
                 'subscribeHash': subscribeHash,
             };
             this.watchMultiple (url, [ subscribeHash ], request, [ subscribeHash ], subscription);
@@ -1073,8 +1068,7 @@ export default class nado extends nadoRest {
         const subscription: Dict = {
             'streamType': streamType,
         };
-        const idString = this.safeString (request, 'id', '');
-        client.subscriptions['subscription:' + idString] = {
+        client.subscriptions['subscription:' + this.safeString (request, 'id', '')] = {
             'subscribeHash': subscribeHash,
         };
         this.watchMultiple (url, [ subscribeHash ], request, [ messageHash ], subscription);
@@ -1095,8 +1089,7 @@ export default class nado extends nadoRest {
             'messageHash': messageHash,
         };
         const client = this.client (url);
-        const idString = this.safeString (request, 'id', '');
-        client.subscriptions['unsubscription:' + idString] = {
+        client.subscriptions['unsubscription:' + this.safeString (request, 'id', '')] = {
             'messageHash': messageHash,
             'unsubscribeHash': unsubscribeHash,
         };
@@ -1138,8 +1131,7 @@ export default class nado extends nadoRest {
             'tx': tx,
             'signature': signature,
         };
-        const idString = this.safeString (request, 'id', '');
-        client.subscriptions['authentication:' + idString] = messageHash;
+        client.subscriptions['authentication:' + this.safeString (request, 'id', '')] = messageHash;
         return await this.watch (url, messageHash, this.extend (request, paramsSubaccount), messageHash);
     }
 
@@ -1193,8 +1185,7 @@ export default class nado extends nadoRest {
                         'streamType': streamType,
                         'symbol': this.safeString (market, 'symbol'),
                     };
-                    const idString = this.safeString (request, 'id', '');
-                    client.subscriptions['subscription:' + idString] = {
+                    client.subscriptions['subscription:' + this.safeString (request, 'id', '')] = {
                         'subscribeHash': subscribeHash,
                     };
                     this.watchMultiple (url, [ subscribeHash ], request, [ subscribeHash ], subscription);
@@ -1214,8 +1205,7 @@ export default class nado extends nadoRest {
         };
         const unsubscribeHash = 'unsubscribe:' + messageHash;
         const client = this.client (url);
-        const idString = this.safeString (request, 'id', '');
-        client.subscriptions['unsubscription:' + idString] = {
+        client.subscriptions['unsubscription:' + this.safeString (request, 'id', '')] = {
             'messageHash': messageHash,
             'unsubscribeHash': unsubscribeHash,
         };
@@ -1235,8 +1225,7 @@ export default class nado extends nadoRest {
                 'id': id,
                 'messageHash': messageHash,
             };
-            const idString = this.safeString (request, 'id', '');
-            client.subscriptions['unsubscription:' + idString] = {
+            client.subscriptions['unsubscription:' + this.safeString (request, 'id', '')] = {
                 'messageHash': messageHash,
                 'unsubscribeHash': unsubscribeHash,
             };
@@ -1380,9 +1369,8 @@ export default class nado extends nadoRest {
         }
         const trades = this.myTrades;
         trades.append (trade);
-        const symbol = this.safeString (trade, 'symbol', '');
         client.resolve (trades, 'myTrades');
-        client.resolve (trades, 'myTrades:' + symbol);
+        client.resolve (trades, 'myTrades:' + this.safeString (trade, 'symbol', ''));
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -1494,9 +1482,8 @@ export default class nado extends nadoRest {
         }
         const orders = this.orders;
         orders.append (order);
-        const symbol = this.safeString (order, 'symbol', '');
         client.resolve (orders, 'orders');
-        client.resolve (orders, 'orders:' + symbol);
+        client.resolve (orders, 'orders:' + this.safeString (order, 'symbol', ''));
     }
 
     parseWsPosition (position: Dict, market: Market = undefined): Position {
@@ -1582,9 +1569,8 @@ export default class nado extends nadoRest {
         } else {
             positions.append (position);
         }
-        const symbol = this.safeString (position, 'symbol', '');
         client.resolve (positions, 'positions');
-        client.resolve (positions, 'positions:' + symbol);
+        client.resolve (positions, 'positions:' + this.safeString (position, 'symbol', ''));
     }
 
     parseWsBidAsk (bidask: Dict, market: Market = undefined): Ticker {

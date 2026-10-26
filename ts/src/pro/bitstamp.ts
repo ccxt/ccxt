@@ -72,12 +72,11 @@ export default class bitstamp extends bitstampRest {
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
         const messageHash = 'orderbook:' + symbolValue;
-        const channel = 'diff_order_book_' + this.safeString (market, 'id', '');
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'event': 'bts:subscribe',
             'data': {
-                'channel': channel,
+                'channel': 'diff_order_book_' + this.safeString (market, 'id', ''),
             },
         };
         const message = this.extend (request, params);
@@ -248,11 +247,10 @@ export default class bitstamp extends bitstampRest {
         const symbolValue: string = market['symbol'];
         const messageHash = 'trades:' + symbolValue;
         const url = this.urls['api']['ws'];
-        const channel = 'live_trades_' + this.safeString (market, 'id', '');
         const request: Dict = {
             'event': 'bts:subscribe',
             'data': {
-                'channel': channel,
+                'channel': 'live_trades_' + this.safeString (market, 'id', ''),
             },
         };
         const message = this.extend (request, params);
@@ -387,11 +385,10 @@ export default class bitstamp extends bitstampRest {
         const symbolValue: string = market['symbol'];
         const messageHash = 'fundingRate:' + symbolValue;
         const url = this.urls['api']['ws'];
-        const channel = 'funding_rate_' + this.safeString (market, 'id', '');
         const request: Dict = {
             'event': 'bts:subscribe',
             'data': {
-                'channel': channel,
+                'channel': 'funding_rate_' + this.safeString (market, 'id', ''),
             },
         };
         const message = this.extend (request, params);
@@ -447,14 +444,13 @@ export default class bitstamp extends bitstampRest {
         const market = this.market (symbol);
         const symbolValue: Str = market['symbol'];
         const channel = 'private-my_orders';
-        const messageHash = channel + '_' + this.safeString (market, 'id', '');
         const subscription: Dict = {
             'symbol': symbolValue,
             'limit': limit,
             'type': channel,
             'params': params,
         };
-        const orders = await this.subscribePrivate (subscription, messageHash, params);
+        const orders = await this.subscribePrivate (subscription, channel + '_' + this.safeString (market, 'id', ''), params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolValue, limit);
@@ -479,14 +475,13 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const marketId = this.safeString (market, 'id', '');
         const symbolValue: Str = market['symbol'];
         await this.authenticate ();
         const userId = this.safeString (this.options, 'userId');
         if (userId === undefined) {
             throw new AuthenticationError (this.id + ' unWatchOrders() requires a userId from authenticate()');
         }
-        const channel = 'private-my_orders_' + marketId + '-' + userId;
+        const channel = 'private-my_orders_' + this.safeString (market, 'id', '') + '-' + userId;
         return await this.unWatchChannel (channel, channel, 'orders', [ symbolValue ], params);
     }
 
@@ -543,14 +538,13 @@ export default class bitstamp extends bitstampRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const marketId = this.safeString (market, 'id', '');
         const symbolValue: Str = market['symbol'];
         await this.authenticate ();
         const userId = this.safeString (this.options, 'userId');
         if (userId === undefined) {
             throw new AuthenticationError (this.id + ' unWatchMyTrades() requires a userId from authenticate()');
         }
-        const channel = 'private-my_trades_' + marketId + '-' + userId;
+        const channel = 'private-my_trades_' + this.safeString (market, 'id', '') + '-' + userId;
         return await this.unWatchChannel (channel, channel, 'myTrades', [ symbolValue ], params);
     }
 

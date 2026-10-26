@@ -854,7 +854,6 @@ export default class hibachi extends Exchange {
         const feeRateStr = this.numberToString (feeRate);
         const info = this.safeDict (market, 'info');
         const underlying = '1e' + this.safeString (info, 'underlyingDecimals', '');
-        const settlement = '1e' + this.safeString (info, 'settlementDecimals', '');
         const one = '1';
         const feeRateFactor = '100000000'; // 10^8
         const priceFactor = '4294967296'; // 2^32
@@ -879,7 +878,7 @@ export default class hibachi extends Exchange {
         let encodedPrice = this.binaryConcat ();
         if (type === 'limit') {
             const priceStr = this.priceToPrecision (this.safeString (market, 'symbol'), price);
-            const priceInternal = Precise.stringDiv (Precise.stringDiv (Precise.stringMul (Precise.stringMul (priceStr, priceFactor), settlement), underlying), one, 0);
+            const priceInternal = Precise.stringDiv (Precise.stringDiv (Precise.stringMul (Precise.stringMul (priceStr, priceFactor), '1e' + this.safeString (info, 'settlementDecimals', '')), underlying), one, 0);
             const price16 = this.intToBase16 (this.parseToInt (priceInternal));
             const pricePadded = price16.padStart (16, '0');
             // @ts-expect-error
