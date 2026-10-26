@@ -1147,7 +1147,7 @@ export default class blofin extends Exchange {
         const rates: List = [];
         const data = this.safeList (response, 'data', []) as List;
         for (let i = 0; i < data.length; i++) {
-            const rate = data[i];
+            const rate = this.safeValue (data, i);
             const timestamp = this.safeInteger (rate, 'fundingTime');
             rates.push ({
                 'info': rate,
@@ -2326,7 +2326,7 @@ export default class blofin extends Exchange {
         // venue ignores the filter and returns the latest records instead
         const dataLength = (data as List).length;
         for (let i = 0; i < dataLength; i++) {
-            const entry = data[i];
+            const entry = this.safeValue (data, i);
             if (this.safeString (entry, 'depositId') === id) {
                 return this.parseTransaction (entry, currency);
             }
@@ -2366,7 +2366,7 @@ export default class blofin extends Exchange {
         // case the venue ignores the filter and returns the latest records
         const dataLength = (data as List).length;
         for (let i = 0; i < dataLength; i++) {
-            const entry = data[i];
+            const entry = this.safeValue (data, i);
             let matches = false;
             if (id !== undefined) {
                 matches = (this.safeString (entry, 'withdrawId') === id);
@@ -3097,20 +3097,8 @@ export default class blofin extends Exchange {
             throw new BadRequest (this.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        const symbolsList = symbolsNormalized;
-        let instIds: string = '';
-        for (let i = 0; i < symbolsList.length; i++) {
-            const entry = symbolsList[i];
-            const entryMarket = this.market (entry);
-            const entryId = this.safeString (entryMarket, 'id');
-            if (i > 0) {
-                instIds = instIds + ',' + entryId;
-            } else {
-                instIds = instIds + entryId;
-            }
-        }
         const request: Dict = {
-            'instId': instIds,
+            'instId': this.marketIds (symbolsNormalized).join (','),
             'marginMode': marginMode,
         };
         const response = await this.privateGetAccountBatchLeverageInfo (this.extend (request, query));
@@ -3591,8 +3579,8 @@ export default class blofin extends Exchange {
                 }
             } else {
                 if (!this.isEmpty (query)) {
-                    signedBody = this.json (query);
-                    sign_body = signedBody;
+                    sign_body = this.json (query);
+                    signedBody = sign_body;
                 }
                 signedHeaders['Content-Type'] = 'application/json';
             }
