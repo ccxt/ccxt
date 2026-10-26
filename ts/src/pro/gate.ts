@@ -446,7 +446,7 @@ export default class gate extends gateRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const marketId = this.safeString (market, 'id', '');
         const url = this.getUrlByMarket (market);
         const isEuUrl = url.indexOf ('gateeu') >= 0;
@@ -509,7 +509,7 @@ export default class gate extends gateRest {
         }
         const market = this.market (symbol);
         const url = this.getUrlByMarket (market);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const marketId = this.safeString (market, 'id', '');
         const isEuUrl = url.indexOf ('gateeu') >= 0;
         const isNonEuSpot = (market['spot'] === true) && !isEuUrl;
@@ -788,7 +788,7 @@ export default class gate extends gateRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         params['callerMethodName'] = 'watchTicker';
         const result = await this.watchTickers ([ symbolValue ], params);
         return this.safeDict (result, symbolValue) as Ticker;
@@ -1101,7 +1101,7 @@ export default class gate extends gateRest {
         }
         // todo add options support
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const marketId = market['id'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageType = this.getTypeByMarket (market);

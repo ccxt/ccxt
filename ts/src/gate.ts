@@ -7192,21 +7192,19 @@ export default class gate extends Exchange {
         } else {
             pathImploded = this.implodeParams (path, params);
         }
-        let endPart: Str = undefined;
-        if (pathImploded === '') {
-            endPart = '';
-        } else {
-            endPart = ('/' + pathImploded);
+        let endPart: string = '';
+        if (pathImploded !== '') {
+            endPart = '/' + pathImploded;
         }
-        let entirePath = '/' + type + endPart;
+        let entirePath: string = '/' + type + endPart;
         if ((type === 'subAccounts') || (type === 'withdrawals')) {
             entirePath = endPart;
         }
-        let url = this.urls['api'][authentication][type];
-        if (url === undefined) {
+        const baseUrl = this.safeString (this.urls['api'][authentication], type);
+        if (baseUrl === undefined) {
             throw new NotSupported (this.id + ' does not have a testnet for the ' + type + ' market type.');
         }
-        url += entirePath;
+        let url: string = baseUrl + entirePath;
         if (authentication === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
@@ -7246,8 +7244,7 @@ export default class gate extends Exchange {
                 query = this.omit (query, 'query');
                 bodyJson = this.json (query);
             }
-            const bodySigned: Str = bodyJson;
-            const bodyPayload = (bodySigned === undefined) ? '' : bodySigned;
+            const bodyPayload = (bodyJson === undefined) ? '' : bodyJson;
             const bodySignature = this.hash (this.encode (bodyPayload), sha512);
             const nonce = this.nonce ();
             const timestamp = this.parseToInt (nonce / 1000);
