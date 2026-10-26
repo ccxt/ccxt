@@ -355,7 +355,7 @@ export default class deribit extends deribitRest {
         const params: Dict = this.safeDict (message, 'params', {});
         const data: Dict = this.safeDict (params, 'data', {});
         const ticker = this.parseWsBidAsk (data);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString (ticker, 'symbol');
         this.bidsasks[symbol as string] = ticker;
         const messageHash = this.safeString (params, 'channel');
         client.resolve (ticker, messageHash);
@@ -547,7 +547,7 @@ export default class deribit extends deribitRest {
         for (let i = 0; i < parsed.length; i++) {
             const trade = parsed[i];
             cachedTrades.append (trade);
-            const symbol = trade['symbol'];
+            const symbol = this.safeString (trade, 'symbol');
             marketIds[symbol as string] = true;
         }
         client.resolve (cachedTrades, channel);

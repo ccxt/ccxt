@@ -560,8 +560,8 @@ export default class deribit extends Exchange {
         const optionType = this.safeString (optionParts, 3, '');
         const datetime = this.convertExpireDate (expiry);
         return {
-            'id': baseResolved + '-' + this.convertExpireDateToMarketIdDate (expiry) + '-' + strike + '-' + optionType,
-            'symbol': splitBase + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'id': baseResolved + '-' + this.convertExpireDateToMarketIdDate (expiry) + ('-' + strike + '-' + optionType),
+            'symbol': splitBase + '/' + quote + ':' + settle + '-' + expiry + ('-' + strike + '-' + optionType),
             'base': baseResolved,
             'quote': quote,
             'settle': settle,
