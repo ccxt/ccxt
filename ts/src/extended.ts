@@ -1333,7 +1333,7 @@ export default class extended extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 10000) as FundingRateHistory[];
         }
         const market = this.market (symbol);
-        const symbolValue: Str = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const limitResolved: Int = (limit === undefined) ? 100 : limit;
         const until = this.safeInteger (paramsPaginate, 'until', this.milliseconds ());
         const endTime = this.safeInteger (paramsPaginate, 'endTime', until);

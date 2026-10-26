@@ -60,7 +60,7 @@ export default class extended extends extendedRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'orderbook:' + symbolValue;
         const query = this.urlencode (params);
         let url = this.safeString (this.urls['api'], 'ws', '') + '/orderbooks/' + this.safeString (market, 'id', '');
@@ -544,7 +544,7 @@ export default class extended extends extendedRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'fundingRate:' + symbolValue;
         const query = this.urlencode (params);
         let url = this.safeString (this.urls['api'], 'ws', '') + '/funding/' + this.safeString (market, 'id', '');
@@ -571,8 +571,8 @@ export default class extended extends extendedRest {
         //
         const data = this.safeDict (message, 'data', {});
         const fundingRate = this.parseWsFundingRate (data, undefined, message);
-        const symbol = this.safeString (fundingRate, 'symbol');
-        this.fundingRates[symbol as string] = fundingRate;
+        const symbol = this.safeString (fundingRate, 'symbol', '');
+        this.fundingRates[symbol] = fundingRate;
         const messageHash = 'fundingRate:' + symbol;
         client.resolve (fundingRate, messageHash);
     }
@@ -618,7 +618,7 @@ export default class extended extends extendedRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'markPrice:' + symbolValue;
         const query = this.urlencode (params);
         let url = this.safeString (this.urls['api'], 'ws', '') + '/prices/mark/' + this.safeString (market, 'id', '');
@@ -648,7 +648,7 @@ export default class extended extends extendedRest {
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'm');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         let timestamp = this.safeInteger (data, 'ts');
         if ((timestamp === undefined) || (timestamp === 0)) {
             timestamp = this.safeInteger (message, 'ts');
@@ -681,7 +681,7 @@ export default class extended extends extendedRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'trades:' + symbolValue;
         const query = this.urlencode (params);
         let url = this.safeString (this.urls['api'], 'ws', '') + '/publicTrades/' + this.safeString (market, 'id', '');
@@ -724,7 +724,7 @@ export default class extended extends extendedRest {
         }
         const marketId = this.safeString (first, 'm');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const messageHash = 'trades:' + symbol;
         const subscription = this.safeDict (client.subscriptions, messageHash, {});
         let stored = this.safeValue (this.trades, symbol);
@@ -766,7 +766,7 @@ export default class extended extends extendedRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const price = this.safeString (params, 'price');
         let candleType = this.safeString (params, 'candleType');
         if (candleType === undefined) {
@@ -820,8 +820,8 @@ export default class extended extends extendedRest {
             return;
         }
         const symbol = this.safeString (subscription, 'symbol');
-        const timeframe = this.safeString (subscription, 'timeframe');
-        const candleType = this.safeString (subscription, 'candleType');
+        const timeframe = this.safeString (subscription, 'timeframe', '');
+        const candleType = this.safeString (subscription, 'candleType', '');
         let cacheKey: Str = undefined;
         if (candleType === 'trades') {
             cacheKey = timeframe;
