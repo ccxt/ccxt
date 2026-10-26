@@ -230,7 +230,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const client = this.client (url);
         this.watchMultiple (url, unWatchMessageHashes, this.deepExtend (request, paramsResolved), unWatchMessageHashes);
         for (let i = 0; i < channelsLength; i++) {
-            this.cleanUnsubscription (client, this.safeString (channels, i, ''), unWatchMessageHashes[i]);
+            this.cleanUnsubscription (client, this.safeString (channels, i, ''), this.safeString (unWatchMessageHashes, i, ''));
         }
         return true;
     }
@@ -927,9 +927,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const channels: string[] = [];
         for (let i = 0; i < symbolsAndTimeframesLength; i++) {
             const current = symbolsAndTimeframes[i];
-            const currentTimeframe = current[1];
+            const currentTimeframe = this.safeString (current, 1);
             const resolution = this.safeString (this.timeframes, currentTimeframe, currentTimeframe);
-            const market = this.market (current[0]);
+            const market = this.market (this.safeString (current, 0));
             channels.push ('chart.trades.' + this.safeString (market, 'id', '') + '.' + resolution);
         }
         const resolved = await this.subscribe (channels, channels, false, paramsResolved);
@@ -981,9 +981,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbolsAndTimeframesLength = symbolsAndTimeframes.length;
         for (let i = 0; i < symbolsAndTimeframesLength; i++) {
             const current = symbolsAndTimeframes[i];
-            const timeframe = current[1];
+            const timeframe = this.safeString (current, 1);
             const resolution = this.safeString (this.timeframes, timeframe, timeframe);
-            const market = this.market (current[0]);
+            const market = this.market (this.safeString (current, 0));
             channels.push ('chart.trades.' + this.safeString (market, 'id', '') + '.' + resolution);
         }
         return await this.unSubscribe (channels, false, paramsResolved);
@@ -1188,9 +1188,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         let descriptor = interval as string;
         if (useDepthEndpoint) {
             const [ depth, paramsDepth ] = this.handleOptionStringAndParams (paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
-            const [ group, paramsGroup ] = this.handleOptionStringAndParams (paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
+            const [ groupKey, paramsGroup ] = this.handleOptionStringAndParams (paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
             paramsChannel = paramsGroup;
-            descriptor = group + '.' + depth + '.' + interval;
+            descriptor = groupKey + '.' + depth + '.' + interval;
         }
         const channels: string[] = [];
         const symbolsLength = symbols.length;
@@ -1240,9 +1240,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         let descriptor = interval as string;
         if (useDepthEndpoint) {
             const [ depth, paramsDepth ] = this.handleOptionStringAndParams (paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
-            const [ group, paramsGroup ] = this.handleOptionStringAndParams (paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
+            const [ groupKey, paramsGroup ] = this.handleOptionStringAndParams (paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
             paramsChannel = paramsGroup;
-            descriptor = group + '.' + depth + '.' + interval;
+            descriptor = groupKey + '.' + depth + '.' + interval;
         }
         const channels: string[] = [];
         const symbolsLength = symbols.length;
@@ -1337,7 +1337,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     override handleDeltas (bookside: any, deltas: any[]) {
         const deltasLength = deltas.length;
         for (let i = 0; i < deltasLength; i++) {
-            this.handleDelta (bookside, deltas[i]);
+            this.handleDelta (bookside, this.safeValue (deltas, i));
         }
     }
 
