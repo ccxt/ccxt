@@ -65,7 +65,7 @@ export default class blockchaincom extends blockchaincomRest {
     override async watchBalance (params: Dict = {}): Promise<Balances> {
         await this.authenticate (params);
         const messageHash = 'balance';
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const subscribe: Dict = {
             'action': 'subscribe',
             'channel': 'balances',
@@ -152,7 +152,7 @@ export default class blockchaincom extends blockchaincomRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = 'ohlcv:' + symbolValue;
         let request: Dict = {
@@ -162,7 +162,7 @@ export default class blockchaincom extends blockchaincomRest {
             'granularity': this.parseNumber (interval),
         };
         request = this.deepExtend (request, params);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash, request);
         let limitResolved = limit;
         if (this.newUpdates) {
@@ -231,8 +231,8 @@ export default class blockchaincom extends blockchaincomRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
-        const url = this.urls['api']['ws'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const messageHash = 'ticker:' + symbolValue;
         let request: Dict = {
             'action': 'subscribe',
@@ -275,7 +275,7 @@ export default class blockchaincom extends blockchaincomRest {
         const event = this.safeString (message, 'event');
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         let ticker: Ticker | undefined = undefined;
         if (event === 'subscribed') {
             return;
@@ -343,8 +343,8 @@ export default class blockchaincom extends blockchaincomRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
-        const url = this.urls['api']['ws'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const messageHash = 'trades:' + symbolValue;
         let request: Dict = {
             'action': 'subscribe',
@@ -452,7 +452,7 @@ export default class blockchaincom extends blockchaincomRest {
             const market = this.market (symbol);
             symbolResolved = this.safeString (market, 'symbol');
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const message: Dict = {
             'action': 'subscribe',
             'channel': 'trading',
@@ -543,12 +543,11 @@ export default class blockchaincom extends blockchaincomRest {
         //
         const event = this.safeString (message, 'event');
         const messageHash = 'orders';
-        let cachedOrders = this.orders;
-        if (cachedOrders === undefined) {
+        if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            cachedOrders = new ArrayCacheBySymbolById (limit);
-            this.orders = cachedOrders;
+            this.orders = new ArrayCacheBySymbolById (limit);
         }
+        const cachedOrders = this.orders;
         if (event === 'subscribed') {
             return;
         } else if (event === 'rejected') {
@@ -667,7 +666,7 @@ export default class blockchaincom extends blockchaincomRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const type = this.safeString (params, 'type', 'l2');
         const paramsOmitted: Dict = this.omit (params, 'type');
         const messageHash = 'orderbook:' + symbol + ':' + type;
@@ -797,7 +796,7 @@ export default class blockchaincom extends blockchaincomRest {
     }
 
     async authenticate (params: Dict = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const client = this.client (url);
         const messageHash = 'authenticated';
         const future = client.reusableFuture (messageHash);
