@@ -217,8 +217,6 @@ export default class revolutx extends Exchange {
         let requestBody: Str = undefined;
         const implodedPath = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        const queryKeys = Object.keys (query);
-        const queryLength = queryKeys.length;
         const apiName = api[0];
         const baseApiUrl = this.safeString (this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
@@ -231,13 +229,13 @@ export default class revolutx extends Exchange {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
             if (method === 'GET') {
-                if (queryLength > 0) {
-                    queryString = this.urlencode (query);
+                queryString = this.urlencode (query);
+                if (queryString !== '') {
                     url += '?' + queryString;
                 }
             } else if (method === 'DELETE') {
-                if (queryLength > 0) {
-                    queryString = this.urlencode (query);
+                queryString = this.urlencode (query);
+                if (queryString !== '') {
                     url += '?' + queryString;
                 }
             } else {
@@ -254,12 +252,12 @@ export default class revolutx extends Exchange {
                 'X-Revx-Signature': signature,
             };
             if (method === 'POST' || method === 'PUT') {
-                requestHeaders['Content-Type'] = 'application/json';
+                requestHeaders = this.extend (requestHeaders, { 'Content-Type': 'application/json' });
             }
         } else {
             if (method === 'GET') {
-                if (queryLength > 0) {
-                    queryString = this.urlencode (query);
+                queryString = this.urlencode (query);
+                if (queryString !== '') {
                     url += '?' + queryString;
                 }
             } else {
