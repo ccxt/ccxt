@@ -2642,9 +2642,9 @@ export default class bithumb extends Exchange {
 
     override async cancelUnifiedOrder (order: Order, params: Dict = {}): Promise<Order> {
         const request: Dict = {
-            'side': order['side'],
+            'side': this.safeString (order, 'side'),
         };
-        return await this.cancelOrder ((order['id'] as string), order['symbol'], this.extend (request, params));
+        return await this.cancelOrder (this.safeString (order, 'id', ''), this.safeString (order, 'symbol'), this.extend (request, params));
     }
 
     /**
@@ -2678,7 +2678,8 @@ export default class bithumb extends Exchange {
             await this.loadMarkets ();
         }
         const [ generation, paramsGeneration ] = this.handleOptionIntegerAndParams (params, 'withdraw', 'generation', 2);
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (paramsGeneration, 'tag');
+        const tagWithdrawTag = this.safeString (paramsGeneration, 'tag');
+        const paramsWithdrawTag = this.omit (paramsGeneration, 'tag');
         this.checkAddress (address, code, tagWithdrawTag);
         const network = this.safeString2 (paramsWithdrawTag, 'network', 'net_type');
         const paramsNetwork = this.omit (paramsWithdrawTag, 'network');
