@@ -219,7 +219,7 @@ export default class lbank extends lbankRest {
                 this.safeNumber (rawOHLCV, 4),
                 this.safeNumber (rawOHLCV, 5),
             ];
-            const timeframeId = this.safeString (message, 'kbar');
+            const timeframeId = this.safeString (message, 'kbar', '');
             const timeframe = this.findTimeframe (timeframeId, timeframes);
             const ohlcvsForSymbol: Dict = this.safeDict (this.ohlcvs, symbol, {});
             this.ohlcvs[symbol] = ohlcvsForSymbol;
@@ -234,7 +234,7 @@ export default class lbank extends lbankRest {
             client.resolve (stored, messageHash);
         } else {  // from subscription
             const rawOHLCV = this.safeDict (message, 'kbar', {});
-            const timeframeId = this.safeString (rawOHLCV, 'slot');
+            const timeframeId = this.safeString (rawOHLCV, 'slot', '');
             const datetime = this.safeString (rawOHLCV, 't');
             const parsed = [
                 this.parse8601 (datetime),
@@ -614,17 +614,13 @@ export default class lbank extends lbankRest {
         //
         const marketId = this.safeString (message, 'pair');
         const symbol = this.safeSymbol (marketId, undefined, '_');
-        let myOrders = this.orders;
+        const order = this.parseWsOrder (message);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            myOrders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById (limit);
         }
-        const order = this.parseWsOrder (message);
-        if (myOrders === undefined) {
-            return;
-        }
+        const myOrders = this.orders;
         myOrders.append (order);
-        this.orders = myOrders;
         client.resolve (myOrders, 'orders');
         const messageHash = 'orders:' + symbol;
         client.resolve (myOrders, messageHash);
@@ -1029,7 +1025,7 @@ export default class lbank extends lbankRest {
             }
             // settle the flight through the client so that every write to the
             // futures map happens inside the base class
-            client.resolve (client.subscriptions['authenticated']['key'], messageHash);
+            client.resolve (this.safeString (this.safeDict (client.subscriptions, 'authenticated'), 'key'), messageHash);
         } catch (e) {
             // reject the flight - all waiters throw and the next caller
             // re-leads instead of deadlocking on a dead flight
