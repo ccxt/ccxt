@@ -1267,9 +1267,9 @@ public class Onetrading extends OnetradingApi
             {
                 throw new ExchangeError((this.id + " fetchOHLCV() missing periodUnit")) ;
             }
-            var periodunitVariable = new ArrayList<Object>(Arrays.asList(((String)periodUnit).split(java.util.regex.Pattern.quote("/"))));
-            var period = ((List<Object>) periodunitVariable).get(0);
-            var unit = ((List<Object>) periodunitVariable).get(1);
+            List<Object> periodUnitParts = new ArrayList<Object>(Arrays.asList(((String)periodUnit).split(java.util.regex.Pattern.quote("/"))));
+            String period = (String) (periodUnitParts == null || 0 >= periodUnitParts.size() ? null : periodUnitParts.get(0));
+            String unit = (String) (periodUnitParts == null || 1 >= periodUnitParts.size() ? null : periodUnitParts.get(1));
             int durationInSeconds = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Long duration = (((long) durationInSeconds) * 1000L);
             Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1500L : limit;
@@ -2165,7 +2165,7 @@ public class Onetrading extends OnetradingApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {

@@ -76,7 +76,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
     public Long requestId()
     {
         Long requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        Helpers.addElementToObject(this.options, "requestId", requestId);
+        this.options.put("requestId", requestId);
         return requestId;
     }
 
@@ -111,7 +111,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         return message;  // current line is for transpilation compatibility
     }
 
-    public CompletableFuture<Object> watchPublic(Object url, Object messageHash, Object request, Object parameters)
+    public CompletableFuture<Object> watchPublic(String url, String messageHash, Object request, Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -135,12 +135,12 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
 
     }
 
-    public CompletableFuture<Object> watchPrivate(Object messageHash, Object subscribeHash, Object request, Object parameters)
+    public CompletableFuture<Object> watchPrivate(String messageHash, String subscribeHash, Object request, Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private");
             String token = (this.handleToken(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> cookies = new HashMap<String, Object>() {{
                 put( "JWT_COOKIE", token );
@@ -181,7 +181,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String messageHash = ("trades::" + market.get("symbol"));
+            String messageHash = ("trades::" + this.safeString(market, "symbol", ""));
             String url = "/trading-api/v1/market-data/trades";
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "topic", "anonymousTrades" );
@@ -234,15 +234,16 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var tradesArrayCache = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, tradesArrayCache);
+            this.trades.put(symbol, tradesArrayCache);
         }
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
-        for (var i = 0; i < ((List<?>)trades).size(); i++)
+        List<Object> tradesList = this.toArray(trades);
+        for (var i = 0; i < ((List<?>)tradesList).size(); i++)
         {
-            tradesArray.append((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)));
+            tradesArray.append((tradesList == null || i < 0 || i >= tradesList.size() ? null : tradesList.get(i)));
         }
-        Helpers.addElementToObject(this.trades, symbol, tradesArray);
-        String messageHash = ("trades::" + market.get("symbol"));
+        this.trades.put(symbol, tradesArray);
+        String messageHash = ("trades::" + this.safeString(market, "symbol", ""));
         client.resolve(tradesArray, messageHash);
     }
 
@@ -265,15 +266,14 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
+            String symbolValue = this.safeString(market, "symbol", "");
             String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchTicker() has no public websocket url")) ;
             }
-            String url = ((wsUrl + "/trading-api/v1/market-data/tick/") + market.get("id"));
             String messageHash = ("ticker::" + symbolValue);
-            return (this.watch(url, messageHash, parameters, messageHash, null)).join();  // no need to send a subscribe message, the server sends a ticker update on connect
+            return (this.watch(((wsUrl + "/trading-api/v1/market-data/tick/") + this.safeString(market, "id", "")), messageHash, parameters, messageHash, null)).join();  // no need to send a subscribe message, the server sends a ticker update on connect
         }).thenApply(Ticker::new);
 
     }
@@ -337,7 +337,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Map<String, Object> merged = this.extend(rawTicker, data);
             parsed = (Map<String, Object>) this.parseTicker(merged, market);
         }
-        Helpers.addElementToObject(this.tickers, symbol, parsed);
+        this.tickers.put(symbol, parsed);
         String messageHash = ("ticker::" + symbol);
         client.resolve((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), messageHash);
     }
@@ -363,7 +363,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             }
             Map<String, Object> market = this.market(symbol);
             String url = "/trading-api/v1/market-data/orderbook";
-            String messageHash = ("orderbook::" + market.get("symbol"));
+            String messageHash = ("orderbook::" + this.safeString(market, "symbol", ""));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "topic", "l2Orderbook" );
                 put( "symbol", market.get("id") );
@@ -405,7 +405,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         Long timestamp = this.safeInteger(data, "timestamp");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+            this.orderbooks.put(symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         List<Object> bids = (List<Object>) this.separateBidsOrAsks((List<Object>) (this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()))));
@@ -422,25 +422,25 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             parsed.put("nonce", this.safeInteger(sequenceNumberRange, lastIndex));
         }
         orderbook.reset(parsed);
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 
-    public Object separateBidsOrAsks(List<Object> entry)
+    public List<Object> separateBidsOrAsks(List<Object> entry)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
-        for (var i = 0; i < ((List<?>)entry).size(); i++)
+        List<Object> entries = this.toArray(entry);
+        for (var i = 0; i < ((List<?>)entries).size(); i++)
         {
             if (((((double) i) % ((double) 2)) != 0))
             {
                 continue;
             }
-            String price = this.safeString(entry, i);
-            String amount = this.safeString(entry, (((long) i) + 1L));
-            ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(price, amount)));
+            String price = this.safeString(entries, i);
+            ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(price, this.safeString(entries, (((long) i) + 1L)))));
         }
         return result;
     }
@@ -472,7 +472,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             if (!java.util.Objects.equals(symbol, null))
             {
                 symbolResolved = this.symbol(symbol);
-                messageHash = ((messageHash + "::") + symbolResolved);
+                messageHash = ((subscribeHash + "::") + symbolResolved);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "topic", "orders" );
@@ -483,7 +483,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             {
                 request.put("tradingAccountId", tradingAccountId);
             }
-            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted)).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate((String) (messageHash), subscribeHash, request, paramsOmitted)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -610,7 +610,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             if (!java.util.Objects.equals(symbol, null))
             {
                 symbolResolved = this.symbol(symbol);
-                messageHash = (messageHash + ("::" + symbolResolved));
+                messageHash = ((subscribeHash + "::") + symbolResolved);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "topic", "trades" );
@@ -621,7 +621,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             {
                 request.put("tradingAccountId", tradingAccountId);
             }
-            List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted)).join();
+            List<Object> trades = (List<Object>) (this.watchPrivate((String) (messageHash), subscribeHash, request, paramsOmitted)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -798,7 +798,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         }
         if (!(((Map<?, ?>)this.balance).containsKey(tradingAccountId)))
         {
-            Helpers.addElementToObject(this.balance, tradingAccountId, new HashMap<String, Object>() {{}});
+            this.balance.put(tradingAccountId, new HashMap<String, Object>() {{}});
         }
         String messageType = this.safeString(message, "type");
         if (java.util.Objects.equals(messageType, "snapshot"))
@@ -811,7 +811,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 String parsedKey = (parsedKeys == null || i < 0 || i >= parsedKeys.size() ? null : parsedKeys.get(i));
                 Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), parsedKey, (parsed == null || parsedKey == null ? null : parsed.get(parsedKey)));
             }
-            Helpers.addElementToObject(this.balance, tradingAccountId, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId))));
+            this.balance.put(tradingAccountId, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId))));
         } else
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
@@ -825,7 +825,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), code, account);
             }
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), "info", message);
-            Helpers.addElementToObject(this.balance, tradingAccountId, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId))));
+            this.balance.put(tradingAccountId, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId))));
         }
         String messageHash = "balance";
         String tradingAccountIdHash = ("::" + tradingAccountId);
@@ -868,7 +868,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "topic", "derivativesPositionsV2" );
             }};
-            List<Object> positions = (List<Object>) (this.watchPrivate(messageHash, subscribeHash, request, parameters)).join();
+            List<Object> positions = (List<Object>) (this.watchPrivate((String) (messageHash), subscribeHash, request, parameters)).join();
             if (this.newUpdates)
             {
                 return positions;

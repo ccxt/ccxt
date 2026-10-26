@@ -441,7 +441,7 @@ public class Btcbox extends BtcboxApi
         {
             Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Map<String, Object> currency = this.currency((String) (code));
-            String currencyId = (String) currency.get("id");
+            String currencyId = this.safeString(currency, "id", "");
             String free = (currencyId + "_balance");
             if ((switch ((Object)(response)) { case List<?> j39v3 -> ((Object)(free)) != null && j39v3.contains(free); case Map<?, ?> j39v2 -> ((Object)(free)) instanceof String && j39v2.containsKey(free); case null, default -> false; }))
             {
@@ -960,7 +960,7 @@ public class Btcbox extends BtcboxApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
         if (java.util.Objects.equals(apiUrl, null))
         {
@@ -971,15 +971,15 @@ public class Btcbox extends BtcboxApi
         {
             if (((Map<String, Object>)parameters).size() > 0)
             {
-                url = (url + ("?" + this.urlencode(parameters)));
+                url = ((((((apiUrl + "/") + this.version) + "/") + path) + "?") + this.urlencode(parameters));
             }
         } else if (java.util.Objects.equals(apiName, "webApi"))
         {
-            url = ((this.urls.get("www") + "/") + path);
+            url = ((this.safeString(this.urls, "www", "") + "/") + path);
         } else
         {
             this.checkRequiredCredentials(true);
-            String nonce = String.valueOf(this.nonce());
+            String nonce = this.numberToString(this.nonce());
             Map<String, Object> query = this.extend(new HashMap<String, Object>() {{
                 put( "key", Btcbox.this.apiKey );
                 put( "nonce", nonce );
@@ -1041,12 +1041,12 @@ public class Btcbox extends BtcboxApi
             if ((response instanceof String))
             {
                 // sometimes the exchange returns whitespace prepended to json
-                response = this.strip(response);
-                if (!this.isJsonEncodedObject(response))
+                String strippedResponse = this.strip(response);
+                if (!this.isJsonEncodedObject(strippedResponse))
                 {
-                    throw new ExchangeError(((this.id + " ") + response)) ;
+                    throw new ExchangeError(((this.id + " ") + strippedResponse)) ;
                 }
-                response = Helpers.parseJson(response);
+                response = Helpers.parseJson(strippedResponse);
             }
             return response;
         });

@@ -616,19 +616,17 @@ public class Bitso extends BitsoApi
             //         ]
             //     }
             List<Object> markets = (List<Object>) this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> currencies = (Map<String, Object>) this.safeDict(this.options, "cachedCurrencies", (Object) null);
+            Map<String, Object> currencies = (Map<String, Object>) this.cachedCurrenciesForLoad();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "book");
-                var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
-                var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
-                var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
-                String base = ((String)baseId).toUpperCase();
-                String quote = ((String)quoteId).toUpperCase();
-                base = this.safeCurrencyCode(base, (Map<String, Object>) null);
-                quote = this.safeCurrencyCode(quote, (Map<String, Object>) null);
+                List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
+                String baseId = this.safeString(parts, 0, "");
+                String quoteId = this.safeString(parts, 1, "");
+                String base = this.safeCurrencyCode(baseId.toUpperCase(), (Map<String, Object>) null);
+                String quote = this.safeCurrencyCode(quoteId.toUpperCase(), (Map<String, Object>) null);
                 if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
                 {
                     continue;
@@ -1355,7 +1353,7 @@ public class Bitso extends BitsoApi
             if (Boolean.TRUE.equals(markerInParams))
             {
                 paramsMarker = this.extend(parameters, new HashMap<String, Object>() {{
-                    put( "marker", Helpers.parseInt(((Map<String, Object>)parameters).get("marker")) );
+                    put( "marker", Bitso.this.parseToInt(parameters.get("marker")) );
                 }});
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1632,7 +1630,7 @@ public class Bitso extends BitsoApi
             if (Boolean.TRUE.equals(markerInParams))
             {
                 paramsMarker = this.extend(parameters, new HashMap<String, Object>() {{
-                    put( "marker", Helpers.parseInt(((Map<String, Object>)parameters).get("marker")) );
+                    put( "marker", Bitso.this.parseToInt(parameters.get("marker")) );
                 }});
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1668,14 +1666,11 @@ public class Bitso extends BitsoApi
             Map<String, Object> response = (this.privateGetOrdersOid(new HashMap<String, Object>() {{
                 put( "oid", id );
             }})).join();
-            List<Object> payload = (List<Object>) this.safeList(response, "payload", (Object) null);
-            if ((payload instanceof List))
+            List<Object> payload = (List<Object>) this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
+            Integer numOrders = ((List<?>)payload).size();
+            if (java.util.Objects.equals(numOrders, 1))
             {
-                Integer numOrders = ((List<?>)payload).size();
-                if (java.util.Objects.equals(numOrders, 1))
-                {
-                    return this.parseOrder((payload == null || 0 >= ((List<?>)payload).size() ? null : ((List<?>)payload).get(0)), (Map<String, Object>) null);
-                }
+                return this.parseOrder((payload == null || 0 >= ((List<?>)payload).size() ? null : ((List<?>)payload).get(0)), (Map<String, Object>) null);
             }
             throw new OrderNotFound((((this.id + ": The order ") + id) + " not found.")) ;
         }).thenApply(Order::new);
@@ -2171,7 +2166,7 @@ public class Bitso extends BitsoApi
                 put( "LTC", "Litecoin" );
             }};
             Map<String, Object> currency = this.currency((String) (code));
-            Object method = (((methods.containsKey(code)))) ? (methods == null || code == null ? null : methods.get(code)) : null;
+            String method = this.safeString(methods, code);
             if (java.util.Objects.equals(method, null))
             {
                 throw new ExchangeError(((this.id + " not valid withdraw coin: ") + code)) ;
@@ -2325,8 +2320,7 @@ public class Bitso extends BitsoApi
             // bitso rejects a nonce that is not higher than the previous one (error 104)
             String nonce = String.valueOf(this.incrementingNonce());
             endpoint = ("/api" + endpoint);
-            Object content = new ArrayList<Object>(Arrays.asList(nonce, java.util.Objects.requireNonNullElse(method, "GET"), endpoint));
-            Object request = String.join("", (List<String>)content);
+            String request = ((nonce + java.util.Objects.requireNonNullElse(method, "GET")) + endpoint);
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") && !java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
             {
                 if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)

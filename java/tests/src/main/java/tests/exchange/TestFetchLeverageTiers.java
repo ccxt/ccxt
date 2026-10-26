@@ -17,13 +17,13 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchLeverageTiers extends BaseTest {
-    public CompletableFuture<Object> testFetchLeverageTiers(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testFetchLeverageTiers(BaseExchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchLeverageTiers";
-        Object tiers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLeverageTiers", new Object[]{Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), new HashMap<String, Object>() {{}}})).join();
+        Object tiers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLeverageTiers", new Object[]{new ArrayList<String>(Arrays.asList(symbol)), new HashMap<String, Object>() {{}}})).join();
         // const format = {
         //     'RAY/USDT': [
         //       {},

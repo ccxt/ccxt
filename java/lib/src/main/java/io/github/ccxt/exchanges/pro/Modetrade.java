@@ -93,7 +93,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         }});
     }
 
-    public Long requestId(Object url)
+    public Long requestId(String url)
     {
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
@@ -102,23 +102,24 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         return newValue;
     }
 
-    public CompletableFuture<Object> watchPublic(Object messageHash, Map<String, Object> message)
+    public CompletableFuture<Object> watchPublic(String messageHash, Map<String, Object> message)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            // the default id
-            Object id = "OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY";
-            if (!java.util.Objects.equals(this.accountId, null) && !java.util.Objects.equals(this.accountId, ""))
-            {
-                id = this.accountId;
-            }
-            String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String wsUrl = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchPublic() has no public websocket url")) ;
             }
-            String url = ((wsUrl + "/") + id);
+            // the default id
+            String url = ((wsUrl + "/") + "OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY");
+            if (!java.util.Objects.equals(this.accountId, null) && !java.util.Objects.equals(this.accountId, ""))
+            {
+                url = ((wsUrl + "/") + this.accountId);
+            }
             Long requestId = this.requestId(url);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
@@ -150,7 +151,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }
             String name = "orderbook";
             Map<String, Object> market = this.market(symbol);
-            String topic = ((market.get("id") + "@") + name);
+            String marketId = this.safeString(market, "id", "");
+            String topic = ((marketId + "@") + name);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
@@ -192,7 +194,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         String topic = this.safeString(message, "topic");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+            this.orderbooks.put(symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long timestamp = this.safeInteger(message, "ts");
@@ -221,7 +223,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }
             String name = "ticker";
             Map<String, Object> market = this.market(symbol);
-            String topic = ((market.get("id") + "@") + name);
+            String marketId = this.safeString(market, "id", "");
+            String topic = ((marketId + "@") + name);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
@@ -329,7 +332,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 put( "topic", topic );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object tickers = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
+            Object tickers = (this.watchPublic((String) (topic), (Map<String, Object>) (message))).join();
             return this.filterByArray(tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
 
@@ -399,7 +402,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 put( "topic", topic );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object tickers = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
+            Object tickers = (this.watchPublic((String) (topic), (Map<String, Object>) (message))).join();
             return this.filterByArray(tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
 
@@ -431,10 +434,10 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), new HashMap<String, Object>() {{
                 put( "ts", timestamp );
             }})), (Map<String, Object>) null);
-            String symbol = (String) ticker.get("symbol");
+            String symbol = this.safeString(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(this.tickers, symbol, ticker);
+                this.tickers.put(symbol, ticker);
             }
             ((List<Object>)result).add(ticker);
         }
@@ -487,7 +490,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             Map<String, Object> market = this.market(symbol);
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String name = "kline";
-            String topic = ((((market.get("id") + "@") + name) + "_") + interval);
+            String marketId = this.safeString(market, "id", "");
+            String topic = ((((marketId + "@") + name) + "_") + interval);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
@@ -536,7 +540,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             return;
         }
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeInteger(data, "startTime"), this.safeNumber(data, "open", (Object) null), this.safeNumber(data, "high", (Object) null), this.safeNumber(data, "low", (Object) null), this.safeNumber(data, "close", (Object) null), this.safeNumber(data, "volume", (Object) null)));
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
@@ -544,7 +548,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
-        io.github.ccxt.ws.ArrayCache ohlcvCache = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
+        io.github.ccxt.ws.ArrayCache ohlcvCache = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
         ohlcvCache.append(parsed);
         client.resolve(ohlcvCache, topic);
     }
@@ -570,8 +574,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            String topic = (market.get("id") + "@trade");
+            String marketId = this.safeString(market, "id", "");
+            String topic = (marketId + "@trade");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
@@ -583,7 +587,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, market.get("symbol"), limit);
             }
-            return this.filterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(trades, java.util.Objects.toString(market.get("symbol"), null), since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -615,11 +619,11 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbol, stored);
         }
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         trades.append(trade);
-        Helpers.addElementToObject(this.trades, symbol, trades);
+        this.trades.put(symbol, trades);
         client.resolve(trades, topic);
     }
 
@@ -718,15 +722,15 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             // client.resolve (message, messageHash);
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
-            ((io.github.ccxt.ws.Future)future).resolve(true);
+            future.resolve(true);
         } else
         {
             var error = new AuthenticationError(this.json(message));
             client.reject(error, messageHash);
             // allows further authentication attempts
-            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+            if (client.subscriptions.containsKey(messageHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove("authenticated");
+                client.subscriptions.remove("authenticated");
             }
         }
     }
@@ -737,7 +741,9 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials(true);
-            String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String wsUrl = this.safeString(wsUrls, "private");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " authenticate() has no private websocket url")) ;
@@ -753,9 +759,9 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 String ts = String.valueOf(this.nonce());
                 String auth = ts;
                 Object secret = this.secret;
-                if (((String)secret).indexOf("ed25519:") >= 0)
+                if (((String)this.secret).indexOf("ed25519:") >= 0)
                 {
-                    List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)secret).split(java.util.regex.Pattern.quote("ed25519:"))));
+                    List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)this.secret).split(java.util.regex.Pattern.quote("ed25519:"))));
                     secret = (parts == null || 1 >= parts.size() ? null : parts.get(1));
                 }
                 Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
@@ -770,18 +776,20 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }
-            return ((io.github.ccxt.ws.Future)future).getFuture().join();
+            return future.getFuture().join();
         });
 
     }
 
-    public CompletableFuture<Object> watchPrivate(Object messageHash, Map<String, Object> message, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPrivate(String messageHash, Map<String, Object> message, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             (this.authenticate(parameters)).join();
-            String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String wsUrl = this.safeString(wsUrls, "private");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchPrivate() has no private websocket url")) ;
@@ -803,7 +811,9 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         return BaseExchange.supplyAsync(() -> {
 
             (this.authenticate(parameters)).join();
-            String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String wsUrl = this.safeString(wsUrls, "private");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchPrivateMultiple() has no private websocket url")) ;
@@ -854,13 +864,13 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 Map<String, Object> market = this.market(symbol);
                 symbolResolved = this.safeString(market, "symbol");
-                messageHash = (messageHash + (":" + symbolResolved));
+                messageHash = ((topic + ":") + symbolResolved);
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("event", "subscribe");
             request.put("topic", topic);
             Map<String, Object> message = this.extend(request, paramsOmitted);
-            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate((String) (messageHash), (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -906,7 +916,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 Map<String, Object> market = this.market(symbol);
                 symbolResolved = this.safeString(market, "symbol");
-                messageHash = (messageHash + (":" + symbolResolved));
+                messageHash = (("myTrades" + ":") + symbolResolved);
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("event", "subscribe");
@@ -1079,12 +1089,15 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //
         String topic = this.safeString(message, "topic");
         Object data = this.safeValue(message, "data");
-        if ((data instanceof List))
+        Boolean dataIsArray = (data instanceof List);
+        if (Boolean.TRUE.equals(dataIsArray))
         {
             // algoexecutionreport
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            List<Object> dataList = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+            Integer dataListLength = ((List<?>)dataList).size();
+            for (var i = 0; (dataListLength != null && i < dataListLength); i++)
             {
-                Object order = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
+                Object order = (dataList == null || i < 0 || i >= dataList.size() ? null : dataList.get(i));
                 String tradeIdStr = this.safeString(data, "tradeId");
                 Object tradeId = (((java.util.Objects.equals(tradeIdStr, null)))) ? null : this.omitZero(tradeIdStr);
                 if (!java.util.Objects.equals(tradeId, null))
@@ -1139,8 +1152,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }
             cachedOrders.append(parsed);
             client.resolve(this.orders, topic);
-            String messageHashSymbol = ((topic + ":") + symbol);
-            client.resolve(this.orders, messageHashSymbol);
+            client.resolve(this.orders, ((topic + ":") + symbol));
         }
     }
 
@@ -1225,7 +1237,9 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 messageHashes.add("positions");
             }
-            String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            String wsUrl = this.safeString(wsUrls, "private");
             if (java.util.Objects.equals(wsUrl, null))
             {
                 throw new ExchangeError((this.id + " watchPositions() has no private websocket url")) ;
@@ -1260,7 +1274,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         if (java.util.Objects.equals(fetchPositionsSnapshot, true))
         {
             String messageHash = "fetchPositionsSnapshot";
-            if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -1271,7 +1285,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash)
+    public CompletableFuture<Object> loadPositionsSnapshot(Client client, String messageHash)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1289,10 +1303,10 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 }
             }
             // don't remove the future from the .futures cache
-            if (((Map<?, ?>)client.futures).containsKey(messageHash))
+            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
+            if (!java.util.Objects.equals(future, null))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
-                ((io.github.ccxt.ws.Future)future).resolve(cache);
+                future.resolve(cache);
                 client.resolve(cache, "positions");
             }
             return null;
@@ -1350,7 +1364,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition, market);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
-            String messageHash = ("positions::" + market.get("symbol"));
+            String marketSymbol = this.safeString(market, "symbol", "");
+            String messageHash = ("positions::" + marketSymbol);
             client.resolve(position, messageHash);
         }
         client.resolve(newPositions, "positions");
@@ -1456,7 +1471,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 put( "topic", topic );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            return (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
+            return (this.watchPrivate((String) (messageHash), (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
         }).thenApply(Balances::new);
 
     }
@@ -1494,18 +1509,22 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         Map<String, Object> balances = (Map<String, Object>) this.safeDict(data, "balances", new HashMap<String, Object>() {{}});
         List<String> keys = new ArrayList<String>(balances.keySet());
         Long ts = this.safeInteger(message, "ts");
-        Helpers.addElementToObject(this.balance, "info", data);
-        Helpers.addElementToObject(this.balance, "timestamp", ts);
-        Helpers.addElementToObject(this.balance, "datetime", this.iso8601(ts));
+        this.balance.put("info", data);
+        this.balance.put("timestamp", ts);
+        this.balance.put("datetime", this.iso8601(ts));
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> value = (Map<String, Object>) this.safeDict(balances, key, (Object) null);
             String code = this.safeCurrencyCode(key, (Map<String, Object>) null);
-            Object account = this.account();
+            Map<String, Object> account = this.account();
             if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
             {
-                account = (this.balance == null ? null : ((Map<?, ?>)this.balance).get(code));
+                Map<String, Object> cachedAccount = (Map<String, Object>) this.safeDict(this.balance, code, (Object) null);
+                if (!java.util.Objects.equals(cachedAccount, null))
+                {
+                    account = cachedAccount;
+                }
             }
             String total = this.safeString(value, "holding");
             String used = this.safeString(value, "frozen");
@@ -1514,7 +1533,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             Helpers.addElementToObject(account, "free", Precise.stringSub(total, used));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(this.balance, code, account);
+                this.balance.put(code, account);
             }
         }
         this.balance = this.safeBalance(this.balance);
@@ -1550,9 +1569,9 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 String messageHash = "authenticated";
                 client.reject(error, messageHash);
-                if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+                if (client.subscriptions.containsKey(messageHash))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                    client.subscriptions.remove(messageHash);
                 }
             } else
             {

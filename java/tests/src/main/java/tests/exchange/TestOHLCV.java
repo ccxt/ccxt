@@ -14,18 +14,18 @@ import java.util.List;
 
 
 public class TestOHLCV extends BaseTest {
-    public static void testOHLCV(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object symbol, Object now)
+    public static void testOHLCV(BaseExchange exchange, Object skippedProperties, String method, Object entry, String symbol, Object now)
     {
         List<Object> format = new ArrayList<Object>(Arrays.asList(1638230400000L, exchange.parseNumber("0.123"), exchange.parseNumber("0.125"), exchange.parseNumber("0.121"), exchange.parseNumber("0.122"), exchange.parseNumber("123.456")));
         List<Object> emptyNotAllowedFor = new ArrayList<Object>(Arrays.asList(0, 1, 2, 3, 4, 5));
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
-        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now, 0);
-        Object logText = TestSharedMethods.logTemplate(exchange, method, entry);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyNotAllowedFor);
+        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, (String) (method), entry, now, 0);
+        Object logText = TestSharedMethods.logTemplate(exchange, (String) (method), entry);
         //
         Assert(((List<?>)entry).size() >= 6, ("ohlcv array length should be >= 6;" + logText));
         if (!(Helpers.inOp(skippedProperties, "roundTimestamp")))
         {
-            TestSharedMethods.AssertRoundMinuteTimestamp(exchange, skippedProperties, method, entry, 0);
+            TestSharedMethods.AssertRoundMinuteTimestamp(exchange, skippedProperties, (String) (method), entry, 0);
         }
         String high = exchange.safeString(entry, 2);
         String low = exchange.safeString(entry, 3);
@@ -33,10 +33,10 @@ public class TestOHLCV extends BaseTest {
         {
             return;
         }
-        TestSharedMethods.AssertLessOrEqual(exchange, skippedProperties, method, entry, "1", high);
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "1", low);
-        TestSharedMethods.AssertLessOrEqual(exchange, skippedProperties, method, entry, "4", high);
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "4", low);
+        TestSharedMethods.AssertLessOrEqual(exchange, skippedProperties, (String) (method), entry, "1", high);
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "1", low);
+        TestSharedMethods.AssertLessOrEqual(exchange, skippedProperties, (String) (method), entry, "4", high);
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "4", low);
         Assert((java.util.Objects.equals(symbol, null)) || ((symbol instanceof String)), ((("symbol " + symbol) + " is incorrect") + logText)); // todo: check with standard symbol check
     }
 

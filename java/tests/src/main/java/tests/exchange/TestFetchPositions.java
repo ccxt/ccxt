@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchPositions extends BaseTest {
-    public CompletableFuture<Object> testFetchPositions(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testFetchPositions(BaseExchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -28,17 +28,17 @@ public class TestFetchPositions extends BaseTest {
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, positions, symbol);
         for (var i = 0; i < ((List<?>)positions).size(); i++)
         {
-            TestPosition.testPosition(exchange, skippedProperties, method, (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i)), null, now);
+            TestPosition.testPosition(exchange, skippedProperties, method, (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i)), (String) (null), now);
         }
         // TestSharedMethods.AssertTimestampOrder (exchange, method, undefined, positions); // currently order of positions does not make sense
         // with symbol
-        Object positionsForSymbol = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchPositions", new Object[]{Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), new HashMap<String, Object>() {{}}})).join();
+        Object positionsForSymbol = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchPositions", new Object[]{new ArrayList<String>(Arrays.asList(symbol)), new HashMap<String, Object>() {{}}})).join();
         Assert((positionsForSymbol instanceof List), ((((exchange.id + " ") + method) + " must return an array, returned ") + exchange.json(positionsForSymbol)));
         Integer positionsForSymbolLength = ((List<?>)positionsForSymbol).size();
         Assert((positionsForSymbolLength == null || positionsForSymbolLength <= 4), ((((exchange.id + " ") + method) + " positions length for particular symbol should be less than 4, returned ") + exchange.json(positionsForSymbol)));
         for (var i = 0; i < ((List<?>)positionsForSymbol).size(); i++)
         {
-            TestPosition.testPosition(exchange, skippedProperties, method, (positionsForSymbol == null || i < 0 || i >= ((List<?>)positionsForSymbol).size() ? null : ((List<?>)positionsForSymbol).get(i)), symbol, now);
+            TestPosition.testPosition(exchange, skippedProperties, method, (positionsForSymbol == null || i < 0 || i >= ((List<?>)positionsForSymbol).size() ? null : ((List<?>)positionsForSymbol).get(i)), (String) (symbol), now);
         }
         // TestSharedMethods.AssertTimestampOrder (exchange, method, symbol, positionsForSymbol);
         return true;

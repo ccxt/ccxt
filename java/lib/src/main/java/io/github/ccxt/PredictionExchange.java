@@ -172,7 +172,7 @@ public Object describe()
             List<Object> filtered = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object eventVar = (result == null || i < 0 || i >= ((List<?>)result).size() ? null : ((List<?>)result).get(i));
+                Object eventVar = this.safeValue(result, i);
                 Boolean idMatch = (!java.util.Objects.equals(eventId, null)) && (java.util.Objects.equals(this.safeString(eventVar, "id"), eventId));
                 Boolean slugMatch = (!java.util.Objects.equals(slug, null)) && (java.util.Objects.equals(this.safeString(eventVar, "slug"), slug));
                 if (Boolean.TRUE.equals(idMatch) || Boolean.TRUE.equals(slugMatch))
@@ -248,7 +248,7 @@ public Object describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object eventVar = (events == null || i < 0 || i >= ((List<?>)events).size() ? null : ((List<?>)events).get(i));
+            Object eventVar = this.safeValue(events, i);
             Boolean isActive = (Boolean) this.safeBool(eventVar, "active", (Object) null);
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if ((java.util.Objects.equals(isActive, null)) || (java.util.Objects.equals(isActive, wantActive)))
@@ -268,7 +268,7 @@ public Object describe()
         {
             queriesLength = ((List<?>)queries).size();
         }
-        if ((java.util.Objects.equals(searchIn, null)) || (java.util.Objects.equals(queries, null)) || (java.util.Objects.equals(queriesLength, 0)))
+        if ((java.util.Objects.equals(searchIn, null)) || (java.util.Objects.equals(queriesLength, 0)))
         {
             return events;
         }
@@ -277,13 +277,13 @@ public Object describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object eventVar = (events == null || i < 0 || i >= ((List<?>)events).size() ? null : ((List<?>)events).get(i));
+            Object eventVar = this.safeValue(events, i);
             String title = this.safeStringLower(eventVar, "title", "");
             String description = this.safeStringLower(eventVar, "description", "");
             Boolean matched = false;
-            for (var qi = 0; qi < ((List<?>)queries).size(); qi++)
+            for (var qi = 0; (queriesLength != null && qi < queriesLength); qi++)
             {
-                String q = ((String)(queries == null || qi < 0 || qi >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(qi))).toLowerCase();
+                String q = this.safeString(queries, qi, "").toLowerCase();
                 if (java.util.Objects.equals(title, null))
                 {
                     throw new ExchangeError((this.id + " filterEventsBySearchIn() missing title")) ;
@@ -346,14 +346,19 @@ public Object describe()
     {
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
-        if ((java.util.Objects.equals(tags, null)) || ((((List<?>)tags).size() == 0)))
+        Integer tagsLength = 0;
+        if (!java.util.Objects.equals(tags, null))
+        {
+            tagsLength = ((List<?>)tags).size();
+        }
+        if (java.util.Objects.equals(tagsLength, 0))
         {
             return events;
         }
         List<Object> wanted = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)tags).size(); i++)
+        for (var i = 0; (tagsLength != null && i < tagsLength); i++)
         {
-            Object wantedKey = this.normalizeTagKey((tags == null || i < 0 || i >= ((List<?>)tags).size() ? null : ((List<?>)tags).get(i)));
+            Object wantedKey = this.normalizeTagKey(this.safeString(tags, i, ""));
             if (!java.util.Objects.equals(wantedKey, ""))
             {
                 // an empty normalized key would substring-match every tag
@@ -363,7 +368,7 @@ public Object describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object eventVar = (events == null || i < 0 || i >= ((List<?>)events).size() ? null : ((List<?>)events).get(i));
+            Object eventVar = this.safeValue(events, i);
             List<Object> eventTags = (List<Object>) this.safeList(eventVar, "tags", new ArrayList<Object>(Arrays.asList()));
             Boolean matched = false;
             for (var ti = 0; ti < ((List<?>)eventTags).size(); ti++)
@@ -437,7 +442,7 @@ public Object describe()
         }
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object eventVar = (events == null || i < 0 || i >= ((List<?>)events).size() ? null : ((List<?>)events).get(i));
+            Object eventVar = this.safeValue(events, i);
             String id = this.safeString(eventVar, "id");
             String slug = this.safeString(eventVar, "slug");
             String handle = this.safeString(eventVar, "event");
@@ -518,11 +523,11 @@ public Object describe()
         // through fetchEvents; this never fetches
         if ((!java.util.Objects.equals(this.events, null)) && (((Map<?, ?>)this.events).containsKey(eventIdOrSlug)))
         {
-            return (this.events == null || eventIdOrSlug == null ? null : ((Map<?, ?>)this.events).get(eventIdOrSlug));
+            return this.safeValue(this.events, eventIdOrSlug);
         }
         if ((!java.util.Objects.equals(this.events_by_slug, null)) && (((Map<?, ?>)this.events_by_slug).containsKey(eventIdOrSlug)))
         {
-            return (this.events_by_slug == null || eventIdOrSlug == null ? null : ((Map<?, ?>)this.events_by_slug).get(eventIdOrSlug));
+            return this.safeValue(this.events_by_slug, eventIdOrSlug);
         }
         throw new BadSymbol((((this.id + " has no cached event ") + eventIdOrSlug) + " - call fetchEvents ({ 'query': ... }) first")) ;
     }
@@ -539,11 +544,11 @@ public Object describe()
         }
         if (((Map<?, ?>)this.outcomes).containsKey(outcomeSymbol))
         {
-            return (Map<String, Object>) ((this.outcomes == null || outcomeSymbol == null ? null : ((Map<?, ?>)this.outcomes).get(outcomeSymbol)));
+            return (Map<String, Object>) (this.safeValue(this.outcomes, outcomeSymbol));
         }
         if ((!java.util.Objects.equals(this.outcomes_by_id, null)) && (((Map<?, ?>)this.outcomes_by_id).containsKey(outcomeSymbol)))
         {
-            return (Map<String, Object>) ((this.outcomes_by_id == null || outcomeSymbol == null ? null : ((Map<?, ?>)this.outcomes_by_id).get(outcomeSymbol)));
+            return (Map<String, Object>) (this.safeValue(this.outcomes_by_id, outcomeSymbol));
         }
         throw new BadSymbol((((this.id + " does not have outcome ") + outcomeSymbol) + " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
     }
@@ -574,11 +579,11 @@ public Object describe()
         {
             if ((!java.util.Objects.equals(this.outcomes, null)) && (((Map<?, ?>)this.outcomes).containsKey(outcomeIdOrSymbol)))
             {
-                return (Map<String, Object>) ((this.outcomes == null || outcomeIdOrSymbol == null ? null : ((Map<?, ?>)this.outcomes).get(outcomeIdOrSymbol)));
+                return (Map<String, Object>) (this.safeValue(this.outcomes, outcomeIdOrSymbol));
             }
             if ((!java.util.Objects.equals(this.outcomes_by_id, null)) && (((Map<?, ?>)this.outcomes_by_id).containsKey(outcomeIdOrSymbol)))
             {
-                return (Map<String, Object>) ((this.outcomes_by_id == null || outcomeIdOrSymbol == null ? null : ((Map<?, ?>)this.outcomes_by_id).get(outcomeIdOrSymbol)));
+                return (Map<String, Object>) (this.safeValue(this.outcomes_by_id, outcomeIdOrSymbol));
             }
         }
         if (!java.util.Objects.equals(outcomeObj, null))
@@ -642,7 +647,7 @@ public Object describe()
             Object ch = (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i));
             if (((String)allowed).indexOf(((String)ch)) >= 0)
             {
-                s = ((java.util.function.BinaryOperator<Object>) (hx4J40v10A, hx4J40v10B) -> { Object hx4J40v10P = hx4J40v10A instanceof Integer hx4J40v10i ? (Object) Long.valueOf(hx4J40v10i.longValue()) : hx4J40v10A; Object hx4J40v10Q = hx4J40v10B instanceof Integer hx4J40v10i ? (Object) Long.valueOf(hx4J40v10i.longValue()) : hx4J40v10B; if (hx4J40v10P instanceof Long hx4J40v10l && hx4J40v10Q instanceof Long hx4J40v10r) { return hx4J40v10l + hx4J40v10r; } if (hx4J40v10P instanceof Double || hx4J40v10Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v10D = hx4J40v10o -> { if (hx4J40v10o instanceof Double || hx4J40v10o instanceof Float || hx4J40v10o instanceof Long || hx4J40v10o instanceof Integer || hx4J40v10o instanceof java.math.BigDecimal) { return ((Number) hx4J40v10o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v10o)); } catch (NumberFormatException hx4J40v10e) { return 0.0; } }; return hx4J40v10D.applyAsDouble(hx4J40v10P) + hx4J40v10D.applyAsDouble(hx4J40v10Q); } if (hx4J40v10P instanceof String || hx4J40v10Q instanceof String) { return String.valueOf(hx4J40v10P) + String.valueOf(hx4J40v10Q); } return null; }).apply(s, ch);
+                s = ((java.util.function.BinaryOperator<Object>) (hx4J40v8A, hx4J40v8B) -> { Object hx4J40v8P = hx4J40v8A instanceof Integer hx4J40v8i ? (Object) Long.valueOf(hx4J40v8i.longValue()) : hx4J40v8A; Object hx4J40v8Q = hx4J40v8B instanceof Integer hx4J40v8i ? (Object) Long.valueOf(hx4J40v8i.longValue()) : hx4J40v8B; if (hx4J40v8P instanceof Long hx4J40v8l && hx4J40v8Q instanceof Long hx4J40v8r) { return hx4J40v8l + hx4J40v8r; } if (hx4J40v8P instanceof Double || hx4J40v8Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v8D = hx4J40v8o -> { if (hx4J40v8o instanceof Double || hx4J40v8o instanceof Float || hx4J40v8o instanceof Long || hx4J40v8o instanceof Integer || hx4J40v8o instanceof java.math.BigDecimal) { return ((Number) hx4J40v8o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v8o)); } catch (NumberFormatException hx4J40v8e) { return 0.0; } }; return hx4J40v8D.applyAsDouble(hx4J40v8P) + hx4J40v8D.applyAsDouble(hx4J40v8Q); } if (hx4J40v8P instanceof String || hx4J40v8Q instanceof String) { return String.valueOf(hx4J40v8P) + String.valueOf(hx4J40v8Q); } return null; }).apply(s, ch);
                 lastDash = false;
             } else if (!Boolean.TRUE.equals(lastDash))
             {
@@ -717,7 +722,7 @@ public Object describe()
                 {
                     label = (label + "_");
                 }
-                label = ((java.util.function.BinaryOperator<Object>) (hx4J40v9A, hx4J40v9B) -> { Object hx4J40v9P = hx4J40v9A instanceof Integer hx4J40v9i ? (Object) Long.valueOf(hx4J40v9i.longValue()) : hx4J40v9A; Object hx4J40v9Q = hx4J40v9B instanceof Integer hx4J40v9i ? (Object) Long.valueOf(hx4J40v9i.longValue()) : hx4J40v9B; if (hx4J40v9P instanceof Long hx4J40v9l && hx4J40v9Q instanceof Long hx4J40v9r) { return hx4J40v9l + hx4J40v9r; } if (hx4J40v9P instanceof Double || hx4J40v9Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v9D = hx4J40v9o -> { if (hx4J40v9o instanceof Double || hx4J40v9o instanceof Float || hx4J40v9o instanceof Long || hx4J40v9o instanceof Integer || hx4J40v9o instanceof java.math.BigDecimal) { return ((Number) hx4J40v9o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v9o)); } catch (NumberFormatException hx4J40v9e) { return 0.0; } }; return hx4J40v9D.applyAsDouble(hx4J40v9P) + hx4J40v9D.applyAsDouble(hx4J40v9Q); } if (hx4J40v9P instanceof String || hx4J40v9Q instanceof String) { return String.valueOf(hx4J40v9P) + String.valueOf(hx4J40v9Q); } return null; }).apply(label, ch);
+                label = ((java.util.function.BinaryOperator<Object>) (hx4J40v7A, hx4J40v7B) -> { Object hx4J40v7P = hx4J40v7A instanceof Integer hx4J40v7i ? (Object) Long.valueOf(hx4J40v7i.longValue()) : hx4J40v7A; Object hx4J40v7Q = hx4J40v7B instanceof Integer hx4J40v7i ? (Object) Long.valueOf(hx4J40v7i.longValue()) : hx4J40v7B; if (hx4J40v7P instanceof Long hx4J40v7l && hx4J40v7Q instanceof Long hx4J40v7r) { return hx4J40v7l + hx4J40v7r; } if (hx4J40v7P instanceof Double || hx4J40v7Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v7D = hx4J40v7o -> { if (hx4J40v7o instanceof Double || hx4J40v7o instanceof Float || hx4J40v7o instanceof Long || hx4J40v7o instanceof Integer || hx4J40v7o instanceof java.math.BigDecimal) { return ((Number) hx4J40v7o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v7o)); } catch (NumberFormatException hx4J40v7e) { return 0.0; } }; return hx4J40v7D.applyAsDouble(hx4J40v7P) + hx4J40v7D.applyAsDouble(hx4J40v7Q); } if (hx4J40v7P instanceof String || hx4J40v7Q instanceof String) { return String.valueOf(hx4J40v7P) + String.valueOf(hx4J40v7Q); } return null; }).apply(label, ch);
                 pendingSep = false;
             } else
             {
@@ -754,7 +759,7 @@ public Object describe()
         for (var i = 0; i < ((List<?>)marketKeys).size(); i++)
         {
             String key = (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i));
-            Helpers.addElementToObject(stored, key, this.omit(Helpers.GetValue(stored, key), "symbol"));
+            Helpers.addElementToObject(stored, key, this.omit(this.safeDict(stored, key, new HashMap<String, Object>() {{}}), "symbol"));
         }
         this.populateOutcomes();
         return stored;
@@ -833,7 +838,7 @@ public Object describe()
         {
             return;
         }
-        List<Object> marketKeys = ((List<Object>) switch ((Object)(this.markets)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> marketKeys = (this.markets == null ? new ArrayList<Object>() : new ArrayList<Object>(this.markets.keySet()));
         for (var i = 0; i < ((List<?>)marketKeys).size(); i++)
         {
             this.indexMarketOutcomes((this.markets == null ? null : ((Map<?, ?>)this.markets).get((marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i)))));
@@ -1111,10 +1116,7 @@ public Object describe()
     public CompletableFuture<PredictionTicker> fetchTicker(String outcome, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchTicker() is not supported yet")) ;
-        }).thenApply(PredictionTicker::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTicker() is not supported yet"))).thenApply(PredictionTicker::new);
 
     }
 
@@ -1129,10 +1131,7 @@ public Object describe()
     public CompletableFuture<PredictionTickers> fetchTickers(Object outcomes, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchTickers() is not supported yet")) ;
-        }).thenApply(PredictionTickers::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTickers() is not supported yet"))).thenApply(PredictionTickers::new);
 
     }
 
@@ -1148,10 +1147,7 @@ public Object describe()
     public CompletableFuture<PredictionOrderBook> fetchOrderBook(Object outcome, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOrderBook() is not supported yet")) ;
-        }).thenApply(PredictionOrderBook::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOrderBook() is not supported yet"))).thenApply(PredictionOrderBook::new);
 
     }
 
@@ -1189,10 +1185,7 @@ public Object describe()
     public CompletableFuture<List<PredictionTrade>> fetchTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchTrades() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTrades() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
     }
 
@@ -1211,10 +1204,7 @@ public Object describe()
     public CompletableFuture<PredictionOrder> createOrder(String outcome, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " createOrder() is not supported yet")) ;
-        }).thenApply(PredictionOrder::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " createOrder() is not supported yet"))).thenApply(PredictionOrder::new);
 
     }
 
@@ -1230,10 +1220,7 @@ public Object describe()
     public CompletableFuture<PredictionOrder> cancelOrder(String id, String outcome, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " cancelOrder() is not supported yet")) ;
-        }).thenApply(PredictionOrder::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelOrder() is not supported yet"))).thenApply(PredictionOrder::new);
 
     }
 
@@ -1248,10 +1235,7 @@ public Object describe()
     public CompletableFuture<PredictionTicker> watchTicker(String outcome, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchTicker() is not supported yet")) ;
-        }).thenApply(PredictionTicker::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchTicker() is not supported yet"))).thenApply(PredictionTicker::new);
 
     }
 
@@ -1267,10 +1251,7 @@ public Object describe()
     public CompletableFuture<PredictionOrderBook> watchOrderBook(String outcome, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchOrderBook() is not supported yet")) ;
-        }).thenApply(PredictionOrderBook::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchOrderBook() is not supported yet"))).thenApply(PredictionOrderBook::new);
 
     }
 
@@ -1287,10 +1268,7 @@ public Object describe()
     public CompletableFuture<List<PredictionTrade>> watchTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchTrades() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchTrades() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
     }
 
@@ -1307,10 +1285,7 @@ public Object describe()
     public CompletableFuture<List<PredictionOrder>> fetchOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
 
@@ -1424,10 +1399,7 @@ public Object describe()
     public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchPositions() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchPositions() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
 
     }
 
@@ -1442,10 +1414,7 @@ public Object describe()
     public CompletableFuture<PredictionTradingFee> fetchTradingFee(String outcome, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchTradingFee() is not supported yet")) ;
-        }).thenApply(PredictionTradingFee::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTradingFee() is not supported yet"))).thenApply(PredictionTradingFee::new);
 
     }
 
@@ -1460,10 +1429,7 @@ public Object describe()
     public CompletableFuture<PredictionOpenInterest> fetchOpenInterest(String outcome, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOpenInterest() is not supported yet")) ;
-        }).thenApply(PredictionOpenInterest::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOpenInterest() is not supported yet"))).thenApply(PredictionOpenInterest::new);
 
     }
 
@@ -1478,10 +1444,7 @@ public Object describe()
     public CompletableFuture<List<PredictionOrder>> createOrders(Object orders, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " createOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " createOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
 
@@ -1497,10 +1460,7 @@ public Object describe()
     public CompletableFuture<List<PredictionOrder>> cancelOrders(Object ids, String outcome, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " cancelOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
 
@@ -1563,10 +1523,7 @@ public Object describe()
     public CompletableFuture<PredictionTickers> watchTickers(Object outcomes, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchTickers() is not supported yet")) ;
-        }).thenApply(PredictionTickers::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchTickers() is not supported yet"))).thenApply(PredictionTickers::new);
 
     }
 
@@ -1583,10 +1540,7 @@ public Object describe()
     public CompletableFuture<List<PredictionOrder>> watchOrders(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
 
@@ -1603,10 +1557,7 @@ public Object describe()
     public CompletableFuture<List<PredictionTrade>> watchMyTrades(String outcome, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchMyTrades() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchMyTrades() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
     }
 
@@ -1623,10 +1574,7 @@ public Object describe()
     public CompletableFuture<List<PredictionPosition>> watchPositions(Object outcomes, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchPositions() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchPositions() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
 
     }
 
@@ -1741,7 +1689,7 @@ public Object describe()
                 cost = Precise.stringMul(filled, multiplyPrice);
             }
         }
-        Object fee = this.safeDict(outcomeOrder, "fee", (Object) null);
+        Map<String, Object> fee = (Map<String, Object>) this.safeDict(outcomeOrder, "fee", (Object) null);
         // own-line length reads so the regex transpiler emits count() (array), not strlen()
         Integer feeListLength = ((List<?>)feeList).size();
         if ((java.util.Objects.equals(fee, null)) && ((feeListLength != null && feeListLength > 0)))
@@ -1750,7 +1698,7 @@ public Object describe()
             Integer reducedLength = ((List<?>)reduced).size();
             if ((reducedLength != null && reducedLength > 0))
             {
-                fee = (reduced == null || 0 >= ((List<?>)reduced).size() ? null : ((List<?>)reduced).get(0));
+                fee = (Map<String, Object>) this.safeDict(reduced, 0, (Object) null);
             }
         }
         // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
@@ -2002,7 +1950,7 @@ public Object describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rows).size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionTrade((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); })));
+            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionTrade((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })));
             Map<String, Object> trade = this.extend(parsed, parameters);
             ((List<Object>)results).add(trade);
         }
@@ -2030,7 +1978,7 @@ public Object describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rows).size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionOrder((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
+            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionOrder((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
             Map<String, Object> order = this.extend(parsed, parameters);
             ((List<Object>)results).add(order);
         }
@@ -2161,7 +2109,7 @@ public Object describe()
         String concatenated = "";
         for (var i = 0; i < ((List<?>)items).size(); i++)
         {
-            concatenated = (concatenated + (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)));
+            concatenated = (concatenated + this.safeString(items, i, ""));
         }
         Long byteLength = this.parseToInt((((double) ((String)concatenated).length()) / ((double) 2)));
         if (((byteLength == null || byteLength < 56)))
@@ -2198,20 +2146,17 @@ public Object describe()
         {
             return "";
         }
-        Object h = this.remove0xPrefix(hexValue);
-        Object start = 0;
+        String h = (String) this.remove0xPrefix(hexValue);
         Integer total = ((String)h).length();
-        while ((((total != null && !(((Number) start).doubleValue() >= total)))) && (java.util.Objects.equals(Helpers.slice(h, start, ((Object) (switch ((Object) (start)) { case null -> (Object) null; case Long hx4J40v1 -> (Object) (hx4J40v1 + 1L); case Integer hx4J40v1 -> (Object) (hx4J40v1.longValue() + 1L); case Double hx4J40v1 -> (Object) (hx4J40v1 + ((double) 1L)); case String hx4J40v1 -> (Object) (hx4J40v1 + "1"); default -> (Object) null; }))), "0")))
+        for (var i = 0; (total != null && i < total); i++)
         {
-            start = ((Object) (switch ((Object) (start)) { case null -> (Object) null; case Long hx4J40v0 -> (Object) (hx4J40v0 + 1L); case Integer hx4J40v0 -> (Object) (hx4J40v0.longValue() + 1L); case Double hx4J40v0 -> (Object) (hx4J40v0 + ((double) 1L)); case String hx4J40v0 -> (Object) (hx4J40v0 + "1"); default -> (Object) null; }));
+            if (java.util.Objects.equals(Helpers.slice(h, i, (((long) i) + 1L)), "0"))
+            {
+                continue;
+            }
+            return this.padHexToEven((String) ((h == null ? null : h.substring((int) Math.min(Math.max(((Number)i).intValue() < 0 ? h.length() + ((Number)i).intValue() : ((Number)i).intValue(), 0), h.length())))));
         }
-        h = Helpers.slice(h, start, null);
-        if (java.util.Objects.equals(h, ""))
-        {
-            return "";
-        }
-        h = this.padHexToEven((String) (h));
-        return h;
+        return "";
     }
 
     // eslint-disable-next-line no-unused-vars

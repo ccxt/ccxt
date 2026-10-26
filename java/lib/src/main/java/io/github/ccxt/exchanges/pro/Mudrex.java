@@ -64,7 +64,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
     public Long requestId()
     {
         Long reqid = (Long) this.sum(this.safeInteger(this.options, "correlationId", 0), 1);
-        Helpers.addElementToObject(this.options, "correlationId", reqid);
+        this.options.put("correlationId", reqid);
         return reqid;
     }
 
@@ -86,7 +86,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         headers.put("Partner-Id", brokerId);
         innerOptions.put("headers", headers);
         wsOptions.put("options", innerOptions);
-        Helpers.addElementToObject(this.options, "ws", wsOptions);
+        this.options.put("ws", wsOptions);
     }
 
     public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
@@ -103,15 +103,15 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             String messageHash = ("ticker:" + symbolValue);
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             this.setBrokerHeaders();
-            Object baseIdString = (((!java.util.Objects.equals(market.get("baseId"), null)))) ? market.get("baseId") : "";
-            Object quoteIdString = (((!java.util.Objects.equals(market.get("quoteId"), null)))) ? market.get("quoteId") : "";
-            Object assetId = (((String)baseIdString).toLowerCase() + ((String)quoteIdString).toLowerCase());
-            Map<String, Object> subscribe = new HashMap<String, Object>() {{
-                put( "id", Mudrex.this.requestId() );
-                put( "method", "SUBSCRIBE" );
-                put( "params", new ArrayList<Object>(Arrays.asList("ticker@1s")) );
-                put( "assets", new ArrayList<Object>(Arrays.asList(assetId)) );
-            }};
+            String baseIdString = this.safeString(market, "baseId", "");
+            String quoteIdString = this.safeString(market, "quoteId", "");
+            Object assetId = baseIdString.toLowerCase();
+            assetId = (assetId + quoteIdString.toLowerCase());
+            Map<String, Object> subscribe = new HashMap<String, Object>();
+            subscribe.put("id", this.requestId());
+            subscribe.put("method", "SUBSCRIBE");
+            subscribe.put("params", new ArrayList<Object>(Arrays.asList("ticker@1s")));
+            subscribe.put("assets", new ArrayList<Object>(Arrays.asList(assetId)));
             Map<String, Object> request = this.extend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         }).thenApply(Ticker::new);
@@ -136,9 +136,11 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
                 {
                     Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                     messageHashes.add(("ticker:" + market.get("symbol")));
-                    Object baseIdString = (((!java.util.Objects.equals(market.get("baseId"), null)))) ? market.get("baseId") : "";
-                    Object quoteIdString = (((!java.util.Objects.equals(market.get("quoteId"), null)))) ? market.get("quoteId") : "";
-                    ((List<Object>)assets).add((((String)baseIdString).toLowerCase() + ((String)quoteIdString).toLowerCase()));
+                    String baseIdString = this.safeString(market, "baseId", "");
+                    String quoteIdString = this.safeString(market, "quoteId", "");
+                    Object assetId = baseIdString.toLowerCase();
+                    assetId = (assetId + quoteIdString.toLowerCase());
+                    ((List<Object>)assets).add(assetId);
                 }
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
@@ -189,9 +191,9 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             {
                 prefix = "markKline";
             }
-            Object streamBaseId = (((!java.util.Objects.equals(market.get("baseId"), null)))) ? market.get("baseId") : "";
-            Object streamQuoteId = (((!java.util.Objects.equals(market.get("quoteId"), null)))) ? market.get("quoteId") : "";
-            String stream = (((((prefix + "@") + interval) + "@") + ((String)streamBaseId).toLowerCase()) + ((String)streamQuoteId).toLowerCase());
+            String streamBaseId = this.safeString(market, "baseId", "");
+            String streamQuoteId = this.safeString(market, "quoteId", "");
+            String stream = (((((prefix + "@") + interval) + "@") + streamBaseId.toLowerCase()) + streamQuoteId.toLowerCase());
             String messageHash = stream;
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             this.setBrokerHeaders();
@@ -269,7 +271,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         Map<String, Object> market = this.safeMarket(s.toUpperCase(), (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(data, "t"), this.safeNumber(data, "o", (Object) null), this.safeNumber(data, "h", (Object) null), this.safeNumber(data, "l", (Object) null), this.safeNumber(data, "c", (Object) null), this.safeNumber(data, "v", (Object) null)));
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), tf);
         if (java.util.Objects.equals(stored, null))
         {
@@ -308,7 +310,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
                 put( "close", last );
                 put( "info", t );
             }}, (Map<String, Object>) null);
-            Helpers.addElementToObject(this.tickers, symbol, result);
+            this.tickers.put(symbol, result);
             String messageHash = ("ticker:" + symbol);
             client.resolve(result, messageHash);
             client.resolve(result, "tickers");

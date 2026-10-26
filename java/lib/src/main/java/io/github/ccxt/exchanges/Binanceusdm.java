@@ -67,7 +67,7 @@ public class Binanceusdm extends BinanceusdmApi
         return BaseExchange.supplyAsync(() -> {
 
             // transfer from spot wallet to usdm futures wallet
-            return (this.futuresTransfer((String) (code), amount, 1, parameters)).join();
+            return (this.futuresTransfer(code, amount, 1, parameters)).join();
         });
 
     }
@@ -78,7 +78,7 @@ public class Binanceusdm extends BinanceusdmApi
         return BaseExchange.supplyAsync(() -> {
 
             // transfer from usdm futures wallet to spot wallet
-            return (this.futuresTransfer((String) (code), amount, 2, parameters)).join();
+            return (this.futuresTransfer(code, amount, 2, parameters)).join();
         });
 
     }

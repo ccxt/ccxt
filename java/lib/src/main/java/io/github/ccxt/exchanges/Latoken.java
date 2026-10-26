@@ -585,13 +585,13 @@ public class Latoken extends LatokenApi
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currencies = (Map<String, Object>) this.safeDict(this.options, "cachedCurrencies", new HashMap<String, Object>() {{}});
+            Map<String, Object> currencies = (Map<String, Object>) this.cachedCurrenciesForLoadOrEmpty();
             Map<String,Object> currenciesById = this.indexBy(currencies, "id");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             List<Object> rawMarkets = this.toArray(response);
             for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
             {
-                Object market = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
+                Object market = this.safeValue(rawMarkets, i);
                 String id = this.safeString(market, "id");
                 // the exchange shows them inverted
                 String baseId = this.safeString(market, "baseCurrency");
@@ -742,7 +742,7 @@ public class Latoken extends LatokenApi
             List<Object> merged = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rawCurrencies).size(); i++)
             {
-                Object rawCurrency = (rawCurrencies == null || i < 0 || i >= rawCurrencies.size() ? null : rawCurrencies.get(i));
+                Object rawCurrency = this.safeValue(rawCurrencies, i);
                 Map<String, Object> bindingEntry = (Map<String, Object>) this.safeDict(bindingsById, this.safeString(rawCurrency, "id"), (Object) null);
                 List<Object> bindings = (List<Object>) this.safeList(bindingEntry, "bindings", (Object) null);
                 Object mergedCurrency = rawCurrency;
@@ -873,11 +873,12 @@ public class Latoken extends LatokenApi
                 put( "timestamp", null );
                 put( "datetime", null );
             }};
-            Long maxTimestamp = null;
             Map<String, Object> types = (Map<String, Object>) this.safeDict(this.options, "types", new HashMap<String, Object>() {{}});
             String accountType = this.safeString(types, type, type);
             Map<String,Object> balancesByType = this.groupBy(response, "type");
             List<Object> balances = (List<Object>) this.safeList(balancesByType, accountType, new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> firstBalance = (Map<String, Object>) this.safeDict(balances, 0, (Object) null);
+            Long maxTimestamp = this.safeInteger(firstBalance, "timestamp");
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
@@ -1314,10 +1315,10 @@ public class Latoken extends LatokenApi
             Map<String, Object> paramsOmitted = this.omit(parameters, "method");
             if (java.util.Objects.equals(method, "fetchPrivateTradingFee"))
             {
-                return (this.fetchPrivateTradingFee(symbol, paramsOmitted)).join();
+                return (this.fetchPrivateTradingFee((String) (symbol), paramsOmitted)).join();
             } else if (java.util.Objects.equals(method, "fetchPublicTradingFee"))
             {
-                return (this.fetchPublicTradingFee(symbol, paramsOmitted)).join();
+                return (this.fetchPublicTradingFee((String) (symbol), paramsOmitted)).join();
             } else
             {
                 throw new NotSupported((this.id + " not support this method")) ;
@@ -2319,7 +2320,7 @@ public class Latoken extends LatokenApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
         String request = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
@@ -2328,7 +2329,7 @@ public class Latoken extends LatokenApi
         String urlencodedQuery = this.urlencode(query);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (!java.util.Objects.equals(urlencodedQuery, ""))
             {
                 requestString = (requestString + ("?" + urlencodedQuery));
             }

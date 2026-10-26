@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestWatchLiquidationsForSymbols extends BaseTest {
-    public CompletableFuture<Object> testWatchLiquidationsForSymbols(Exchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testWatchLiquidationsForSymbols(Exchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -53,7 +53,7 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
                 // log.noLocate (asTable (response))
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
-                    TestLiquidation.testLiquidation(exchange, skippedProperties, method, (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), symbol);
+                    TestLiquidation.testLiquidation(exchange, skippedProperties, method, (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), (String) (symbol));
                 }
             } catch(Exception e)
             {

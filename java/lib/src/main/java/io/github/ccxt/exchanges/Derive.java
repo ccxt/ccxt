@@ -784,7 +784,7 @@ public class Derive extends DeriveApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        Helpers.addElementToObject(this.options, "sandboxMode", enable);
+        this.options.put("sandboxMode", enable);
     }
 
     /**
@@ -1109,15 +1109,16 @@ public class Derive extends DeriveApi
             List<Object> maxPagesparamsMaxPagesVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "getMarketsPaginated", "maxMarketPages", 25L);
             Long maxPages = (Long) ((List<Object>) maxPagesparamsMaxPagesVariable).get(0);
             Map<String, Object> paramsMaxPages = (Map<String, Object>) ((List<Object>) maxPagesparamsMaxPagesVariable).get(1);
-            List<Object> pageSizeparamsOmittedVariable = (List<Object>) this.handleOptionAndParams(paramsMaxPages, "getMarketsPaginated", "maxMarketsPerPage", 1000);
-            var pageSize = ((List<Object>) pageSizeparamsOmittedVariable).get(0);
+            List<Object> pageSizeparamsOmittedVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsMaxPages, "getMarketsPaginated", "maxMarketsPerPage", 1000L);
+            Long pageSize = (Long) ((List<Object>) pageSizeparamsOmittedVariable).get(0);
             Map<String, Object> paramsOmitted = (Map<String, Object>) ((List<Object>) pageSizeparamsOmittedVariable).get(1);
-            Object page = 1;
             for (var i = 0; (maxPages != null && i < maxPages); i++)
             {
-                Map<String, Object> requestExtension = new HashMap<String, Object>();
-                requestExtension.put("page", page);
-                requestExtension.put("page_size", pageSize);
+                Object page = (((long) i) + 1L);
+                Map<String, Object> requestExtension = new HashMap<String, Object>() {{
+                    put( "page", page );
+                    put( "page_size", pageSize );
+                }};
                 Map<String, Object> requestExtended = this.extend(this.extend(request, requestExtension), paramsOmitted); // nested because the csharp base defines extend with two arguments only
                 Map<String, Object> response = (this.publicPostGetAllInstruments(requestExtended)).join();
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
@@ -1130,7 +1131,6 @@ public class Derive extends DeriveApi
                 {
                     break;
                 }
-                page = ((Object) (switch ((Object) (page)) { case null -> (Object) null; case Long hx4J40v1 -> (Object) (hx4J40v1 + 1L); case Integer hx4J40v1 -> (Object) (hx4J40v1.longValue() + 1L); case Double hx4J40v1 -> (Object) (hx4J40v1 + ((double) 1L)); case String hx4J40v1 -> (Object) (hx4J40v1 + "1"); default -> (Object) null; }));
             }
             return allInstruments;
         });
@@ -1379,8 +1379,9 @@ public class Derive extends DeriveApi
         String amount = this.safeString(stats, "oi");
         String markPrice = this.safeString(interest, "M");
         String value = null;
+        Boolean isOption = (Boolean) this.safeBool(market, "option", false);
         // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
-        if ((!java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(market.get("option"), true)))
+        if ((!java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(isOption, true)))
         {
             value = Precise.stringMul(amount, markPrice);
         }
@@ -1718,7 +1719,7 @@ public class Derive extends DeriveApi
         }
     }
 
-    public Object parseSettlements(Object settlements, Map<String, Object> market)
+    public List<Object> parseSettlements(Object settlements, Map<String, Object> market)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)settlements).size(); i++)
@@ -2014,9 +2015,9 @@ public class Derive extends DeriveApi
             // todo: check active spot markets after launch of v3
             Map<String, Object> market = this.market(symbol);
             String period = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            List<Object> priceTypeparamsPriceVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "price", (Object) null);
-            var priceType = ((List<Object>) priceTypeparamsPriceVariable).get(0);
-            Map<String, Object> paramsPrice = (Map<String, Object>) ((List<Object>) priceTypeparamsPriceVariable).get(1);
+            Pair<String, Map<String, Object>> priceTypeparamsPriceVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "price", (String) null);
+            String priceType = priceTypeparamsPriceVariable.first();
+            Map<String, Object> paramsPrice = priceTypeparamsPriceVariable.second();
             Long until = this.safeInteger(paramsPrice, "until");
             Map<String, Object> paramsOmitted = this.omit(paramsPrice, new ArrayList<Object>(Arrays.asList("until")));
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -2336,10 +2337,10 @@ public class Derive extends DeriveApi
         return this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), keccak(), "hex");
     }
 
-    public String signOrder(Object order, Object privateKey)
+    public String signOrder(Object order, String privateKey)
     {
         Object hashOrder = this.hashOrderMessage(order);
-        return this.signHash((hashOrder == null ? null : ((String)hashOrder).substring(Math.max(((String)hashOrder).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
+        return this.signHash((String) ((hashOrder == null ? null : ((String)hashOrder).substring(Math.max(((String)hashOrder).length() - 64, 0)))), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
     }
 
     /**
@@ -2355,13 +2356,13 @@ public class Derive extends DeriveApi
         // the mutating calls stay hoisted out of other call arguments, nesting them breaks the rust borrow checker (E0502)
         Object rawNonce = this.incrementingNonce();
         Object randomPart = this.randNumber(6); // guards against collisions of different instances with the same wallet
-        String milliseconds = this.numberToString(rawNonce);
+        Object milliseconds = this.numberToString(rawNonce);
         String suffix = this.numberToString(randomPart);
         String padded = (((String)suffix).length() >= 6 ? ((String)suffix).substring(((String)suffix).length() - 6) : String.format("%" + (6 - ((String)suffix).length()) + "s", "").replace(' ', '0') + ((String)suffix));
         return (milliseconds + padded);
     }
 
-    public String hashMessage(Object message)
+    public String hashMessage(String message)
     {
         Object binaryMessage = this.encode(message);
         Object binaryMessageLength = this.binaryLength(binaryMessage);
@@ -2371,22 +2372,22 @@ public class Derive extends DeriveApi
         return ("0x" + this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
     }
 
-    public String signHash(Object hash, Object privateKey)
+    public String signHash(String hash, String privateKey)
     {
         this.checkRequiredCredentials(true);
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
-        Object r = signature.get("r");
-        Object s = signature.get("s");
+        String r = this.safeString(signature, "r", "");
+        String s = this.safeString(signature, "s", "");
         String v = this.intToBase16(this.sum(27, signature.get("v")));
         return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
     }
 
-    public String signMessage(Object message, Object privateKey)
+    public String signMessage(String message, String privateKey)
     {
-        return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
+        return this.signHash((String) (this.hashMessage((String) (message))), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
     }
 
-    public String parseUnits(Object num, Object dec)
+    public String parseUnits(String num, Object dec)
     {
         return Precise.stringMul(num, java.util.Objects.requireNonNullElse(dec, "1000000000000000000"));
     }
@@ -2442,22 +2443,20 @@ public class Derive extends DeriveApi
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             String TRADE_MODULE_ADDRESS = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b"; // shared across mainnet and testnet in v3
             String priceString = this.numberToString(price);
-            Object maxFee = null;
-            Object paramsMaxFee = new HashMap<String, Object>() {{}};
-            List<Object> maxFeeparamsMaxFeeVariable = (List<Object>) this.handleOptionAndParams(paramsDeriveSubaccountId, "createOrder", "max_fee", (Object) null);
-            maxFee = ((List<Object>) maxFeeparamsMaxFeeVariable).get(0);
-            paramsMaxFee = ((List<Object>) maxFeeparamsMaxFeeVariable).get(1);
-            if (java.util.Objects.equals(maxFee, null))
+            Object maxFeeOptionAndParams = this.handleOptionAndParams(paramsDeriveSubaccountId, "createOrder", "max_fee", (Object) null);
+            String maxFeeString = this.safeString(maxFeeOptionAndParams, 0);
+            if (java.util.Objects.equals(maxFeeString, null))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a max_fee argument in params")) ;
             }
-            String maxFeeString = this.numberToString(maxFee);
+            Map<String, Object> paramsMaxFee = (Map<String, Object>) this.safeDict(maxFeeOptionAndParams, 1, new HashMap<String, Object>() {{}});
             String amountString = this.numberToString(amount);
-            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market.get("info"), "base_asset_address"), this.convertToBigInt(Helpers.GetValue(market.get("info"), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString, "1000000000000000000")), this.convertToBigInt(this.parseUnits(this.amountToPrecision(symbol, amountString), "1000000000000000000")), this.convertToBigInt(this.parseUnits(maxFeeString, "1000000000000000000")), subaccountId, orderSideIsBuy))), keccak(), "binary");
+            Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new ArrayList<Object>(Arrays.asList(marketInfo.get("base_asset_address"), this.convertToBigInt(marketInfo.get("base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString, "1000000000000000000")), this.convertToBigInt(this.parseUnits((String) (this.amountToPrecision(symbol, amountString)), "1000000000000000000")), this.convertToBigInt(this.parseUnits(maxFeeString, "1000000000000000000")), subaccountId, orderSideIsBuy))), keccak(), "binary");
             List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("createOrder", (Map<String, Object>) (paramsMaxFee));
             var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
             var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
-            String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, this.convertToBigInt(nonce), TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
+            String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, this.convertToBigInt(nonce), TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), (String) (this.privateKey));
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("instrument_name", market.get("id"));
             request.put("direction", orderSide);
@@ -2620,11 +2619,12 @@ public class Derive extends DeriveApi
             String priceString = this.numberToString(price);
             String maxFeeString = this.safeString(paramsDeriveSubaccountId, "max_fee", "0");
             String amountString = this.numberToString(amount);
-            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market.get("info"), "base_asset_address"), this.convertToBigInt(Helpers.GetValue(market.get("info"), "base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString, "1000000000000000000")), this.convertToBigInt(this.parseUnits(this.amountToPrecision(symbol, amountString), "1000000000000000000")), this.convertToBigInt(this.parseUnits(maxFeeString, "1000000000000000000")), subaccountId, orderSideIsBuy))), keccak(), "binary");
+            Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new ArrayList<Object>(Arrays.asList(marketInfo.get("base_asset_address"), this.convertToBigInt(marketInfo.get("base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString, "1000000000000000000")), this.convertToBigInt(this.parseUnits((String) (this.amountToPrecision(symbol, amountString)), "1000000000000000000")), this.convertToBigInt(this.parseUnits(maxFeeString, "1000000000000000000")), subaccountId, orderSideIsBuy))), keccak(), "binary");
             List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("editOrder", (Map<String, Object>) (paramsDeriveSubaccountId));
             var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
             var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
-            String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, this.convertToBigInt(nonce), TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
+            String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, this.convertToBigInt(nonce), TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), (String) (this.privateKey));
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("instrument_name", market.get("id"));
             request.put("order_id_to_cancel", id);
@@ -3303,11 +3303,7 @@ public class Derive extends DeriveApi
         //         "algo_slices_completed": null
         //     }
         //
-        Object order = this.safeDict(rawOrder, "data", (Object) null);
-        if (java.util.Objects.equals(order, null))
-        {
-            order = rawOrder;
-        }
+        Object order = this.safeDict(rawOrder, "data", rawOrder);
         Long timestamp = this.safeInteger(rawOrder, "creation_timestamp"); // the nonce is no longer a usable fallback: v3 nonces are nanosecond-scale values with a random suffix
         String orderId = this.safeString(order, "order_id");
         String marketId = this.safeString(order, "instrument_name");
@@ -4205,7 +4201,8 @@ public class Derive extends DeriveApi
                 } else
                 {
                     String amount = this.safeString(balance, "amount");
-                    account.put("total", Precise.stringAdd(account.get("total"), amount));
+                    String previousTotal = this.safeString(account, "total");
+                    account.put("total", Precise.stringAdd(previousTotal, amount));
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
@@ -4284,7 +4281,7 @@ public class Derive extends DeriveApi
             List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("transfer", (Map<String, Object>) (paramsOmitted));
             var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
             var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
-            String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, fromId, this.convertToBigInt(nonce), TRANSFER_MODULE_ADDRESS, transferModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
+            String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, fromId, this.convertToBigInt(nonce), TRANSFER_MODULE_ADDRESS, transferModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), (String) (this.privateKey));
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("subaccount_id", fromId);
             request.put("to_subaccount_id", toId);
@@ -4652,7 +4649,7 @@ public class Derive extends DeriveApi
             List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("withdraw", (Map<String, Object>) (paramsOmitted));
             var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
             var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
-            String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, this.convertToBigInt(nonce), WITHDRAWAL_MODULE_ADDRESS, withdrawalModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
+            String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, this.convertToBigInt(nonce), WITHDRAWAL_MODULE_ADDRESS, withdrawalModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), (String) (this.privateKey));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "subaccount_id", subaccountId );
                 put( "asset_name", currency.get("id") );
@@ -4920,14 +4917,15 @@ public class Derive extends DeriveApi
             if (!(((Map<?, ?>)this.options).containsKey("subaccount_id")))
             {
                 // remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
-                Helpers.addElementToObject(this.options, "subaccount_id", subaccountIdInt);
+                this.options.put("subaccount_id", subaccountIdInt);
             }
             return new ArrayList<Object>(Arrays.asList(subaccountIdInt, paramsSubaccountId));
         }
         Long optionsWallet = this.safeInteger(this.options, "subaccount_id");
         if (!java.util.Objects.equals(optionsWallet, null))
         {
-            return new ArrayList<Object>(Arrays.asList(optionsWallet, paramsSubaccountId));
+            // parsed, not returned raw: every arm of this tuple has to hand back a plain value so the statically typed ports read the slot natively instead of through a runtime helper
+            return new ArrayList<Object>(Arrays.asList(this.parseToInt(optionsWallet), paramsSubaccountId));
         }
         throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")) ;
     }
@@ -4939,7 +4937,7 @@ public class Derive extends DeriveApi
         Map<String, Object> paramsDeriveWalletAddress = deriveWalletAddressparamsDeriveWalletAddressVariable.second();
         if ((!java.util.Objects.equals(deriveWalletAddress, null)) && (!java.util.Objects.equals(deriveWalletAddress, "")))
         {
-            Helpers.addElementToObject(this.options, "deriveWalletAddress", deriveWalletAddress);
+            this.options.put("deriveWalletAddress", deriveWalletAddress);
             return new ArrayList<Object>(Arrays.asList(deriveWalletAddress, paramsDeriveWalletAddress));
         }
         String optionsWallet = this.safeString(this.options, "deriveWalletAddress");
@@ -4981,7 +4979,7 @@ public class Derive extends DeriveApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
@@ -4996,7 +4994,7 @@ public class Derive extends DeriveApi
             if (java.util.Objects.equals(apiName, "private"))
             {
                 String now = this.numberToString(this.nonce());
-                String signature = this.signMessage(now, this.privateKey);
+                String signature = this.signMessage(now, (String) (this.privateKey));
                 String configuredWalletAddress = this.safeString(this.options, "deriveWalletAddress");
                 // v3: the owner wallet is the user's own EOA
                 Object deriveWalletAddress = ((((java.util.Objects.equals(configuredWalletAddress, null)) || (java.util.Objects.equals(configuredWalletAddress, ""))))) ? this.walletAddress : configuredWalletAddress;

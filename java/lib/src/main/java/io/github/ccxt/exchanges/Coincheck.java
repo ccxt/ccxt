@@ -1232,7 +1232,7 @@ public class Coincheck extends CoincheckApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String bodySigned = null;
         Map<String, Object> headersSigned = null;
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
@@ -1242,9 +1242,10 @@ public class Coincheck extends CoincheckApi
         }
         String url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
+        Boolean hasQuery = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0;
         if (java.util.Objects.equals(apiName, "public"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (Boolean.TRUE.equals(hasQuery))
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -1255,16 +1256,16 @@ public class Coincheck extends CoincheckApi
             String queryString = "";
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (Boolean.TRUE.equals(hasQuery))
                 {
                     url = (url + ("?" + this.urlencode(this.keysort(query))));
                 }
             } else
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (Boolean.TRUE.equals(hasQuery))
                 {
-                    bodySigned = this.urlencode(this.keysort(query));
-                    queryString = bodySigned;
+                    queryString = this.urlencode(this.keysort(query));
+                    bodySigned = queryString;
                 }
             }
             String auth = ((nonce + url) + queryString);
@@ -1306,7 +1307,7 @@ public class Coincheck extends CoincheckApi
             String feedback = ((this.id + " ") + this.json(response));
             this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
             this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
-            throw new ExchangeError(((this.id + " ") + this.json(response))) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

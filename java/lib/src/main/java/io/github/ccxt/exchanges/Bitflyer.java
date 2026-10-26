@@ -318,7 +318,7 @@ public class Bitflyer extends BitflyerApi
         }});
     }
 
-    public Object parseExpiryDate(Object expiry)
+    public Object parseExpiryDate(String expiry)
     {
         String day = (expiry == null ? null : ((String)expiry).substring(0, Math.min(2, ((String)expiry).length())));
         String monthName = (expiry == null ? null : ((String)expiry).substring(Math.min(2, ((String)expiry).length()), Math.min(5, ((String)expiry).length())));
@@ -442,7 +442,7 @@ public class Bitflyer extends BitflyerApi
                         String currencyIds = this.safeString(splitAlias, 0);
                         baseId = (currencyIds == null ? null : ((String)currencyIds).substring(0, Math.max(((String)currencyIds).length() - 3, 0)));
                         quoteId = (currencyIds == null ? null : ((String)currencyIds).substring(Math.max(((String)currencyIds).length() - 3, 0)));
-                        List<Object> splitId = (List<Object>) Helpers.split(id, currencyIds);
+                        List<Object> splitId = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote(currencyIds))));
                         String expiryDate = this.safeString(splitId, 1);
                         if (java.util.Objects.equals(expiryDate, null))
                         {
@@ -463,8 +463,8 @@ public class Bitflyer extends BitflyerApi
                     continue;
                 }
                 String symbol = ((base + "/") + quote);
-                Object taker = Helpers.GetValue((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker");
-                Object maker = Helpers.GetValue((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker");
+                Object taker = this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker", (Object) null);
+                Object maker = this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker", (Object) null);
                 Boolean contract = Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future);
                 if (Boolean.TRUE.equals(contract))
                 {
@@ -722,11 +722,7 @@ public class Bitflyer extends BitflyerApi
         String order = null;
         if (!java.util.Objects.equals(side, null))
         {
-            String idInner = (side + "_child_order_acceptance_id");
-            if (((Map<?, ?>)trade).containsKey(idInner))
-            {
-                order = this.safeString(trade, idInner);
-            }
+            order = this.safeString(trade, (side + "_child_order_acceptance_id"));
         }
         if (java.util.Objects.equals(order, null))
         {
@@ -1089,9 +1085,9 @@ public class Bitflyer extends BitflyerApi
             }
             List<Order> orders = (this.fetchOrders(symbol, (Long) null, 100L, new HashMap<String, Object>() {{}})).join();
             Map<String,Object> ordersById = this.indexBy(orders, "id");
-            if (ordersById.containsKey(id))
+            Map<String, Object> found = (Map<String, Object>) this.safeDict(ordersById, id, (Object) null);
+            if (!java.util.Objects.equals(found, null))
             {
-                Map<String, Object> found = (Map<String, Object>) this.safeDict(ordersById, id, (Object) null);
                 return found;
             }
             throw new OrderNotFound(((this.id + " No order found with id ") + id)) ;
@@ -1518,7 +1514,7 @@ public class Bitflyer extends BitflyerApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String bodySigned = null;
         Map<String, Object> headersSigned = null;
         String request = (("/" + this.version) + "/");
@@ -1545,8 +1541,7 @@ public class Bitflyer extends BitflyerApi
         {
             this.checkRequiredCredentials(true);
             String nonce = String.valueOf(this.nonce());
-            Object content = new ArrayList<Object>(Arrays.asList(nonce, java.util.Objects.requireNonNullElse(method, "GET"), request));
-            Object auth = String.join("", (List<String>)content);
+            String auth = ((nonce + java.util.Objects.requireNonNullElse(method, "GET")) + request);
             if (((Map<String, Object>)parameters).size() > 0)
             {
                 if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))

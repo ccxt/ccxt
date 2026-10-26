@@ -160,7 +160,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         orderbook.put("timestamp", timestamp);
         orderbook.put("datetime", this.iso8601(timestamp));
         String messageHash = ("orderbook:" + symbol);
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 
@@ -243,7 +243,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         {
             return;
         }
-        Helpers.addElementToObject(this.tickers, symbol, ticker);
+        this.tickers.put(symbol, ticker);
         String messageHash = ("ticker:" + symbol);
         client.resolve((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), messageHash);
     }
@@ -372,13 +372,13 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
-        Object symbol = trade.get("symbol");
+        String symbol = this.safeString(trade, "symbol", "");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, ((String)symbol), stored);
+            this.trades.put(symbol, stored);
         }
         stored.append(trade);
         String messageHash = ("trade:" + symbol);
@@ -481,7 +481,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                if (Helpers.getIndexOf(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
+                if (((String)topic).indexOf(key) >= 0)
                 {
                     Object method = (methods == null || key == null ? null : methods.get(key));
                     Helpers.callDynamically(this, method, new Object[] {client, message});

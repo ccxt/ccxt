@@ -865,7 +865,7 @@ public class Blofin extends BlofinApi
         String symbol = ((base + "/") + quote);
         if (Boolean.TRUE.equals(swap))
         {
-            symbol = ((symbol + ":") + settle);
+            symbol = ((((base + "/") + quote) + ":") + settle);
         }
         List<String> expiry = null;
         List<String> strikePrice = null;
@@ -1212,7 +1212,9 @@ public class Blofin extends BlofinApi
         }
         if (Boolean.TRUE.equals(isSpot))
         {
-            String spotSymbol = ((marketResolved.get("base") + "/") + marketResolved.get("quote"));
+            String spotBase = this.safeString(marketResolved, "base", "");
+            String spotQuote = this.safeString(marketResolved, "quote", "");
+            String spotSymbol = ((spotBase + "/") + spotQuote);
             Double cost = this.parseNumber(Precise.stringMul(price, amount));
             Map<String, Object> result = new HashMap<String, Object>();
             result.put("info", trade);
@@ -1436,7 +1438,7 @@ public class Blofin extends BlofinApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object rate = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+                Object rate = this.safeValue(data, i);
                 Long timestamp = this.safeInteger(rate, "fundingTime");
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", rate );
@@ -1696,8 +1698,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(accountType, null) && !java.util.Objects.equals(accountType, "swap"))
             {
-                Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
-                String parsedAccountType = this.safeString(options, accountType, accountType);
+                String parsedAccountType = this.safeString(this.options.get("accountsByType"), accountType, accountType);
                 request.put("accountType", parsedAccountType);
                 response = (this.privateGetAssetBalances(this.extend(request, paramsAccountType))).join();
             } else
@@ -2136,13 +2137,13 @@ public class Blofin extends BlofinApi
             {
                 if ((!Boolean.TRUE.equals(isTrigger)) && (!Boolean.TRUE.equals(isTpsl)))
                 {
-                    request.put("orderId", String.valueOf(id));
+                    request.put("orderId", this.numberToString(id));
                 } else if (Boolean.TRUE.equals(isTpsl))
                 {
-                    request.put("tpslId", String.valueOf(id));
+                    request.put("tpslId", this.numberToString(id));
                 } else if (Boolean.TRUE.equals(isTrigger))
                 {
-                    request.put("algoId", String.valueOf(id));
+                    request.put("algoId", this.numberToString(id));
                 }
             }
             Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderId", "clientOrderId", "stop", "trigger", "tpsl")));
@@ -2467,10 +2468,9 @@ public class Blofin extends BlofinApi
 
     }
 
-    public String networkCodeToChainId(Object networkCode, Map<String, Object> currency)
+    public String networkCodeToChainId(String networkCode, Map<String, Object> currency)
     {
-        Map<String, Object> aliases = (Map<String, Object>) this.safeDict(this.options, "networkCodeAliases", new HashMap<String, Object>() {{}});
-        String aliasedCode = this.safeString(aliases, networkCode, networkCode);
+        String aliasedCode = this.safeString(this.options.get("networkCodeAliases"), networkCode, networkCode);
         String unifiedCode = this.safeString(this.networkAliases, aliasedCode, aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
@@ -2487,18 +2487,15 @@ public class Blofin extends BlofinApi
         // the live venue identifies chains by display names; the suffix
         // family is built here as prefix + space + parenthesized suffix
         // because such literals are not transpiler-safe in source
-        Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-        String direct = this.safeString(networks, unifiedCode);
+        String direct = this.safeString(this.options.get("networks"), unifiedCode);
         if (!java.util.Objects.equals(direct, null))
         {
             return direct;
         }
-        Map<String, Object> prefixes = (Map<String, Object>) this.safeDict(this.options, "networkPrefixes", new HashMap<String, Object>() {{}});
-        String prefix = this.safeString(prefixes, unifiedCode);
+        String prefix = this.safeString(this.options.get("networkPrefixes"), unifiedCode);
         if (!java.util.Objects.equals(prefix, null))
         {
-            Map<String, Object> suffixes = (Map<String, Object>) this.safeDict(this.options, "networkSuffixes", new HashMap<String, Object>() {{}});
-            String suffix = this.safeString(suffixes, unifiedCode, unifiedCode);
+            String suffix = this.safeString(this.options.get("networkSuffixes"), unifiedCode, unifiedCode);
             return ((((prefix + " ") + "(") + suffix) + ")");
         }
         return unifiedCode;
@@ -2523,8 +2520,7 @@ public class Blofin extends BlofinApi
             String tail = this.safeString(parts, 1, "");
             List<Object> tailParts = new ArrayList<Object>(Arrays.asList(((String)tail).split(java.util.regex.Pattern.quote(")"))));
             String suffix = this.safeString(tailParts, 0);
-            Map<String, Object> bySuffix = (Map<String, Object>) this.safeDict(this.options, "networkCodesBySuffix", new HashMap<String, Object>() {{}});
-            String suffixCode = this.safeString(bySuffix, suffix);
+            String suffixCode = this.safeString(this.options.get("networkCodesBySuffix"), suffix);
             if (!java.util.Objects.equals(suffixCode, null))
             {
                 return suffixCode;
@@ -2695,8 +2691,7 @@ public class Blofin extends BlofinApi
                         networkCode = this.safeString(networkKeys, 0);
                     } else
                     {
-                        Map<String, Object> defaultNetworks = (Map<String, Object>) this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}});
-                        networkCode = this.safeString(defaultNetworks, currency.get("code"));
+                        networkCode = this.safeString(this.options.get("defaultNetworks"), currency.get("code"));
                     }
                 }
                 if (java.util.Objects.equals(networkCode, null))
@@ -2806,11 +2801,13 @@ public class Blofin extends BlofinApi
         if (java.util.Objects.equals(chainsLength, 1))
         {
             // a single network means the currency-level fee is unambiguous
-            List<Object> networkKeys = ((List<Object>) switch ((Object)(result.get("networks"))) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            Map<String, Object> networks = (Map<String, Object>) this.safeDict(result, "networks", new HashMap<String, Object>() {{}});
+            List<String> networkKeys = new ArrayList<String>(networks.keySet());
             String onlyNetwork = this.safeString(networkKeys, 0);
             if (!java.util.Objects.equals(onlyNetwork, null))
             {
-                result.put("withdraw", Helpers.GetValue(Helpers.GetValue(result.get("networks"), onlyNetwork), "withdraw"));
+                Map<String, Object> networkResolved = (Map<String, Object>) this.safeDict(networks, onlyNetwork, new HashMap<String, Object>() {{}});
+                result.put("withdraw", networkResolved.get("withdraw"));
             }
         }
         return result;
@@ -2848,7 +2845,7 @@ public class Blofin extends BlofinApi
             Integer dataLength = ((List<?>)data).size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
-                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+                Object entry = this.safeValue(data, i);
                 if (java.util.Objects.equals(this.safeString(entry, "depositId"), id))
                 {
                     return this.parseTransaction((Map<String, Object>) (entry), currency);
@@ -2899,7 +2896,7 @@ public class Blofin extends BlofinApi
             Integer dataLength = ((List<?>)data).size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
-                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+                Object entry = this.safeValue(data, i);
                 Boolean matches = false;
                 if (!java.util.Objects.equals(id, null))
                 {
@@ -2913,7 +2910,7 @@ public class Blofin extends BlofinApi
                     return this.parseTransaction((Map<String, Object>) (entry), currency);
                 }
             }
-            Object reference = (((!java.util.Objects.equals(id, null)))) ? id : clientId;
+            String reference = (((!java.util.Objects.equals(id, null)))) ? id : clientId;
             throw new ExchangeError(((this.id + " fetchWithdrawal() could not find withdrawal ") + reference)) ;
         });
 
@@ -3294,41 +3291,41 @@ public class Blofin extends BlofinApi
             }
             if (java.util.Objects.equals(clientOrderIds, null))
             {
-                Object orderIds = this.parseIds(ids);
+                Object orderIds = (List<String>)(this.parseIds(ids));
                 if (!java.util.Objects.equals(tpslIds, null))
                 {
-                    for (var i = 0; i < (switch ((Object)(tpslIds)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; }); i++)
+                    for (var i = 0; i < ((List<?>)tpslIds).size(); i++)
                     {
-                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v12 = new HashMap<String, Object>();
-                            j39v12.put("tpslId", Helpers.GetValue(tpslIds, i));
-                            j39v12.put("instId", market.get("id"));
-                            yield j39v12; } }));
+                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+                            j39v5.put("tpslId", (tpslIds == null || i < 0 || i >= ((List<?>)tpslIds).size() ? null : ((List<?>)tpslIds).get(i)));
+                            j39v5.put("instId", market.get("id"));
+                            yield j39v5; } }));
                     }
                 }
-                for (var i = 0; i < (switch ((Object)(orderIds)) { case null -> 0; case List<?> j39v9 -> j39v9.size(); case String j39v10 -> j39v10.length(); case Object j39v11 -> j39v11.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v11) : 0; }); i++)
+                for (var i = 0; i < ((List<?>)orderIds).size(); i++)
                 {
                     if (java.util.Objects.equals(trigger, true))
                     {
-                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v8 = new HashMap<String, Object>();
-                            j39v8.put("tpslId", Helpers.GetValue(orderIds, i));
-                            j39v8.put("instId", market.get("id"));
-                            yield j39v8; } }));
+                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+                            j39v4.put("tpslId", (orderIds == null || i < 0 || i >= ((List<?>)orderIds).size() ? null : ((List<?>)orderIds).get(i)));
+                            j39v4.put("instId", market.get("id"));
+                            yield j39v4; } }));
                     } else
                     {
-                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v7 = new HashMap<String, Object>();
-                            j39v7.put("orderId", Helpers.GetValue(orderIds, i));
-                            j39v7.put("instId", market.get("id"));
-                            yield j39v7; } }));
+                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                            j39v3.put("orderId", (orderIds == null || i < 0 || i >= ((List<?>)orderIds).size() ? null : ((List<?>)orderIds).get(i)));
+                            j39v3.put("instId", market.get("id"));
+                            yield j39v3; } }));
                     }
                 }
             } else
             {
-                for (var i = 0; i < (switch ((Object)(clientOrderIds)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
+                for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
                 {
-                    ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                        j39v3.put("instId", market.get("id"));
-                        j39v3.put("clientOrderId", Helpers.GetValue(clientOrderIds, i));
-                        yield j39v3; } }));
+                    ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                        j39v2.put("instId", market.get("id"));
+                        j39v2.put("clientOrderId", (clientOrderIds == null || i < 0 || i >= ((List<?>)clientOrderIds).size() ? null : ((List<?>)clientOrderIds).get(i)));
+                        yield j39v2; } }));
                 }
             }
             Map<String, Object> response = null;
@@ -3367,9 +3364,8 @@ public class Blofin extends BlofinApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
-            String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
-            String toId = this.safeString(accountsByType, toAccount, toAccount);
+            String fromId = this.safeString(this.options.get("accountsByType"), fromAccount, fromAccount);
+            String toId = this.safeString(this.options.get("accountsByType"), toAccount, toAccount);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", currency.get("id") );
                 put( "amount", Blofin.this.currencyToPrecision((String) (code), amount, (String) null) );
@@ -3755,22 +3751,8 @@ public class Blofin extends BlofinApi
                 throw new BadRequest((this.id + " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")) ;
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            List<String> symbolsList = symbolsNormalized;
-            String instIds = "";
-            for (var i = 0; i < ((List<?>)symbolsList).size(); i++)
-            {
-                String entry = (symbolsList == null || i < 0 || i >= symbolsList.size() ? null : symbolsList.get(i));
-                Map<String, Object> entryMarket = this.market(entry);
-                if (i > 0)
-                {
-                    instIds = ((instIds + ",") + entryMarket.get("id"));
-                } else
-                {
-                    instIds = (instIds + entryMarket.get("id"));
-                }
-            }
             Map<String, Object> request = new HashMap<String, Object>();
-            request.put("instId", instIds);
+            request.put("instId", String.join(",", (List<String>)this.marketIds(symbolsNormalized)));
             request.put("marginMode", marginMode);
             Map<String, Object> response = (this.privateGetAccountBatchLeverageInfo(this.extend(request, query))).join();
             //
@@ -4311,7 +4293,7 @@ public class Blofin extends BlofinApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
@@ -4351,8 +4333,8 @@ public class Blofin extends BlofinApi
             {
                 if (!this.isEmpty(query))
                 {
-                    signedBody = this.json(query);
-                    sign_body = signedBody;
+                    sign_body = this.json(query);
+                    signedBody = sign_body;
                 }
                 signedHeaders.put("Content-Type", "application/json");
             }

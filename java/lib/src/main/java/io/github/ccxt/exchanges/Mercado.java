@@ -383,10 +383,10 @@ public class Mercado extends MercadoApi
             List<Object> coins = this.toArray(response);
             for (var i = 0; i < ((List<?>)coins).size(); i++)
             {
-                Object coin = (coins == null || i < 0 || i >= coins.size() ? null : coins.get(i));
-                Object baseId = coin;
+                String coin = this.safeString(coins, i, "");
+                String baseId = coin;
                 String quoteId = "BRL";
-                String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
+                String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
                 String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
                 if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
                 {
@@ -748,7 +748,7 @@ public class Mercado extends MercadoApi
             // TODO: replace this with a call to parseOrder for unification
             HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
             mapLiteral2.put("info", response);
-            mapLiteral2.put("id", String.valueOf(Helpers.GetValue(Helpers.GetValue(response.get("response_data"), "order"), "order_id")));
+            mapLiteral2.put("id", this.safeString(this.safeValue(this.safeValue(response, "response_data"), "order"), "order_id"));
             return this.safeOrder(mapLiteral2, market);
         }).thenApply(Order::new);
 
@@ -922,7 +922,7 @@ public class Mercado extends MercadoApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin_pair", market.get("id") );
-                put( "order_id", Helpers.parseInt(id) );
+                put( "order_id", Mercado.this.parseToInt(id) );
             }};
             Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
             Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
@@ -1085,7 +1085,7 @@ public class Mercado extends MercadoApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "resolution", Mercado.this.safeString(Mercado.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "15m"), java.util.Objects.requireNonNullElse(timeframe, "15m")) );
-                put( "symbol", ((market.get("base") + "-") + market.get("quote")) );
+                put( "symbol", ((Mercado.this.safeString(market, "base", "") + "-") + Mercado.this.safeString(market, "quote", "")) );
             }};
             // set some default limit, as it's required if user doesn't provide it
             Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
@@ -1216,12 +1216,12 @@ public class Mercado extends MercadoApi
 
     }
 
-    public Object ordersToTrades(Object orders)
+    public List<Object> ordersToTrades(Object orders)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            List<Object> trades = (List<Object>) this.safeList((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)), "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(this.safeValue(orders, i), "trades", new ArrayList<Object>(Arrays.asList()));
             for (var y = 0; y < ((List<?>)trades).size(); y++)
             {
                 ((List<Object>)result).add((trades == null || y < 0 || y >= trades.size() ? null : trades.get(y)));
@@ -1238,7 +1238,7 @@ public class Mercado extends MercadoApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {

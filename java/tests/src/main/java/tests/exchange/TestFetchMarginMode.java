@@ -13,7 +13,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchMarginMode extends BaseTest {
-    public CompletableFuture<Object> testFetchMarginMode(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testFetchMarginMode(BaseExchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {

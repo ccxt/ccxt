@@ -1202,7 +1202,7 @@ public class Bigone extends BigoneApi
                 //        from: '0'
                 //    }
                 //
-                return this.parseContractOrderBook((Map<String, Object>) (response), market.get("symbol"), limit);
+                return this.parseContractOrderBook((Map<String, Object>) (response), (String) (market.get("symbol")), limit);
             } else
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1234,25 +1234,25 @@ public class Bigone extends BigoneApi
 
     }
 
-    public Object parseContractBidsAsks(Object bidsAsks)
+    public Object parseContractBidsAsks(Map<String, Object> bidsAsks)
     {
-        List<Object> bidsAsksKeys = ((List<Object>) switch ((Object)(bidsAsks)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<String> bidsAsksKeys = new ArrayList<String>(bidsAsks.keySet());
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)bidsAsksKeys).size(); i++)
         {
-            Object price = (bidsAsksKeys == null || i < 0 || i >= bidsAsksKeys.size() ? null : bidsAsksKeys.get(i));
-            Object amount = Helpers.GetValue(bidsAsks, price);
+            String price = (bidsAsksKeys == null || i < 0 || i >= bidsAsksKeys.size() ? null : bidsAsksKeys.get(i));
+            Object amount = (bidsAsks == null || price == null ? null : bidsAsks.get(price));
             ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(price), this.parseNumber(amount))));
         }
         return result;
     }
 
-    public Map<String, Object> parseContractOrderBook(Map<String, Object> orderbook, Object symbol, Long limit)
+    public Map<String, Object> parseContractOrderBook(Map<String, Object> orderbook, String symbol, Long limit)
     {
-        Map<String, Object> responseBids = (Map<String, Object>) this.safeDict(orderbook, "bids", (Object) null);
-        Map<String, Object> responseAsks = (Map<String, Object>) this.safeDict(orderbook, "asks", (Object) null);
-        List<Object> bids = (List<Object>) this.parseContractBidsAsks(responseBids);
-        List<Object> asks = (List<Object>) this.parseContractBidsAsks(responseAsks);
+        Map<String, Object> responseBids = (Map<String, Object>) this.safeDict(orderbook, "bids", new HashMap<String, Object>() {{}});
+        Map<String, Object> responseAsks = (Map<String, Object>) this.safeDict(orderbook, "asks", new HashMap<String, Object>() {{}});
+        List<Object> bids = (List<Object>) this.parseContractBidsAsks((Map<String, Object>) (responseBids));
+        List<Object> asks = (List<Object>) this.parseContractBidsAsks((Map<String, Object>) (responseAsks));
         return new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "bids", Bigone.this.filterByLimit(Bigone.this.sortBy(bids, 0, true), limit, "timestamp", false) );
@@ -2250,7 +2250,7 @@ public class Bigone extends BigoneApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String bodySigned = null;
         Object query = this.omit(parameters, this.extractParams(path));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -2263,14 +2263,14 @@ public class Bigone extends BigoneApi
         Map<String, Object> headersValue = new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(apiName, "public") || java.util.Objects.equals(apiName, "webExchange") || java.util.Objects.equals(apiName, "contractPublic"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
         } else
         {
             this.checkRequiredCredentials(true);
-            String nonce = String.valueOf(this.nonce());
+            String nonce = this.numberToString(this.nonce());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "OpenAPIV2" );
                 put( "sub", Bigone.this.apiKey );
@@ -2280,7 +2280,7 @@ public class Bigone extends BigoneApi
             headersValue.put("Authorization", ("Bearer " + token));
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }

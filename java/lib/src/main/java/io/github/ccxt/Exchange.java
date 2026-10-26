@@ -109,40 +109,28 @@ public class Exchange extends BaseExchange implements TypedSurface {
 public CompletableFuture<Order> closePosition(String symbol, String side, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " closePosition() is not supported yet")) ;
-        }).thenApply(Order::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " closePosition() is not supported yet"))).thenApply(Order::new);
 
     }
 
     public CompletableFuture<List<Position>> closeAllPositions(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " closeAllPositions() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " closeAllPositions() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Order>> editOrders(Object orders, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " editOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " editOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Order>> fetchCanceledAndClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchCanceledAndClosedOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchCanceledAndClosedOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -175,80 +163,56 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
     public CompletableFuture<List<Position>> fetchPositionsHistory(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchPositionsHistory () is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchPositionsHistory () is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Position>> fetchPositionsRisk(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchPositionsRisk() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchPositionsRisk() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Position>> fetchPositionsForSymbol(Object symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchPositionsForSymbol() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchPositionsForSymbol() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Position>> fetchPositionsForSymbolWs(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchPositionsForSymbol() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchPositionsForSymbol() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<Position> watchPosition(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchPosition() is not supported yet")) ;
-        }).thenApply(Position::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchPosition() is not supported yet"))).thenApply(Position::new);
 
     }
 
     public CompletableFuture<List<Trade>> watchMyTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchMyTradesForSymbols() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchMyTradesForSymbols() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchTradesForSymbols() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchTradesForSymbols() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<Tickers> fetchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchBidsAsks() is not supported yet")) ;
-        }).thenApply(Tickers::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchBidsAsks() is not supported yet"))).thenApply(Tickers::new);
 
     }
 
@@ -282,100 +246,70 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
     public CompletableFuture<Tickers> fetchMarkPrices(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchMarkPrices() is not supported yet")) ;
-        }).thenApply(Tickers::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchMarkPrices() is not supported yet"))).thenApply(Tickers::new);
 
     }
 
     public CompletableFuture<Tickers> watchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchBidsAsks() is not supported yet")) ;
-        }).thenApply(Tickers::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchBidsAsks() is not supported yet"))).thenApply(Tickers::new);
 
     }
 
     public CompletableFuture<Ticker> watchMarkPrice(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchMarkPrice () is not supported yet")) ;
-        }).thenApply(Ticker::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchMarkPrice () is not supported yet"))).thenApply(Ticker::new);
 
     }
 
     public CompletableFuture<Tickers> watchMarkPrices(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchMarkPrices () is not supported yet")) ;
-        }).thenApply(Tickers::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchMarkPrices () is not supported yet"))).thenApply(Tickers::new);
 
     }
 
     public CompletableFuture<OrderBookL3> fetchL3OrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new BadRequest((this.id + " fetchL3OrderBook() is not supported yet")) ;
-        }).thenApply(OrderBookL3::new);
+        return CompletableFuture.failedFuture(new BadRequest((this.id + " fetchL3OrderBook() is not supported yet"))).thenApply(OrderBookL3::new);
 
     }
 
     public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchOrderBookForSymbols() is not supported yet")) ;
-        }).thenApply(OrderBook::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchOrderBookForSymbols() is not supported yet"))).thenApply(OrderBook::new);
 
     }
 
     public CompletableFuture<List<Order>> watchOrdersForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchOrdersForSymbols() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchOrdersForSymbols() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Order>> cancelAllOrdersWs(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " cancelAllOrdersWs() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelAllOrdersWs() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<Order> cancelOrderWs(String id, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " cancelOrderWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelOrderWs() is not supported yet"))).thenApply(Order::new);
 
     }
 
     public CompletableFuture<List<Order>> cancelOrdersWs(Object ids, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " cancelOrdersWs() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelOrdersWs() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -503,20 +437,14 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
     public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " createOrderWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " createOrderWs() is not supported yet"))).thenApply(Order::new);
 
     }
 
     public CompletableFuture<List<Order>> createOrdersWs(Object orders, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " createOrdersWs () is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " createOrdersWs () is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -814,10 +742,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
     public CompletableFuture<List<Trade>> fetchMyTradesWs(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchMyTradesWs() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchMyTradesWs() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -839,50 +764,35 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
     public CompletableFuture<OrderBook> fetchOrderBookWs(String symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOrderBookWs() is not supported yet")) ;
-        }).thenApply(OrderBook::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOrderBookWs() is not supported yet"))).thenApply(OrderBook::new);
 
     }
 
     public CompletableFuture<Order> fetchOrderWs(String id, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOrderWs() is not supported yet")) ;
-        }).thenApply(Order::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOrderWs() is not supported yet"))).thenApply(Order::new);
 
     }
 
     public CompletableFuture<List<Order>> fetchOrdersWs(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOrdersWs() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOrdersWs() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Position>> fetchPositionWs(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchPositionWs() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchPositionWs() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Position>> fetchPositionsWs(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchPositions() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchPositions() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
@@ -916,20 +826,14 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
     public CompletableFuture<Tickers> fetchTickersWs(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchTickersWs() is not supported yet")) ;
-        }).thenApply(Tickers::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTickersWs() is not supported yet"))).thenApply(Tickers::new);
 
     }
 
     public CompletableFuture<List<Trade>> fetchTradesWs(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchTradesWs() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTradesWs() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -937,30 +841,21 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchTrades() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTrades() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchTrades() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchTrades() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOrderBook() is not supported yet")) ;
-        }).thenApply(OrderBook::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOrderBook() is not supported yet"))).thenApply(OrderBook::new);
 
     }
 
@@ -992,10 +887,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchOrderBook() is not supported yet")) ;
-        }).thenApply(OrderBook::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchOrderBook() is not supported yet"))).thenApply(OrderBook::new);
 
     }
 
@@ -1088,20 +980,14 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
     public CompletableFuture<Position> fetchPosition(Object symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchPosition() is not supported yet")) ;
-        }).thenApply(Position::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchPosition() is not supported yet"))).thenApply(Position::new);
 
     }
 
     public CompletableFuture<List<Position>> watchPositions(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchPositions() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchPositions() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
@@ -1118,10 +1004,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
     public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchPositions() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchPositions() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
@@ -1155,40 +1038,28 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
     public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchTicker() is not supported yet")) ;
-        }).thenApply(Ticker::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchTicker() is not supported yet"))).thenApply(Ticker::new);
 
     }
 
     public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchTickers() is not supported yet")) ;
-        }).thenApply(Tickers::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTickers() is not supported yet"))).thenApply(Tickers::new);
 
     }
 
     public CompletableFuture<Tickers> watchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchTickers() is not supported yet")) ;
-        }).thenApply(Tickers::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchTickers() is not supported yet"))).thenApply(Tickers::new);
 
     }
 
     public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOrder() is not supported yet"))).thenApply(Order::new);
 
     }
 
@@ -1240,10 +1111,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
     public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " createOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " createOrder() is not supported yet"))).thenApply(Order::new);
 
     }
 
@@ -1533,20 +1401,14 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
     public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " createOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " createOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " cancelOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelOrder() is not supported yet"))).thenApply(Order::new);
 
     }
 
@@ -1575,10 +1437,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
     public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " cancelOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1607,10 +1466,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
     public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " cancelAllOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelAllOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1641,20 +1497,14 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
     public CompletableFuture<List<Trade>> fetchOrderTrades(String id, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOrderTrades() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOrderTrades() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1691,30 +1541,21 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
     public CompletableFuture<List<Order>> fetchCanceledOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchCanceledOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchCanceledOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchMyTrades() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchMyTrades() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Trade>> watchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchMyTrades() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchMyTrades() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 

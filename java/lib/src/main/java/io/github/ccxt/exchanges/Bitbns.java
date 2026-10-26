@@ -663,11 +663,12 @@ public class Bitbns extends BitbnsApi
             Integer numParts = ((List<?>)parts).size();
             if ((numParts != null && numParts > 1))
             {
+                String usedCurrencyId = this.safeString(parts, 1, "");
                 String currencyId = this.safeString(parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 Map<String, Object> account = this.account();
                 account.put("free", this.safeString(data, key));
-                account.put("used", this.safeString(data, ("inorder" + currencyId)));
+                account.put("used", this.safeString(data, ("inorder" + usedCurrencyId)));
                 if (java.util.Objects.equals(currencyId, "Money"))
                 {
                     currencyId = "INR";
@@ -1533,9 +1534,8 @@ public class Bitbns extends BitbnsApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object urls = this.urls;
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        if (!(((Map<?, ?>)((Map<String, Object>)urls).get("api")).containsKey(apiName)))
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        if (!(((Map<?, ?>)this.urls.get("api")).containsKey(apiName)))
         {
             throw new ExchangeError((((this.id + " does not have a testnet/sandbox URL for ") + apiName) + " endpoints")) ;
         }
@@ -1543,10 +1543,11 @@ public class Bitbns extends BitbnsApi
         {
             this.checkRequiredCredentials(true);
         }
-        Map<String, Object> apiKeyHeaders = new HashMap<String, Object>() {{
-            put( "X-BITBNS-APIKEY", Bitbns.this.apiKey );
-        }};
-        Object requestHeaders = (((!java.util.Objects.equals(apiName, "www")))) ? apiKeyHeaders : null;
+        Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(apiName, "www"))
+        {
+            requestHeaders.put("X-BITBNS-APIKEY", this.apiKey);
+        }
         String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
@@ -1555,7 +1556,7 @@ public class Bitbns extends BitbnsApi
         String baseUrl = (String) this.implodeHostname(baseApiUrl);
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        String nonce = String.valueOf(this.nonce());
+        String nonce = this.numberToString(this.nonce());
         Integer queryLength = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size();
         String postBody = "{}";
         if ((queryLength != null && queryLength > 0))
@@ -1577,10 +1578,9 @@ public class Bitbns extends BitbnsApi
             }};
             String payload = this.stringToBase64(this.json(auth));
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha512());
-            requestHeaders = (((java.util.Objects.equals(requestHeaders, null)))) ? new HashMap<String, Object>() {{}} : requestHeaders;
-            ((Map<String, Object>)requestHeaders).put("X-BITBNS-PAYLOAD", payload);
-            ((Map<String, Object>)requestHeaders).put("X-BITBNS-SIGNATURE", signature);
-            ((Map<String, Object>)requestHeaders).put("Content-Type", "application/x-www-form-urlencoded");
+            requestHeaders.put("X-BITBNS-PAYLOAD", payload);
+            requestHeaders.put("X-BITBNS-SIGNATURE", signature);
+            requestHeaders.put("Content-Type", "application/x-www-form-urlencoded");
         }
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();

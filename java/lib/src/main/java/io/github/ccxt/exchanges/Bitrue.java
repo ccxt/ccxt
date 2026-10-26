@@ -999,8 +999,8 @@ public class Bitrue extends BitrueApi
             }
             Object promises = (((List<?>)(promisesRaw)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> spotMarkets = (List<Object>) this.safeList(this.safeDict(promises, 0, (Object) null), "symbols", new ArrayList<Object>(Arrays.asList()));
-            Object futureMarkets = this.safeValue(promises, 1);
-            Object deliveryMarkets = this.safeValue(promises, 2);
+            List<Object> futureMarkets = (List<Object>) this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
+            List<Object> deliveryMarkets = (List<Object>) this.safeList(promises, 2, new ArrayList<Object>(Arrays.asList()));
             List<Object> markets = spotMarkets;
             markets = (List<Object>) this.arrayConcat(markets, futureMarkets);
             markets = (List<Object>) this.arrayConcat(markets, deliveryMarkets);
@@ -2335,7 +2335,7 @@ public class Bitrue extends BitrueApi
             {
                 request.put("symbol", market.get("id"));
                 request.put("quantity", this.amountToPrecision(symbol, amount));
-                Object validOrderTypes = this.safeValue(market.get("info"), "orderTypes");
+                List<Object> validOrderTypes = (List<Object>) this.safeList(market.get("info"), "orderTypes", new ArrayList<Object>(Arrays.asList()));
                 if (!this.inArray(uppercaseType, validOrderTypes))
                 {
                     throw new InvalidOrder(((((this.id + " ") + type) + " is not a valid order type in market ") + symbol)) ;
@@ -3301,6 +3301,7 @@ public class Bitrue extends BitrueApi
         //
         List<Object> chainDetails = (List<Object>) this.safeList(fee, "chainDetail", new ArrayList<Object>(Arrays.asList()));
         Integer chainDetailLength = ((List<?>)chainDetails).size();
+        Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new HashMap<String, Object>() {{
@@ -3311,7 +3312,6 @@ public class Bitrue extends BitrueApi
                 put( "fee", null );
                 put( "percentage", null );
             }} );
-            put( "networks", new HashMap<String, Object>() {{}} );
         }};
         if (!java.util.Objects.equals(chainDetailLength, 0))
         {
@@ -3323,7 +3323,7 @@ public class Bitrue extends BitrueApi
                 String networkCode = this.networkIdToCode(networkId, currencyCode);
                 if (!java.util.Objects.equals(networkCode, null))
                 {
-                    Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
+                    networks.put(networkCode, new HashMap<String, Object>() {{
     put( "deposit", new HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
@@ -3336,11 +3336,14 @@ public class Bitrue extends BitrueApi
                 }
                 if (java.util.Objects.equals(chainDetailLength, 1))
                 {
-                    Helpers.addElementToObject(result.get("withdraw"), "fee", this.safeNumber(chainDetail, "withdrawFee", (Object) null));
-                    Helpers.addElementToObject(result.get("withdraw"), "percentage", false);
+                    result.put("withdraw", new HashMap<String, Object>() {{
+    put( "fee", Bitrue.this.safeNumber(chainDetail, "withdrawFee", (Object) null) );
+    put( "percentage", false );
+}});
                 }
             }
         }
+        result.put("networks", networks);
         return result;
     }
 
@@ -3652,19 +3655,19 @@ public class Bitrue extends BitrueApi
         Object requestBody = null;
         Map<String, Object> requestHeaders = null;
         String type = this.safeString(api, 0);
-        String version = this.safeString(api, 1);
+        String version = this.safeString(api, 1, "");
         String access = this.safeString(api, 2);
         String apiUrl = this.safeString(this.urls.get("api"), type);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String url = apiUrl;
+        String endpointPath = (String) this.implodeParams(path, parameters);
+        String url = ((apiUrl + "/") + endpointPath);
         if (!((java.util.Objects.equals(type, "api") && java.util.Objects.equals(version, "kline")) || (java.util.Objects.equals(type, "open") && ((String)path).indexOf("listenKey") >= 0)))
         {
-            url = (url + ("/" + version));
+            url = ((((apiUrl + "/") + version) + "/") + endpointPath);
         }
-        url = (url + ("/" + this.implodeParams(path, parameters)));
         Object paramsOmitted = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(access, "private"))
         {
@@ -3678,30 +3681,32 @@ public class Bitrue extends BitrueApi
                 }}, paramsOmitted));
                 String signature = (String) this.hmac(this.encode(query), this.encode(this.secret), sha256());
                 query = (query + (("&" + "signature=") + signature));
-                requestHeaders = new HashMap<String, Object>() {{
-                    put( "X-MBX-APIKEY", Bitrue.this.apiKey );
-                }};
                 if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
                 {
                     url = (url + ("?" + query));
+                    requestHeaders = new HashMap<String, Object>() {{
+                        put( "X-MBX-APIKEY", Bitrue.this.apiKey );
+                    }};
                 } else
                 {
                     requestBody = query;
-                    requestHeaders.put("Content-Type", "application/x-www-form-urlencoded");
+                    requestHeaders = new HashMap<String, Object>() {{
+                        put( "X-MBX-APIKEY", Bitrue.this.apiKey );
+                        put( "Content-Type", "application/x-www-form-urlencoded" );
+                    }};
                 }
             } else
             {
                 String timestamp = String.valueOf(this.nonce());
-                String signPath = null;
+                String signPrefix = "";
                 if (java.util.Objects.equals(type, "fapi"))
                 {
-                    signPath = "/fapi";
+                    signPrefix = "/fapi";
                 } else if (java.util.Objects.equals(type, "dapi"))
                 {
-                    signPath = "/dapi";
+                    signPrefix = "/dapi";
                 }
-                signPath = ((((signPath + "/") + version) + "/") + path);
-                String signMessage = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + signPath);
+                String signMessage = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + (((((signPrefix + "/") + version) + "/") + path)));
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {
                     List<String> keys = new ArrayList<String>(((Map<String, Object>)paramsOmitted).keySet());
@@ -3721,7 +3726,7 @@ public class Bitrue extends BitrueApi
                     url = (url + ("?" + this.urlencode(paramsOmitted)));
                 } else
                 {
-                    Object query = this.extend(new HashMap<String, Object>() {{
+                    Map<String, Object> query = this.extend(new HashMap<String, Object>() {{
                         put( "recvWindow", recvWindow );
                     }}, paramsOmitted);
                     requestBody = this.json(query);
@@ -3760,7 +3765,7 @@ public class Bitrue extends BitrueApi
     {
         if (((code != null && ((Number) code).doubleValue() == 418)) || ((code != null && ((Number) code).doubleValue() == 429)))
         {
-            throw new DDoSProtection(((((((this.id + " ") + String.valueOf(code)) + " ") + reason) + " ") + body)) ;
+            throw new DDoSProtection((((((this.id + " ") + String.valueOf(code)) + " ") + reason) + ((" " + body)))) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
@@ -3854,7 +3859,7 @@ public class Bitrue extends BitrueApi
                 Long threshold = this.safeInteger(entry, 0);
                 if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(threshold, null) && (limit == null || (threshold != null && limit <= threshold)))
                 {
-                    return Helpers.GetValue(entry, 1);
+                    return this.safeNumber(entry, 1, (Object) null);
                 }
             }
         }

@@ -89,7 +89,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "subscribe" );
-                put( "channel", (market.get("id") + "-orderbook") );
+                put( "channel", (Coincheck.this.safeString(market, "id", "") + "-orderbook") );
             }};
             Map<String, Object> message = this.extend(request, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, null)).join();
@@ -128,10 +128,9 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         if (java.util.Objects.equals(orderbook, null))
         {
             orderbook = this.orderBook(snapshot);
-            Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+            this.orderbooks.put(symbol, orderbook);
         } else
         {
-            orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             orderbook.reset(snapshot);
         }
         String messageHash = ("orderbook:" + symbol);
@@ -159,19 +158,18 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
             String messageHash = ("trade:" + market.get("symbol"));
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "subscribe" );
-                put( "channel", (market.get("id") + "-trades") );
+                put( "channel", (Coincheck.this.safeString(market, "id", "") + "-trades") );
             }};
             Map<String, Object> message = this.extend(request, parameters);
             List<Object> trades = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, market.get("symbol"), limit);
             }
             return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -201,7 +199,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbol, stored);
         }
         for (var i = 0; i < ((List<?>)message).size(); i++)
         {

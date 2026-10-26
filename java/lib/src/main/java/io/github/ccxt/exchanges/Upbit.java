@@ -443,12 +443,12 @@ public class Upbit extends UpbitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            return (this.fetchCurrencyById(currency.get("id"), parameters)).join();
+            return (this.fetchCurrencyById((String) (currency.get("id")), parameters)).join();
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
-    public CompletableFuture<Map<String, Object>> fetchCurrencyById(Object id, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchCurrencyById(String id, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -719,15 +719,17 @@ public class Upbit extends UpbitApi
         {
             throw new ExchangeError((this.id + " parseMarket() missing id")) ;
         }
-        var quoteIdbaseIdVariable = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
-        var quoteId = ((List<Object>) quoteIdbaseIdVariable).get(0);
-        var baseId = ((List<Object>) quoteIdbaseIdVariable).get(1);
-        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
+        String quoteId = this.safeString(parts, 0);
+        String baseId = this.safeString(parts, 1);
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
         }
+        Map<String, Object> tradingFeesByQuoteCurrency = (Map<String, Object>) this.safeDict(this.options, "tradingFeesByQuoteCurrency", new HashMap<String, Object>() {{}});
+        Map<String, Object> tradingFees = (Map<String, Object>) this.safeDict(this.fees, "trading", new HashMap<String, Object>() {{}});
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("id", id);
         mapLiteral4.put("symbol", ((base + "/") + quote));
@@ -747,8 +749,8 @@ public class Upbit extends UpbitApi
         mapLiteral4.put("contract", false);
         mapLiteral4.put("linear", null);
         mapLiteral4.put("inverse", null);
-        mapLiteral4.put("taker", this.safeNumber(this.options.get("tradingFeesByQuoteCurrency"), quote, Helpers.GetValue((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker")));
-        mapLiteral4.put("maker", this.safeNumber(this.options.get("tradingFeesByQuoteCurrency"), quote, Helpers.GetValue((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker")));
+        mapLiteral4.put("taker", this.safeNumber(tradingFeesByQuoteCurrency, quote, this.safeNumber(tradingFees, "taker", (Object) null)));
+        mapLiteral4.put("maker", this.safeNumber(tradingFeesByQuoteCurrency, quote, this.safeNumber(tradingFees, "maker", (Object) null)));
         mapLiteral4.put("contractSize", null);
         mapLiteral4.put("expiry", null);
         mapLiteral4.put("expiryDatetime", null);
@@ -863,10 +865,9 @@ public class Upbit extends UpbitApi
             Object ids = null;
             if (java.util.Objects.equals(symbols, null))
             {
-                Object allIds = this.ids;
-                if (!java.util.Objects.equals(allIds, null))
+                if (!java.util.Objects.equals(this.ids, null))
                 {
-                    ids = String.join(",", (List<String>)allIds);
+                    ids = String.join(",", (List<String>)this.ids);
                 }
             } else
             {
@@ -912,14 +913,14 @@ public class Upbit extends UpbitApi
             List<Object> orderbooks = this.toArray(response);
             for (var i = 0; i < ((List<?>)orderbooks).size(); i++)
             {
-                Object orderbook = (orderbooks == null || i < 0 || i >= orderbooks.size() ? null : orderbooks.get(i));
+                Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(orderbooks, i, new HashMap<String, Object>() {{}});
                 String marketId = this.safeString(orderbook, "market");
                 String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
                 Long timestamp = this.safeInteger(orderbook, "timestamp");
                 result.put(symbol, new HashMap<String, Object>() {{
         put( "symbol", symbol );
-        put( "bids", Upbit.this.sortBy(Upbit.this.parseOrderBookBidsAsks(Helpers.GetValue(orderbook, "orderbook_units"), "bid_price", "bid_size", 2), 0, true) );
-        put( "asks", Upbit.this.sortBy(Upbit.this.parseOrderBookBidsAsks(Helpers.GetValue(orderbook, "orderbook_units"), "ask_price", "ask_size", 2), 0) );
+        put( "bids", Upbit.this.sortBy(Upbit.this.parseOrderBookBidsAsks(orderbook.get("orderbook_units"), "bid_price", "bid_size", 2), 0, true) );
+        put( "asks", Upbit.this.sortBy(Upbit.this.parseOrderBookBidsAsks(orderbook.get("orderbook_units"), "ask_price", "ask_size", 2), 0) );
         put( "timestamp", timestamp );
         put( "datetime", Upbit.this.iso8601(timestamp) );
         put( "nonce", null );
@@ -1057,7 +1058,7 @@ public class Upbit extends UpbitApi
                     {
                         quoteCurrencies = (quoteCurrencies + ",");
                     }
-                    quoteCurrencies = (quoteCurrencies + (sortedQuoteIds == null || i < 0 || i >= ((List<?>)sortedQuoteIds).size() ? null : ((List<?>)sortedQuoteIds).get(i)));
+                    quoteCurrencies = (quoteCurrencies + this.safeString(sortedQuoteIds, i, ""));
                 }
                 Map<String, Object> request = new HashMap<String, Object>();
                 request.put("quote_currencies", quoteCurrencies);
@@ -1120,12 +1121,11 @@ public class Upbit extends UpbitApi
         List<Object> queries = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
-            Object id = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
             if (!java.util.Objects.equals(idsString, ""))
             {
                 idsString = (idsString + ",");
             }
-            idsString = (idsString + id);
+            idsString = (idsString + this.safeString(ids, i, ""));
             if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return j38g || j38e; }).test(((String)idsString).length(), maxQueryLength))
             {
                 ((List<Object>)queries).add(idsString);
@@ -1199,7 +1199,7 @@ public class Upbit extends UpbitApi
             timestamp = this.parse8601(this.safeString(trade, "created_at"));
         }
         String side = null;
-        String askOrBid = this.safeStringLower2(trade, "ask_bid", "side");
+        String askOrBid = this.safeStringLower2(trade, "ask_bid", "side", "");
         if (java.util.Objects.equals(askOrBid, "ask"))
         {
             side = "sell";
@@ -1391,14 +1391,15 @@ public class Upbit extends UpbitApi
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fetchMarketResponse).size(); i++)
             {
+                Map<String, Object> item = (Map<String, Object>) this.safeDict(fetchMarketResponse, i, (Object) null);
                 Map<String, Object> element = new HashMap<String, Object>() {{}};
-                element.put("maker", this.safeNumber((fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)), "maker", (Object) null));
-                element.put("taker", this.safeNumber((fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)), "taker", (Object) null));
-                element.put("symbol", this.safeString((fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)), "symbol"));
+                element.put("maker", this.safeNumber(item, "maker", (Object) null));
+                element.put("taker", this.safeNumber(item, "taker", (Object) null));
+                element.put("symbol", this.safeString(item, "symbol"));
                 element.put("percentage", true);
                 element.put("tierBased", false);
-                element.put("info", (fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)));
-                String feeSymbol = this.safeString((fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)), "symbol");
+                element.put("info", item);
+                String feeSymbol = this.safeString(item, "symbol");
                 if (!java.util.Objects.equals(feeSymbol, null))
                 {
                     response.put(feeSymbol, element);
@@ -1612,7 +1613,7 @@ public class Upbit extends UpbitApi
                 if (java.util.Objects.equals(side, "buy"))
                 {
                     request.put("ord_type", "price");
-                    String orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
+                    String orderPrice = this.calcOrderPrice((String) (symbol), amount, price, parameters);
                     request.put("price", orderPrice);
                 } else
                 {
@@ -1633,7 +1634,7 @@ public class Upbit extends UpbitApi
                 request.put("ord_type", "best");
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    String orderPrice = this.calcOrderPrice(symbol, amount, price, paramsOrdType);
+                    String orderPrice = this.calcOrderPrice((String) (symbol), amount, price, paramsOrdType);
                     request.put("price", orderPrice);
                 } else
                 {
@@ -1815,7 +1816,7 @@ public class Upbit extends UpbitApi
                 if (java.util.Objects.equals(side, "buy"))
                 {
                     request.put("new_ord_type", "price");
-                    String orderPrice = this.calcOrderPrice(symbol, amount, price, paramsOmitted);
+                    String orderPrice = this.calcOrderPrice((String) (symbol), amount, price, paramsOmitted);
                     request.put("new_price", orderPrice);
                 } else
                 {
@@ -1836,7 +1837,7 @@ public class Upbit extends UpbitApi
                 request.put("new_ord_type", "best");
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    String orderPrice = this.calcOrderPrice(symbol, amount, price, paramsOrdType);
+                    String orderPrice = this.calcOrderPrice((String) (symbol), amount, price, paramsOrdType);
                     request.put("new_price", orderPrice);
                 } else
                 {
@@ -2329,7 +2330,8 @@ public class Upbit extends UpbitApi
         if ((numTrades != null && numTrades > 0))
         {
             // the timestamp in fetchOrder trades is missing
-            lastTradeTimestamp = Helpers.GetValue((trades == null || ((int) (((long) numTrades) - 1L)) < 0 || ((int) (((long) numTrades) - 1L)) >= trades.size() ? null : trades.get(((int) (((long) numTrades) - 1L)))), "timestamp");
+            Map<String, Object> lastTrade = (Map<String, Object>) this.safeDict(trades, (((long) numTrades) - 1L), new HashMap<String, Object>() {{}});
+            lastTradeTimestamp = lastTrade.get("timestamp");
             Boolean getFeesFromTrades = false;
             if (java.util.Objects.equals(feeCost, null))
             {
@@ -2343,7 +2345,7 @@ public class Upbit extends UpbitApi
                 cost = Precise.stringAdd(cost, this.safeString(trade, "cost"));
                 if (Boolean.TRUE.equals(getFeesFromTrades))
                 {
-                    Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), "fee", new HashMap<String, Object>() {{}});
+                    Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
                     String tradeFeeCost = this.safeString(tradeFee, "cost");
                     if (!java.util.Objects.equals(tradeFeeCost, null))
                     {
@@ -2904,7 +2906,7 @@ public class Upbit extends UpbitApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
@@ -2915,9 +2917,10 @@ public class Upbit extends UpbitApi
         }});
         url = (url + ((("/" + this.version) + "/") + this.implodeParams(path, parameters)));
         Object query = this.omit(parameters, this.extractParams(path));
+        Integer numQueryKeys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size();
         if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if ((numQueryKeys != null && numQueryKeys > 0))
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -2928,23 +2931,21 @@ public class Upbit extends UpbitApi
         {
             requestBody = this.json(parameters);
         }
-        Map<String, Object> privateHeaders = null;
+        Map<String, Object> headers = new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
-            privateHeaders = new HashMap<String, Object>() {{}};
             String nonce = this.uuid();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "access_key", Upbit.this.apiKey );
                 put( "nonce", nonce );
             }};
-            Integer hasQuery = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size();
             String auth = null;
             if (Boolean.TRUE.equals(hasBody))
             {
-                privateHeaders.put("Content-Type", "application/json");
+                headers.put("Content-Type", "application/json");
             }
-            if (!java.util.Objects.equals(hasQuery, 0))
+            if (!java.util.Objects.equals(numQueryKeys, 0))
             {
                 auth = this.rawencode(query);
             }
@@ -2955,9 +2956,9 @@ public class Upbit extends UpbitApi
                 request.put("query_hash_alg", "SHA512");
             }
             String token = jwt(request, this.encode(this.secret), sha256());
-            privateHeaders.put("Authorization", ("Bearer " + token));
+            headers.put("Authorization", ("Bearer " + token));
         }
-        Map<String, Object> requestHeaders = (((java.util.Objects.equals(apiName, "private")))) ? privateHeaders : null;
+        Map<String, Object> requestHeaders = (((java.util.Objects.equals(apiName, "private")))) ? headers : null;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);

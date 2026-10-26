@@ -718,7 +718,7 @@ public class Deepcoin extends DeepcoinApi
             isLinear = (!java.util.Objects.equals(quoteId, "USD"));
             settleId = ((Boolean.TRUE.equals(isLinear))) ? quoteId : baseId;
             settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
-            symbol = ((symbol + ":") + settle);
+            symbol = ((((base + "/") + quote) + ":") + settle);
         }
         Map<String, Object> fees = (Map<String, Object>) this.safeDict2(this.fees, type, "trading", new HashMap<String, Object>() {{}});
         String maxLeverage = this.safeString(market, "lever", "1");
@@ -787,13 +787,14 @@ public class Deepcoin extends DeepcoinApi
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-            Object market = Helpers.GetValue(result, symbol);
-            if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)))
+            Map<String, Object> market = (Map<String, Object>) this.safeDict(result, symbol, new HashMap<String, Object>() {{}});
+            Boolean isSwap = (Boolean) this.safeBool(market, "swap", false);
+            if (Boolean.TRUE.equals(isSwap))
             {
                 String additionalId = (this.safeString(market, "baseId", "") + this.safeString(market, "quoteId", ""));
                 if (!java.util.Objects.equals(this.markets_by_id, null))
                 {
-                    Helpers.addElementToObject(this.markets_by_id, additionalId, new ArrayList<Object>(Arrays.asList(market))); // some endpoints return swap market id as base+quote
+                    this.markets_by_id.put(additionalId, new ArrayList<Object>(Arrays.asList(market))); // some endpoints return swap market id as base+quote
                 }
             }
         }
@@ -3740,14 +3741,14 @@ public class Deepcoin extends DeepcoinApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object requestPath = path;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
             String query = this.urlencode(parameters);
             if (query.length() > 0)
             {
-                requestPath = (requestPath + ("?" + query));
+                requestPath = ((path + "?") + query);
             }
         }
         String apiUrl = this.safeString(this.urls.get("api"), apiName);

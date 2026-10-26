@@ -966,7 +966,7 @@ public class Blockchaincom extends BlockchaincomApi
 
     }
 
-    public CompletableFuture<Object> fetchOrdersByState(Object state, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchOrdersByState(String state, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1015,12 +1015,12 @@ public class Blockchaincom extends BlockchaincomApi
         Long timestamp = this.safeInteger(trade, "timestamp");
         String datetime = this.iso8601(timestamp);
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol", "");
         Map<String, Object> fee = null;
         String feeCostString = this.safeString(trade, "fee");
         if (!java.util.Objects.equals(feeCostString, null))
         {
-            String feeCurrency = (String) marketResolved.get("quote");
+            String feeCurrency = this.safeString(marketResolved, "quote", "");
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("cost", feeCostString);
@@ -1174,14 +1174,16 @@ public class Blockchaincom extends BlockchaincomApi
         String currencyId = this.safeString(transaction, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
         String state = this.safeString(transaction, "state");
-        if (transaction.containsKey("depositId"))
+        String depositId = this.safeString(transaction, "depositId");
+        String withdrawalId = this.safeString(transaction, "withdrawalId");
+        if (!java.util.Objects.equals(depositId, null))
         {
             type = "deposit";
-            id = this.safeString(transaction, "depositId");
-        } else if (transaction.containsKey("withdrawalId"))
+            id = depositId;
+        } else if (!java.util.Objects.equals(withdrawalId, null))
         {
             type = "withdrawal";
-            id = this.safeString(transaction, "withdrawalId");
+            id = withdrawalId;
         }
         Double feeCost = (((java.util.Objects.equals(type, "withdrawal")))) ? this.safeNumber(transaction, "fee", (Object) null) : null;
         Map<String, Object> fee = null;
@@ -1508,7 +1510,7 @@ public class Blockchaincom extends BlockchaincomApi
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String requestPath = ("/" + this.implodeParams(path, parameters));
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
@@ -1578,12 +1580,10 @@ public class Blockchaincom extends BlockchaincomApi
         }
         String errorCode = this.safeString(response, "status");
         String errorMessage = this.safeString(response, "error");
-        if (!java.util.Objects.equals(code, null))
-        {
-            String feedback = ((this.id + " ") + this.json(response));
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
-        }
+        // code is an int: it is never undefined, the guard was dead
+        String feedback = ((this.id + " ") + this.json(response));
+        this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+        this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
         return null;
     }
 }

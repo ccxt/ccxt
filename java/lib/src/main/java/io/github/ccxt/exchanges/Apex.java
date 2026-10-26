@@ -617,7 +617,7 @@ public class Apex extends ApexApi
             // }
             List<Object> rows = (List<Object>) this.safeList(spotConfig, "assets", new ArrayList<Object>(Arrays.asList()));
             List<Object> chains = (List<Object>) this.safeList(multiChain, "chains", new ArrayList<Object>(Arrays.asList()));
-            Helpers.addElementToObject(this.options, "_temp_currencies_chains", chains);
+            this.options.put("_temp_currencies_chains", chains);
             Object result = this.parseCurrencies(rows);
             ((Map<String,Object>)this.options).remove("_temp_currencies_chains");
             return result;
@@ -631,8 +631,8 @@ public class Apex extends ApexApi
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         String name = this.safeString(currency, "displayName");
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        Object chains = this.options.get("_temp_currencies_chains");
-        for (var j = 0; j < (switch ((Object)(chains)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); j++)
+        List<Object> chains = (List<Object>) this.safeList(this.options, "_temp_currencies_chains", new ArrayList<Object>(Arrays.asList()));
+        for (var j = 0; j < ((List<?>)chains).size(); j++)
         {
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j, (Object) null);
             List<Object> tokens = (List<Object>) this.safeList(chain, "tokens", new ArrayList<Object>(Arrays.asList()));
@@ -1474,20 +1474,19 @@ public class Apex extends ApexApi
         Object marketResolved = market;
         if (java.util.Objects.equals(market, null) && !java.util.Objects.equals(marketId, null))
         {
-            Map<String, Object> marketsById = this.markets_by_id;
             if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(marketId)))
             {
                 marketResolved = (this.markets == null ? null : ((Map<?, ?>)this.markets).get(marketId));
-            } else if ((!java.util.Objects.equals(marketsById, null)) && (marketsById.containsKey(marketId)))
+            } else if ((!java.util.Objects.equals(this.markets_by_id, null)) && (((Map<?, ?>)this.markets_by_id).containsKey(marketId)))
             {
-                marketResolved = (marketsById == null || marketId == null ? null : marketsById.get(marketId));
+                marketResolved = (marketId == null || this.markets_by_id == null ? null : ((Map<?, ?>)this.markets_by_id).get(marketId));
             } else
             {
-                Object newMarketId = this.addHyphenBeforeUsdt(marketId);
-                if ((!java.util.Objects.equals(marketsById, null)) && (marketsById.containsKey(newMarketId)))
+                String newMarketId = this.addHyphenBeforeUsdt((String) (marketId));
+                if ((!java.util.Objects.equals(this.markets_by_id, null)) && (((Map<?, ?>)this.markets_by_id).containsKey(newMarketId)))
                 {
-                    Object markets = (marketsById == null || newMarketId == null ? null : marketsById.get(newMarketId));
-                    Integer numMarkets = (switch ((Object)(markets)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; });
+                    Object markets = (newMarketId == null || this.markets_by_id == null ? null : ((Map<?, ?>)this.markets_by_id).get(newMarketId));
+                    Integer numMarkets = (switch ((Object)(markets)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
                     if ((numMarkets != null && numMarkets > 0))
                     {
                         if (java.util.Objects.equals(Helpers.GetValue(Helpers.GetValue(markets, 0), "id2"), marketId))
@@ -1503,9 +1502,8 @@ public class Apex extends ApexApi
 
     public String generateRandomClientIdOmni(String _accountId)
     {
-        Boolean hasAccountId = (!java.util.Objects.equals(_accountId, null)) && (!java.util.Objects.equals(_accountId, ""));
-        String accountId = null;
-        if (Boolean.TRUE.equals(hasAccountId))
+        String accountId = "";
+        if ((!java.util.Objects.equals(_accountId, null)) && (!java.util.Objects.equals(_accountId, "")))
         {
             accountId = _accountId;
         } else
@@ -1515,14 +1513,14 @@ public class Apex extends ApexApi
         return ((((("apexomni-" + accountId) + "-") + String.valueOf(this.milliseconds())) + "-") + String.valueOf(this.randNumber(6)));
     }
 
-    public Object addHyphenBeforeUsdt(Object symbol)
+    public String addHyphenBeforeUsdt(String symbol)
     {
         String uppercaseSymbol = ((String)symbol).toUpperCase();
         Object index = ((String)uppercaseSymbol).indexOf("USDT");
         String symbolChar = this.safeString(symbol, ((((Number) index).longValue()) - 1L));
         if ((((Integer) index) > 0) && !java.util.Objects.equals(symbolChar, "-"))
         {
-            return ((Helpers.slice(symbol, 0, index) + "-") + Helpers.slice(symbol, index, null));
+            return (((symbol == null ? null : symbol.substring(0, (int) Math.min(((Number)index).intValue() < 0 ? symbol.length() + ((Number)index).intValue() : ((Number)index).intValue(), symbol.length()))) + "-") + (symbol == null ? null : symbol.substring((int) Math.min(Math.max(((Number)index).intValue() < 0 ? symbol.length() + ((Number)index).intValue() : ((Number)index).intValue(), 0), symbol.length()))));
         }
         return symbol;
     }
@@ -1546,7 +1544,7 @@ public class Apex extends ApexApi
             if (java.util.Objects.equals(accountId, "0"))
             {
                 Object accountData = (this.fetchAccount(new HashMap<String, Object>() {{}})).join();
-                Helpers.addElementToObject(this.options, "accountId", this.safeString(accountData, "id", "0"));
+                this.options.put("accountId", this.safeString(accountData, "id", "0"));
             }
             return this.safeString(this.options, "accountId");
         }).thenApply(res -> (String) res);
@@ -1595,7 +1593,8 @@ public class Apex extends ApexApi
             Map<String, Object> fees = (Map<String, Object>) this.safeDict(this.fees, "swap", new HashMap<String, Object>() {{}});
             String taker = this.safeString(fees, "taker", "0.0005");
             String maker = this.safeString(fees, "maker", "0.0002");
-            String limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(((Map<String, Object>)market.get("precision")).get("price"))), TRUNCATE, ((Map<String, Object>)market.get("precision")).get("price"), this.precisionMode, this.paddingMode);
+            Object pricePrecision = ((Map<String, Object>)market.get("precision")).get("price");
+            String limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(pricePrecision)), TRUNCATE, pricePrecision, this.precisionMode, this.paddingMode);
             Long timeNow = this.milliseconds();
             String triggerPrice = this.safeString(parameters, "triggerPrice");
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
@@ -1722,21 +1721,18 @@ public class Apex extends ApexApi
             String finalNonce = nonce; // java req
             String ethAddress = this.safeString(accountData, "ethereumAddress", "");
             String accountId = this.safeString(accountData, "id", "");
-            Object currency = new HashMap<String, Object>() {{}};
-            List<Object> assets = new ArrayList<Object>(Arrays.asList());
+            Map<String, Object> currency = new HashMap<String, Object>() {{}};
             Boolean isContract = java.util.Objects.equals(((String)fromAccount).toLowerCase(), "contract");
+            List<Object> assets = spotAssets;
             if (Boolean.TRUE.equals(isContract))
             {
                 assets = contractAssets;
-            } else
-            {
-                assets = spotAssets;
             }
             for (var i = 0; i < ((List<?>)assets).size(); i++)
             {
-                if (java.util.Objects.equals(this.safeString((assets == null || i < 0 || i >= assets.size() ? null : assets.get(i)), "token", ""), code))
+                if (java.util.Objects.equals(this.safeString(this.safeDict(assets, i, new HashMap<String, Object>() {{}}), "token", ""), code))
                 {
-                    currency = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
+                    currency = (Map<String, Object>) this.safeDict(assets, i, new HashMap<String, Object>() {{}});
                 }
             }
             String tokenId = this.safeString(currency, "tokenId", "");
@@ -1800,10 +1796,9 @@ public class Apex extends ApexApi
                 orderToSign.put("nonce", finalNonce);
                 orderToSign.put("timestampSeconds", timestampSeconds);
                 Void signature = (this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign)).join();
-                String amountStr = String.valueOf(amount);
                 Long ts = timestampSeconds; // java req
                 Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "amount", amountStr );
+                    put( "amount", Apex.this.numberToString(amount) );
                     put( "timestamp", ts );
                     put( "clientTransferId", finalClientOrderId );
                     put( "signature", signature );
@@ -2335,7 +2330,7 @@ public class Apex extends ApexApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {

@@ -1252,16 +1252,8 @@ public class Coinone extends CoinoneApi
         String id = this.safeString2(order, "orderId", "order_id");
         String baseId = this.safeString2(order, "baseCurrency", "target_currency");
         String quoteId = this.safeString2(order, "targetCurrency", "quote_currency");
-        String base = null;
-        String quote = null;
-        if (!java.util.Objects.equals(baseId, null))
-        {
-            base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        }
-        if (!java.util.Objects.equals(quoteId, null))
-        {
-            quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
-        }
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         String symbol = null;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
@@ -1579,7 +1571,7 @@ public class Coinone extends CoinoneApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String request = (String) this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
@@ -1634,7 +1626,7 @@ public class Coinone extends CoinoneApi
                 nonce = this.uuid();
             } else
             {
-                nonce = String.valueOf(this.nonce());
+                nonce = this.numberToString(this.nonce());
             }
             HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
             mapLiteral5.put("access_token", this.apiKey);

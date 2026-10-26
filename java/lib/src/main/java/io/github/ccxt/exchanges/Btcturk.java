@@ -868,7 +868,7 @@ public class Btcturk extends BtcturkApi
             {
                 limitResolved = 100L; // default value
             }
-            if (!java.util.Objects.equals(limitResolved, null))
+            if ((!java.util.Objects.equals(limit, null)) || (java.util.Objects.equals(since, null)))
             {
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1h"), "1y"))
                 {
@@ -876,11 +876,12 @@ public class Btcturk extends BtcturkApi
                 }
                 int seconds = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1h"));
                 Long limitCount = (((java.util.Objects.equals(limit, null)))) ? 100 : Math.min(limit, 11000);
-                Long limitSeconds = (seconds * (limitCount - 1L));
+                Long limitSeconds = this.parseToInt((seconds * (limitCount - 1L)));
                 if (!java.util.Objects.equals(since, null))
                 {
-                    Object to = ((this.parseToInt((((double) since) / ((double) 1000)))) + limitSeconds);
-                    if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(to, untilSeconds))
+                    Long sinceSeconds = this.parseToInt((((double) since) / ((double) 1000)));
+                    Long to = (Long) (sinceSeconds + limitSeconds);
+                    if ((untilSeconds != null && (to == null || to < untilSeconds)))
                     {
                         request.put("to", to);
                     }
@@ -988,7 +989,7 @@ public class Btcturk extends BtcturkApi
             }
             if (parameters.containsKey("clientOrderId"))
             {
-                request.put("newClientOrderId", ((Map<String, Object>)parameters).get("clientOrderId"));
+                request.put("newClientOrderId", parameters.get("clientOrderId"));
             } else if (!(parameters.containsKey("newClientOrderId")))
             {
                 request.put("newClientOrderId", this.uuid());
@@ -1273,7 +1274,7 @@ public class Btcturk extends BtcturkApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         if (java.util.Objects.equals(this.id, "btctrader"))
         {
             throw new ExchangeError((this.id + " is an abstract base API for BTCExchange, BTCTurk")) ;
@@ -1287,9 +1288,10 @@ public class Btcturk extends BtcturkApi
         Boolean isQueryMethod = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"));
         if (Boolean.TRUE.equals(isQueryMethod))
         {
-            if (((Map<String, Object>)parameters).size() > 0)
+            String query = this.urlencode(parameters);
+            if (query.length() > 0)
             {
-                url = (url + ("?" + this.urlencode(parameters)));
+                url = (url + ("?" + query));
             }
         }
         String requestBody = null;
@@ -1314,13 +1316,12 @@ public class Btcturk extends BtcturkApi
                 put( "Content-Type", "application/json" );
             }};
         }
-        Map<String, Object> requestHeaders = privateHeaders;
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("url", url);
             h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
             h2kMap0.put("body", requestBody);
-            h2kMap0.put("headers", requestHeaders);
+            h2kMap0.put("headers", privateHeaders);
             return h2kMap0;
         }
     }

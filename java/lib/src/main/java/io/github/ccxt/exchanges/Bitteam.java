@@ -739,7 +739,7 @@ public class Bitteam extends BitteamApi
             //     }
             //
             statusesResponse = this.indexBy(statusesResponse, "unified_cryptoasset_id");
-            Helpers.addElementToObject(this.options, "_temp_currencies_statuses", statusesResponse);
+            this.options.put("_temp_currencies_statuses", statusesResponse);
             Object result = this.parseCurrencies(currencies);
             ((Map<String,Object>)this.options).remove("_temp_currencies_statuses");
             return result;
@@ -770,7 +770,7 @@ public class Bitteam extends BitteamApi
             feesByNetworkId.put(blockChain, fee);
         } else
         {
-            feesByNetworkId = withdrawCommissionFixed;
+            feesByNetworkId = this.extend(withdrawCommissionFixed, new HashMap<String, Object>() {{}});
         }
         Map<String, Object> statuses = (Map<String, Object>) this.safeDict(statusesResponse, numericId, new HashMap<String, Object>() {{}});
         Boolean deposit = (Boolean) this.safeBool(statuses, "depositStatus", (Object) null);
@@ -2415,7 +2415,7 @@ public class Bitteam extends BitteamApi
             String free = this.safeString(currencyBalance, "free");
             String used = this.safeString(currencyBalance, "used");
             String total = this.safeString(currencyBalance, "total");
-            String currencyCode = this.safeCurrencyCode((String) (rawCurrencyId.toLowerCase()), (Map<String, Object>) null);
+            String currencyCode = this.safeCurrencyCode(rawCurrencyId.toLowerCase(), (Map<String, Object>) null);
             if (!java.util.Objects.equals(currencyCode, null))
             {
                 balance.put(currencyCode, new HashMap<String, Object>() {{
@@ -2670,7 +2670,7 @@ public class Bitteam extends BitteamApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object request = this.omit(parameters, this.extractParams(path));
         String endpoint = ("/" + this.implodeParams(path, parameters));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -2728,13 +2728,13 @@ public class Bitteam extends BitteamApi
                 if ((((String)url).indexOf("/ccxt/order/") >= 0) && (java.util.Objects.equals(method, "GET")))
                 {
                     List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("/order/"))));
-                    String orderId = this.safeString(parts, 1);
+                    String orderId = this.safeString(parts, 1, "");
                     throw new OrderNotFound((((this.id + " order ") + orderId) + " not found")) ;
                 }
                 if (((String)url).indexOf("/cmc/orderbook/") >= 0)
                 {
                     List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("/cmc/orderbook/"))));
-                    String symbolId = this.safeString(parts, 1);
+                    String symbolId = this.safeString(parts, 1, "");
                     throw new BadSymbol((((this.id + " symbolId ") + symbolId) + " not found")) ;
                 }
             }

@@ -127,7 +127,7 @@ public class TestMain extends BaseTest
                 put( "enableRateLimit", true );
                 put( "timeout", 30000 );
             }};
-            BaseExchange exchange = initExchange(exchangeId, exchangeArgs, this.wsTests);
+            BaseExchange exchange = initExchange((String) (exchangeId), exchangeArgs, this.wsTests);
             setExchangeProp(exchange, "fetchHistoryCacheSize", 5);
             if (Helpers.isTrue(exchange.alias))
             {
@@ -200,7 +200,7 @@ public class TestMain extends BaseTest
         {
             Object credential = (objkeys == null || i < 0 || i >= objkeys.size() ? null : objkeys.get(i));
             Object isRequired = Helpers.GetValue(reqCreds, credential);
-            if ((java.util.Objects.equals(isRequired, true)) && (java.util.Objects.equals(getExchangeProp(exchange, credential), null)))
+            if ((java.util.Objects.equals(isRequired, true)) && (java.util.Objects.equals(getExchangeProp(exchange, (String) (credential)), null)))
             {
                 String fullKey = ((exchangeId + "_") + credential);
                 String credentialEnvName = fullKey.toUpperCase(); // example: KRAKEN_APIKEY
@@ -208,7 +208,7 @@ public class TestMain extends BaseTest
                 Object credentialValue = (((((Map<?, ?>)envVars).containsKey(credentialEnvName)))) ? Helpers.GetValue(envVars, credentialEnvName) : null;
                 if (!java.util.Objects.equals(credentialValue, null) && !java.util.Objects.equals(credentialValue, ""))
                 {
-                    setExchangeProp(exchange, credential, credentialValue);
+                    setExchangeProp(exchange, (String) (credential), credentialValue);
                 }
             }
         }
@@ -246,13 +246,13 @@ public class TestMain extends BaseTest
                     Object finalValue = null;
                     if (Helpers.isTrue(exchange.isDictionary(Helpers.GetValue(exchangeSettings, key))))
                     {
-                        Object existing = getExchangeProp(exchange, key, new HashMap<String, Object>() {{}});
+                        Object existing = getExchangeProp(exchange, (String) (key), new HashMap<String, Object>() {{}});
                         finalValue = exchange.deepExtend(existing, Helpers.GetValue(exchangeSettings, key));
                     } else
                     {
                         finalValue = Helpers.GetValue(exchangeSettings, key);
                     }
-                    setExchangeProp(exchange, key, finalValue);
+                    setExchangeProp(exchange, (String) (key), finalValue);
                 }
             }
         }
@@ -283,7 +283,7 @@ public class TestMain extends BaseTest
         this.checkedPublicTests = new HashMap<String, Object>() {{}};
     }
 
-    public Object addPadding(Object message, Object size)
+    public Object addPadding(String message, Object size)
     {
         // has to be transpilable
         String res = "";
@@ -299,7 +299,7 @@ public class TestMain extends BaseTest
         return (message + res);
     }
 
-    public CompletableFuture<Object> testMethod(Object methodName, BaseExchange exchange, Object args, Object isPublic)
+    public CompletableFuture<Object> testMethod(String methodName, BaseExchange exchange, Object args, Object isPublic)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -314,14 +314,14 @@ public class TestMain extends BaseTest
             {
                 return true;
             }
-            Object skippedPropertiesForMethod = this.getSkips(exchange, methodName);
+            Object skippedPropertiesForMethod = this.getSkips(exchange, (String) (methodName));
             Boolean isLoadMarkets = (java.util.Objects.equals(methodName, "loadMarkets"));
             Boolean isFetchCurrencies = (java.util.Objects.equals(methodName, "fetchCurrencies"));
             Boolean isProxyTest = (java.util.Objects.equals(methodName, this.proxyTestFileName));
             Boolean isConstructorTest = (java.util.Objects.equals(methodName, "afterConstruct"));
             Boolean isFeatureTest = (java.util.Objects.equals(methodName, "features"));
             // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
-            if (!Helpers.isTrue(isPublic) && (Helpers.inOp(this.checkedPublicTests, methodName)) && !Boolean.TRUE.equals(isFetchCurrencies))
+            if (!Boolean.TRUE.equals(isPublic) && (Helpers.inOp(this.checkedPublicTests, methodName)) && !Boolean.TRUE.equals(isFetchCurrencies))
             {
                 return true;
             }
@@ -363,14 +363,14 @@ public class TestMain extends BaseTest
             dump(this.addPadding("[INFO] TESTING", 25), name, methodName, argsStringified);
             if (Helpers.isTrue(isSync()))
             {
-                callMethodSync(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
+                callMethodSync(this.testFiles, (String) (methodName), exchange, skippedPropertiesForMethod, args);
             } else
             {
-                (callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args)).join();
+                (callMethod(this.testFiles, (String) (methodName), exchange, skippedPropertiesForMethod, args)).join();
             }
             dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
             // add to the list of successed tests
-            if (Helpers.isTrue(isPublic))
+            if (Boolean.TRUE.equals(isPublic))
             {
                 Helpers.addElementToObject(this.checkedPublicTests, methodName, true);
             }
@@ -379,7 +379,7 @@ public class TestMain extends BaseTest
 
     }
 
-    public Object getSkips(BaseExchange exchange, Object methodName)
+    public Object getSkips(BaseExchange exchange, String methodName)
     {
         Object finalSkips = new HashMap<String, Object>() {{}};
         // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
@@ -459,7 +459,7 @@ public class TestMain extends BaseTest
             {
                 try
                 {
-                    (this.testMethod(methodName, exchange, args, java.util.Objects.requireNonNullElse(isPublic, false))).join();
+                    (this.testMethod((String) (methodName), exchange, args, java.util.Objects.requireNonNullElse(isPublic, false))).join();
                     return true;
                 } catch(Exception ex)
                 {
@@ -516,7 +516,7 @@ public class TestMain extends BaseTest
                         {
                             // wait and retry again
                             // (increase wait time on every retry)
-                            (exchange.sleep(Helpers.multiply(((((long) i) + 1L)), 1000))).join();
+                            (exchange.sleep((((((long) i) + 1L)) * 1000L))).join();
                         }
                     } else
                     {
@@ -537,7 +537,7 @@ public class TestMain extends BaseTest
                             return true;
                         }
                         // If public test faces authentication error, we don't break (see comments under `testSafe` method)
-                        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isPublic, false)) && Boolean.TRUE.equals(isAuthError))
+                        if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isPublic, false)) && Boolean.TRUE.equals(isAuthError))
                         {
                             if (Helpers.isTrue(this.info))
                             {
@@ -660,7 +660,7 @@ public class TestMain extends BaseTest
                     ((List<Object>)failedMethods).add(testName);
                 }
             }
-            String testPrefixString = ((Helpers.isTrue(isPublicTest))) ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
+            String testPrefixString = ((Boolean.TRUE.equals(isPublicTest))) ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
             if (((List<?>)failedMethods).size() > 0)
             {
                 String errorsString = String.join(", ", (List<String>)failedMethods);
@@ -668,7 +668,7 @@ public class TestMain extends BaseTest
             }
             if (Helpers.isTrue(this.info))
             {
-                dump(this.addPadding(((("[INFO] END " + testPrefixString) + " ") + exchange.id), 25));
+                dump(this.addPadding((String) (((("[INFO] END " + testPrefixString) + " ") + exchange.id)), 25));
             }
             return true;
         });
@@ -747,10 +747,10 @@ public class TestMain extends BaseTest
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object market = Helpers.GetValue(markets, key);
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(spot, true)) && (java.util.Objects.equals(Helpers.GetValue(market, "spot"), true)))
+            if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(spot, true)) && (java.util.Objects.equals(Helpers.GetValue(market, "spot"), true)))
             {
                 Helpers.addElementToObject(res, Helpers.GetValue(market, "symbol"), market);
-            } else if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(spot, true)) && (!java.util.Objects.equals(Helpers.GetValue(market, "spot"), true)))
+            } else if (!Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(spot, true)) && (!java.util.Objects.equals(Helpers.GetValue(market, "spot"), true)))
             {
                 Helpers.addElementToObject(res, Helpers.GetValue(market, "symbol"), market);
             }
@@ -764,7 +764,7 @@ public class TestMain extends BaseTest
         List<String> codes = new ArrayList<String>(Arrays.asList("BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"));
         List<String> spotSymbols = new ArrayList<String>(Arrays.asList("BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"));
         List<String> swapSymbols = new ArrayList<String>(Arrays.asList("BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"));
-        List<String> targetSymbols = ((Helpers.isTrue(java.util.Objects.requireNonNullElse(spot, true)))) ? spotSymbols : swapSymbols;
+        List<String> targetSymbols = ((Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(spot, true)))) ? spotSymbols : swapSymbols;
         Object symbol = this.getTestSymbol(exchange, java.util.Objects.requireNonNullElse(spot, true), targetSymbols);
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
         if (java.util.Objects.equals(symbol, null))
@@ -1559,7 +1559,7 @@ public class TestMain extends BaseTest
             {
                 try
                 {
-                    (this.testMethod(proxyTestName, exchange, new ArrayList<Object>(Arrays.asList()), true)).join();
+                    (this.testMethod((String) (proxyTestName), exchange, new ArrayList<Object>(Arrays.asList()), true)).join();
                     return true;  // if successfull, then end the test
                 } catch(Exception e)
                 {
@@ -1587,7 +1587,7 @@ public class TestMain extends BaseTest
         {
             Assert(java.util.Objects.equals(exchange.hostname, null) || java.util.Objects.equals(exchange.hostname, ""), "binance.com hostname should be empty");
             Assert(java.util.Objects.equals(((Map<String, Object>)((Map<String, Object>)exchange.urls).get("api")).get("public"), "https://api.binance.com/api/v3"), ("https://api.binance.com/api/v3 does not match: " + ((Map<String, Object>)((Map<String, Object>)exchange.urls).get("api")).get("public")));
-            Assert((Helpers.inOp(Helpers.GetValue(((Map<String, Object>)exchange.api).get("sapi"), "get"), "lending/union/account")), ("SAPI should contain the endpoint lending/union/account, " + jsonStringify(Helpers.GetValue(((Map<String, Object>)exchange.api).get("sapi"), "get"))));
+            Assert((Helpers.inOp(((Map<String, Object>)((Map<String, Object>)exchange.api).get("sapi")).get("get"), "lending/union/account")), ("SAPI should contain the endpoint lending/union/account, " + jsonStringify(((Map<String, Object>)((Map<String, Object>)exchange.api).get("sapi")).get("get"))));
         } else if (java.util.Objects.equals(exchange.id, "binanceus"))
         {
             Assert(java.util.Objects.equals(exchange.hostname, "binance.us"), ("binance.us hostname does not match " + exchange.hostname));
@@ -1684,7 +1684,7 @@ public class TestMain extends BaseTest
         }
     }
 
-    public void AssertStaticError(Object cond, Object message, Object calculatedOutput, Object storedOutput, Object key)
+    public void AssertStaticError(Object cond, String message, Object calculatedOutput, Object storedOutput, Object key)
     {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
@@ -1695,13 +1695,13 @@ public class TestMain extends BaseTest
         // That is cheap in JS but O(tree²) in the Rust port (each level
         // re-serialises its whole subtree) — it made `--responseTests`
         // take minutes. Bail out before stringifying when the check holds.
-        if (Helpers.isTrue(cond))
+        if (Boolean.TRUE.equals(cond))
         {
             return;
         }
         Object calculatedString = jsonStringify(calculatedOutput);
         Object storedString = jsonStringify(storedOutput);
-        Object errorMessage = message;
+        String errorMessage = message;
         if (!java.util.Objects.equals(key, null))
         {
             errorMessage = (("[" + key) + "]");
@@ -1710,7 +1710,7 @@ public class TestMain extends BaseTest
         Assert(cond, errorMessage);
     }
 
-    public Object loadMarketsFromFile(Object id)
+    public Object loadMarketsFromFile(String id)
     {
         // load markets from file
         // to make this test as fast as possible
@@ -1721,7 +1721,7 @@ public class TestMain extends BaseTest
         return content;
     }
 
-    public Object loadEventsFromFile(Object id)
+    public Object loadEventsFromFile(String id)
     {
         // prediction fixtures are cached as an event -> markets -> outcomes hierarchy under
         // static/events/<id>.json; returns undefined when the exchange has no events fixture
@@ -1733,20 +1733,20 @@ public class TestMain extends BaseTest
         return ioFileRead(filename);
     }
 
-    public Object loadCurrenciesFromFile(Object id)
+    public Object loadCurrenciesFromFile(String id)
     {
         String filename = (((getRootDir() + "./ts/src/test/static/currencies/") + id) + ".json");
         Object content = ioFileRead(filename);
         return content;
     }
 
-    public Object loadStaticData(Object folder, Object targetExchange)
+    public Object loadStaticData(String folder, Object targetExchange)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(targetExchange, null) && !java.util.Objects.equals(targetExchange, ""))
         {
             // read a single exchange
-            String path = (Helpers.add(folder, targetExchange) + ".json");
+            String path = ((folder + targetExchange) + ".json");
             if (!Helpers.isTrue(ioFileExists(path)))
             {
                 dump(("[WARN] tests not found: " + path));
@@ -1755,7 +1755,7 @@ public class TestMain extends BaseTest
             result.put((String)targetExchange, ioFileRead(path));
             return result;
         }
-        Object files = ioDirRead(folder);
+        Object files = ioDirRead((String) (folder));
         for (var i = 0; i < ((List<?>)files).size(); i++)
         {
             Object file = (files == null || i < 0 || i >= ((List<?>)files).size() ? null : ((List<?>)files).get(i));
@@ -1768,13 +1768,13 @@ public class TestMain extends BaseTest
                 continue;
             }
             String exchangeName = (file == null ? null : ((String)file).replaceFirst(java.util.regex.Pattern.quote(".json"), ""));
-            Object content = ioFileRead(Helpers.add(folder, file));
+            Object content = ioFileRead((String) ((folder + file)));
             result.put(exchangeName, content);
         }
         return result;
     }
 
-    public Object removeHostnamefromUrl(Object url)
+    public Object removeHostnamefromUrl(String url)
     {
         if (java.util.Objects.equals(url, null))
         {
@@ -1802,7 +1802,7 @@ public class TestMain extends BaseTest
         return res;
     }
 
-    public Object urlencodedToDict(Object url)
+    public Object urlencodedToDict(String url)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("&"))));
@@ -2019,7 +2019,7 @@ public class TestMain extends BaseTest
             String newOutputString = (((!java.util.Objects.equals(sanitizedNewOutput, null)))) ? String.valueOf(sanitizedNewOutput) : "undefined";
             String storedOutputString = (((!java.util.Objects.equals(sanitizedStoredOutput, null)))) ? String.valueOf(sanitizedStoredOutput) : "undefined";
             String messageError = ((("output value mismatch:" + newOutputString) + " != ") + storedOutputString);
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(strictTypeCheck, true)) && (!java.util.Objects.equals(this.lang, "C#")))
+            if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(strictTypeCheck, true)) && (!java.util.Objects.equals(this.lang, "C#")))
             {
                 // upon building the request we want strict type check to make sure all the types are correct
                 // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
@@ -2155,13 +2155,13 @@ public class TestMain extends BaseTest
         return newString;
     }
 
-    public Object AssertStaticRequestOutput(BaseExchange exchange, Object type, Object skipKeys, Object storedUrl, Object requestUrl, Object storedOutput, Object newOutput)
+    public Object AssertStaticRequestOutput(BaseExchange exchange, String type, Object skipKeys, String storedUrl, String requestUrl, Object storedOutput, Object newOutput)
     {
         if (!java.util.Objects.equals(storedUrl, requestUrl))
         {
             // remove the host part from the url
-            Object firstPath = this.removeHostnamefromUrl(storedUrl);
-            Object secondPath = this.removeHostnamefromUrl(requestUrl);
+            Object firstPath = this.removeHostnamefromUrl((String) (storedUrl));
+            Object secondPath = this.removeHostnamefromUrl((String) (requestUrl));
             this.AssertStaticError(java.util.Objects.equals(firstPath, secondPath), "url mismatch", firstPath, secondPath, (Object) null);
         }
         // body (aka storedOutput and newOutput) is not defined and information is in the url
@@ -2180,8 +2180,8 @@ public class TestMain extends BaseTest
                     // example: https://api.gateio.ws/api/v4/delivery/usdt/positions
                     return true;
                 }
-                Object storedUrlParams = this.urlencodedToDict(storedUrlQuery);
-                Object newUrlParams = this.urlencodedToDict(newUrlQuery);
+                Object storedUrlParams = this.urlencodedToDict((String) (storedUrlQuery));
+                Object newUrlParams = this.urlencodedToDict((String) (newUrlQuery));
                 this.AssertNewAndStoredOutput(exchange, skipKeys, newUrlParams, storedUrlParams, true, (Object) null);
                 return true;
             }
@@ -2198,8 +2198,8 @@ public class TestMain extends BaseTest
             }
         } else if (java.util.Objects.equals(type, "urlencoded") && (!java.util.Objects.equals(storedOutput, null)) && (!java.util.Objects.equals(newOutput, null)))
         {
-            storedOutput = this.urlencodedToDict(storedOutput);
-            newOutput = this.urlencodedToDict(newOutput);
+            storedOutput = this.urlencodedToDict((String) (storedOutput));
+            newOutput = this.urlencodedToDict((String) (newOutput));
         } else if (java.util.Objects.equals(type, "both"))
         {
             if ((java.util.Objects.equals(((String)storedOutput).startsWith("{"), true)) || (java.util.Objects.equals(((String)storedOutput).startsWith("["), true)))
@@ -2208,8 +2208,8 @@ public class TestMain extends BaseTest
                 newOutput = jsonParse(newOutput);
             } else
             {
-                storedOutput = this.urlencodedToDict(storedOutput);
-                newOutput = this.urlencodedToDict(newOutput);
+                storedOutput = this.urlencodedToDict((String) (storedOutput));
+                newOutput = this.urlencodedToDict((String) (newOutput));
             }
         }
         this.AssertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput, true, (Object) null);
@@ -2288,7 +2288,7 @@ public class TestMain extends BaseTest
         return true;
     }
 
-    public Object AssertStaticIsolatedPositions(BaseExchange exchange, Object method, Object output)
+    public Object AssertStaticIsolatedPositions(BaseExchange exchange, String method, Object output)
     {
         if ((java.util.Objects.equals(method, "fetchPosition")) || (java.util.Objects.equals(method, "fetchPositions")) || (java.util.Objects.equals(method, "fetchPositionsForSymbol")) || (java.util.Objects.equals(method, "fetchPositionsRisk")))
         {
@@ -2334,7 +2334,7 @@ public class TestMain extends BaseTest
         return newInput;
     }
 
-    public CompletableFuture<Object> testRequestStatically(BaseExchange exchange, Object method, Object data, Object type, Object skipKeys)
+    public CompletableFuture<Object> testRequestStatically(BaseExchange exchange, String method, Map<String, Object> data, String type, Object skipKeys)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2343,16 +2343,16 @@ public class TestMain extends BaseTest
             Object requestUrl = null;
             if (Helpers.isTrue(this.info))
             {
-                dump("[INFO] STATIC REQUEST TEST:", method, ":", ((Map<String, Object>)data).get("description"));
+                dump("[INFO] STATIC REQUEST TEST:", method, ":", data.get("description"));
             }
             try
             {
                 if (!Helpers.isTrue(isSync()))
                 {
-                    (callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(((Map<String, Object>)data).get("input")))).join();
+                    (callExchangeMethodDynamically(exchange, (String) (method), this.sanitizeDataInput(data.get("input")))).join();
                 } else
                 {
-                    callExchangeMethodDynamicallySync(exchange, method, this.sanitizeDataInput(((Map<String, Object>)data).get("input")));
+                    callExchangeMethodDynamicallySync(exchange, (String) (method), this.sanitizeDataInput(data.get("input")));
                 }
             } catch(Exception e)
             {
@@ -2366,7 +2366,7 @@ public class TestMain extends BaseTest
             try
             {
                 Object callOutput = exchange.safeValue(data, "output");
-                this.AssertStaticRequestOutput(exchange, type, skipKeys, ((Map<String, Object>)data).get("url"), ((String)requestUrl), callOutput, output);
+                this.AssertStaticRequestOutput(exchange, (String) (type), skipKeys, (String) (data.get("url")), (String) (((String)requestUrl)), callOutput, output);
                 // optional per-test header pinning. only the keys the fixture lists are compared, so a
                 // fixture can pin one auth header without freezing the whole header set. this is the
                 // only cross-language Assertion on header *names*, which the php transpiler can
@@ -2387,7 +2387,7 @@ public class TestMain extends BaseTest
             } catch(Exception e)
             {
                 this.requestTestsFailed = true;
-                String errorMessage = (((((((((((("[" + this.lang) + "][STATIC_REQUEST]") + "[") + exchange.id) + "]") + "[") + method) + "]") + "[") + ((Map<String, Object>)data).get("description")) + "]") + exceptionMessage(e));
+                String errorMessage = (((((((((((("[" + this.lang) + "][STATIC_REQUEST]") + "[") + exchange.id) + "]") + "[") + method) + "]") + "[") + data.get("description")) + "]") + exceptionMessage(e));
                 dump(("[TEST_FAILURE]" + errorMessage));
             }
             return true;
@@ -2395,7 +2395,7 @@ public class TestMain extends BaseTest
 
     }
 
-    public CompletableFuture<Object> testResponseStatically(BaseExchange exchange, Object method, Object skipKeys, Object data)
+    public CompletableFuture<Object> testResponseStatically(BaseExchange exchange, String method, Object skipKeys, Map<String, Object> data)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2411,29 +2411,29 @@ public class TestMain extends BaseTest
                 mockedExchange = setFetchResponseByUrl(exchange, responsesByUrl);
             } else
             {
-                mockedExchange = setFetchResponse(exchange, ((Map<String, Object>)data).get("httpResponse"));
+                mockedExchange = setFetchResponse(exchange, data.get("httpResponse"));
             }
             if (Helpers.isTrue(this.info))
             {
-                dump("[INFO] STATIC RESPONSE TEST:", method, ":", ((Map<String, Object>)data).get("description"));
+                dump("[INFO] STATIC RESPONSE TEST:", method, ":", data.get("description"));
             }
             try
             {
                 if (!Helpers.isTrue(isSync()))
                 {
-                    Object unifiedResult = (callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(((Map<String, Object>)data).get("input")))).join();
+                    Object unifiedResult = (callExchangeMethodDynamically(exchange, (String) (method), this.sanitizeDataInput(data.get("input")))).join();
                     this.AssertStaticResponseOutput(mockedExchange, skipKeys, unifiedResult, expectedResult);
-                    this.AssertStaticIsolatedPositions(mockedExchange, method, expectedResult);
+                    this.AssertStaticIsolatedPositions(mockedExchange, (String) (method), expectedResult);
                 } else
                 {
-                    Object unifiedResultSync = callExchangeMethodDynamicallySync(exchange, method, this.sanitizeDataInput(((Map<String, Object>)data).get("input")));
+                    Object unifiedResultSync = callExchangeMethodDynamicallySync(exchange, (String) (method), this.sanitizeDataInput(data.get("input")));
                     this.AssertStaticResponseOutput(mockedExchange, skipKeys, unifiedResultSync, expectedResult);
-                    this.AssertStaticIsolatedPositions(mockedExchange, method, expectedResult);
+                    this.AssertStaticIsolatedPositions(mockedExchange, (String) (method), expectedResult);
                 }
             } catch(Exception e)
             {
                 this.responseTestsFailed = true;
-                String errorMessage = (((((((((((("[" + this.lang) + "][STATIC_RESPONSE]") + "[") + exchange.id) + "]") + "[") + method) + "]") + "[") + ((Map<String, Object>)data).get("description")) + "]") + exceptionMessage(e));
+                String errorMessage = (((((((((((("[" + this.lang) + "][STATIC_RESPONSE]") + "[") + exchange.id) + "]") + "[") + method) + "]") + "[") + data.get("description")) + "]") + exceptionMessage(e));
                 dump(("[TEST_FAILURE]" + errorMessage));
             }
             setFetchResponse(exchange, null); // reset state
@@ -2442,9 +2442,9 @@ public class TestMain extends BaseTest
 
     }
 
-    public Object wsRequestWasSent(BaseExchange exchange, Object url, Object id)
+    public Object wsRequestWasSent(BaseExchange exchange, String url, String id)
     {
-        Object sentMessages = getWsSentMessages(exchange, url);
+        Object sentMessages = getWsSentMessages(exchange, (String) (url));
         for (var i = 0; i < Helpers.getArrayLength(sentMessages); i++)
         {
             if (java.util.Objects.equals(exchange.safeString(Helpers.GetValue(sentMessages, i), "id"), id))
@@ -2455,7 +2455,7 @@ public class TestMain extends BaseTest
         return false;
     }
 
-    public CompletableFuture<Object> injectWsMessages(BaseExchange exchange, Object url, Object messages, Object sequential)
+    public CompletableFuture<Object> injectWsMessages(BaseExchange exchange, String url, Object messages, Object sequential)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2466,7 +2466,7 @@ public class TestMain extends BaseTest
             for (var i = 0; i < ((List<?>)messages).size(); i++)
             {
                 long waited = 0;
-                while (!Helpers.isTrue(wsClientHasPendingFutures(exchange, url)) && ((waited < 5000)))
+                while (!Helpers.isTrue(wsClientHasPendingFutures(exchange, (String) (url))) && ((waited < 5000)))
                 {
                     (exchange.sleep(50)).join();
                     waited = (waited + 50L);
@@ -2474,7 +2474,7 @@ public class TestMain extends BaseTest
                 // a reply frame must not arrive before its request was sent, or it is dropped
                 String frameId = exchange.safeString((messages == null || i < 0 || i >= ((List<?>)messages).size() ? null : ((List<?>)messages).get(i)), "id");
                 long waitedSent = 0;
-                while ((!java.util.Objects.equals(frameId, null)) && !Boolean.TRUE.equals(this.wsRequestWasSent(exchange, url, frameId)) && ((waitedSent < 5000)))
+                while ((!java.util.Objects.equals(frameId, null)) && !Boolean.TRUE.equals(this.wsRequestWasSent(exchange, (String) (url), frameId)) && ((waitedSent < 5000)))
                 {
                     (exchange.sleep(50)).join();
                     waitedSent = (waitedSent + 50L);
@@ -2486,21 +2486,21 @@ public class TestMain extends BaseTest
                 {
                     frame = exchange.base16ToBinary(binaryFrame);
                 }
-                injectWsMessage(exchange, url, frame);
+                injectWsMessage(exchange, (String) (url), frame);
                 // threaded runtimes resolve futures on another thread — wait for
                 // the consumed frame to settle so the pending check above does not
                 // observe a stale future and burn the next frame early; frames
                 // that resolve nothing (e.g. subscribe acks) fall through on the
                 // timeout
                 long settled = 0;
-                while (Helpers.isTrue(wsClientHasPendingFutures(exchange, url)) && ((settled < 500)))
+                while (Helpers.isTrue(wsClientHasPendingFutures(exchange, (String) (url))) && ((settled < 500)))
                 {
                     (exchange.sleep(20)).join();
                     settled = (settled + 20L);
                 }
             }
             (exchange.sleep(50)).join();
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(sequential, false)))
+            if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(sequential, false)))
             {
                 // a watch call of a sequence can register its future after every
                 // frame was already consumed — keep rejecting until the watch side
@@ -2510,22 +2510,22 @@ public class TestMain extends BaseTest
                 // work stealing): give up eventually so the stack unwinds instead
                 // of deadlocking
                 long waitedDone = 0;
-                while (!Helpers.isTrue(isWsTestCompleted(exchange, url)) && ((waitedDone < 30000)))
+                while (!Helpers.isTrue(isWsTestCompleted(exchange, (String) (url))) && ((waitedDone < 30000)))
                 {
-                    rejectPendingWsFutures(exchange, url);
+                    rejectPendingWsFutures(exchange, (String) (url));
                     (exchange.sleep(50)).join();
                     waitedDone = (waitedDone + 50L);
                 }
             }
             // reject anything still pending so a wrong fixture fails fast
             // instead of hanging the test run forever
-            rejectPendingWsFutures(exchange, url);
+            rejectPendingWsFutures(exchange, (String) (url));
             return true;  // c# methods used with promiseAll need to return something
         });
 
     }
 
-    public CompletableFuture<Object> watchAndAssertSequence(BaseExchange exchange, Object url, Object method, Object input, Object skipKeys, Object expectedResults)
+    public CompletableFuture<Object> watchAndAssertSequence(BaseExchange exchange, String url, String method, Object input, Object skipKeys, Object expectedResults)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2534,7 +2534,7 @@ public class TestMain extends BaseTest
             {
                 for (var i = 0; i < ((List<?>)expectedResults).size(); i++)
                 {
-                    Object result = (callExchangeMethodDynamically(exchange, method, input)).join();
+                    Object result = (callExchangeMethodDynamically(exchange, (String) (method), input)).join();
                     // ws structures can be live typed objects (e.g. orderbooks) in some
                     // runtimes — roundtrip through json so the deep-compare sees plain
                     // dicts in every language
@@ -2546,16 +2546,16 @@ public class TestMain extends BaseTest
                 // let the injector's rejection loop exit before the caller reports
                 // — the explicit try/catch also keeps the java transpilation
                 // compilable (checked exceptions)
-                markWsTestCompleted(exchange, url);
+                markWsTestCompleted(exchange, (String) (url));
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
-            markWsTestCompleted(exchange, url);
+            markWsTestCompleted(exchange, (String) (url));
             return true;  // c# methods used with promiseAll need to return something
         });
 
     }
 
-    public void AssertWsSentMessages(BaseExchange exchange, Object url, Object data)
+    public void AssertWsSentMessages(BaseExchange exchange, String url, Map<String, Object> data)
     {
         // the ws analog of the static request tests: Assert the frames the
         // watch method sent over the mocked transport (subscribe requests etc)
@@ -2567,7 +2567,7 @@ public class TestMain extends BaseTest
         // ids/signatures/timestamps inside outgoing frames can be volatile —
         // exclude them per entry without touching the response skipKeys
         Object sentSkipKeys = exchange.safeList(data, "sentSkipKeys", new ArrayList<Object>(Arrays.asList()));
-        Object sentMessages = getWsSentMessages(exchange, url);
+        Object sentMessages = getWsSentMessages(exchange, (String) (url));
         Object sentLength = Helpers.getArrayLength(sentMessages);
         Object expectedLength = Helpers.getArrayLength(expectedSent);
         Assert(Helpers.isEqual(sentLength, expectedLength), ((((("sent ws messages count mismatch: sent " + String.valueOf(sentLength)) + ", expected ") + String.valueOf(expectedLength)) + " ") + jsonStringify(sentMessages)));
@@ -2578,7 +2578,7 @@ public class TestMain extends BaseTest
         }
     }
 
-    public CompletableFuture<Object> testWsStatically(BaseExchange exchange, Object method, Object skipKeys, Object data)
+    public CompletableFuture<Object> testWsStatically(BaseExchange exchange, String method, Object skipKeys, Map<String, Object> data)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2593,12 +2593,12 @@ public class TestMain extends BaseTest
             }
             if (Helpers.isTrue(this.info))
             {
-                dump("[INFO] STATIC WS TEST:", method, ":", ((Map<String, Object>)data).get("description"));
+                dump("[INFO] STATIC WS TEST:", method, ":", data.get("description"));
             }
             try
             {
                 Object messages = exchange.safeList(data, "messages", new ArrayList<Object>(Arrays.asList()));
-                Object input = this.sanitizeDataInput(((Map<String, Object>)data).get("input"));
+                Object input = this.sanitizeDataInput(data.get("input"));
                 Object expectedResults = exchange.safeList(data, "parsedResponses", (Object) null);
                 if (!java.util.Objects.equals(expectedResults, null))
                 {
@@ -2609,24 +2609,24 @@ public class TestMain extends BaseTest
                     // worker could execute it inline on the blocked stack and the
                     // rejection loop would then wait on the very watch side it is
                     // buried on top of
-                    List<Object> promises = new ArrayList<Object>(Arrays.asList(this.injectWsMessages(exchange, url, messages, true), this.watchAndAssertSequence(exchange, url, method, input, skipKeys, expectedResults)));
+                    List<Object> promises = new ArrayList<Object>(Arrays.asList(this.injectWsMessages(exchange, url, messages, true), this.watchAndAssertSequence(exchange, url, (String) (method), input, skipKeys, expectedResults)));
                     (Helpers.promiseAll(promises)).join();
-                    this.AssertWsSentMessages(exchange, url, data);
+                    this.AssertWsSentMessages(exchange, url, (Map<String, Object>) (data));
                 } else
                 {
                     // 'parsedResponse' Asserts the final state after every frame
                     // was replayed — live structures like orderbooks keep updating
                     // after the first resolution, so serialize only at the end
-                    List<Object> promises = new ArrayList<Object>(Arrays.asList(callExchangeMethodDynamically(exchange, method, input), this.injectWsMessages(exchange, url, messages, false)));
+                    List<Object> promises = new ArrayList<Object>(Arrays.asList(callExchangeMethodDynamically(exchange, (String) (method), input), this.injectWsMessages(exchange, url, messages, false)));
                     Object results = (Helpers.promiseAll(promises)).join();
                     Object unifiedResult = jsonParse(jsonStringify((results == null || 0 >= ((List<?>)results).size() ? null : ((List<?>)results).get(0))));
-                    this.AssertStaticResponseOutput(exchange, skipKeys, unifiedResult, ((Map<String, Object>)data).get("parsedResponse"));
-                    this.AssertWsSentMessages(exchange, url, data);
+                    this.AssertStaticResponseOutput(exchange, skipKeys, unifiedResult, data.get("parsedResponse"));
+                    this.AssertWsSentMessages(exchange, url, (Map<String, Object>) (data));
                 }
             } catch(Exception e)
             {
                 this.staticWsTestsFailed = true;
-                String errorMessage = (((((((((((("[" + this.lang) + "][STATIC_WS]") + "[") + exchange.id) + "]") + "[") + method) + "]") + "[") + ((Map<String, Object>)data).get("description")) + "]") + exceptionMessage(e));
+                String errorMessage = (((((((((((("[" + this.lang) + "][STATIC_WS]") + "[") + exchange.id) + "]") + "[") + method) + "]") + "[") + data.get("description")) + "]") + exceptionMessage(e));
                 dump(("[TEST_FAILURE]" + errorMessage));
             }
             setFetchResponse(exchange, null); // reset state
@@ -2635,13 +2635,13 @@ public class TestMain extends BaseTest
 
     }
 
-    public CompletableFuture<Object> testExchangeWsStatically(Object exchangeName, Object exchangeData, Object testName)
+    public CompletableFuture<Object> testExchangeWsStatically(String exchangeName, Map<String, Object> exchangeData, Object testName)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object globalOptions = ((java.util.Objects.equals(((Map<String, Object>)exchangeData).get("options"), null))) ? new HashMap<String, Object>() {{}} : ((Map<String, Object>)exchangeData).get("options");
-            Object methods = ((java.util.Objects.equals(((Map<String, Object>)exchangeData).get("methods"), null))) ? new HashMap<String, Object>() {{}} : ((Map<String, Object>)exchangeData).get("methods");
+            Object globalOptions = ((java.util.Objects.equals(exchangeData.get("options"), null))) ? new HashMap<String, Object>() {{}} : exchangeData.get("options");
+            Object methods = ((java.util.Objects.equals(exchangeData.get("methods"), null))) ? new HashMap<String, Object>() {{}} : exchangeData.get("methods");
             List<Object> methodsNames = Helpers.objectKeys(methods);
             for (var i = 0; i < ((List<?>)methodsNames).size(); i++)
             {
@@ -2658,7 +2658,7 @@ public class TestMain extends BaseTest
                     // a fresh exchange per entry: ws caches (trades, orderbooks,
                     // ohlcvs) and request-id counters survive between watch calls
                     // and would leak state across entries otherwise
-                    BaseExchange exchange = this.initOfflineExchange(exchangeName, true);
+                    BaseExchange exchange = this.initOfflineExchange((String) (exchangeName), true);
                     Object isDisabled = exchange.safeBool(result, "disabled", false);
                     if (Helpers.isTrue(isDisabled))
                     {
@@ -2708,7 +2708,7 @@ public class TestMain extends BaseTest
                         exchange.secret = String.valueOf(secret);
                     }
                     Object skipKeys = this.effectiveSkipKeys(exchange, exchangeData, result);
-                    (this.testWsStatically(exchange, method, skipKeys, result)).join();
+                    (this.testWsStatically(exchange, (String) (method), skipKeys, (Map<String, Object>) (result))).join();
                     if (!Helpers.isTrue(isSync()))
                     {
                         (close(exchange)).join();
@@ -2720,7 +2720,7 @@ public class TestMain extends BaseTest
 
     }
 
-    public BaseExchange initOfflineExchange(Object exchangeName, Object isWs)
+    public BaseExchange initOfflineExchange(String exchangeName, Object isWs)
     {
         // prediction exchanges load their outcome markets from an event -> markets -> outcomes
         // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
@@ -2731,14 +2731,14 @@ public class TestMain extends BaseTest
         Object predictionEvents = null;
         if (Helpers.isTrue(this.predictionTests))
         {
-            predictionEvents = this.loadEventsFromFile(exchangeName);
+            predictionEvents = this.loadEventsFromFile((String) (exchangeName));
         }
         Object markets = null;
         Object currencies = null;
         if (java.util.Objects.equals(predictionEvents, null))
         {
-            markets = this.loadMarketsFromFile(exchangeName);
-            currencies = this.loadCurrenciesFromFile(exchangeName);
+            markets = this.loadMarketsFromFile((String) (exchangeName));
+            currencies = this.loadCurrenciesFromFile((String) (exchangeName));
         }
         String wasmExecPath = null;
         String libraryPath = null;
@@ -2822,7 +2822,7 @@ public class TestMain extends BaseTest
             // Ed25519 requires a base64-encoded 32-byte seed, not the generic dummy secret.
             options.put("secret", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=");
         }
-        BaseExchange exchange = initExchange(exchangeName, options, java.util.Objects.requireNonNullElse(isWs, false));
+        BaseExchange exchange = initExchange((String) (exchangeName), options, java.util.Objects.requireNonNullElse(isWs, false));
         if (!java.util.Objects.equals(currencies, null))
         {
             exchange.currencies = currencies;
@@ -2856,13 +2856,13 @@ public class TestMain extends BaseTest
         return exchange;
     }
 
-    public CompletableFuture<Object> testExchangeRequestStatically(Object exchangeName, Object exchangeData, Object testName)
+    public CompletableFuture<Object> testExchangeRequestStatically(String exchangeName, Object exchangeData, Object testName)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             // instantiate the exchange and make sure that we sink the requests to avoid an actual request
-            BaseExchange exchange = this.initOfflineExchange(exchangeName, false);
+            BaseExchange exchange = this.initOfflineExchange((String) (exchangeName), false);
             Object globalOptions = exchange.safeDict(exchangeData, "options", new HashMap<String, Object>() {{}});
             // read apiKey/secret from the test file
             String apiKey = exchange.safeString(exchangeData, "apiKey");
@@ -2892,7 +2892,8 @@ public class TestMain extends BaseTest
             Object accounts = exchange.safeList(exchangeData, "accounts", (Object) null);
             if (!java.util.Objects.equals(accounts, null) && !java.util.Objects.equals(accounts, null))
             {
-                exchange.accounts = accounts;
+                // the field is a List<object>: assign the call, not the untyped local
+                exchange.accounts = exchange.safeList(exchangeData, "accounts", (Object) null);
             }
             // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
             exchange.extendExchangeOptions((Map<String, Object>) (globalOptions));
@@ -2946,7 +2947,7 @@ public class TestMain extends BaseTest
                     }
                     String type = exchange.safeString(exchangeData, "outputType");
                     Object skipKeys = this.effectiveSkipKeys(exchange, exchangeData, result);
-                    (this.testRequestStatically(exchange, method, result, type, skipKeys)).join();
+                    (this.testRequestStatically(exchange, (String) (method), (Map<String, Object>) (result), type, skipKeys)).join();
                     // reset options
                     exchange.options = exchange.convertToSafeDictionary(exchange.deepExtend(oldExchangeOptions, new HashMap<String, Object>() {{}}));
                 }
@@ -2960,12 +2961,12 @@ public class TestMain extends BaseTest
 
     }
 
-    public CompletableFuture<Object> testExchangeResponseStatically(Object exchangeName, Object exchangeData, Object testName)
+    public CompletableFuture<Object> testExchangeResponseStatically(String exchangeName, Object exchangeData, Object testName)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            BaseExchange exchange = this.initOfflineExchange(exchangeName, false);
+            BaseExchange exchange = this.initOfflineExchange((String) (exchangeName), false);
             // read apiKey/secret from the test file
             String apiKey = exchange.safeString(exchangeData, "apiKey");
             if (!Helpers.isTrue(exchange.isEmptyString(apiKey)))
@@ -3043,7 +3044,7 @@ public class TestMain extends BaseTest
                         continue;
                     }
                     Object skipKeys = this.effectiveSkipKeys(exchange, exchangeData, result);
-                    (this.testResponseStatically(exchange, method, skipKeys, result)).join();
+                    (this.testResponseStatically(exchange, (String) (method), skipKeys, (Map<String, Object>) (result))).join();
                     // reset options
                     // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
                     exchange.extendExchangeOptions((Map<String, Object>) (exchange.deepExtend(oldExchangeOptions, new HashMap<String, Object>() {{}})));
@@ -3058,14 +3059,14 @@ public class TestMain extends BaseTest
 
     }
 
-    public Object getNumberOfTestsFromExchange(BaseExchange exchange, Object exchangeData, Object testName)
+    public Object getNumberOfTestsFromExchange(BaseExchange exchange, Map<String, Object> exchangeData, Object testName)
     {
         if (!java.util.Objects.equals(testName, null))
         {
             return 1;
         }
         Object sum = 0;
-        Object methods = ((Map<String, Object>)exchangeData).get("methods");
+        Object methods = exchangeData.get("methods");
         List<Object> methodsNames = Helpers.objectKeys(methods);
         for (var i = 0; i < ((List<?>)methodsNames).size(); i++)
         {
@@ -3077,7 +3078,7 @@ public class TestMain extends BaseTest
         return sum;
     }
 
-    public Object checkIfExchangeIsDisabled(Object exchangeName, Object exchangeData)
+    public Object checkIfExchangeIsDisabled(String exchangeName, Object exchangeData)
     {
         Exchange exchange = ((Exchange)initExchange("Exchange", new HashMap<String, Object>() {{}}));
         // prediction-market exchanges exist only in the async namespaces in python/php,
@@ -3138,7 +3139,7 @@ public class TestMain extends BaseTest
 
     }
 
-    public CompletableFuture<Object> runStaticTests(Object type, Object targetExchange, Object testName)
+    public CompletableFuture<Object> runStaticTests(String type, Object targetExchange, Object testName)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3176,14 +3177,14 @@ public class TestMain extends BaseTest
                 {
                     continue;
                 }
-                Object numberOfTests = this.getNumberOfTestsFromExchange(exchange, exchangeData, testName);
+                Object numberOfTests = this.getNumberOfTestsFromExchange(exchange, (Map<String, Object>) (exchangeData), testName);
                 sum = exchange.sum(sum, numberOfTests);
                 if (java.util.Objects.equals(type, "request"))
                 {
                     ((List<Object>)promises).add(this.testExchangeRequestStatically(exchangeName, exchangeData, testName));
                 } else if (java.util.Objects.equals(type, "ws"))
                 {
-                    ((List<Object>)promises).add(this.testExchangeWsStatically(exchangeName, exchangeData, testName));
+                    ((List<Object>)promises).add(this.testExchangeWsStatically(exchangeName, (Map<String, Object>) (exchangeData), testName));
                 } else
                 {
                     ((List<Object>)promises).add(this.testExchangeResponseStatically(exchangeName, exchangeData, testName));
@@ -3288,7 +3289,7 @@ public class TestMain extends BaseTest
                 ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                spotOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                spotOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
             }
             Object clientOrderId = ((Map<String, Object>)spotOrderRequest).get("newClientOrderId");
             Assert(java.util.Objects.equals(((String)clientOrderId).startsWith(spotId), true), ((("binance - spot clientOrderId: " + clientOrderId) + " does not start with spotId") + spotId));
@@ -3298,7 +3299,7 @@ public class TestMain extends BaseTest
                 ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT:USDT", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                swapOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                swapOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
             }
             Object swapInverseOrderRequest = new HashMap<String, Object>() {{}};
             try
@@ -3306,7 +3307,7 @@ public class TestMain extends BaseTest
                 ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USD:BTC", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                swapInverseOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                swapInverseOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
             }
             // linear swap
             Object clientOrderIdSwap = ((Map<String, Object>)swapOrderRequest).get("newClientOrderId");
@@ -3324,7 +3325,7 @@ public class TestMain extends BaseTest
                 ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                swapNoSubTypeRequest = this.urlencodedToDict(exchange.last_request_body);
+                swapNoSubTypeRequest = this.urlencodedToDict((String) (exchange.last_request_body));
             }
             Object swapNoSubTypeId = ((Map<String, Object>)swapNoSubTypeRequest).get("newClientOrderId");
             Assert(java.util.Objects.equals(((String)swapNoSubTypeId).startsWith(swapId), true), ((("binance - defaultType swap without subType clientOrderId: " + swapNoSubTypeId) + " does not start with swapId") + swapId));
@@ -3337,7 +3338,7 @@ public class TestMain extends BaseTest
                 ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                swapLinearRequest = this.urlencodedToDict(exchange.last_request_body);
+                swapLinearRequest = this.urlencodedToDict((String) (exchange.last_request_body));
             }
             Object swapLinearId = ((Map<String, Object>)swapLinearRequest).get("newClientOrderId");
             Assert(java.util.Objects.equals(((String)swapLinearId).startsWith(swapId), true), ((("binance - defaultType swap linear clientOrderId: " + swapLinearId) + " does not start with swapId") + swapId));
@@ -3350,7 +3351,7 @@ public class TestMain extends BaseTest
                 ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USD", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                swapInverseRequest = this.urlencodedToDict(exchange.last_request_body);
+                swapInverseRequest = this.urlencodedToDict((String) (exchange.last_request_body));
             }
             Object swapInverseId = ((Map<String, Object>)swapInverseRequest).get("newClientOrderId");
             Assert(java.util.Objects.equals(((String)swapInverseId).startsWith(inverseSwapId), true), ((("binance - defaultType swap inverse clientOrderId: " + swapInverseId) + " does not start with inverseSwapId") + inverseSwapId));
@@ -3369,7 +3370,7 @@ public class TestMain extends BaseTest
                 }}})).join();
             } catch(Exception e)
             {
-                swapAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                swapAlgoOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
             }
             Object clientAlgoIdSwap = ((Map<String, Object>)swapAlgoOrderRequest).get("clientAlgoId");
             Assert(!java.util.Objects.equals(clientAlgoIdSwap, null), "binance - swap conditional order must send clientAlgoId");
@@ -3383,7 +3384,7 @@ public class TestMain extends BaseTest
                 }}})).join();
             } catch(Exception e)
             {
-                inverseAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                inverseAlgoOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
             }
             Object clientAlgoIdInverse = ((Map<String, Object>)inverseAlgoOrderRequest).get("clientAlgoId");
             Assert(!java.util.Objects.equals(clientAlgoIdInverse, null), "binance - inverse swap conditional order must send clientAlgoId");
@@ -3406,7 +3407,7 @@ public class TestMain extends BaseTest
                 ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrders", new Object[]{orders, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                createOrdersRequest = this.urlencodedToDict(exchange.last_request_body);
+                createOrdersRequest = this.urlencodedToDict((String) (exchange.last_request_body));
             }
             Object batchOrders = ((Map<String, Object>)createOrdersRequest).get("batchOrders");
             for (var i = 0; i < Helpers.getArrayLength(batchOrders); i++)
@@ -3454,7 +3455,7 @@ public class TestMain extends BaseTest
             } catch(Exception e)
             {
                 inverseConditionalBatchNotSupported = (Helpers.isInstance(e, NotSupported.class));
-                inverseConditionalBatchRequest = this.urlencodedToDict(exchange.last_request_body);
+                inverseConditionalBatchRequest = this.urlencodedToDict((String) (exchange.last_request_body));
             }
             Assert(!Boolean.TRUE.equals(inverseConditionalBatchNotSupported), "binance createOrders - inverse conditional order must not throw NotSupported");
             Object inverseConditionalBatchOrders = exchange.safeList(inverseConditionalBatchRequest, "batchOrders", new ArrayList<Object>(Arrays.asList()));
@@ -3469,7 +3470,7 @@ public class TestMain extends BaseTest
                 ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"ETH/USDT:USDT-261225", "limit", "buy", 1, 2000, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                linearFutureOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                linearFutureOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
             }
             Object clientOrderIdLinearFuture = ((Map<String, Object>)linearFutureOrderRequest).get("newClientOrderId");
             Assert(java.util.Objects.equals(((String)clientOrderIdLinearFuture).startsWith(swapId), true), ((("binance - linear future clientOrderId: " + clientOrderIdLinearFuture) + " does not start with swapId") + swapId));
@@ -3479,7 +3480,7 @@ public class TestMain extends BaseTest
                 ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"ETH/USD:ETH-261225", "limit", "buy", 1, 2000, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                inverseFutureOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                inverseFutureOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
             }
             Object clientOrderIdInverseFuture = ((Map<String, Object>)inverseFutureOrderRequest).get("newClientOrderId");
             Assert(java.util.Objects.equals(((String)clientOrderIdInverseFuture).startsWith(inverseSwapId), true), ((("binance - inverse future clientOrderId: " + clientOrderIdInverseFuture) + " does not start with inverseSwapId") + inverseSwapId));
@@ -3490,7 +3491,7 @@ public class TestMain extends BaseTest
                 ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"ETH/USDT:USDT-231229-800-C", "limit", "buy", 1, 100, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                optionOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                optionOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
             }
             String optionClientOrderId = exchange.safeString(optionOrderRequest, "clientOrderId");
             Assert(!java.util.Objects.equals(optionClientOrderId, null), "binance - option order must send clientOrderId");
@@ -3512,7 +3513,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitDapiOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitDapiOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 Object implicitDapiClientOrderId = ((Map<String, Object>)implicitDapiOrderRequest).get("newClientOrderId");
                 Assert(java.util.Objects.equals(((String)implicitDapiClientOrderId).startsWith(inverseSwapId), true), ((("binance - implicit dapi clientOrderId: " + implicitDapiClientOrderId) + " does not start with inverseSwapId") + inverseSwapId));
@@ -3531,7 +3532,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitDapiBatchRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitDapiBatchRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 Object implicitDapiBatchOrders = exchange.safeList(implicitDapiBatchRequest, "batchOrders", new ArrayList<Object>(Arrays.asList()));
                 Object implicitDapiBatchOrder = exchange.safeDict(implicitDapiBatchOrders, 0, new HashMap<String, Object>() {{}});
@@ -3554,7 +3555,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitFapiAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitFapiAlgoOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String implicitFapiClientAlgoId = exchange.safeString(implicitFapiAlgoOrderRequest, "clientAlgoId");
                 Assert(!java.util.Objects.equals(implicitFapiClientAlgoId, null), "binance - implicit fapi algo order must inject clientAlgoId");
@@ -3573,7 +3574,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitPapiUmOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitPapiUmOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String implicitPapiUmClientOrderId = exchange.safeString(implicitPapiUmOrderRequest, "newClientOrderId");
                 Assert(!java.util.Objects.equals(implicitPapiUmClientOrderId, null), "binance - implicit papi um order must inject newClientOrderId");
@@ -3591,7 +3592,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitPapiCmOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitPapiCmOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String implicitPapiCmClientOrderId = exchange.safeString(implicitPapiCmOrderRequest, "newClientOrderId");
                 Assert(!java.util.Objects.equals(implicitPapiCmClientOrderId, null), "binance - implicit papi cm order must inject newClientOrderId");
@@ -3609,7 +3610,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitPapiMarginOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitPapiMarginOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String implicitPapiMarginClientOrderId = exchange.safeString(implicitPapiMarginOrderRequest, "newClientOrderId");
                 Assert(!java.util.Objects.equals(implicitPapiMarginClientOrderId, null), "binance - implicit papi margin order must inject newClientOrderId");
@@ -3627,7 +3628,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitSapiMarginOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitSapiMarginOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String implicitSapiMarginClientOrderId = exchange.safeString(implicitSapiMarginOrderRequest, "newClientOrderId");
                 Assert(!java.util.Objects.equals(implicitSapiMarginClientOrderId, null), "binance - implicit sapi margin order must inject newClientOrderId");
@@ -3648,7 +3649,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitPapiUmAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitPapiUmAlgoOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String implicitPapiUmClientAlgoId = exchange.safeString(implicitPapiUmAlgoOrderRequest, "clientAlgoId");
                 Assert(!java.util.Objects.equals(implicitPapiUmClientAlgoId, null), "binance - implicit papi um algo order must inject clientAlgoId");
@@ -3668,7 +3669,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitPapiCmConditionalOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitPapiCmConditionalOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String implicitPapiCmStrategyId = exchange.safeString(implicitPapiCmConditionalOrderRequest, "newClientStrategyId");
                 Assert(!java.util.Objects.equals(implicitPapiCmStrategyId, null), "binance - implicit papi cm conditional order must inject newClientStrategyId");
@@ -3687,7 +3688,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitPapiUmConditionalOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitPapiUmConditionalOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String implicitPapiUmStrategyId = exchange.safeString(implicitPapiUmConditionalOrderRequest, "newClientStrategyId");
                 Assert(!java.util.Objects.equals(implicitPapiUmStrategyId, null), "binance - implicit papi um conditional order must inject newClientStrategyId");
@@ -3705,7 +3706,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitEapiOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitEapiOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String implicitEapiClientOrderId = exchange.safeString(implicitEapiOrderRequest, "clientOrderId");
                 Assert(!java.util.Objects.equals(implicitEapiClientOrderId, null), "binance - implicit eapi order must inject clientOrderId");
@@ -3724,7 +3725,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitEapiBatchRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitEapiBatchRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 Object implicitEapiBatchOrders = exchange.safeList(implicitEapiBatchRequest, "batchOrders", new ArrayList<Object>(Arrays.asList()));
                 Object implicitEapiBatchOrder = exchange.safeDict(implicitEapiBatchOrders, 0, new HashMap<String, Object>() {{}});
@@ -3745,7 +3746,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitEquityOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitEquityOrderRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String implicitEquityClientOrderId = exchange.safeString(implicitEquityOrderRequest, "clientOrderId");
                 Assert(!java.util.Objects.equals(implicitEquityClientOrderId, null), "binance - implicit equity order must inject clientOrderId");
@@ -3765,7 +3766,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitOcoListRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitOcoListRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String ocoListClientOrderId = exchange.safeString(implicitOcoListRequest, "listClientOrderId");
                 String ocoAboveClientOrderId = exchange.safeString(implicitOcoListRequest, "aboveClientOrderId");
@@ -3792,7 +3793,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitOtocoListRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitOtocoListRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String otocoWorkingClientOrderId = exchange.safeString(implicitOtocoListRequest, "workingClientOrderId");
                 String otocoPendingAboveClientOrderId = exchange.safeString(implicitOtocoListRequest, "pendingAboveClientOrderId");
@@ -3812,7 +3813,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitSapiMarginOcoRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitSapiMarginOcoRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String sapiMarginOcoLimitClientOrderId = exchange.safeString(implicitSapiMarginOcoRequest, "limitClientOrderId");
                 String sapiMarginOcoStopClientOrderId = exchange.safeString(implicitSapiMarginOcoRequest, "stopClientOrderId");
@@ -3830,7 +3831,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitPapiMarginOcoRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitPapiMarginOcoRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String papiMarginOcoListClientOrderId = exchange.safeString(implicitPapiMarginOcoRequest, "listClientOrderId");
                 Assert((!java.util.Objects.equals(papiMarginOcoListClientOrderId, null)) && Helpers.isTrue((papiMarginOcoListClientOrderId.startsWith(((String)spotId)))), "binance - implicit papi margin oco listClientOrderId must inject the spot broker id");
@@ -3850,7 +3851,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitLegacyOcoRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitLegacyOcoRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String legacyOcoListClientOrderId = exchange.safeString(implicitLegacyOcoRequest, "listClientOrderId");
                 String legacyOcoLimitClientOrderId = exchange.safeString(implicitLegacyOcoRequest, "limitClientOrderId");
@@ -3873,7 +3874,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitOtoListRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitOtoListRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String otoListClientOrderId = exchange.safeString(implicitOtoListRequest, "listClientOrderId");
                 String otoWorkingClientOrderId = exchange.safeString(implicitOtoListRequest, "workingClientOrderId");
@@ -3896,7 +3897,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitOpoListRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitOpoListRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String opoListClientOrderId = exchange.safeString(implicitOpoListRequest, "listClientOrderId");
                 String opoWorkingClientOrderId = exchange.safeString(implicitOpoListRequest, "workingClientOrderId");
@@ -3922,7 +3923,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitOpocoListRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitOpocoListRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String opocoListClientOrderId = exchange.safeString(implicitOpocoListRequest, "listClientOrderId");
                 String opocoWorkingClientOrderId = exchange.safeString(implicitOpocoListRequest, "workingClientOrderId");
@@ -3948,7 +3949,7 @@ public class TestMain extends BaseTest
     }})))).join();
                 } catch(Exception e)
                 {
-                    implicitCancelReplaceRequest = this.urlencodedToDict(exchange.last_request_body);
+                    implicitCancelReplaceRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String cancelReplaceClientOrderId = exchange.safeString(implicitCancelReplaceRequest, "newClientOrderId");
                 Assert(!java.util.Objects.equals(cancelReplaceClientOrderId, null), "binance - implicit cancel-replace must inject newClientOrderId");
@@ -4555,7 +4556,7 @@ public class TestMain extends BaseTest
                 Object url = ((String)exchange.last_request_url);
                 List<Object> urlParts = new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("?"))));
                 Assert(((List<?>)urlParts).size() > 1, ("last_request_url has no query string: " + url));
-                Object query = this.urlencodedToDict(Helpers.GetValue(urlParts, 1));
+                Object query = this.urlencodedToDict((String) (Helpers.GetValue(urlParts, 1)));
                 clientOrderId = ((Map<String, Object>)query).get("label");
             }
             Assert(!java.util.Objects.equals(clientOrderId, null) && java.util.Objects.equals(((String)clientOrderId).startsWith(((String)String.valueOf(id))), true), "clientOrderId does not start with id");

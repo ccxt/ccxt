@@ -14,19 +14,19 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchFundingRateHistory extends BaseTest {
-    public CompletableFuture<Object> testFetchFundingRateHistory(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testFetchFundingRateHistory(BaseExchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchFundingRateHistory";
-        Object fundingRatesHistory = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchFundingRateHistory", new Object[]{Helpers.toStringArg(symbol), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+        Object fundingRatesHistory = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchFundingRateHistory", new Object[]{symbol, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, fundingRatesHistory, symbol);
         for (var i = 0; i < ((List<?>)fundingRatesHistory).size(); i++)
         {
-            TestFundingRateHistory.testFundingRateHistory(exchange, skippedProperties, method, (fundingRatesHistory == null || i < 0 || i >= ((List<?>)fundingRatesHistory).size() ? null : ((List<?>)fundingRatesHistory).get(i)), symbol);
+            TestFundingRateHistory.testFundingRateHistory(exchange, skippedProperties, method, (fundingRatesHistory == null || i < 0 || i >= ((List<?>)fundingRatesHistory).size() ? null : ((List<?>)fundingRatesHistory).get(i)), (String) (symbol));
         }
-        TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, fundingRatesHistory);
+        TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (symbol), fundingRatesHistory);
         return true;
         });
 

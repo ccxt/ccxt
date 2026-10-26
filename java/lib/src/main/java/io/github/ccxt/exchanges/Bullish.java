@@ -1026,7 +1026,7 @@ public class Bullish extends BullishApi
         } else
         {
             contractSize = this.safeNumber(market, "contractMultiplier", (Object) null);
-            symbol = (symbol + (":" + settle));
+            symbol = ((((base + "/") + quote) + ":") + settle);
             linear = java.util.Objects.equals(settle, quote);
             inverse = !Boolean.TRUE.equals(linear);
             if (java.util.Objects.equals(type, "swap"))
@@ -1051,6 +1051,7 @@ public class Bullish extends BullishApi
                 }
             }
         }
+        Map<String, Object> tradingFees = (Map<String, Object>) this.safeDict(this.fees, "trading", new HashMap<String, Object>() {{}});
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", id);
         mapLiteral1.put("symbol", symbol);
@@ -1069,8 +1070,8 @@ public class Bullish extends BullishApi
         mapLiteral1.put("contract", contract);
         mapLiteral1.put("linear", linear);
         mapLiteral1.put("inverse", inverse);
-        mapLiteral1.put("taker", Helpers.GetValue((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker"));
-        mapLiteral1.put("maker", Helpers.GetValue((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker"));
+        mapLiteral1.put("taker", tradingFees.get("taker"));
+        mapLiteral1.put("maker", tradingFees.get("maker"));
         mapLiteral1.put("contractSize", contractSize);
         mapLiteral1.put("expiry", this.parse8601(expiryDatetime));
         mapLiteral1.put("expiryDatetime", expiryDatetime);
@@ -1395,13 +1396,13 @@ public class Bullish extends BullishApi
         //
         String marketId = this.safeString(trade, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(trade, "createdAtTimestamp");
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "quantity");
         String side = this.safeStringLower(trade, "side");
         Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker", (Object) null);
-        String currency = (String) marketResolved.get("quote");
+        String currency = this.safeString(marketResolved, "quote");
         String code = this.safeCurrencyCode(currency, (Map<String, Object>) null);
         Double feeCost = this.safeNumber(trade, "quoteFee", (Object) null);
         Map<String, Object> fee = null;
@@ -1586,11 +1587,11 @@ public class Bullish extends BullishApi
             {
                 throw new NotSupported((((this.id + " safeDeterministicCall() does not support the ") + method) + " method")) ;
             }
-            long errors = 0;
+            Long errors = this.parseToInt(0);
             Map<String, Object> paramsOmitted = this.omit(paramsMaxRetries, "until");
             // the exchange returns the most recent data, so we do not need to pass until into paginated calls
             // the correct util value will be calculated inside of the method
-            while (((maxRetries != null && errors <= maxRetries)))
+            while ((errors == null || (maxRetries != null && errors <= maxRetries)))
             {
                 try
                 {
@@ -1610,8 +1611,8 @@ public class Bullish extends BullishApi
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
-                    errors = (errors + 1L);
-                    if (((maxRetries == null || errors > maxRetries)))
+                    errors = this.parseToInt((errors + 1L));
+                    if ((errors != null && (maxRetries == null || errors > maxRetries)))
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
@@ -1684,9 +1685,9 @@ public class Bullish extends BullishApi
             {
                 until = this.sum(startTime, maxDelta);
             }
-            requestUntil.put("createdAtDatetime[gte]", this.iso8601(startTime));
-            requestUntil.put("createdAtDatetime[lte]", this.iso8601(until));
-            List<Object> response = (this.publicGetV1MarketsSymbolCandle(this.extend(requestUntil, paramsUntil))).join();
+            request.put("createdAtDatetime[gte]", this.iso8601(startTime));
+            request.put("createdAtDatetime[lte]", this.iso8601(until));
+            List<Object> response = (this.publicGetV1MarketsSymbolCandle(this.extend(request, paramsUntil))).join();
             //
             //     [
             //         {
@@ -1836,13 +1837,11 @@ public class Bullish extends BullishApi
             {
                 request.put("_pageSize", this.getClosestLimit(limit));
             }
-            String method = "privateGetV2HistoryOrders";
-            Map<String, Object> paramsMethod = null;
-            Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSinceAndUntil), "fetchOrders", "method", method);
-            method = methodparamsMethodVariable.first();
-            paramsMethod = methodparamsMethodVariable.second();
+            Pair<String, Map<String, Object>> methodResolvedparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSinceAndUntil), "fetchOrders", "method", "privateGetV2HistoryOrders");
+            String methodResolved = methodResolvedparamsMethodVariable.first();
+            Map<String, Object> paramsMethod = methodResolvedparamsMethodVariable.second();
             List<Object> response = new ArrayList<Object>(Arrays.asList());
-            if (java.util.Objects.equals(method, "privateGetV2Orders"))
+            if (java.util.Objects.equals(methodResolved, "privateGetV2Orders"))
             {
                 //
                 //     [
@@ -1874,7 +1873,7 @@ public class Bullish extends BullishApi
                 //     ]
                 //
                 response = (this.privateGetV2Orders(this.extend(request, paramsMethod))).join();
-            } else if (java.util.Objects.equals(method, "privateGetV2HistoryOrders"))
+            } else if (java.util.Objects.equals(methodResolved, "privateGetV2HistoryOrders"))
             {
                 response = (this.privateGetV2HistoryOrders(this.extend(request, paramsMethod))).join();
             } else
@@ -1909,7 +1908,7 @@ public class Bullish extends BullishApi
         return paramsExtended;
     }
 
-    public Object handleSinceAndUntil(Long since, Map<String, Object> parameters, String sinceKey, String untilKey)
+    public Map<String, Object> handleSinceAndUntil(Long since, Map<String, Object> parameters, String sinceKey, String untilKey)
     {
         Long untilParam = this.safeInteger(parameters, "until");
         Object until = null;
@@ -1918,11 +1917,7 @@ public class Bullish extends BullishApi
             until = untilParam;
         }
         Boolean sinceFromUntil = (java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(untilParam, null));
-        Map<String, Object> paramsResult = parameters;
-        if (Boolean.TRUE.equals(sinceFromUntil))
-        {
-            paramsResult = this.omit(parameters, "until");
-        }
+        Map<String, Object> paramsResult = ((Boolean.TRUE.equals(sinceFromUntil))) ? this.omit(parameters, "until") : parameters;
         if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(untilParam, null)))
         {
             Long timeDelta = ((((7L * 24L) * 60L) * 60L) * 1000L); // 7 days
@@ -1943,10 +1938,8 @@ public class Bullish extends BullishApi
                     until = this.sum(since, timeDelta);
                 }
             }
-            String sinceDate = this.iso8601(sinceResolved);
-            String untilDate = this.iso8601(until);
-            Helpers.addElementToObject(paramsResult, java.util.Objects.requireNonNullElse(sinceKey, "createdAtDatetime[gte]"), sinceDate);
-            Helpers.addElementToObject(paramsResult, java.util.Objects.requireNonNullElse(untilKey, "createdAtDatetime[lte]"), untilDate);
+            Helpers.addElementToObject(paramsResult, java.util.Objects.requireNonNullElse(sinceKey, "createdAtDatetime[gte]"), this.iso8601(sinceResolved));
+            Helpers.addElementToObject(paramsResult, java.util.Objects.requireNonNullElse(untilKey, "createdAtDatetime[lte]"), this.iso8601(until));
         }
         return paramsResult;
     }
@@ -2177,10 +2170,12 @@ public class Bullish extends BullishApi
             {
                 orderType = "POST_ONLY";
             }
-            Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPostOnly), "createOrder", "timeInForce", "GTC");
-            String timeInForce = timeInForceparamsTimeInForceVariable.first();
-            Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second(); // is mandatory
-            ((Map<String, Object>)paramsTimeInForce).put("timeInForce", ((String)timeInForce).toUpperCase());
+            Pair<String, Map<String, Object>> timeInForceparamsTimeInForceRawVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPostOnly), "createOrder", "timeInForce", "GTC");
+            String timeInForce = timeInForceparamsTimeInForceRawVariable.first();
+            Map<String, Object> paramsTimeInForceRaw = timeInForceparamsTimeInForceRawVariable.second(); // is mandatory
+            Map<String, Object> paramsTimeInForce = this.extend(paramsTimeInForceRaw, new HashMap<String, Object>() {{
+                put( "timeInForce", ((String)timeInForce).toUpperCase() );
+            }});
             if (!Boolean.TRUE.equals(isMarketOrder))
             {
                 request.put("price", this.priceToPrecision(symbol, price));
@@ -2509,13 +2504,13 @@ public class Bullish extends BullishApi
             Long until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
             if (!java.util.Objects.equals(until, null))
             {
-                requestUntil.put("createdAtDatetime[lte]", this.iso8601(until));
+                request.put("createdAtDatetime[lte]", this.iso8601(until));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                requestUntil.put("createdAtDatetime[gte]", this.iso8601(since));
+                request.put("createdAtDatetime[gte]", this.iso8601(since));
             }
-            Map<String, Object> response = (this.privateGetV1WalletsTransactions(this.extend(requestUntil, paramsUntil))).join();
+            Map<String, Object> response = (this.privateGetV1WalletsTransactions(this.extend(request, paramsUntil))).join();
             //
             //     {
             //         "data": [
@@ -2743,7 +2738,7 @@ public class Bullish extends BullishApi
             {
                 throw new ArgumentsRequired((this.id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")) ;
             }
-            Helpers.addElementToObject(this.options, "tradingAccountId", tradingAccountId);
+            this.options.put("tradingAccountId", tradingAccountId);
             return this.safeString(this.options, "tradingAccountId");
         });
 
@@ -3012,9 +3007,10 @@ public class Bullish extends BullishApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
+        List<Object> rows = this.toArray(response);
+        for (var i = 0; i < ((List<?>)rows).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(rows, i, (Object) null);
             String symbol = this.safeString(balance, "assetSymbol");
             String code = this.safeCurrencyCode(symbol, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -3100,7 +3096,7 @@ public class Bullish extends BullishApi
         //     ]
         //
         Map<String, Object> marketResolved = this.safeMarket(this.safeString(position, "symbol"), market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(position, "createdAtTimestamp");
         String side = this.safeString(position, "side");
         return this.safePosition(new HashMap<String, Object>() {{
@@ -3191,7 +3187,7 @@ public class Bullish extends BullishApi
                     put( "until", Bullish.this.milliseconds() );
                 }});
             }
-            Object paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsUntil, "createdAtDatetime[gte]", "createdAtDatetime[lte]");
+            Map<String, Object> paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsUntil, "createdAtDatetime[gte]", "createdAtDatetime[lte]");
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("_pageSize", this.getClosestLimit(limit));
@@ -3363,9 +3359,9 @@ public class Bullish extends BullishApi
             {
                 until = now;
             }
-            requestUntil.put("createdAtDatetime[gte]", this.iso8601(startTimestamp));
-            requestUntil.put("createdAtDatetime[lte]", this.iso8601(until));
-            List<Object> response = (this.privateGetV1HistoryBorrowInterest(this.extend(requestUntil, paramsUntil))).join();
+            request.put("createdAtDatetime[gte]", this.iso8601(startTimestamp));
+            request.put("createdAtDatetime[lte]", this.iso8601(until));
+            List<Object> response = (this.privateGetV1HistoryBorrowInterest(this.extend(request, paramsUntil))).join();
             //
             //     [
             //         {
@@ -3533,8 +3529,8 @@ public class Bullish extends BullishApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        Object requestHeaders = null;
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Map<String, Object> requestHeaders = null;
         String requestBody = null;
         Object request = this.omit(parameters, this.extractParams(path));
         String endpoint = ("/" + this.implodeParams(path, parameters));
@@ -3549,6 +3545,7 @@ public class Bullish extends BullishApi
             this.checkRequiredCredentials(true);
             String nonce = String.valueOf(this.microseconds());
             String timestamp = String.valueOf(this.getTimestamp());
+            Map<String, Object> headers = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
                 String payload = ((((timestamp + nonce) + java.util.Objects.requireNonNullElse(method, "GET")) + "/trading-api/") + path);
@@ -3558,7 +3555,7 @@ public class Bullish extends BullishApi
                     hx4NewMap1.put("BX-TIMESTAMP", timestamp);
                     hx4NewMap1.put("BX-NONCE", nonce);
                     hx4NewMap1.put("BX-SIGNATURE", signature);
-                    requestHeaders = hx4NewMap1;
+                    headers = hx4NewMap1;
                 }
             } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
@@ -3572,19 +3569,17 @@ public class Bullish extends BullishApi
                     hx4NewMap2.put("BX-NONCE", nonce);
                     hx4NewMap2.put("BX-SIGNATURE", signature);
                     hx4NewMap2.put("Content-Type", "application/json");
-                    requestHeaders = hx4NewMap2;
+                    headers = hx4NewMap2;
                 }
-                ((Map<String, Object>)requestHeaders).put("Content-Type", "application/json");
                 String rateLimitToken = this.safeString(request, "rateLimitToken");
                 if (!java.util.Objects.equals(rateLimitToken, null))
                 {
-                    ((Map<String, Object>)requestHeaders).put("BX-RATE-LIMIT-TOKEN", rateLimitToken);
+                    headers.put("BX-RATE-LIMIT-TOKEN", rateLimitToken);
                 }
             }
             if (java.util.Objects.equals(path, "v1/users/hmac/login"))
             {
-                requestHeaders = (((java.util.Objects.equals(requestHeaders, null)))) ? new HashMap<String, Object>() {{}} : requestHeaders;
-                ((Map<String, Object>)requestHeaders).put("BX-PUBLIC-KEY", this.apiKey);
+                headers.put("BX-PUBLIC-KEY", this.apiKey);
             } else
             {
                 Object token = this.token;
@@ -3592,9 +3587,9 @@ public class Bullish extends BullishApi
                 {
                     throw new AuthenticationError((this.id + " requires a token, please call signIn() first")) ;
                 }
-                requestHeaders = (((java.util.Objects.equals(requestHeaders, null)))) ? new HashMap<String, Object>() {{}} : requestHeaders;
-                ((Map<String, Object>)requestHeaders).put("Authorization", ("Bearer " + token));
+                headers.put("Authorization", ("Bearer " + token));
             }
+            requestHeaders = headers;
         }
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
@@ -3637,9 +3632,9 @@ public class Bullish extends BullishApi
             //
             String token = this.safeString(response, "token");
             String authorizer = this.safeString(response, "authorizer");
-            Helpers.addElementToObject(this.options, "authorizer", authorizer);
+            this.options.put("authorizer", authorizer);
             this.token = token;
-            Helpers.addElementToObject(this.options, "tokenExpires", this.sum(this.milliseconds(), (((1000L * 60L) * 60L) * 24L))); // token expires in 24 hours
+            this.options.put("tokenExpires", this.sum(this.milliseconds(), (((1000L * 60L) * 60L) * 24L))); // token expires in 24 hours
             return token;
         });
 

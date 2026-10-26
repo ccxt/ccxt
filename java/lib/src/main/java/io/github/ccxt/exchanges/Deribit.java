@@ -834,55 +834,54 @@ public class Deribit extends DeribitApi
     {
         // support expired option contracts
         String quote = "USD";
-        Object settle = null;
+        Object settle = "";
         List<Object> optionParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
         List<Object> symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
+        Boolean hasSlash = ((String)symbol).indexOf("/") > -1;
+        Boolean hasUsdc = ((String)symbol).indexOf("USDC") > -1;
         Object base = null;
         Object expiry = null;
-        if (((String)symbol).indexOf("/") > -1)
+        if (Boolean.TRUE.equals(hasSlash))
         {
-            base = this.safeString(symbolBase, 0);
+            base = this.safeString(symbolBase, 0, "");
             expiry = this.safeString(optionParts, 1);
-            if (((String)symbol).indexOf("USDC") > -1)
-            {
-                base = (base + "_USDC");
-            }
         } else
         {
-            base = this.safeString(optionParts, 0);
+            base = this.safeString(optionParts, 0, "");
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
         }
-        if (((String)symbol).indexOf("USDC") > -1)
+        if (java.util.Objects.equals(base, null))
+        {
+            throw new ExchangeError((this.id + " createExpiredOptionMarket() missing base")) ;
+        }
+        // the slash form of a usdc instrument carries its settlement currency in the base
+        String baseSuffix = "";
+        if (Boolean.TRUE.equals(hasSlash) && Boolean.TRUE.equals(hasUsdc))
+        {
+            baseSuffix = "_USDC";
+        }
+        String baseResolved = (base + baseSuffix);
+        if (Boolean.TRUE.equals(hasUsdc))
         {
             quote = "USDC";
             settle = "USDC";
         } else
         {
-            settle = base;
+            // no usdc suffix on this path, so the resolved base is the settle currency
+            settle = baseResolved;
         }
-        Object splitBase = base;
-        if (java.util.Objects.equals(base, null))
-        {
-            throw new ExchangeError((this.id + " createExpiredOptionMarket() missing base")) ;
-        }
-        if (((String)base).indexOf("_") > -1)
-        {
-            List<Object> splitSymbol = new ArrayList<Object>(Arrays.asList(((String)base).split(java.util.regex.Pattern.quote("_"))));
-            splitBase = this.safeString(splitSymbol, 0);
-        }
-        String strike = this.safeString(optionParts, 2);
-        String optionType = this.safeString(optionParts, 3);
+        // the part of the base before the first underscore, or the whole base when it has none
+        String splitBase = this.safeString(new ArrayList<Object>(Arrays.asList(((String)baseResolved).split(java.util.regex.Pattern.quote("_")))), 0, "");
+        String strike = this.safeString(optionParts, 2, "");
+        String optionType = this.safeString(optionParts, 3, "");
         String datetime = (String) this.convertExpireDate((String) (expiry));
-        Long timestamp = this.parse8601(datetime);
-        String id = ((((((base + "-") + this.convertExpireDateToMarketIdDate((String) (expiry))) + "-") + strike) + "-") + optionType);
-        String symbolExpired = ((((((((((splitBase + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType);
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("id", id);
-        mapLiteral1.put("symbol", symbolExpired);
-        mapLiteral1.put("base", base);
+        mapLiteral1.put("id", (((baseResolved + "-") + this.convertExpireDateToMarketIdDate((String) (expiry))) + (((("-" + strike) + "-") + optionType))));
+        mapLiteral1.put("symbol", (((((((splitBase + "/") + quote) + ":") + settle) + "-") + expiry) + (((("-" + strike) + "-") + optionType))));
+        mapLiteral1.put("base", baseResolved);
         mapLiteral1.put("quote", quote);
         mapLiteral1.put("settle", settle);
-        mapLiteral1.put("baseId", base);
+        mapLiteral1.put("baseId", baseResolved);
         mapLiteral1.put("quoteId", quote);
         mapLiteral1.put("settleId", settle);
         mapLiteral1.put("active", false);
@@ -896,7 +895,7 @@ public class Deribit extends DeribitApi
         mapLiteral1.put("margin", false);
         mapLiteral1.put("contract", true);
         mapLiteral1.put("contractSize", null);
-        mapLiteral1.put("expiry", timestamp);
+        mapLiteral1.put("expiry", this.parse8601(datetime));
         mapLiteral1.put("expiryDatetime", datetime);
         mapLiteral1.put("optionType", (((java.util.Objects.equals(optionType, "C")))) ? "call" : "put");
         mapLiteral1.put("strike", this.parseNumber(strike));
@@ -2775,9 +2774,9 @@ public class Deribit extends DeribitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object order = this.safeValue(result, "order");
-            List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
-            Helpers.addElementToObject(order, "trades", trades);
+            Map<String, Object> order = this.extend(this.safeValue(result, "order"), new HashMap<String, Object>() {{
+                put( "trades", Deribit.this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList())) );
+            }});
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -2831,9 +2830,9 @@ public class Deribit extends DeribitApi
             }
             Map<String, Object> response = (this.privateGetEdit(this.extend(request, paramsOmitted))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object order = this.safeValue(result, "order");
-            List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
-            Helpers.addElementToObject(order, "trades", trades);
+            Map<String, Object> order = this.extend(this.safeValue(result, "order"), new HashMap<String, Object>() {{
+                put( "trades", Deribit.this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList())) );
+            }});
             return this.parseOrder(order, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
@@ -3608,7 +3607,7 @@ public class Deribit extends DeribitApi
 
     }
 
-    public Object parseVolatilityHistory(Map<String, Object> volatility)
+    public List<Object> parseVolatilityHistory(Map<String, Object> volatility)
     {
         //
         //     {
@@ -4024,13 +4023,13 @@ public class Deribit extends DeribitApi
             Long month = ((((30L * 24L) * 60L) * 60L) * 1000L);
             Long defaultSince = (now - month);
             Long sinceResolved = (((java.util.Objects.equals(since, null)))) ? defaultSince : since;
-            Object time = (((java.util.Objects.equals(since, null)))) ? now : (since + month);
+            Long time = (((java.util.Objects.equals(since, null)))) ? now : this.parseToInt((since + month));
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("instrument_name", market.get("id"));
             request.put("start_timestamp", (sinceResolved - 1L));
             Long until = (Long) this.safeInteger2(paramsPaginate, "until", "end_timestamp");
             Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
-            Object endTimestamp = (((!java.util.Objects.equals(until, null)))) ? until : time;
+            Long endTimestamp = (((!java.util.Objects.equals(until, null)))) ? until : time;
             request.put("end_timestamp", endTimestamp);
             Boolean isPaginationCall = (paramsUntil.containsKey("isDeribitPaginationCall"));
             Map<String, Object> paramsOmitted = paramsUntil;
@@ -4045,7 +4044,7 @@ public class Deribit extends DeribitApi
                     throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a limit argument")) ;
                 }
                 Long maxUntil = this.parseToInt(this.sum(sinceResolved, (limit * duration)));
-                request.put("end_timestamp", ((((!(endTimestamp == null && maxUntil == null) && endTimestamp == null || (maxUntil != null && !(((Number) endTimestamp).doubleValue() >= maxUntil)))))) ? endTimestamp : maxUntil);
+                request.put("end_timestamp", ((((maxUntil != null && (endTimestamp == null || endTimestamp < maxUntil))))) ? endTimestamp : maxUntil);
             }
             Map<String, Object> response = (this.publicGetGetFundingRateHistory(this.extend(request, paramsOmitted))).join();
             //
@@ -4152,7 +4151,7 @@ public class Deribit extends DeribitApi
             Map<String, Object> market = this.market(symbol);
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                throw new NotSupported((((this.id + " fetchLiquidations() does not support ") + market.get("type")) + " markets")) ;
+                throw new NotSupported((((this.id + " fetchLiquidations() does not support ") + this.safeString(market, "type", "")) + " markets")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", market.get("id") );
@@ -4245,7 +4244,7 @@ public class Deribit extends DeribitApi
             Map<String, Object> market = this.market(symbol);
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                throw new NotSupported((((this.id + " fetchMyLiquidations() does not support ") + market.get("type")) + " markets")) ;
+                throw new NotSupported((((this.id + " fetchMyLiquidations() does not support ") + this.safeString(market, "type", "")) + " markets")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_name", market.get("id") );
@@ -4758,7 +4757,7 @@ public class Deribit extends DeribitApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String request = (((((("/" + "api/") + this.version) + "/") + apiName) + "/") + path);
         if (java.util.Objects.equals(apiName, "public"))
         {

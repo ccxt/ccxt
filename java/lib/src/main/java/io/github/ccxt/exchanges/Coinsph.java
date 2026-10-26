@@ -846,16 +846,19 @@ public class Coinsph extends CoinsphApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("noSymbol")) && !((switch ((Object)(parameters)) { case List<?> j39v13 -> j39v13.contains("symbol"); case Map<?, ?> j39v12 -> j39v12.containsKey("symbol"); case null, default -> false; })))
+        Boolean hasSymbolParam = ((switch ((Object)(parameters)) { case List<?> j39v4 -> j39v4.contains("symbol"); case Map<?, ?> j39v3 -> j39v3.containsKey("symbol"); case null, default -> false; }));
+        Boolean hasSymbolsParam = ((switch ((Object)(parameters)) { case List<?> j39v2 -> j39v2.contains("symbols"); case Map<?, ?> j39v1 -> j39v1.containsKey("symbols"); case null, default -> false; }));
+        Long limit = this.safeInteger(parameters, "limit");
+        if ((config.containsKey("noSymbol")) && !Boolean.TRUE.equals(hasSymbolParam))
         {
             return config.get("noSymbol");
-        } else if ((config.containsKey("noSymbolAndNoSymbols")) && !((switch ((Object)(parameters)) { case List<?> j39v11 -> j39v11.contains("symbol"); case Map<?, ?> j39v10 -> j39v10.containsKey("symbol"); case null, default -> false; })) && !((switch ((Object)(parameters)) { case List<?> j39v9 -> j39v9.contains("symbols"); case Map<?, ?> j39v8 -> j39v8.containsKey("symbols"); case null, default -> false; })))
+        } else if ((config.containsKey("noSymbolAndNoSymbols")) && !Boolean.TRUE.equals(hasSymbolParam) && !Boolean.TRUE.equals(hasSymbolsParam))
         {
             return config.get("noSymbolAndNoSymbols");
-        } else if ((config.containsKey("byNumberOfSymbols")) && ((switch ((Object)(parameters)) { case List<?> j39v7 -> j39v7.contains("symbols"); case Map<?, ?> j39v6 -> j39v6.containsKey("symbols"); case null, default -> false; })))
+        } else if ((config.containsKey("byNumberOfSymbols")) && Boolean.TRUE.equals(hasSymbolsParam))
         {
-            Object symbols = Helpers.GetValue(parameters, "symbols");
-            Integer symbolsAmount = (switch ((Object)(symbols)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; });
+            List<Object> symbols = (List<Object>) this.safeList(parameters, "symbols", new ArrayList<Object>(Arrays.asList()));
+            Integer symbolsAmount = ((List<?>)symbols).size();
             List<Object> byNumberOfSymbols = (List<Object>) this.safeList(config, "byNumberOfSymbols", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byNumberOfSymbols).size(); i++)
             {
@@ -863,20 +866,19 @@ public class Coinsph extends CoinsphApi
                 Long threshold = this.safeInteger(entry, 0);
                 if (!java.util.Objects.equals(threshold, null) && (threshold == null || (symbolsAmount != null && symbolsAmount >= threshold)))
                 {
-                    return Helpers.GetValue(entry, 1);
+                    return this.safeInteger(entry, 1);
                 }
             }
-        } else if ((config.containsKey("byLimit")) && ((switch ((Object)(parameters)) { case List<?> j39v2 -> j39v2.contains("limit"); case Map<?, ?> j39v1 -> j39v1.containsKey("limit"); case null, default -> false; })))
+        } else if ((config.containsKey("byLimit")) && (!java.util.Objects.equals(limit, null)))
         {
-            Long limit = this.safeInteger(parameters, "limit");
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {
                 Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));
                 Long threshold = this.safeInteger(entry, 0);
-                if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(threshold, null) && (threshold == null || (limit != null && limit >= threshold)))
+                if (!java.util.Objects.equals(threshold, null) && (threshold == null || (limit != null && limit >= threshold)))
                 {
-                    return Helpers.GetValue(entry, 1);
+                    return this.safeInteger(entry, 1);
                 }
             }
         }
@@ -1021,37 +1023,37 @@ public class Coinsph extends CoinsphApi
                 Map<String, Object> amountLimits = (Map<String, Object>) this.safeDict(limits, "LOT_SIZE", new HashMap<String, Object>() {{}});
                 Map<String, Object> priceLimits = (Map<String, Object>) this.safeDict(limits, "PRICE_FILTER", new HashMap<String, Object>() {{}});
                 Map<String, Object> costLimits = (Map<String, Object>) this.safeDict(limits, "NOTIONAL", new HashMap<String, Object>() {{}});
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v14 = new HashMap<String, Object>();
-                    j39v14.put("id", id);
-                    j39v14.put("symbol", ((base + "/") + quote));
-                    j39v14.put("base", base);
-                    j39v14.put("quote", quote);
-                    j39v14.put("settle", null);
-                    j39v14.put("baseId", baseId);
-                    j39v14.put("quoteId", quoteId);
-                    j39v14.put("settleId", null);
-                    j39v14.put("type", "spot");
-                    j39v14.put("spot", true);
-                    j39v14.put("margin", false);
-                    j39v14.put("swap", false);
-                    j39v14.put("future", false);
-                    j39v14.put("option", false);
-                    j39v14.put("active", java.util.Objects.equals(this.safeStringLower(market, "status"), "trading"));
-                    j39v14.put("contract", false);
-                    j39v14.put("linear", null);
-                    j39v14.put("inverse", null);
-                    j39v14.put("taker", null);
-                    j39v14.put("maker", null);
-                    j39v14.put("contractSize", null);
-                    j39v14.put("expiry", null);
-                    j39v14.put("expiryDatetime", null);
-                    j39v14.put("strike", null);
-                    j39v14.put("optionType", null);
-                    j39v14.put("precision", new HashMap<String, Object>() {{
+                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+                    j39v5.put("id", id);
+                    j39v5.put("symbol", ((base + "/") + quote));
+                    j39v5.put("base", base);
+                    j39v5.put("quote", quote);
+                    j39v5.put("settle", null);
+                    j39v5.put("baseId", baseId);
+                    j39v5.put("quoteId", quoteId);
+                    j39v5.put("settleId", null);
+                    j39v5.put("type", "spot");
+                    j39v5.put("spot", true);
+                    j39v5.put("margin", false);
+                    j39v5.put("swap", false);
+                    j39v5.put("future", false);
+                    j39v5.put("option", false);
+                    j39v5.put("active", java.util.Objects.equals(this.safeStringLower(market, "status"), "trading"));
+                    j39v5.put("contract", false);
+                    j39v5.put("linear", null);
+                    j39v5.put("inverse", null);
+                    j39v5.put("taker", null);
+                    j39v5.put("maker", null);
+                    j39v5.put("contractSize", null);
+                    j39v5.put("expiry", null);
+                    j39v5.put("expiryDatetime", null);
+                    j39v5.put("strike", null);
+                    j39v5.put("optionType", null);
+                    j39v5.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Coinsph.this.parseNumber(Coinsph.this.safeString(amountLimits, "stepSize")) );
                         put( "price", Coinsph.this.parseNumber(Coinsph.this.safeString(priceLimits, "tickSize")) );
                     }});
-                    j39v14.put("limits", new HashMap<String, Object>() {{
+                    j39v5.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -1069,9 +1071,9 @@ public class Coinsph extends CoinsphApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v14.put("created", null);
-                    j39v14.put("info", market);
-                    yield j39v14; } }));
+                    j39v5.put("created", null);
+                    j39v5.put("info", market);
+                    yield j39v5; } }));
             }
             this.setMarkets(result, (Object) null);
             return result;
@@ -2115,10 +2117,7 @@ public class Coinsph extends CoinsphApi
             put( "buy", "BUY" );
             put( "sell", "SELL" );
         }};
-        if (java.util.Objects.equals(status, null))
-        {
-            return null;
-        }
+        // safeString returns the status itself when it is absent, so no early return
         return this.safeString(statuses, status, status);
     }
 
@@ -2151,10 +2150,7 @@ public class Coinsph extends CoinsphApi
             put( "take_profit", "TAKE_PROFIT" );
             put( "take_profit_limit", "TAKE_PROFIT_LIMIT" );
         }};
-        if (java.util.Objects.equals(status, null))
-        {
-            return null;
-        }
+        // safeString returns the status itself when it is absent, so no early return
         return this.safeString(statuses, status, status);
     }
 
@@ -2709,7 +2705,7 @@ public class Coinsph extends CoinsphApi
         }
     }
 
-    public String parseArrayParam(Object array, Object key)
+    public String parseArrayParam(Object array, String key)
     {
         String stringifiedArray = this.json(array);
         stringifiedArray = (stringifiedArray == null ? null : ((String)stringifiedArray).replaceFirst(java.util.regex.Pattern.quote("["), "%5B"));
@@ -2720,7 +2716,7 @@ public class Coinsph extends CoinsphApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
@@ -2732,19 +2728,19 @@ public class Coinsph extends CoinsphApi
         if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
-            Helpers.addElementToObject(query, "timestamp", this.milliseconds());
+            ((Map<String, Object>)query).put("timestamp", this.milliseconds());
             Long recvWindow = this.safeInteger(query, "recvWindow");
             if (java.util.Objects.equals(recvWindow, null))
             {
                 Long defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
                 if (!java.util.Objects.equals(defaultRecvWindow, null))
                 {
-                    Helpers.addElementToObject(query, "recvWindow", defaultRecvWindow);
+                    ((Map<String, Object>)query).put("recvWindow", defaultRecvWindow);
                 }
             }
             Object signedQuery = this.urlEncodeQuery(((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
             String signature = (String) this.hmac(this.encode(signedQuery), this.encode(this.secret), sha256());
-            url = ((((url + "?") + signedQuery) + "&signature=") + signature);
+            url = ((((((apiUrl + "/") + endpoint) + "?") + signedQuery) + "&signature=") + signature);
             Map<String, Object> signedHeaders = new HashMap<String, Object>() {{
                 put( "X-COINS-APIKEY", Coinsph.this.apiKey );
             }};
@@ -2760,7 +2756,7 @@ public class Coinsph extends CoinsphApi
         String encodedQuery = this.urlEncodeQuery(((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
         if ((encodedQuery.length() != 0))
         {
-            url = (url + ("?" + encodedQuery));
+            url = ((((apiUrl + "/") + endpoint) + "?") + encodedQuery);
         }
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();

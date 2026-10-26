@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchLiquidations extends BaseTest {
-    public CompletableFuture<Object> testFetchLiquidations(BaseExchange exchange, Object skippedProperties, Object code)
+    public CompletableFuture<Object> testFetchLiquidations(BaseExchange exchange, Object skippedProperties, String code)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -30,9 +30,9 @@ public class TestFetchLiquidations extends BaseTest {
         // const now = exchange.milliseconds ();
         for (var i = 0; i < ((List<?>)items).size(); i++)
         {
-            TestLiquidation.testLiquidation(exchange, skippedProperties, method, (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)), code);
+            TestLiquidation.testLiquidation(exchange, skippedProperties, method, (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)), (String) (code));
         }
-        TestSharedMethods.AssertTimestampOrder(exchange, method, code, items);
+        TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (code), items);
         return true;
         });
 

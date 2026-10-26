@@ -78,7 +78,8 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             }
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
-            String subscriptionHash = ("/stream/" + market.get("id"));
+            String marketId = this.safeString(market, "id", "");
+            String subscriptionHash = ("/stream/" + marketId);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "symbol", symbolValue );
             }};
@@ -130,13 +131,14 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         }
         Object symbol = subscription.get("symbol");
         Map<String, Object> market = this.market(symbol);
-        String messageHash = ("trades:" + symbol);
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
+        String symbolValue = (String) market.get("symbol");
+        String messageHash = ("trades:" + symbolValue);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbolValue);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            this.trades.put(symbolValue, stored);
         }
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
@@ -144,8 +146,8 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade(rawTrade, market);
             stored.append(trade);
         }
-        Helpers.addElementToObject(this.trades, symbol, stored);
-        client.resolve((symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol)), messageHash);
+        this.trades.put(symbolValue, stored);
+        client.resolve(stored, messageHash);
     }
 
     public Trade parseTrade(Object trade, Map<String, Object> market)
@@ -209,7 +211,8 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             }
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
-            String subscriptionHash = ("/stream/" + market.get("id"));
+            String marketId = this.safeString(market, "id", "");
+            String subscriptionHash = ("/stream/" + marketId);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "symbol", symbolValue );
             }};
@@ -266,7 +269,8 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //     }
         //
         Object symbol = subscription.get("symbol");
-        String messageHash = ("orderbook:" + symbol);
+        String symbolValue = this.safeString(subscription, "symbol", "");
+        String messageHash = ("orderbook:" + symbolValue);
         Long timestamp = this.safeInteger(message, "timestamp");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
@@ -276,7 +280,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         List<Object> asks = (List<Object>) this.safeList(message, "asks", (Object) null);
         if (java.util.Objects.equals(asks, null))
         {
-            Boolean inSequence = this.isOrderBookDeltaInSequence(client, (Map<String, Object>) (message), symbol);
+            Boolean inSequence = this.isOrderBookDeltaInSequence(client, (Map<String, Object>) (message), (String) (symbol));
             if (!Boolean.TRUE.equals(inSequence))
             {
                 return;
@@ -288,7 +292,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             orderbook.reset(snapshot);
         } else
         {
-            this.handleBookDelta(orderbook, message);
+            this.handleBookDelta((io.github.ccxt.ws.WsOrderBook) (orderbook), message);
             orderbook.put("timestamp", timestamp);
             orderbook.put("datetime", this.iso8601(timestamp));
         }
@@ -329,13 +333,12 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         List<Object> result = new ArrayList<Object>(Arrays.asList(price, amount));
         if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(thirdKey, 2), null))
         {
-            Object thirdValue = ((Object)this.safeString(bidask, java.util.Objects.requireNonNullElse(thirdKey, 2)));
-            ((List<Object>)result).add(thirdValue);
+            ((List<Object>)result).add(((Object)this.safeString(bidask, java.util.Objects.requireNonNullElse(thirdKey, 2))));
         }
         return result;
     }
 
-    public void handleBookDelta(Object orderbook, Object message)
+    public void handleBookDelta(io.github.ccxt.ws.WsOrderBook orderbook, Object message)
     {
         //
         //  create
@@ -380,8 +383,8 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //         "timestamp": 1660598775360
         //     }
         //
-        io.github.ccxt.ws.OrderBookSide asksOrderSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
-        io.github.ccxt.ws.OrderBookSide bidsOrderSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+        io.github.ccxt.ws.OrderBookSide asksOrderSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
+        io.github.ccxt.ws.OrderBookSide bidsOrderSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
         // trade updates are applied first, matching the ordering of the
         // reference luno streaming client
         List<Object> tradeUpdates = (List<Object>) this.safeList(message, "trade_updates", new ArrayList<Object>(Arrays.asList()));
@@ -470,7 +473,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
      * @param {string} symbol unified market symbol of the book
      * @returns {boolean} true if the delta can be applied to the stored book, false if it must be discarded
      */
-    public Boolean isOrderBookDeltaInSequence(Client client, Map<String, Object> message, Object symbol)
+    public Boolean isOrderBookDeltaInSequence(Client client, Map<String, Object> message, String symbol)
     {
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long storedNonce = this.safeInteger(orderbook, "nonce");
@@ -491,7 +494,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             // an old or replayed frame, discard it
             return false;
         }
-        Long expectedSequence = (Long) (storedNonce + 1L);
+        Long expectedSequence = (Long) ((Object) (switch ((Object) (this.parseToInt(storedNonce))) { case null -> (Object) null; case Long hx4J40v0 -> (Object) (hx4J40v0 + 1L); case Integer hx4J40v0 -> (Object) (hx4J40v0.longValue() + 1L); case Double hx4J40v0 -> (Object) (hx4J40v0 + ((double) 1L)); case String hx4J40v0 -> (Object) (hx4J40v0 + "1"); default -> (Object) null; }));
         if (!java.util.Objects.equals(messageSequence, expectedSequence))
         {
             // a gap in the sequence means a lost message and the book is
@@ -505,14 +508,16 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             // the cached book is kept so references returned by earlier
             // watchOrderBook calls stay live: clearing its nonce discards
             // deltas until the fresh snapshot resets the book in place
-            var error = new InvalidNonce(((((((this.id + " watchOrderBook() received an out-of-sequence update for ") + symbol) + ", expected ") + String.valueOf(expectedSequence)) + " but got ") + String.valueOf(messageSequence)));
             orderbook.put("nonce", null);
             Map<String, Object> market = this.market(symbol);
-            String subscriptionHash = ("/stream/" + market.get("id"));
-            if (((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash))
+            String symbolValue = this.safeString(market, "symbol", "");
+            String marketId = this.safeString(market, "id", "");
+            String subscriptionHash = ("/stream/" + marketId);
+            if (client.subscriptions.containsKey(subscriptionHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove((String)subscriptionHash);
+                client.subscriptions.remove(subscriptionHash);
             }
+            var error = new InvalidNonce(((((((this.id + " watchOrderBook() received an out-of-sequence update for ") + symbolValue) + ", expected ") + String.valueOf(expectedSequence)) + " but got ") + String.valueOf(messageSequence)));
             client.reset(error);
             ((Map<String,Object>)this.clients).remove((String)client.url);
             return false;
@@ -526,7 +531,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         {
             return;
         }
-        Object subscriptions = Helpers.objectValues(client.subscriptions);
+        Object subscriptions = new ArrayList<Object>(client.subscriptions.values());
         Integer subscriptionsLength = ((List<?>)subscriptions).size();
         if (java.util.Objects.equals(subscriptionsLength, 0))
         {

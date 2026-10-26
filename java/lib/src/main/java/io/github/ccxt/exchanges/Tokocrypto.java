@@ -916,6 +916,60 @@ public class Tokocrypto extends TokocryptoApi
                     }
                 }
                 String marginTradingEnable = this.safeString(market, "marginTradingEnable");
+                Double costMin = null;
+                Map<String, Object> precision = new HashMap<String, Object>() {{
+                    put( "amount", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "quantityPrecision"))) );
+                    put( "price", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "pricePrecision"))) );
+                    put( "base", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "basePrecision"))) );
+                    put( "quote", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "quotePrecision"))) );
+                }};
+                Map<String, Object> limits = new HashMap<String, Object>();
+                limits.put("leverage", new HashMap<String, Object>() {{
+                        put( "min", null );
+                        put( "max", null );
+                    }});
+                limits.put("amount", new HashMap<String, Object>() {{
+                        put( "min", null );
+                        put( "max", null );
+                    }});
+                limits.put("price", new HashMap<String, Object>() {{
+                        put( "min", null );
+                        put( "max", null );
+                    }});
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("min", costMin);
+                mapLiteral1.put("max", null);
+                limits.put("cost", mapLiteral1);
+                if (filtersByType.containsKey("PRICE_FILTER"))
+                {
+                    Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
+                    // PRICE_FILTER reports zero values for maxPrice
+                    // since they updated filter types in November 2018
+                    // https://github.com/ccxt/ccxt/issues/4286
+                    // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+                    limits.put("price", new HashMap<String, Object>() {{
+        put( "min", Tokocrypto.this.safeNumber(filter, "minPrice", (Object) null) );
+        put( "max", Tokocrypto.this.safeNumber(filter, "maxPrice", (Object) null) );
+    }});
+                    precision.put("price", filter.get("tickSize"));
+                }
+                if (filtersByType.containsKey("LOT_SIZE"))
+                {
+                    Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
+                    precision.put("amount", this.safeNumber(filter, "stepSize", (Object) null));
+                    limits.put("amount", new HashMap<String, Object>() {{
+        put( "min", Tokocrypto.this.safeNumber(filter, "minQty", (Object) null) );
+        put( "max", Tokocrypto.this.safeNumber(filter, "maxQty", (Object) null) );
+    }});
+                }
+                if (filtersByType.containsKey("MARKET_LOT_SIZE"))
+                {
+                    Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
+                    limits.put("market", new HashMap<String, Object>() {{
+        put( "min", Tokocrypto.this.safeNumber(filter, "minQty", (Object) null) );
+        put( "max", Tokocrypto.this.safeNumber(filter, "maxQty", (Object) null) );
+    }});
+                }
                 Map<String, Object> entry = new HashMap<String, Object>();
                 entry.put("id", id);
                 entry.put("lowercaseId", lowercaseId);
@@ -941,67 +995,14 @@ public class Tokocrypto extends TokocryptoApi
                 entry.put("expiryDatetime", null);
                 entry.put("strike", null);
                 entry.put("optionType", null);
-                entry.put("precision", new HashMap<String, Object>() {{
-                        put( "amount", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "quantityPrecision"))) );
-                        put( "price", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "pricePrecision"))) );
-                        put( "base", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "basePrecision"))) );
-                        put( "quote", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "quotePrecision"))) );
-                    }});
-                entry.put("limits", new HashMap<String, Object>() {{
-                        put( "leverage", new HashMap<String, Object>() {{
-                            put( "min", null );
-                            put( "max", null );
-                        }} );
-                        put( "amount", new HashMap<String, Object>() {{
-                            put( "min", null );
-                            put( "max", null );
-                        }} );
-                        put( "price", new HashMap<String, Object>() {{
-                            put( "min", null );
-                            put( "max", null );
-                        }} );
-                        put( "cost", new HashMap<String, Object>() {{
-                            put( "min", null );
-                            put( "max", null );
-                        }} );
-                    }});
+                entry.put("precision", precision);
+                entry.put("limits", limits);
                 entry.put("created", null);
                 entry.put("info", market);
-                if (filtersByType.containsKey("PRICE_FILTER"))
-                {
-                    Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
-                    Helpers.addElementToObject(entry.get("precision"), "price", this.safeNumber(filter, "tickSize", (Object) null));
-                    // PRICE_FILTER reports zero values for maxPrice
-                    // since they updated filter types in November 2018
-                    // https://github.com/ccxt/ccxt/issues/4286
-                    // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-                    Helpers.addElementToObject(entry.get("limits"), "price", new HashMap<String, Object>() {{
-        put( "min", Tokocrypto.this.safeNumber(filter, "minPrice", (Object) null) );
-        put( "max", Tokocrypto.this.safeNumber(filter, "maxPrice", (Object) null) );
-    }});
-                    Helpers.addElementToObject(entry.get("precision"), "price", filter.get("tickSize"));
-                }
-                if (filtersByType.containsKey("LOT_SIZE"))
-                {
-                    Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
-                    Helpers.addElementToObject(entry.get("precision"), "amount", this.safeNumber(filter, "stepSize", (Object) null));
-                    Helpers.addElementToObject(entry.get("limits"), "amount", new HashMap<String, Object>() {{
-        put( "min", Tokocrypto.this.safeNumber(filter, "minQty", (Object) null) );
-        put( "max", Tokocrypto.this.safeNumber(filter, "maxQty", (Object) null) );
-    }});
-                }
-                if (filtersByType.containsKey("MARKET_LOT_SIZE"))
-                {
-                    Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
-                    Helpers.addElementToObject(entry.get("limits"), "market", new HashMap<String, Object>() {{
-        put( "min", Tokocrypto.this.safeNumber(filter, "minQty", (Object) null) );
-        put( "max", Tokocrypto.this.safeNumber(filter, "maxQty", (Object) null) );
-    }});
-                }
                 if (filtersByType.containsKey("MIN_NOTIONAL"))
                 {
                     Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
-                    Helpers.addElementToObject(Helpers.GetValue(entry.get("limits"), "cost"), "min", this.safeNumber2(filter, "minNotional", "notional", (Object) null));
+                    costMin = this.safeNumber2(filter, "minNotional", "notional", (Object) null);
                 }
                 ((List<Object>)result).add(entry);
             }
@@ -1220,21 +1221,21 @@ public class Tokocrypto extends TokocryptoApi
         {
             takerOrMaker = ((Boolean.TRUE.equals((this.safeBool(trade, "maker", false))))) ? "maker" : "taker";
         }
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("info", trade);
-        mapLiteral1.put("timestamp", timestamp);
-        mapLiteral1.put("datetime", this.iso8601(timestamp));
-        mapLiteral1.put("symbol", symbol);
-        mapLiteral1.put("id", id);
-        mapLiteral1.put("order", orderId);
-        mapLiteral1.put("type", null);
-        mapLiteral1.put("side", side);
-        mapLiteral1.put("takerOrMaker", takerOrMaker);
-        mapLiteral1.put("price", price);
-        mapLiteral1.put("amount", amount);
-        mapLiteral1.put("cost", cost);
-        mapLiteral1.put("fee", fee);
-        return this.safeTrade(mapLiteral1, market);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("order", orderId);
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("cost", cost);
+        mapLiteral2.put("fee", fee);
+        return this.safeTrade(mapLiteral2, market);
     }
 
     /**
@@ -1423,28 +1424,28 @@ public class Tokocrypto extends TokocryptoApi
             baseVolume = this.safeString(ticker, "volume");
             quoteVolume = this.safeString(ticker, "quoteVolume");
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("symbol", symbol);
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("high", this.safeString(ticker, "highPrice"));
-        mapLiteral2.put("low", this.safeString(ticker, "lowPrice"));
-        mapLiteral2.put("bid", this.safeString(ticker, "bidPrice"));
-        mapLiteral2.put("bidVolume", this.safeString(ticker, "bidQty"));
-        mapLiteral2.put("ask", this.safeString(ticker, "askPrice"));
-        mapLiteral2.put("askVolume", this.safeString(ticker, "askQty"));
-        mapLiteral2.put("vwap", this.safeString(ticker, "weightedAvgPrice"));
-        mapLiteral2.put("open", this.safeString(ticker, "openPrice"));
-        mapLiteral2.put("close", last);
-        mapLiteral2.put("last", last);
-        mapLiteral2.put("previousClose", this.safeString(ticker, "prevClosePrice"));
-        mapLiteral2.put("change", this.safeString(ticker, "priceChange"));
-        mapLiteral2.put("percentage", this.safeString(ticker, "priceChangePercent"));
-        mapLiteral2.put("average", null);
-        mapLiteral2.put("baseVolume", baseVolume);
-        mapLiteral2.put("quoteVolume", quoteVolume);
-        mapLiteral2.put("info", ticker);
-        return this.safeTicker(mapLiteral2, market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("high", this.safeString(ticker, "highPrice"));
+        mapLiteral3.put("low", this.safeString(ticker, "lowPrice"));
+        mapLiteral3.put("bid", this.safeString(ticker, "bidPrice"));
+        mapLiteral3.put("bidVolume", this.safeString(ticker, "bidQty"));
+        mapLiteral3.put("ask", this.safeString(ticker, "askPrice"));
+        mapLiteral3.put("askVolume", this.safeString(ticker, "askQty"));
+        mapLiteral3.put("vwap", this.safeString(ticker, "weightedAvgPrice"));
+        mapLiteral3.put("open", this.safeString(ticker, "openPrice"));
+        mapLiteral3.put("close", last);
+        mapLiteral3.put("last", last);
+        mapLiteral3.put("previousClose", this.safeString(ticker, "prevClosePrice"));
+        mapLiteral3.put("change", this.safeString(ticker, "priceChange"));
+        mapLiteral3.put("percentage", this.safeString(ticker, "priceChangePercent"));
+        mapLiteral3.put("average", null);
+        mapLiteral3.put("baseVolume", baseVolume);
+        mapLiteral3.put("quoteVolume", quoteVolume);
+        mapLiteral3.put("info", ticker);
+        return this.safeTicker(mapLiteral3, market);
     }
 
     /**
@@ -1964,30 +1965,30 @@ public class Tokocrypto extends TokocryptoApi
         // echoed back by the venue is only the third witness
         Boolean isLimitMaker = (java.util.Objects.equals(rawOrderType, "7")) || (java.util.Objects.equals(rawOrderType, "limit_maker"));
         Boolean postOnly = Boolean.TRUE.equals(isLimitMaker) || (java.util.Objects.equals(timeInForce, "PO"));
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("info", order);
-        mapLiteral3.put("id", id);
-        mapLiteral3.put("clientOrderId", clientOrderId);
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("lastTradeTimestamp", null);
-        mapLiteral3.put("symbol", symbol);
-        mapLiteral3.put("type", type);
-        mapLiteral3.put("timeInForce", timeInForce);
-        mapLiteral3.put("postOnly", postOnly);
-        mapLiteral3.put("reduceOnly", this.safeValue(order, "reduceOnly"));
-        mapLiteral3.put("side", side);
-        mapLiteral3.put("price", price);
-        mapLiteral3.put("triggerPrice", this.parseNumber(this.omitZero(this.safeString(order, "stopPrice"))));
-        mapLiteral3.put("amount", amount);
-        mapLiteral3.put("cost", cost);
-        mapLiteral3.put("average", average);
-        mapLiteral3.put("filled", filled);
-        mapLiteral3.put("remaining", null);
-        mapLiteral3.put("status", status);
-        mapLiteral3.put("fee", null);
-        mapLiteral3.put("trades", fills);
-        return this.safeOrder(mapLiteral3, market);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", order);
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("clientOrderId", clientOrderId);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("type", type);
+        mapLiteral4.put("timeInForce", timeInForce);
+        mapLiteral4.put("postOnly", postOnly);
+        mapLiteral4.put("reduceOnly", this.safeValue(order, "reduceOnly"));
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("triggerPrice", this.parseNumber(this.omitZero(this.safeString(order, "stopPrice"))));
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("cost", cost);
+        mapLiteral4.put("average", average);
+        mapLiteral4.put("filled", filled);
+        mapLiteral4.put("remaining", null);
+        mapLiteral4.put("status", status);
+        mapLiteral4.put("fee", null);
+        mapLiteral4.put("trades", fills);
+        return this.safeOrder(mapLiteral4, market);
     }
 
     public String parseTimeInForce(String timeInForce)
@@ -2050,7 +2051,11 @@ public class Tokocrypto extends TokocryptoApi
             Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
             Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
             // only supported for spot/margin api
-            String typeResolved = ((Boolean.TRUE.equals(postOnly))) ? "LIMIT_MAKER" : type;
+            String typeResolved = type;
+            if (Boolean.TRUE.equals(postOnly))
+            {
+                typeResolved = "LIMIT_MAKER";
+            }
             // post only is expressed by the order type here, not by a time force
             String timeInForceResolved = requestedTimeInForce;
             if (Boolean.TRUE.equals(postOnly))
@@ -2096,8 +2101,10 @@ public class Tokocrypto extends TokocryptoApi
                 put( "TAKE_PROFIT_LIMIT", 6 );
                 put( "LIMIT_MAKER", 7 );
             }};
+            String baseId = this.safeString(market, "baseId", "");
+            String quoteId = this.safeString(market, "quoteId", "");
             Map<String, Object> request = new HashMap<String, Object>();
-            request.put("symbol", ((market.get("baseId") + "_") + market.get("quoteId")));
+            request.put("symbol", ((baseId + "_") + quoteId));
             request.put("type", this.safeString(reverseOrderTypeMapping, uppercaseType));
             if (java.util.Objects.equals(side, "buy"))
             {
@@ -2141,7 +2148,8 @@ public class Tokocrypto extends TokocryptoApi
             {
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    Object precision = ((Map<String, Object>)market.get("precision")).get("price");
+                    Map<String, Object> marketPrecision = (Map<String, Object>) this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
+                    Object precision = marketPrecision.get("price");
                     Object quoteAmount = null;
                     Boolean createMarketBuyOrderRequiresPrice = true;
                     Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRequest), "createOrder", "createMarketBuyOrderRequiresPrice", true);
@@ -3014,8 +3022,9 @@ public class Tokocrypto extends TokocryptoApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        if (!((switch ((Object)(((Map<String, Object>)this.urls.get("api")).get("rest"))) { case List<?> j39v2 -> ((Object)(apiName)) != null && j39v2.contains(apiName); case Map<?, ?> j39v1 -> ((Object)(apiName)) instanceof String && j39v1.containsKey(apiName); case null, default -> false; })))
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Map<String, Object> restUrls = this.extend(new HashMap<String, Object>() {{}}, ((Map<String, Object>)this.urls.get("api")).get("rest"));
+        if (!(restUrls.containsKey(apiName)))
         {
             throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + apiName) + " endpoints")) ;
         }
@@ -3024,8 +3033,7 @@ public class Tokocrypto extends TokocryptoApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String url = baseApiUrl;
-        url = (url + ("/" + path));
+        String url = ((baseApiUrl + "/") + path);
         if (java.util.Objects.equals(apiName, "wapi"))
         {
             url = (url + ".html");
@@ -3056,7 +3064,7 @@ public class Tokocrypto extends TokocryptoApi
         } else if ((java.util.Objects.equals(apiName, "private")) || (java.util.Objects.equals(apiName, "sapi") && !java.util.Objects.equals(path, "system/status")) || (java.util.Objects.equals(apiName, "sapiV3")) || (java.util.Objects.equals(apiName, "wapi") && !java.util.Objects.equals(path, "systemStatus")) || (java.util.Objects.equals(apiName, "dapiPrivate")) || (java.util.Objects.equals(apiName, "dapiPrivateV2")) || (java.util.Objects.equals(apiName, "fapiPrivate")) || (java.util.Objects.equals(apiName, "fapiPrivateV2")))
         {
             this.checkRequiredCredentials(true);
-            String query = null;
+            String query = "";
             Long defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
             Map<String, Object> extendedParams = this.extend(new HashMap<String, Object>() {{
                 put( "timestamp", Tokocrypto.this.nonce() );
@@ -3086,16 +3094,13 @@ public class Tokocrypto extends TokocryptoApi
                 put( "X-MBX-APIKEY", Tokocrypto.this.apiKey );
             }};
             Boolean queryInUrl = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")) || (java.util.Objects.equals(apiName, "wapi"));
-            String bodySigned = query;
-            if (Boolean.TRUE.equals(queryInUrl))
-            {
-                bodySigned = null;
-            }
+            String bodySigned = null;
             if (Boolean.TRUE.equals(queryInUrl))
             {
                 url = (url + ("?" + query));
             } else
             {
+                bodySigned = query;
                 headersSigned.put("Content-Type", "application/x-www-form-urlencoded");
             }
             {
@@ -3211,18 +3216,19 @@ public class Tokocrypto extends TokocryptoApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("noCoin")) && !((switch ((Object)(parameters)) { case List<?> j39v10 -> j39v10.contains("coin"); case Map<?, ?> j39v9 -> j39v9.containsKey("coin"); case null, default -> false; })))
+        Map<String, Object> paramsDict = this.extend(new HashMap<String, Object>() {{}}, parameters);
+        if ((paramsDict.containsKey("noCoin")) && !(paramsDict.containsKey("coin")))
         {
-            return config.get("noCoin");
-        } else if ((config.containsKey("noSymbol")) && !((switch ((Object)(parameters)) { case List<?> j39v8 -> j39v8.contains("symbol"); case Map<?, ?> j39v7 -> j39v7.containsKey("symbol"); case null, default -> false; })))
+            return this.safeInteger(config, "noCoin");
+        } else if ((paramsDict.containsKey("noSymbol")) && !(paramsDict.containsKey("symbol")))
         {
-            return config.get("noSymbol");
-        } else if ((config.containsKey("noPoolId")) && !((switch ((Object)(parameters)) { case List<?> j39v6 -> j39v6.contains("poolId"); case Map<?, ?> j39v5 -> j39v5.containsKey("poolId"); case null, default -> false; })))
+            return this.safeInteger(config, "noSymbol");
+        } else if ((paramsDict.containsKey("noPoolId")) && !(paramsDict.containsKey("poolId")))
         {
-            return config.get("noPoolId");
-        } else if ((config.containsKey("byLimit")) && ((switch ((Object)(parameters)) { case List<?> j39v4 -> j39v4.contains("limit"); case Map<?, ?> j39v3 -> j39v3.containsKey("limit"); case null, default -> false; })))
+            return this.safeInteger(config, "noPoolId");
+        } else if ((config.containsKey("byLimit")) && (paramsDict.containsKey("limit")))
         {
-            Long limit = this.safeInteger(parameters, "limit");
+            Long limit = this.safeInteger(paramsDict, "limit");
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {
@@ -3230,7 +3236,7 @@ public class Tokocrypto extends TokocryptoApi
                 Long entryLimit = this.safeInteger(entry, 0);
                 if ((!java.util.Objects.equals(limit, null)) && (!java.util.Objects.equals(entryLimit, null)) && ((limit == null || (entryLimit != null && limit <= entryLimit))))
                 {
-                    return Helpers.GetValue(entry, 1);
+                    return this.safeInteger(entry, 1);
                 }
             }
         }

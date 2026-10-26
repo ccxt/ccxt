@@ -1551,7 +1551,7 @@ public class Weex extends WeexApi
         String marketId = this.safeString(ticker, "symbol");
         String markPrice = this.safeString(ticker, "markPrice");
         String marketType = "spot";
-        if ((!java.util.Objects.equals(markPrice, null)) || ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(market.get("contract"), true))))
+        if ((!java.util.Objects.equals(markPrice, null)) || ((!java.util.Objects.equals(market, null)) && Boolean.TRUE.equals((this.safeBool(market, "contract", false)))))
         {
             // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = "swap";
@@ -2282,12 +2282,11 @@ public class Weex extends WeexApi
         String symbol = this.safeSymbol(marketId, market, (String) null, "swap");
         Long timestamp = this.safeInteger(contract, "time");
         Long nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
-        Object interval = null;
+        String interval = null;
         String collectCycle = this.safeString(contract, "collectCycle");
         if (!java.util.Objects.equals(collectCycle, null))
         {
-            interval = Precise.stringDiv(collectCycle, "60");
-            interval = (interval + "h");
+            interval = (Precise.stringDiv(collectCycle, "60") + "h");
         }
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
@@ -2619,7 +2618,7 @@ public class Weex extends WeexApi
             Map<String, Object> market = this.market(symbol);
             if (java.util.Objects.equals(market.get("contract"), true))
             {
-                return (this.createContractOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+                return (this.createContractOrder((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             } else
             {
                 Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
@@ -2627,7 +2626,7 @@ public class Weex extends WeexApi
                 {
                     throw new NotSupported((this.id + " createOrder() only supports swap markets in sandbox mode")) ;
                 }
-                return (this.createSpotOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
+                return (this.createSpotOrder((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             }
         }).thenApply(Order::new);
 
@@ -2648,7 +2647,7 @@ public class Weex extends WeexApi
      * @param {string} [params.timeInForce] 'GTC', 'IOC', or 'FOK'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSpotOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Object> createSpotOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2659,7 +2658,8 @@ public class Weex extends WeexApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = this.createSpotOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            Map<String, Object> response = (this.privatePostApiV3Order(request)).join();
+            Map<String, Object> response = null;
+            response = (this.privatePostApiV3Order(request)).join();
             //
             //     {
             //         "symbol": "DOGEUSDT",
@@ -2744,7 +2744,7 @@ public class Weex extends WeexApi
      * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createContractOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Object> createContractOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2806,7 +2806,7 @@ public class Weex extends WeexApi
         {
             request.put("price", this.priceToPrecision(symbol, price));
         }
-        List<Object> triggerPricestopLossPricetakeProfitPricequeryVariable = (List<Object>) this.handleTriggerPricesAndParams(symbol, parameters, true);
+        List<Object> triggerPricestopLossPricetakeProfitPricequeryVariable = (List<Object>) this.handleTriggerPricesAndParams(symbol, (Map<String, Object>) (parameters), true);
         String triggerPrice = (String) ((List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(0);
         var stopLossPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(1);
         var takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(2);
@@ -5195,7 +5195,7 @@ public class Weex extends WeexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, 2, parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, 2, parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -5216,7 +5216,7 @@ public class Weex extends WeexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, 1, parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, 1, parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -5262,8 +5262,7 @@ public class Weex extends WeexApi
         }
         if (((String)marketId).endsWith("SUSDT"))
         {
-            Long baseLength = (((long) ((String)marketId).length()) - 5L);
-            return (Helpers.slice(marketId, 0, baseLength) + "USDT");
+            return ((marketId == null ? null : ((String)marketId).substring(0, Math.max(((String)marketId).length() - 5, 0))) + "USDT");
         }
         return marketId;
     }
@@ -5271,18 +5270,18 @@ public class Weex extends WeexApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        Helpers.addElementToObject(this.options, "sandboxMode", enable);
+        this.options.put("sandboxMode", enable);
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String endpoint = (String) this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
         Boolean isBatch = (((String)path).indexOf("batch") >= 0);
         if (!Boolean.TRUE.equals(isBatch) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (!this.isEmpty(query))
             {
                 endpoint = (endpoint + ("?" + this.urlencode(query)));
             }
@@ -5294,7 +5293,7 @@ public class Weex extends WeexApi
         {
             requestBody = this.json(query);
         }
-        Map<String, Object> requestHeaders = null;
+        Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
         if (Boolean.TRUE.equals(isPrivate))
         {
             Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);

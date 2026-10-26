@@ -1269,35 +1269,35 @@ public class P2b extends P2bApi
             }
             Long untilParam = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = this.omit(parameters, "until");
-            Object until = null;
-            Long sinceResolved = 0L;
+            Long until = this.parseToInt(0);
+            Long sinceResolved = this.parseToInt(0);
             if (!java.util.Objects.equals(untilParam, null))
             {
-                until = untilParam;
+                until = this.parseToInt(untilParam);
                 if (!java.util.Objects.equals(since, null))
                 {
                     if (((untilParam - since)) > 86400000)
                     {
                         throw new BadRequest((this.id + " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
                     }
-                    sinceResolved = since;
+                    sinceResolved = this.parseToInt(since);
                 } else
                 {
-                    sinceResolved = (untilParam - 86400000L);
+                    sinceResolved = this.parseToInt((untilParam - 86400000L));
                 }
             } else if (!java.util.Objects.equals(since, null))
             {
-                until = (since + 86400000L);
-                sinceResolved = since;
+                until = this.parseToInt((since + 86400000L));
+                sinceResolved = this.parseToInt(since);
             } else
             {
                 Long now = this.milliseconds();
-                until = now;
-                sinceResolved = (now - 86400000L);
+                until = this.parseToInt(now);
+                sinceResolved = this.parseToInt((now - 86400000L));
             }
             Map<String, Object> market = this.market(symbol);
             Long sinceSec = this.parseToInt((((double) sinceResolved) / ((double) 1000)));
-            Long untilSec = this.parseToInt((until == null ? null : ((Number) until).doubleValue() / ((double) 1000)));
+            Long untilSec = this.parseToInt((((double) until) / ((double) 1000)));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", market.get("id") );
                 put( "startTime", sinceSec );
@@ -1372,34 +1372,34 @@ public class P2b extends P2bApi
             {
                 market = this.market(symbol);
             }
-            Object until = null;
-            Long sinceResolved = 0L;
+            Long until = this.parseToInt(0);
+            Long sinceResolved = this.parseToInt(0);
             if (!java.util.Objects.equals(untilParam, null))
             {
-                until = untilParam;
+                until = this.parseToInt(untilParam);
                 if (!java.util.Objects.equals(since, null))
                 {
                     if (((untilParam - since)) > 86400000)
                     {
                         throw new BadRequest((this.id + " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
                     }
-                    sinceResolved = since;
+                    sinceResolved = this.parseToInt(since);
                 } else
                 {
-                    sinceResolved = (untilParam - 86400000L);
+                    sinceResolved = this.parseToInt((untilParam - 86400000L));
                 }
             } else if (!java.util.Objects.equals(since, null))
             {
-                until = (since + 86400000L);
-                sinceResolved = since;
+                until = this.parseToInt((since + 86400000L));
+                sinceResolved = this.parseToInt(since);
             } else
             {
                 Long now = this.milliseconds();
-                until = now;
-                sinceResolved = (now - 86400000L);
+                until = this.parseToInt(now);
+                sinceResolved = this.parseToInt((now - 86400000L));
             }
             Long sinceSec = this.parseToInt((((double) sinceResolved) / ((double) 1000)));
-            Long untilSec = this.parseToInt((until == null ? null : ((Number) until).doubleValue() / ((double) 1000)));
+            Long untilSec = this.parseToInt((((double) until) / ((double) 1000)));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "startTime", sinceSec );
                 put( "endTime", untilSec );
@@ -1526,7 +1526,7 @@ public class P2b extends P2bApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
@@ -1544,10 +1544,12 @@ public class P2b extends P2bApi
         }
         if (java.util.Objects.equals(apiName, "private"))
         {
-            ((Map<String, Object>)paramsOmitted).put("request", ("/api/v2/" + path));
             // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
-            ((Map<String, Object>)paramsOmitted).put("nonce", String.valueOf(this.incrementingNonce()));
+            paramsOmitted = this.extend(paramsOmitted, new HashMap<String, Object>() {{
+                put( "request", ("/api/v2/" + path) );
+                put( "nonce", String.valueOf(P2b.this.incrementingNonce()) );
+            }});
             String payload = this.stringToBase64(this.json(paramsOmitted)); // Body json encoded in base64
             Map<String, Object> headersSigned = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );

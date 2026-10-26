@@ -770,7 +770,7 @@ public class Modetrade extends ModetradeApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        Helpers.addElementToObject(this.options, "sandboxMode", enable);
+        this.options.put("sandboxMode", enable);
     }
 
     /**
@@ -894,12 +894,12 @@ public class Modetrade extends ModetradeApi
         String quoteId = this.safeString(parts, 2);
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
-        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        String settleId = this.safeString(parts, 2);
+        String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)) || (java.util.Objects.equals(settle, null)))
         {
             return null;
         }
-        String settleId = this.safeString(parts, 2);
-        String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
         String symbol = ((((base + "/") + quote) + ":") + settle);
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", marketId);
@@ -1114,7 +1114,7 @@ public class Modetrade extends ModetradeApi
         return this.safeCurrencyStructure(mapLiteral3);
     }
 
-    public Object parseTokenAndFeeTemp(Map<String, Object> item, Object feeTokenKey, Object feeAmountKey)
+    public Object parseTokenAndFeeTemp(Map<String, Object> item, String feeTokenKey, String feeAmountKey)
     {
         String feeCost = this.safeString(item, feeAmountKey);
         Map<String, Object> fee = null;
@@ -1490,8 +1490,7 @@ public class Modetrade extends ModetradeApi
                     put( "datetime", Modetrade.this.iso8601(timestamp) );
                 }});
             }
-            List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
+            return this.filterBySymbolSinceLimit(this.sortBy(rates, "timestamp"), symbolResolved, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -2228,7 +2227,7 @@ public class Modetrade extends ModetradeApi
                 put( "algo_type", "POSITIONAL_TP_SL" );
                 put( "child_orders", new ArrayList<Object>(Arrays.asList()) );
             }};
-            Object childOrders = outterOrder.get("child_orders");
+            List<Object> childOrders = new ArrayList<Object>(Arrays.asList());
             String closeSide = "BUY";
             if (java.util.Objects.equals(orderSide, "BUY"))
             {
@@ -2256,6 +2255,7 @@ public class Modetrade extends ModetradeApi
                 takeProfitOrder.put("reduce_only", true);
                 ((List<Object>)childOrders).add(takeProfitOrder);
             }
+            outterOrder.put("child_orders", childOrders);
             request.put("child_orders", new ArrayList<Object>(Arrays.asList(outterOrder)));
         }
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit")));
@@ -3194,7 +3194,7 @@ public class Modetrade extends ModetradeApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency((String) (code));
-                request.put("token", currency.get("id"));
+                request.put("token", this.safeString(currency, "id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -3514,8 +3514,7 @@ public class Modetrade extends ModetradeApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.safeNumber(data, "withdraw_nonce", (Object) null);
+            return this.safeNumber(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), "withdraw_nonce", (Object) null);
         }).thenApply(res -> (res instanceof Number n) ? n.doubleValue() : null);
 
     }
@@ -3525,18 +3524,18 @@ public class Modetrade extends ModetradeApi
         return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
-    public String signHash(Object hash, Object privateKey)
+    public String signHash(String hash, String privateKey)
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
-        Object r = signature.get("r");
-        Object s = signature.get("s");
+        String r = this.safeString(signature, "r", "");
+        String s = this.safeString(signature, "s", "");
         String v = this.intToBase16(this.sum(27, signature.get("v")));
         return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
     }
 
-    public String signMessage(Object message, Object privateKey)
+    public String signMessage(Object message, String privateKey)
     {
-        return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
+        return this.signHash((String) (this.hashMessage(message)), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
     }
 
     /**
@@ -3612,11 +3611,11 @@ public class Modetrade extends ModetradeApi
             withdrawRequest.put("chainId", this.parseToInt(chainId));
             withdrawRequest.put("receiver", address);
             withdrawRequest.put("token", codeUpper);
-            withdrawRequest.put("amount", String.valueOf(amount));
+            withdrawRequest.put("amount", this.numberToString(amount));
             withdrawRequest.put("withdrawNonce", withdrawNonce);
             withdrawRequest.put("timestamp", nonce);
             Object msg = this.ethEncodeStructuredData(domain, messageTypes, withdrawRequest);
-            String signature = this.signMessage(msg, this.privateKey);
+            String signature = this.signMessage(msg, (String) (this.privateKey));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "signature", signature );
                 put( "userAddress", address );
@@ -3940,8 +3939,8 @@ public class Modetrade extends ModetradeApi
 
     public Object sign(Object path, Object section, Object method, Object parameters)
     {
-        Object version = (section == null || 0 >= ((List<?>)section).size() ? null : ((List<?>)section).get(0));
-        Object access = (section == null || 1 >= ((List<?>)section).size() ? null : ((List<?>)section).get(1));
+        String version = (String) (section == null || 0 >= ((List<?>)section).size() ? null : ((List<?>)section).get(0));
+        String access = (String) (section == null || 1 >= ((List<?>)section).size() ? null : ((List<?>)section).get(1));
         String pathWithParams = (String) this.implodeParams(path, parameters);
         String apiUrl = this.safeString(this.urls.get("api"), access);
         if (java.util.Objects.equals(apiUrl, null))
@@ -3971,10 +3970,14 @@ public class Modetrade extends ModetradeApi
                     if (java.util.Objects.equals(path, "batch-order"))
                     {
                         List<Object> ordersList = (List<Object>) this.safeList(paramsSorted, "orders", new ArrayList<Object>(Arrays.asList()));
+                        List<Object> taggedOrders = new ArrayList<Object>(Arrays.asList());
                         for (var i = 0; i < ((List<?>)ordersList).size(); i++)
                         {
-                            Helpers.addElementToObject(Helpers.GetValue(paramsSorted.get("orders"), i), "order_tag", brokerId);
+                            ((List<Object>)taggedOrders).add(this.extend(this.safeDict(ordersList, i, new HashMap<String, Object>() {{}}), new HashMap<String, Object>() {{
+                                put( "order_tag", brokerId );
+                            }}));
                         }
+                        paramsSorted.put("orders", taggedOrders);
                     } else
                     {
                         paramsSorted.put("order_tag", brokerId);
@@ -3986,7 +3989,6 @@ public class Modetrade extends ModetradeApi
             {
                 paramsSigned = this.keysort(paramsSorted);
             }
-            String auth = "";
             String ts = String.valueOf(this.nonce());
             url = (url + pathWithParams);
             String apiKey = this.apiKey;
@@ -3998,7 +4000,7 @@ public class Modetrade extends ModetradeApi
             signedHeaders.put("orderly-account-id", this.accountId);
             signedHeaders.put("orderly-key", apiKey);
             signedHeaders.put("orderly-timestamp", ts);
-            auth = (((((ts + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + version) + "/") + pathWithParams);
+            String auth = (((((ts + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + version) + "/") + pathWithParams);
             String signedBody = null;
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))
             {
@@ -4016,9 +4018,9 @@ public class Modetrade extends ModetradeApi
                 signedBody = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))) ? "" : null;
             }
             Object secret = this.secret;
-            if (((String)secret).indexOf("ed25519:") >= 0)
+            if (((String)this.secret).indexOf("ed25519:") >= 0)
             {
-                List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)secret).split(java.util.regex.Pattern.quote("ed25519:"))));
+                List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)this.secret).split(java.util.regex.Pattern.quote("ed25519:"))));
                 secret = (parts == null || 1 >= parts.size() ? null : parts.get(1));
             }
             Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());

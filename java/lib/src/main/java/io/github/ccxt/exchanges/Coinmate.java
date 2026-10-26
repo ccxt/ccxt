@@ -1575,7 +1575,7 @@ public class Coinmate extends CoinmateApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String bodySigned = null;
         Map<String, Object> headersSigned = null;
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
@@ -1586,9 +1586,10 @@ public class Coinmate extends CoinmateApi
         String url = ((apiUrl + "/") + path);
         if (java.util.Objects.equals(apiName, "public"))
         {
-            if (((Map<String, Object>)parameters).size() > 0)
+            Map<String, Object> publicQuery = this.extend(new HashMap<String, Object>() {{}}, parameters);
+            if (publicQuery.size() > 0)
             {
-                url = (url + ("?" + this.urlencode(parameters)));
+                url = (url + ("?" + this.urlencode(publicQuery)));
             }
         } else
         {

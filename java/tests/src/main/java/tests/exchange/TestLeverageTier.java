@@ -16,7 +16,7 @@ import java.util.Map;
 
 
 public class TestLeverageTier extends BaseTest {
-    public static void testLeverageTier(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
+    public static void testLeverageTier(BaseExchange exchange, Object skippedProperties, String method, Object entry)
     {
         Map<String, Object> format = new HashMap<String, Object>() {{
             put( "tier", exchange.parseNumber("1") );
@@ -27,13 +27,13 @@ public class TestLeverageTier extends BaseTest {
             put( "info", new HashMap<String, Object>() {{}} );
         }};
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("maintenanceMarginRate"));
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
         //
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "tier", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "minNotional", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "maxNotional", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "maxLeverage", "1");
-        TestSharedMethods.AssertLessOrEqual(exchange, skippedProperties, method, entry, "maintenanceMarginRate", "1");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "tier", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "minNotional", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "maxNotional", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "maxLeverage", "1");
+        TestSharedMethods.AssertLessOrEqual(exchange, skippedProperties, (String) (method), entry, "maintenanceMarginRate", "1");
     }
 
 }

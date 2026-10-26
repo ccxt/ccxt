@@ -1204,7 +1204,7 @@ public class Paradex extends ParadexApi
                 if (!Boolean.TRUE.equals(hasEnd))
                 {
                     Long sinceInt = this.parseToInt(since);
-                    ((Map<String, Object>)requestUntil).put("end_at", Helpers.subtract((sinceInt + windowLength), 1));
+                    ((Map<String, Object>)requestUntil).put("end_at", ((sinceInt + windowLength) - 1L));
                 }
             } else
             {
@@ -1826,7 +1826,7 @@ public class Paradex extends ParadexApi
         return ("0x" + hashed);
     }
 
-    public String signHash(Object hash, Object privateKey)
+    public String signHash(String hash, String privateKey)
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         Object r = signature.get("r");
@@ -1835,9 +1835,9 @@ public class Paradex extends ParadexApi
         return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
     }
 
-    public String signMessage(Object message, Object privateKey)
+    public String signMessage(Object message, String privateKey)
     {
-        return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
+        return this.signHash((String) (this.hashMessage(message)), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
     }
 
     public CompletableFuture<Map<String, Object>> getSystemConfig()
@@ -1848,7 +1848,7 @@ public class Paradex extends ParadexApi
             if (java.util.Objects.equals(this.safeDict(this.options, "systemConfig", (Object) null), null))
             {
                 Map<String, Object> response = (this.publicGetSystemConfig(new HashMap<String, Object>() {{}})).join();
-                Helpers.addElementToObject(this.options, "systemConfig", response);
+                this.options.put("systemConfig", response);
             }
             return this.safeDict(this.options, "systemConfig", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
@@ -1865,14 +1865,14 @@ public class Paradex extends ParadexApi
             {
                 Map<String, Object> l1D = new HashMap<String, Object>() {{
                     put( "name", "Paradex" );
-                    put( "chainId", systemConfig.get("l1_chain_id") );
+                    put( "chainId", Paradex.this.safeString(systemConfig, "l1_chain_id") );
                     put( "version", "1" );
                 }};
                 return l1D;
             }
             Map<String, Object> domain = new HashMap<String, Object>() {{
                 put( "name", "Paradex" );
-                put( "chainId", systemConfig.get("starknet_chain_id") );
+                put( "chainId", Paradex.this.safeString(systemConfig, "starknet_chain_id") );
                 put( "version", 1 );
             }};
             return domain;
@@ -1900,16 +1900,16 @@ public class Paradex extends ParadexApi
                     put( "action", "STARK Key" );
                 }};
                 Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
-                String signature = this.signMessage(msg, this.privateKey);
-                Object account = this.retrieveStarkAccount(signature, systemConfig.get("paraclear_account_hash"), systemConfig.get("paraclear_account_proxy_hash"));
-                Helpers.addElementToObject(this.options, "paradexAccount", account);
+                String signature = this.signMessage(msg, (String) (this.privateKey));
+                Object account = this.retrieveStarkAccount(signature, this.safeString(systemConfig, "paraclear_account_hash"), this.safeString(systemConfig, "paraclear_account_proxy_hash"));
+                this.options.put("paradexAccount", account);
             }
             return this.safeDict(this.options, "paradexAccount", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
-    public CompletableFuture<Object> onboarding(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> onboarding(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1925,14 +1925,14 @@ public class Paradex extends ParadexApi
         put( "type", "felt" );
     }})) );
             }};
-            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, account.get("address"));
+            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
             Object signature = this.starknetSign(msg, account.get("privateKey"));
             parameters.put("signature", signature);
-            Helpers.addElementToObject(parameters, "account", account.get("address"));
-            Helpers.addElementToObject(parameters, "public_key", account.get("publicKey"));
+            Helpers.addElementToObject(parameters, "account", this.safeString(account, "address"));
+            Helpers.addElementToObject(parameters, "public_key", this.safeString(account, "publicKey"));
             Map<String, Object> response = (this.privatePostOnboarding(parameters)).join();
             return response;
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
@@ -1983,10 +1983,10 @@ public class Paradex extends ParadexApi
         put( "type", "felt" );
     }})) );
             }};
-            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, account.get("address"));
+            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
             Object signature = this.starknetSign(msg, account.get("privateKey"));
             parameters.put("signature", signature);
-            Helpers.addElementToObject(parameters, "account", account.get("address"));
+            Helpers.addElementToObject(parameters, "account", this.safeString(account, "address"));
             parameters.put("timestamp", req.get("timestamp"));
             parameters.put("expiration", req.get("expiration"));
             Map<String, Object> response = (this.privatePostAuth(parameters)).join();
@@ -1996,8 +1996,8 @@ public class Paradex extends ParadexApi
             // }
             //
             String token = this.safeString(response, "jwt_token");
-            Helpers.addElementToObject(this.options, "authToken", token);
-            Helpers.addElementToObject(this.options, "expires", expires);
+            this.options.put("authToken", token);
+            this.options.put("expires", expires);
             return token;
         }).thenApply(res -> (String) res);
 
@@ -2138,7 +2138,7 @@ public class Paradex extends ParadexApi
         return this.safeStringLower(types, type, type);
     }
 
-    public String scaleNumber(Object num)
+    public String scaleNumber(String num)
     {
         return Precise.stringMul(num, "100000000");
     }
@@ -2264,11 +2264,11 @@ public class Paradex extends ParadexApi
             Boolean isMarket = (((String)orderType).indexOf("MARKET") >= 0);
             Map<String, Object> orderReq = new HashMap<String, Object>();
             orderReq.put("timestamp", (now * 1000L));
-            orderReq.put("market", this.stringToBase16(request.get("market")));
+            orderReq.put("market", this.stringToBase16(this.safeString(request, "market")));
             orderReq.put("side", (((java.util.Objects.equals(this.safeString(request, "side"), "BUY")))) ? "1" : "2");
-            orderReq.put("orderType", this.stringToBase16(request.get("type")));
-            orderReq.put("size", this.scaleNumber(request.get("size")));
-            orderReq.put("price", ((Boolean.TRUE.equals(isMarket))) ? "0" : this.scaleNumber(request.get("price")));
+            orderReq.put("orderType", this.stringToBase16(this.safeString(request, "type")));
+            orderReq.put("size", this.scaleNumber(this.safeString(request, "size")));
+            orderReq.put("price", ((Boolean.TRUE.equals(isMarket))) ? "0" : this.scaleNumber(this.safeString(request, "price")));
             List<Object> orderFields = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "timestamp" );
         put( "type", "felt" );
@@ -2291,7 +2291,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{}};
             if (java.util.Objects.requireNonNullElse(modify, false))
             {
-                orderReq.put("id", request.get("id"));
+                orderReq.put("id", this.safeString(request, "id"));
                 ((List<Object>)orderFields).add(new HashMap<String, Object>() {{
                     put( "name", "id" );
                     put( "type", "felt" );
@@ -2306,7 +2306,7 @@ public class Paradex extends ParadexApi
                 }};
             }
             Map<String, Object> domain = (this.prepareParadexDomain(false)).join();
-            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, account.get("address"));
+            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, this.safeString(account, "address"));
             Object signature = this.starknetSign(msg, account.get("privateKey"));
             Map<String, Object> signedRequest = this.extend(request, new HashMap<String, Object>() {{
                 put( "signature", signature );
@@ -2604,7 +2604,7 @@ public class Paradex extends ParadexApi
             }
             List<Object> clientOrderIds = (List<Object>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")), (Object) null);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
-            Boolean hasOrderIds = (!java.util.Objects.equals(ids, null)) && ((ids instanceof List));
+            Boolean hasOrderIds = (ids instanceof List);
             Boolean hasClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null)) && ((clientOrderIds instanceof List));
             if (!Boolean.TRUE.equals(hasOrderIds) && !Boolean.TRUE.equals(hasClientOrderIds))
             {
@@ -4226,7 +4226,7 @@ public class Paradex extends ParadexApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String version = this.version;
         Object pathValue = path;
         if ((((String)path).indexOf("v2/") == 0))
@@ -4260,19 +4260,19 @@ public class Paradex extends ParadexApi
             // TODO: optimize
             if (java.util.Objects.equals(pathValue, "auth"))
             {
-                privateHeaders.put("PARADEX-STARKNET-ACCOUNT", ((Map<String, Object>)query).get("account"));
-                privateHeaders.put("PARADEX-STARKNET-SIGNATURE", ((Map<String, Object>)query).get("signature"));
-                privateHeaders.put("PARADEX-TIMESTAMP", String.valueOf(((Map<String, Object>)query).get("timestamp")));
-                privateHeaders.put("PARADEX-SIGNATURE-EXPIRATION", String.valueOf(((Map<String, Object>)query).get("expiration")));
+                privateHeaders.put("PARADEX-STARKNET-ACCOUNT", this.safeString(query, "account"));
+                privateHeaders.put("PARADEX-STARKNET-SIGNATURE", this.safeString(query, "signature"));
+                privateHeaders.put("PARADEX-TIMESTAMP", this.safeString(query, "timestamp"));
+                privateHeaders.put("PARADEX-SIGNATURE-EXPIRATION", this.safeString(query, "expiration"));
             } else if (java.util.Objects.equals(pathValue, "onboarding"))
             {
                 privateHeaders.put("PARADEX-ETHEREUM-ACCOUNT", this.walletAddress);
-                privateHeaders.put("PARADEX-STARKNET-ACCOUNT", ((Map<String, Object>)query).get("account"));
-                privateHeaders.put("PARADEX-STARKNET-SIGNATURE", ((Map<String, Object>)query).get("signature"));
-                privateHeaders.put("PARADEX-TIMESTAMP", String.valueOf(this.nonce()));
+                privateHeaders.put("PARADEX-STARKNET-ACCOUNT", this.safeString(query, "account"));
+                privateHeaders.put("PARADEX-STARKNET-SIGNATURE", this.safeString(query, "signature"));
+                privateHeaders.put("PARADEX-TIMESTAMP", this.numberToString(this.nonce()));
                 privateHeaders.put("Content-Type", "application/json");
                 privateBody = this.json(new HashMap<String, Object>() {{
-                    put( "public_key", ((Map<String, Object>)query).get("public_key") );
+                    put( "public_key", Paradex.this.safeString(query, "public_key") );
                 }});
             } else
             {

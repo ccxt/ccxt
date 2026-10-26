@@ -57,7 +57,7 @@ public class Binancecoinm extends BinancecoinmApi
         return BaseExchange.supplyAsync(() -> {
 
             // transfer from spot wallet to coinm futures wallet
-            return (this.futuresTransfer((String) (code), amount, 3, parameters)).join();
+            return (this.futuresTransfer(code, amount, 3, parameters)).join();
         });
 
     }
@@ -68,7 +68,7 @@ public class Binancecoinm extends BinancecoinmApi
         return BaseExchange.supplyAsync(() -> {
 
             // transfer from coinm futures wallet to spot wallet
-            return (this.futuresTransfer((String) (code), amount, 4, parameters)).join();
+            return (this.futuresTransfer(code, amount, 4, parameters)).join();
         });
 
     }
