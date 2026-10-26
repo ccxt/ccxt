@@ -189,7 +189,8 @@ export default class bitopro extends bitoproRest {
             tradesCache = new ArrayCache (limit);
         }
         for (let i = 0; i < trades.length; i++) {
-            tradesCache.append (trades[i]);
+            const trade = trades[i];
+            tradesCache.append (trade);
         }
         this.trades[symbol] = tradesCache;
         if (event !== undefined) {
@@ -438,7 +439,9 @@ export default class bitopro extends bitoproRest {
         };
         // this.options = this.extend (defaultOptions, this.options);
         this.extendExchangeOptions (defaultOptions);
-        const originalHeaders = this.options['ws']['options']['headers'];
+        const wsOptions = this.safeDict (this.options, 'ws', {});
+        const wsInnerOptions = this.safeDict (wsOptions, 'options', {});
+        const originalHeaders = wsInnerOptions['headers'];
         const headers: Dict = {
             'X-BITOPRO-API': 'ccxt',
             'X-BITOPRO-APIKEY': this.apiKey,

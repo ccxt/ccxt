@@ -972,9 +972,10 @@ export default class bitopro extends Exchange {
                 const copy = this.arrayConcat ([], copyFrom);
                 copy[0] = timestamp;
                 // set open, high, low to close
-                copy[1] = copy[4];
-                copy[2] = copy[4];
-                copy[3] = copy[4];
+                const closeValue = copy[4];
+                copy[1] = closeValue;
+                copy[2] = closeValue;
+                copy[3] = closeValue;
                 copy[5] = this.parseNumber ('0');
                 result.push (copy);
             }
@@ -998,8 +999,9 @@ export default class bitopro extends Exchange {
         const result: Dict = {
             'info': response,
         };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict (response, i);
+        const rows = this.toArray (response);
+        for (let i = 0; i < rows.length; i++) {
+            const balance = this.safeDict (rows, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const amount = this.safeString (balance, 'amount');
@@ -1919,6 +1921,9 @@ export default class bitopro extends Exchange {
         const apiName = api[0];
         let url = '/' + this.implodeParams (path, params);
         const query: Dict = this.omit (params, this.extractParams (path));
+        // keep `Object.keys (x).length` in one expression: the PHP transpiler rewrites that exact shape into
+        // count(x), while a hoisted key list is printed as an array and `.length` then becomes strlen(array)
+        const queryLength = Object.keys (query).length;
         const requestHeaders: Dict = {};
         const isSignedBody = (apiName === 'private') && ((method === 'POST') || (method === 'PUT'));
         const signedBody: string = this.json (params);
@@ -1936,7 +1941,7 @@ export default class bitopro extends Exchange {
                 requestHeaders['X-BITOPRO-PAYLOAD'] = payload;
                 requestHeaders['X-BITOPRO-SIGNATURE'] = signature;
             } else if (method === 'GET' || method === 'DELETE') {
-                if (Object.keys (query).length > 0) {
+                if (queryLength > 0) {
                     url += '?' + this.urlencode (query);
                 }
                 const nonce = this.milliseconds ();
@@ -1951,7 +1956,7 @@ export default class bitopro extends Exchange {
                 requestHeaders['X-BITOPRO-SIGNATURE'] = signature;
             }
         } else if (apiName === 'public' && method === 'GET') {
-            if (Object.keys (query).length > 0) {
+            if (queryLength > 0) {
                 url += '?' + this.urlencode (query);
             }
         }
