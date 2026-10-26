@@ -711,7 +711,7 @@ export default class woofipro extends woofiproRest {
         }
         const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : undefined;
         if (symbol !== undefined) {
-            messageHash += ':' + symbolResolved;
+            messageHash += ':' + this.safeString (this.market (symbol), 'symbol', '');
         }
         const request: Dict = {
             'event': 'subscribe',
@@ -756,7 +756,7 @@ export default class woofipro extends woofiproRest {
         }
         const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : undefined;
         if (symbol !== undefined) {
-            messageHash += ':' + symbolResolved;
+            messageHash += ':' + this.safeString (this.market (symbol), 'symbol', '');
         }
         const request: Dict = {
             'event': 'subscribe',
