@@ -1151,13 +1151,13 @@ export default class bullish extends Exchange {
         //
         const marketId = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (trade, 'createdAtTimestamp');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'quantity');
         const side = this.safeStringLower (trade, 'side');
         const isTaker = this.safeBool (trade, 'isTaker');
-        const currency = marketResolved['quote'];
+        const currency = this.safeString (marketResolved, 'quote');
         const code = this.safeCurrencyCode (currency);
         const feeCost = this.safeNumber (trade, 'quoteFee');
         let fee: Fee = undefined;
@@ -2604,7 +2604,7 @@ export default class bullish extends Exchange {
         //     ]
         //
         const marketResolved: Market = this.safeMarket (this.safeString (position, 'symbol'), market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (position, 'createdAtTimestamp');
         const side = this.safeString (position, 'side');
         return this.safePosition ({

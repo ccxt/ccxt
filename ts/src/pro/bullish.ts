@@ -138,7 +138,7 @@ export default class bullish extends bullishRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const messageHash = 'trades::' + market['symbol'];
+        const messageHash = 'trades::' + this.safeString (market, 'symbol', '');
         const url = '/trading-api/v1/market-data/trades';
         const request: Dict = {
             'topic': 'anonymousTrades',
@@ -194,7 +194,7 @@ export default class bullish extends bullishRest {
             tradesArray.append (tradesList[i]);
         }
         this.trades[symbol] = tradesArray;
-        const messageHash = 'trades::' + market['symbol'];
+        const messageHash = 'trades::' + this.safeString (market, 'symbol', '');
         client.resolve (tradesArray, messageHash);
     }
 
@@ -212,7 +212,7 @@ export default class bullish extends bullishRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const wsUrl = this.safeString (this.urls['api']['ws'], 'public');
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' watchTicker() has no public websocket url');
@@ -299,7 +299,7 @@ export default class bullish extends bullishRest {
         }
         const market = this.market (symbol);
         const url = '/trading-api/v1/market-data/orderbook';
-        const messageHash = 'orderbook::' + market['symbol'];
+        const messageHash = 'orderbook::' + this.safeString (market, 'symbol', '');
         const request: Dict = {
             'topic': 'l2Orderbook', // 'l2Orderbook' returns only snapshots while 'l1Orderbook' returns only updates
             'symbol': market['id'],
