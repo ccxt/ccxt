@@ -523,13 +523,12 @@ export default class digifinex extends Exchange {
     }
 
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
-        const networkEntries = rawCurrency as Dict[];
-        const firstEntry = this.safeDict (networkEntries, 0, {}); // it must have at least one entry
-        const id = this.safeString (firstEntry, 'currency');
+        const networkEntries = this.toArray (rawCurrency) as Dict[];
+        const id = this.safeString (this.safeDict (networkEntries, 0, {}), 'currency'); // it must have at least one entry
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
         for (let j = 0; j < networkEntries.length; j++) {
-            const networkEntry = networkEntries[j];
+            const networkEntry = this.safeDict (networkEntries, j);
             const networkId = this.safeString2 (networkEntry, 'chain', 'currency');
             const networkCode = this.networkIdToCode (networkId, code);
             if (networkCode !== undefined) {
@@ -858,10 +857,10 @@ export default class digifinex extends Exchange {
         //     }
         //
         const result: Dict = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict (response, i);
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
+        const rows = this.toArray (response);
+        for (let i = 0; i < rows.length; i++) {
+            const balance = this.safeDict (rows, i);
+            const code = this.safeCurrencyCode (this.safeString (balance, 'currency'));
             const account = this.account ();
             const free = this.safeString2 (balance, 'free', 'avail_balance');
             const total = this.safeString2 (balance, 'total', 'equity');
@@ -2651,8 +2650,9 @@ export default class digifinex extends Exchange {
         let paramsMarketType = undefined;
         [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', paramsMarketType);
+        const idValue = this.numberToString (id);
         const request: Dict = {
-            'order_id': id,
+            'order_id': idValue,
         };
         if (marketType === 'swap') {
             if (market !== undefined) {
@@ -2723,7 +2723,7 @@ export default class digifinex extends Exchange {
         const data = this.safeValue (response, 'data');
         const order = (marketType === 'swap') ? data : this.safeValue (data, 0);
         if (order === undefined) {
-            throw new OrderNotFound (this.id + ' fetchOrder() order ' + id.toString () + ' not found');
+            throw new OrderNotFound (this.id + ' fetchOrder() order ' + idValue + ' not found');
         }
         return this.parseOrder (order, market);
     }
@@ -4459,17 +4459,17 @@ export default class digifinex extends Exchange {
         //
         const depositWithdrawFees: Dict = {};
         const codesValue: Strings = this.marketCodes (codes);
-        for (let i = 0; i < response.length; i++) {
-            const entry = this.safeDict (response, i);
-            const currencyId = this.safeString (entry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
+        const rows = this.toArray (response);
+        for (let i = 0; i < rows.length; i++) {
+            const entry = this.safeDict (rows, i);
+            const code = this.safeCurrencyCode (this.safeString (entry, 'currency'));
             if ((code !== undefined) && ((codesValue === undefined) || (this.inArray (code, codesValue)))) {
-                if (this.safeDict (depositWithdrawFees, code) === undefined) {
+                if (!(code in depositWithdrawFees)) {
                     const feeStructure = this.depositWithdrawFee ({});
                     feeStructure['info'] = [];
                     depositWithdrawFees[code] = feeStructure;
                 }
-                const depositWithdrawFee = depositWithdrawFees[code];
+                const depositWithdrawFee: Dict = depositWithdrawFees[code];
                 const depositWithdrawInfo = depositWithdrawFee['info'];
                 depositWithdrawInfo.push (entry);
                 const networkId = this.safeString (entry, 'chain');
