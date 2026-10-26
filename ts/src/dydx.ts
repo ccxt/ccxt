@@ -1112,7 +1112,6 @@ export default class dydx extends Exchange {
         //
         const marketId = this.safeString (position, 'market');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
         const side = this.safeStringLower (position, 'side');
         let quantity = this.safeString (position, 'size');
         if (side !== 'long') {
@@ -1122,7 +1121,7 @@ export default class dydx extends Exchange {
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': symbol,
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'entryPrice': this.safeNumber (position, 'entryPrice'),
             'markPrice': undefined,
             'notional': undefined,
@@ -1410,7 +1409,8 @@ export default class dydx extends Exchange {
         let goodTillBlock = this.safeInteger (paramsSubAccountId, 'goodTillBlock');
         let goodTillBlockTime: Num = undefined;
         const goodTillBlockTimeInSeconds = 2592000;
-        const [ goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds ] = this.handleOptionIntegerAndParams (paramsSubAccountId, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
+        // default is 30 days
+        const [ goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds ] = this.handleOptionIntegerAndParams (paramsSubAccountId, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds);
         if (orderFlag === 0) {
             if (goodTillBlock === undefined) {
                 // short term order
@@ -1602,13 +1602,13 @@ export default class dydx extends Exchange {
         const goodTillBlockOption = this.safeInteger (paramsOmitted, 'goodTillBlock');
         let goodTillBlock = goodTillBlockOption;
         const goodTillBlockTimeInSeconds = 2592000;
-        const [ goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds ] = this.handleOptionIntegerAndParams (paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
+        // default is 30 days
+        const [ goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds ] = this.handleOptionIntegerAndParams (paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds);
         let goodTillBlockTime: Num = undefined;
         const defaultOrderFlags = (isTrigger) ? 32 : 64;
         const orderFlags = this.safeInteger (paramsGoodTillBlockTimeInSeconds, 'orderFlags', defaultOrderFlags);
         const subAccountId = 0;
-        const subAccountIdOptions = this.handleOptionIntegerAndParams (paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId);
-        const subAccountIdOption = subAccountIdOptions[0];
+        const [ subAccountIdOption ] = this.handleOptionIntegerAndParams (paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId);
         if (orderFlags !== 0 && orderFlags !== 64 && orderFlags !== 32) {
             throw new InvalidOrder (this.id + ' invalid orderFlags, allowed values are (0, 64, 32).');
         }

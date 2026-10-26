@@ -51,9 +51,9 @@ export default class dydx extends dydxRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const market = this.market (symbol);
-        const messageHash = 'trade:' + market['symbol'];
+        const messageHash = 'trade:' + this.safeString (market, 'symbol', '');
         const request: Dict = {
             'type': 'subscribe',
             'channel': 'v4_trades',
@@ -80,9 +80,9 @@ export default class dydx extends dydxRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const market = this.market (symbol);
-        const messageHash = 'trade:' + market['symbol'];
+        const messageHash = 'trade:' + this.safeString (market, 'symbol', '');
         const request: Dict = {
             'type': 'unsubscribe',
             'channel': 'v4_trades',
@@ -127,8 +127,7 @@ export default class dydx extends dydxRest {
         }
         const parsedTrades = this.parseTrades (rawTrades, market);
         for (let i = 0; i < parsedTrades.length; i++) {
-            const parsed = parsedTrades[i];
-            stored.append (parsed);
+            stored.append (parsedTrades[i]);
         }
         const messageHash = 'trade' + ':' + symbol;
         client.resolve (stored, messageHash);
@@ -178,9 +177,9 @@ export default class dydx extends dydxRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const market = this.market (symbol);
-        const messageHash = 'orderbook:' + market['symbol'];
+        const messageHash = 'orderbook:' + this.safeString (market, 'symbol', '');
         const request: Dict = {
             'type': 'subscribe',
             'channel': 'v4_orderbook',
@@ -203,9 +202,9 @@ export default class dydx extends dydxRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const market = this.market (symbol);
-        const messageHash = 'orderbook:' + market['symbol'];
+        const messageHash = 'orderbook:' + this.safeString (market, 'symbol', '');
         const request: Dict = {
             'type': 'unsubscribe',
             'channel': 'v4_orderbook',
@@ -284,9 +283,9 @@ export default class dydx extends dydxRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const market = this.market (symbol);
-        const messageHash = 'ohlcv:' + market['symbol'];
+        const messageHash = 'ohlcv:' + this.safeString (market, 'symbol', '');
         const resolution = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'type': 'subscribe',
@@ -316,9 +315,9 @@ export default class dydx extends dydxRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const market = this.market (symbol);
-        const messageHash = 'ohlcv:' + market['symbol'];
+        const messageHash = 'ohlcv:' + this.safeString (market, 'symbol', '');
         const resolution = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'type': 'unsubscribe',
