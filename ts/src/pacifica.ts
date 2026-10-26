@@ -1614,7 +1614,7 @@ export default class pacifica extends Exchange {
             'symbol': market['id'],
             'side': this.mapSide (side),
         };
-        let operationType: Str = undefined;
+        let operationType = 'create_order';
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
         const orderType = type.toUpperCase ();
         const triggerPrice = this.safeString (params, 'triggerPrice');
@@ -2004,11 +2004,9 @@ export default class pacifica extends Exchange {
     cancelOrderRequest (id: any, symbol: Str = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
         const isStopOrder = this.safeBool2 (params, 'trigger', 'stop', false);
-        let operationType: Str = undefined;
+        let operationType = 'cancel_order';
         if (isStopOrder) {
             operationType = 'cancel_stop_order';
-        } else {
-            operationType = 'cancel_order';
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         const sigPayload: Dict = {
@@ -3761,11 +3759,11 @@ export default class pacifica extends Exchange {
             }
             return result;
         } else if (Array.isArray (value)) {
-            const result: Dict[] = [];
+            const sortedList: Dict[] = [];
             for (let i = 0; i < value.length; i++) {
-                result.push (this.sortJsonKeys (value[i]));
+                sortedList.push (this.sortJsonKeys (value[i]));
             }
-            return result;
+            return sortedList;
         } else {
             return value;
         }
