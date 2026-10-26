@@ -1925,8 +1925,7 @@ export default class weex extends Exchange {
         let interval: Str = undefined;
         const collectCycle = this.safeString (contract, 'collectCycle');
         if (collectCycle !== undefined) {
-            interval = Precise.stringDiv (collectCycle, '60');
-            interval = interval + 'h';
+            interval = Precise.stringDiv (collectCycle, '60') + 'h';
         }
         return {
             'info': contract,
@@ -4363,8 +4362,7 @@ export default class weex extends Exchange {
             return marketId; // a live market id, not a demo one
         }
         if (marketId.endsWith ('SUSDT')) {
-            const baseLength = marketId.length - 5;
-            return marketId.slice (0, baseLength) + 'USDT';
+            return marketId.slice (0, -5) + 'USDT';
         }
         return marketId;
     }
