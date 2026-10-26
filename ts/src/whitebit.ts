@@ -931,7 +931,7 @@ export default class whitebit extends Exchange {
                     depositWithdrawFees[code] = this.depositWithdrawFee ({});
                 }
                 depositWithdrawFees[code]['info'][entry] = feeInfo;
-                let networkId = this.safeString (splitEntry, 1);
+                const networkId = this.safeString (splitEntry, 1);
                 const withdraw = this.safeDict (feeInfo, 'withdraw');
                 const deposit = this.safeDict (feeInfo, 'deposit');
                 const withdrawFee = this.safeNumber (withdraw, 'fixed');
@@ -946,8 +946,7 @@ export default class whitebit extends Exchange {
                 };
                 if (networkId !== undefined) {
                     const networkLength = networkId.length;
-                    networkId = networkId.slice (1, networkLength - 1);
-                    const networkCode = this.networkIdToCode (networkId, code);
+                    const networkCode = this.networkIdToCode (networkId.slice (1, networkLength - 1), code);
                     if (networkCode !== undefined) {
                         depositWithdrawFees[code]['networks'][networkCode] = {
                             'withdraw': withdrawResult,
@@ -1236,15 +1235,13 @@ export default class whitebit extends Exchange {
             const currencyLimits = this.safeDict (currency, 'limits', {});
             const depositLimits = this.safeDict (currencyLimits, 'deposit', {});
             const withdrawLimits = this.safeDict (currencyLimits, 'withdraw', {});
-            const limits: Dict = {
-                'deposit': {
-                    'min': depositLimits['min'],
-                    'max': depositLimits['max'],
-                },
-                'withdraw': {
-                    'min': withdrawLimits['min'],
-                    'max': withdrawLimits['max'],
-                },
+            const depositLimitsResult: Dict = {
+                'min': depositLimits['min'],
+                'max': depositLimits['max'],
+            };
+            const withdrawLimitsResult: Dict = {
+                'min': withdrawLimits['min'],
+                'max': withdrawLimits['max'],
             };
             // Add fee information if available
             if (feeData !== undefined) {
@@ -1262,7 +1259,7 @@ export default class whitebit extends Exchange {
                             'percent': this.safeNumber (depositFlex, 'percent'),
                         };
                     }
-                    limits['deposit']['fee'] = depositFeeData;
+                    depositLimitsResult['fee'] = depositFeeData;
                 }
                 if ((withdrawFee !== undefined) && (withdrawFee !== null)) {
                     const withdrawFeeData: Dict = {
@@ -1276,10 +1273,14 @@ export default class whitebit extends Exchange {
                             'percent': this.safeNumber (withdrawFlex, 'percent'),
                         };
                     }
-                    limits['withdraw']['fee'] = withdrawFeeData;
+                    withdrawLimitsResult['fee'] = withdrawFeeData;
                 }
             }
             // Add network-specific limits if available
+            const limits: Dict = {
+                'deposit': depositLimitsResult,
+                'withdraw': withdrawLimitsResult,
+            };
             const currencyNetworks = this.safeDict (currency, 'networks');
             if (currencyNetworks !== undefined) {
                 limits['networks'] = currencyNetworks;
