@@ -1008,10 +1008,10 @@ export default class hitbtc extends hitbtcRest {
     }
 
     handleOrderHelper (client: Client, message: Dict, order: Dict) {
-        const orders = this.orders;
-        if (orders === undefined) {
+        if (this.orders === undefined) {
             return;
         }
+        const orders = this.orders;
         const marketId = this.safeStringLower2 (order, 'instrument', 'symbol');
         const method = this.safeString (message, 'method', '');
         const splitMethod = method.split ('_order');

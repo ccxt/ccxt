@@ -3900,7 +3900,7 @@ export default class hitbtc extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0, '');
         const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
         const apiUrl = this.safeString (this.urls['api'], apiName);
@@ -3909,14 +3909,13 @@ export default class hitbtc extends Exchange {
         }
         const baseUrl = apiUrl + '/' + implodedPath;
         let getRequest: string = '';
-        const keys = Object.keys (query);
-        const queryLength = keys.length;
+        const queryString = this.urlencode (query);
         const headersValue: NullableDict = {
             'Content-Type': 'application/json',
         };
         if (method === 'GET') {
-            if (queryLength !== 0) {
-                getRequest = '?' + this.urlencode (query);
+            if (queryString.length !== 0) {
+                getRequest = '?' + queryString;
             }
         }
         const url = baseUrl + getRequest;
@@ -3938,8 +3937,7 @@ export default class hitbtc extends Exchange {
             const payloadString = payload.join ('');
             const signature = this.hmac (this.encode (payloadString), this.encode (this.secret), sha256, 'hex');
             const secondPayload = this.apiKey + ':' + signature + ':' + timestamp;
-            const encoded = this.stringToBase64 (secondPayload);
-            headersValue['Authorization'] = 'HS256 ' + encoded;
+            headersValue['Authorization'] = 'HS256 ' + this.stringToBase64 (secondPayload);
         }
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
     }
