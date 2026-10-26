@@ -128,7 +128,7 @@ export default class derive extends deriveRest {
         const data = this.safeDict (params, 'data', {});
         const marketId = this.safeString (data, 'instrument_name');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const topic = this.safeString (params, 'channel');
         if (!(symbol in this.orderbooks)) {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
@@ -245,7 +245,8 @@ export default class derive extends deriveRest {
         const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol', '');
+            result[tickerSymbol] = ticker;
             return result;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbolsResolved);
@@ -295,7 +296,7 @@ export default class derive extends deriveRest {
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
         const ticker = this.parseTicker (data, market);
-        const tickerSymbol = ticker['symbol'];
+        const tickerSymbol = this.safeString (ticker, 'symbol');
         if (tickerSymbol !== undefined) {
             this.tickers[tickerSymbol] = ticker;
             const bidAsk = this.safeTicker ({
@@ -328,10 +329,8 @@ export default class derive extends deriveRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let limit = this.safeInteger (params, 'limit');
-        if (limit === undefined) {
-            limit = 10;
-        }
+        const limitRaw = this.safeInteger (params, 'limit');
+        const limit: Int = (limitRaw === undefined) ? 10 : limitRaw;
         const market = this.market (symbol);
         const marketId = this.safeString (market, 'id', '');
         const topic = 'orderbook.' + marketId + '.10.' + this.numberToString (limit);
@@ -419,7 +418,7 @@ export default class derive extends deriveRest {
         const parsedTopic = topic.split ('.');
         const marketId = this.safeString (parsedTopic, 1);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         if (symbol in this.tickers) {
             delete this.tickers[symbol];
         }
@@ -527,7 +526,7 @@ export default class derive extends deriveRest {
         const parsedTopic = topic.split ('.');
         const marketId = this.safeString (parsedTopic, 1);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -937,9 +936,10 @@ export default class derive extends deriveRest {
             };
             const snapshotParams = this.extend (snapshotRequest, paramsDeriveSubaccountId);
             const positionsSnapshot = await this.fetchPositions (undefined, snapshotParams);
-            const cache = this.positions[subaccountIdKey];
+            const cache = this.safeValue (this.positions, subaccountIdKey);
             for (let i = 0; i < positionsSnapshot.length; i++) {
-                cache.append (positionsSnapshot[i]);
+                const snapshotPosition = this.safeValue (positionsSnapshot, i);
+                cache.append (snapshotPosition);
             }
             loadedSnapshots[subaccountIdKey] = true;
             this.options['loadedPositionsSnapshots'] = loadedSnapshots;
@@ -964,18 +964,18 @@ export default class derive extends deriveRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions[subaccountIdKey], symbolsResolved, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.safeValue (this.positions, subaccountIdKey), symbolsResolved, since, limit, true);
     }
 
     handlePositionDelta (subaccountIdKey: string, entry: Dict): Position {
         const marketId = this.safeString (entry, 'name');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const newSize = this.safeString (entry, 'new_balance', '0');
         const isShort = Precise.stringLt (newSize, '0');
         const side = isShort ? 'short' : 'long';
         const contracts = Precise.stringAbs (newSize);
-        const cache = this.positions[subaccountIdKey];
+        const cache = this.safeValue (this.positions, subaccountIdKey);
         const symbolPositions = this.safeDict (cache.hashmap, symbol, {});
         // a fill through zero flattens the opposite side first
         const oppositeSide = isShort ? 'long' : 'short';
@@ -1065,7 +1065,7 @@ export default class derive extends deriveRest {
         }
         if (updated) {
             this.balance[subaccountIdKey] = this.safeBalance (subBalance as any);
-            client.resolve (this.balance[subaccountIdKey], topic);
+            client.resolve (this.safeValue (this.balance, subaccountIdKey), topic);
         }
         const positionUpdatesLength = positionUpdates.length;
         if (positionUpdatesLength > 0) {

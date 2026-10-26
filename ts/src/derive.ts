@@ -791,8 +791,8 @@ export default class derive extends Exchange {
         let allInstruments: Dict[] = [];
         const [ maxPages, paramsMaxPages ] = this.handleOptionIntegerAndParams (params, 'getMarketsPaginated', 'maxMarketPages', 25);
         const [ pageSize, paramsOmitted ] = this.handleOptionAndParams (paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000);
-        let page = 1;
         for (let i = 0; i < maxPages; i++) {
+            const page = i + 1;
             const requestExtension: Dict = {
                 'page': page,
                 'page_size': pageSize,
@@ -808,7 +808,6 @@ export default class derive extends Exchange {
             if (collected >= totalCount) {
                 break;
             }
-            page += 1;
         }
         return allInstruments;
     }
@@ -1032,8 +1031,9 @@ export default class derive extends Exchange {
         const amount = this.safeString (stats, 'oi');
         const markPrice = this.safeString (interest, 'M');
         let value: Str = undefined;
+        const isOption = this.safeBool (market, 'option', false);
         // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
-        if ((market !== undefined) && (market['option'] !== true)) {
+        if ((market !== undefined) && (isOption !== true)) {
             value = Precise.stringMul (amount, markPrice);
         }
         return this.safeOpenInterest ({
@@ -1962,8 +1962,8 @@ export default class derive extends Exchange {
     signHash (hash: string, privateKey: string): string {
         this.checkRequiredCredentials ();
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString (signature, 'r', '');
+        const s = this.safeString (signature, 's', '');
         const v = this.intToBase16 (this.sum (27, signature['v']));
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
@@ -2019,13 +2019,12 @@ export default class derive extends Exchange {
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const TRADE_MODULE_ADDRESS: Str = '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b'; // shared across mainnet and testnet in v3
         const priceString = this.numberToString (price);
-        let maxFee: Num = undefined;
-        let paramsMaxFee: Dict = {};
-        [ maxFee, paramsMaxFee ] = this.handleOptionAndParams (paramsDeriveSubaccountId, 'createOrder', 'max_fee');
-        if (maxFee === undefined) {
+        const maxFeeOptionAndParams = this.handleOptionAndParams (paramsDeriveSubaccountId, 'createOrder', 'max_fee');
+        const maxFeeString = this.safeString (maxFeeOptionAndParams, 0);
+        if (maxFeeString === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a max_fee argument in params');
         }
-        const maxFeeString = this.numberToString (maxFee);
+        const paramsMaxFee: Dict = this.safeDict (maxFeeOptionAndParams, 1, {});
         const amountString = this.numberToString (amount);
         const marketInfo = this.safeDict (market, 'info', {});
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
@@ -2799,10 +2798,7 @@ export default class derive extends Exchange {
         //         "algo_slices_completed": null
         //     }
         //
-        let order = this.safeDict (rawOrder, 'data');
-        if (order === undefined) {
-            order = rawOrder;
-        }
+        const order = this.safeDict (rawOrder, 'data', rawOrder);
         const timestamp = this.safeInteger (rawOrder, 'creation_timestamp'); // the nonce is no longer a usable fallback: v3 nonces are nanosecond-scale values with a random suffix
         const orderId = this.safeString (order, 'order_id');
         const marketId = this.safeString (order, 'instrument_name');
@@ -3620,7 +3616,8 @@ export default class derive extends Exchange {
                     account['total'] = this.safeString (balance, 'amount');
                 } else {
                     const amount = this.safeString (balance, 'amount');
-                    account['total'] = Precise.stringAdd (account['total'], amount);
+                    const previousTotal = this.safeString (account, 'total');
+                    account['total'] = Precise.stringAdd (previousTotal, amount);
                 }
                 if (code !== undefined) {
                     result[code] = account;
@@ -4320,7 +4317,7 @@ export default class derive extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const apiName = api[0];
+        const apiName = this.safeString (api, 0);
         const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
