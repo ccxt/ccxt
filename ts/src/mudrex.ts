@@ -1286,8 +1286,8 @@ export default class mudrex extends Exchange {
         // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
         const pageSize = (limit === undefined) ? 0 : limit * 2;
         const allRows: Dict[] = [];
-        let transactionsCount: Int = 0;
-        let calls: Int = 0;
+        let transactionsCount = this.parseToInt (0);
+        let calls = this.parseToInt (0);
         let offset = 0;
         let paging = true;
         while (paging) {
@@ -1305,11 +1305,11 @@ export default class mudrex extends Exchange {
                 if (this.safeString (entry, 'fee_type') === 'TRANSACTION') {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
                     if ((market === undefined) || (this.safeString (entry, 'symbol') === market['id'])) {
-                        transactionsCount = transactionsCount + 1;
+                        transactionsCount = this.parseToInt (transactionsCount + 1);
                     }
                 }
             }
-            calls = calls + 1;
+            calls = this.parseToInt (calls + 1);
             paging = false;
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
             if ((limit !== undefined) && (dataLength === pageSize)) {
@@ -1321,7 +1321,7 @@ export default class mudrex extends Exchange {
             }
         }
         // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
-        const rebateKeys = [];
+        const rebateKeys: string[] = [];
         const rebateAmounts: string[] = [];
         const transactions: Dict[] = [];
         const transactionKeys: string[] = [];
@@ -1344,7 +1344,7 @@ export default class mudrex extends Exchange {
                 if (rebateKeys[j] === transactionKeys[i]) {
                     rebate = this.safeString (rebateAmounts, j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
-                    rebateKeys[j] = undefined;
+                    rebateKeys[j] = '';
                     break;
                 }
             }
