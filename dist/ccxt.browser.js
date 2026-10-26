@@ -274222,7 +274222,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
-                'fetchOrder': undefined,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
@@ -274671,7 +274671,12 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
                         'untilDays': 100000,
                         'symbolRequired': false
                     },
-                    'fetchOrder': undefined,
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true
+                    },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
@@ -276129,6 +276134,55 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         const response = await this.privatePostTradeBatchOrders(ordersRequests);
         const data = this.safeList(response, 'data', []);
         return this.parseOrders(data);
+    }
+    /**
+     * @method
+     * @name blofin#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.blofin.com/index.html#get-order-detail
+     * @see https://docs.blofin.com/index.html#get-tpsl-order-detail
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @param {boolean} [params.tpsl] True if fetching a tpsl order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */ async fetchOrder(id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'instId': market['id']
+        };
+        const isTpsl = this.safeBool2(params, 'tpsl', 'TPSL', false);
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        } else if (isTpsl === true) {
+            request['tpslId'] = id;
+        } else {
+            request['orderId'] = id;
+        }
+        const query = this.omit(params, [
+            'clientOrderId',
+            'tpsl',
+            'TPSL'
+        ]);
+        let response;
+        if (isTpsl === true) {
+            response = await this.privateGetTradeOrderTpslDetail(this.extend(request, query));
+        } else {
+            response = await this.privateGetTradeOrderDetail(this.extend(request, query));
+        }
+        const data = this.safeDict(response, 'data');
+        if (data === undefined) {
+            throw new _base_errors_js__rspack_import_1.OrderNotFound(this.id + ' fetchOrder() could not find order ' + id);
+        }
+        return this.parseOrder(data, market);
     }
     /**
      * @method
