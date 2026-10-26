@@ -436,7 +436,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 throw new ArgumentsRequired((this.id + " cancelOrderWs() requires a symbol argument")) ;
             }
-            Map<String, Object> request = this.cancelOrderRequest(id, symbol, parameters);
+            Object request = this.cancelOrderRequest(id, symbol, parameters);
             Boolean isTestnet = this.isSandboxModeEnabled;
             String urlKey = "api";
             if (Boolean.TRUE.equals(isTestnet))
@@ -517,7 +517,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String operationType = "cancel_all_orders";
-            Map<String, Object> request = this.cancelAllOrdersRequest((String) (symbol), parameters);
+            Object request = this.cancelAllOrdersRequest((String) (symbol), parameters);
             Boolean isTestnet = this.isSandboxModeEnabled;
             String urlKey = "api";
             if (Boolean.TRUE.equals(isTestnet))
