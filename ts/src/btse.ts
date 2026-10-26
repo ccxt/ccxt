@@ -1674,8 +1674,8 @@ export default class btse extends Exchange {
         } else {
             // the futures endpoint does not support a count parameter, the limit is applied client-side
             request = this.omit (request, 'count');
-            if (market !== undefined) {
-                request['symbol'] = this.futuresRequestId (market);
+            if (symbol !== undefined) {
+                request['symbol'] = this.futuresRequestId (this.market (symbol));
             }
             //
             //     {
@@ -2519,13 +2519,13 @@ export default class btse extends Exchange {
             request['symbol'] = (symbol !== undefined) ? this.safeString (market, 'id') : 'ALL';
             response = await this.privateDeleteSpotApiV4TradeOrdersAll (this.extend (request, paramsMarketType));
         } else {
-            if (market === undefined) {
+            if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for contract markets');
             }
             // the unified futures api has no cancel all endpoint, the legacy
             // endpoint cancels every order for the symbol when no order id is
             // sent, and it identifies contracts by the short symbol form
-            request['symbol'] = this.futuresRequestId (market);
+            request['symbol'] = this.futuresRequestId (this.market (symbol));
             response = await this.privateDeleteFuturesApiV23Order (this.extend (request, paramsMarketType));
         }
         return this.parseOrders (response, market);
@@ -2588,8 +2588,8 @@ export default class btse extends Exchange {
             }
             response = await this.privateGetSpotApiV4TradeOrders (this.extend (request, paramsMarketType));
         } else {
-            if (market !== undefined) {
-                request['symbol'] = this.futuresRequestId (market);
+            if (symbol !== undefined) {
+                request['symbol'] = this.futuresRequestId (this.market (symbol));
             }
             response = await this.privateGetFuturesApiV3TradeOrders (this.extend (request, paramsMarketType));
         }
@@ -2814,7 +2814,7 @@ export default class btse extends Exchange {
         return result;
     }
 
-    async requestWalletHistoryRows (methodName: string, historyTypes: string[], code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+    async requestWalletHistoryRows (methodName: string, historyTypes: string[], code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         // the helper always receives a non empty history type list, the list is
         // rebuilt through safeList so the transpilers treat it as an array in
         // every runtime
@@ -2892,7 +2892,7 @@ export default class btse extends Exchange {
                 rows.push (entry);
             }
         }
-        return [ rows, currency ] as any;
+        return this.parseTransactions (rows, currency, since, limit);
     }
 
     /**
@@ -2909,8 +2909,7 @@ export default class btse extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        const [ rows, currency ] = await this.requestWalletHistoryRows ('fetchDepositsWithdrawals', [ 'DEPOSIT', 'WITHDRAW' ], code, since, limit, params);
-        return this.parseTransactions (rows, currency, since, limit);
+        return await this.requestWalletHistoryRows ('fetchDepositsWithdrawals', [ 'DEPOSIT', 'WITHDRAW' ], code, since, limit, params);
     }
 
     /**
@@ -2927,8 +2926,7 @@ export default class btse extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        const [ rows, currency ] = await this.requestWalletHistoryRows ('fetchDeposits', [ 'DEPOSIT' ], code, since, limit, params);
-        return this.parseTransactions (rows, currency, since, limit);
+        return await this.requestWalletHistoryRows ('fetchDeposits', [ 'DEPOSIT' ], code, since, limit, params);
     }
 
     /**
@@ -2945,8 +2943,7 @@ export default class btse extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        const [ rows, currency ] = await this.requestWalletHistoryRows ('fetchWithdrawals', [ 'WITHDRAW' ], code, since, limit, params);
-        return this.parseTransactions (rows, currency, since, limit);
+        return await this.requestWalletHistoryRows ('fetchWithdrawals', [ 'WITHDRAW' ], code, since, limit, params);
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
