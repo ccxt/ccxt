@@ -105,7 +105,7 @@ export default class ndax extends ndaxRest {
         //     }
         //
         const ticker = this.parseTicker (payload);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString (ticker, 'symbol');
         const market = this.market (symbol);
         if (symbol !== undefined) {
             this.tickers[symbol] = ticker;
@@ -286,9 +286,7 @@ export default class ndax extends ndaxRest {
             const marketId = this.safeString (ohlcv, 8);
             const market = this.safeMarket (marketId);
             const symbol = this.safeString (market, 'symbol', '');
-            if (marketId !== undefined) {
-                updates[marketId] = {};
-            }
+            const marketUpdates: Dict = {};
             this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
             const keys = Object.keys (this.timeframes);
             for (let j = 0; j < keys.length; j++) {
@@ -311,7 +309,8 @@ export default class ndax extends ndaxRest {
                 const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
                 const length: number = stored.length;
                 const previous = this.safeValue (stored, length - 1);
-                if ((length > 0) && (candleTimestamp === this.safeInteger (previous, 0))) {
+                const previousTimestamp = this.safeInteger (previous, 0);
+                if ((length > 0) && (previousTimestamp !== undefined) && (previousTimestamp === candleTimestamp)) {
                     const parsedHigh = this.safeFloat (ohlcv, 1);
                     const previousHigh = this.safeFloat (previous, 1);
                     let high = previousHigh;
@@ -339,12 +338,11 @@ export default class ndax extends ndaxRest {
                         this.sum (this.safeFloat (ohlcv, 5), this.safeFloat (previous, 5)),
                     ];
                     if (marketId !== undefined) {
-                        updates[marketId][timeframe] = true;
+                        marketUpdates[timeframe] = true;
                     }
                 } else {
                     if (length > 0) {
-                        const lastTimestamp = this.safeInteger (previous, 0);
-                        if ((lastTimestamp !== undefined) && (lastTimestamp > candleTimestamp)) {
+                        if ((previousTimestamp !== undefined) && (previousTimestamp > candleTimestamp)) {
                             continue;
                         }
                     }
@@ -354,10 +352,13 @@ export default class ndax extends ndaxRest {
                         stored.shift ();
                     }
                     if (marketId !== undefined) {
-                        updates[marketId][timeframe] = true;
+                        marketUpdates[timeframe] = true;
                     }
                 }
                 this.ohlcvs[symbol][timeframe] = stored;
+            }
+            if (marketId !== undefined) {
+                updates[marketId] = marketUpdates;
             }
         }
         const name = 'SubscribeTicker';
@@ -370,7 +371,7 @@ export default class ndax extends ndaxRest {
                 const messageHash = name + ':' + timeframe + ':' + marketId;
                 const market = this.safeMarket (marketId);
                 const symbol = this.safeString (market, 'symbol', '');
-                const stored = this.safeList (this.ohlcvs[symbol], timeframe, []);
+                const stored = this.safeList (this.safeValue (this.ohlcvs, symbol), timeframe, []);
                 client.resolve (stored, messageHash);
             }
         }

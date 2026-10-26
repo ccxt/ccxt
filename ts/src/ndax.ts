@@ -698,7 +698,7 @@ export default class ndax extends Exchange {
             'nonce': undefined,
         };
         for (let i = 0; i < orderbook.length; i++) {
-            const level = orderbook[i];
+            const level = this.safeValue (orderbook, i);
             const newTimestamp = this.safeInteger (level, 2);
             if ((newTimestamp !== undefined) && ((latestTimestamp === undefined) || (newTimestamp > latestTimestamp))) {
                 latestTimestamp = newTimestamp;
@@ -1294,11 +1294,8 @@ export default class ndax extends Exchange {
             await this.loadMarkets ();
         }
         await this.loadAccounts ();
-        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId');
-        let accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
-        if (accountId === undefined) {
-            accountId = this.parseToInt (this.safeString (this.safeDict (this.accounts, 0), 'id'));
-        }
+        const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.safeString (this.safeDict (this.accounts, 0), 'id')));
+        const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         const paramsOmitted: Dict = this.omit (params, [ 'accountId', 'AccountId' ]);
         const request: Dict = {
             'omsId': omsId,
@@ -1635,11 +1632,7 @@ export default class ndax extends Exchange {
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price !== undefined) {
-            let limitPriceString = this.priceToPrecision (symbol, price);
-            if (limitPriceString === undefined) {
-                limitPriceString = '0';
-            }
-            request['LimitPrice'] = this.parseNumber (limitPriceString);
+            request['LimitPrice'] = this.parseNumber (this.priceToPrecision (symbol, price));
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
@@ -1706,11 +1699,7 @@ export default class ndax extends Exchange {
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price !== undefined) {
-            let limitPriceString = this.priceToPrecision (symbol, price);
-            if (limitPriceString === undefined) {
-                limitPriceString = '0';
-            }
-            request['LimitPrice'] = this.parseNumber (limitPriceString);
+            request['LimitPrice'] = this.parseNumber (this.priceToPrecision (symbol, price));
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
@@ -2622,7 +2611,8 @@ export default class ndax extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        const tagWithdrawTag = this.safeString (params, 'tag');
+        const paramsWithdrawTag = this.omit (params, 'tag');
         // this method required login, password and twofa key
         const sessionToken = this.safeString (this.options, 'sessionToken');
         if (sessionToken === undefined) {
