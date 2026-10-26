@@ -2252,7 +2252,7 @@ export default class bybit extends Exchange {
                 }
             }
             const expiryDatetime = this.iso8601 (expiry);
-            symbol = symbol + ':' + settle;
+            symbol = base + '/' + quote + ':' + settle;
             if (expiry !== undefined) {
                 symbol = symbol + '-' + this.yymmdd (expiry);
             }
@@ -10094,7 +10094,7 @@ export default class bybit extends Exchange {
         let url = this.implodeHostname (apiUrl) + '/' + path;
         if (apiName === 'public') {
             if (Object.keys (params).length > 0) {
-                url += '?' + this.rawencode (params);
+                url = this.implodeHostname (apiUrl) + '/' + path + '?' + this.rawencode (params);
             }
         } else if (apiName === 'private') {
             this.checkRequiredCredentials ();
@@ -10138,7 +10138,7 @@ export default class bybit extends Exchange {
                     authFull = auth_base + requestBody;
                 } else {
                     authFull = auth_base + queryEncoded;
-                    url += '?' + queryEncoded;
+                    url = this.implodeHostname (apiUrl) + '/' + path + '?' + queryEncoded;
                 }
                 let signature: Str = undefined;
                 if (this.secret.indexOf ('PRIVATE KEY') > -1) {
@@ -10178,7 +10178,7 @@ export default class bybit extends Exchange {
                         };
                     }
                 } else {
-                    url += '?' + this.rawencode (sortedQuery, true);
+                    url = this.implodeHostname (apiUrl) + '/' + path + '?' + this.rawencode (sortedQuery, true);
                     url += '&sign=' + signature;
                 }
             }

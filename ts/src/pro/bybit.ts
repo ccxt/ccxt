@@ -395,12 +395,11 @@ export default class bybit extends bybitRest {
         const url = await this.getUrlByMarketType (symbolValue, false, 'watchTicker', params);
         const paramsValue: Dict = this.cleanParams (params);
         const options = this.safeDict (this.options, 'watchTicker', {});
-        let topic = this.safeString (options, 'name', 'tickers');
+        const topic = this.safeString (options, 'name', 'tickers');
         if ((market['spot'] !== true) && topic !== 'tickers') {
             throw new BadRequest (this.id + ' watchTicker() only supports name tickers for contract markets');
         }
-        topic += '.' + market['id'];
-        const topics = [ topic ];
+        const topics = [ topic + '.' + market['id'] ];
         return await this.watchTopics (url, [ messageHash ], topics, paramsValue);
     }
 
@@ -987,7 +986,7 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const marketId = market['id'];
+            const marketId = this.safeString (market, 'id', '');
             const topic = channel + '.' + marketId;
             messageHashes.push ('unsubscribe:orderbook:' + symbol);
             subMessageHashes.push ('orderbook:' + symbol);
