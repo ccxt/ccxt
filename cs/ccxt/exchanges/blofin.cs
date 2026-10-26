@@ -89,7 +89,7 @@ public partial class blofin : Exchange
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrder", null },
                 { "fetchOpenOrders", true },
-                { "fetchOrder", null },
+                { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", false },
                 { "fetchOrders", false },
@@ -526,7 +526,12 @@ public partial class blofin : Exchange
                         { "untilDays", 100000 },
                         { "symbolRequired", false },
                     } },
-                    { "fetchOrder", null },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
@@ -2111,6 +2116,63 @@ public partial class blofin : Exchange
         Dictionary<string, object> response = await this.privatePostTradeBatchOrders(ordersRequests);
         List<object> data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data);
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.blofin.com/index.html#get-order-detail
+     * @see https://docs.blofin.com/index.html#get-tpsl-order-detail
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @param {boolean} [params.tpsl] True if fetching a tpsl order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((symbol == null))
+        {
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
+        }
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "instId", (market.ContainsKey("id") ? market["id"] : null) },
+        };
+        bool? isTpsl = this.safeBool2(parameters, "tpsl", "TPSL", false);
+        string? clientOrderId = this.safeString(parameters, "clientOrderId");
+        if ((clientOrderId != null))
+        {
+            request["clientOrderId"] = clientOrderId;
+        } else if ((isTpsl == true))
+        {
+            request["tpslId"] = id;
+        } else
+        {
+            request["orderId"] = id;
+        }
+        IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "tpsl", "TPSL"}));
+        Dictionary<string, object> response = null;
+        if ((isTpsl == true))
+        {
+            response = await this.privateGetTradeOrderTpslDetail(this.extend(request, query));
+        } else
+        {
+            response = await this.privateGetTradeOrderDetail(this.extend(request, query));
+        }
+        IDictionary<string, object> data = this.safeDict(response, "data");
+        if ((data == null))
+        {
+            throw new OrderNotFound (((this.id + " fetchOrder() could not find order ") + id)) ;
+        }
+        return this.parseOrder(data, market);
     }
 
     /**
