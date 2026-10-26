@@ -1190,6 +1190,14 @@ function thisPropName (node) {
 // `this.safeValue(this.<map>, key)` (prints itself), or undefined
 function wsMapReadType (node) {
     node = unwrapParens (node);
+    // hx11 w7: `this.orderbooks[k] as WsOrderBook` — the assertion prints no cast of its own
+    // (the declaration/write hooks add the WsOrderBook checkcast), so it reads like the bare map read
+    if (node !== undefined && ts.isAsExpression (node) && ts.isTypeReferenceNode (node.type)
+        && ts.isIdentifier (node.type.typeName) && node.type.typeName.text === 'WsOrderBook'
+        && ts.isElementAccessExpression (unwrapParens (node.expression))
+        && thisPropName (unwrapParens (node.expression).expression) === 'orderbooks') {
+        return ORDERBOOK_TYPE;
+    }
     if (node !== undefined && ts.isElementAccessExpression (node)) {
         if (isOhlcvsSymbolRead (node.expression)) {
             return ARRAYCACHE_TYPE;
@@ -2006,6 +2014,8 @@ const VENUE_RETURN_KINDS = {
     'getBybitType': [ 'java.util.List<Object>' ], 'getInstType': [ 'java.util.List<Object>' ],
     'getMarginMode': [ 'java.util.List<Object>' ], 'resolveAuthType': [ 'java.util.List<Object>' ],
     'networkIdToCode': [ 'String' ], 'findTimeframe': [ 'String' ],
+    // hx11 w7: pro url builders annotated `: string` / `: Str` (no base declaration)
+    'getWsUrl': [ 'String' ], 'getUrlByMarket': [ 'String' ], 'getUrlByMarketType': [ 'String' ],
     'outcome': [ JAVA_ARRAY_TYPE_MAP () ], 'safeOutcome': [ JAVA_ARRAY_TYPE_MAP () ],
     'parseSearchQueries': [ 'java.util.List<Object>' ], 'parsePredictionTicker': [ JAVA_ARRAY_TYPE_MAP () ],
     // hx10w3 J02: `parseWsBalance (…): Balances` is a dict view — the field it feeds (this.balance)
@@ -2897,7 +2907,8 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     }
     const venue = asserted ? undefined : venueCallJavaType (printer, initializer);
     if (venue !== undefined) {
-        return { type: venue };
+        // `x as string` on a String-declared local prints the identity checkcast `((String)x)`
+        return venue === 'String' ? { type: venue, stringAsCast: true } : { type: venue };
     }
     const omitZero = asserted ? undefined : omitZeroStringLocalType (printer, initializer, name);
     if (omitZero !== undefined) {
@@ -10625,7 +10636,7 @@ const JAVA_EMITTED_TYPE_TEXT = /^[A-Za-z_$][\w$.]*(?:\s*<[^\n;=]*>)?(?:\s*\[\s*\
 // ===== 11. awaited null accumulators: `Object x = null;` whose every non-null write is
 // `x = await this.<endpoint>(...)` with one Map/List CompletableFuture<T> in the generated api file.
 // Returns, ternary arms and nested-function reads keep Object (they move javac's inferred types).
-const AWAITED_ACCUMULATOR_TYPES = new Set ([ JAVA_STRUCTURE_TYPE, JAVA_ARRAY_TYPE ]);
+const AWAITED_ACCUMULATOR_TYPES = new Set ([ JAVA_STRUCTURE_TYPE, JAVA_ARRAY_TYPE, ORDERBOOK_TYPE ]);
 
 function isNullishInitializer (initializer) {
     const value = unwrapParens (initializer);
@@ -10839,6 +10850,10 @@ function accumulatorWriteInfo (printer, node) {
     const literal = collectionLiteralInfo (value);
     if (literal !== undefined) {
         return { type: literal.type, cast: '' };
+    }
+    // hx11 w7: `ob = this.orderbooks[k] as WsOrderBook` prints the bare map read (Object)
+    if (wsMapReadType (value) === ORDERBOOK_TYPE && ts.isAsExpression (value)) {
+        return { type: ORDERBOOK_TYPE, cast: '(' + ORDERBOOK_TYPE + ')' };
     }
     if (!isThisCall (value)) {
         return undefined;
