@@ -88,6 +88,7 @@
 * [unWatchTradesForSymbols](#unwatchtradesforsymbols)
 * [unWatchTrades](#unwatchtrades)
 * [watchOHLCV](#watchohlcv)
+* [unWatchOHLCV](#unwatchohlcv)
 * [watchMyTrades](#watchmytrades)
 * [watchBalance](#watchbalance)
 * [watchPositions](#watchpositions)
@@ -2287,6 +2288,33 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 ```javascript
 gate.watchOHLCV (symbol, timeframe, since?, limit?, params?)
+```
+
+
+<a name="unWatchOHLCV" id="unwatchohlcv"></a>
+
+### unWatchOHLCV{docsify-ignore}
+unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>gate</code>](#gate)  
+**Returns**: <code>any</code> - status of the unsubscription request
+
+**See**
+
+- https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-channel
+- https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api
+- https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+gate.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 

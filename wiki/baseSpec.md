@@ -7816,6 +7816,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 * [cryptocom](/exchanges/cryptocom.md#unwatchohlcv)
 * [deepcoin](/exchanges/deepcoin.md#unwatchohlcv)
 * [dydx](/exchanges/dydx.md#unwatchohlcv)
+* [gate](/exchanges/gate.md#unwatchohlcv)
 * [htx](/exchanges/htx.md#unwatchohlcv)
 * [hyperliquid](/exchanges/hyperliquid.md#unwatchohlcv)
 * [kucoin](/exchanges/kucoin.md#unwatchohlcv)
