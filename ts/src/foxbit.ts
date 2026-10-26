@@ -2098,10 +2098,10 @@ export default class foxbit extends Exchange {
         };
         if (urlPath === 'private') {
             this.checkRequiredCredentials ();
-            const preHash = this.numberToString (timestamp) + method + fullPath + signatureQuery + bodyToSignature;
+            const preHash = timestamp.toString () + method + fullPath + signatureQuery + bodyToSignature;
             const signature = this.hmac (this.encode (preHash), this.encode (this.secret), sha256, 'hex');
             headersValue['X-FB-ACCESS-KEY'] = this.apiKey;
-            headersValue['X-FB-ACCESS-TIMESTAMP'] = this.numberToString (timestamp);
+            headersValue['X-FB-ACCESS-TIMESTAMP'] = timestamp.toString ();
             headersValue['X-FB-ACCESS-SIGNATURE'] = signature;
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': headersValue };
