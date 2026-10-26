@@ -1258,7 +1258,7 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
             const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeSymbol (marketId, market);
             const entry = this.safeDict (response, marketId, {});
             result[symbol] = this.parseTicker (entry, market);
         }
@@ -1462,7 +1462,7 @@ export default class hitbtc extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const marketId = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeSymbol (marketId, marketResolved);
         let fee: FeeString = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         const taker = this.safeBool (trade, 'taker');
@@ -2471,6 +2471,7 @@ export default class hitbtc extends Exchange {
         const timeInForce = this.safeString (params, 'timeInForce');
         const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const isPostOnly = this.isPostOnly (type === 'market', undefined, params);
+        const resolvedMarketType = this.safeString (market, 'type');
         const request: Dict = {
             'type': type,
             'side': side,
@@ -2489,7 +2490,7 @@ export default class hitbtc extends Exchange {
             // 'make_rate': 0.001, // Optional
         };
         if (reduceOnly !== undefined) {
-            if ((market['type'] !== 'swap') && (market['type'] !== 'margin')) {
+            if ((resolvedMarketType !== 'swap') && (resolvedMarketType !== 'margin')) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only');
             }
         }
@@ -2633,7 +2634,7 @@ export default class hitbtc extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeSymbol (marketId, marketResolved);
         const postOnly = this.safeBool (order, 'post_only');
         const timeInForce = this.safeString (order, 'time_in_force');
         const rawTrades = this.safeList (order, 'trades');
@@ -2943,7 +2944,7 @@ export default class hitbtc extends Exchange {
             }
             const rawFundingRate = this.safeDict (response, marketId);
             const marketInner = this.market (marketId);
-            const symbol = marketInner['symbol'];
+            const symbol = this.safeSymbol (marketId, marketInner);
             const fundingRate = this.parseFundingRate (rawFundingRate, marketInner);
             fundingRates[symbol] = fundingRate;
         }
@@ -3232,7 +3233,7 @@ export default class hitbtc extends Exchange {
         }
         const marketId = this.safeString (position, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeSymbol (marketId, marketResolved);
         return this.safePosition ({
             'info': position,
             'id': undefined,

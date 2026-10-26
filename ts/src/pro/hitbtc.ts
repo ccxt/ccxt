@@ -320,7 +320,7 @@ export default class hitbtc extends hitbtcRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeSymbol (marketId, market);
             const item = data[marketId];
             const messageHash = 'orderbooks::' + symbol;
             if (!(symbol in this.orderbooks)) {
@@ -482,7 +482,7 @@ export default class hitbtc extends hitbtcRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeSymbol (marketId, market);
             const ticker = this.parseWsTicker (data[marketId], market);
             this.tickers[symbol] = ticker;
             result.push (ticker);
@@ -612,7 +612,7 @@ export default class hitbtc extends hitbtcRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeSymbol (marketId, market);
             const ticker = this.parseWsBidAsk (data[marketId], market);
             this.bidsasks[symbol] = ticker;
             result.push (ticker);
@@ -719,7 +719,7 @@ export default class hitbtc extends hitbtcRest {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            const symbol = market['symbol'];
+            const symbol = this.safeSymbol (marketId, market);
             let stored = this.safeValue (this.trades, symbol);
             if (stored === undefined) {
                 stored = new ArrayCache (tradesLimit);
@@ -853,7 +853,7 @@ export default class hitbtc extends hitbtcRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeSymbol (marketId, market);
             this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
