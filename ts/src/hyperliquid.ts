@@ -4401,9 +4401,7 @@ export default class hyperliquid extends Exchange {
             const paramsSendAsset = query;
             const sendAssetCurrency = this.currency (code);
             const sendAssetCurrencyInfo = this.safeDict (sendAssetCurrency, 'info', {});
-            const sendAssetName = this.safeString (sendAssetCurrencyInfo, 'name', '');
-            const sendAssetTokenId = this.safeString (sendAssetCurrencyInfo, 'tokenId', '');
-            const sendAssetToken = sendAssetName + ':' + sendAssetTokenId;
+            const sendAssetToken = this.safeString (sendAssetCurrencyInfo, 'name', '') + ':' + this.safeString (sendAssetCurrencyInfo, 'tokenId', '');
             // '' addresses the default USDC perp dex and 'spot' the spot balance, a unified account
             // keeps every balance in the spot clearinghouse so spot is the default on both sides
             const defaultDex = ((transferType === 'swap') || (transferType === 'perp')) ? '' : 'spot';
@@ -4474,9 +4472,7 @@ export default class hyperliquid extends Exchange {
             }
             const currency = this.currency (code);
             const currencyInfo = this.safeDict (currency, 'info', {});
-            const tokenName = this.safeString (currencyInfo, 'name', '');
-            const tokenId = this.safeString (currencyInfo, 'tokenId', '');
-            const token = tokenName + ':' + tokenId;
+            const token = this.safeString (currencyInfo, 'name', '') + ':' + this.safeString (currencyInfo, 'tokenId', '');
             const action = {
                 'type': 'subAccountSpotTransfer',
                 'subAccountUser': subAccountAddress,

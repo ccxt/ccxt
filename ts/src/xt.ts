@@ -5213,9 +5213,7 @@ export default class xt extends Exchange {
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            const symbolId = this.safeString (breakEntry, 'symbol', '');
-            const positionSide = this.safeString (breakEntry, 'positionSide', '');
-            const key = symbolId + '_' + positionSide;
+            const key = this.safeString (breakEntry, 'symbol', '') + '_' + this.safeString (breakEntry, 'positionSide', '');
             breakBySymbolSide[key] = breakEntry;
         }
         return breakBySymbolSide;
@@ -5228,9 +5226,7 @@ export default class xt extends Exchange {
      * @param {object} breakBySymbolSide the result of indexPositionBreakList()
      */
     mergePositionBreakInfo (entry: Dict, breakBySymbolSide: Dict): Dict {
-        const marketId = this.safeString (entry, 'symbol', '');
-        const positionSide = this.safeString (entry, 'positionSide', '');
-        const key = marketId + '_' + positionSide;
+        const key = this.safeString (entry, 'symbol', '') + '_' + this.safeString (entry, 'positionSide', '');
         const breakEntry = this.safeDict (breakBySymbolSide, key);
         if (breakEntry === undefined) {
             return entry;

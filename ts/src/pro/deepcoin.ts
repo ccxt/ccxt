@@ -171,8 +171,7 @@ export default class deepcoin extends deepcoinRest {
 
     async watchPrivate (messageHash: string, params: Dict = {}): Promise<any> {
         const listenKey = await this.authenticate ();
-        const wsUrlBase = this.safeString (this.urls['api']['ws'], 'private', '');
-        const url = wsUrlBase + '?listenKey=' + listenKey;
+        const url = this.safeString (this.urls['api']['ws'], 'private', '') + '?listenKey=' + listenKey;
         return await this.watch (url, messageHash, undefined, 'private', params);
     }
 
@@ -1127,8 +1126,7 @@ export default class deepcoin extends deepcoinRest {
         } else {
             messageHashes.push (messageHash);
         }
-        const wsUrlBase = this.safeString (this.urls['api']['ws'], 'private', '');
-        const url = wsUrlBase + '?listenKey=' + listenKey;
+        const url = this.safeString (this.urls['api']['ws'], 'private', '') + '?listenKey=' + listenKey;
         const positions = await this.watchMultiple (url, messageHashes, params, [ 'private' ]);
         if (this.newUpdates) {
             return positions;

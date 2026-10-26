@@ -174,8 +174,7 @@ export default class okx extends okxRest {
         let messageHashResolved: string = messageHash;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            const marketId = this.safeString (market, 'id', '');
-            messageHashResolved = messageHash + ':' + marketId;
+            messageHashResolved = messageHash + ':' + this.safeString (market, 'id', '');
             firstArgument['instId'] = market['id'];
         }
         const request: Dict = {
@@ -1248,8 +1247,7 @@ export default class okx extends okxRest {
                 }
             }
             stored.append (parsed);
-            const marketInstId = this.safeString (market, 'id', '');
-            const messageHash = channel + ':' + marketInstId;
+            const messageHash = channel + ':' + this.safeString (market, 'id', '');
             client.resolve (stored, messageHash);
             // for multiOHLCV we need special object, as opposed to other "multi"
             // methods, because OHLCV response item does not contain symbol
