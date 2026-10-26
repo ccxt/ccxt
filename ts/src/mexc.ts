@@ -2416,7 +2416,7 @@ export default class mexc extends Exchange {
     }
 
     createSpotOrderRequest (market: MarketInterface, type: Str, side: Str, amount: Num, price: Num = undefined, marginMode: Str = undefined, params: Dict = {}): Dict {
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         if ((type === undefined) || (side === undefined)) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a type and a side argument');
         }
@@ -2563,7 +2563,7 @@ export default class mexc extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         let openType = this.safeInteger (params, 'openType', 2); // defaulting to cross margin
         if (marginMode !== undefined) {
             if (marginMode === 'cross') {
@@ -5492,7 +5492,7 @@ export default class mexc extends Exchange {
         //    }
         //
         const marketResolved: Market = this.safeMarket (this.safeString (position, 'symbol'), market, undefined, 'swap');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol', '');
         const contracts = this.safeString (position, 'holdVol');
         const entryPrice = this.safeNumber (position, 'openAvgPrice');
         const initialMargin = this.omitZero (this.safeString (position, 'im'));
@@ -6411,7 +6411,7 @@ export default class mexc extends Exchange {
                 }
                 url = apiUrl + '/api/' + this.version + '/' + pathValue;
             }
-            let urlParams: Dict = paramsValue;
+            let urlParams: Dict = this.extend (paramsValue, {});
             if (access === 'private') {
                 if (section === 'broker' && ((method === 'POST') || (method === 'PUT') || (method === 'DELETE'))) {
                     urlParams = {

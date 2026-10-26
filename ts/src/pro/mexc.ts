@@ -183,7 +183,7 @@ export default class mexc extends mexcRest {
         const marketId = this.safeString2 (message, 's', 'symbol');
         const timestamp = this.safeInteger2 (message, 't', 'sendTime');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         let ticker: Ticker;
         if (market['spot'] === true) {
             this.handleBidAsk (client, message); // the bids-asks channel is spot only
@@ -1098,7 +1098,7 @@ export default class mexc extends mexcRest {
         //
         const marketId = this.safeString2 (message, 's', 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -1204,7 +1204,7 @@ export default class mexc extends mexcRest {
         const futuresMarketId = this.safeString (data, 'symbol');
         const marketId = this.safeString2 (message, 's', 'symbol', futuresMarketId);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         let trade: Trade;
         if (market['spot'] === true) {
             trade = this.parseWsTrade (data, market);
@@ -1431,7 +1431,7 @@ export default class mexc extends mexcRest {
         const futuresMarketId = this.safeString (data, 'symbol');
         const marketId = this.safeString2 (message, 's', 'symbol', futuresMarketId);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         let parsed: Order;
         if (market['spot'] === true) {
             parsed = this.parseWsOrder (data, market);
