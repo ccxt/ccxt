@@ -217,7 +217,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const unWatchMessageHashes: string[] = [];
         const channelsLength = channels.length;
         for (let i = 0; i < channelsLength; i++) {
-            unWatchMessageHashes.push ('unsubscribe:' + channels[i]);
+            unWatchMessageHashes.push ('unsubscribe:' + this.safeString (channels, i, ''));
         }
         const request: Dict = {
             'jsonrpc': '2.0',
@@ -230,7 +230,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const client = this.client (url);
         this.watchMultiple (url, unWatchMessageHashes, this.deepExtend (request, paramsResolved), unWatchMessageHashes);
         for (let i = 0; i < channelsLength; i++) {
-            this.cleanUnsubscription (client, channels[i], unWatchMessageHashes[i]);
+            this.cleanUnsubscription (client, this.safeString (channels, i, ''), unWatchMessageHashes[i]);
         }
         return true;
     }
@@ -856,7 +856,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const params = this.safeDict (message, 'params', {});
         const data = this.safeDict (params, 'data', {});
         const ticker = this.parseWsBidAsk (data);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString (ticker, 'symbol');
         this.bidsasks[symbol as string] = ticker;
         const channel = this.safeString (params, 'channel');
         client.resolve (ticker, channel);
@@ -1268,7 +1268,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             this.orderbooks[symbol] = isGrouped ? this.orderBook ({}, limit) : this.countedOrderBook ({}, limit);
         }
         const orderbook = this.orderbooks[symbol];
-        if (!isGrouped && (type !== 'snapshot') && (orderbook['nonce'] === undefined)) {
+        if (!isGrouped && (type !== 'snapshot') && (this.safeInteger (orderbook, 'nonce') === undefined)) {
             return;
         }
         if (isGrouped) {
@@ -1276,7 +1276,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             orderbook.reset (parsedSnapshot);
         } else {
             const previousChangeId = this.safeInteger (data, 'prev_change_id');
-            if ((type !== 'snapshot') && (orderbook['nonce'] !== undefined) && (previousChangeId !== orderbook['nonce'])) {
+            if ((type !== 'snapshot') && (this.safeInteger (orderbook, 'nonce') !== undefined) && (previousChangeId !== this.safeInteger (orderbook, 'nonce'))) {
                 // drop the stale book and reject only this channels future
                 delete this.orderbooks[symbol];
                 if ((channel as string) in client.subscriptions) {
