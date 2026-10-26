@@ -938,7 +938,7 @@ export default class coinbase extends Exchange {
         } else {
             response = await this.v2PrivateGetAccountsAccountIdDeposits (this.extend (request, paramsValue));
         }
-        return this.parseTransactions (response['data'], undefined, since, limit);
+        return this.parseTransactions (this.safeList (response, 'data', []), undefined, since, limit);
     }
 
     /**
@@ -1624,11 +1624,10 @@ export default class coinbase extends Exchange {
             const realMarketIds = this.safeList (info, 'alias_to', []);
             const length = realMarketIds.length;
             if (length > 0) {
-                market['alias'] = realMarketIds[0];
+                newMarkets.push (this.extend (market, { 'alias': realMarketIds[0] }));
             } else {
-                market['alias'] = undefined;
+                newMarkets.push (this.extend (market, { 'alias': undefined }));
             }
-            newMarkets.push (market);
         }
         return newMarkets;
     }
@@ -2154,7 +2153,7 @@ export default class coinbase extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const rates = this.safeDict (data, 'rates', {});
-        const quoteId = this.safeString (data, 'currency');
+        const quoteId = this.safeString (data, 'currency', '');
         const result: Dict = {};
         const baseIds = Object.keys (rates);
         const delimiter = '-';
@@ -2162,7 +2161,7 @@ export default class coinbase extends Exchange {
             const baseId = baseIds[i];
             const marketId = baseId + delimiter + quoteId;
             const market = this.safeMarket (marketId, undefined, delimiter);
-            const symbol = market['symbol'];
+            const symbol = this.safeString (market, 'symbol', '');
             result[symbol] = this.parseTicker (rates[baseId], market);
         }
         return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
@@ -2231,7 +2230,7 @@ export default class coinbase extends Exchange {
             const entry = data[i];
             const marketId = this.safeString (entry, 'product_id');
             const market = this.safeMarket (marketId, undefined, '-');
-            const symbol = market['symbol'];
+            const symbol = this.safeString (market, 'symbol', '');
             result[symbol] = this.parseTicker (entry, market);
         }
         return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
@@ -3150,9 +3149,7 @@ export default class coinbase extends Exchange {
         };
         const reduceOnly = this.safeBool (params, 'reduceOnly');
         if (reduceOnly === true) {
-            const paramsClose = this.omit (params, 'reduceOnly');
-            paramsClose['amount'] = amount;
-            return await this.closePosition (symbol, side, paramsClose);
+            return await this.closePosition (symbol, side, this.extend (this.omit (params, 'reduceOnly'), { 'amount': amount }));
         }
         let paramsMarketBuy = undefined;
         const triggerPrice = this.safeNumberN (params, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
@@ -3162,7 +3159,7 @@ export default class coinbase extends Exchange {
         const isStopLoss = stopLossPrice !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
         const timeInForce = this.safeString (params, 'timeInForce');
-        let postOnly: Bool = undefined;
+        let postOnly: boolean = false;
         if (timeInForce === 'PO') {
             postOnly = true;
         } else {
@@ -4296,17 +4293,17 @@ export default class coinbase extends Exchange {
             'amount': this.numberToString (amount),
             'currency': currency['id'],
         };
-        let accountId: Str = this.safeString2 (paramsWithdrawTag, 'account_id', 'accountId');
+        const accountId: Str = this.safeString2 (paramsWithdrawTag, 'account_id', 'accountId');
         const paramsOmitted: Dict = this.omit (paramsWithdrawTag, [ 'account_id', 'accountId' ]);
         if (accountId === undefined) {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires an account_id (or accountId) parameter OR a currency code argument');
             }
-            accountId = await this.findAccountId (code, paramsOmitted);
-            if (accountId === undefined) {
+            const foundAccountId: Str = await this.findAccountId (code, paramsOmitted);
+            if (foundAccountId === undefined) {
                 throw new ExchangeError (this.id + ' withdraw() could not find account id for ' + code);
             }
-            request['account_id'] = accountId;
+            request['account_id'] = foundAccountId;
         } else {
             request['account_id'] = accountId;
         }
@@ -4541,8 +4538,15 @@ export default class coinbase extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let accountId: Str = this.safeString2 (params, 'account_id', 'accountId');
+        const accountId: Str = this.safeString2 (params, 'account_id', 'accountId');
         const paramsOmitted: Dict = this.omit (params, [ 'account_id', 'accountId' ]);
+        const request: Dict = {
+            'account_id': accountId,
+            'amount': this.numberToString (amount),
+            'currency': code.toUpperCase (), // need to use code in case depositing USD etc.
+            'payment_method': id,
+            'commit': true, // otherwise the deposit does not go through
+        };
         if (accountId === undefined) {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' deposit() requires an account_id (or accountId) parameter OR a currency code argument');
@@ -4551,15 +4555,8 @@ export default class coinbase extends Exchange {
             if (foundAccountId === undefined) {
                 throw new ExchangeError (this.id + ' deposit() could not find account id for ' + code);
             }
-            accountId = foundAccountId;
+            request['account_id'] = foundAccountId;
         }
-        const request: Dict = {
-            'account_id': accountId,
-            'amount': this.numberToString (amount),
-            'currency': code.toUpperCase (), // need to use code in case depositing USD etc.
-            'payment_method': id,
-            'commit': true, // otherwise the deposit does not go through
-        };
         const response = await this.v2PrivatePostAccountsAccountIdDeposits (this.extend (request, paramsOmitted));
         //
         //     {
@@ -5143,7 +5140,7 @@ export default class coinbase extends Exchange {
         const maker_fee = this.safeNumber (data, 'maker_fee_rate');
         const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+            const symbol = this.safeString (this.symbols, i, '');
             const market = this.market (symbol);
             if ((isSpot && (market['spot'] === true)) || (!isSpot && (market['spot'] !== true))) {
                 result[symbol] = {
@@ -5230,7 +5227,7 @@ export default class coinbase extends Exchange {
         return parsedPositions;
     }
 
-    createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined, useEddsa = false): string {
+    createAuthToken (seconds: int, method: Str = undefined, url: Str = undefined, useEddsa = false): string {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         let uri: Str = undefined;
@@ -5257,7 +5254,7 @@ export default class coinbase extends Exchange {
             'aud': [ aud ],
             'iss': iss,
             'nbf': seconds,
-            'exp': (seconds as number) + 120,
+            'exp': seconds + 120,
             'sub': this.apiKey,
             'iat': seconds,
         };
@@ -5297,10 +5294,11 @@ export default class coinbase extends Exchange {
             pathPart = 'api/v3';
         }
         let fullPath = '/' + pathPart + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
+        const query: Dict = this.omit (params, this.extractParams (path));
         const savedPath = fullPath;
+        const queryLength = Object.keys (query).length;
         if (method === 'GET') {
-            if (Object.keys (query).length > 0) {
+            if (queryLength > 0) {
                 fullPath += '?' + this.urlencodeWithArrayRepeat (query);
             }
         }
@@ -5321,14 +5319,14 @@ export default class coinbase extends Exchange {
                 const seconds = this.seconds ();
                 let payload = '';
                 if (method !== 'GET') {
-                    if (Object.keys (query).length > 0) {
-                        requestBody = this.json (query);
-                        payload = requestBody;
+                    if (queryLength > 0) {
+                        payload = this.json (query);
+                        requestBody = payload;
                     }
                 } else {
                     if (!isV3) {
-                        if (Object.keys (query).length > 0) {
-                            payload += '?' + this.urlencode (query);
+                        if (queryLength > 0) {
+                            payload = '?' + this.urlencode (query);
                         }
                     }
                 }
@@ -5384,7 +5382,7 @@ export default class coinbase extends Exchange {
                     'Content-Type': 'application/json',
                 };
                 if (method !== 'GET') {
-                    if (Object.keys (query).length > 0) {
+                    if (queryLength > 0) {
                         requestBody = this.json (query);
                     }
                 }
