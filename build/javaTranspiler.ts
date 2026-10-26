@@ -1737,6 +1737,15 @@ const JAVA_STRING_PRECISE_METHODS = new Set ([
     'stringMul', 'stringDiv', 'stringSub', 'stringAdd', 'stringOr', 'stringMax',
     'stringMin', 'stringAbs', 'stringNeg', 'stringMod',
 ]);
+// zero-argument members the Java printer rewrites into a String-typed expression of its own:
+// printToLowerCaseCall / printToUpperCaseCall / printTrimCall emit `((String)<recv>)<m>()`
+// (the cast is the printer's own, stripped again only when the receiver is already declared
+// `String`), and printToStringCall emits `String.valueOf(<recv>)`. All four are statically
+// `java.lang.String` whatever the receiver's printed declaration was, so they anchor a native
+// `+` the same way a string literal or a `this.safeString(..)` call does.
+const JAVA_STRING_CAST_METHODS = new Set ([
+    'toLowerCase', 'toUpperCase', 'trim', 'toString',
+]);
 
 // the printed Java type of an expression, or undefined when this layer cannot prove it
 function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<any>, node: any): string | undefined {
@@ -1773,6 +1782,12 @@ function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<a
         if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) {
             const receiver = callee.expression;
             const name = String (callee.name?.text);
+            // a zero-argument String-cast member: the printer emits `((String)recv).toLowerCase()`
+            // / `String.valueOf(recv)` itself, which javac types String no matter what the receiver
+            // was declared as (see JAVA_STRING_CAST_METHODS)
+            if (JAVA_STRING_CAST_METHODS.has (name) && (current.arguments?.length ?? 0) === 0) {
+                return 'String';
+            }
             const onThis = receiver?.kind === ts.SyntaxKind.ThisKeyword || receiver?.kind === ts.SyntaxKind.SuperKeyword;
             if (onThis && JAVA_STRING_RUNTIME_METHODS.has (name)) {
                 return 'String';
