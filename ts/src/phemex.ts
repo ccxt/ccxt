@@ -1219,7 +1219,7 @@ export default class phemex extends Exchange {
             throw new ArgumentsRequired (this.id + ' customParseBidAsk() requires a market argument');
         }
         let amount = this.safeString (bidask, amountKey);
-        if (market['spot'] === true) {
+        if (this.safeBool (market, 'spot') === true) {
             amount = this.fromEv (amount, market);
         }
         return [
@@ -1385,7 +1385,7 @@ export default class phemex extends Exchange {
         //     ]
         //
         let baseVolume: Num = undefined;
-        if ((market !== undefined) && (market['spot'] === true)) {
+        if ((market !== undefined) && (this.safeBool (market, 'spot') === true)) {
             baseVolume = this.parseNumber (this.fromEv (this.safeString (ohlcv, 7), market));
         } else {
             baseVolume = this.safeNumber (ohlcv, 7);
@@ -4776,17 +4776,15 @@ export default class phemex extends Exchange {
             }
         }
         let requestBody: Str = undefined;
-        let privateHeaders: NullableDict = undefined;
+        const privateHeaders: Dict = {};
         if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.seconds ();
             const xPhemexRequestExpiry = this.safeInteger (this.options, 'x-phemex-request-expiry', 60);
             const expiry = this.sum (timestamp, xPhemexRequestExpiry);
             const expiryString = expiry.toString ();
-            privateHeaders = {
-                'x-phemex-access-token': this.apiKey,
-                'x-phemex-request-expiry': expiryString,
-            };
+            privateHeaders['x-phemex-access-token'] = this.apiKey;
+            privateHeaders['x-phemex-request-expiry'] = expiryString;
             let payload = '';
             if (method === 'POST') {
                 const isOrderPlacement = (path === 'g-orders') || (path === 'spot/orders') || (path === 'orders');

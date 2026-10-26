@@ -300,7 +300,7 @@ export default class phemex extends phemexRest {
         }
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString (ticker, 'symbol', '');
             const messageHash = 'ticker:' + symbol;
             const timestamp = this.safeIntegerProduct (message, 'timestamp', 0.000001);
             ticker['timestamp'] = timestamp;
@@ -849,7 +849,7 @@ export default class phemex extends phemexRest {
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            messageHash = 'trades:' + market['symbol'];
+            messageHash = 'trades:' + this.safeString (market, 'symbol', '');
         }
         const isUsdtMarket = (market !== undefined) && (market['settle'] === 'USDT');
         let settleRequest: Dict = {};
@@ -1024,7 +1024,7 @@ export default class phemex extends phemexRest {
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            messageHash = 'orders:' + market['symbol'];
+            messageHash = 'orders:' + this.safeString (market, 'symbol', '');
         }
         const isUsdtMarket = (market !== undefined) && (market['settle'] === 'USDT');
         let settleRequest: Dict = {};
