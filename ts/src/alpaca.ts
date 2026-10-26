@@ -643,7 +643,7 @@ export default class alpaca extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const marketId = market['id'];
+        const marketId = this.safeString (market, 'id');
         const loc = this.safeString (params, 'loc', 'us');
         const method = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocTrades');
         const request: Dict = {
@@ -722,7 +722,7 @@ export default class alpaca extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const id = market['id'];
+        const id = this.safeString (market, 'id');
         const loc = this.safeString (params, 'loc', 'us');
         const request: Dict = {
             'symbols': id,
@@ -795,7 +795,7 @@ export default class alpaca extends Exchange {
             await this.loadMarkets ();
         }
         const market: Market = this.market (symbol);
-        const marketId: Str = market['id'];
+        const marketId: Str = this.safeString (market, 'id');
         const loc: Str = this.safeString (params, 'loc', 'us');
         const method: Str = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
         let paginate = false;
@@ -1156,7 +1156,7 @@ export default class alpaca extends Exchange {
             await this.loadMarkets ();
         }
         const market: Market = this.market (symbol);
-        const id: Str = market['id'];
+        const id: Str = this.safeString (market, 'id');
         const request: Dict = {
             'symbol': id,
             'side': side,
@@ -1515,7 +1515,7 @@ export default class alpaca extends Exchange {
         //
         const marketId = this.safeString (order, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const alpacaStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (alpacaStatus);
         const feeValue = this.safeString (order, 'commission');
@@ -2023,7 +2023,7 @@ export default class alpaca extends Exchange {
             addressTo = this.safeString (transaction, 'to_address');
             addressFrom = this.safeString (transaction, 'from_address');
             type = this.parseTransactionType (this.safeString (transaction, 'direction'));
-            amount = this.safeNumber (transaction, 'amount');
+            amount = this.parseNumber (this.safeString (transaction, 'amount'));
             const currencyId = this.safeString (transaction, 'asset');
             code = this.safeCurrencyCode (currencyId, currency);
             network = this.networkIdToCode (this.safeString (transaction, 'chain'), code);

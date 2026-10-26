@@ -169,7 +169,7 @@ export default class alpaca extends alpacaRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const request: Dict = {
             'action': 'subscribe',
             'bars': [ market['id'] ],
@@ -229,7 +229,7 @@ export default class alpaca extends alpacaRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'orderbook' + ':' + symbolValue;
         const request: Dict = {
             'action': 'subscribe',
@@ -315,7 +315,7 @@ export default class alpaca extends alpacaRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'trade:' + symbolValue;
         const request: Dict = {
             'action': 'subscribe',
