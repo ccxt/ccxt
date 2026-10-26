@@ -2771,6 +2771,7 @@ export default class interactivebrokers extends Exchange {
             'Inactive': 'rejected',
             'PendingSubmit': 'open',
             'PreSubmitted': 'open',
+            'Presubmitted': 'open', // websocket sor topic
             'Submitted': 'open',
             'Filled': 'closed',
             'PendingCancel': 'open',

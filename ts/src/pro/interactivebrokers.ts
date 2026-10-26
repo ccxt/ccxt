@@ -83,7 +83,8 @@ export default class interactivebrokers extends interactivebrokersRest {
      * @name interactivebrokers#ibkrConnect
      * @description opens (or reuses) the authenticated websocket connection, the brokerage session cookie is obtained via POST /tickle
      * @ignore
-     * @see https://www.interactivebrokers.com/docs/web-api/ws/
+     * @see https://www.interactivebrokers.com/docs/web-api/ws/connection-guide
+     * @see https://www.interactivebrokers.com/docs/web-api/ws/auth-status
      * @returns {string} the url of the websocket client
      */
     async ibkrConnect (): Promise<string> {
@@ -147,6 +148,9 @@ export default class interactivebrokers extends interactivebrokersRest {
             await this.webapiPostV1ApiTickle ();
         } catch (e) {
             // a failing tickle is retried on the next interval
+            if (this.verbose) {
+                this.log ('ibkrKeepAliveSession tickle failed', e);
+            }
         }
         // resubscribe the market data streams before they expire
         const sent: Dict = {};
@@ -161,6 +165,9 @@ export default class interactivebrokers extends interactivebrokersRest {
                         await client.send (request);
                     } catch (e) {
                         // the connection is gone, the client reconnects on the next watch call
+                        if (this.verbose) {
+                            this.log ('ibkrKeepAliveSession resubscribe failed', e);
+                        }
                     }
                 }
             }
@@ -274,9 +281,9 @@ export default class interactivebrokers extends interactivebrokersRest {
      */
     override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         await this.loadMarkets ();
-        symbol = this.symbol (symbol);
-        const tickers = await this.watchTickers ([ symbol ], params);
-        return tickers[symbol];
+        const unifiedSymbol = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ unifiedSymbol ], params);
+        return tickers[unifiedSymbol];
     }
 
     /**
@@ -332,16 +339,16 @@ export default class interactivebrokers extends interactivebrokersRest {
      */
     async ibkrWatchMarketData (topic: string, symbols: Strings = undefined, params: Dict = {}): Promise<Ticker> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const marketSymbols = this.marketSymbols (symbols, undefined, false);
         const url = await this.ibkrConnect ();
         const client = this.client (url);
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            messageHashes.push (topic + '::' + symbols[i]);
+        for (let i = 0; i < marketSymbols.length; i++) {
+            messageHashes.push (topic + '::' + marketSymbols[i]);
         }
         const future = this.watchMultiple (url, messageHashes);
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
+        for (let i = 0; i < marketSymbols.length; i++) {
+            const market = this.market (marketSymbols[i]);
             const [ request, query ] = this.ibkrMarketDataRequest (market['id'], params);
             const subscription: Dict = this.extend ({ 'conid': market['id'], 'symbol': market['symbol'] }, query);
             await this.ibkrSubscribe (client, messageHashes[i], request, subscription);
@@ -400,20 +407,20 @@ export default class interactivebrokers extends interactivebrokersRest {
      */
     async ibkrUnWatchMarketData (topic: string, symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const marketSymbols = this.marketSymbols (symbols, undefined, false);
         const url = await this.ibkrConnect ();
         const client = this.client (url);
         const subHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            subHashes.push (topic + '::' + symbols[i]);
+        for (let i = 0; i < marketSymbols.length; i++) {
+            subHashes.push (topic + '::' + marketSymbols[i]);
         }
         const subscription: Dict = {
             'topic': (topic === 'bidask') ? 'bidsasks' : 'ticker', // the cache names of cleanCache
-            'symbols': symbols,
+            'symbols': marketSymbols,
         };
         await this.ibkrUnsubscribe (client, subHashes, undefined, subscription);
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
+        for (let i = 0; i < marketSymbols.length; i++) {
+            const market = this.market (marketSymbols[i]);
             await this.ibkrUnsubscribeMarketData (client, market['id']);
         }
         return true;
@@ -484,23 +491,23 @@ export default class interactivebrokers extends interactivebrokersRest {
     override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const unifiedSymbol = market['symbol'];
         const url = await this.ibkrConnect ();
         const client = this.client (url);
-        const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
+        const messageHash = 'ohlcv::' + unifiedSymbol + '::' + timeframe;
         const future = this.watch (url, messageHash);
         // the last price stream, it builds the current candles
         const [ marketDataRequest, query ] = this.ibkrMarketDataRequest (market['id'], params);
-        await this.ibkrSubscribe (client, messageHash, marketDataRequest, { 'conid': market['id'], 'symbol': symbol, 'timeframe': timeframe });
+        await this.ibkrSubscribe (client, messageHash, marketDataRequest, { 'conid': market['id'], 'symbol': unifiedSymbol, 'timeframe': timeframe });
         // the history, it seeds the candles
         const historyHash = 'smh::' + market['id'] + '::' + timeframe;
         if (!(historyHash in client.subscriptions)) {
-            if (!(symbol in this.ohlcvs)) {
-                this.ohlcvs[symbol] = {};
+            if (!(unifiedSymbol in this.ohlcvs)) {
+                this.ohlcvs[unifiedSymbol] = {};
             }
             const ohlcvLimit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            if (!(timeframe in this.ohlcvs[symbol])) {
-                this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (ohlcvLimit);
+            if (!(timeframe in this.ohlcvs[unifiedSymbol])) {
+                this.ohlcvs[unifiedSymbol][timeframe] = new ArrayCacheByTimestamp (ohlcvLimit);
             }
             const options = this.safeDict (this.options, 'watchOHLCV', {});
             const duration = this.parseTimeframe (timeframe);
@@ -514,13 +521,14 @@ export default class interactivebrokers extends interactivebrokersRest {
                 'format': '%o/%c/%h/%l/%v',
             };
             const request = 'smh+' + market['id'] + '+' + this.json (this.extend (historyRequest, query));
-            await this.ibkrSubscribe (client, historyHash, request, { 'conid': market['id'], 'symbol': symbol, 'timeframe': timeframe, 'duration': duration });
+            await this.ibkrSubscribe (client, historyHash, request, { 'conid': market['id'], 'symbol': unifiedSymbol, 'timeframe': timeframe, 'duration': duration });
         }
         const ohlcv = await future;
+        let resultLimit = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            resultLimit = ohlcv.getLimit (unifiedSymbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, resultLimit, 0, true);
     }
 
     /**
@@ -536,13 +544,13 @@ export default class interactivebrokers extends interactivebrokersRest {
     override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const unifiedSymbol = market['symbol'];
         const url = await this.ibkrConnect ();
         const client = this.client (url);
-        const subHashes = [ 'ohlcv::' + symbol + '::' + timeframe, 'smh::' + market['id'] + '::' + timeframe ];
+        const subHashes = [ 'ohlcv::' + unifiedSymbol + '::' + timeframe, 'smh::' + market['id'] + '::' + timeframe ];
         const subscription: Dict = {
             'topic': 'ohlcv',
-            'symbolsAndTimeframes': [ [ symbol, timeframe ] ],
+            'symbolsAndTimeframes': [ [ unifiedSymbol, timeframe ] ],
         };
         await this.ibkrUnsubscribe (client, subHashes, undefined, subscription);
         await this.ibkrUnsubscribeMarketData (client, market['id']);
@@ -688,18 +696,18 @@ export default class interactivebrokers extends interactivebrokersRest {
     override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const unifiedSymbol = market['symbol'];
         const [ accountId, query ] = await this.loadAccountId (params);
-        const exchange = this.safeString (query, 'exchange');
+        const bookExchange = this.safeString (query, 'exchange');
         const url = await this.ibkrConnect ();
         const client = this.client (url);
-        const messageHash = 'orderbook::' + symbol;
+        const messageHash = 'orderbook::' + unifiedSymbol;
         const future = this.watch (url, messageHash);
         let request = 'sbd+' + accountId + '+' + market['id'];
-        if (exchange !== undefined) {
-            request = request + '+' + exchange;
+        if (bookExchange !== undefined) {
+            request = request + '+' + bookExchange;
         }
-        await this.ibkrSubscribe (client, messageHash, request, { 'conid': market['id'], 'symbol': symbol, 'accountId': accountId });
+        await this.ibkrSubscribe (client, messageHash, request, { 'conid': market['id'], 'symbol': unifiedSymbol, 'accountId': accountId });
         const orderbook = await future;
         return orderbook.limit ();
     }
@@ -717,15 +725,15 @@ export default class interactivebrokers extends interactivebrokersRest {
     override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const unifiedSymbol = market['symbol'];
         const [ accountId, query ] = await this.loadAccountId (params);
         const url = await this.ibkrConnect ();
         const client = this.client (url);
         const subscription: Dict = this.extend ({
             'topic': 'orderbook',
-            'symbols': [ symbol ],
+            'symbols': [ unifiedSymbol ],
         }, query);
-        return await this.ibkrUnsubscribe (client, [ 'orderbook::' + symbol ], 'ubd+' + accountId, subscription);
+        return await this.ibkrUnsubscribe (client, [ 'orderbook::' + unifiedSymbol ], 'ubd+' + accountId, subscription);
     }
 
     handleOrderBook (client: Client, message: Dict) {
@@ -786,7 +794,7 @@ export default class interactivebrokers extends interactivebrokersRest {
      * @method
      * @name interactivebrokers#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://www.interactivebrokers.com/docs/web-api/ws/orders
+     * @see https://www.interactivebrokers.com/docs/web-api/ws/order-updates
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -797,9 +805,10 @@ export default class interactivebrokers extends interactivebrokersRest {
     override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let messageHash = 'orders';
+        let unifiedSymbol: Str = undefined;
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash = messageHash + '::' + symbol;
+            unifiedSymbol = this.symbol (symbol);
+            messageHash = messageHash + '::' + unifiedSymbol;
         }
         const url = await this.ibkrConnect ();
         const client = this.client (url);
@@ -811,17 +820,18 @@ export default class interactivebrokers extends interactivebrokersRest {
         }
         await this.ibkrSubscribe (client, 'sor', 'sor+' + this.json (requestParams));
         const orders = await future;
+        let resultLimit = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            resultLimit = orders.getLimit (unifiedSymbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, unifiedSymbol, since, resultLimit, true);
     }
 
     /**
      * @method
      * @name interactivebrokers#unWatchOrders
      * @description unWatches information on multiple orders made by the user
-     * @see https://www.interactivebrokers.com/docs/web-api/ws/orders
+     * @see https://www.interactivebrokers.com/docs/web-api/ws/order-updates
      * @param {string} [symbol] not used by interactivebrokers.unWatchOrders, all the order streams are cancelled
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true
@@ -903,9 +913,10 @@ export default class interactivebrokers extends interactivebrokersRest {
     override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         let messageHash = 'myTrades';
+        let unifiedSymbol: Str = undefined;
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash = messageHash + '::' + symbol;
+            unifiedSymbol = this.symbol (symbol);
+            messageHash = messageHash + '::' + unifiedSymbol;
         }
         const url = await this.ibkrConnect ();
         const client = this.client (url);
@@ -917,10 +928,11 @@ export default class interactivebrokers extends interactivebrokersRest {
         };
         await this.ibkrSubscribe (client, 'str', 'str+' + this.json (requestParams));
         const trades = await future;
+        let resultLimit = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            resultLimit = trades.getLimit (unifiedSymbol, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, unifiedSymbol, since, resultLimit, true);
     }
 
     /**
@@ -1110,7 +1122,7 @@ export default class interactivebrokers extends interactivebrokersRest {
     }
 
     override ping (client: Client) {
-        // https://www.interactivebrokers.com/docs/web-api/ws/ - "tic" keeps the websocket session alive, no response is sent
+        // https://www.interactivebrokers.com/docs/web-api/ws/ping - "tic" keeps the websocket session alive, no response is sent
         return 'tic';
     }
 
