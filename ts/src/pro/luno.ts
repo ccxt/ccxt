@@ -116,7 +116,7 @@ export default class luno extends lunoRest {
             stored.append (trade);
         }
         this.trades[symbolValue] = stored;
-        client.resolve (this.trades[symbolValue], messageHash);
+        client.resolve (stored, messageHash);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -225,7 +225,8 @@ export default class luno extends lunoRest {
         //     }
         //
         const symbol: string = subscription['symbol'];
-        const messageHash = 'orderbook:' + symbol;
+        const symbolValue = this.safeString (subscription, 'symbol', '');
+        const messageHash = 'orderbook:' + symbolValue;
         const timestamp = this.safeInteger (message, 'timestamp');
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.indexedOrderBook ({});
@@ -278,8 +279,7 @@ export default class luno extends lunoRest {
         const amount = this.safeNumber (bidask, amountKey);
         const result = [ price, amount ];
         if (thirdKey !== undefined) {
-            const thirdValue = this.safeString (bidask, thirdKey) as any;
-            result.push (thirdValue);
+            result.push (this.safeString (bidask, thirdKey) as any);
         }
         return result;
     }
@@ -436,14 +436,15 @@ export default class luno extends lunoRest {
             // the cached book is kept so references returned by earlier
             // watchOrderBook calls stay live: clearing its nonce discards
             // deltas until the fresh snapshot resets the book in place
-            const error = new InvalidNonce (this.id + ' watchOrderBook() received an out-of-sequence update for ' + symbol + ', expected ' + expectedSequence.toString () + ' but got ' + messageSequence.toString ());
             orderbook['nonce'] = undefined;
             const market = this.market (symbol);
+            const symbolValue = this.safeString (market, 'symbol', '');
             const marketId = this.safeString (market, 'id', '');
             const subscriptionHash = '/stream/' + marketId;
             if (subscriptionHash in client.subscriptions) {
                 delete client.subscriptions[subscriptionHash];
             }
+            const error = new InvalidNonce (this.id + ' watchOrderBook() received an out-of-sequence update for ' + symbolValue + ', expected ' + expectedSequence.toString () + ' but got ' + messageSequence.toString ());
             client.reset (error);
             delete this.clients[client.url];
             return false;
