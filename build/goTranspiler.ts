@@ -2843,6 +2843,268 @@ function hx10w9Gp18Wired (): string[] {
     return out.includes ('var response map[string]any = r1.Value') ? [] : [ 'hx10w9 GP18: not wired into formatGoSource: ' + out ];
 }
 
+// ------------------------------------------------------------------------------------
+// hx11 w4 P2 -- the bounds-guard func literal around a typed element read
+// ------------------------------------------------------------------------------------
+// `printElementAccessExpression` prints a read of a local it declared `[]any` (the SafeList
+// unbox, or the declared-type arm) as a five-line closure, and this file's own g05 pass
+// prints the same shape for a `[]string`/`[]any` deref consumer:
+//
+//     var a any = f(func() any {
+//         if 0 >= 0 && 0 < len(list) {
+//             return DerefScalar(list[0])
+//         }
+//         return nil
+//     }())
+//
+// The guard stands in for JS `list[0] === undefined`, and `derefScalar` unwraps a pointer
+// element. Both are dead weight here: the guard is unnecessary when the index is provably
+// in range (an enclosing `for k := 0; k < len(list); k++`, or an `if` whose condition bounds
+// it), and `derefScalar` is the identity on a slice unboxed from a `SafeList*` accessor
+// because those elements are JSON values, never scalar pointers. The two halves are
+// independent: the closure goes when the read is in range, the wrap goes when the producer
+// is a SafeList.
+const GO_GUARDED_READ_GUARD = /^([ \t]*)if (.+?) >= 0 && \2 < len\(([A-Za-z_]\w*)\) \{$/;
+const GO_GUARDED_READ_ROOF = /func\(\) any \{$/;
+// a `[]any` unboxed from a SafeList accessor: `listValueToTypedSlice` hands back the JSON
+// array as-is, so no element is a *string/*int64/... box
+const GO_GUARDED_READ_SAFE_LIST = /^[ \t]*(?:var )?[A-Za-z_]\w* \[\]any = (?:ccxt\.)?SafeList\d*(?:Typed|TypedDefault)?\(/;
+
+// the braces of a single parenthesised clause around its own expression
+function goGuardedReadStripParens (text: string): string {
+    let out = text.trim ();
+    while (out.startsWith ('(') && out.endsWith (')')) {
+        let depth = 0;
+        let wraps = true;
+        for (let i = 0; i < out.length; i++) {
+            depth += (out[i] === '(') ? 1 : ((out[i] === ')') ? -1 : 0);
+            if ((depth === 0) && (i < out.length - 1)) {
+                wraps = false;
+                break;
+            }
+        }
+        if (!wraps) {
+            break;
+        }
+        out = out.substring (1, out.length - 1).trim ();
+    }
+    return out;
+}
+
+// the container of a guarded read: a `[]any`/`[]string` local or parameter this func
+// declares exactly once and never writes (a write could change len() or replace the slice)
+function goGuardedReadContainer (maskedLines: string[], fn: any, name: string): any {
+    const maskedFunc = maskedLines.slice (fn.open + 1, fn.close + 1).join ('\n');
+    const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], name);
+    if ((decl === undefined) || ((decl.type !== '[]any') && (decl.type !== '[]string'))) {
+        return undefined;
+    }
+    const declareLine = (decl.index === undefined) ? -1 : (fn.open + 1 + (maskedFunc.substring (0, decl.index).split ('\n').length - 1));
+    for (let k = fn.open + 1; k < fn.close; k++) {
+        if ((k !== declareLine) && goTextWritesName (maskedLines[k], name)) {
+            return undefined;
+        }
+    }
+    return { 'type': decl.type, 'json': (decl.line !== undefined) && GO_GUARDED_READ_SAFE_LIST.test (decl.line) };
+}
+
+// names bound to `len(container)` that still hold at the block, declared once and unwritten
+function goGuardedReadLenBounds (maskedLines: string[], blocks: any[], depth: number[], fn: any, block: any, container: string): string[] {
+    const c = goAccessEscape (container);
+    const rx = new RegExp ('^[ \\t]*(?:var )?([A-Za-z_]\\w*) (?:int|int64) = len\\(' + c + '\\)[ \\t]*$|^[ \\t]*([A-Za-z_]\\w*) := len\\(' + c + '\\)[ \\t]*$');
+    const names: string[] = [];
+    for (let k = fn.open + 1; k < block.open; k++) {
+        const m = rx.exec (maskedLines[k]);
+        const name = (m === null) ? undefined : (m[1] ?? m[2]);
+        if ((name !== undefined) && !names.includes (name) && goTextLoopBoundIsLen (maskedLines, blocks, depth, fn, block, name, container, [])) {
+            names.push (name);
+        }
+    }
+    return names;
+}
+
+// `key` is a valid index into `container` when this conjunct holds; `bounds` are locals
+// equal to len(container)
+function goGuardedReadInRangeClause (clause: string, container: string, key: string, bounds: string[]): boolean {
+    const text = goGuardedReadStripParens (clause).replace (/[ \t]/g, '');
+    const terms = [ 'len\\(' + goAccessEscape (container) + '\\)', ...bounds.map ((b: string) => goAccessEscape (b)) ];
+    const k = /^\d+$/.test (key) ? key : goAccessEscape (key);
+    for (const t of terms) {
+        if (new RegExp ('^' + t + '>' + k + '$').test (text)) {
+            return true;                                      // len > key
+        }
+        if (new RegExp ('^' + t + '>=' + k + '\\+1$').test (text)) {
+            return true;                                      // len >= key + 1
+        }
+        if (new RegExp ('^' + k + '<' + t + '$').test (text)) {
+            return true;                                      // key < len
+        }
+        if (new RegExp ('^' + k + '<=' + t + '\\-1$').test (text)) {
+            return true;                                      // key <= len - 1
+        }
+        if (/^\d+$/.test (key)) {
+            // a literal bound: len > L / len >= L / len == L, and the mirror forms
+            const above = new RegExp ('^' + t + '(>|>=|==)(\\d+)$').exec (text);
+            const below = new RegExp ('^(\\d+)(<|<=)' + t + '$').exec (text);
+            const op = (above !== null) ? above[1] : ((below !== null) ? below[2] : undefined);
+            const limit = (above !== null) ? Number (above[2]) : ((below !== null) ? Number (below[1]) : -1);
+            if ((op !== undefined) && (limit >= 0)) {
+                const highest = (op === '>') ? limit : (limit - 1);
+                if (Number (key) <= highest) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+// the guarded read at `index` is in range: an enclosing counting loop over `len(container)`
+// or an `if` whose condition bounds the index. Walks only the blocks that enclose the func
+// literal (a nested `func` opener ends the walk, so an outer guard cannot dominate a read
+// inside a closure).
+function goGuardedReadIsInRange (maskedLines: string[], blocks: any[], depth: number[], fn: any, index: number, container: string, key: string): boolean {
+    const enclosing = blocks.filter ((b: any) => (b.open < index - 1) && (index <= b.close)).sort ((a: any, b: any) => b.depth - a.depth);
+    for (const block of enclosing) {
+        if (/\bfunc\b/.test (maskedLines[block.open])) {
+            break;
+        }
+        const header = maskedLines[block.open];
+        const loop = /^[ \t]*for ([A-Za-z_]\w*) := 0; \1 < (.+); \1\+\+ \{$/.exec (header);
+        if ((loop !== null) && (loop[1] === key)) {
+            if (!goTextLoopBoundIsLen (maskedLines, blocks, depth, fn, block, loop[2].trim (), container, [ key ])) {
+                return false;
+            }
+            // `goTextWritesName` reads the `&&` of a `&& i < len(x)` condition as an
+            // address-of, so the one-letter counter gets its own write test
+            const counterWrite = new RegExp ('(?<![\\w.])' + goAccessEscape (key) + '\\s*(?::=|\\+\\+|--|[-+*/%&|^]?=(?!=))|(?<!&)&\\s*' + goAccessEscape (key) + '\\b');
+            for (let k = block.open + 1; k < block.close; k++) {
+                if (counterWrite.test (maskedLines[k])) {
+                    return false;                              // the counter is rebased in the body
+                }
+            }
+            return true;
+        }
+        const condition = /^[ \t]*if (.*) \{$/.exec (header);
+        if (condition !== null) {
+            const bounds = goGuardedReadLenBounds (maskedLines, blocks, depth, fn, block, container);
+            const clauses = goMapWriteTopLevelParts (condition[1], '&&');
+            if (clauses.some ((clause: string) => (clause.indexOf ('||') < 0) && goGuardedReadInRangeClause (clause, container, key, bounds))) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// `f(func() any { if k >= 0 && k < len(x) { return [DerefScalar(]x[k][)] } return nil }())`
+// -> `f(x[k])` when the read is in range, `f(DerefScalar(x[k]))` when the element can box a
+// pointer; the DerefScalar wrap is dropped in place when the slice came from a SafeList
+function nativeGuardedListElementReads (content: string): string {
+    if ((content.indexOf ('>= 0 && ') < 0) || (content.indexOf ('func() any {') < 0)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const maskedLines = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== maskedLines.length) {
+        return content;
+    }
+    const { 'blocks': blocks, 'depth': depth } = goTextBlocks (maskedLines);
+    const out: string[] = [];
+    let changed = false;
+    for (let index = 0; index < lines.length; index++) {
+        const guard = GO_GUARDED_READ_GUARD.exec (maskedLines[index]);
+        if ((guard === null) || (index === 0) || (out.length === 0) || (index + 4 >= lines.length)
+            || !GO_GUARDED_READ_ROOF.test (maskedLines[index - 1])) {
+            out.push (lines[index]);
+            continue;
+        }
+        const body = guard[1];                                 // the guard sits one level below the literal
+        const outer = (body.length > 0) ? body.substring (0, body.length - 1) : body;
+        const key = guard[2];
+        const container = guard[3];
+        const wrappedPlain = body + '\treturn DerefScalar(' + container + '[' + key + '])';
+        const wrappedPrefixed = body + '\treturn ccxt.DerefScalar(' + container + '[' + key + '])';
+        const wrapped = (maskedLines[index + 1] === wrappedPrefixed) ? wrappedPrefixed : wrappedPlain;
+        const deref = (wrapped === wrappedPrefixed) ? 'ccxt.DerefScalar' : 'DerefScalar';
+        const bare = body + '\treturn ' + container + '[' + key + ']';
+        const closes = outer + '}()';
+        if (((maskedLines[index + 1] !== wrapped) && (maskedLines[index + 1] !== bare))
+            || (maskedLines[index + 2] !== body + '}')
+            || (maskedLines[index + 3] !== body + 'return nil')
+            || !maskedLines[index + 4].startsWith (closes)) {
+            out.push (lines[index]);
+            continue;
+        }
+        const fn = blocks.find ((b: any) => (b.depth === 1) && (b.open < index) && (index <= b.close));
+        if ((fn === undefined) || (maskedLines[fn.open].indexOf ('func ') !== 0)) {
+            out.push (lines[index]);
+            continue;
+        }
+        const read = goGuardedReadContainer (maskedLines, fn, container);
+        if (read === undefined) {
+            out.push (lines[index]);
+            continue;
+        }
+        const isWrapped = (maskedLines[index + 1] === wrapped);
+        const readText = (isWrapped && !read.json) ? (deref + '(' + container + '[' + key + '])') : (container + '[' + key + ']');
+        if (goGuardedReadIsInRange (maskedLines, blocks, depth, fn, index, container, key)) {
+            const roof = maskedLines[index - 1];
+            const roofClose = roof.lastIndexOf ('func() any {');
+            let suffix = lines[index + 4].substring (closes.length);
+            // the element of a `[]string` is already a string: the `. (string)` the printer
+            // adds to an `any` read goes with the closure
+            if ((read.type === '[]string') && suffix.startsWith ('.(string)')) {
+                suffix = suffix.substring ('.(string)'.length);
+            }
+            const merged = lines[index - 1].substring (0, roofClose) + readText + suffix;
+            if ((roofClose >= 0) && !suffix.trimStart ().startsWith ('.') && (merged.length <= 400)) {
+                out[out.length - 1] = merged;
+                index += 4;
+                changed = true;
+                continue;
+            }
+        }
+        if (isWrapped && read.json) {
+            lines[index + 1] = bare;                           // SafeList elements are plain JSON values
+            changed = true;
+        }
+        out.push (lines[index]);
+    }
+    return changed ? out.join ('\n') : content;
+}
+
+// hx11 w4 P2: the guard literal goes when the index is provably in range, the derefScalar
+// wrap goes when the slice is a SafeList unbox; every other read keeps both
+function nativeGuardedListElementReadsSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push ('hx11 w4 P2: ' + message); } };
+    const lists = '\tvar markets []any = SafeListTyped(response, "markets")\n';
+    const read = (key: string, container: string, wrap: string) => '\t\tvar m any = func() any {\n\t\t\tif ' + key + ' >= 0 && ' + key + ' < len(' + container + ') {\n\t\t\t\treturn ' + wrap + container + '[' + key + ']' + ((wrap === '') ? '' : ')') + '\n\t\t\t}\n\t\t\treturn nil\n\t\t}()\n';
+    const g = (body: string) => nativeGuardedListElementReads ('func (this *X) f(p any) any {\n' + body + '\treturn nil\n}\n');
+    try {
+        ok (g (lists + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('var m any = markets[0]') >= 0, 'an enclosing len() guard makes the read native');
+        ok (g (lists + '\tvar n int = len(markets)\n\tif n > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('var m any = markets[0]') >= 0, 'a bound local equal to len() counts');
+        ok (g (lists + '\tfor i := 0; i < len(markets); i++ {\n' + read ('i', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('var m any = markets[i]') >= 0, 'a counting loop over len() counts');
+        ok (g ('\tvar values []any = []any{}\n\tif len(values) > 0 {\n' + read ('0', 'values', 'DerefScalar(') + '\t}\n').indexOf ('var m any = DerefScalar(values[0])') >= 0, 'a non-SafeList slice keeps derefScalar');
+        ok (g ('\tvar values []any = []any{}\n\tif len(values) > 0 {\n' + read ('0', 'values', 'ccxt.DerefScalar(') + '\t}\n').indexOf ('var m any = ccxt.DerefScalar(values[0])') >= 0, 'the ccxt. prefix survives');
+        const unguarded = g (lists + read ('0', 'markets', 'DerefScalar('));
+        ok ((unguarded.indexOf ('\t\t\t\treturn markets[0]') >= 0) && (unguarded.indexOf ('DerefScalar(') < 0), 'without a proof a SafeList read drops only the wrap');
+        ok (g ('\tvar parts []string = strings.Split(x, "/")\n' + read ('1', 'parts', '')).indexOf ('func() any {') >= 0, 'an unproven []string read keeps the literal');
+        ok (g (lists + '\tif n > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('func() any {') >= 0, 'an unknown bound name keeps the literal');
+        ok (g (lists + '\tif len(markets) > 0 {\n\t\tmarkets = []any{}\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('func() any {') >= 0, 'a written slice keeps the literal');
+        ok (g (lists + '\tif len(markets) > 1 {\n' + read ('1', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('var m any = markets[1]') >= 0, 'len() > key');
+        ok (g (lists + '\tif len(markets) > 0 {\n' + read ('1', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('func() any {') >= 0, 'len() > 0 does not cover index 1');
+        const once = g (lists + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n');
+        ok (nativeGuardedListElementReads (once) === once, 'idempotent');
+        const wired = formatGoSource ('selftest.go', 'package ccxt\n\nfunc (this *X) f() any {\n' + lists + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n\treturn nil\n}\n');
+        ok (wired.indexOf ('var m any = markets[0]') >= 0, 'wired into formatGoSource: ' + wired);
+    } catch (e) {
+        problems.push ('hx11 w4 P2 threw: ' + e.message);
+    }
+    return problems;
+}
+
 // Semantic post-passes over the printer text: a leaked body goroutine, a missing type
 // assertion and an unbounded element read are fixed here; layout is the printer's job and
 // is gofmt-clean except where an emitter splices operand text into a call it prints.
@@ -2927,6 +3189,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx10w9GO05Pass (content);  // hx10 w9 GO05: no *sync.Map producer is left, so the coercion's last arm goes
     content = hx10w10GP27Pass (content);  // hx10 w10 GP27: the resolved map/list coercion becomes a typed watch receive
     content = hx10w9Gp17ParamsSlotBinds (hx10w9Gp17TupleTwins (content));  // hx10 w9 GP17: last, on the settled call sites
+    content = nativeGuardedListElementReads (content);  // hx11 w4 P2: last, on the settled guard literals
     return goGofmtSplicedText (content);
 }
 
@@ -9273,7 +9536,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10w2G07SelfCheck ()).concat (hx10G08Check ()).concat (g09Check ()).concat (hx10G10SelfTest ()).concat (g01SubsCheck ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og05Check ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (og06SelfCheck ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w9Gp18SelfTest ()).concat (hx10w9Gp18Wired ()).concat (hx10w8GO04Check ()).concat (gp14SelfTest ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (hx10w10GP24Check ()).concat (hx10w10GP24Wired ()).concat (goGofmtLayoutSelfTest ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10w2G07SelfCheck ()).concat (hx10G08Check ()).concat (g09Check ()).concat (hx10G10SelfTest ()).concat (g01SubsCheck ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og05Check ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (og06SelfCheck ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w9Gp18SelfTest ()).concat (hx10w9Gp18Wired ()).concat (hx10w8GO04Check ()).concat (gp14SelfTest ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (hx10w10GP24Check ()).concat (hx10w10GP24Wired ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goGofmtLayoutSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -13511,6 +13774,7 @@ function hx4G20BaseNativePasses (content: string): string {
     content = g01UrlsViews (content);  // hx10w5 G01: typed urls views + the refreshes after each urls write
     content = og02IdBookPass (content);  // hx10w6 OG02: base cleanRestData + incrementingNonce hand off to the request book owner
     content = g09Pass (content);  // hx10w2 G09
+    content = nativeGuardedListElementReads (content);  // hx11 w4 P2: the guard literals in the base files too
     return gb09CredentialStrings (content);  // hx10 w9 GB09: the credential fields are plain strings
     return g10kLenNative (goNativeStringAdds (goNativeArithmetic (content)));
 }
