@@ -467,10 +467,9 @@ export default class lbank extends Exchange {
     override parseCurrency (rawCurrency: Dict[]): CurrencyInterface {
         const id = this.safeString (this.safeDict (rawCurrency, 0, {}), 'assetCode'); // first member is guaranteed
         const code = this.safeCurrencyCode (id);
-        const networksRaw = rawCurrency;
         const networks: Dict = {};
-        for (let j = 0; j < (networksRaw as List).length; j++) {
-            const networkEntry = this.safeDict (networksRaw, j);
+        for (let j = 0; j < rawCurrency.length; j++) {
+            const networkEntry = this.safeDict (rawCurrency, j);
             let networkId = this.safeString (networkEntry, 'chain');
             if (networkId === undefined) {
                 networkId = this.safeString (networkEntry, 'assetCode'); // use type as fallback if networkId is not present
@@ -520,7 +519,7 @@ export default class lbank extends Exchange {
                 },
             },
             'networks': networks,
-            'info': networksRaw,
+            'info': rawCurrency,
         });
     }
 
@@ -2015,7 +2014,7 @@ export default class lbank extends Exchange {
         const result = this.safeList (response, 'data', []);
         const numOrders = result.length;
         if (numOrders === 1) {
-            return this.parseOrder (result[0]);
+            return this.parseOrder (this.safeDict (result, 0, {}));
         } else {
             // const parsedOrders = [];
             // for (let i = 0; i < numOrders; i++) {
@@ -2768,8 +2767,7 @@ export default class lbank extends Exchange {
         const withdrawFees: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const entry = this.safeDict (result, i);
-            const currencyId = this.safeString (entry, 'coin');
-            const code = this.safeCurrencyCode (currencyId);
+            const code = this.safeCurrencyCode (this.safeString (entry, 'coin'));
             const networkList: Dict[] = this.safeList (entry, 'networkList', []);
             if (code !== undefined) {
                 withdrawFees[code] = {};
@@ -2781,7 +2779,9 @@ export default class lbank extends Exchange {
                     const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'name'), code);
                     if (networkCode !== undefined) {
                         if ((code !== undefined) && (networkCode !== undefined)) {
-                            withdrawFees[code][networkCode] = fee;
+                            const feesForCode: Dict = {};
+                            feesForCode[networkCode] = fee;
+                            withdrawFees[code] = this.extend (this.safeDict (withdrawFees, code, {}), feesForCode);
                         }
                     }
                 }
@@ -2835,8 +2835,7 @@ export default class lbank extends Exchange {
             const item = this.safeDict (result, i);
             const canWithdraw = this.safeString (item, 'canWithDraw');
             if (canWithdraw === 'true') {
-                const currencyId = this.safeString (item, 'assetCode');
-                const codeInner = this.safeCurrencyCode (currencyId);
+                const codeInner = this.safeCurrencyCode (this.safeString (item, 'assetCode'));
                 let network = this.networkIdToCode (this.safeString (item, 'chain'), codeInner);
                 if (network === undefined) {
                     network = codeInner;
@@ -2848,7 +2847,9 @@ export default class lbank extends Exchange {
                     }
                 }
                 if ((codeInner !== undefined) && (network !== undefined)) {
-                    withdrawFees[codeInner][network] = this.parseNumber (fee);
+                    const feesForCode: Dict = {};
+                    feesForCode[network] = this.parseNumber (fee);
+                    withdrawFees[codeInner] = this.extend (this.safeDict (withdrawFees, codeInner, {}), feesForCode);
                 }
             }
         }
@@ -2983,8 +2984,7 @@ export default class lbank extends Exchange {
             const fee = response[i];
             const canWithdraw = this.safeBool (fee, 'canWithDraw');
             if (canWithdraw === true) {
-                const currencyId = this.safeString (fee, 'assetCode');
-                const code = this.safeCurrencyCode (currencyId);
+                const code = this.safeCurrencyCode (this.safeString (fee, 'assetCode'));
                 if ((code !== undefined) && (codes === undefined || this.inArray (code, codes))) {
                     const withdrawFee = this.safeNumber (fee, 'fee');
                     if (withdrawFee !== undefined) {
@@ -2997,7 +2997,8 @@ export default class lbank extends Exchange {
                         }
                         const networkCode = this.networkIdToCode (this.safeString (fee, 'chain'), code);
                         if (networkCode !== undefined) {
-                            result[code]['networks'][networkCode] = {
+                            const networkFees: Dict = {};
+                            networkFees[networkCode] = {
                                 'withdraw': {
                                     'fee': withdrawFee,
                                     'percentage': undefined,
@@ -3007,11 +3008,15 @@ export default class lbank extends Exchange {
                                     'percentage': undefined,
                                 },
                             };
+                            const networks: Dict = this.extend (this.safeDict (this.safeDict (result, code, {}), 'networks', {}), networkFees);
+                            result[code] = this.extend (this.safeDict (result, code, {}), { 'networks': networks });
                         } else {
-                            result[code]['withdraw'] = {
-                                'fee': withdrawFee,
-                                'percentage': undefined,
-                            };
+                            result[code] = this.extend (this.safeDict (result, code, {}), {
+                                'withdraw': {
+                                    'fee': withdrawFee,
+                                    'percentage': undefined,
+                                },
+                            });
                         }
                     }
                 }
@@ -3087,7 +3092,7 @@ export default class lbank extends Exchange {
         }
         let url = apiUrl + '/' + this.version + '/' + this.implodeParams (path, params);
         // Every spot endpoint ends with ".do"
-        if (api[0] === 'spot') {
+        if (this.safeString (api, 0) === 'spot') {
             url += '.do';
         } else {
             const contractUrl = this.safeString (this.urls['api'], 'contract');
@@ -3096,7 +3101,7 @@ export default class lbank extends Exchange {
             }
             url = contractUrl + '/' + this.implodeParams (path, params);
         }
-        if (api[1] === 'public') {
+        if (this.safeString (api, 1) === 'public') {
             if (Object.keys (paramsOmitted).length > 0) {
                 url += '?' + this.urlencode (this.keysort (paramsOmitted));
             }
@@ -3170,8 +3175,8 @@ export default class lbank extends Exchange {
         if (response === undefined) {
             throw new NullResponse (this.id + ' parseBalance() returned empty response');
         }
-        const success = this.safeValue (response, 'result');
-        if ((success === 'false') || (success === undefined) || (success === null) || (success === false)) {
+        const success = this.safeString (response, 'result');
+        if ((success === 'false') || (success === undefined)) {
             const errorCode = this.safeString (response, 'error_code');
             const message = this.safeString ({
                 '10000': 'Internal error',
