@@ -3593,7 +3593,7 @@ export default class extended extends Exchange {
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
-        const accessibility = this.safeString (api, 1);
+        const accessibility = api[1];
         const endpoint = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const queryPost = (path === 'user/deadmanswitch');

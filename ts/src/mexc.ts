@@ -6394,8 +6394,8 @@ export default class mexc extends Exchange {
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
-        const section = this.safeString (api, 0);
-        const access = this.safeString (api, 1);
+        const section = api[0];
+        const access = api[1];
         const pathValue = this.implodeParams (path, params);
         const paramsValue = this.omit (params, this.extractParams (path));
         let url: Str = undefined;
