@@ -444,20 +444,19 @@ export default class btcmarkets extends Exchange {
         }
         const cryptoPaymentDetail = this.safeDict (transaction, 'paymentDetail', {});
         const txid = this.safeString (cryptoPaymentDetail, 'txId');
-        let address = this.safeString (cryptoPaymentDetail, 'address');
+        const addressRaw = this.safeString (cryptoPaymentDetail, 'address');
+        let address: Str = undefined;
         let tag: Str = undefined;
-        if (address !== undefined) {
-            const addressParts = address.split ('?dt=');
+        if (addressRaw !== undefined) {
+            const addressParts = addressRaw.split ('?dt=');
             const numParts = addressParts.length;
             if (numParts > 1) {
                 address = addressParts[0];
                 tag = addressParts[1];
+            } else {
+                address = addressRaw;
             }
         }
-        const addressTo = address;
-        const tagTo = tag;
-        const addressFrom = undefined;
-        const tagFrom = undefined;
         const fee = this.safeString (transaction, 'fee');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const currencyId = this.safeString (transaction, 'assetName');
@@ -473,11 +472,11 @@ export default class btcmarkets extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'network': undefined,
             'address': address,
-            'addressTo': addressTo,
-            'addressFrom': addressFrom,
+            'addressTo': address,
+            'addressFrom': undefined,
             'tag': tag,
-            'tagTo': tagTo,
-            'tagFrom': tagFrom,
+            'tagTo': tag,
+            'tagFrom': undefined,
             'type': type,
             'amount': this.parseNumber (amount),
             'currency': code,
@@ -768,7 +767,6 @@ export default class btcmarkets extends Exchange {
         //
         const marketId = this.safeString (ticker, 'marketId');
         const marketResolved: Market = this.safeMarket (marketId, market, '-');
-        const symbol = marketResolved['symbol'];
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         const last = this.safeString (ticker, 'lastPrice');
         const baseVolume = this.safeString (ticker, 'volume24h');
@@ -776,7 +774,7 @@ export default class btcmarkets extends Exchange {
         const change = this.safeString (ticker, 'price24h');
         const percentage = this.safeString (ticker, 'pricePct24h');
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high24h'),
@@ -1070,7 +1068,7 @@ export default class btcmarkets extends Exchange {
         const numericIds: List = [];
         for (let i = 0; i < ids.length; i++) {
             // numericIds[i] = parseInt (ids[i]);
-            numericIds.push (parseInt (ids[i]));
+            numericIds.push (this.parseToInt (ids[i]));
         }
         const request: Dict = {
             'ids': numericIds,
@@ -1163,7 +1161,7 @@ export default class btcmarkets extends Exchange {
             'type': takerOrMaker,
             'currency': currency,
             'rate': rate,
-            'cost': parseFloat (feeCost),
+            'cost': this.parseNumber (feeCost),
         };
     }
 
