@@ -3970,7 +3970,7 @@ public partial class extended : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> requestHeaders = null;
         string? requestBody = null;
-        string? accessibility = this.safeString(api, 1);
+        string? accessibility = ((string)(api != null && 1 < api.Count ? api[1] : null));
         string endpoint = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         bool queryPost = ((path == "user/deadmanswitch"));

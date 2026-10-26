@@ -6979,8 +6979,8 @@ public partial class mexc : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> requestHeaders = null;
         object requestBody = null;
-        string? section = this.safeString(api, 0);
-        string? access = this.safeString(api, 1);
+        string? section = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string? access = ((string)(api != null && 1 < api.Count ? api[1] : null));
         string? pathValue = this.implodeParams(path, parameters);
         object paramsValue = this.omit(parameters, this.extractParams(path));
         object url = null;
