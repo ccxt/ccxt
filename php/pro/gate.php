@@ -67,7 +67,7 @@ class gate extends \ccxt\async\gate {
                 'watchPositions' => true,
                 'unWatchTicker' => false,
                 'unWatchTickers' => false,
-                'unWatchOHLCV' => false,
+                'unWatchOHLCV' => true,
                 'unWatchOHLCVForSymbols' => false,
                 'unWatchOrderBook' => true,
                 'unWatchOrderBookForSymbols' => false,
@@ -1172,6 +1172,65 @@ class gate extends \ccxt\async\gate {
             $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
         }
         return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
+    }
+
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
+    }
+
+    private function do_un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()) {
+        /**
+         *
+         * @see https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-$channel
+         * @see https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api
+         * @see https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api
+         *
+         * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unsubscription $request
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $marketId = $market['id'];
+        $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $messageType = $this->get_type_by_market($market);
+        $channel = $messageType . '.candlesticks';
+        $subMessageHash = 'candles:' . $interval . ':' . $symbolValue;
+        $messageHash = 'unsubscribe:candles:' . $interval . ':' . $symbolValue;
+        $url = $this->get_url_by_market($market);
+        $requestId = $this->request_id();
+        $request = array(
+            'id' => $requestId,
+            'time' => $this->seconds(),
+            'channel' => $channel,
+            'event' => 'unsubscribe',
+            'payload' => array( $interval, $marketId ),
+        );
+        // mirrors the subscription shape base cleanCache() expects for ohlcv
+        // (same pattern as binance unWatchOHLCVForSymbols), so the ohlcvs
+        // cache entry is dropped when the unsubscribe is acknowledged;
+        // handleOHLCV keys the cache by findTimeframe (interval), so the
+        // exchange interval id is mapped back to the cache key here -
+        // this matters for aliased timeframes such as gate's '1w': '7d';
+        // an unsupported timeframe falls back to the caller's key, matching
+        // the previous no-op cleanup instead of an undefined cache key
+        $cacheTimeframe = $this->find_timeframe($interval);
+        $subscription = array(
+            'id' => (string) $requestId,
+            'topic' => 'ohlcv',
+            'unsubscribe' => true,
+            'symbols' => array( $symbolValue ),
+            'symbolsAndTimeframes' => array( array( $symbolValue, ($cacheTimeframe !== null) ? $cacheTimeframe : $timeframe ) ),
+            'messageHashes' => array( $messageHash ),
+            'subMessageHashes' => array( $subMessageHash ),
+        );
+        $message = $this->extend($request, $params);
+        return Async\await($this->watch_multiple($url, array( $messageHash ), $message, array( $messageHash ), $subscription));
     }
 
     public function handle_ohlcv(Client $client, array $message) {

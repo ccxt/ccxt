@@ -125,7 +125,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented in Java
 | [![cryptomus](https://github.com/user-attachments/assets/cce42038-d22e-49bc-8a9a-b9c92a2859a0)](https://app.cryptomus.com/signup/?ref=JRP4yj)                                                       | cryptomus             | [Cryptomus](https://app.cryptomus.com/signup/?ref=JRP4yj)                                   | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://doc.cryptomus.com/personal)                                                         | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
 | [![deepcoin](https://github.com/user-attachments/assets/ddf3e178-c3b6-409d-8f9f-af8b7cf80454)](https://s.deepcoin.com/UzkyODgy)                                                                     | deepcoin              | [DeepCoin](https://s.deepcoin.com/UzkyODgy)                                                 | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.deepcoin.com/docs)                                                              | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![delta](https://user-images.githubusercontent.com/1294454/99450025-3be60a00-2931-11eb-9302-f4fd8d8589aa.jpg)](https://www.delta.exchange/app/signup/?code=IULYNB)                                 | delta                 | [Delta Exchange](https://www.delta.exchange/app/signup/?code=IULYNB)                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.delta.exchange)                                                                | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
-| [![deribit](https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg)](https://www.deribit.com/reg-1189.4038)                                            | deribit               | [Deribit](https://www.deribit.com/reg-1189.4038)                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.deribit.com/v2)                                                                | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
+| [![deribit](https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg)](https://www.deribit.com/reg-1189.4038)                                            | deribit               | [Deribit](https://www.deribit.com/reg-1189.4038)                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.deribit.com)                                                                   | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![derive](https://github.com/user-attachments/assets/9e640700-c870-41f9-8907-fba58e120fed)](https://www.derive.xyz/invite/3VB0B)                                                                   | derive                | [Derive](https://www.derive.xyz/invite/3VB0B)                                               | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://docs.derive.xyz/)                                                                   | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
 | [![digifinex](https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg)](https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp)                | digifinex             | [DigiFinex](https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp)                 | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://docs.digifinex.com)                                                                 | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                                                   |
 | [![dydx](https://github.com/user-attachments/assets/def0a54a-020a-4286-ba95-0f84e50a944d)](https://dydx.trade?ref=ccxt)                                                                             | dydx                  | [dYdX](https://dydx.trade?ref=ccxt)                                                         | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://docs.dydx.xyz)                                                                      | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/docs/pro-manual) |
@@ -612,12 +612,12 @@ Here's an overview of generic exchange properties with values added for example:
 
 ```javascript
 {
-    'id':   'exchange'                   // lowercase string exchange id
-    'name': 'Exchange'                   // human-readable string
+    'id':   'exchange',                  // lowercase string exchange id
+    'name': 'Exchange',                  // human-readable string
     'countries': [ 'US', 'CN', 'EU' ],   // array of ISO country codes
     'urls': {
         'api': 'https://api.example.com/data',  // string or dictionary of base API URLs
-        'www': 'https://www.example.com'        // string website URL
+        'www': 'https://www.example.com',       // string website URL
         'doc': 'https://docs.example.com/api',  // string URL or array of URLs
     },
     'version':         'v1',             // string ending with digits
@@ -657,15 +657,15 @@ Here's an overview of generic exchange properties with values added for example:
     },
     'timeout':           10000,          // number in milliseconds
     'rateLimit':         2000,           // number in milliseconds
-    'userAgent':        'ccxt/1.1.1 ...' // string, HTTP User-Agent header
+    'userAgent':       'ccxt/1.1.1 ...', // string, HTTP User-Agent header
     'verbose':           false,          // boolean, output error details
-    'markets':          { ... }          // dictionary of markets/pairs by symbol
-    'symbols':          [ ... ]          // sorted list of string symbols (traded pairs)
-    'currencies':       { ... }          // dictionary of currencies by currency code
+    'markets':          { ... },         // dictionary of markets/pairs by symbol
+    'symbols':          [ ... ],         // sorted list of string symbols (traded pairs)
+    'currencies':       { ... },         // dictionary of currencies by currency code
     'markets_by_id':    { ... },         // dictionary of array of dictionaries (markets) by id
     'currencies_by_id': { ... },         // dictionary of dictionaries (markets) by id
     'apiKey':   '92560ffae9b8a0421...',  // string public apiKey (ASCII, hex, Base64, ...)
-    'secret':   '9aHjPmW+EtRRKN/Oi...'   // string private secret key
+    'secret':   '9aHjPmW+EtRRKN/Oi...',  // string private secret key
     'password': '6kszf4aci8r',           // string password
     'uid':      '123456',                // string user id
     'options':          { ... },         // exchange-specific options

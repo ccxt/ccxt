@@ -3497,7 +3497,7 @@ func (this *Bydfi) ParseBalance(response any) map[string]any {
 
 /**
  * @method
- * @name budfi#transfer
+ * @name bydfi#transfer
  * @description transfer currency internally between wallets on the same account
  * @see https://developers.bydfi.com/en/account#asset-transfer-between-accounts
  * @param {string} code unified currency code
@@ -4846,6 +4846,19 @@ func (this *Bydfi) FetchBalance(params ...any) (Balances, error) {
 	var res Balances = r.Value
 	return res, nil
 }
+
+/**
+ * @method
+ * @name bydfi#transfer
+ * @description transfer currency internally between wallets on the same account
+ * @see https://developers.bydfi.com/en/account#asset-transfer-between-accounts
+ * @param {string} code unified currency code
+ * @param {float} amount amount to transfer
+ * @param {string} fromAccount 'spot', 'funding', or 'swap'
+ * @param {string} toAccount 'spot', 'funding', or 'swap'
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
 func (this *Bydfi) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
 	opts := TransferOptionsStruct{}

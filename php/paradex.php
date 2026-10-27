@@ -21,7 +21,7 @@ class paradex extends Exchange {
             'dex' => true,
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
                 'swap' => true,
                 'future' => false,
@@ -356,6 +356,10 @@ class paradex extends Exchange {
                     '40110' => '\\ccxt\\AuthenticationError', // Malformed Bearer Token
                     '40111' => '\\ccxt\\AuthenticationError', // Invalid Bearer Token
                     '40112' => '\\ccxt\\PermissionDenied', // Geo IP blocked
+                    '40300' => '\\ccxt\\PermissionDenied', // Permission denied
+                    '40301' => '\\ccxt\\NotSupported', // SBE encoding required
+                    '42900' => '\\ccxt\\OperationRejected', // Max subscriptions per connection, a retry does not help until a channel is unsubscribed
+                    '42901' => '\\ccxt\\RateLimitExceeded', // Rate limited
                 ),
                 'broad' => array(
                     'missing or malformed jwt' => '\\ccxt\\AuthenticationError',
@@ -369,7 +373,16 @@ class paradex extends Exchange {
                 'broker' => 'CCXT',
             ),
             'features' => array(
-                'spot' => null,
+                'spot' => array(
+                    'extends' => 'forSwap',
+                    'createOrder' => array(
+                        // spot takes limit and market orders only, no trigger, stop loss or take profit types
+                        'triggerPrice' => false,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                    ),
+                ),
                 'forSwap' => array(
                     'sandbox' => true,
                     'createOrder' => array(
@@ -612,26 +625,53 @@ class paradex extends Exchange {
         //     ]
         //  }
         //
+        // spot
+        //
+        //     {
+        //         "symbol": "ETH-USD",
+        //         "base_currency": "ETH",
+        //         "quote_currency": "USD",
+        //         "settlement_currency": "USDC",
+        //         "order_size_increment": "0.0001",
+        //         "price_tick_size": "0.01",
+        //         "min_notional": "10",
+        //         "asset_kind": "SPOT",
+        //         "market_kind": "cross",
+        //         ...
+        //     }
+        //
         $assetKind = $this->safe_string($market, 'asset_kind');
+        $isSpot = ($assetKind === 'SPOT');
         $isOptionPerpetual = ($assetKind === 'PERP_OPTION');
         $isOptionDelivery = ($assetKind === 'OPTION');
         $isOption = $isOptionPerpetual || $isOptionDelivery;
         $type = 'swap';
-        if ($isOption) {
+        if ($isSpot) {
+            $type = 'spot';
+        } elseif ($isOption) {
             $type = 'option';
         }
         $isSwap = ($type === 'swap');
         $marketId = $this->safe_string($market, 'symbol');
         $quoteId = $this->safe_string($market, 'quote_currency');
         $baseId = $this->safe_string($market, 'base_currency');
+        $settleId = $this->safe_string($market, 'settlement_currency');
+        if ($isSpot) {
+            // spot is quoted in "USD" but paid and received in the settlement token (USDC),
+            // a spot market has no settle, so the token it trades against is the quote
+            $quoteId = $settleId;
+            $settleId = null;
+        }
         $quote = $this->safe_currency_code($quoteId);
         $base = $this->safe_currency_code($baseId);
         if (($base === null) || ($quote === null)) {
             return null;
         }
-        $settleId = $this->safe_string($market, 'settlement_currency');
         $settle = $this->safe_currency_code($settleId);
-        $symbol = $base . '/' . $quote . ':' . $settle;
+        $symbol = $base . '/' . $quote;
+        if (!$isSpot) {
+            $symbol = $symbol . ':' . $settle;
+        }
         $expiry = $this->safe_integer($market, 'expiry_at');
         $optionType = $this->safe_string($market, 'option_type');
         $strikePrice = $this->safe_string($market, 'strike_price');
@@ -656,18 +696,18 @@ class paradex extends Exchange {
             'quoteId' => $quoteId,
             'settleId' => $settleId,
             'type' => $type,
-            'spot' => false,
+            'spot' => $isSpot,
             'margin' => null,
             'swap' => $isSwap,
             'future' => false,
             'option' => $isOption,
             'active' => $this->safe_bool($market, 'enableTrading'),
-            'contract' => true,
-            'linear' => true,
-            'inverse' => false,
+            'contract' => !$isSpot,
+            'linear' => ($isSpot) ? null : true,
+            'inverse' => ($isSpot) ? null : false,
             'taker' => $takerFee,
             'maker' => $makerFee,
-            'contractSize' => $this->parse_number('1'),
+            'contractSize' => ($isSpot) ? null : $this->parse_number('1'),
             'expiry' => $expiry,
             'expiryDatetime' => $expireDatetime,
             'strike' => $this->parse_number($strikePrice),
@@ -834,7 +874,7 @@ class paradex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @param {string} [$params->price] "last", "mark", "index", default is "last"
+         * @param {string} [$params->price] "last", "mark", "index" (sent as "underlying"), default is "last"
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
@@ -848,7 +888,8 @@ class paradex extends Exchange {
         $duration = $this->parse_timeframe($timeframe);
         $price = $this->safe_string($params, 'price');
         if ($price !== null) {
-            $request['price_kind'] = $price;
+            // the exchange names the index price "underlying" and rejects "index"
+            $request['price_kind'] = ($price === 'index') ? 'underlying' : $price;
         }
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end_at', $request, $params);
         $hasEnd = (is_array($request) && array_key_exists('end_at' ?? '', $request));
@@ -1972,38 +2013,46 @@ class paradex extends Exchange {
         }
         $response = $this->privatePostOrdersBatch($ordersRequests);
         //
-        // {
-        //     "errors": [
-        //         {
-        //             "error": "VALIDATION_ERROR",
-        //             "message": "Invalid order"
-        //         }
-        //     ],
-        //     "orders": [
-        //         {
-        //             "id": "123456",
-        //             "market": "BTC-USD-PERP",
-        //             "side": "BUY",
-        //             "type": "LIMIT",
-        //             "price": "26000",
-        //             "size": "0.05",
-        //             "status": "NEW"
-        //         }
-        //     ]
-        // }
+        // orders and errors are index-aligned with the request, null where the other array has the entry
+        //
+        //     {
+        //         "errors": [
+        //             null,
+        //             {
+        //                 "error": "DUPLICATED_CLIENT_ID",
+        //                 "message": "duplicated client order id"
+        //             }
+        //         ],
+        //         "orders": [
+        //             {
+        //                 "id": "123456",
+        //                 "market": "BTC-USD-PERP",
+        //                 "side": "BUY",
+        //                 "type": "LIMIT",
+        //                 "price": "26000",
+        //                 "size": "0.05",
+        //                 "status": "NEW"
+        //             },
+        //             null
+        //         ]
+        //     }
         //
         $responseOrders = $this->safe_list($response, 'orders', array());
-        $parsedOrders = $this->parse_orders($responseOrders);
         $errors = $this->safe_list($response, 'errors', array());
-        $rejected = array();
-        for ($i = 0; $i < count($errors); $i++) {
-            $error = $errors[$i];
-            $rejected[] = $this->safe_order(array(
-                'info' => $error,
-                'status' => 'rejected',
-            ));
+        $result = array();
+        for ($i = 0; $i < count($orders); $i++) {
+            $responseOrder = $this->safe_dict($responseOrders, $i);
+            if ($responseOrder !== null) {
+                $result[] = $this->parse_order($responseOrder);
+            } else {
+                $error = $this->safe_dict($errors, $i);
+                $result[] = $this->safe_order(array(
+                    'info' => $error,
+                    'status' => 'rejected',
+                ));
+            }
         }
-        return $this->array_concat($parsedOrders, $rejected);
+        return $result;
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -3515,6 +3564,24 @@ class paradex extends Exchange {
         //     }
         //
         $errorCode = $this->safe_string($response, 'error');
+        if (($errorCode === null) && ($httpCode === 400)) {
+            //
+            // a batch where every order was rejected, errors are index-aligned with the request
+            //
+            //     {
+            //         "errors": [ { "error": "DUPLICATED_CLIENT_ID", "message": "..." } ],
+            //         "orders": [ null ]
+            //     }
+            //
+            $batchErrors = $this->safe_list($response, 'errors', array());
+            for ($i = 0; $i < count($batchErrors); $i++) {
+                $batchErrorCode = $this->safe_string($batchErrors[$i], 'error');
+                if ($batchErrorCode !== null) {
+                    $errorCode = $batchErrorCode;
+                    break;
+                }
+            }
+        }
         if ($errorCode !== null) {
             $feedback = $this->id . ' ' . $body;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);

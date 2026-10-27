@@ -3480,6 +3480,13 @@ func (this *Bingx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var close *string = this.SafeString(ticker, "lastPrice")
 	var quoteVolume *string = this.SafeString(ticker, "quoteVolume")
 	var baseVolume *string = this.SafeString(ticker, "volume")
+	if marketResolved["inverse"] == true {
+		// Coin-M volume is in contracts; quoteVolume is in the base currency.
+		// read the resolved market: parseTickers and fetchTickers reach here with no market argument
+		var contractSize *string = this.SafeString(marketResolved, "contractSize")
+		baseVolume = quoteVolume
+		quoteVolume = Precise.StringMul(this.SafeString(ticker, "volume"), contractSize)
+	}
 	var percentage *string = this.SafeString(ticker, "priceChangePercent")
 	if percentage != nil {
 		percentage = SafeStringPtr(strings.Replace(*percentage, "%", "", 1))
@@ -4110,11 +4117,11 @@ func (this *Bingx) createMarketOrderWithCostBody(ch chan AsyncResult[Order], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes318815 map[string]any = StructResultMap(r.Value, OrderToMap)
-	if retRes318815 == nil {
+	var retRes319515 map[string]any = StructResultMap(r.Value, OrderToMap)
+	if retRes319515 == nil {
 		ch <- AsyncResult[Order]{}
 	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes318815)}
+		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes319515)}
 	}
 	return nil
 }
@@ -4144,11 +4151,11 @@ func (this *Bingx) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes320215 map[string]any = StructResultMap(r.Value, OrderToMap)
-	if retRes320215 == nil {
+	var retRes320915 map[string]any = StructResultMap(r.Value, OrderToMap)
+	if retRes320915 == nil {
 		ch <- AsyncResult[Order]{}
 	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes320215)}
+		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes320915)}
 	}
 	return nil
 }
@@ -4178,11 +4185,11 @@ func (this *Bingx) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes321615 map[string]any = StructResultMap(r.Value, OrderToMap)
-	if retRes321615 == nil {
+	var retRes322315 map[string]any = StructResultMap(r.Value, OrderToMap)
+	if retRes322315 == nil {
 		ch <- AsyncResult[Order]{}
 	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes321615)}
+		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes322315)}
 	}
 	return nil
 }
@@ -4234,7 +4241,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var isTriggerOrder bool = (triggerPrice != nil)
 	var isStopLossPriceOrder bool = (stopLossPrice != nil)
 	var isTakeProfitPriceOrder bool = (takeProfitPrice != nil)
-	var exchangeClientOrderId string = "clientOrderID"
+	var exchangeClientOrderId string = "clientOrderId"
 	if isSpot {
 		exchangeClientOrderId = "newClientOrderId"
 	}
@@ -5314,14 +5321,18 @@ func (this *Bingx) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalA
 			"symbol": market["id"],
 		}
 		var clientOrderId *string = this.SafeString2(paramsOmitted, "clientOrderId", "clientOrderID")
-		var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, []any{"clientOrderId"})
+		var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, []any{"clientOrderId", "clientOrderID"})
+		typeVar, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrder", market, paramsOmitted2)
+		subType, paramsSubType := this.HandleSubTypeAndParams("cancelOrder", market, paramsMarketType)
 		if clientOrderId != nil {
-			request["clientOrderID"] = clientOrderId
+			var clientOrderIdRequest string = "clientOrderId"
+			if typeVar != nil && *typeVar == "spot" {
+				clientOrderIdRequest = "clientOrderID"
+			}
+			request[clientOrderIdRequest] = clientOrderId
 		} else {
 			request["orderId"] = id
 		}
-		typeVar, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrder", market, paramsOmitted2)
-		subType, paramsSubType := this.HandleSubTypeAndParams("cancelOrder", market, paramsMarketType)
 		if typeVar != nil && *typeVar == "spot" {
 
 			r2 := <-this.SpotV1PrivatePostTradeCancel(this.Extend(request, paramsSubType))
@@ -5749,11 +5760,21 @@ func (this *Bingx) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 		}
 		market = this.Market(symbol)
 		var request map[string]any = map[string]any{
-			"symbol":  market["id"],
-			"orderId": id,
+			"symbol": market["id"],
 		}
-		typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrder", market, paramsOmitted)
+		var clientOrderId *string = this.SafeString2(paramsOmitted, "clientOrderId", "clientOrderID")
+		var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, []any{"clientOrderId", "clientOrderID"})
+		typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrder", market, paramsOmitted2)
 		subType, paramsSubType := this.HandleSubTypeAndParams("fetchOrder", market, paramsMarketType)
+		if clientOrderId != nil {
+			var clientOrderIdRequest string = "clientOrderId"
+			if typeVar != nil && *typeVar == "spot" {
+				clientOrderIdRequest = "clientOrderID"
+			}
+			request[clientOrderIdRequest] = clientOrderId
+		} else {
+			request["orderId"] = id
+		}
 		if typeVar != nil && *typeVar == "spot" {
 
 			r2 := <-this.SpotV1PrivateGetTradeQuery(this.Extend(request, paramsSubType))
@@ -6514,11 +6535,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes549319 []any = r1.Value
-		if retRes549319 == nil {
+		var retRes551419 []any = r1.Value
+		if retRes551419 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes549319)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes551419)}
 		}
 		return nil
 	}
@@ -6794,11 +6815,11 @@ func (this *Bingx) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optiona
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp6332 := <-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil))
-	if listEp6332.Err != nil {
-		panic(listEp6332.Err)
+	listEp6353 := <-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil))
+	if listEp6353.Err != nil {
+		panic(listEp6353.Err)
 	}
-	var response []any = listEp6332.Value
+	var response []any = listEp6353.Value
 
 	//
 	//    [
@@ -6870,11 +6891,11 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opti
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp6401 := <-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil))
-	if listEp6401.Err != nil {
-		panic(listEp6401.Err)
+	listEp6422 := <-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil))
+	if listEp6422.Err != nil {
+		panic(listEp6422.Err)
 	}
-	var response []any = listEp6401.Value
+	var response []any = listEp6422.Value
 
 	//
 	//    [
@@ -7133,11 +7154,11 @@ func (this *Bingx) addMarginBody(ch chan AsyncResult[MarginModification], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes595315 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes595315 == nil {
+	var retRes597415 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
+	if retRes597415 == nil {
 		ch <- AsyncResult[MarginModification]{}
 	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes595315)}
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes597415)}
 	}
 	return nil
 }
@@ -7159,11 +7180,11 @@ func (this *Bingx) reduceMarginBody(ch chan AsyncResult[MarginModification], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes596015 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes596015 == nil {
+	var retRes598115 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
+	if retRes598115 == nil {
 		ch <- AsyncResult[MarginModification]{}
 	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes596015)}
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes598115)}
 	}
 	return nil
 }
@@ -7465,6 +7486,9 @@ func (this *Bingx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 		var orderId *string = this.SafeString(paramsSubType, "orderId")
 		if orderId == nil {
 			panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires an orderId argument for inverse swap trades"))
+		}
+		if limit != nil {
+			request["pageSize"] = mathMin(limit, 1000) // api maximum 1000
 		}
 
 		r1 := <-this.CswapV1PrivateGetTradeAllFillOrders(this.Extend(request, paramsSubType))
@@ -7995,7 +8019,7 @@ func (this *Bingx) closePositionBody(ch chan AsyncResult[Order], symbol string, 
 
 /**
  * @method
- * @name bitget#closePositions
+ * @name bingx#closeAllPositions
  * @description closes open positions for a market
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
  * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
@@ -8207,6 +8231,7 @@ func (this *Bingx) setPositionModeBody(ch chan AsyncResult[map[string]any], hedg
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {string} [params.cancelClientOrderID] the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+ * @param {string} [params.cancelClientOrderId] the client order id of the order to cancel
  * @param {string} [params.cancelRestrictions] cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled
  * @param {string} [params.cancelReplaceMode] STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
  * @param {float} [params.quoteOrderQty] order amount
@@ -8242,9 +8267,19 @@ func (this *Bingx) editOrderBody(ch chan AsyncResult[Order], id string, symbol a
 	if market["inverse"] == true {
 		panic(NotSupported(this.Id + " editOrder() is not supported for inverse swap markets"))
 	}
-	var request map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
-	request["cancelOrderId"] = id
-	request["cancelReplaceMode"] = this.SafeString(params, "cancelReplaceMode", "STOP_ON_FAILURE")
+	var cancelClientOrderId *string = this.SafeString2(params, "cancelClientOrderId", "cancelClientOrderID")
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"cancelClientOrderId", "cancelClientOrderID"})
+	var request map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, paramsOmitted)
+	if cancelClientOrderId != nil {
+		var cancelClientOrderIdRequest string = "cancelClientOrderId"
+		if market["spot"] == true {
+			cancelClientOrderIdRequest = "cancelClientOrderID"
+		}
+		request[cancelClientOrderIdRequest] = cancelClientOrderId
+	} else {
+		request["cancelOrderId"] = id
+	}
+	request["cancelReplaceMode"] = this.SafeString(paramsOmitted, "cancelReplaceMode", "STOP_ON_FAILURE")
 	var response map[string]any = nil
 	if market["swap"] == true {
 
@@ -10183,6 +10218,7 @@ func (this *Bingx) SetPositionMode(hedged bool, options ...SetPositionModeOption
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {string} [params.cancelClientOrderID] the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+ * @param {string} [params.cancelClientOrderId] the client order id of the order to cancel
  * @param {string} [params.cancelRestrictions] cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled
  * @param {string} [params.cancelReplaceMode] STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
  * @param {float} [params.quoteOrderQty] order amount

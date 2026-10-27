@@ -23,6 +23,9 @@ public partial class kraken : ccxt.kraken
                 { "watchBidsAsks", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
+                { "unWatchOHLCV", true },
+                { "unWatchTrades", true },
+                { "unWatchTradesForSymbols", true },
                 { "createOrderWs", true },
                 { "editOrderWs", true },
                 { "cancelOrderWs", true },
@@ -858,6 +861,54 @@ public partial class kraken : ccxt.kraken
 
     /**
      * @method
+     * @name kraken#unWatchTrades
+     * @description stop watching the list of most recent trades for a particular symbol
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+     * @param {string} symbol unified symbol of the market to stop watching the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
+    }
+
+    /**
+     * @method
+     * @name kraken#unWatchTradesForSymbols
+     * @description stop watching the list of most recent trades for a list of symbols
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+     * @param {string[]} symbols unified symbols of the markets to stop watching the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchTradesForSymbols(IList<object> symbols, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, false);
+        List<object> unsubMessageHashes = new List<object>() {};
+        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
+        {
+            unsubMessageHashes.Add(("unsubscribe:" + this.getMessageHash("trade", null, symbolsNormalized[i])));
+        }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "unsubscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channel", "trade" },
+                { "symbol", symbolsNormalized },
+            } },
+            { "req_id", this.requestId() },
+        };
+        request["params"] = this.deepExtend(request["params"], parameters);
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicV2"));
+        // kraken acknowledges each symbol separately, see handleUnsubscriptionStatus
+        return await this.watchMultiple(url, unsubMessageHashes, request, unsubMessageHashes);
+    }
+
+    /**
+     * @method
      * @name kraken#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
@@ -943,6 +994,40 @@ public partial class kraken : ccxt.kraken
             limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, "timestamp", true));
+    }
+
+    /**
+     * @method
+     * @name kraken#unWatchOHLCV
+     * @description stop watching historical candlestick data for a market
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
+     * @param {string} symbol unified symbol of the market to stop watching the candles for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
+    {
+        string timeframeVar = timeframe;
+        timeframeVar ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string unsubMessageHash = ("unsubscribe:" + this.getMessageHash("ohlcv", interval, symbolValue));
+        Dictionary<string, object> unsubscribe = new Dictionary<string, object>() {
+            { "method", "unsubscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channel", "ohlc" },
+                { "symbol", new List<object>() {symbolValue} },
+                { "interval", this.safeValue(this.timeframes, timeframeVar, timeframeVar) },
+            } },
+            { "req_id", this.requestId() },
+        };
+        Dictionary<string, object> request = this.deepExtend(unsubscribe, parameters);
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicV2"));
+        return await this.watch(url, unsubMessageHash, request, unsubMessageHash);
     }
 
     public async override Task<IDictionary<string, object>> loadMarkets(bool? reload = null, object parameters = null)
@@ -1816,6 +1901,46 @@ public partial class kraken : ccxt.kraken
         }
     }
 
+    public virtual object handleUnsubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)
+    {
+        //
+        // one acknowledgement per symbol in the unsubscribe request
+        //
+        //     {
+        //         "method": "unsubscribe",
+        //         "req_id": 4,
+        //         "result": { "channel": "ohlc", "interval": 5, "symbol": "BTC/USD" },
+        //         "success": true,
+        //         "time_in": "2026-10-26T16:12:36.610481Z",
+        //         "time_out": "2026-10-26T16:12:36.610502Z"
+        //     }
+        //
+        IDictionary<string, object> result = this.safeDict(message, "result", new Dictionary<string, object>() {});
+        string? channel = this.safeString(result, "channel");
+        string? symbol = this.safeSymbol(this.safeString(result, "symbol"));
+        if (channel == "trade")
+        {
+            string? subMessageHash = this.getMessageHash("trade", null, symbol);
+            this.cleanCache(new Dictionary<string, object>() {
+                { "topic", "trades" },
+                { "symbols", new List<object>() {symbol} },
+            });
+            this.cleanUnsubscription(client, subMessageHash, ("unsubscribe:" + subMessageHash));
+        } else if (channel == "ohlc")
+        {
+            Int64? interval = this.safeInteger(result, "interval");
+            string? timeframe = this.findTimeframe(interval);
+            string? subMessageHash = this.getMessageHash("ohlcv", null, symbol);
+            string unsubMessageHash = ("unsubscribe:" + this.getMessageHash("ohlcv", this.numberToString(interval), symbol));
+            this.cleanCache(new Dictionary<string, object>() {
+                { "topic", "ohlcv" },
+                { "symbolsAndTimeframes", new List<object>() {new List<object>() {symbol, timeframe}} },
+            });
+            this.cleanUnsubscription(client, subMessageHash, unsubMessageHash);
+        }
+        return message;
+    }
+
     public virtual bool? handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         //
@@ -1894,6 +2019,7 @@ public partial class kraken : ccxt.kraken
                 { "heartbeat", this.handleHeartbeat },
                 { "systemStatus", this.handleSystemStatus },
                 { "subscriptionStatus", this.handleSubscriptionStatus },
+                { "unsubscribe", this.handleUnsubscriptionStatus },
                 { "add_order", this.handleCreateEditOrder },
                 { "amend_order", this.handleCreateEditOrder },
                 { "cancel_order", this.handleCancelOrder },

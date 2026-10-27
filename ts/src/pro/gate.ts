@@ -60,7 +60,7 @@ export default class gate extends gateRest {
                 'watchPositions': true,
                 'unWatchTicker': false,
                 'unWatchTickers': false,
-                'unWatchOHLCV': false,
+                'unWatchOHLCV': true,
                 'unWatchOHLCVForSymbols': false,
                 'unWatchOrderBook': true,
                 'unWatchOrderBookForSymbols': false,
@@ -1111,6 +1111,61 @@ export default class gate extends gateRest {
         const cacheRead = this.getCacheRead (ohlcv, symbolValue, limit);
         const limitResolved = this.safeInteger (cacheRead, 'limit');
         return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
+    }
+
+    /**
+     * @method
+     * @name gate#unWatchOHLCV
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-channel
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unsubscription request
+     */
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const symbolValue: string = market['symbol'];
+        const marketId = market['id'];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const messageType = this.getTypeByMarket (market);
+        const channel = messageType + '.candlesticks';
+        const subMessageHash = 'candles:' + interval + ':' + symbolValue;
+        const messageHash = 'unsubscribe:candles:' + interval + ':' + symbolValue;
+        const url = this.getUrlByMarket (market);
+        const requestId = this.requestId ();
+        const request: Dict = {
+            'id': requestId,
+            'time': this.seconds (),
+            'channel': channel,
+            'event': 'unsubscribe',
+            'payload': [ interval, marketId ],
+        };
+        // mirrors the subscription shape base cleanCache() expects for ohlcv
+        // (same pattern as binance unWatchOHLCVForSymbols), so the ohlcvs
+        // cache entry is dropped when the unsubscribe is acknowledged;
+        // handleOHLCV keys the cache by findTimeframe (interval), so the
+        // exchange interval id is mapped back to the cache key here -
+        // this matters for aliased timeframes such as gate's '1w': '7d';
+        // an unsupported timeframe falls back to the caller's key, matching
+        // the previous no-op cleanup instead of an undefined cache key
+        const cacheTimeframe = this.findTimeframe (interval);
+        const subscription: Dict = {
+            'id': requestId.toString (),
+            'topic': 'ohlcv',
+            'unsubscribe': true,
+            'symbols': [ symbolValue ],
+            'symbolsAndTimeframes': [ [ symbolValue, (cacheTimeframe !== undefined) ? cacheTimeframe : timeframe ] ],
+            'messageHashes': [ messageHash ],
+            'subMessageHashes': [ subMessageHash ],
+        };
+        const message = this.extend (request, params);
+        return await this.watchMultiple (url, [ messageHash ], message, [ messageHash ], subscription);
     }
 
     handleOHLCV (client: Client, message: Dict) {

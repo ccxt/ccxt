@@ -17,6 +17,7 @@
 * [fetchTickers](#fetchtickers)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchFundingRates](#fetchfundingrates)
+* [fetchBalance](#fetchbalance)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
 * [fetchAccounts](#fetchaccounts)
@@ -323,6 +324,29 @@ fetch the current funding rate for multiple symbols
 
 ```javascript
 lighter.fetchFundingRates (symbols?, params?)
+```
+
+
+<a name="fetchBalance" id="fetchbalance"></a>
+
+### fetchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+
+**See**: https://apidocs.lighter.xyz/reference/account-1  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.by | <code>string</code> | No | fetch balance by 'index' or 'l1_address', defaults to 'index' |
+| params.value | <code>string</code> | No | fetch balance value, account index or l1 address |
+| params.type | <code>string</code> | No | 'spot', 'swap', default is 'swap' |
+
+
+```javascript
+lighter.fetchBalance (params?)
 ```
 
 

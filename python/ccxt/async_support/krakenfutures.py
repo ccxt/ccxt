@@ -2365,9 +2365,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
+        symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
         # todo: lastFillTime: this.iso8601(end)
         response = await self.privateGetFills(params)
         #
@@ -2391,7 +2389,13 @@ class krakenfutures(Exchange, ImplicitAPI):
         #    }
         #
         fills = self.safe_list(response, 'fills', [])
-        return self.parse_trades(fills, market, since, limit)
+        # the endpoint returns the fills of every contract, each row resolves its own market
+        trades = self.parse_trades(fills)
+        # a fill of a contract that is no longer listed in /instruments has no unified symbol,
+        # so safeMarket keeps the raw id (eg 'PF_XRPUSD') in trade['symbol']: it is filtered out
+        # whenever a symbol is requested and returned as-is when symbol is undefined, on purpose,
+        # because it is still the user's own fill and dropping it would hide real trades
+        return self.filter_by_symbol_since_limit(trades, symbolResolved, since, limit)
 
     async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """

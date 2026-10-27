@@ -3171,10 +3171,12 @@ func (this *Krakenfutures) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optio
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = nil
-	if symbol != nil {
-		market = this.Market(symbol)
-	}
+	var symbolResolved any = func() any {
+		if symbol != nil {
+			return this.Symbol(symbol)
+		}
+		return symbol
+	}()
 	// todo: lastFillTime: this.iso8601(end)
 
 	r1 := <-this.PrivateGetFills(params)
@@ -3203,8 +3205,14 @@ func (this *Krakenfutures) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optio
 	//    }
 	//
 	var fills []any = SafeListTypedDefault(response, "fills", []any{})
+	// the endpoint returns the fills of every contract, each row resolves its own market
+	var trades any = this.ParseTrades(fills)
 
-	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(fills, market, since, limit))}
+	// a fill of a contract that is no longer listed in /instruments has no unified symbol,
+	// so safeMarket keeps the raw id (eg 'PF_XRPUSD') in trade['symbol']: it is filtered out
+	// whenever a symbol is requested and returned as-is when symbol is undefined, on purpose,
+	// because it is still the user's own fill and dropping it would hide real trades
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limit))}
 	return nil
 }
 
@@ -4571,11 +4579,11 @@ func (this *Krakenfutures) transferOutBody(ch chan AsyncResult[TransferEntry], c
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes364115 map[string]any = StructResultMap(r.Value, TransferEntryToMap)
-	if retRes364115 == nil {
+	var retRes364415 map[string]any = StructResultMap(r.Value, TransferEntryToMap)
+	if retRes364415 == nil {
 		ch <- AsyncResult[TransferEntry]{}
 	} else {
-		ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(retRes364115)}
+		ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(retRes364415)}
 	}
 	return nil
 }

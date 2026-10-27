@@ -110,7 +110,7 @@ class blofin(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
-                'fetchOrder': None,
+                'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
                 'fetchOrders': False,
@@ -351,7 +351,12 @@ class blofin(Exchange, ImplicitAPI):
                         'untilDays': 100000,
                         'symbolRequired': False,
                     },
-                    'fetchOrder': None,
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 100,
@@ -410,7 +415,9 @@ class blofin(Exchange, ImplicitAPI):
                     'linear': {
                         'extends': 'forDerivatives',
                     },
-                    'inverse': None,
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
                 },
                 'future': {
                     'linear': None,
@@ -1714,6 +1721,47 @@ class blofin(Exchange, ImplicitAPI):
         response = self.privatePostTradeBatchOrders(ordersRequests)
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data)
+
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
+        """
+        fetches information on an order made by the user
+
+        https://docs.blofin.com/index.html#get-order-detail
+        https://docs.blofin.com/index.html#get-tpsl-order-detail
+
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: client order id, used instead of the id argument
+        :param boolean [params.tpsl]: True if fetching a tpsl order
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instId': market['id'],
+        }
+        isTpsl = self.safe_bool_2(params, 'tpsl', 'TPSL', False)
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['clientOrderId'] = clientOrderId
+        elif isTpsl is True:
+            request['tpslId'] = id
+        else:
+            request['orderId'] = id
+        query = self.omit(params, ['clientOrderId', 'tpsl', 'TPSL'])
+        response: dict
+        if isTpsl is True:
+            response = self.privateGetTradeOrderTpslDetail(self.extend(request, query))
+        else:
+            response = self.privateGetTradeOrderDetail(self.extend(request, query))
+        data = self.safe_dict(response, 'data')
+        if data is None:
+            raise OrderNotFound(self.id + ' fetchOrder() could not find order ' + id)
+        return self.parse_order(data, market)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """

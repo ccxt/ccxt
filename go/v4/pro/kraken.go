@@ -36,6 +36,9 @@ func (this *Kraken) Describe() any {
 			"watchBidsAsks":            true,
 			"watchTrades":              true,
 			"watchTradesForSymbols":    true,
+			"unWatchOHLCV":             true,
+			"unWatchTrades":            true,
+			"unWatchTradesForSymbols":  true,
 			"createOrderWs":            true,
 			"editOrderWs":              true,
 			"cancelOrderWs":            true,
@@ -1096,6 +1099,95 @@ func (this *Kraken) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 
 /**
  * @method
+ * @name kraken#unWatchTrades
+ * @description stop watching the list of most recent trades for a particular symbol
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+ * @param {string} symbol unified symbol of the market to stop watching the trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Kraken) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Kraken) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	r := <-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @name kraken#unWatchTradesForSymbols
+ * @description stop watching the list of most recent trades for a list of symbols
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+ * @param {string[]} symbols unified symbols of the markets to stop watching the trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Kraken) UnWatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchTradesForSymbolsBody(ch, symbols, optionalArgs...)
+	return ch
+}
+func (this *Kraken) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbols any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, false)
+	var unsubMessageHashes []any = []any{}
+	for i := 0; i < len(symbolsNormalized); i++ {
+		unsubMessageHashes = append(unsubMessageHashes, "unsubscribe:"+this.GetMessageHash("trade", nil, symbolsNormalized[i]))
+	}
+	var request map[string]any = map[string]any{
+		"method": "unsubscribe",
+		"params": map[string]any{
+			"channel": "trade",
+			"symbol":  symbolsNormalized,
+		},
+		"req_id": this.RequestId(),
+	}
+	request["params"] = this.DeepExtend(request["params"], params)
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "publicV2"))
+
+	// kraken acknowledges each symbol separately, see handleUnsubscriptionStatus
+	r1 := <-this.WatchMultiple(url, unsubMessageHashes, request, unsubMessageHashes)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
+	return nil
+}
+
+/**
+ * @method
  * @name kraken#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
@@ -1229,6 +1321,69 @@ func (this *Kraken) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, "timestamp", true))}
+	return nil
+}
+
+/**
+ * @method
+ * @name kraken#unWatchOHLCV
+ * @description stop watching historical candlestick data for a market
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
+ * @param {string} symbol unified symbol of the market to stop watching the candles for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Kraken) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Kraken) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
+	_ = timeframe
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var market map[string]any = this.Market(symbol)
+	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
+	var unsubMessageHash string = "unsubscribe:" + this.GetMessageHash("ohlcv", interval, symbolValue)
+	var unsubscribe map[string]any = map[string]any{
+		"method": "unsubscribe",
+		"params": map[string]any{
+			"channel":  "ohlc",
+			"symbol":   []any{symbolValue},
+			"interval": this.SafeValue(this.Timeframes, timeframe, timeframe),
+		},
+		"req_id": this.RequestId(),
+	}
+	var request map[string]any = this.DeepExtend(unsubscribe, params)
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "publicV2"))
+
+	r1 := <-this.Watch(url, unsubMessageHash, request, unsubMessageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 func (this *Kraken) LoadMarketsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*sync.Map] {
@@ -1901,8 +2056,8 @@ func (this *Kraken) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes135415 := r.Value
-	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(retRes135415)}
+	retRes143015 := r.Value
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(retRes143015)}
 	return nil
 }
 func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArgs ...any) {
@@ -2274,6 +2429,42 @@ func (this *Kraken) HandleSubscriptionStatus(client any, message map[string]any)
 		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), channelId, message)
 	}
 }
+func (this *Kraken) HandleUnsubscriptionStatus(client any, message map[string]any) any {
+	//
+	// one acknowledgement per symbol in the unsubscribe request
+	//
+	//     {
+	//         "method": "unsubscribe",
+	//         "req_id": 4,
+	//         "result": { "channel": "ohlc", "interval": 5, "symbol": "BTC/USD" },
+	//         "success": true,
+	//         "time_in": "2026-10-26T16:12:36.610481Z",
+	//         "time_out": "2026-10-26T16:12:36.610502Z"
+	//     }
+	//
+	var result map[string]any = ccxt.SafeMapTyped(message, "result")
+	var channel *string = this.SafeString(result, "channel")
+	var symbol *string = this.SafeSymbol(this.SafeString(result, "symbol"))
+	if channel != nil && *channel == "trade" {
+		var subMessageHash string = this.GetMessageHash("trade", nil, symbol)
+		this.CleanCache(map[string]any{
+			"topic":   "trades",
+			"symbols": []any{symbol},
+		})
+		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, "unsubscribe:"+subMessageHash)
+	} else if channel != nil && *channel == "ohlc" {
+		var interval *int64 = this.SafeInteger(result, "interval")
+		var timeframe *string = this.FindTimeframe(interval)
+		var subMessageHash string = this.GetMessageHash("ohlcv", nil, symbol)
+		var unsubMessageHash string = "unsubscribe:" + this.GetMessageHash("ohlcv", this.NumberToString(interval), symbol)
+		this.CleanCache(map[string]any{
+			"topic":                "ohlcv",
+			"symbolsAndTimeframes": []any{[]any{symbol, timeframe}},
+		})
+		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, unsubMessageHash)
+	}
+	return message
+}
 func (this *Kraken) HandleErrorMessage(client any, message any) bool {
 	//
 	//     {
@@ -2346,6 +2537,7 @@ func (this *Kraken) HandleMessage(client any, message any) {
 			"heartbeat":          this.HandleHeartbeat,
 			"systemStatus":       this.HandleSystemStatus,
 			"subscriptionStatus": this.HandleSubscriptionStatus,
+			"unsubscribe":        this.HandleUnsubscriptionStatus,
 			"add_order":          this.HandleCreateEditOrder,
 			"amend_order":        this.HandleCreateEditOrder,
 			"cancel_order":       this.HandleCancelOrder,
@@ -2630,6 +2822,52 @@ func (this *Kraken) WatchTradesForSymbols(symbols []string, options ...ccxt.Watc
 
 /**
  * @method
+ * @name kraken#unWatchTrades
+ * @description stop watching the list of most recent trades for a particular symbol
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+ * @param {string} symbol unified symbol of the market to stop watching the trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Kraken) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {
+
+	opts := ccxt.UnWatchTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchTradesAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
+ * @name kraken#unWatchTradesForSymbols
+ * @description stop watching the list of most recent trades for a list of symbols
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+ * @param {string[]} symbols unified symbols of the markets to stop watching the trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Kraken) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (any, error) {
+
+	opts := ccxt.UnWatchTradesForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchTradesForSymbolsAsync(symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
  * @name kraken#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
@@ -2703,6 +2941,30 @@ func (this *Kraken) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions)
 	}
 	var res []ccxt.OHLCV = r.Value
 	return res, nil
+}
+
+/**
+ * @method
+ * @name kraken#unWatchOHLCV
+ * @description stop watching historical candlestick data for a market
+ * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
+ * @param {string} symbol unified symbol of the market to stop watching the candles for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Kraken) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (any, error) {
+
+	opts := ccxt.UnWatchOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
 }
 func (this *Kraken) WatchHeartbeat(params ...any) (map[string]any, error) {
 	r := <-this.WatchHeartbeatAsync(params...)

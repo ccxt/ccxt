@@ -2574,6 +2574,13 @@ class bingx extends Exchange {
         $close = $this->safe_string($ticker, 'lastPrice');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         $baseVolume = $this->safe_string($ticker, 'volume');
+        if ($marketResolved['inverse'] === true) {
+            // Coin-M volume is in contracts; quoteVolume is in the base currency.
+            // read the resolved market: parseTickers and fetchTickers reach here with no market argument
+            $contractSize = $this->safe_string($marketResolved, 'contractSize');
+            $baseVolume = $quoteVolume;
+            $quoteVolume = Precise::string_mul($this->safe_string($ticker, 'volume'), $contractSize);
+        }
         $percentage = $this->safe_string($ticker, 'priceChangePercent');
         if ($percentage !== null) {
             $percentage = str_replace('%', '', $percentage);
@@ -3347,7 +3354,7 @@ class bingx extends Exchange {
         $isTriggerOrder = $triggerPrice !== null;
         $isStopLossPriceOrder = $stopLossPrice !== null;
         $isTakeProfitPriceOrder = $takeProfitPrice !== null;
-        $exchangeClientOrderId = 'clientOrderID';
+        $exchangeClientOrderId = 'clientOrderId';
         if ($isSpot) {
             $exchangeClientOrderId = 'newClientOrderId';
         }
@@ -4334,14 +4341,18 @@ class bingx extends Exchange {
                 'symbol' => $market['id'],
             );
             $clientOrderId = $this->safe_string_2($paramsOmitted, 'clientOrderId', 'clientOrderID');
-            $paramsOmitted2 = $this->omit($paramsOmitted, array( 'clientOrderId' ));
+            $paramsOmitted2 = $this->omit($paramsOmitted, array( 'clientOrderId', 'clientOrderID' ));
+            list($type, $paramsMarketType) = $this->handle_market_type_and_params('cancelOrder', $market, $paramsOmitted2);
+            list($subType, $paramsSubType) = $this->handle_sub_type_and_params('cancelOrder', $market, $paramsMarketType);
             if ($clientOrderId !== null) {
-                $request['clientOrderID'] = $clientOrderId;
+                $clientOrderIdRequest = 'clientOrderId';
+                if ($type === 'spot') {
+                    $clientOrderIdRequest = 'clientOrderID';
+                }
+                $request[$clientOrderIdRequest] = $clientOrderId;
             } else {
                 $request['orderId'] = $id;
             }
-            list($type, $paramsMarketType) = $this->handle_market_type_and_params('cancelOrder', $market, $paramsOmitted2);
-            list($subType, $paramsSubType) = $this->handle_sub_type_and_params('cancelOrder', $market, $paramsMarketType);
             if ($type === 'spot') {
                 $response = Async\await($this->spotV1PrivatePostTradeCancel($this->extend($request, $paramsSubType)));
             } else {
@@ -4838,10 +4849,20 @@ class bingx extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
-                'orderId' => $id,
             );
-            list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchOrder', $market, $paramsOmitted);
+            $clientOrderId = $this->safe_string_2($paramsOmitted, 'clientOrderId', 'clientOrderID');
+            $paramsOmitted2 = $this->omit($paramsOmitted, array( 'clientOrderId', 'clientOrderID' ));
+            list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchOrder', $market, $paramsOmitted2);
             list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchOrder', $market, $paramsMarketType);
+            if ($clientOrderId !== null) {
+                $clientOrderIdRequest = 'clientOrderId';
+                if ($type === 'spot') {
+                    $clientOrderIdRequest = 'clientOrderID';
+                }
+                $request[$clientOrderIdRequest] = $clientOrderId;
+            } else {
+                $request['orderId'] = $id;
+            }
             if ($type === 'spot') {
                 $response = Async\await($this->spotV1PrivateGetTradeQuery($this->extend($request, $paramsSubType)));
                 //
@@ -6402,6 +6423,9 @@ class bingx extends Exchange {
             if ($orderId === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires an orderId argument for inverse swap trades');
             }
+            if ($limit !== null) {
+                $request['pageSize'] = min($limit, 1000); // api maximum 1000
+            }
             $response = Async\await($this->cswapV1PrivateGetTradeAllFillOrders($this->extend($request, $paramsSubType)));
             $fills = $this->safe_list($response, 'data', array());
             //
@@ -7073,6 +7097,7 @@ class bingx extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->cancelClientOrderID] the user-defined $id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+         * @param {string} [$params->cancelClientOrderId] the client order $id of the order to cancel
          * @param {string} [$params->cancelRestrictions] cancel orders with specified status, NEW => New order, PENDING => Pending order, PARTIALLY_FILLED => Partially filled
          * @param {string} [$params->cancelReplaceMode] STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
          * @param {float} [$params->quoteOrderQty] order $amount
@@ -7090,9 +7115,19 @@ class bingx extends Exchange {
         if ($market['inverse'] === true) {
             throw new NotSupported($this->id . ' editOrder() is not supported for inverse swap markets');
         }
-        $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-        $request['cancelOrderId'] = $id;
-        $request['cancelReplaceMode'] = $this->safe_string($params, 'cancelReplaceMode', 'STOP_ON_FAILURE');
+        $cancelClientOrderId = $this->safe_string_2($params, 'cancelClientOrderId', 'cancelClientOrderID');
+        $paramsOmitted = $this->omit($params, array( 'cancelClientOrderId', 'cancelClientOrderID' ));
+        $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $paramsOmitted);
+        if ($cancelClientOrderId !== null) {
+            $cancelClientOrderIdRequest = 'cancelClientOrderId';
+            if ($market['spot'] === true) {
+                $cancelClientOrderIdRequest = 'cancelClientOrderID';
+            }
+            $request[$cancelClientOrderIdRequest] = $cancelClientOrderId;
+        } else {
+            $request['cancelOrderId'] = $id;
+        }
+        $request['cancelReplaceMode'] = $this->safe_string($paramsOmitted, 'cancelReplaceMode', 'STOP_ON_FAILURE');
         if ($market['swap'] === true) {
             $response = Async\await($this->swapV1PrivatePostTradeCancelReplace($request));
             //
