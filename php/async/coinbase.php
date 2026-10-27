@@ -2579,8 +2579,10 @@ class coinbase extends Exchange {
                     if ($account === null) {
                         $account = $this->extend($this->account(), array( 'free' => $free, 'total' => $total ));
                     } else {
-                        $account['free'] = Precise::string_add($this->safe_string($account, 'free'), $total);
-                        $account['total'] = Precise::string_add($this->safe_string($account, 'total'), $total);
+                        $account = $this->extend($account, array(
+                            'free' => Precise::string_add($this->safe_string($account, 'free'), $total),
+                            'total' => Precise::string_add($this->safe_string($account, 'total'), $total),
+                        ));
                     }
                     if ($code !== null) {
                         $result[$code] = $account;
@@ -2599,9 +2601,11 @@ class coinbase extends Exchange {
                     if ($account === null) {
                         $account = $this->extend($this->account(), array( 'free' => $free, 'used' => $used, 'total' => $total ));
                     } else {
-                        $account['free'] = Precise::string_add($this->safe_string($account, 'free'), $free);
-                        $account['used'] = Precise::string_add($this->safe_string($account, 'used'), $used);
-                        $account['total'] = Precise::string_add($this->safe_string($account, 'total'), $total);
+                        $account = $this->extend($account, array(
+                            'free' => Precise::string_add($this->safe_string($account, 'free'), $free),
+                            'used' => Precise::string_add($this->safe_string($account, 'used'), $used),
+                            'total' => Precise::string_add($this->safe_string($account, 'total'), $total),
+                        ));
                     }
                     if ($code !== null) {
                         $result[$code] = $account;
