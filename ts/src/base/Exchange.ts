@@ -9502,7 +9502,7 @@ export class BaseExchange {
                 if (timeframe === undefined) {
                     throw new ArgumentsRequired (this.id + ' cleanCache() requires a timeframe argument');
                 }
-                if ((this.ohlcvs !== undefined) && (symbol in this.ohlcvs)) {
+                if (symbol in this.ohlcvs) {
                     if (timeframe in this.ohlcvs[symbol]) {
                         delete this.ohlcvs[symbol][timeframe];
                     }
@@ -9540,7 +9540,7 @@ export class BaseExchange {
                 for (let i = 0; i < clients.length; i++) {
                     const client = clients[i];
                     const futures = client.futures;
-                    if ((futures !== undefined) && ('fetchPositionsSnapshot' in futures)) {
+                    if ('fetchPositionsSnapshot' in futures) {
                         delete futures['fetchPositionsSnapshot'];
                     }
                 }
