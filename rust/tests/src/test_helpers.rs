@@ -454,9 +454,6 @@ fn binary_frame(m: &Value) -> Value {
     m.clone()
 }
 
-/// Whether the mock inbound queue still has frames to drain — the
-/// parsedResponse loop keeps re-watching until every frame is consumed so the
-/// asserted structure reflects the final state after all deltas.
 /// Replays every frame still queued on the mock transport straight into the
 /// venue's `handle_message`. The parsedResponse harness otherwise drains leftovers
 /// by calling the method again, which is right for watch* (the re-watch only
@@ -475,6 +472,9 @@ pub async fn drainWsMessages(exchange: &mut Value, url: Value) -> Value {
     Value::Null
 }
 
+/// Whether the mock inbound queue still has frames to drain — the
+/// parsedResponse loop keeps re-watching until every frame is consumed so the
+/// asserted structure reflects the final state after all deltas.
 pub fn wsHasQueuedMessages(_exchange: Value, url: Value) -> Value {
     Value::Bool(ccxt::pro::ws_client::mock_has_queued_messages(&ws_url(&url)))
 }
