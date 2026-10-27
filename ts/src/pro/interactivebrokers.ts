@@ -500,11 +500,11 @@ export default class interactivebrokers extends interactivebrokersRest {
             const historyLimit = (limit === undefined) ? 100 : limit;
             const historyRequest: Dict = {
                 'exchange': this.safeString (options, 'exchange', 'SMART'),
-                'period': this.ibkrPeriod (duration, historyLimit),
+                'period': this.ibkrWsPeriod (duration, historyLimit),
                 'bar': this.safeString (this.timeframes, timeframe, timeframe),
                 'outsideRth': this.safeBool (options, 'outsideRth', false),
                 'source': this.safeString (options, 'source', 'trades'),
-                'format': '%o/%c/%h/%l/%v',
+                // no 'format', the bars carry the "t" timestamp only with the default format
             };
             const request = 'smh+' + market['id'] + '+' + this.json (this.extend (historyRequest, query));
             await this.ibkrSubscribe (client, historyHash, request, { 'conid': market['id'], 'symbol': unifiedSymbol, 'timeframe': timeframe, 'duration': duration });
@@ -581,23 +581,82 @@ export default class interactivebrokers extends interactivebrokersRest {
         if (subscription === undefined) {
             return;
         }
-        const symbol = this.safeString (subscription, 'symbol');
-        const timeframe = this.safeString (subscription, 'timeframe');
+        const symbol = this.safeString (subscription, 'symbol') as string;
+        const timeframe = this.safeString (subscription, 'timeframe') as string;
         const market = this.safeMarket (marketId);
         const stored = this.safeValue (this.safeDict (this.ohlcvs, symbol, {}), timeframe);
         if (stored === undefined) {
             return;
         }
         const data = this.safeList (message, 'data', []);
+        const bars = [];
+        let lastHistoryTimestamp: Int = undefined;
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseOHLCV (data[i], market);
-            const timestamp = parsed[0];
-            if ((timestamp !== undefined) && (timestamp < 100000000000)) {
-                parsed[0] = timestamp * 1000; // the websocket history is in seconds
+            let timestamp = parsed[0];
+            if (timestamp === undefined) {
+                continue;
             }
-            stored.append (parsed);
+            if (timestamp < 100000000000) {
+                timestamp = timestamp * 1000; // seconds
+                parsed[0] = timestamp;
+            }
+            bars.push (parsed);
+            if ((lastHistoryTimestamp === undefined) || (timestamp > lastHistoryTimestamp)) {
+                lastHistoryTimestamp = timestamp;
+            }
         }
-        client.resolve (stored, 'ohlcv::' + symbol + '::' + timeframe);
+        // the live candles built from smd before the history arrived are kept only when they are newer than the history
+        for (let i = 0; i < stored.length; i++) {
+            const candle = stored[i];
+            if ((lastHistoryTimestamp === undefined) || (candle[0] > lastHistoryTimestamp)) {
+                bars.push (candle);
+            }
+        }
+        const sorted = this.sortBy (bars, 0);
+        const ohlcvLimit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+        const cache = new ArrayCacheByTimestamp (ohlcvLimit);
+        for (let i = 0; i < sorted.length; i++) {
+            cache.append (sorted[i]);
+        }
+        this.ohlcvs[symbol][timeframe] = cache;
+        client.resolve (cache, 'ohlcv::' + symbol + '::' + timeframe);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrWsPeriod
+     * @description builds the smh period, it accepts {1-30}min, {1-8}h, {1-1000}d, {1-792}w, {1-182}m and {1-15}y only, so the period is rounded up to the smallest fitting unit
+     * @ignore
+     * @see https://www.interactivebrokers.com/docs/web-api/ws/historical-data
+     * @param {int} duration the length of one bar in seconds
+     * @param {int} limit the number of bars
+     * @returns {string} the period, e.g. '2h'
+     */
+    ibkrWsPeriod (duration: number, limit: number): string {
+        const total = duration * limit;
+        const minutes = this.parseToInt ((total + 59) / 60);
+        if (minutes <= 30) {
+            return this.numberToString (Math.max (minutes, 1)) + 'min';
+        }
+        const hours = this.parseToInt ((total + 3599) / 3600);
+        if (hours <= 8) {
+            return this.numberToString (hours) + 'h';
+        }
+        const days = this.parseToInt ((total + 86399) / 86400);
+        if (days <= 1000) {
+            return this.numberToString (days) + 'd';
+        }
+        const weeks = this.parseToInt ((total + 604799) / 604800);
+        if (weeks <= 792) {
+            return this.numberToString (weeks) + 'w';
+        }
+        const months = this.parseToInt ((total + 2591999) / 2592000);
+        if (months <= 182) {
+            return this.numberToString (months) + 'm';
+        }
+        const years = this.parseToInt ((total + 31535999) / 31536000);
+        return this.numberToString (Math.min (years, 15)) + 'y';
     }
 
     /**
