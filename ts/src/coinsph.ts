@@ -1429,13 +1429,14 @@ export default class coinsph extends Exchange {
             'side': orderSide,
         };
         const options = this.safeDict (this.options, 'createOrder', {});
-        let newOrderRespType = this.safeValue (options, 'newOrderRespType', {});
+        const newOrderRespTypes = this.safeValue (options, 'newOrderRespType', {});
+        let newOrderRespType = 'FULL';
         // if limit order
         if (orderType === 'LIMIT' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT_LIMIT' || orderType === 'LIMIT_MAKER') {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
-            newOrderRespType = this.safeString (newOrderRespType, 'limit', 'FULL');
+            newOrderRespType = this.safeString (newOrderRespTypes, 'limit', 'FULL');
             request['price'] = this.priceToPrecision (symbol, price);
             request['quantity'] = this.amountToPrecision (symbol, amount);
             if (orderType !== 'LIMIT_MAKER') {
@@ -1443,7 +1444,7 @@ export default class coinsph extends Exchange {
             }
         // if market order
         } else if (orderType === 'MARKET' || orderType === 'STOP_LOSS' || orderType === 'TAKE_PROFIT') {
-            newOrderRespType = this.safeString (newOrderRespType, 'market', 'FULL');
+            newOrderRespType = this.safeString (newOrderRespTypes, 'market', 'FULL');
             if (orderSide === 'SELL') {
                 request['quantity'] = this.amountToPrecision (symbol, amount);
             } else if (orderSide === 'BUY') {
@@ -2287,7 +2288,7 @@ export default class coinsph extends Exchange {
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        const query: Dict = this.omit (params, this.extractParams (path));
+        const query: Dict = this.extend ({}, this.omit (params, this.extractParams (path)));
         const endpoint = this.implodeParams (path, params);
         let url: string = apiUrl + '/' + endpoint;
         if (apiName === 'private') {
