@@ -195,7 +195,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 mapLiteral2.put("stock", marketStock);
                 mapLiteral2.put("source", source);
                 Map<String, Object> requestParams = this.extend(marketParams, mapLiteral2);
-                Map<String, Object> request = this.stockDataRequest(methodName, (Map<String, Object>) (requestParams), market);
+                Object request = this.stockDataRequest(methodName, (Map<String, Object>) (requestParams), market);
                 String tickerSymbol = this.safeString(request, "symbol", "");
                 String topic = ("ticker." + tickerSymbol);
                 if (!java.util.Objects.equals(channel, null))
@@ -1730,11 +1730,11 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         }
         Map<String, Object> marketResolved = this.safeMarket(this.safeString(data, "s"), market, (String) null, (String) null);
         Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(request, marketResolved);
-        Helpers.addElementToObject(parsed, "info", data);
+        parsed.put("info", data);
         if (java.util.Objects.equals(eventVar, "rfqFilled"))
         {
             Long tradeMicroseconds = this.safeInteger(data, "T", 0);
-            Helpers.addElementToObject(parsed, "lastTradeTimestamp", this.parseToInt((((double) tradeMicroseconds) / ((double) 1000))));
+            parsed.put("lastTradeTimestamp", this.parseToInt((((double) tradeMicroseconds) / ((double) 1000))));
         }
         return parsed;
     }

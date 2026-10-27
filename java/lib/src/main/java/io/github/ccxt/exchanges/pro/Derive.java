@@ -832,7 +832,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                     {
                         ((Map<String, Object>)parsed).put("fees", fees);
                     }
-                    Helpers.addElementToObject(parsed, "trades", this.safeList(order, "trades", (Object) null));
+                    parsed.put("trades", this.safeList(order, "trades", (Object) null));
                     parsed.put("timestamp", this.safeInteger(order, "timestamp"));
                     parsed.put("datetime", this.safeString(order, "datetime"));
                 }
