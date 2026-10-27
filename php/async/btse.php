@@ -18,7 +18,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class btse extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'btse',
             'name' => 'BTSE',
@@ -2615,7 +2615,10 @@ class btse extends Exchange {
         $response = null;
         if ($marketTypeOption === 'spot') {
             // the literal ALL value cancels every open order across all pairs
-            $request['symbol'] = ($symbol !== null) ? $this->safe_string($market, 'id') : 'ALL';
+            $request['symbol'] = 'ALL';
+            if ($symbol !== null) {
+                $request['symbol'] = $this->safe_string($market, 'id');
+            }
             $response = Async\await($this->privateDeleteSpotApiV4TradeOrdersAll($this->extend($request, $paramsMarketType)));
         } else {
             if ($symbol === null) {
@@ -3914,8 +3917,7 @@ class btse extends Exchange {
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $baseUrl = $apiUrl;
-        $url = $baseUrl . '/' . $this->implode_params($path, $params);
+        $url = $apiUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         // the futures v3 trading api reads DELETE params from a signed json
         // body like its POST and PUT counterparts, while the spot v4 and the
@@ -3958,9 +3960,7 @@ class btse extends Exchange {
                 'BROKER-ID' => 'ccxt',
             );
         }
-        $bodyResolved = $requestBody;
-        $headersResolved = $requestHeaders;
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
     public function futures_request_id(array $market) {

@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\poloniex as Exchange;
 
 class poloniex extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'poloniex',
             'name' => 'Poloniex',
@@ -2166,7 +2166,7 @@ class poloniex extends Exchange {
                 if (!(is_array($merged) && array_key_exists('mgnMode' ?? '', $merged))) {
                     $merged['mgnMode'] = 'CROSS';
                 }
-                if (!(is_array($merged) && array_key_exists('posSide' ?? '', $merged))) {
+                if ($this->safe_string($merged, 'posSide') === null) {
                     $merged['posSide'] = 'BOTH';
                 }
             }
@@ -2230,7 +2230,7 @@ class poloniex extends Exchange {
                 if ($marginMode === null) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a marginMode parameter "cross" or "isolated" for hedged orders');
                 }
-                if (!(is_array($query) && array_key_exists('posSide' ?? '', $query))) {
+                if ($this->safe_string($query, 'posSide') === null) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a posSide parameter "LONG" or "SHORT" for hedged orders');
                 }
             }
@@ -3766,7 +3766,7 @@ class poloniex extends Exchange {
          * @return {array} $response from the exchange
          */
         $mode = 'ONE_WAY';
-        if ($hedged) {
+        if ($hedged === true) {
             $mode = 'HEDGE';
         }
         $request = array(

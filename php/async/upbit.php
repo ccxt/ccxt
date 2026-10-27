@@ -19,7 +19,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class upbit extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'upbit',
             'name' => 'Upbit',
@@ -1294,7 +1294,7 @@ class upbit extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limitResolved);
     }
 
-    public function calc_order_price(string $symbol, ?float $amount, ?float $price = null, $params = array()): ?string {
+    public function calc_order_price(string $symbol, ?float $amount = null, ?float $price = null, $params = array()): ?string {
         $quoteAmount = null;
         $createMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'createMarketBuyOrderRequiresPrice');
         $cost = $this->safe_string($params, 'cost');

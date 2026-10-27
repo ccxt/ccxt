@@ -18,7 +18,7 @@ use ccxt\pro\ArrayCache;
 use ccxt\pro\ArrayCacheBySymbolById;
 
 class coinbaseexchange extends \ccxt\async\coinbaseexchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -508,12 +508,11 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             $trade = $this->parse_ws_trade($message);
             $type = 'myTrades';
             $messageHash = $type . ':' . $marketId;
-            $tradesArray = $this->myTrades;
-            if ($tradesArray === null) {
+            if ($this->myTrades === null) {
                 $limit = $this->safe_integer($this->options, 'myTradesLimit', 1000);
-                $tradesArray = new ArrayCacheBySymbolById($limit);
-                $this->myTrades = $tradesArray;
+                $this->myTrades = new ArrayCacheBySymbolById($limit);
             }
+            $tradesArray = $this->myTrades;
             $tradesArray->append($trade);
             $client->resolve($tradesArray, $messageHash);
         }
@@ -574,10 +573,11 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $parsed = parent::parse_trade($trade);
         $feeRate = null;
         $isMaker = false;
-        if (is_array($trade) && array_key_exists('maker_fee_rate' ?? '', $trade)) {
+        $makerFeeRate = $this->safe_string($trade, 'maker_fee_rate');
+        if ($makerFeeRate !== null) {
             $isMaker = true;
             $parsed['takerOrMaker'] = 'maker';
-            $feeRate = $this->safe_string($trade, 'maker_fee_rate');
+            $feeRate = $makerFeeRate;
         } else {
             $parsed['takerOrMaker'] = 'taker';
             $feeRate = $this->safe_string($trade, 'taker_fee_rate');
@@ -867,7 +867,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             if ($symbol !== null) {
                 $this->tickers[$symbol] = $ticker;
             }
-            $messageHash = 'ticker:' . $symbol;
+            $messageHash = 'ticker:' . $this->safe_string($ticker, 'symbol', '');
             $idMessageHash = 'ticker:' . $marketId;
             $client->resolve($ticker, $messageHash);
             $client->resolve($ticker, $idMessageHash);

@@ -19,7 +19,7 @@ use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class okx extends \ccxt\async\okx {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -922,7 +922,7 @@ class okx extends \ccxt\async\okx {
         for ($i = 0; $i < count($rawLiquidations); $i++) {
             $rawLiquidation = $rawLiquidations[$i];
             $liquidation = $this->parse_ws_liquidation($rawLiquidation);
-            $symbol = $this->safe_string($liquidation, 'symbol');
+            $symbol = $this->safe_string($liquidation, 'symbol', '');
             if ($this->liquidations === null) {
                 $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
                 $this->liquidations = new ArrayCache($limit);
@@ -1031,7 +1031,7 @@ class okx extends \ccxt\async\okx {
                 return;
             }
             $liquidation = $this->parse_ws_my_liquidation($rawLiquidation);
-            $symbol = $this->safe_string($liquidation, 'symbol');
+            $symbol = $this->safe_string($liquidation, 'symbol', '');
             if ($this->liquidations === null) {
                 $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
                 $this->liquidations = new ArrayCache($limit);
@@ -1535,10 +1535,8 @@ class okx extends \ccxt\async\okx {
         //
         $asks = $this->safe_list($message, 'asks', array());
         $bids = $this->safe_list($message, 'bids', array());
-        $storedAsks = $orderbook['asks'];
-        $storedBids = $orderbook['bids'];
-        $this->handle_deltas($storedAsks, $asks);
-        $this->handle_deltas($storedBids, $bids);
+        $this->handle_deltas($orderbook['asks'], $asks);
+        $this->handle_deltas($orderbook['bids'], $bids);
         $marketId = $this->safe_string($message, 'instId');
         $symbol = $this->safe_symbol($marketId, $market);
         $seqId = $this->safe_integer($message, 'seqId');
@@ -2125,7 +2123,7 @@ class okx extends \ccxt\async\okx {
         for ($i = 0; $i < count($data); $i++) {
             $rawPosition = $data[$i];
             $position = $this->parse_position($rawPosition);
-            if ($position['contracts'] === 0 && $this->safe_string($rawPosition, 'posSide') === 'net') {
+            if ($this->safe_number($position, 'contracts') === 0 && $this->safe_string($rawPosition, 'posSide') === 'net') {
                 $position['side'] = 'long';
                 $shortPosition = $this->clone($position);
                 $shortPosition['side'] = 'short';
@@ -2281,7 +2279,7 @@ class okx extends \ccxt\async\okx {
             for ($i = 0; $i < count($parsed); $i++) {
                 $order = $parsed[$i];
                 $stored->append($order);
-                $symbol = $order['symbol'];
+                $symbol = $this->safe_string($order, 'symbol', '');
                 $market = $this->market($symbol);
                 $marketIds[] = $market['id'];
             }

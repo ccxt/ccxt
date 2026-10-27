@@ -14,7 +14,7 @@ use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class mudrex extends \ccxt\async\mudrex {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

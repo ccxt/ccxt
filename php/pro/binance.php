@@ -21,7 +21,7 @@ use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class binance extends \ccxt\async\binance {
-    public function describe(): mixed {
+    public function describe(): array {
         $superDescribe = parent::describe();
         return $this->deep_extend($superDescribe, $this->describe_data());
     }
@@ -1040,7 +1040,7 @@ class binance extends \ccxt\async\binance {
     }
 
     private function do_fetch_order_book_snapshot(Client $client, mixed $message, mixed $subscription) {
-        $symbol = $this->safe_string($subscription, 'symbol');
+        $symbol = $this->safe_string($subscription, 'symbol', '');
         $messageHash = 'orderbook::' . $symbol;
         try {
             $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
@@ -4678,7 +4678,7 @@ class binance extends \ccxt\async\binance {
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $messageHash .= ':' . $symbolResolved;
+            $messageHash = 'orders:' . $this->symbol($symbol);
         }
         list($type, $subType, $paramsValue) = $this->resolve_auth_type('watchOrders', $market, $paramsStock);
         $paramsExtended = $this->extend($paramsValue, array( 'type' => $type, 'symbol' => $symbolResolved, 'subType' => $subType )); // needed inside authenticate for isolated margin
@@ -5896,8 +5896,7 @@ class binance extends \ccxt\async\binance {
             $myTrades = $this->myTrades;
             $myTrades->append($trade);
             $client->resolve($this->myTrades, $messageHash);
-            $messageHashSymbol = $messageHash . ':' . $symbol;
-            $client->resolve($this->myTrades, $messageHashSymbol);
+            $client->resolve($this->myTrades, 'myTrades:' . $symbol);
         }
     }
 

@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\deepcoin as Exchange;
 
 class deepcoin extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'deepcoin',
             'name' => 'DeepCoin',
@@ -411,7 +411,7 @@ class deepcoin extends Exchange {
         $promises = array();
         $result = array();
         for ($i = 0; $i < count($types); $i++) {
-            $promises[] = $this->fetch_markets_by_type($types[$i], $params);
+            $promises[] = $this->fetch_markets_by_type($this->safe_string($types, $i), $params);
         }
         $responses = $promises;
         for ($i = 0; $i < count($responses); $i++) {
@@ -1782,7 +1782,7 @@ class deepcoin extends Exchange {
         $timeInForce = $this->handle_time_in_force($paramsPostOnly);
         $paramsOmitted = $this->omit($paramsPostOnly, 'timeInForce');
         $typeValue = $typePostOnly;
-        if (($timeInForce !== null) && ($timeInForce === 'IOC')) {
+        if ($timeInForce === 'IOC') {
             $typeValue = 'ioc';
         }
         return array( $typeValue, $paramsOmitted );
@@ -1957,7 +1957,8 @@ class deepcoin extends Exchange {
             return $this->fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $paramsPaginate);
         }
         $trigger = $this->safe_bool($paramsPaginate, 'trigger', false);
-        list($methodName, $paramsMethodName) = $this->handle_param_string($paramsPaginate, 'methodName', 'fetchCanceledAndClosedOrders');
+        $methodName = $this->safe_string($paramsPaginate, 'methodName', 'fetchCanceledAndClosedOrders');
+        $paramsMethodName = $this->omit($paramsPaginate, 'methodName');
         $market = null;
         $request = array();
         if ($symbol !== null) {
@@ -3104,8 +3105,9 @@ class deepcoin extends Exchange {
                 'DC-ACCESS-PASSPHRASE' => $this->password,
                 'appid' => '200103',
             );
-            $requestBody = ($method !== 'GET') ? $this->json($params) : null;
+            $requestBody = null;
             if ($method !== 'GET') {
+                $requestBody = $this->json($params);
                 $privateHeaders['Content-Type'] = 'application/json';
                 $payload .= $requestBody;
             }

@@ -18,7 +18,7 @@ use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class aster extends \ccxt\async\aster {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -616,7 +616,7 @@ class aster extends \ccxt\async\aster {
         if ($symbol !== null) {
             $this->bidsasks[$symbol] = $ticker;
         }
-        $messageHash = 'bidask:' . $symbol;
+        $messageHash = 'bidask:' . $this->safe_string($ticker, 'symbol', '');
         $client->resolve($ticker, $messageHash);
     }
 
@@ -1053,13 +1053,15 @@ class aster extends \ccxt\async\aster {
             'method' => 'SUBSCRIBE',
             'params' => $subscriptionArgs,
         );
-        $limitResolved = 20;
-        if ($limit === 5 || $limit === 10 || $limit === 20) {
-            $limitResolved = $limit;
+        $depthSuffix = '@depth20';
+        if ($limit === 5) {
+            $depthSuffix = '@depth5';
+        } elseif ($limit === 10) {
+            $depthSuffix = '@depth10';
         }
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $market = $this->market($this->safe_string($symbolsNormalized, $i, ''));
-            $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@depth' . $this->number_to_string($limitResolved);
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . $depthSuffix;
             $messageHashes[] = 'orderbook:' . $this->safe_string($market, 'symbol', '');
         }
         $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $this->omit($paramsCallerMethodName, 'callerMethodName')), $messageHashes));
@@ -1107,13 +1109,15 @@ class aster extends \ccxt\async\aster {
             'params' => $subscriptionArgs,
         );
         $limit = $this->safe_number($paramsOmitted, 'limit');
-        $limitResolved = 20;
-        if ($limit === 5 || $limit === 10 || $limit === 20) {
-            $limitResolved = $limit;
+        $depthSuffix = '@depth20';
+        if ($limit === 5) {
+            $depthSuffix = '@depth5';
+        } elseif ($limit === 10) {
+            $depthSuffix = '@depth10';
         }
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $market = $this->market($this->safe_string($symbolsNormalized, $i, ''));
-            $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . '@depth' . $this->number_to_string($limitResolved);
+            $subscriptionArgs[] = $this->safe_string_lower($market, 'id', '') . $depthSuffix;
             $messageHashes[] = 'unsubscribe:orderbook:' . $this->safe_string($market, 'symbol', '');
         }
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $this->omit($paramsOmitted, 'limit')), $messageHashes));
@@ -2112,7 +2116,7 @@ class aster extends \ccxt\async\aster {
         }
         $cache = $this->orders;
         $parsed = $this->parse_ws_order($message, $market);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $cache->append($parsed);
         $messageHashes = $this->find_message_hashes($client, $messageHash);
         if (!$this->is_empty($messageHashes)) {

@@ -15,7 +15,7 @@ use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
 
 class lighter extends \ccxt\async\lighter {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -189,7 +189,7 @@ class lighter extends \ccxt\async\lighter {
         $data = $this->safe_dict($message, 'order_book', array());
         $channel = $this->safe_string($message, 'channel', '');
         $parts = explode(':', $channel);
-        $marketId = $parts[1];
+        $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($message, 'timestamp');
@@ -630,7 +630,7 @@ class lighter extends \ccxt\async\lighter {
         $data = $this->safe_list($message, 'trades', array());
         $channel = $this->safe_string($message, 'channel', '');
         $parts = explode(':', $channel);
-        $marketId = $parts[1];
+        $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $stored = $this->safe_value($this->trades, $symbol);
@@ -830,7 +830,7 @@ class lighter extends \ccxt\async\lighter {
         //
         $channel = $this->safe_string($message, 'channel', '');
         $parts = explode(':', $channel);
-        $accountIndex = $parts[1];
+        $accountIndex = $this->safe_string($parts, 1);
         $data = $this->safe_dict($message, 'trades', array());
         $marketIds = is_array($data) ? array_keys($data) : array();
         $idsLength = count($marketIds);
@@ -1027,7 +1027,7 @@ class lighter extends \ccxt\async\lighter {
         $data = $this->safe_list($message, 'liquidation_trades', array());
         $channel = $this->safe_string($message, 'channel', '');
         $parts = explode(':', $channel);
-        $marketId = $parts[1];
+        $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $stored = $this->safe_value($this->liquidations, $symbol);

@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\blofin as Exchange;
 
 class blofin extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'blofin',
             'name' => 'BloFin',
@@ -2377,7 +2377,7 @@ class blofin extends Exchange {
         throw new ExchangeError($this->id . ' fetchDeposit() could not find deposit ' . $id);
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): array {
+    public function fetch_withdrawal(?string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch $data on a $currency withdrawal via the withdrawal $id
          *

@@ -14,7 +14,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheBySymbolBySide;
 
 class paradex extends \ccxt\async\paradex {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -988,7 +988,7 @@ class paradex extends \ccxt\async\paradex {
         if ($templateId === 1) {
             $data = $this->parse_sbe_trade($frameHex, $blockLength, $frameLength);
             if ($data !== null) {
-                $channel = 'trades.' . $this->safe_string($data, 'market');
+                $channel = 'trades.' . $this->safe_string($data, 'market', '');
             }
         } elseif ($templateId === 3) {
             $data = $this->parse_sbe_order_book($frameHex, $blockLength, $frameLength);
@@ -1004,12 +1004,12 @@ class paradex extends \ccxt\async\paradex {
         } elseif ($templateId === 20) {
             $data = $this->parse_sbe_order($frameHex, $blockLength, $frameLength);
             if ($data !== null) {
-                $channel = 'orders.' . $this->safe_string($data, 'market');
+                $channel = 'orders.' . $this->safe_string($data, 'market', '');
             }
         } elseif ($templateId === 21) {
             $data = $this->parse_sbe_fill($frameHex, $blockLength, $frameLength);
             if ($data !== null) {
-                $channel = 'fills.' . $this->safe_string($data, 'market');
+                $channel = 'fills.' . $this->safe_string($data, 'market', '');
             }
         } elseif ($templateId === 22) {
             $data = $this->parse_sbe_position($frameHex, $blockLength, $frameLength);
@@ -1446,7 +1446,7 @@ class paradex extends \ccxt\async\paradex {
             'cost' => $this->sbe_read_decimal($frameHex, 129),
             'cost_usd' => $this->sbe_read_decimal($frameHex, 137),
             // the JSON channel's id, one position per account and market
-            'id' => $account . '-' . $this->safe_string($strings, 0),
+            'id' => $account . '-' . $this->safe_string($strings, 0, ''),
             'last_fill_id' => $this->safe_string($strings, 1),
             'last_updated_at' => $this->sbe_read_timestamp($frameHex, 81),
             'leverage' => $this->sbe_read_decimal($frameHex, 73),

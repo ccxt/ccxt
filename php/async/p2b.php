@@ -16,7 +16,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class p2b extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'p2b',
             'name' => 'p2b',

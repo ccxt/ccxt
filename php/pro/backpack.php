@@ -18,7 +18,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class backpack extends \ccxt\async\backpack {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -952,11 +952,11 @@ class backpack extends \ccxt\async\backpack {
 
     private function do_watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * watches information on multiple $trades made in a market
+         * watches information on multiple $trades made in a $market
          *
          * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
          *
-         * @param {string[]} $symbols unified $symbol of the market to fetch $trades for
+         * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of trade structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -977,8 +977,9 @@ class backpack extends \ccxt\async\backpack {
         $messageHashes = array();
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
-            $marketId = $this->ws_venue_market_id('watchTradesForSymbols', $this->market($symbol), $query);
-            $topics[] = 'trade.' . $marketId;
+            $market = $this->market($symbol);
+            $this->ws_venue_market_id('watchTradesForSymbols', $market, $query);
+            $topics[] = 'trade.' . $this->safe_string($market, 'id', '');
             $messageHashes[] = 'trades:' . $symbol;
         }
         $trades = Async\await($this->watch_public($topics, $messageHashes, $this->omit($query, array( 'stock', 'source' ))));
@@ -1002,7 +1003,7 @@ class backpack extends \ccxt\async\backpack {
          *
          * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
          *
-         * @param {string[]} $symbols unified $symbol of the market to fetch trades for
+         * @param {string[]} $symbols unified $symbol of the $market to fetch trades for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->stock] requires stock spot order-book markets
          * @param {string} [$params->source] Venue only
@@ -1021,8 +1022,9 @@ class backpack extends \ccxt\async\backpack {
         $messageHashes = array();
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
-            $marketId = $this->ws_venue_market_id('watchTradesForSymbols', $this->market($symbol), $query);
-            $topics[] = 'trade.' . $marketId;
+            $market = $this->market($symbol);
+            $this->ws_venue_market_id('watchTradesForSymbols', $market, $query);
+            $topics[] = 'trade.' . $this->safe_string($market, 'id', '');
             $messageHashes[] = 'unsubscribe:trades:' . $symbol;
         }
         return Async\await($this->watch_public($topics, $messageHashes, $this->omit($query, array( 'stock', 'source' )), true));
@@ -1171,9 +1173,9 @@ class backpack extends \ccxt\async\backpack {
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
             $messageHashes[] = 'orderbook:' . $symbol;
-            $marketId = $this->ws_venue_market_id('watchOrderBookForSymbols', $this->market($symbol), $query);
-            $topic = 'depth.' . $marketId;
-            $topics[] = $topic;
+            $market = $this->market($symbol);
+            $this->ws_venue_market_id('watchOrderBookForSymbols', $market, $query);
+            $topics[] = 'depth.' . $this->safe_string($market, 'id', '');
             if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             }
@@ -1223,9 +1225,9 @@ class backpack extends \ccxt\async\backpack {
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
             $messageHashes[] = 'unsubscribe:orderbook:' . $symbol;
-            $marketId = $this->ws_venue_market_id('watchOrderBookForSymbols', $this->market($symbol), $query);
-            $topic = 'depth.' . $marketId;
-            $topics[] = $topic;
+            $market = $this->market($symbol);
+            $this->ws_venue_market_id('watchOrderBookForSymbols', $market, $query);
+            $topics[] = 'depth.' . $this->safe_string($market, 'id', '');
         }
         return Async\await($this->watch_public($topics, $messageHashes, $this->omit($query, array( 'stock', 'source' )), true));
     }
@@ -1406,7 +1408,6 @@ class backpack extends \ccxt\async\backpack {
             $market = $this->market($symbol);
             $this->handleStockParams('watchOrders', $query, $market);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
         $topic = 'account.orderUpdate';
         $messageHash = 'unsubscribe:orders';
         if ($market !== null) {
@@ -1414,7 +1415,7 @@ class backpack extends \ccxt\async\backpack {
             if ($this->safe_string($market, 'executionModel') === 'rfq') {
                 $topic = 'account.rfqUpdate.' . $this->safe_string($market, 'id', '');
             }
-            $messageHash = 'unsubscribe:orders:' . $symbolResolved;
+            $messageHash = 'unsubscribe:orders:' . $this->safe_string($market, 'symbol', '');
         }
         $topics = array( $topic );
         if ($market === null) {

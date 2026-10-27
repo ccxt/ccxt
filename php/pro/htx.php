@@ -21,7 +21,7 @@ use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class htx extends \ccxt\async\htx {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -507,16 +507,16 @@ class htx extends \ccxt\async\htx {
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
         $options = $this->safe_dict($this->options, 'watchOrderBook', array());
-        $limitResolved = ($limit === null) ? $this->safe_integer($options, 'depth', 150) : $limit;
+        $limitResolved = $this->parse_to_int(($limit === null) ? $this->safe_integer($options, 'depth', 150) : $limit);
         if (!$this->in_array($limitResolved, $allowedLimits)) {
             throw new ExchangeError($this->id . ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only');
         }
-        $messageHash = null;
+        $messageHash = '';
         $marketId = $this->safe_string($market, 'id', '');
         if ($market['spot'] === true) {
-            $messageHash = 'market.' . $marketId . '.mbp.' . $this->number_to_string($limitResolved);
+            $messageHash = 'market.' . $marketId . '.mbp.' . (string) $limitResolved;
         } else {
-            $messageHash = 'market.' . $marketId . '.depth.size_' . $this->number_to_string($limitResolved) . '.high_freq';
+            $messageHash = 'market.' . $marketId . '.depth.size_' . (string) $limitResolved . '.high_freq';
         }
         $url = $this->get_url_by_market_type($market['type'], $market['linear'], false, true);
         $method = array($this, 'handle_order_book_subscription');
@@ -554,13 +554,13 @@ class htx extends \ccxt\async\htx {
         $market = $this->market($symbol);
         $topic = 'orderbook';
         $options = $this->safe_dict($this->options, 'watchOrderBook', array());
-        $depth = $this->safe_integer($options, 'depth', 150);
+        $depth = $this->parse_to_int($this->safe_integer($options, 'depth', 150));
         $marketId = $this->safe_string($market, 'id', '');
-        $subMessageHash = null;
+        $subMessageHash = '';
         if ($market['spot'] === true) {
-            $subMessageHash = 'market.' . $marketId . '.mbp.' . $this->number_to_string($depth);
+            $subMessageHash = 'market.' . $marketId . '.mbp.' . (string) $depth;
         } else {
-            $subMessageHash = 'market.' . $marketId . '.depth.size_' . $this->number_to_string($depth) . '.high_freq';
+            $subMessageHash = 'market.' . $marketId . '.depth.size_' . (string) $depth . '.high_freq';
         }
         if ($market['spot'] !== true) {
             $params['data_type'] = 'incremental';
@@ -633,7 +633,7 @@ class htx extends \ccxt\async\htx {
                     }
                 } else {
                     // throw upon failing to synchronize in maxAttempts
-                    throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the snapshot for symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
+                    throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the snapshot for symbol ' . $this->safe_string($subscription, 'symbol', '') . ' in ' . (string) $maxAttempts . ' attempts');
                 }
             } else {
                 $orderbook->reset($snapshot);

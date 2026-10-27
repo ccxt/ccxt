@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\bitfinex as Exchange;
 
 class bitfinex extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitfinex',
             'name' => 'Bitfinex',
@@ -1784,7 +1784,7 @@ class bitfinex extends Exchange {
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $postOnlyParam = $this->safe_bool($params, 'postOnly', false);
         $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
-        $clientOrderId = $this->safe_value_2($params, 'cid', 'clientOrderId');
+        $clientOrderId = $this->safe_integer_2($params, 'cid', 'clientOrderId');
         $orderType = strtoupper($type);
         if ($trailingAmount !== null) {
             $orderType = 'TRAILING STOP';
@@ -2030,7 +2030,7 @@ class bitfinex extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $cid = $this->safe_value_2($params, 'cid', 'clientOrderId'); // client order id
+        $cid = $this->safe_integer_2($params, 'cid', 'clientOrderId'); // client order id
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);

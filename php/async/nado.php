@@ -21,7 +21,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class nado extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'nado',
             'name' => 'Nado',
@@ -1090,7 +1090,7 @@ class nado extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $productIds[] = $this->parse_to_int($market['id']);
+            $productIds[] = $this->parse_to_int($this->safe_string($market, 'id'));
         }
         list($subaccount, $paramsSubaccount) = $this->handle_option_string_and_params($params, 'fetchOrders', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
@@ -1102,7 +1102,7 @@ class nado extends Exchange {
         list($recvWindow, $paramsRecvWindow) = $this->handle_option_integer_and_params($paramsOmitted, 'fetchOrders', 'recvWindow', 5000);
         $tx = array(
             'sender' => $sender,
-            'recvTime' => $this->number_to_string($this->milliseconds() . $recvWindow),
+            'recvTime' => $this->number_to_string($this->sum($this->milliseconds(), $recvWindow)),
         );
         $request = array(
             'tx' => $tx,
@@ -1271,7 +1271,7 @@ class nado extends Exchange {
             ),
         );
         if ($market !== null) {
-            $ordersRequest['product_ids'] = array( $this->parse_to_int($market['id']) );
+            $ordersRequest['product_ids'] = array( $this->parse_to_int($this->safe_string($market, 'id')) );
         }
         if ($limit !== null) {
             $ordersRequest['limit'] = min($limit, 500);
@@ -1392,7 +1392,7 @@ class nado extends Exchange {
             ),
         );
         if ($market !== null) {
-            $matchesRequest['product_ids'] = array( $this->parse_to_int($market['id']) );
+            $matchesRequest['product_ids'] = array( $this->parse_to_int($this->safe_string($market, 'id')) );
         }
         if ($limit !== null) {
             $matchesRequest['limit'] = min($limit, 500);

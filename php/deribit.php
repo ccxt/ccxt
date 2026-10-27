@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\deribit as Exchange;
 
 class deribit extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'deribit',
             'name' => 'Deribit',
@@ -3328,14 +3328,20 @@ class deribit extends Exchange {
         $month = 30 * 24 * 60 * 60 * 1000;
         $defaultSince = $now - $month;
         $sinceResolved = ($since === null) ? $defaultSince : $since;
-        $time = ($since === null) ? $now : $this->parse_to_int($since . $month);
+        $time = $now;
+        if ($since !== null) {
+            $time = $this->parse_to_int($since . $month);
+        }
         $request = array(
             'instrument_name' => $market['id'],
             'start_timestamp' => $sinceResolved - 1,
         );
         $until = $this->safe_integer_2($paramsPaginate, 'until', 'end_timestamp');
         $paramsUntil = ($until !== null) ? $this->omit($paramsPaginate, array( 'until' )) : $paramsPaginate;
-        $endTimestamp = ($until !== null) ? $until : $time;
+        $endTimestamp = $time;
+        if ($until !== null) {
+            $endTimestamp = $this->parse_to_int($until);
+        }
         $request['end_timestamp'] = $endTimestamp;
         $isPaginationCall = $this->safe_bool($paramsUntil, 'isDeribitPaginationCall', false);
         $paramsOmitted = $paramsUntil;

@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\bittrade as Exchange;
 
 class bittrade extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bittrade',
             'name' => 'BitTrade',
@@ -1738,7 +1738,7 @@ class bittrade extends Exchange {
         $failed = $this->safe_list_2($orders, 'errors', 'failed', array());
         $result = array();
         for ($i = 0; $i < count($success); $i++) {
-            $order = $success[$i];
+            $order = $this->safe_string($success, $i);
             $result[] = $this->safe_order(array(
                 'info' => $order,
                 'id' => $order,

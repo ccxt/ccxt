@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\btcturk as Exchange;
 
 class btcturk extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'btcturk',
             'name' => 'BTCTurk',

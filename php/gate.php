@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\gate as Exchange;
 
 class gate extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'gate',
             'name' => 'Gate',
@@ -1450,7 +1450,9 @@ class gate extends Exchange {
             $id = $this->safe_string($spotMarket, 'id');
             $marginMarket = $this->safe_dict($marginMarkets, $id);
             $market = $this->deep_extend($marginMarket, $spotMarket);
-            list($baseId, $quoteId) = explode('_', $id);
+            $idParts = explode('_', $id);
+            $baseId = $this->safe_string($idParts, 0);
+            $quoteId = $this->safe_string($idParts, 1);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             if (($base === null) || ($quote === null)) {
@@ -1529,7 +1531,7 @@ class gate extends Exchange {
             $swapSettlementCurrencies = array( 'usdt' ); // gate sandbox only has usdt-margined swaps
         }
         for ($c = 0; $c < count($swapSettlementCurrencies); $c++) {
-            $settleId = $swapSettlementCurrencies[$c];
+            $settleId = $this->safe_string($swapSettlementCurrencies, $c);
             $request = array(
                 'settle' => $settleId,
             );
@@ -1552,7 +1554,7 @@ class gate extends Exchange {
         $result = array();
         $futureSettlementCurrencies = $this->get_settlement_currencies('future', 'fetchMarkets');
         for ($c = 0; $c < count($futureSettlementCurrencies); $c++) {
-            $settleId = $futureSettlementCurrencies[$c];
+            $settleId = $this->safe_string($futureSettlementCurrencies, $c);
             $request = array(
                 'settle' => $settleId,
             );
@@ -5994,7 +5996,7 @@ class gate extends Exchange {
         if ($isSpot) {
             $ordersRequests = array();
             for ($i = 0; $i < count($ids); $i++) {
-                $id = $ids[$i];
+                $id = $this->safe_string($ids, $i, '');
                 $orderItem = array(
                     'id' => $id,
                     'symbol' => $symbol,
@@ -6008,7 +6010,7 @@ class gate extends Exchange {
         );
         $finalList = array( $request ); // hacky but needs to be done here
         for ($i = 0; $i < count($ids); $i++) {
-            $finalList[] = $ids[$i];
+            $finalList[] = $this->safe_string($ids, $i, '');
         }
         $response = $this->privateFuturesPostSettleBatchCancelOrders($finalList);
         return $this->parse_orders($response);

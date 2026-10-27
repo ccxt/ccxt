@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\binance as Exchange;
 
 class binance extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binance',
             'name' => 'Binance',
@@ -2901,7 +2901,10 @@ class binance extends Exchange {
                 $market = $this->markets[$symbol];
                 // begin diff
                 if ($isLegacy && ($this->safe_bool($market, 'spot', false))) {
-                    $settle = $isLegacyLinear ? $market['quote'] : $market['base'];
+                    $settle = $this->safe_string($market, 'base', '');
+                    if ($isLegacyLinear) {
+                        $settle = $this->safe_string($market, 'quote', '');
+                    }
                     $futuresSymbol = $symbol . ':' . $settle;
                     if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($futuresSymbol ?? '', $this->markets))) {
                         return $this->markets[$futuresSymbol];
@@ -5744,7 +5747,7 @@ class binance extends Exchange {
         }
         $market = $this->market($symbol);
         if ($market['spot'] !== true) {
-            throw new NotSupported($this->id . ' editSpotOrder() does not support ' . $market['type'] . ' orders');
+            throw new NotSupported($this->id . ' editSpotOrder() does not support ' . $this->safe_string($market, 'type', '') . ' orders');
         }
         $payload = $this->edit_spot_order_request($id, $symbol, $type, $side, $amount, $price, $params);
         $response = $this->privatePostOrderCancelReplace($payload);
@@ -5933,7 +5936,7 @@ class binance extends Exchange {
         }
         $market = $this->market($symbol);
         if ($market['contract'] !== true) {
-            throw new NotSupported($this->id . ' editContractOrder() does not support ' . $market['type'] . ' orders');
+            throw new NotSupported($this->id . ' editContractOrder() does not support ' . $this->safe_string($market, 'type', '') . ' orders');
         }
         if ($side === null) {
             throw new ArgumentsRequired($this->id . ' editContractOrder() requires a side argument');
@@ -6048,7 +6051,7 @@ class binance extends Exchange {
         }
         $market = $this->market($symbol);
         if ($market['option'] === true) {
-            throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders');
+            throw new NotSupported($this->id . ' editOrder() does not support ' . $this->safe_string($market, 'type', '') . ' orders');
         }
         if ($market['spot'] === true) {
             return $this->edit_spot_order($id, $symbol, $type, $side, $amount, $price, $params);
@@ -6094,7 +6097,7 @@ class binance extends Exchange {
         $symbols = $this->market_symbols($orderSymbols, null, false, true, true);
         $market = $this->market($symbols[0]);
         if (($market['spot'] === true) || ($market['option'] === true)) {
-            throw new NotSupported($this->id . ' editOrders() does not support ' . $market['type'] . ' orders');
+            throw new NotSupported($this->id . ' editOrders() does not support ' . $this->safe_string($market, 'type', '') . ' orders');
         }
         $response = null;
         $request = array(
@@ -6916,7 +6919,7 @@ class binance extends Exchange {
         $symbols = $this->market_symbols($orderSymbols, null, false, true, true);
         $market = $this->market($symbols[0]);
         if ($market['spot'] === true) {
-            throw new NotSupported($this->id . ' createOrders() does not support ' . $market['type'] . ' orders');
+            throw new NotSupported($this->id . ' createOrders() does not support ' . $this->safe_string($market, 'type', '') . ' orders');
         }
         $response = null;
         $request = array(
@@ -13436,7 +13439,10 @@ class binance extends Exchange {
     public function get_exceptions_by_url(string $url, string $exactOrBroad): array {
         // the only callers pass handleErrors' url, which is a non-nullable string everywhere
         $marketType = null;
-        $hostname = ($this->hostname !== null) ? $this->hostname : 'binance.com';
+        $hostname = 'binance.com';
+        if ($this->hostname !== null) {
+            $hostname = $this->hostname;
+        }
         if (str_starts_with($url, 'https://api.' . $hostname . '/') || str_starts_with($url, 'https://demo-api') || str_starts_with($url, 'https://testnet.binance.vision')) {
             $marketType = 'spot';
         } elseif (str_starts_with($url, 'https://dapi.' . $hostname . '/') || str_starts_with($url, 'https://demo-dapi') || str_starts_with($url, 'https://testnet.binancefuture.com/dapi')) {
@@ -14567,7 +14573,7 @@ class binance extends Exchange {
                 $response = $this->dapiPrivateGetForceOrders($this->extend($requestUntil, $paramsUntil));
             }
         } else {
-            throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $this->safe_string($market, 'type') . ' markets');
+            throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $this->safe_string($market, 'type', '') . ' markets');
         }
         //
         // margin

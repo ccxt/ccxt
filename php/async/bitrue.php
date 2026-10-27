@@ -22,7 +22,7 @@ use const ccxt\TRUNCATE;
 use const ccxt\TICK_SIZE;
 
 class bitrue extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitrue',
             'name' => 'Bitrue',
@@ -3422,9 +3422,7 @@ class bitrue extends Exchange {
                 }
                 $signMessage = $timestamp . $method . ($signPrefix . '/' . $version . '/' . $path);
                 if ($method === 'GET') {
-                    $keys = is_array($paramsOmitted) ? array_keys($paramsOmitted) : array();
-                    $keysLength = count($keys);
-                    if ($keysLength > 0) {
+                    if (count($paramsOmitted) > 0) {
                         $signMessage .= '?' . $this->urlencode($paramsOmitted);
                     }
                     $signature = $this->hmac($this->encode($signMessage), $this->encode($this->secret), 'sha256');
@@ -3488,12 +3486,7 @@ class bitrue extends Exchange {
         if (!$success) {
             $messageInner = $this->safe_string($response, 'msg');
             if ($messageInner !== null) {
-                try {
-                    $parsedMessage = json_decode($messageInner, $as_associative_array = true);
-                } catch (Exception $e) {
-                    // do nothing
-                    $parsedMessage = null;
-                }
+                $parsedMessage = $this->parse_json($messageInner);
             }
         }
         $errorResponse = ($parsedMessage !== null) ? $parsedMessage : $response;

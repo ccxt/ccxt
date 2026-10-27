@@ -24,7 +24,7 @@ use const ccxt\TRUNCATE;
 use const ccxt\DECIMAL_PLACES;
 
 class predictfun extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'predictfun',
             'name' => 'predict.fun',
@@ -1450,7 +1450,7 @@ class predictfun extends Exchange {
             // an unmatched indexSet would otherwise return a ticker whose every quote is
             // undefined, which reads as an empty book rather than as a market that never
             // carried this outcome
-            $requested = $this->safe_outcome_symbol(null, $market);
+            $requested = $this->safe_string($market, 'outcome', '');
             throw new BadSymbol($this->id . ' fetchTicker() did not find ' . $requested . ' among the outcomes of its market');
         }
         // the venue quotes each outcome on its own side of the book, so no complement is needed
@@ -2903,7 +2903,7 @@ class predictfun extends Exchange {
             $receipts = array();
             $operatorsLength = count($operators);
             for ($i = 0; $i < $operatorsLength; $i++) {
-                $operatorAddress = $operators[$i];
+                $operatorAddress = $this->safe_string($operators, $i);
                 if ($operatorAddress === null) {
                     throw new ArgumentsRequired($this->id . ' approve() could not resolve the operator to approve for chain ' . $chainKey);
                 }

@@ -22,7 +22,7 @@ use const ccxt\TRUNCATE;
 use const ccxt\TICK_SIZE;
 
 class tokocrypto extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'tokocrypto',
             'name' => 'Tokocrypto',

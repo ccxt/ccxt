@@ -16,7 +16,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class coinone extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinone',
             'name' => 'CoinOne',
@@ -1306,20 +1306,15 @@ class coinone extends Exchange {
             $currencyId = $this->safe_string($parts, 0);
             $secondPart = $this->safe_string($parts, 1);
             $code = $this->safe_currency_code($currencyId);
-            $depositAddress = $this->safe_dict($result, $code);
-            if ($depositAddress === null) {
-                $depositAddress = array(
-                    'info' => $value,
-                    'currency' => $code,
-                    'network' => null,
-                    'address' => null,
-                    'tag' => null,
-                );
-            }
-            $address = $this->safe_string($depositAddress, 'address', $value);
+            $address = $this->safe_string($this->safe_value($result, $code), 'address', $value);
             $this->check_address($address);
-            $depositAddress['address'] = $address;
-            $depositAddress['info'] = $address;
+            $depositAddress = array(
+                'info' => $address,
+                'currency' => $code,
+                'network' => null,
+                'address' => $address,
+                'tag' => $this->safe_string($this->safe_value($result, $code), 'tag'),
+            );
             if (($secondPart === 'tag' || $secondPart === 'memo')) {
                 $depositAddress['tag'] = $value;
                 $depositAddress['info'] = array( $address, $value );

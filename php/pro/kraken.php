@@ -19,7 +19,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class kraken extends \ccxt\async\kraken {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -1096,12 +1096,20 @@ class kraken extends \ccxt\async\kraken {
                 // const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
                 for ($i = 0; $i < 10; $i++) {
                     $currentAsk = $this->safe_list($checkAsks, $i, array());
-                    $formattedAsk = $this->format_number($currentAsk[0]) . $this->format_number($currentAsk[1]);
+                    $currentAskLength = count($currentAsk);
+                    $formattedAsk = '';
+                    if ($currentAskLength > 1) {
+                        $formattedAsk = $this->format_number($currentAsk[0]) . $this->format_number($currentAsk[1]);
+                    }
                     $payloadArray[] = $formattedAsk;
                 }
                 for ($i = 0; $i < 10; $i++) {
                     $currentBid = $this->safe_list($checkBids, $i, array());
-                    $formattedBid = $this->format_number($currentBid[0]) . $this->format_number($currentBid[1]);
+                    $currentBidLength = count($currentBid);
+                    $formattedBid = '';
+                    if ($currentBidLength > 1) {
+                        $formattedBid = $this->format_number($currentBid[0]) . $this->format_number($currentBid[1]);
+                    }
                     $payloadArray[] = $formattedBid;
                 }
             }

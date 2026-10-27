@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\bit2c as Exchange;
 
 class bit2c extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bit2c',
             'name' => 'Bit2C',

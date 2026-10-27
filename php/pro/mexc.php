@@ -17,7 +17,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class mexc extends \ccxt\async\mexc {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -2101,12 +2101,12 @@ class mexc extends \ccxt\async\mexc {
                 }
             } elseif (mb_strpos($messageHash, 'candles') !== false) {
                 $splitHashes = explode(':', $messageHash);
-                $candlesSymbol = $this->safe_string($splitHashes, 2);
+                $candlesSymbol = $this->safe_string($splitHashes, 2, '');
                 $splitHashesLength = count($splitHashes); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if ($splitHashesLength > 4) {
-                    $candlesSymbol .= ':' . $this->safe_string($splitHashes, 3);
+                    $candlesSymbol = $candlesSymbol . ':' . $this->safe_string($splitHashes, 3, '');
                 }
-                if (($candlesSymbol !== null) && (is_array($this->ohlcvs) && array_key_exists($candlesSymbol ?? '', $this->ohlcvs))) {
+                if (is_array($this->ohlcvs) && array_key_exists($candlesSymbol ?? '', $this->ohlcvs)) {
                     unset($this->ohlcvs[$candlesSymbol]);
                 }
             } elseif (mb_strpos($messageHash, 'orderbook') !== false) {

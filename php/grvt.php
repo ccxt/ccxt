@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\grvt as Exchange;
 
 class grvt extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         $rlOthers = 40;
         $rlOrders = 20;
         return $this->deep_extend(parent::describe(), array(
@@ -1028,10 +1028,10 @@ class grvt extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         if ($since !== null) {
-            $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
+            $request['start_time'] = $this->number_to_string($since * 1000000);
         }
+        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         $response = $this->publicMarketPostFullV1TradeHistory($this->extend($requestUntilOptionString, $paramsUntilOptionString));
         //
         //    {
@@ -1181,10 +1181,10 @@ class grvt extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         if ($since !== null) {
-            $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
+            $request['start_time'] = $this->number_to_string($since * 1000000);
         }
+        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         $response = $this->publicMarketPostFullV1Kline($this->extend($requestUntilOptionString, $paramsUntilOptionString));
         //
         //    {
@@ -1265,10 +1265,10 @@ class grvt extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         if ($since !== null) {
-            $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
+            $request['start_time'] = $this->number_to_string($since * 1000000);
         }
+        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         $response = $this->publicMarketPostFullV1Funding($this->extend($requestUntilOptionString, $paramsUntilOptionString));
         //
         //    {
@@ -1316,7 +1316,7 @@ class grvt extends Exchange {
     }
 
     public function get_sub_account_id(array $params): string {
-        $subAccountId = $this->handle_option_and_params($params, 'getSubAccountId', 'accountId')[0];
+        $subAccountId = $this->safe_string($this->handle_option_and_params($params, 'getSubAccountId', 'accountId'), 0);
         if ($subAccountId === null) {
             throw new ArgumentsRequired($this->id . ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page');
         }
@@ -1441,10 +1441,10 @@ class grvt extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         if ($since !== null) {
-            $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
+            $request['start_time'] = $this->number_to_string($since * 1000000);
         }
+        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         $useTransfersEndpoint = $this->safe_bool($this->options, 'useTransfersEndpointForDepositsWithdrawals', true);
         if ($useTransfersEndpoint) {
             $transfers = $this->internal_fetch_transfers($this->extend($requestUntilOptionString, $paramsUntilOptionString), $currency, $since, $limit);
@@ -1497,10 +1497,10 @@ class grvt extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         if ($since !== null) {
-            $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
+            $request['start_time'] = $this->number_to_string($since * 1000000);
         }
+        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         $useTransfersEndpoint = $this->safe_bool($this->options, 'useTransfersEndpointForDepositsWithdrawals', true);
         if ($useTransfersEndpoint) {
             $transfers = $this->internal_fetch_transfers($this->extend($requestUntilOptionString, $paramsUntilOptionString), $currency, $since, $limit);
@@ -1712,10 +1712,10 @@ class grvt extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         if ($since !== null) {
-            $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
+            $request['start_time'] = $this->number_to_string($since * 1000000);
         }
+        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         $response = $this->privateTradingPostFullV1TransferHistory($this->extend($requestUntilOptionString, $paramsUntilOptionString));
         //
         //    {
@@ -2287,10 +2287,10 @@ class grvt extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         if ($since !== null) {
-            $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
+            $request['start_time'] = $this->number_to_string($since * 1000000);
         }
+        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         $response = $this->privateTradingPostFullV1FillHistory($this->extend($requestUntilOptionString, $paramsUntilOptionString));
         //
         //    {
@@ -2343,17 +2343,19 @@ class grvt extends Exchange {
         );
         $symbolsNormalized = $this->market_symbols($symbols);
         if ($symbolsNormalized !== null) {
-            $request['base'] = array();
-            $request['quote'] = array();
+            $baseIds = array();
+            $quoteIds = array();
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
                 $symbol = $symbolsNormalized[$i];
                 $market = $this->market($symbol);
                 if ($market['contract'] !== true) {
                     throw new BadRequest($this->id . ' fetchPositions() supports contract markets only');
                 }
-                $request['base'][] = $market['baseId'];
-                $request['quote'][] = $market['quoteId'];
+                $baseIds[] = $market['baseId'];
+                $quoteIds[] = $market['quoteId'];
             }
+            $request['base'] = $baseIds;
+            $request['quote'] = $quoteIds;
         }
         $response = $this->privateTradingPostFullV1Positions($this->extend($request, $params));
         //
@@ -2624,10 +2626,10 @@ class grvt extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         if ($since !== null) {
-            $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
+            $request['start_time'] = $this->number_to_string($since * 1000000);
         }
+        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $paramsPaginate, 1000000);
         $response = $this->privateTradingPostFullV1FundingPaymentHistory($this->extend($requestUntilOptionString, $paramsUntilOptionString));
         //
         //    {
@@ -2701,10 +2703,10 @@ class grvt extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min($limit, 1000);
         }
-        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         if ($since !== null) {
-            $requestUntilOptionString['start_time'] = $this->number_to_string($since * 1000000);
+            $request['start_time'] = $this->number_to_string($since * 1000000);
         }
+        list($requestUntilOptionString, $paramsUntilOptionString) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         $response = $this->privateTradingPostFullV1OrderHistory($this->extend($requestUntilOptionString, $paramsUntilOptionString));
         //
         //    {
@@ -3244,11 +3246,10 @@ class grvt extends Exchange {
         $domainData = $this->eip_domain_data();
         $definitions = $this->eip_definitions();
         $ethEncodedMessage = $this->eth_encode_structured_data($domainData, $definitions[$structureType], $messageData);
-        $ethEncodedMessageHashed = '0x' . $this->hash($ethEncodedMessage, 'keccak', 'hex');
         $usesPrivKey = $this->uses_private_key(); // py transpiler needs this line separated
         $secretOrPrivkey = $usesPrivKey ? $this->privateKey : $this->secret;
         $privateKeyWithoutZero = $this->remove0x_prefix($secretOrPrivkey);
-        $signature = $this->ecdsa($this->remove0x_prefix($ethEncodedMessageHashed), $privateKeyWithoutZero, 'secp256k1', null);
+        $signature = $this->ecdsa($this->hash($ethEncodedMessage, 'keccak', 'hex'), $privateKeyWithoutZero, 'secp256k1', null);
         $request['signature'] = array(
             'signer' => ($signerAddress === null) ? $this->eth_get_address_from_private_key('0x' . $privateKeyWithoutZero) : $signerAddress,
             'r' => $this->format_signature_rs($signature['r']),
@@ -3336,19 +3337,22 @@ class grvt extends Exchange {
             if ($queryString !== '') {
                 $requestPath = $path . '?' . $queryString;
             }
-            $requestHeaders = array(
-                'Content-Type' => 'application/json',
-            );
             if ((str_ends_with($requestPath, 'auth/api_key/login') === true) || (str_ends_with($requestPath, 'auth/wallet/login') === true)) {
-                $requestHeaders['Cookie'] = 'rm=true;';
+                $requestHeaders = array(
+                    'Content-Type' => 'application/json',
+                    'Cookie' => 'rm=true;',
+                );
             } else {
                 $accountId = $this->safe_string($this->options, 'AuthAccountId');
                 $cookieValue = $this->safe_string($this->options, 'AuthCookieValue');
                 if ($cookieValue === null || $accountId === null) {
                     throw new AuthenticationError($this->id . ' : at first, you need to authenticate with exchange using signIn() method.');
                 }
-                $requestHeaders['Cookie'] = $cookieValue;
-                $requestHeaders['X-Grvt-Account-Id'] = $accountId;
+                $requestHeaders = array(
+                    'Content-Type' => 'application/json',
+                    'Cookie' => $cookieValue,
+                    'X-Grvt-Account-Id' => $accountId,
+                );
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );

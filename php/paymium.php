@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\paymium as Exchange;
 
 class paymium extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'paymium',
             'name' => 'Paymium',
@@ -160,10 +160,10 @@ class paymium extends Exchange {
             $code = $currencies[$i];
             $currency = $this->currency($code);
             $currencyId = $currency['id'];
-            $free = 'balance_' . $currencyId;
-            if (is_array($response) && array_key_exists($free ?? '', $response)) {
+            $freeAmount = $this->safe_string($response, 'balance_' . $currencyId);
+            if ($freeAmount !== null) {
                 $account = $this->account();
-                $account['free'] = $this->safe_string($response, $free);
+                $account['free'] = $freeAmount;
                 $account['used'] = $this->safe_string($response, 'locked_' . $currencyId);
                 $result[$code] = $account;
             }

@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\ndax as Exchange;
 
 class ndax extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'ndax',
             'name' => 'NDAX',
@@ -691,6 +691,8 @@ class ndax extends Exchange {
             'datetime' => null,
             'nonce' => null,
         );
+        $bids = array();
+        $asks = array();
         for ($i = 0; $i < count($orderbook); $i++) {
             $level = $this->safe_value($orderbook, $i);
             $newTimestamp = $this->safe_integer($level, 2);
@@ -703,11 +705,14 @@ class ndax extends Exchange {
             }
             $bidask = $this->parse_order_book_bid_ask($level, $priceKey, $amountKey);
             $levelSide = $this->safe_integer($level, 9);
-            $side = ($levelSide !== null && $levelSide !== 0) ? $asksKey : $bidsKey;
-            $result[$side][] = $bidask;
+            if ($levelSide !== null && $levelSide !== 0) {
+                $asks[] = $bidask;
+            } else {
+                $bids[] = $bidask;
+            }
         }
-        $result['bids'] = $this->sort_by($result['bids'], 0, true);
-        $result['asks'] = $this->sort_by($result['asks'], 0);
+        $result['bids'] = $this->sort_by($bids, 0, true);
+        $result['asks'] = $this->sort_by($asks, 0);
         $result['timestamp'] = $latestTimestamp;
         $result['datetime'] = $this->iso8601($latestTimestamp);
         $result['nonce'] = $nonce;

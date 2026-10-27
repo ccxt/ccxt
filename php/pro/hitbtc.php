@@ -16,7 +16,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class hitbtc extends \ccxt\async\hitbtc {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), $this->describe_data());
     }
 
@@ -168,7 +168,8 @@ class hitbtc extends \ccxt\async\hitbtc {
         $messageHashes = array();
         if ($symbolsNormalized !== null && $resolvedPerSymbol) {
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
-                $messageHashes[] = $messageHashPrefix . '::' . $symbolsNormalized[$i];
+                $symbolId = $symbolsNormalized[$i];
+                $messageHashes[] = $messageHashPrefix . '::' . $symbolId;
             }
         } else {
             $messageHashes[] = $messageHashPrefix;

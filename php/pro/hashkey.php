@@ -16,7 +16,7 @@ use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class hashkey extends \ccxt\async\hashkey {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -112,7 +112,7 @@ class hashkey extends \ccxt\async\hashkey {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $topic = 'kline_' . $interval;
         $messageHash = 'ohlcv:' . $symbolValue . ':' . $timeframe;
@@ -217,7 +217,7 @@ class hashkey extends \ccxt\async\hashkey {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $topic = 'realtimes';
         $messageHash = 'ticker:' . $symbolValue;
         return Async\await($this->wath_public($market, $topic, $messageHash, $params));
@@ -281,7 +281,7 @@ class hashkey extends \ccxt\async\hashkey {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $topic = 'trade';
         $messageHash = 'trades:' . $symbolValue;
         $trades = Async\await($this->wath_public($market, $topic, $messageHash, $params));
@@ -357,7 +357,7 @@ class hashkey extends \ccxt\async\hashkey {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $topic = 'depth';
         $messageHash = 'orderbook:' . $symbolValue;
         $orderbook = Async\await($this->wath_public($market, $topic, $messageHash, $params));
@@ -797,8 +797,8 @@ class hashkey extends \ccxt\async\hashkey {
         $url = $this->get_private_url($listenKey);
         $client = $this->client($url);
         $this->set_balance_cache($client, $typeMarketType, $messageHash);
-        $fetchBalanceSnapshot = $this->handle_option_bool_and_params($this->options, 'watchBalance', 'fetchBalanceSnapshot', true)[0];
-        $awaitBalanceSnapshot = $this->handle_option_bool_and_params($this->options, 'watchBalance', 'awaitBalanceSnapshot', false)[0];
+        list($fetchBalanceSnapshot) = $this->handle_option_bool_and_params($this->options, 'watchBalance', 'fetchBalanceSnapshot', true);
+        list($awaitBalanceSnapshot) = $this->handle_option_bool_and_params($this->options, 'watchBalance', 'awaitBalanceSnapshot', false);
         if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
             Async\await($client->future($typeMarketType . ':fetchBalanceSnapshot'));
         }

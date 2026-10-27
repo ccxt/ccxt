@@ -19,7 +19,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class paradex extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'paradex',
             'name' => 'Paradex',
@@ -661,7 +661,10 @@ class paradex extends Exchange {
         $makerFee = $this->parse_number('-0.00005');
         if ($isOption) {
             $optionTypeSuffix = ($optionType === 'CALL') ? 'C' : 'P';
-            $deliveryValue = ($expiry === 0) ? '' : $this->yymmdd($expiry) . '-';
+            $deliveryValue = '';
+            if ($expiry !== 0) {
+                $deliveryValue = $this->yymmdd($expiry) . '-';
+            }
             $symbol = $symbol . '-' . $deliveryValue . $strikePrice . '-' . $optionTypeSuffix;
             $makerFee = $this->parse_number('0.0003');
         } else {

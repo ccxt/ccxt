@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\mexc as Exchange;
 
 class mexc extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'mexc',
             'name' => 'MEXC Global',
@@ -4117,9 +4117,7 @@ class mexc extends Exchange {
                 $symbols = $this->safe_list($paramsOmitted2, 'symbols');
                 if ($symbols !== null) {
                     $symbolIds = $this->market_ids($symbols);
-                    if ($symbolIds !== null) {
-                        $parsedSymbols = implode(',', $symbolIds);
-                    }
+                    $parsedSymbols = implode(',', $symbolIds);
                 }
             } else {
                 $market = $this->market($symbol);
@@ -5245,7 +5243,8 @@ class mexc extends Exchange {
         $currencyId = null;
         $currencyWithNetwork = $this->safe_string($transaction, 'coin');
         if ($currencyWithNetwork !== null) {
-            $currencyId = explode('-', $currencyWithNetwork)[0];
+            $currencyParts = explode('-', $currencyWithNetwork);
+            $currencyId = $currencyParts[0];
         }
         $code = $this->safe_currency_code($currencyId, $currency);
         $network = null;

@@ -21,7 +21,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class lbank extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'lbank',
             'name' => 'LBank',
@@ -3129,8 +3129,8 @@ class lbank extends Exchange {
                         if ($resultValue === null) {
                             $result[$code] = $this->deposit_withdraw_fee(array( $fee ));
                         } else {
-                            $resultCodeInfo = $result[$code]['info'];
-                            $resultCodeInfo[] = $fee;
+                            $infoList = $this->array_concat($resultValue['info'], array( $fee ));
+                            $result[$code] = $this->extend($resultValue, array( 'info' => $infoList ));
                         }
                         $networkCode = $this->network_id_to_code($this->safe_string($fee, 'chain'), $code);
                         if ($networkCode !== null) {

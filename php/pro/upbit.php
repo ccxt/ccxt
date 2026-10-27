@@ -14,7 +14,7 @@ use ccxt\pro\ArrayCache;
 use ccxt\pro\ArrayCacheBySymbolById;
 
 class upbit extends \ccxt\async\upbit {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -419,18 +419,14 @@ class upbit extends \ccxt\async\upbit {
         }
         // Build subscription message with all requested private channels
         // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
-        $requests = array();
-        $channelKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
-        for ($i = 0; $i < count($channelKeys); $i++) {
-            $requests[] = $subscriptions[$channelKeys[$i]];
-        }
         $message = array(
             array(
                 'ticket' => $this->uuid(),
             ),
         );
-        for ($i = 0; $i < count($requests); $i++) {
-            $message[] = $requests[$i];
+        $channelKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
+        for ($i = 0; $i < count($channelKeys); $i++) {
+            $message[] = $subscriptions[$channelKeys[$i]];
         }
         return Async\await($this->watch($url, $messageHashResolved, $message, $messageHashResolved));
     }

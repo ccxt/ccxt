@@ -19,7 +19,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class hashkey extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'hashkey',
             'name' => 'HashKey Global',
@@ -1054,7 +1054,7 @@ class hashkey extends Exchange {
             $isSpot = false;
             $isSwap = true;
             $baseId = $this->safe_string($market, 'underlying');
-            $suffix = ':' . $settleId;
+            $suffix = ':' . $this->safe_string($market, 'marginToken', '');
         }
         $base = $this->safe_currency_code($baseId);
         if (($base === null) || ($quote === null)) {
@@ -4418,7 +4418,8 @@ class hashkey extends Exchange {
         if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' modifyMarginHelper() supports swap markets only');
         }
-        list($sideParam, $paramsSide) = $this->handle_param_string($params, 'side');
+        $sideParam = $this->safe_string($params, 'side');
+        $paramsSide = $this->omit($params, 'side');
         if ($sideParam === null) {
             throw new ArgumentsRequired($this->id . ' ' . $type . 'Margin() requires a params["side"] argument, either "long" or "short"');
         }

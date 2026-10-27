@@ -20,7 +20,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class coinbaseinternational extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinbaseinternational',
             'name' => 'Coinbase International',
@@ -1256,7 +1256,7 @@ class coinbaseinternational extends Exchange {
                 }
                 for ($i = 0; $i < count($depths); $i++) {
                     if ($limit <= $this->parse_to_int($depths[$i])) {
-                        $request['depth'] = $this->parse_to_int($depths[$i]);
+                        $request['depth'] = $this->safe_integer($depths, $i, 0);
                         break;
                     }
                 }

@@ -17,7 +17,7 @@ use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class deepcoin extends \ccxt\async\deepcoin {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -953,9 +953,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $symbolResolved = null;
         if ($symbol !== null) {
             $symbolResolved = $this->symbol($symbol);
-        }
-        if ($symbolResolved !== null) {
-            $messageHash = 'myTrades' . '::' . $symbolResolved;
+            $messageHash = 'myTrades' . '::' . $this->safe_string($this->market($symbol), 'symbol', '');
         }
         $trades = Async\await($this->watch_private($messageHash, $params));
         $limitResolved = $limit;
@@ -1040,9 +1038,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $symbolResolved = null;
         if ($symbol !== null) {
             $symbolResolved = $this->symbol($symbol);
-        }
-        if ($symbolResolved !== null) {
-            $messageHash = 'orders' . '::' . $symbolResolved;
+            $messageHash = 'orders' . '::' . $this->safe_string($this->market($symbol), 'symbol', '');
         }
         $orders = Async\await($this->watch_private($messageHash, $params));
         $limitResolved = $limit;

@@ -437,7 +437,7 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
-    public function describe(): mixed {
+    public function describe(): array {
         return array(
             'id' => $this->id,
             'name' => $this->name,
@@ -4208,37 +4208,55 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function handle_param_string(array $params, string $paramName, ?string $defaultValue = null) {
         $value = $this->safe_string($params, $paramName, $defaultValue);
-        $paramsOmitted = ($value !== null) ? $this->omit($params, $paramName) : $params;
+        $paramsOmitted = $params;
+        if ($value !== null) {
+            $paramsOmitted = $this->omit($params, $paramName);
+        }
         return array( $value, $paramsOmitted );
     }
 
     public function handle_param_string_2(array $params, string $paramName1, string $paramName2, ?string $defaultValue = null) {
         $value = $this->safe_string_2($params, $paramName1, $paramName2, $defaultValue);
-        $paramsOmitted = ($value !== null) ? $this->omit($params, array( $paramName1, $paramName2 )) : $params;
+        $paramsOmitted = $params;
+        if ($value !== null) {
+            $paramsOmitted = $this->omit($params, array( $paramName1, $paramName2 ));
+        }
         return array( $value, $paramsOmitted );
     }
 
     public function handle_param_integer(array $params, string $paramName, ?int $defaultValue = null) {
         $value = $this->safe_integer($params, $paramName, $defaultValue);
-        $paramsOmitted = ($value !== null) ? $this->omit($params, $paramName) : $params;
+        $paramsOmitted = $params;
+        if ($value !== null) {
+            $paramsOmitted = $this->omit($params, $paramName);
+        }
         return array( $value, $paramsOmitted );
     }
 
     public function handle_param_integer_2(array $params, string $paramName1, string $paramName2, ?int $defaultValue = null) {
         $value = $this->safe_integer_2($params, $paramName1, $paramName2, $defaultValue);
-        $paramsOmitted = ($value !== null) ? $this->omit($params, array( $paramName1, $paramName2 )) : $params;
+        $paramsOmitted = $params;
+        if ($value !== null) {
+            $paramsOmitted = $this->omit($params, array( $paramName1, $paramName2 ));
+        }
         return array( $value, $paramsOmitted );
     }
 
     public function handle_param_bool(array $params, string $paramName, ?bool $defaultValue = null) {
         $value = $this->safe_bool($params, $paramName, $defaultValue);
-        $paramsOmitted = ($value !== null) ? $this->omit($params, $paramName) : $params;
+        $paramsOmitted = $params;
+        if ($value !== null) {
+            $paramsOmitted = $this->omit($params, $paramName);
+        }
         return array( $value, $paramsOmitted );
     }
 
     public function handle_param_bool_2(array $params, string $paramName1, string $paramName2, ?bool $defaultValue = null) {
         $value = $this->safe_bool_2($params, $paramName1, $paramName2, $defaultValue);
-        $paramsOmitted = ($value !== null) ? $this->omit($params, array( $paramName1, $paramName2 )) : $params;
+        $paramsOmitted = $params;
+        if ($value !== null) {
+            $paramsOmitted = $this->omit($params, array( $paramName1, $paramName2 ));
+        }
         return array( $value, $paramsOmitted );
     }
 
@@ -4803,7 +4821,9 @@ class BaseExchange extends \ccxt\BaseExchange {
                 $value = $this->safe_value_2($this->options, $optionName, $defaultOptionName);
             }
             // if it's still undefined, use the default value
-            $value = ($value !== null) ? $value : $defaultValue;
+            if ($value === null) {
+                $value = $defaultValue;
+            }
             return array( $value, $paramsCallerMethodName );
         }
     }

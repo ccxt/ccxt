@@ -22,7 +22,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class okx extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'okx',
             'name' => 'OKX',
@@ -8604,7 +8604,10 @@ class okx extends Exchange {
          * @return {array[]} the $request and the remaining $params
          */
         $maxLimit = 100;
-        $effectiveLimit = (($limit === null) || ($limit > 100)) ? 100 : $limit;
+        $effectiveLimit = $this->parse_to_int(100);
+        if (($limit !== null) && (100 > $limit)) {
+            $effectiveLimit = $limit;
+        }
         if ($limit !== null) {
             $request['limit'] = $effectiveLimit;
         }

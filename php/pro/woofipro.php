@@ -18,7 +18,7 @@ use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class woofipro extends \ccxt\async\woofipro {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -1157,8 +1157,8 @@ class woofipro extends \ccxt\async\woofipro {
             }
         }
         // don't remove the future from the .futures cache
-        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
-            $future = $client->futures[$messageHash];
+        $future = $this->safe_value($client->futures, $messageHash);
+        if ($future !== null) {
             $future->resolve($cache);
             $client->resolve($cache, 'positions');
         }

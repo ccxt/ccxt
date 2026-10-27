@@ -17,7 +17,7 @@ use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class coinbaseinternational extends \ccxt\async\coinbaseinternational {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -426,7 +426,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $channels = array();
         $symbolsLength = count($symbolsResolved);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $channels[] = 'user.orders.' . $this->safe_string($this->market($symbolsResolved[$i]), 'id', '') . '.' . $interval;
+            $channels[] = 'user.orders.' . $this->safe_string($this->market($this->safe_string($symbolsResolved, $i, '')), 'id', '') . '.' . $interval;
         }
         $orders = Async\await($this->subscribe($channels, $channels, true, $paramsInterval));
         $limitResolved = $limit;
@@ -518,7 +518,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         }
         if (($symbolsResolved !== null) && ($symbolsLength > 0)) {
             for ($i = 0; $i < $symbolsLength; $i++) {
-                $channels[] = 'user.changes.' . $this->safe_string($this->market($symbolsResolved[$i]), 'id', '') . '.' . $interval;
+                $channels[] = 'user.changes.' . $this->safe_string($this->market($this->safe_string($symbolsResolved, $i, '')), 'id', '') . '.' . $interval;
             }
         } else {
             $channels[] = 'user.changes.any.any.' . $interval;
@@ -559,7 +559,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         }
         if (($symbolsResolved !== null) && ($symbolsLength > 0)) {
             for ($i = 0; $i < $symbolsLength; $i++) {
-                $channels[] = 'user.changes.' . $this->safe_string($this->market($symbolsResolved[$i]), 'id', '') . '.' . $interval;
+                $channels[] = 'user.changes.' . $this->safe_string($this->market($this->safe_string($symbolsResolved, $i, '')), 'id', '') . '.' . $interval;
             }
         } else {
             $channels[] = 'user.changes.any.any.' . $interval;
@@ -754,7 +754,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $channels = array();
         $symbolsLength = count($symbolsResolved);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $market = $this->market($symbolsResolved[$i]);
+            $market = $this->market($this->safe_string($symbolsResolved, $i, ''));
             $channels[] = 'ticker.' . $this->safe_string($market, 'id', '') . '.' . $interval;
         }
         $ticker = Async\await($this->subscribe($channels, $channels, $isPrivate, $paramsInterval));
@@ -794,7 +794,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $channels = array();
         $symbolsLength = count($symbolsResolved);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $channels[] = 'ticker.' . $this->safe_string($this->market($symbolsResolved[$i]), 'id', '') . '.' . $interval;
+            $channels[] = 'ticker.' . $this->safe_string($this->market($this->safe_string($symbolsResolved, $i, '')), 'id', '') . '.' . $interval;
         }
         return Async\await($this->un_subscribe($channels, $interval === 'raw', $paramsInterval));
     }
@@ -905,7 +905,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $channels = array();
         $symbolsLength = count($symbolsResolved);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $market = $this->market($symbolsResolved[$i]);
+            $market = $this->market($this->safe_string($symbolsResolved, $i, ''));
             $channels[] = 'quote.' . $this->safe_string($market, 'id', '');
         }
         $ticker = Async\await($this->subscribe($channels, $channels, false, $paramsResolved));
@@ -941,7 +941,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $channels = array();
         $symbolsLength = count($symbolsResolved);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $channels[] = 'quote.' . $this->safe_string($this->market($symbolsResolved[$i]), 'id', '');
+            $channels[] = 'quote.' . $this->safe_string($this->market($this->safe_string($symbolsResolved, $i, '')), 'id', '');
         }
         return Async\await($this->un_subscribe($channels, false, $paramsResolved));
     }
@@ -1194,7 +1194,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $channels = array();
         $symbolsLength = count($symbolsResolved);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $market = $this->market($symbolsResolved[$i]);
+            $market = $this->market($this->safe_string($symbolsResolved, $i, ''));
             $channels[] = 'trades.' . $this->safe_string($market, 'id', '') . '.' . $interval;
         }
         $trades = Async\await($this->subscribe($channels, $channels, $isPrivate, $paramsInterval));
@@ -1252,7 +1252,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $channels = array();
         $symbolsLength = count($symbolsResolved);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $channels[] = 'trades.' . $this->safe_string($this->market($symbolsResolved[$i]), 'id', '') . '.' . $interval;
+            $channels[] = 'trades.' . $this->safe_string($this->market($this->safe_string($symbolsResolved, $i, '')), 'id', '') . '.' . $interval;
         }
         return Async\await($this->un_subscribe($channels, $interval === 'raw', $paramsInterval));
     }
@@ -1339,7 +1339,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $channels = array();
         $symbolsLength = count($symbols);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $market = $this->market($symbols[$i]);
+            $market = $this->market($this->safe_string($symbols, $i, ''));
             $channels[] = 'book.' . $this->safe_string($market, 'id', '') . '.' . $descriptor;
         }
         $orderbook = Async\await($this->subscribe($channels, $channels, $isPrivate, $paramsChannel));
@@ -1399,7 +1399,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $channels = array();
         $symbolsLength = count($symbols);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $channels[] = 'book.' . $this->safe_string($this->market($symbols[$i]), 'id', '') . '.' . $descriptor;
+            $channels[] = 'book.' . $this->safe_string($this->market($this->safe_string($symbols, $i, '')), 'id', '') . '.' . $descriptor;
         }
         return Async\await($this->un_subscribe($channels, $interval === 'raw', $paramsChannel));
     }

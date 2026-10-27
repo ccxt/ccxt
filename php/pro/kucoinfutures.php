@@ -11,7 +11,7 @@ use React\Async;
 use React\Promise\PromiseInterface;
 
 class kucoinfutures extends \ccxt\pro\kucoin {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'kucoinfutures',
             'name' => 'KuCoin Futures',

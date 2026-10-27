@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\woofipro as Exchange;
 
 class woofipro extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'woofipro',
             'name' => 'WOOFI PRO',

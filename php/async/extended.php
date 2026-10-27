@@ -21,7 +21,7 @@ use const ccxt\TICK_SIZE;
 use const ccxt\NO_PADDING;
 
 class extended extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'extended',
             'name' => 'Extended',

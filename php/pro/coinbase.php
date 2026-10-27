@@ -13,7 +13,7 @@ use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCacheBySymbolById;
 
 class coinbase extends \ccxt\async\coinbase {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

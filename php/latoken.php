@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\latoken as Exchange;
 
 class latoken extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'latoken',
             'name' => 'Latoken',

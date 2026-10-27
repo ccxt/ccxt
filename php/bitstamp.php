@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\bitstamp as Exchange;
 
 class bitstamp extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitstamp',
             'name' => 'Bitstamp',
@@ -2781,10 +2781,10 @@ class bitstamp extends Exchange {
         $isPrivatePost = ($apiName !== 'public') && ($method === 'POST');
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
-        $emptyPostBody = $this->urlencode(array( 'foo' => 'bar' ));
-        $postBody = $emptyPostBody;
-        if (count($query) > 0) {
-            $postBody = $this->urlencode($query);
+        $queryString = $this->urlencode($query);
+        $postBody = $this->urlencode(array( 'foo' => 'bar' ));
+        if ($queryString !== '') {
+            $postBody = $queryString;
         }
         $requestBody = null;
         if ($isPrivatePost) {
@@ -2792,8 +2792,8 @@ class bitstamp extends Exchange {
         }
         $privateHeaders = array();
         if ($apiName === 'public') {
-            if (count($query) > 0) {
-                $url .= '?' . $this->urlencode($query);
+            if ($queryString !== '') {
+                $url .= '?' . $queryString;
             }
         } else {
             $this->check_required_credentials();

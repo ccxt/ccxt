@@ -11,7 +11,7 @@ use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
 
 class ndax extends \ccxt\async\ndax {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

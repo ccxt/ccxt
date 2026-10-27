@@ -20,7 +20,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class blofin extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'blofin',
             'name' => 'BloFin',
@@ -2476,11 +2476,11 @@ class blofin extends Exchange {
         throw new ExchangeError($this->id . ' fetchDeposit() could not find deposit ' . $id);
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): PromiseInterface {
+    public function fetch_withdrawal(?string $id, ?string $code = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_withdrawal(...))($id, $code, $params);
     }
 
-    private function do_fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
+    private function do_fetch_withdrawal(?string $id, ?string $code = null, $params = array()) {
         /**
          * fetch $data on a $currency withdrawal via the withdrawal $id
          *

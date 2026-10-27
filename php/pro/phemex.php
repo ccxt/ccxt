@@ -15,7 +15,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class phemex extends \ccxt\async\phemex {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -885,7 +885,7 @@ class phemex extends \ccxt\async\phemex {
             $settleRequest = array( 'settle' => 'USDT' );
         }
         list($type, $paramsType) = $this->handle_market_type_and_params('watchMyTrades', $market, $this->extend($params, $settleRequest));
-        if ($symbolResolved === null) {
+        if ($symbol === null) {
             $settle = $this->safe_string($paramsType, 'settle');
             if ($settle === 'USDT') {
                 $messageHash = 'trades:perpetual';
@@ -1063,7 +1063,7 @@ class phemex extends \ccxt\async\phemex {
         }
         list($type, $paramsType) = $this->handle_market_type_and_params('watchOrders', $market, $this->extend($params, $settleRequest));
         $isUSDTSettled = $this->safe_string($paramsType, 'settle') === 'USDT';
-        if ($symbolResolved === null) {
+        if ($symbol === null) {
             if ($isUSDTSettled) {
                 $messageHash = 'orders:perpetual';
             } else {

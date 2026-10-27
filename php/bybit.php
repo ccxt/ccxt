@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\bybit as Exchange;
 
 class bybit extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bybit',
             'name' => 'Bybit',
@@ -4305,8 +4305,8 @@ class bybit extends Exchange {
         $hedged = $this->safe_bool($params, 'hedged', false);
         $reduceOnly = $this->safe_bool($params, 'reduceOnly');
         $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-        $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
-        $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
+        $stopLossTriggerPrice = $this->safe_string($params, 'stopLossPrice');
+        $takeProfitTriggerPrice = $this->safe_string($params, 'takeProfitPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
         $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activePrice', $this->number_to_string($price));

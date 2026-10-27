@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\cryptocom as Exchange;
 
 class cryptocom extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'cryptocom',
             'name' => 'Crypto.com',
@@ -3429,7 +3429,7 @@ class cryptocom extends Exchange {
             $paramsKeys = $this->sort($objectKeys);
         }
         for ($i = 0; $i < count(($paramsKeys)); $i++) {
-            $key = ($paramsKeys)[$i];
+            $key = $this->safe_string($paramsKeys, $i, '');
             $returnString .= $key;
             $value = $object[$key];
             if ($value === 'null') {

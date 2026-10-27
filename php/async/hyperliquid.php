@@ -26,7 +26,7 @@ use const ccxt\SIGNIFICANT_DIGITS;
 use const ccxt\TICK_SIZE;
 
 class hyperliquid extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'hyperliquid',
             'name' => 'Hyperliquid',
@@ -623,7 +623,7 @@ class hyperliquid extends Exchange {
             $dex = $this->safe_dict($fetchDexes, $i, array());
             $secondPart = $i * 10000 - 10000;
             $offset = $this->sum(110000, $secondPart);
-            $perpDexesOffset[$dex['name']] = $offset;
+            $perpDexesOffset[$this->safe_string($dex, 'name', '')] = $offset;
         }
         $fetchDexesList = array();
         $options = $this->safe_dict($this->options, 'fetchMarkets', array());
@@ -4521,10 +4521,9 @@ class hyperliquid extends Exchange {
                 throw new NotSupported($this->id . ' transfer() only support spot <> swap transfer');
             }
             $strAmount = $this->number_to_string($amount);
-            $vaultAddress = $this->safe_string_2($params, 'vaultAddress', 'subAccountAddress');
-            if ($vaultAddress !== null) {
-                $vaultAddress = $this->format_vault_address($vaultAddress);
-                $strAmount = $strAmount . ' subaccount:' . $vaultAddress;
+            $vaultAddressRaw = $this->safe_string_2($params, 'vaultAddress', 'subAccountAddress');
+            if ($vaultAddressRaw !== null) {
+                $strAmount = $strAmount . ' subaccount:' . $this->format_vault_address($vaultAddressRaw);
             }
             $strAmountFinal = $strAmount; // java req
             $toPerp = ($toAccount === 'perp') || ($toAccount === 'swap');

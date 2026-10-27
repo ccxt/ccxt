@@ -21,7 +21,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class weex extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'weex',
             'name' => 'Weex',
@@ -1270,7 +1270,7 @@ class weex extends Exchange {
         }
         $results = array();
         for ($i = 0; $i < count($response); $i++) {
-            $rawTicker = $response[$i];
+            $rawTicker = $this->safe_value($response, $i);
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             $marketId = $this->safe_string($rawTicker, 'symbol');
             $tickerMarket = $this->safe_market($marketId, null, null, $marketType);
@@ -1688,15 +1688,15 @@ class weex extends Exchange {
             $endTime = $until;
             $now = $this->milliseconds();
             if (($since === null) || ($until === null)) {
-                $duration = $this->parse_timeframe($timeframe) * 1000;
+                $duration = $this->parse_to_int($this->parse_timeframe($timeframe) * 1000);
                 // the history endpoint returns at most maxHistoricalLimit candles and serves the
                 // newest ones inside the window, so a wider window would silently drop the candles
                 // right after since, keep the window at what one call can return
-                $historyLimit = $maxHistoricalLimit;
+                $historyLimit = $this->parse_to_int($maxHistoricalLimit);
                 if ($limit !== null && $limit !== null && $limit !== 0) {
-                    $historyLimit = min($limit, $maxHistoricalLimit);
+                    $historyLimit = $this->parse_to_int(min($limit, $maxHistoricalLimit));
                 }
-                $timeDelta = $historyLimit * $duration;
+                $timeDelta = $this->parse_to_int($historyLimit * $duration);
                 if (($since === null) && ($until === null)) {
                     $endTime = $now;
                     $startTime = $now - $timeDelta;

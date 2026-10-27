@@ -22,7 +22,7 @@ use ccxt\pro\ArrayCache;
 use ccxt\pro\ArrayCacheByOutcomeById;
 
 class myriad extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'myriad',
             'name' => 'Myriad',
@@ -628,10 +628,8 @@ class myriad extends Exchange {
         $outcomeTitle = $this->safe_string($position, 'outcomeTitle', '');
         $outcome = $this->slug_to_outcome_symbol($marketSlug, $marketSlug, $outcomeTitle);
         $marketSymbol = $this->slug_to_market_symbol($marketSlug, $marketSlug);
-        $networkId = $this->safe_string($position, 'networkId');
-        $marketId = $this->safe_string($position, 'marketId');
         $outcomeId = $this->safe_string($position, 'outcomeId');
-        $id = $networkId . ':' . $marketId . '/' . $outcomeId;
+        $id = $this->safe_string($position, 'networkId', '') . ':' . $this->safe_string($position, 'marketId', '') . '/' . $this->safe_string($position, 'outcomeId', '');
         $shares = $this->safe_number($position, 'shares');
         $value = $this->safe_number($position, 'value');
         $profit = $this->safe_number($position, 'profit');
@@ -3547,7 +3545,7 @@ class myriad extends Exchange {
 
     public function wallet_address_or_undefined(): ?string {
         // like walletAddressFromKeys but returns undefined instead of throwing when no wallet is configured
-        if (($this->walletAddress !== null) && (strlen($this->walletAddress) > 0)) {
+        if (($this->walletAddress !== null) && ($this->walletAddress !== '')) {
             return strtolower($this->walletAddress);
         }
         if ($this->privateKey !== null) {
@@ -4001,15 +3999,13 @@ class myriad extends Exchange {
         // the orders/positions channels are keyed by the lowercase trader address (Centrifugo channels
         // are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
         // check length too: an unset walletAddress is an empty string (not undefined) in some languages
-        $address = $this->walletAddress;
-        $hasWallet = ($address !== null) && (strlen($this->walletAddress) > 0);
-        if (!$hasWallet) {
-            if ($this->privateKey === null) {
-                throw new ArgumentsRequired($this->id . ' requires a walletAddress or privateKey to watch private channels');
-            }
-            $address = $this->eth_get_address_from_private_key($this->privateKey);
+        if (($this->walletAddress !== null) && ($this->walletAddress !== '')) {
+            return strtolower($this->walletAddress);
         }
-        return strtolower($address);
+        if ($this->privateKey === null) {
+            throw new ArgumentsRequired($this->id . ' requires a walletAddress or privateKey to watch private channels');
+        }
+        return strtolower($this->eth_get_address_from_private_key($this->privateKey));
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

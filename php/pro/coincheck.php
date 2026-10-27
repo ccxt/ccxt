@@ -11,7 +11,7 @@ use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
 
 class coincheck extends \ccxt\async\coincheck {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -98,7 +98,7 @@ class coincheck extends \ccxt\async\coincheck {
         //         }
         //     ]
         //
-        $symbol = $this->symbol($this->safe_string($message, 0));
+        $symbol = $this->safe_string($this->market($this->safe_string($message, 0)), 'symbol', '');
         $data = $this->safe_dict($message, 1, array());
         $timestamp = $this->safe_timestamp($data, 'last_update_at');
         $snapshot = $this->parse_order_book($data, $symbol, $timestamp);
@@ -164,7 +164,7 @@ class coincheck extends \ccxt\async\coincheck {
         //     ]
         //
         $first = $this->safe_list($message, 0, array());
-        $symbol = $this->symbol($this->safe_string($first, 2));
+        $symbol = $this->safe_string($this->market($this->safe_string($first, 2)), 'symbol', '');
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);

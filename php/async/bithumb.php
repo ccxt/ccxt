@@ -21,7 +21,7 @@ use const ccxt\DECIMAL_PLACES;
 use const ccxt\SIGNIFICANT_DIGITS;
 
 class bithumb extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bithumb',
             'name' => 'Bithumb',

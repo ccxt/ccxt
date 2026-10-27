@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\coinsph as Exchange;
 
 class coinsph extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinsph',
             'name' => 'Coins.ph',

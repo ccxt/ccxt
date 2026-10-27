@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\dydx as Exchange;
 
 class dydx extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'dydx',
             'name' => 'dYdX',
@@ -1463,10 +1463,10 @@ class dydx extends Exchange {
 
     public function create_order_id_from_parts(string $address, float $subAccountNumber, float $clientOrderId, float $orderFlags, float $clobPairId): string {
         $nameSp = $this->safe_string($this->options, 'namespace', '0f9da948-a6fb-4c45-9edc-4685c3f3317d');
-        $prefixAddress = $address . '-' . $this->number_to_string($subAccountNumber);
-        $prefix = $this->uuid5($nameSp, $prefixAddress);
-        $orderInfo = $prefix . '-' . $this->number_to_string($clientOrderId) . '-' . $this->number_to_string($clobPairId) . '-' . $this->number_to_string($orderFlags);
-        return $this->uuid5($nameSp, $orderInfo);
+        $clientOrderIdString = $this->number_to_string($clientOrderId);
+        $clobPairIdString = $this->number_to_string($clobPairId);
+        $orderFlagsString = $this->number_to_string($orderFlags);
+        return $this->uuid5($nameSp, $this->uuid5($nameSp, $address . '-' . $this->number_to_string($subAccountNumber)) . '-' . $clientOrderIdString . '-' . $clobPairIdString . '-' . $orderFlagsString);
     }
 
     public function fetch_latest_block_height($params = array()): int {

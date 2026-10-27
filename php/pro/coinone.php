@@ -11,7 +11,7 @@ use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
 
 class coinone extends \ccxt\async\coinone {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\lighter as Exchange;
 
 class lighter extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'lighter',
             'name' => 'Lighter',
@@ -465,7 +465,7 @@ class lighter extends Exchange {
         if ($signer !== null) {
             return true;
         }
-        $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex);
+        $signer = $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex);
         $this->handle_builder_fee_approval($accountIndex, $apiKeyIndex);
         $loaded = ($signer !== null);
         return $loaded;
@@ -545,7 +545,7 @@ class lighter extends Exchange {
         );
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsAccountIndex);
+        $signer = $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsAccountIndex);
         list($txType, $txInfo) = $this->lighter_sign_create_sub_account($signer, $this->extend($signRaw, $paramsAccountIndex));
         $request = array(
             'tx_type' => $txType,
@@ -662,7 +662,7 @@ class lighter extends Exchange {
 
     public function check_if_standard_tier(float $accountIndex): bool {
         $tiersForAccountIndexes = $this->safe_dict($this->options, 'tiersForAccountIndexes', array());
-        $accountIndexStr = (string) $accountIndex;
+        $accountIndexStr = $this->number_to_string($accountIndex);
         $isStandardTier = $this->safe_bool($tiersForAccountIndexes, $accountIndexStr);
         if ($isStandardTier !== null) {
             $cachedIsStandard = ($isStandardTier === true);
@@ -694,7 +694,7 @@ class lighter extends Exchange {
     public function approve_builder_fee(float $builder, float $takerFeeRate, float $makerFeeRate, float $accountIndex, float $apiKeyIndex, $params = array()): array {
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params);
+        $signer = $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params);
         $nonce = $this->fetch_nonce($accountIndex, $apiKeyIndex, $this->extend($params, array( 'skipNonce' => false )));
         $expiry = $this->milliseconds() + 365 * 864000;
         $signRaw = array(
@@ -731,7 +731,7 @@ class lighter extends Exchange {
             'account_index' => $accountIndex,
         );
         // create lighter client
-        $signer = $this->lighter_create_client($signerNotLoad, $this->options['chainId'], $privateKey, $apiKeyIndex, $accountIndex);
+        $signer = $this->lighter_create_client($signerNotLoad, $this->safe_integer($this->options, 'chainId'), $privateKey, $apiKeyIndex, $accountIndex);
         list($txType, $txInfo, $messageToSign) = $this->lighter_sign_change_pubkey($signer, $this->extend($signRaw, $paramsAccountIndex));
         $newTxInfo = $this->sign_l1_and_prepare_tx_info($txInfo, $messageToSign, $this->privateKey);
         $request = array(
@@ -869,9 +869,9 @@ class lighter extends Exchange {
         $request['avg_execution_price'] = $this->parse_to_int(Precise::string_mul($priceStr, $priceScale));
         $request['trigger_price'] = $this->parse_to_int(Precise::string_mul($triggerPriceStr, $priceScale));
         if ($this->safe_bool($this->options, 'builderFee', true)) {
-            $request['integrator_account_index'] = $this->options['integratorAccountIndex'];
-            $request['integrator_taker_fee'] = $this->options['integratorTakerFee'];
-            $request['integrator_maker_fee'] = $this->options['integratorMakerFee'];
+            $request['integrator_account_index'] = $this->safe_integer($this->options, 'integratorAccountIndex');
+            $request['integrator_taker_fee'] = $this->safe_integer($this->options, 'integratorTakerFee');
+            $request['integrator_maker_fee'] = $this->safe_integer($this->options, 'integratorMakerFee');
         }
         $orders = array();
         $firstOrder = $this->extend($request, $paramsRequest);
@@ -944,7 +944,7 @@ class lighter extends Exchange {
         // before order-req creation, we need to know account status
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params);
+        $signer = $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params);
         try {
             $isStandardTier = $this->check_if_standard_tier($accountIndex);
             if ($isStandardTier) {
@@ -1053,7 +1053,7 @@ class lighter extends Exchange {
         list($accountIndex, $paramsAccountIndex) = $this->handle_account_index($paramsApiKeyIndex, 'editOrder', 'accountIndex', 'account_index');
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsAccountIndex);
+        $signer = $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsAccountIndex);
         $market = $this->market($symbol);
         $marketInfo = $this->safe_dict($market, 'info', array());
         $amountScale = $this->pow('10', $marketInfo['size_decimals']);
@@ -1081,9 +1081,9 @@ class lighter extends Exchange {
             'account_index' => $accountIndex,
         );
         if ($this->safe_bool($this->options, 'builderFee', true)) {
-            $signRaw['integrator_account_index'] = $this->options['integratorAccountIndex'];
-            $signRaw['integrator_taker_fee'] = $this->options['integratorTakerFee'];
-            $signRaw['integrator_maker_fee'] = $this->options['integratorMakerFee'];
+            $signRaw['integrator_account_index'] = $this->safe_integer($this->options, 'integratorAccountIndex');
+            $signRaw['integrator_taker_fee'] = $this->safe_integer($this->options, 'integratorTakerFee');
+            $signRaw['integrator_maker_fee'] = $this->safe_integer($this->options, 'integratorMakerFee');
         }
         list($txType, $txInfo) = $this->lighter_sign_modify_order($signer, $this->extend($signRaw, $paramsOmitted));
         $request = array(
@@ -2203,7 +2203,7 @@ class lighter extends Exchange {
         list($apiKeyIndex, $paramsApiKeyIndex) = $this->handle_api_key_index($paramsAccountIndex, 'fetchOpenOrders', 'apiKeyIndex', 'api_key_index');
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsApiKeyIndex);
+        $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsApiKeyIndex);
         $market = $this->market($symbol);
         $request = array(
             'market_id' => $market['id'],
@@ -2279,7 +2279,7 @@ class lighter extends Exchange {
         list($apiKeyIndex, $paramsApiKeyIndex) = $this->handle_api_key_index($paramsAccountIndex, 'fetchClosedOrders', 'apiKeyIndex', 'api_key_index');
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsApiKeyIndex);
+        $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsApiKeyIndex);
         $market = $this->market($symbol);
         $request = array(
             'market_id' => $market['id'],
@@ -2536,7 +2536,7 @@ class lighter extends Exchange {
         list($toAccountIndex, $paramsToAccountIndex) = $this->handle_option_and_params_2($paramsAccountIndex, 'transfer', 'toAccountIndex', 'to_account_index', $accountIndex);
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsToAccountIndex);
+        $signer = $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsToAccountIndex);
         $currency = $this->currency($code);
         $currencyCode = $currency['code'];
         if (($currencyCode !== 'USDC') && ($currencyCode !== 'ETH')) {
@@ -2598,7 +2598,7 @@ class lighter extends Exchange {
         list($apiKeyIndex, $paramsApiKeyIndex) = $this->handle_api_key_index($paramsAccountIndex, 'fetchTransfers', 'apiKeyIndex', 'api_key_index');
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsApiKeyIndex);
+        $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsApiKeyIndex);
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
@@ -2706,7 +2706,7 @@ class lighter extends Exchange {
         list($apiKeyIndex, $paramsApiKeyIndex) = $this->handle_api_key_index($paramsAccountIndex, 'fetchDeposits', 'apiKeyIndex', 'api_key_index');
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsApiKeyIndex);
+        $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsApiKeyIndex);
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
@@ -2766,7 +2766,7 @@ class lighter extends Exchange {
         list($apiKeyIndex, $paramsApiKeyIndex) = $this->handle_api_key_index($paramsAccountIndex, 'fetchWithdrawals', 'apiKeyIndex', 'api_key_index');
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsApiKeyIndex);
+        $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsApiKeyIndex);
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
@@ -2883,7 +2883,7 @@ class lighter extends Exchange {
         list($accountIndex, $paramsAccountIndex) = $this->handle_account_index($paramsApiKeyIndex, 'withdraw', 'accountIndex', 'account_index');
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsAccountIndex);
+        $signer = $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsAccountIndex);
         $currency = $this->currency($code);
         $currencyCode = $currency['code'];
         if (($currencyCode !== 'USDC') && ($currencyCode !== 'ETH')) {
@@ -2986,7 +2986,7 @@ class lighter extends Exchange {
         list($apiKeyIndex, $paramsApiKeyIndex) = $this->handle_api_key_index($paramsAccountIndex, 'fetchMyTrades', 'apiKeyIndex', 'api_key_index');
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsApiKeyIndex);
+        $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsApiKeyIndex);
         $request = array(
             'sort_by' => 'timestamp',
             'limit' => 100,
@@ -3175,7 +3175,7 @@ class lighter extends Exchange {
         list($accountIndex, $paramsAccountIndex) = $this->handle_account_index($paramsApiKeyIndex, 'modifyLeverageAndMarginMode', 'accountIndex', 'account_index');
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsAccountIndex);
+        $signer = $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsAccountIndex);
         $market = $this->market($symbol);
         $nonce = $this->fetch_nonce($accountIndex, $apiKeyIndex, $paramsAccountIndex);
         $signRaw = array(
@@ -3208,7 +3208,7 @@ class lighter extends Exchange {
         $paramsOmitted = $this->omit($paramsAccountIndex, array( 'client_order_index', 'clientOrderId' ));
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsOmitted);
+        $signer = $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsOmitted);
         $nonce = $this->fetch_nonce($accountIndex, $apiKeyIndex, $paramsOmitted);
         $signRaw = array(
             'market_index' => $this->parse_to_int($market['id']),
@@ -3255,7 +3255,7 @@ class lighter extends Exchange {
         list($accountIndex, $paramsAccountIndex) = $this->handle_account_index($paramsApiKeyIndex, $method, 'accountIndex', 'account_index');
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsAccountIndex);
+        $signer = $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsAccountIndex);
         $nonce = $this->fetch_nonce($accountIndex, $apiKeyIndex, $paramsAccountIndex);
         $signRaw = array(
             'time_in_force' => 0, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
@@ -3311,7 +3311,7 @@ class lighter extends Exchange {
         list($accountIndex, $paramsAccountIndex) = $this->handle_account_index($paramsApiKeyIndex, 'cancelAllOrdersAfter', 'accountIndex', 'account_index');
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsAccountIndex);
+        $signer = $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsAccountIndex);
         $nonce = $this->fetch_nonce($accountIndex, $apiKeyIndex, $paramsAccountIndex);
         $timeInForce = 2; // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
         $cancelTime = 0;
@@ -3390,7 +3390,7 @@ class lighter extends Exchange {
         list($accountIndex, $paramsAccountIndex) = $this->handle_account_index($paramsApiKeyIndex, 'setMargin', 'accountIndex', 'account_index');
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-        $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsAccountIndex);
+        $signer = $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsAccountIndex);
         $market = $this->market($symbol);
         $nonce = $this->fetch_nonce($accountIndex, $apiKeyIndex, $paramsAccountIndex);
         $signRaw = array(

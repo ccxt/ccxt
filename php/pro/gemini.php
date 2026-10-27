@@ -17,7 +17,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class gemini extends \ccxt\async\gemini {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -254,7 +254,7 @@ class gemini extends \ccxt\async\gemini {
                 $this->trades[$symbol] = $stored;
             }
             for ($i = 0; $i < count($trades); $i++) {
-                $trade = $this->parse_ws_trade($trades[$i], $market);
+                $trade = $this->parse_ws_trade($this->safe_value($trades, $i), $market);
                 $stored->append($trade);
             }
             $messageHash = 'trades:' . $symbol;
@@ -600,7 +600,7 @@ class gemini extends \ccxt\async\gemini {
         $messageHashes = array();
         $marketIds = array();
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $symbol = $symbolsNormalized[$i];
+            $symbol = $this->safe_string($symbolsNormalized, $i, '');
             $messageHash = $itemHashName . ':' . $symbol;
             $messageHashes[] = $messageHash;
             $market = $this->market($symbol);
@@ -986,7 +986,7 @@ class gemini extends \ccxt\async\gemini {
             $collectedEventsOfTrades = array();
             $eventsLength = count($events);
             for ($i = 0; $i < count($events); $i++) {
-                $event = $events[$i];
+                $event = $this->safe_value($events, $i);
                 $eventType = $this->safe_string($event, 'type');
                 $side = $this->safe_string($event, 'side');
                 $isOrderBook = ($eventType === 'change') && ($side !== null) && $this->in_array($side, array( 'ask', 'bid' ));
@@ -997,7 +997,7 @@ class gemini extends \ccxt\async\gemini {
                 } elseif ($isOrderBook) {
                     $orderBookItems[] = $event;
                 } elseif ($eventType === 'trade') {
-                    $collectedEventsOfTrades[] = $events[$i];
+                    $collectedEventsOfTrades[] = $event;
                 }
             }
             $lengthBa = count($bidaskItems);

@@ -26,7 +26,7 @@ use const ccxt\DECIMAL_PLACES;
 use const ccxt\TICK_SIZE;
 
 class sxbet extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'sxbet',
             'name' => 'SX Bet',
@@ -2194,6 +2194,12 @@ class sxbet extends Exchange {
         );
     }
 
+    public function set_ws_option(string $group, string $key, mixed $value) {
+        $entry = array();
+        $entry[$key] = $value;
+        $this->options[$group] = $this->extend($this->safe_dict($this->options, $group, array()), $entry);
+    }
+
     public function request_id(?string $url): float {
         $existing = $this->safe_value($this->options, 'requestId');
         if ($existing === null) {
@@ -2216,12 +2222,8 @@ class sxbet extends Exchange {
          * @param {string} $messageHash the future hash the caller awaits
          * @param {string} $subscription the $subscription hash registered by watch() ('connect' or the channel name)
          */
-        $existing = $this->safe_dict($this->options, 'wsPendingRequests');
-        if ($existing === null) {
-            $this->options['wsPendingRequests'] = $this->create_safe_dictionary();
-        }
         $requestIdString = $this->number_to_string($requestId);
-        $this->options['wsPendingRequests'][$requestIdString] = array( 'messageHash' => $messageHash, 'subscription' => $subscription );
+        $this->set_ws_option('wsPendingRequests', $requestIdString, array( 'messageHash' => $messageHash, 'subscription' => $subscription ));
     }
 
     public function fetch_sxbet_realtime_token(): PromiseInterface {
@@ -2422,11 +2424,7 @@ class sxbet extends Exchange {
         $isNewSubscription = $this->safe_value($client->subscriptions, $channel) === null;
         if ($this->safe_value($this->orderbooks, $sym) === null) {
             // seed from the REST snapshot so the book is served before the first publication
-            $watchedBooks = $this->safe_dict($this->options, 'wsWatchedBooks');
-            if ($watchedBooks === null) {
-                $this->options['wsWatchedBooks'] = $this->create_safe_dictionary();
-            }
-            $this->options['wsWatchedBooks'][$sym] = $marketHash;
+            $this->set_ws_option('wsWatchedBooks', $sym, $marketHash);
             $snapshot = Async\await($this->fetch_sxbet_book_snapshot($marketHash));
             $this->apply_sxbet_ws_snapshot($snapshot);
             if ($this->safe_value($this->orderbooks, $sym) === null) {
@@ -2459,16 +2457,12 @@ class sxbet extends Exchange {
         if ($marketHash === null) {
             return $refreshed;
         }
-        $versionsAll = $this->safe_dict($this->options, 'wsBookVersions');
-        if ($versionsAll === null) {
-            $this->options['wsBookVersions'] = $this->create_safe_dictionary();
-        }
-        $held = $this->safe_string($this->options['wsBookVersions'], $marketHash, '');
+        $held = $this->safe_string($this->safe_dict($this->options, 'wsBookVersions', array()), $marketHash, '');
         // versions are fixed-width numeric strings - replace only on a strictly newer publication
         if (($held !== '') && ($version <= $held)) {
             return $refreshed;
         }
-        $this->options['wsBookVersions'][$marketHash] = $version;
+        $this->set_ws_option('wsBookVersions', $marketHash, $version);
         $watchedBooks = $this->safe_dict($this->options, 'wsWatchedBooks', array());
         $watchedSyms = is_array($watchedBooks) ? array_keys($watchedBooks) : array();
         $timestamp = $this->milliseconds();
@@ -2539,11 +2533,7 @@ class sxbet extends Exchange {
         $sym = $this->safe_string($outcomeObj, 'outcome', '');
         $marketHash = $this->safe_string($outcomeObj['info'], 'marketHash');
         $messageHash = 'ticker::' . $sym;
-        $watchedTickers = $this->safe_dict($this->options, 'wsWatchedTickers');
-        if ($watchedTickers === null) {
-            $this->options['wsWatchedTickers'] = $this->create_safe_dictionary();
-        }
-        $this->options['wsWatchedTickers'][$sym] = $marketHash;
+        $this->set_ws_option('wsWatchedTickers', $sym, $marketHash);
         $url = $this->safe_string($this->urls['api'], 'ws');
         Async\await($this->connect_sxbet_centrifugo($url));
         $client = $this->client($url);
@@ -2876,8 +2866,7 @@ class sxbet extends Exchange {
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         $sendAsQuery = ($method === 'GET');
         if ($method === 'DELETE') {
-            $hasOrdersList = (is_array($query) && array_key_exists('orders' ?? '', $query));
-            $sendAsQuery = !$hasOrdersList;
+            $sendAsQuery = !(is_array($query) && array_key_exists('orders' ?? '', $query));
         }
         $bodyValue = null;
         if ($sendAsQuery) {
@@ -2886,9 +2875,7 @@ class sxbet extends Exchange {
                 $url .= '?' . $querystring;
             }
         } else {
-            $queryKeys = is_array($query) ? array_keys($query) : array();
-            $queryKeysLength = count($queryKeys);
-            if ($queryKeysLength > 0) {
+            if (count($query) > 0) {
                 $bodyValue = $this->json($query);
             }
         }

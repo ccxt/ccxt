@@ -25,7 +25,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class digifinex extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'digifinex',
             'name' => 'DigiFinex',
@@ -1835,8 +1835,8 @@ class digifinex extends Exchange {
             }
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $marginResult = $this->handle_margin_mode_and_params('createOrders', $orderParams);
             $currentMarginMode = $marginResult[0];
@@ -1894,7 +1894,7 @@ class digifinex extends Exchange {
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
             $individualOrder = array();
-            $individualOrder['order_id'] = $this->safe_value($data, $i);
+            $individualOrder['order_id'] = $this->safe_string($data, $i);
             $individualOrder['instrument_id'] = $market['id'];
             $individualOrder['amount'] = $this->safe_number($rawOrder, 'amount');
             $individualOrder['price'] = $this->safe_number($rawOrder, 'price');
@@ -4645,7 +4645,7 @@ class digifinex extends Exchange {
                 $depositWithdrawInfo = $depositWithdrawFee['info'];
                 $depositWithdrawInfo[] = $entry;
                 $networkId = $this->safe_string($entry, 'chain');
-                $withdrawFee = $this->safe_value($entry, 'min_withdraw_fee');
+                $withdrawFee = $this->safe_number($entry, 'min_withdraw_fee');
                 $withdrawResult = array(
                     'fee' => $withdrawFee,
                     'percentage' => ($withdrawFee !== null) ? false : null,

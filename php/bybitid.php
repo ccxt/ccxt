@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\bybitid as bybit;
 
 class bybitid extends bybit {
-    public function describe(): mixed {
+    public function describe(): array {
         // Bybit Indonesia serves the same v5 API as the global exchange, with the
         // same product categories (spot, linear, inverse, option) but its own
         // listings and accounts, so only the identity and hostname differ here.

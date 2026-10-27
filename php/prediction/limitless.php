@@ -19,7 +19,7 @@ use React\Promise;
 use React\Promise\PromiseInterface;
 
 class limitless extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'limitless',
             'name' => 'Limitless',
@@ -3097,8 +3097,7 @@ class limitless extends Exchange {
         $eventKeys = is_array($eventGroups) ? array_keys($eventGroups) : array();
         $eventKeysLength = count($eventKeys);
         for ($i = 0; $i < $eventKeysLength; $i++) {
-            $g = $this->safe_value($eventGroups, $eventKeys[$i]);
-            $ev = $this->parse_event($g);
+            $ev = $this->parse_event($this->safe_dict($eventGroups, $eventKeys[$i], array()));
             $result[] = $ev;
         }
         // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
@@ -3236,13 +3235,12 @@ class limitless extends Exchange {
          * @ignore
          * builds the request URL and attaches the lmts authentication headers for private endpoints
          * @param {string} $path the endpoint $path
-         * @param {string[]} [$api] the $api group and $access level
+         * @param {string[]} [$api] the $api group and access level
          * @param {string} [$method] HTTP $method
          * @param {array} [$params] request parameters
          * @return {array} a dictionary with $url, $method, body and headers
          */
         $apiGroup = $api[0];
-        $access = $api[1];
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['limitless']);
         $url = '/' . $this->implode_params($path, $params);
@@ -3253,7 +3251,7 @@ class limitless extends Exchange {
         }
         $headersValue = null;
         $bodyValue = null;
-        if ($access === 'private') {
+        if ($api[1] === 'private') {
             $bodyString = '';
             $headersValue = array();
             if ($method === 'POST' && ($querystring !== '')) {

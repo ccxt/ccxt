@@ -16,7 +16,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class kucoin extends \ccxt\async\kucoin {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -299,7 +299,7 @@ class kucoin extends \ccxt\async\kucoin {
         $now = $this->milliseconds();
         $expired = ($now - $lastUpdate) >= $refreshInterval;
         $messageHash = 'utaToken';
-        $url = $this->urls['api']['ws']['private'];
+        $url = $this->safe_string($this->urls['api']['ws'], 'private', '');
         $client = $this->client($url);
         if (($utaToken === null) || $expired) {
             if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
@@ -514,7 +514,7 @@ class kucoin extends \ccxt\async\kucoin {
                 $symbol = $symbolsNormalized[$i];
                 $messageHashes[] = 'ticker:' . $symbol;
                 $market = $this->market($symbol);
-                $topics[] = $method . ':' . $market['id'];
+                $topics[] = $method . ':' . $this->safe_string($market, 'id', '');
             }
         }
         $url = Async\await($this->negotiate(false, $isFuturesMethod));

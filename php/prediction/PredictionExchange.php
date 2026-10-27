@@ -27,7 +27,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'prediction' => true,
@@ -571,8 +571,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        $outcomeValue = ($outcome === null) ? '' : $outcome;
-        $upper = strtoupper($outcomeValue);
+        $upper = ($outcome === null) ? '' : strtoupper($outcome);
         $allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         $chars = $this->string_to_chars_array($upper);
         $label = '';
@@ -1314,11 +1313,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // own-line length reads so the regex transpiler emits count() (array), not strlen()
         $feeListLength = count($feeList);
         if (($fee === null) && ($feeListLength > 0)) {
-            $reduced = $this->reduce_fees_by_currency($feeList);
-            $reducedLength = count($reduced);
-            if ($reducedLength > 0) {
-                $fee = $this->safe_dict($reduced, 0);
-            }
+            $fee = $this->safe_dict($this->reduce_fees_by_currency($feeList), 0);
         }
         // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC

@@ -20,7 +20,7 @@ use React\Async;
 use React\Promise\PromiseInterface;
 
 class mudrex extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'mudrex',
             'name' => 'Mudrex',

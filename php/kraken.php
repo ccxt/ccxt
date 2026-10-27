@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\kraken as Exchange;
 
 class kraken extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'kraken',
             'name' => 'Kraken',
@@ -3767,7 +3767,7 @@ class kraken extends Exchange {
         if ($response === null) {
             return null;
         }
-        if ($body[0] === '{') {
+        if ($this->safe_string($body, 0) === '{') {
             if (gettype($response) !== 'string') {
                 $message = $this->id . ' ' . $body;
                 $errors = $this->safe_list($response, 'error');

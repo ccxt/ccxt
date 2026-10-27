@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\indodax as Exchange;
 
 class indodax extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'indodax',
             'name' => 'INDODAX',

@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\coincheck as Exchange;
 
 class coincheck extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coincheck',
             'name' => 'Coincheck',
@@ -268,10 +268,11 @@ class coincheck extends Exchange {
             $code = $codes[$i];
             $currency = $this->currency($code);
             $currencyId = $currency['id'];
-            if (is_array($response) && array_key_exists($currencyId ?? '', $response)) {
+            $free = $this->safe_string($response, $currencyId);
+            if ($free !== null) {
                 $account = $this->account();
                 $reserved = $currencyId . '_reserved';
-                $account['free'] = $this->safe_string($response, $currencyId);
+                $account['free'] = $free;
                 $account['used'] = $this->safe_string($response, $reserved);
                 $result[$code] = $account;
             }
@@ -563,10 +564,11 @@ class coincheck extends Exchange {
         $side = null;
         $fee = null;
         $orderId = null;
-        if (is_array($trade) && array_key_exists('liquidity' ?? '', $trade)) {
-            if ($this->safe_string($trade, 'liquidity') === 'T') {
+        $liquidity = $this->safe_string($trade, 'liquidity');
+        if ($liquidity !== null) {
+            if ($liquidity === 'T') {
                 $takerOrMaker = 'taker';
-            } elseif ($this->safe_string($trade, 'liquidity') === 'M') {
+            } elseif ($liquidity === 'M') {
                 $takerOrMaker = 'maker';
             }
             $funds = $this->safe_dict($trade, 'funds', array());

@@ -20,7 +20,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class hitbtc extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'hitbtc',
             'name' => 'HitBTC',
@@ -870,7 +870,7 @@ class hitbtc extends Exchange {
                 $inverse = !$linear;
                 $symbol = $base . '/' . $quote . ':' . $settle;
                 if ($future) {
-                    $symbol = $base . '/' . $quote . ':' . $settle . '-' . $this->number_to_string($expiry);
+                    $symbol = $base . '/' . $quote . ':' . $settle . '-' . $this->safe_string($market, 'expiry', '');
                     $type = 'future';
                 } else {
                     $type = 'swap';

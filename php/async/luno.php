@@ -18,7 +18,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class luno extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'luno',
             'name' => 'Luno',
@@ -1798,8 +1798,10 @@ class luno extends Exchange {
         //     }
         //
         $result = $this->deposit_withdraw_fee($response);
-        $result['withdraw']['fee'] = $this->safe_number($response, 'fee');
-        $result['withdraw']['percentage'] = false;
+        $result['withdraw'] = array(
+            'fee' => $this->safe_number($response, 'fee'),
+            'percentage' => false,
+        );
         return $this->assign_default_deposit_withdraw_fees($result, $currency);
     }
 

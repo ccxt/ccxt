@@ -22,7 +22,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class whitebit extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'whitebit',
             'name' => 'WhiteBit',
@@ -711,7 +711,7 @@ class whitebit extends Exchange {
         $withdrawLimits = $this->safe_dict($networkLimits, 'withdraw', array());
         $allNetworks = $this->array_concat($depositsNetworks, $withdrawsNetworks);
         for ($j = 0; $j < count($allNetworks); $j++) {
-            $networkId = $allNetworks[$j];
+            $networkId = $this->safe_string($allNetworks, $j, '');
             $networkCode = $this->network_id_to_code($networkId, $code);
             $networkDepositLimits = $this->safe_dict($depositLimits, $networkId, array());
             $networkWithdrawLimits = $this->safe_dict($withdrawLimits, $networkId, array());
@@ -4465,7 +4465,7 @@ class whitebit extends Exchange {
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $query = $this->omit($params, $this->extract_params($path));
         $version = $api[0];
-        $accessibility = $this->safe_string($api, 1);
+        $accessibility = $api[1];
         $publicHeaders = array();
         $publicHeaders['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
         $pathWithParams = '/' . $this->implode_params($path, $params);
@@ -4538,10 +4538,9 @@ class whitebit extends Exchange {
                     $errorKeys = is_array($errorObject) ? array_keys($errorObject) : array();
                     $errorsLength = count($errorKeys);
                     if ($errorsLength > 0) {
-                        $errorKey = $errorKeys[0];
+                        $errorKey = $this->safe_string($errorKeys, 0, '');
                         $errorMessageArray = $this->safe_list($errorObject, $errorKey, array());
-                        $errorMessageLength = count($errorMessageArray);
-                        $errorInfo = ($errorMessageLength > 0) ? $errorMessageArray[0] : $body;
+                        $errorInfo = $this->safe_string($errorMessageArray, 0, $body);
                     }
                 }
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorInfo, $feedback);
@@ -4556,10 +4555,9 @@ class whitebit extends Exchange {
                 $errKeysLength = count($errKeys);
                 $errorInfo = $body;
                 if ($errKeysLength > 0) {
-                    $errorKey = $errKeys[0];
+                    $errorKey = $this->safe_string($errKeys, 0, '');
                     $errorMessageArray = $this->safe_list($errMsg, $errorKey, array());
-                    $errorMessageLength = count($errorMessageArray);
-                    $errorInfo = ($errorMessageLength > 0) ? $errorMessageArray[0] : $body;
+                    $errorInfo = $this->safe_string($errorMessageArray, 0, $body);
                 }
                 $feedback = $this->id . ' ' . $body;
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorInfo, $feedback);

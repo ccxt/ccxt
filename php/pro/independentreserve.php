@@ -18,7 +18,7 @@ use const ccxt\DECIMAL_PLACES;
 use const ccxt\PAD_WITH_ZERO;
 
 class independentreserve extends \ccxt\async\independentreserve {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,

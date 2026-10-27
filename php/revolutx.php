@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\revolutx as Exchange;
 
 class revolutx extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'revolutx',
             'name' => 'Revolut X',
@@ -208,7 +208,6 @@ class revolutx extends Exchange {
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $requestHeaders = null;
-        $requestBody = null;
         $implodedPath = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $apiName = $api[0];
@@ -219,6 +218,7 @@ class revolutx extends Exchange {
         $baseUrl = $baseApiUrl;
         $url = $baseUrl . '/' . $implodedPath;
         $queryString = '';
+        $bodyString = '';
         if ($apiName === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
@@ -233,11 +233,9 @@ class revolutx extends Exchange {
                     $url .= '?' . $queryString;
                 }
             } else {
-                $requestBody = $this->json($query);
+                $bodyString = $this->json($query);
             }
             $requestPath = '/api/' . $implodedPath;
-            $bodyValue = $requestBody;
-            $bodyString = ($bodyValue !== null) ? $bodyValue : '';
             $message = $timestamp . strtoupper($method) . $requestPath . $queryString . $bodyString;
             $signature = $this->eddsa($this->encode($message), $this->privateKey, 'ed25519');
             $requestHeaders = array(
@@ -255,12 +253,12 @@ class revolutx extends Exchange {
                     $url .= '?' . $queryString;
                 }
             } else {
-                $requestBody = $this->json($query);
+                $bodyString = $this->json($query);
                 $requestHeaders = array( 'Content-Type' => 'application/json' );
             }
         }
         $headersResult = $requestHeaders;
-        $bodyResult = $requestBody;
+        $bodyResult = ($bodyString !== '') ? $bodyString : null;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 

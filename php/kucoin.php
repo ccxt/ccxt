@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\kucoin as Exchange;
 
 class kucoin extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'kucoin',
             'name' => 'KuCoin',
@@ -3657,13 +3657,12 @@ class kucoin extends Exchange {
                 $request['chain'] = strtolower($_netIdTmp);
             }
         }
-        $getVersions = $this->safe_dict($this->safe_dict($this->safe_dict($this->options, 'versions', array()), 'private', array()), 'GET', array());
-        $version = $getVersions['deposit-addresses'];
-        $this->options['versions']['private']['GET']['deposit-addresses'] = 'v1';
+        $version = $this->get_deposit_addresses_version();
+        $this->set_deposit_addresses_version('v1');
         $response = $this->privateGetDepositAddresses($this->extend($request, $paramsRequest));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
-        $this->options['versions']['private']['GET']['deposit-addresses'] = $version;
+        $this->set_deposit_addresses_version($version);
         $data = $this->safe_dict($response, 'data');
         if ($data === null) {
             throw new ExchangeError($this->id . ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again');
@@ -3788,9 +3787,8 @@ class kucoin extends Exchange {
             //
             $response = $this->utaPrivateGetAssetDepositAddress($this->extend($request, $paramsRequest));
         } else {
-            $getVersions = $this->safe_dict($this->safe_dict($this->safe_dict($this->options, 'versions', array()), 'private', array()), 'GET', array());
-            $version = $getVersions['deposit-addresses'];
-            $this->options['versions']['private']['GET']['deposit-addresses'] = 'v2';
+            $version = $this->get_deposit_addresses_version();
+            $this->set_deposit_addresses_version('v2');
             $response = $this->privateGetDepositAddresses($this->extend($request, $paramsRequest));
             //
             //     {
@@ -3807,7 +3805,7 @@ class kucoin extends Exchange {
             //         ]
             //     }
             //
-            $this->options['versions']['private']['GET']['deposit-addresses'] = $version;
+            $this->set_deposit_addresses_version($version);
         }
         $chains = $this->safe_list($response, 'data', array());
         $parsed = $this->parse_deposit_addresses($chains, array( $currency['code'] ), false, array(
@@ -11766,6 +11764,15 @@ class kucoin extends Exchange {
         }
         $uta = $this->safe_bool($this->options, 'uta') === true;
         return $uta;
+    }
+
+    public function get_deposit_addresses_version(): string {
+        $getVersions = $this->safe_dict($this->safe_dict($this->safe_dict($this->options, 'versions', array()), 'private', array()), 'GET', array());
+        return $this->safe_string($getVersions, 'deposit-addresses', 'v1');
+    }
+
+    public function set_deposit_addresses_version(string $version) {
+        $this->options['versions']['private']['GET']['deposit-addresses'] = $version;
     }
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {

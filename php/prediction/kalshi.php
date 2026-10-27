@@ -16,7 +16,7 @@ use React\Async;
 use React\Promise\PromiseInterface;
 
 class kalshi extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'kalshi',
             'name' => 'Kalshi',
@@ -279,7 +279,10 @@ class kalshi extends Exchange {
                 $parsed = $this->parse_binary_market_to_outcomes($raw);
                 $eventTicker = $this->safe_string($raw, 'event_ticker');
                 $eventTitle = $this->safe_string($raw, 'title', $eventTicker);
-                $eventKey = ($eventTitle !== null && $eventTitle !== '') ? $this->shorten_slug($eventTitle) : '';
+                $eventKey = '';
+                if ($eventTitle !== null && $eventTitle !== '') {
+                    $eventKey = $this->shorten_slug($eventTitle);
+                }
                 for ($j = 0; $j < count($parsed); $j++) {
                     $m = $parsed[$j];
                     $flatMarkets[] = $m;
@@ -2110,7 +2113,7 @@ class kalshi extends Exchange {
         $filledCount = $this->safe_number($response, 'fill_count');
         if ($filledCount !== null) {
             $order['filled'] = $filledCount;
-        } elseif (($remainingCount !== null) && ($amount !== null)) {
+        } elseif ($remainingCount !== null) {
             $order['filled'] = $amount - $remainingCount;
         }
         if ($remainingCount !== null) {

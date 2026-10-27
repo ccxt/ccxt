@@ -21,7 +21,7 @@ use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class bybit extends \ccxt\async\bybit {
-    public function describe(): mixed {
+    public function describe(): array {
         $superDescribe = parent::describe();
         return $this->deep_extend($superDescribe, $this->describe_data());
     }
@@ -286,7 +286,7 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
         }
         $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params, true);
-        $url = $this->implode_hostname($this->urls['api']['ws']['private']['trade']);
+        $url = $this->implode_hostname($this->safe_string($this->urls['api']['ws']['private'], 'trade', ''));
         Async\await($this->authenticate($url));
         $requestId = (string) $this->request_id();
         $request = array(
@@ -337,7 +337,7 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
         }
         $orderRequest = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
-        $url = $this->implode_hostname($this->urls['api']['ws']['private']['trade']);
+        $url = $this->implode_hostname($this->safe_string($this->urls['api']['ws']['private'], 'trade', ''));
         Async\await($this->authenticate($url));
         $requestId = (string) $this->request_id();
         $request = array(
@@ -379,7 +379,7 @@ class bybit extends \ccxt\async\bybit {
             throw new ArgumentsRequired($this->id . ' cancelOrderWs() requires a symbol argument');
         }
         $orderRequest = $this->cancel_order_request($id, $symbol, $params);
-        $url = $this->implode_hostname($this->urls['api']['ws']['private']['trade']);
+        $url = $this->implode_hostname($this->safe_string($this->urls['api']['ws']['private'], 'trade', ''));
         Async\await($this->authenticate($url));
         $requestId = (string) $this->request_id();
         if (is_array($orderRequest) && array_key_exists('orderFilter' ?? '', $orderRequest)) {
@@ -458,7 +458,7 @@ class bybit extends \ccxt\async\bybit {
         $marketIds = $this->market_ids($symbolsValue);
         $topics = array();
         for ($i = 0; $i < count($marketIds); $i++) {
-            $marketId = $marketIds[$i];
+            $marketId = $this->safe_string($marketIds, $i, '');
             $topics[] = $topic . '.' . $marketId;
             $messageHashes[] = 'ticker:' . $this->safe_string($symbolsValue, $i, '');
         }
@@ -500,7 +500,7 @@ class bybit extends \ccxt\async\bybit {
         $marketIds = $this->market_ids($symbolsValue);
         $topics = array();
         for ($i = 0; $i < count($marketIds); $i++) {
-            $marketId = $marketIds[$i];
+            $marketId = $this->safe_string($marketIds, $i, '');
             $symbol = $symbolsValue[$i];
             $topics[] = $topic . '.' . $marketId;
             $subMessageHashes[] = 'ticker:' . $symbol;
@@ -699,7 +699,7 @@ class bybit extends \ccxt\async\bybit {
         $marketIds = $this->market_ids($symbolsValue);
         $topics = array();
         for ($i = 0; $i < count($marketIds); $i++) {
-            $marketId = $marketIds[$i];
+            $marketId = $this->safe_string($marketIds, $i, '');
             $topic = 'orderbook.1.' . $marketId;
             $topics[] = $topic;
             $messageHashes[] = 'bidask:' . $this->safe_string($symbolsValue, $i, '');

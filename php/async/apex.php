@@ -17,7 +17,7 @@ use const ccxt\TRUNCATE;
 use const ccxt\TICK_SIZE;
 
 class apex extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'apex',
             'name' => 'Apex',
@@ -1531,9 +1531,7 @@ class apex extends Exchange {
         $configResponse = Async\await($this->publicGetV3Symbols($params));
         $configData = $this->safe_dict($configResponse, 'data', array());
         $contractConfig = $this->safe_dict($configData, 'contractConfig', array());
-        $contractAssets = $this->safe_list($contractConfig, 'assets', array());
         $spotConfig = $this->safe_dict($configData, 'spotConfig', array());
-        $spotAssets = $this->safe_list($spotConfig, 'assets', array());
         $globalConfig = $this->safe_dict($spotConfig, 'global', array());
         $receiverAddress = $this->safe_string($globalConfig, 'contractAssetPoolEthAddress', '');
         $receiverZkAccountId = $this->safe_string($globalConfig, 'contractAssetPoolZkAccountId', '');
@@ -1554,13 +1552,15 @@ class apex extends Exchange {
         $accountId = $this->safe_string($accountData, 'id', '');
         $currency = array();
         $isContract = strtolower($fromAccount) === 'contract';
-        $assets = $spotAssets;
+        $assets = $this->safe_list($spotConfig, 'assets', array());
         if ($isContract) {
-            $assets = $contractAssets;
+            $assets = $this->safe_list($contractConfig, 'assets', array());
         }
-        for ($i = 0; $i < count($assets); $i++) {
-            if ($this->safe_string($this->safe_dict($assets, $i, array()), 'token', '') === $code) {
-                $currency = $this->safe_dict($assets, $i, array());
+        $numAssets = count($assets);
+        for ($i = 0; $i < $numAssets; $i++) {
+            $asset = $this->safe_dict($assets, $i, array());
+            if ($this->safe_string($asset, 'token', '') === $code) {
+                $currency = $asset;
             }
         }
         $tokenId = $this->safe_string($currency, 'tokenId', '');

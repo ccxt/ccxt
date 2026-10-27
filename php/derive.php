@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\derive as Exchange;
 
 class derive extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'derive',
             'name' => 'Derive',
@@ -850,7 +850,9 @@ class derive extends Exchange {
             $expiry = $this->safe_timestamp($optionDetails, 'expiry');
             $strike = $this->safe_number($optionDetails, 'strike'); // strikes can be fractional, e.g. XRP-20261225-0_5-P is a 0.5 strike
             $optionLetter = $this->safe_string($optionDetails, 'option_type');
-            $symbol = $base . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry) . '-' . $this->number_to_string($strike) . '-' . $optionLetter;
+            if ($settle !== null) {
+                $symbol = $base . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry) . '-' . $this->number_to_string($strike) . '-' . $optionLetter;
+            }
             if ($optionLetter === 'P') {
                 $optionType = 'put';
             } else {

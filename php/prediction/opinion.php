@@ -24,7 +24,7 @@ use const ccxt\TRUNCATE;
 use const ccxt\DECIMAL_PLACES;
 
 class opinion extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'opinion',
             'name' => 'Opinion',
@@ -319,8 +319,8 @@ class opinion extends Exchange {
         $outcomes = array();
         $resolvedOutcome = null;
         for ($i = 0; $i < count($outcomeLabels); $i++) {
-            $label = $outcomeLabels[$i];
-            $tokenId = $outcomeTokenIds[$i];
+            $label = $this->safe_string($outcomeLabels, $i);
+            $tokenId = $this->safe_string($outcomeTokenIds, $i);
             $outcomeHandle = $this->slug_to_outcome_symbol($effectiveEventSlug, $slug, $label);
             $winner = null;
             $settleFraction = null;
@@ -773,8 +773,8 @@ class opinion extends Exchange {
         for ($i = 0; $i < $outcomesLength; $i++) {
             $outcomeObj = $this->outcome($outcomes[$i]);
             $priceIndex = $i * 2;
-            $priceResponse = $responses[$priceIndex];
-            $bookResponse = $responses[$this->sum($priceIndex, 1)];
+            $priceResponse = $this->safe_value($responses, $priceIndex);
+            $bookResponse = $this->safe_value($responses, $this->sum($priceIndex, 1));
             $response = array( 'price' => $priceResponse, 'book' => $bookResponse );
             $ticker = $this->parse_prediction_ticker($response, $outcomeObj);
             $symbolKey = $this->safe_string($ticker, 'outcome');
@@ -984,7 +984,7 @@ class opinion extends Exchange {
         );
         $encoded = $this->eth_encode_structured_data($domain, $messageTypes, $order);
         $sig = $this->sign_message($encoded, $this->privateKey);
-        return '0x' . $this->remove0x_prefix($sig['r']) . $this->remove0x_prefix($sig['s']) . $this->int_to_base16($sig['v']);
+        return '0x' . $this->remove0x_prefix($this->safe_string($sig, 'r')) . $this->remove0x_prefix($this->safe_string($sig, 's')) . $this->int_to_base16($this->safe_integer($sig, 'v'));
     }
 
     public function opinion_order_raw_amounts(bool $isMarket, string $side, ?float $amount, ?float $price, ?int $decimals): array {
@@ -1616,7 +1616,7 @@ class opinion extends Exchange {
         );
         $encoded = $this->eth_encode_structured_data($domain, $messageTypes, $messageData);
         $sig = $this->sign_message($encoded, $this->privateKey);
-        return '0x' . $this->remove0x_prefix($sig['r']) . $this->remove0x_prefix($sig['s']) . $this->int_to_base16($sig['v']);
+        return '0x' . $this->remove0x_prefix($this->safe_string($sig, 'r')) . $this->remove0x_prefix($this->safe_string($sig, 's')) . $this->int_to_base16($this->safe_integer($sig, 'v'));
     }
 
     public function create_api_key($params = array()): PromiseInterface {
