@@ -1797,12 +1797,12 @@ public partial class BaseExchange
         {
             return defaultValue;  // unsupported marketType, check "exchange.features" for details
         }
+        object methodsContainer = (this.features != null && marketType != null && this.features.ContainsKey((string)marketType) ? this.features[(string)marketType] : null);
         // if marketType dict undefined
-        if (((this.features != null && marketType != null && this.features.ContainsKey((string)marketType) ? this.features[(string)marketType] : null) == null))
+        if ((methodsContainer == null))
         {
             return defaultValue;
         }
-        object methodsContainer = (this.features != null && marketType != null && this.features.ContainsKey((string)marketType) ? this.features[(string)marketType] : null);
         if ((subType == null))
         {
             if (!(marketType is "spot"))
@@ -1811,16 +1811,16 @@ public partial class BaseExchange
             }
         } else
         {
-            if (!(inOp((this.features != null && marketType != null && this.features.ContainsKey((string)marketType) ? this.features[(string)marketType] : null), subType)))
+            if (!(inOp(methodsContainer, subType)))
             {
                 return defaultValue;  // unsupported subType, check "exchange.features" for details
             }
+            methodsContainer = getValue(methodsContainer, subType);
             // if subType dict undefined
-            if ((getValue((this.features != null && marketType != null && this.features.ContainsKey((string)marketType) ? this.features[(string)marketType] : null), subType) == null))
+            if ((methodsContainer == null))
             {
                 return defaultValue;
             }
-            methodsContainer = getValue((this.features != null && marketType != null && this.features.ContainsKey((string)marketType) ? this.features[(string)marketType] : null), subType);
         }
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if ((methodName == null))
@@ -4977,15 +4977,14 @@ public partial class BaseExchange
             } else
             {
                 // still processing the same timeframeVar -> update opening trade
-                object prevHigh = getValue((ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null), i_high);
-                object prevLow = getValue((ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null), i_low);
-                object prevHighValue = ((prevHigh == null)) ? price : prevHigh;
-                object prevLowValue = ((prevLow == null)) ? price : prevLow;
-                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_high)] = mathMax(prevHighValue, price);
-                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_low)] = mathMin(prevLowValue, price);
+                object prevCandle = this.safeValue(ohlcvs, candle);
+                object prevHigh = this.safeValue(prevCandle, i_high);
+                object prevLow = this.safeValue(prevCandle, i_low);
+                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_high)] = mathMax(((prevHigh == null)) ? price : prevHigh, price);
+                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_low)] = mathMin(((prevLow == null)) ? price : prevLow, price);
                 ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_close)] = price;
-                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_volume)] = this.sum(getValue((ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null), i_volume), (trade != null && trade.ContainsKey("amount") ? trade["amount"] : null));
-                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_count)] = this.sum(getValue((ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null), i_count), 1);
+                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_volume)] = this.sum(this.safeValue(prevCandle, i_volume), (trade != null && trade.ContainsKey("amount") ? trade["amount"] : null));
+                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_count)] = this.sum(this.safeValue(prevCandle, i_count), 1);
             }
         }
         return ohlcvs;
@@ -6385,8 +6384,7 @@ public partial class BaseExchange
         {
             for (int i = 0; i < getArrayLength(pricesData); i++)
             {
-                Dictionary<string, object> priceData = this.extend(this.parseLastPrice(getValue(pricesData, i)), parameters);
-                results.Add(priceData);
+                results.Add(this.extend(this.parseLastPrice(getValue(pricesData, i)), parameters));
             }
         } else
         {
@@ -6395,12 +6393,10 @@ public partial class BaseExchange
             {
                 string? marketId = ((string)marketIds[i]);
                 Dictionary<string, object> market = this.safeMarket(marketId);
-                Dictionary<string, object> priceData = this.extend(this.parseLastPrice(getValue(pricesData, marketId), market), parameters);
-                results.Add(priceData);
+                results.Add(this.extend(this.parseLastPrice(getValue(pricesData, marketId), market), parameters));
             }
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        return this.indexBy(this.filterByArray(results, "symbol", symbolsNormalized, false), "symbol");
+        return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols), false), "symbol");
     }
 
     public virtual Dictionary<string, ccxt.Ticker> parseTickers(object tickers, IList<object> symbols = null, object parameters = null)
@@ -6433,9 +6429,7 @@ public partial class BaseExchange
         {
             for (int i = 0; i < getArrayLength(tickers); i++)
             {
-                ccxt.Ticker parsedTicker = this.parseTicker(getValue(tickers, i));
-                Dictionary<string, object> ticker = this.extend(ccxt.BaseExchange.FromTicker(parsedTicker), parameters);
-                results.Add(ticker);
+                results.Add(this.extend(ccxt.BaseExchange.FromTicker(this.parseTicker(getValue(tickers, i))), parameters));
             }
         } else
         {
@@ -6444,13 +6438,10 @@ public partial class BaseExchange
             {
                 string? marketId = ((string)marketIds[i]);
                 Dictionary<string, object> market = this.safeMarket(marketId);
-                ccxt.Ticker parsed = this.parseTicker(getValue(tickers, marketId), market);
-                Dictionary<string, object> ticker = this.extend(ccxt.BaseExchange.FromTicker(parsed), parameters);
-                results.Add(ticker);
+                results.Add(this.extend(ccxt.BaseExchange.FromTicker(this.parseTicker(getValue(tickers, marketId), market)), parameters));
             }
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        return new ccxt.Tickers(this.filterByArrayTickers(results, "symbol", symbolsNormalized)).tickers;
+        return new ccxt.Tickers(this.filterByArrayTickers(results, "symbol", this.marketSymbols(symbols))).tickers;
     }
 
     public virtual object parseDepositAddresses(object addresses, object codes = null, bool? indexed = null, object parameters = null)
@@ -7835,9 +7826,7 @@ public partial class BaseExchange
         {
             for (int i = 0; i < getArrayLength(greeks); i++)
             {
-                IDictionary<string, object> parsedTicker = ((IDictionary<string, object>)this.parseGreeks(getValue(greeks, i)));
-                Dictionary<string, object> greek = this.extend(parsedTicker, parameters);
-                results.Add(greek);
+                results.Add(this.extend(this.parseGreeks(getValue(greeks, i)), parameters));
             }
         } else
         {
@@ -7846,13 +7835,10 @@ public partial class BaseExchange
             {
                 string? marketId = ((string)marketIds[i]);
                 Dictionary<string, object> market = this.safeMarket(marketId);
-                IDictionary<string, object> parsed = ((IDictionary<string, object>)this.parseGreeks(getValue(greeks, marketId), market));
-                Dictionary<string, object> greek = this.extend(parsed, parameters);
-                results.Add(greek);
+                results.Add(this.extend(this.parseGreeks(getValue(greeks, marketId), market), parameters));
             }
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        return this.indexBy(this.filterByArray(results, "symbol", symbolsNormalized, false), "symbol");
+        return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols), false), "symbol");
     }
 
     public virtual object parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
