@@ -3,6 +3,473 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchOHLCV": [
+            {
+                "description": "crypto spot",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://api.ibkr.com/v1/api/ws?oauth_token=84270d7070618c28432c",
+                "messages": [
+                    {
+                        "topic": "system",
+                        "success": "todua1991",
+                        "isFT": false,
+                        "isPaper": false
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "liteUnderPro": false,
+                                    "noFXConv": false,
+                                    "isProp": false,
+                                    "supportsFractions": true,
+                                    "allowCustomerTime": false,
+                                    "autoFx": false
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ12001",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae02512.00000477",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "connected": true,
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "message": "",
+                            "fail": "",
+                            "serverName": "JifZ12001",
+                            "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM",
+                            "username": "todua1991"
+                        }
+                    },
+                    {
+                        "55": "BTC",
+                        "6119": "q9",
+                        "7635": "80515.75",
+                        "conidEx": "479624278",
+                        "topic": "smd+479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123539179,
+                        "server_id": "q9"
+                    },
+                    {
+                        "55": "BTC",
+                        "6119": "q9",
+                        "7635": "80515.75",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123539179,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "serverId": "3461206",
+                        "symbol": "BTC",
+                        "text": "Bitcoin cryptocurrency",
+                        "priceFactor": 4,
+                        "startTime": "20261027-15:52:00",
+                        "high": "322908/2.27330346/95",
+                        "low": "321307/0.57966535/21",
+                        "timePeriod": "7200s",
+                        "barLength": 60,
+                        "mdAvailability": "S",
+                        "mktDataDelay": 0,
+                        "outsideRth": false,
+                        "volumeFactor": 1,
+                        "priceDisplayRule": 1,
+                        "priceDisplayValue": "2",
+                        "negativeCapable": false,
+                        "messageVersion": 2,
+                        "data": [
+                            {
+                                "o": 80519.25,
+                                "c": 80506,
+                                "h": 80527,
+                                "l": 80504,
+                                "v": 0.50736735,
+                                "t": 1793123460000
+                            },
+                            {
+                                "o": 80506,
+                                "c": 80504,
+                                "h": 80521.25,
+                                "l": 80504,
+                                "v": 0.00019705,
+                                "t": 1793123520000
+                            }
+                        ],
+                        "points": 120,
+                        "travelTime": 101,
+                        "topic": "smh+479624278",
+                        "payload": "{\"exchange\":\"SMART\",\"period\":\"2h\",\"bar\":\"1min\",\"outsideRth\":false,\"source\":\"trades\"}"
+                    },
+                    {
+                        "message": "Unsubscribed 3461206"
+                    },
+                    {
+                        "31": "80520.00",
+                        "70": "80726.75",
+                        "71": "79326.50",
+                        "82": "+631.75",
+                        "83": 0.79,
+                        "84": "80507.00",
+                        "85": "0.60325287",
+                        "86": "80512.50",
+                        "88": "0.26756552",
+                        "6119": "q9",
+                        "6509": "R",
+                        "7059": "0.00001242",
+                        "7635": "80504.10",
+                        "7741": "79888.25",
+                        "7762": "705",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123539679,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "6119": "q9",
+                        "7635": "80505.50",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123540180,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "84": "80506.50",
+                        "88": "0.02484265",
+                        "6119": "q9",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123540680,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "31": "80499.25",
+                        "82": "+611.00",
+                        "83": 0.76,
+                        "84": "80504.50",
+                        "86": "80507.25",
+                        "88": "0.02484328",
+                        "6119": "q9",
+                        "7059": "0.01992148",
+                        "7635": "80501.00",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123541180,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "84": "80505.00",
+                        "86": "80506.50",
+                        "88": "0.02484317",
+                        "6119": "q9",
+                        "7059": "0.00492324",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123542181,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "84": "80504.50",
+                        "86": "80507.25",
+                        "88": "0.02484332",
+                        "6119": "q9",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123543180,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "31": "80497.75",
+                        "82": "+609.50",
+                        "84": "80504.25",
+                        "88": "0.02484339",
+                        "6119": "q9",
+                        "7059": "0.00000971",
+                        "7635": "80499.30",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123543680,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "84": "80504.00",
+                        "86": "80506.25",
+                        "88": "0.02484341",
+                        "6119": "q9",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123544180,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "6119": "q9",
+                        "7635": "80497.80",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123544681,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "31": "80507.75",
+                        "82": "+619.50",
+                        "83": 0.78,
+                        "84": "80500.25",
+                        "88": "2.50000000",
+                        "6119": "q9",
+                        "7059": "0.00005900",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123545181,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "84": "80504.00",
+                        "88": "0.02484345",
+                        "6119": "q9",
+                        "7635": "80506.25",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123545681,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793123546355
+                    },
+                    {
+                        "84": "80503.50",
+                        "88": "0.02484359",
+                        "6119": "q9",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123546681,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "31": "80515.25",
+                        "82": "+627.00",
+                        "84": "80501.50",
+                        "88": "1.21361900",
+                        "6119": "q9",
+                        "7059": "0.00001243",
+                        "server_id": "q9",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123547182,
+                        "topic": "smd+479624278"
+                    }
+                ],
+                "httpResponse": {
+                    "session": "0e6dc29c550041f76448e320a48c5c5b",
+                    "hmds": {
+                        "error": "no bridge"
+                    },
+                    "iserver": {
+                        "authStatus": {
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "connected": true,
+                            "message": "",
+                            "MAC": "06:61:A2:5D:8E:CE",
+                            "serverInfo": {
+                                "serverName": "JifZ12001",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "hardware_info": "d6d1cd6f|06:61:A2:5D:8E:CE"
+                        }
+                    }
+                },
+                "sentMessages": [
+                    "smd+479624278+{\"fields\":[\"31\",\"55\",\"70\",\"71\",\"82\",\"83\",\"84\",\"85\",\"86\",\"88\",\"7059\",\"7295\",\"7635\",\"7741\",\"7762\"]}",
+                    "smh+479624278+{\"exchange\":\"SMART\",\"period\":\"2h\",\"bar\":\"1min\",\"outsideRth\":false,\"source\":\"trades\"}",
+                    "umh+3461206"
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1793123460000,
+                            80519.25,
+                            80527,
+                            80504,
+                            80506,
+                            0.50736735
+                        ],
+                        [
+                            1793123520000,
+                            80506,
+                            80521.25,
+                            80504,
+                            80504,
+                            0.00019705
+                        ]
+                    ],
+                    [
+                        [
+                            1793123520000,
+                            80506,
+                            80521.25,
+                            80504,
+                            80520,
+                            0.00020946999999999998
+                        ]
+                    ],
+                    [
+                        [
+                            1793123520000,
+                            80506,
+                            80521.25,
+                            80499.25,
+                            80499.25,
+                            0.020130949999999998
+                        ]
+                    ],
+                    [
+                        [
+                            1793123520000,
+                            80506,
+                            80521.25,
+                            80497.75,
+                            80497.75,
+                            0.020140659999999998
+                        ]
+                    ],
+                    [
+                        [
+                            1793123520000,
+                            80506,
+                            80521.25,
+                            80497.75,
+                            80507.75,
+                            0.020199659999999998
+                        ]
+                    ],
+                    [
+                        [
+                            1793123520000,
+                            80506,
+                            80521.25,
+                            80497.75,
+                            80515.25,
+                            0.02021209
+                        ]
+                    ]
+                ]
+            }
+        ],
         "watchBidsAsks": [
             {
                 "description": "crypto spot multiple",
