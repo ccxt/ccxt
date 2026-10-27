@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -78,6 +79,23 @@ class paradex extends \ccxt\async\paradex {
         return $requestId;
     }
 
+    public function subscribe_request(string $channel): array {
+        /**
+         * @ignore
+         * builds a json-rpc subscribe request, its id is kept in the subscription passed to watch, so an error reply reaches only the watchers of that request
+         * @param {string} $channel the $channel to subscribe to
+         * @return {array} the subscribe request
+         */
+        return array(
+            'jsonrpc' => '2.0',
+            'id' => $this->request_id(),
+            'method' => 'subscribe',
+            'params' => array(
+                'channel' => $channel,
+            ),
+        );
+    }
+
     public function authenticate($params = array()) {
         return Async\async(self::do_authenticate(...))($params);
     }
@@ -90,15 +108,19 @@ class paradex extends \ccxt\async\paradex {
         $authenticated = $this->safe_value($client->subscriptions, $messageHash);
         if ($authenticated === null) {
             $token = Async\await($this->authenticateRest());
+            $requestId = $this->request_id();
             $request = array(
                 'jsonrpc' => '2.0',
-                'id' => $this->request_id(),
+                'id' => $requestId,
                 'method' => 'auth',
                 'params' => array(
                     'bearer' => $token,
                 ),
             );
-            $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
+            $subscription = array(
+                'id' => $requestId,
+            );
+            $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, $subscription);
         }
         return Async\await($future);
     }
@@ -111,13 +133,39 @@ class paradex extends \ccxt\async\paradex {
         //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
+        // the future stays resolved, so later private watches on this connection skip the auth request
+        $future = $this->safe_value($client->futures, 'authenticated');
+        if ($future !== null) {
+            $future->resolve(true);
+        }
+    }
+
+    public function handle_request_reply(Client $client, array $message) {
+        //
+        // auth
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": { "node_id": "73cf456f7cb78d59" }
+        //     }
+        //
+        // subscribe
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 2,
+        //         "result": { "channel": "orders.ALL" }
+        //     }
+        //
+        // only the reply to the auth request resolves the auth, a subscribe ack carries a channel instead of a node id
+        $requestId = $this->safe_string($message, 'id');
+        $authSubscription = $this->safe_dict($client->subscriptions, 'authenticated');
+        $authRequestId = $this->safe_string($authSubscription, 'id');
         $result = $this->safe_dict($message, 'result');
-        if ($result !== null) {
-            // client.resolve (true, messageHash);
-            $future = $this->safe_value($client->futures, 'authenticated');
-            if ($future !== null) {
-                $future->resolve(true);
-            }
+        $isAuth = (($requestId !== null) && ($requestId === $authRequestId)) || ($this->safe_string($result, 'node_id') !== null);
+        if ($isAuth) {
+            $this->handle_authentication_message($client, $message);
         }
     }
 
@@ -146,14 +194,12 @@ class paradex extends \ccxt\async\paradex {
             $messageHash = 'trades.' . $market['id'];
         }
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $messageHash,
-            ),
+        $request = $this->subscribe_request($messageHash);
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => array( $messageHash ),
         );
-        $trades = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+        $trades = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, $subscription));
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $trades->getLimit($symbol, $limit);
@@ -222,14 +268,12 @@ class paradex extends \ccxt\async\paradex {
         $market = $this->market($symbol);
         $messageHash = $this->get_order_book_channel($market['id']);
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $messageHash,
-            ),
+        $request = $this->subscribe_request($messageHash);
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => array( $messageHash ),
         );
-        $orderbook = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+        $orderbook = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, $subscription));
         return $orderbook->limit();
     }
 
@@ -321,15 +365,13 @@ class paradex extends \ccxt\async\paradex {
         // option too, thousands of messages a second, all decoded only to be filtered out
         $channel = 'markets_summary.' . $market['id'];
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $channel,
-            ),
-        );
         $messageHash = 'markets_summary.' . $market['symbol'];
-        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel));
+        $request = $this->subscribe_request($channel);
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => array( $messageHash ),
+        );
+        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel, $subscription));
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -352,13 +394,6 @@ class paradex extends \ccxt\async\paradex {
         $symbolsNormalized = $this->market_symbols($symbols);
         $channel = 'markets_summary';
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $channel,
-            ),
-        );
         $messageHashes = array();
         if ($symbolsNormalized !== null && (gettype($symbolsNormalized) === 'array' && array_keys($symbolsNormalized) === array_keys(array_keys($symbolsNormalized)))) {
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
@@ -368,7 +403,11 @@ class paradex extends \ccxt\async\paradex {
         } else {
             $messageHashes[] = $channel;
         }
-        $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
+        $request = $this->subscribe_request($channel);
+        $subscription = array(
+            'id' => $request['id'],
+        );
+        $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes, $subscription));
         if ($this->newUpdates) {
             $result = array();
             $newTickerSymbol = $this->safe_string($newTicker, 'symbol');
@@ -409,14 +448,12 @@ class paradex extends \ccxt\async\paradex {
             $messageHash = 'orders:' . $symbolResolved;
         }
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $channel,
-            ),
+        $request = $this->subscribe_request($channel);
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => array( $messageHash ),
         );
-        $orders = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel));
+        $orders = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel, $subscription));
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $orders->getLimit($symbolResolved, $limit);
@@ -498,14 +535,12 @@ class paradex extends \ccxt\async\paradex {
             $messageHash = 'myTrades:' . $symbolResolved;
         }
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $channel,
-            ),
+        $request = $this->subscribe_request($channel);
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => array( $messageHash ),
         );
-        $trades = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel));
+        $trades = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel, $subscription));
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $trades->getLimit($symbolResolved, $limit);
@@ -579,13 +614,6 @@ class paradex extends \ccxt\async\paradex {
         // one channel carries every market
         $channel = 'positions';
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $channel,
-            ),
-        );
         $messageHashes = array();
         $symbolsLength = 0;
         if ($symbolsNormalized !== null) {
@@ -598,7 +626,12 @@ class paradex extends \ccxt\async\paradex {
                 $messageHashes[] = $channel . ':' . ($symbolsNormalized)[$i];
             }
         }
-        $newPositions = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), array( $channel )));
+        $request = $this->subscribe_request($channel);
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => $messageHashes,
+        );
+        $newPositions = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), array( $channel ), $subscription));
         if ($this->newUpdates) {
             return $newPositions;
         }
@@ -682,14 +715,13 @@ class paradex extends \ccxt\async\paradex {
         Async\await($this->authenticate());
         $channel = 'account';
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $channel,
-            ),
+        $messageHash = 'balance';
+        $request = $this->subscribe_request($channel);
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => array( $messageHash ),
         );
-        return Async\await($this->watch($url, 'balance', $this->deep_extend($request, $params), $channel));
+        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel, $subscription));
     }
 
     public function handle_balance(Client $client, array $message) {
@@ -822,15 +854,13 @@ class paradex extends \ccxt\async\paradex {
         $symbolValue = $this->symbol($symbol);
         $channel = 'funding_data';
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $channel,
-            ),
-        );
         $messageHash = $channel . '.' . $symbolValue;
-        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+        $request = $this->subscribe_request($channel);
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => array( $messageHash ),
+        );
+        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, $subscription));
     }
 
     public function watch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
@@ -853,13 +883,6 @@ class paradex extends \ccxt\async\paradex {
         $symbolsNormalized = $this->market_symbols($symbols);
         $channel = 'funding_data';
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $channel,
-            ),
-        );
         $messageHashes = array();
         if ($symbolsNormalized !== null) {
             $symbolsLength = count($symbolsNormalized);
@@ -874,7 +897,11 @@ class paradex extends \ccxt\async\paradex {
         } else {
             $messageHashes[] = $channel;
         }
-        $newFundingRates = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
+        $request = $this->subscribe_request($channel);
+        $subscription = array(
+            'id' => $request['id'],
+        );
+        $newFundingRates = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes, $subscription));
         if ($this->newUpdates) {
             $result = array();
             $newFundingRatesSymbol = $this->safe_string($newFundingRates, 'symbol');
@@ -1518,18 +1545,49 @@ class paradex extends \ccxt\async\paradex {
         $error = $this->safe_dict($message, 'error');
         if ($error === null) {
             return true;
-        } else {
+        }
+        try {
+            $feedback = $this->id . ' ' . $this->json($error);
             $errorCode = $this->safe_string($error, 'code');
             if ($errorCode !== null) {
-                $feedback = $this->id . ' ' . $this->json($error);
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], '-32600', $feedback);
-                $messageString = $this->safe_string($error, 'message');
-                if ($messageString !== null) {
-                    $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            }
+            $messageString = $this->safe_string($error, 'message');
+            if ($messageString !== null) {
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
+            }
+            throw new ExchangeError($feedback);
+        } catch (Exception $e) {
+            // the subscription of every request sent keeps its id, so the request this error answers is found
+            // by it. A failed subscribe or auth is forgotten, so that the next watch sends it again
+            $requestId = $this->safe_string($message, 'id');
+            $handled = false;
+            if ($requestId !== null) {
+                $subscribeHashes = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+                for ($i = 0; $i < count($subscribeHashes); $i++) {
+                    $subscribeHash = $subscribeHashes[$i];
+                    $subscription = $this->safe_dict($client->subscriptions, $subscribeHash);
+                    if ($this->safe_string($subscription, 'id') === $requestId) {
+                        $handled = true;
+                        unset($client->subscriptions[$subscribeHash]);
+                        // watchMultiple subscribes per message hash, so the subscribe hash is what its watcher waits on
+                        $messageHashes = $this->safe_list($subscription, 'messageHashes', array( $subscribeHash ));
+                        for ($j = 0; $j < count($messageHashes); $j++) {
+                            $client->reject($e, $messageHashes[$j]);
+                        }
+                    }
                 }
             }
-            return false;
+            if (!$handled) {
+                // not a reply to a known request, every watcher on the connection gets the error,
+                // and the next private watch authenticates again instead of waiting on a rejected future
+                if (is_array($client->subscriptions) && array_key_exists('authenticated' ?? '', $client->subscriptions)) {
+                    unset($client->subscriptions['authenticated']);
+                }
+                $client->reject($e);
+            }
         }
+        return false;
     }
 
     public function handle_message(Client $client, mixed $message) {
@@ -1573,7 +1631,7 @@ class paradex extends \ccxt\async\paradex {
         //
         $result = $this->safe_dict($parsedMessage, 'result');
         if ($result !== null) {
-            $this->handle_authentication_message($client, $parsedMessage);
+            $this->handle_request_reply($client, $parsedMessage);
             return;
         }
         $data = $this->safe_dict($parsedMessage, 'params');

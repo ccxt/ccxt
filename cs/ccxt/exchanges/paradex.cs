@@ -18,7 +18,7 @@ public partial class paradex : Exchange
             { "dex", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
-                { "spot", false },
+                { "spot", true },
                 { "margin", false },
                 { "swap", true },
                 { "future", false },
@@ -605,6 +605,10 @@ public partial class paradex : Exchange
                     { "40110", typeof(AuthenticationError) },
                     { "40111", typeof(AuthenticationError) },
                     { "40112", typeof(PermissionDenied) },
+                    { "40300", typeof(PermissionDenied) },
+                    { "40301", typeof(NotSupported) },
+                    { "42900", typeof(OperationRejected) },
+                    { "42901", typeof(RateLimitExceeded) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "missing or malformed jwt", typeof(AuthenticationError) },
@@ -617,7 +621,15 @@ public partial class paradex : Exchange
                 { "broker", "CCXT" },
             } },
             { "features", new Dictionary<string, object>() {
-                { "spot", null },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "forSwap" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "triggerPrice", false },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                    } },
+                } },
                 { "forSwap", new Dictionary<string, object>() {
                     { "sandbox", true },
                     { "createOrder", new Dictionary<string, object>() {
@@ -861,12 +873,31 @@ public partial class paradex : Exchange
         //     ]
         //  }
         //
+        // spot
+        //
+        //     {
+        //         "symbol": "ETH-USD",
+        //         "base_currency": "ETH",
+        //         "quote_currency": "USD",
+        //         "settlement_currency": "USDC",
+        //         "order_size_increment": "0.0001",
+        //         "price_tick_size": "0.01",
+        //         "min_notional": "10",
+        //         "asset_kind": "SPOT",
+        //         "market_kind": "cross",
+        //         ...
+        //     }
+        //
         string? assetKind = this.safeString(market, "asset_kind");
+        bool isSpot = (assetKind == "SPOT");
         bool isOptionPerpetual = (assetKind == "PERP_OPTION");
         bool isOptionDelivery = (assetKind == "OPTION");
         bool isOption = isOptionPerpetual || isOptionDelivery;
         string type = "swap";
-        if (isOption)
+        if (isSpot)
+        {
+            type = "spot";
+        } else if (isOption)
         {
             type = "option";
         }
@@ -874,15 +905,26 @@ public partial class paradex : Exchange
         string? marketId = this.safeString(market, "symbol");
         string? quoteId = this.safeString(market, "quote_currency");
         string? baseId = this.safeString(market, "base_currency");
+        string? settleId = this.safeString(market, "settlement_currency");
+        if (isSpot)
+        {
+            // spot is quoted in "USD" but paid and received in the settlement token (USDC),
+            // a spot market has no settle, so the token it trades against is the quote
+            quoteId = settleId;
+            settleId = null;
+        }
         string? quote = this.safeCurrencyCode(quoteId);
         string? bs = this.safeCurrencyCode(baseId);
         if (((bs == null)) || ((quote == null)))
         {
             return null;
         }
-        string? settleId = this.safeString(market, "settlement_currency");
         string? settle = this.safeCurrencyCode(settleId);
-        string symbol = ((((bs + "/") + quote) + ":") + settle);
+        string symbol = ((bs + "/") + quote);
+        if (!isSpot)
+        {
+            symbol = ((symbol + ":") + settle);
+        }
         Int64? expiry = this.safeInteger(market, "expiry_at");
         string? optionType = this.safeString(market, "option_type");
         string? strikePrice = this.safeString(market, "strike_price");
@@ -913,18 +955,18 @@ public partial class paradex : Exchange
             { "quoteId", quoteId },
             { "settleId", settleId },
             { "type", type },
-            { "spot", false },
+            { "spot", isSpot },
             { "margin", null },
             { "swap", isSwap },
             { "future", false },
             { "option", isOption },
             { "active", this.safeBool(market, "enableTrading") },
-            { "contract", true },
-            { "linear", true },
-            { "inverse", false },
+            { "contract", !isSpot },
+            { "linear", isSpot ? null : true },
+            { "inverse", isSpot ? null : false },
             { "taker", takerFee },
             { "maker", makerFee },
-            { "contractSize", this.parseNumber("1") },
+            { "contractSize", isSpot ? null : this.parseNumber("1") },
             { "expiry", expiry },
             { "expiryDatetime", expireDatetime },
             { "strike", this.parseNumber(strikePrice) },
@@ -1099,7 +1141,7 @@ public partial class paradex : Exchange
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-     * @param {string} [params.price] "last", "mark", "index", default is "last"
+     * @param {string} [params.price] "last", "mark", "index" (sent as "underlying"), default is "last"
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1120,7 +1162,8 @@ public partial class paradex : Exchange
         string? price = this.safeString(parameters, "price");
         if ((price != null))
         {
-            request["price_kind"] = price;
+            // the exchange names the index price "underlying" and rejects "index"
+            request["price_kind"] = (price == "index") ? "underlying" : price;
         }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end_at", request, parameters);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
@@ -2371,39 +2414,49 @@ public partial class paradex : Exchange
         }
         Dictionary<string, object> response = await this.privatePostOrdersBatch(ordersRequests);
         //
-        // {
-        //     "errors": [
-        //         {
-        //             "error": "VALIDATION_ERROR",
-        //             "message": "Invalid order"
-        //         }
-        //     ],
-        //     "orders": [
-        //         {
-        //             "id": "123456",
-        //             "market": "BTC-USD-PERP",
-        //             "side": "BUY",
-        //             "type": "LIMIT",
-        //             "price": "26000",
-        //             "size": "0.05",
-        //             "status": "NEW"
-        //         }
-        //     ]
-        // }
+        // orders and errors are index-aligned with the request, null where the other array has the entry
+        //
+        //     {
+        //         "errors": [
+        //             null,
+        //             {
+        //                 "error": "DUPLICATED_CLIENT_ID",
+        //                 "message": "duplicated client order id"
+        //             }
+        //         ],
+        //         "orders": [
+        //             {
+        //                 "id": "123456",
+        //                 "market": "BTC-USD-PERP",
+        //                 "side": "BUY",
+        //                 "type": "LIMIT",
+        //                 "price": "26000",
+        //                 "size": "0.05",
+        //                 "status": "NEW"
+        //             },
+        //             null
+        //         ]
+        //     }
         //
         List<object> responseOrders = this.safeList(response, "orders", new List<object>() {});
-        IList<object> parsedOrders = ccxt.BaseExchange.FromOrderList(this.parseOrders(responseOrders));
         List<object> errors = this.safeList(response, "errors", new List<object>() {});
-        List<object> rejected = new List<object>() {};
-        for (int i = 0; i < (errors?.Count ?? 0); i++)
+        List<object> result = new List<object>() {};
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
-            object error = errors[i];
-            rejected.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
-                { "info", error },
-                { "status", "rejected" },
-            })));
+            IDictionary<string, object> responseOrder = this.safeDict(responseOrders, i);
+            if ((responseOrder != null))
+            {
+                result.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(responseOrder)));
+            } else
+            {
+                IDictionary<string, object> error = this.safeDict(errors, i);
+                result.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
+                    { "info", error },
+                    { "status", "rejected" },
+                })));
+            }
         }
-        return ccxt.BaseExchange.ToOrderList(this.arrayConcat(parsedOrders, rejected));
+        return ccxt.BaseExchange.ToOrderList(result);
     }
 
     /**
@@ -4109,6 +4162,27 @@ public partial class paradex : Exchange
         //     }
         //
         string? errorCode = this.safeString(response, "error");
+        if (((errorCode == null)) && (isEqual(httpCode, 400)))
+        {
+            //
+            // a batch where every order was rejected, errors are index-aligned with the request
+            //
+            //     {
+            //         "errors": [ { "error": "DUPLICATED_CLIENT_ID", "message": "..." } ],
+            //         "orders": [ null ]
+            //     }
+            //
+            List<object> batchErrors = this.safeList(response, "errors", new List<object>() {});
+            for (int i = 0; i < (batchErrors?.Count ?? 0); i++)
+            {
+                string? batchErrorCode = this.safeString(batchErrors[i], "error");
+                if ((batchErrorCode != null))
+                {
+                    errorCode = batchErrorCode;
+                    break;
+                }
+            }
+        }
         if ((errorCode != null))
         {
             string feedback = ((this.id + " ") + (body));

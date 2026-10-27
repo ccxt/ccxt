@@ -34,6 +34,9 @@ class kraken extends \ccxt\async\kraken {
                 'watchBidsAsks' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
+                'unWatchOHLCV' => true,
+                'unWatchTrades' => true,
+                'unWatchTradesForSymbols' => true,
                 'createOrderWs' => true,
                 'editOrderWs' => true,
                 'cancelOrderWs' => true,
@@ -827,6 +830,57 @@ class kraken extends \ccxt\async\kraken {
         return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         * stop watching the list of most recent trades for a particular $symbol
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+         *
+         * @param {string} $symbol unified $symbol of the market to stop watching the trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
+    }
+
+    public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades_for_symbols(...))($symbols, $params);
+    }
+
+    private function do_un_watch_trades_for_symbols(array $symbols, $params = array()) {
+        /**
+         * stop watching the list of most recent trades for a list of $symbols
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+         *
+         * @param {string[]} $symbols unified $symbols of the markets to stop watching the trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch $request
+         */
+        Async\await($this->load_markets());
+        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, false);
+        $unsubMessageHashes = array();
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $unsubMessageHashes[] = 'unsubscribe:' . $this->get_message_hash('trade', null, $symbolsNormalized[$i]);
+        }
+        $request = array(
+            'method' => 'unsubscribe',
+            'params' => array(
+                'channel' => 'trade',
+                'symbol' => $symbolsNormalized,
+            ),
+            'req_id' => $this->request_id(),
+        );
+        $request['params'] = $this->deep_extend($request['params'], $params);
+        $url = ($this->urls['api'])['ws']['publicV2'];
+        // kraken acknowledges each symbol separately, see handleUnsubscriptionStatus
+        return Async\await($this->watch_multiple($url, $unsubMessageHashes, $request, $unsubMessageHashes));
+    }
+
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         /**
          * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -908,6 +962,40 @@ class kraken extends \ccxt\async\kraken {
             $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
         }
         return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 'timestamp', true);
+    }
+
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
+    }
+
+    private function do_un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()) {
+        /**
+         * stop watching historical candlestick data for a $market
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
+         *
+         * @param {string} $symbol unified $symbol of the $market to stop watching the candles for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch $request
+         */
+        Async\await($this->load_markets());
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $unsubMessageHash = 'unsubscribe:' . $this->get_message_hash('ohlcv', $interval, $symbolValue);
+        $unsubscribe = array(
+            'method' => 'unsubscribe',
+            'params' => array(
+                'channel' => 'ohlc',
+                'symbol' => array( $symbolValue ),
+                'interval' => $this->safe_value($this->timeframes, $timeframe, $timeframe),
+            ),
+            'req_id' => $this->request_id(),
+        );
+        $request = $this->deep_extend($unsubscribe, $params);
+        $url = ($this->urls['api'])['ws']['publicV2'];
+        return Async\await($this->watch($url, $unsubMessageHash, $request, $unsubMessageHash));
     }
 
     public function load_markets($reload = false, $params = array()) {
@@ -1748,6 +1836,37 @@ class kraken extends \ccxt\async\kraken {
         // }
     }
 
+    public function handle_unsubscription_status(Client $client, array $message): array {
+        //
+        // one acknowledgement per symbol in the unsubscribe request
+        //
+        //     {
+        //         "method": "unsubscribe",
+        //         "req_id": 4,
+        //         "result": { "channel": "ohlc", "interval": 5, "symbol": "BTC/USD" },
+        //         "success": true,
+        //         "time_in": "2026-10-26T16:12:36.610481Z",
+        //         "time_out": "2026-10-26T16:12:36.610502Z"
+        //     }
+        //
+        $result = $this->safe_dict($message, 'result', array());
+        $channel = $this->safe_string($result, 'channel');
+        $symbol = $this->safe_symbol($this->safe_string($result, 'symbol'));
+        if ($channel === 'trade') {
+            $subMessageHash = $this->get_message_hash('trade', null, $symbol);
+            $this->clean_cache(array( 'topic' => 'trades', 'symbols' => array( $symbol ) ));
+            $this->clean_unsubscription($client, $subMessageHash, 'unsubscribe:' . $subMessageHash);
+        } elseif ($channel === 'ohlc') {
+            $interval = $this->safe_integer($result, 'interval');
+            $timeframe = $this->find_timeframe($interval);
+            $subMessageHash = $this->get_message_hash('ohlcv', null, $symbol);
+            $unsubMessageHash = 'unsubscribe:' . $this->get_message_hash('ohlcv', $this->number_to_string($interval), $symbol);
+            $this->clean_cache(array( 'topic' => 'ohlcv', 'symbolsAndTimeframes' => array( array( $symbol, $timeframe ) ) ));
+            $this->clean_unsubscription($client, $subMessageHash, $unsubMessageHash);
+        }
+        return $message;
+    }
+
     public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     {
@@ -1817,6 +1936,7 @@ class kraken extends \ccxt\async\kraken {
                 'heartbeat' => array($this, 'handle_heartbeat'),
                 'systemStatus' => array($this, 'handle_system_status'),
                 'subscriptionStatus' => array($this, 'handle_subscription_status'),
+                'unsubscribe' => array($this, 'handle_unsubscription_status'),
                 'add_order' => array($this, 'handle_create_edit_order'),
                 'amend_order' => array($this, 'handle_create_edit_order'),
                 'cancel_order' => array($this, 'handle_cancel_order'),

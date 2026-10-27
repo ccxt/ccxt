@@ -11703,8 +11703,12 @@ impl std::ops::DerefMut for ${coreName} {
                 'preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); '
                 + 'let mut __w = callExchangeMethodDynamically(&mut exchange, $1).await; '
                 + 'let mut __g = 0; '
+                // an unWatch* call must not be repeated: every repeat re-sends the
+                // unsubscribe and the sentMessages assertion counts it, so its
+                // leftover frames (per-symbol acks) are replayed into handle_message
+                + 'if matches!(&method, Value::Str(__m) if __m.starts_with("unWatch")) { drainWsMessages(&mut exchange, url.clone()).await; } else { '
                 + 'while is_true(&wsHasQueuedMessages(exchange.clone(), url.clone())) && __g < 500 { '
-                + '__w = callExchangeMethodDynamically(&mut exchange, $1).await; __g += 1; } '
+                + '__w = callExchangeMethodDynamically(&mut exchange, $1).await; __g += 1; } } '
                 + 'let mut promises: Value = Value::from(vec![__w, Value::Bool(true)]);',
             );
             // Static-WS-test parsedResponses (sequence) case: inject + watch-loop
