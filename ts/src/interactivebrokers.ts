@@ -482,7 +482,7 @@ export default class interactivebrokers extends Exchange {
                 'fetchTickers': {
                     // 31 last, 55 symbol, 70 high, 71 low, 82 change, 83 change %, 84 bid, 85 ask size, 86 ask, 88 bid size,
                     // 7295 open, 7296 close, 7635 mark, 7741 prior close, 7762 volume (full precision), 6509 market data availability
-                    'fields': '31,55,70,71,82,83,84,85,86,88,6457,6509,7058,7295,7296,7635,7741,7762',
+                    'fields': [ '31','55','70','71','82','83','84','85','86','88','6457','6509','7058','7295','7296','7635','7741','7762' ],
                     'retries': 5, // the first snapshot request only subscribes, data arrives on subsequent requests
                     'retryDelay': 500,
                 },
@@ -1584,8 +1584,9 @@ export default class interactivebrokers extends Exchange {
         }
         await this.loadMarkets ();
         const symbolsNormalized = this.marketSymbols (symbols);
-        const [ fields, query ] = this.handleOptionAndParams (params, 'fetchTickers', 'fields');
-        const response = await this.ibkrFetchSnapshot (symbolsNormalized, fields, query);
+        const [ fields, query ] = this.handleOptionAndParams (params, 'fetchTickers', 'fields') as any[];
+        const fieldsString = fields.join(',');
+        const response = await this.ibkrFetchSnapshot (symbolsNormalized, fieldsString, query);
         //
         //     [
         //         {

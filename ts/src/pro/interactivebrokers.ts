@@ -25,7 +25,6 @@ export default class interactivebrokers extends interactivebrokersRest {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchPositions': false,
-                'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': false,
                 'unWatchBalance': true,
@@ -34,7 +33,6 @@ export default class interactivebrokers extends interactivebrokersRest {
                 'unWatchOHLCV': true,
                 'unWatchOrderBook': true,
                 'unWatchOrders': true,
-                'unWatchTicker': true,
                 'unWatchTickers': true,
             },
             'urls': {
@@ -54,7 +52,7 @@ export default class interactivebrokers extends interactivebrokersRest {
                 'OHLCVLimit': 1000,
                 'awaitAuthenticated': true, // wait for {"topic":"sts","args":{"authenticated":true}} before subscribing
                 'tickleInterval': 240000, // POST /tickle and refresh the market data streams every 4 minutes (they expire after 15 minutes)
-                'watchTicker': {
+                'watchTickers': {
                     // 31 last, 55 symbol, 70 high, 71 low, 82 change, 83 change %, 84 bid, 85 ask size, 86 ask, 88 bid size,
                     // 7059 last size, 7295 open, 7635 mark, 7741 prior close, 7762 volume
                     'fields': [ '31', '55', '70', '71', '82', '83', '84', '85', '86', '88', '7059', '7295', '7635', '7741', '7762' ],
@@ -264,29 +262,12 @@ export default class interactivebrokers extends interactivebrokersRest {
      * @returns {Array} the raw message and the params without fields
      */
     ibkrMarketDataRequest (marketId: Str, params: Dict = {}): any[] {
-        const options = this.safeDict (this.options, 'watchTicker', {});
+        const options = this.safeDict (this.options, 'watchTickers', {});
         const defaultFields = this.safeList (options, 'fields', []);
         const fields = this.safeList (params, 'fields', defaultFields);
         const query = this.omit (params, 'fields');
         const request = 'smd+' + marketId + '+' + this.json ({ 'fields': fields });
         return [ request, query ];
-    }
-
-    /**
-     * @method
-     * @name interactivebrokers#watchTicker
-     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://www.interactivebrokers.com/docs/web-api/ws/streaming-data
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string[]} [params.fields] the market data fields to stream, default options.watchTicker.fields
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
-        await this.loadMarkets ();
-        const unifiedSymbol = this.symbol (symbol);
-        const tickers = await this.watchTickers ([ unifiedSymbol ], params);
-        return tickers[unifiedSymbol];
     }
 
     /**
