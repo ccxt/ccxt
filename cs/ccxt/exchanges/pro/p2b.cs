@@ -179,7 +179,7 @@ public partial class p2b : ccxt.p2b
         List<object> args = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market((symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null));
+            Dictionary<string, object> market = this.market(symbolsNormalized[i]);
             messageHashes.Add(add(add(nameOption, "::"), this.safeString(market, "symbol", "")));
             args.Add((market.ContainsKey("id") ? market["id"] : null));
         }

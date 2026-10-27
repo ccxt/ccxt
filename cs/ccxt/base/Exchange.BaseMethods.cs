@@ -2160,7 +2160,7 @@ public partial class BaseExchange
             IDictionary<string, object> value = this.safeDict(marketValues, i, new Dictionary<string, object>() {});
             if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey10 && marketsById.ContainsKey(inOpKey10)))
             {
-                object marketsByIdArray = ((object)getValue(marketsById, (value != null && value.ContainsKey("id") ? value["id"] : null)));
+                object marketsByIdArray = getValue(marketsById, (value != null && value.ContainsKey("id") ? value["id"] : null));
                 ((IList<object>)marketsByIdArray).Add(value);
                 marketsById[(string)(value != null && value.ContainsKey("id") ? value["id"] : null)] = marketsByIdArray;
             } else
@@ -2246,8 +2246,7 @@ public partial class BaseExchange
             quoteCurrencies = this.sortBy(quoteCurrencies, "code", false, "");
             this.baseCurrencies = this.mapToSafeMap(this.indexBy(baseCurrencies, "code"));
             this.quoteCurrencies = this.mapToSafeMap(this.indexBy(quoteCurrencies, "code"));
-            List<object> allCurrencies = this.arrayConcat(baseCurrencies, quoteCurrencies);
-            Dictionary<string, object> groupedCurrencies = this.groupBy(allCurrencies, "code");
+            Dictionary<string, object> groupedCurrencies = this.groupBy(this.arrayConcat(baseCurrencies, quoteCurrencies), "code");
             List<object> codes = new List<object>(groupedCurrencies.Keys);
             List<object> resultingCurrencies = new List<object>() {};
             for (int i = 0; i < codes.Count; i++)
@@ -2277,8 +2276,7 @@ public partial class BaseExchange
                 }
                 resultingCurrencies.Add(highestPrecisionCurrency);
             }
-            List<object> sortedCurrencies = this.sortBy(resultingCurrencies, "code");
-            this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, this.indexBy(sortedCurrencies, "code")));
+            this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, this.indexBy(this.sortBy(resultingCurrencies, "code"), "code")));
         }
         this.currencies_by_id = this.indexBySafe(this.currencies, "id");
         Dictionary<string, object> currenciesSortedByCode = this.keysort(this.currencies);
@@ -2359,16 +2357,16 @@ public partial class BaseExchange
             {
                 used = Precise.stringSub(total, free);
             }
-            ((IDictionary<string,object>)getValue(balance, code))["free"] = this.parseNumber(free);
-            ((IDictionary<string,object>)getValue(balance, code))["used"] = this.parseNumber(used);
-            ((IDictionary<string,object>)getValue(balance, code))["total"] = this.parseNumber(total);
-            freeBalance[(string)code] = getValue(getValue(balance, code), "free");
-            usedBalance[(string)code] = getValue(getValue(balance, code), "used");
-            totalBalance[(string)code] = getValue(getValue(balance, code), "total");
+            freeBalance[(string)code] = this.parseNumber(free);
+            usedBalance[(string)code] = this.parseNumber(used);
+            totalBalance[(string)code] = this.parseNumber(total);
+            ((IDictionary<string,object>)getValue(balance, code))["free"] = (code != null && freeBalance.ContainsKey(code) ? freeBalance[code] : null);
+            ((IDictionary<string,object>)getValue(balance, code))["used"] = (code != null && usedBalance.ContainsKey(code) ? usedBalance[code] : null);
+            ((IDictionary<string,object>)getValue(balance, code))["total"] = (code != null && totalBalance.ContainsKey(code) ? totalBalance[code] : null);
             if ((debt != null))
             {
-                ((IDictionary<string,object>)getValue(balance, code))["debt"] = this.parseNumber(debt);
-                debtBalance[(string)code] = getValue(getValue(balance, code), "debt");
+                debtBalance[(string)code] = this.parseNumber(debt);
+                ((IDictionary<string,object>)getValue(balance, code))["debt"] = (code != null && debtBalance.ContainsKey(code) ? debtBalance[code] : null);
             }
         }
         ((IDictionary<string,object>)balance)["free"] = freeBalance;
@@ -3943,7 +3941,7 @@ public partial class BaseExchange
                 object item = getValue(response, i);
                 string? id = ((marketIdKey == null)) ? null : this.safeString(item, marketIdKey);
                 Dictionary<string, object> market = this.safeMarket(id, null, null, "swap");
-                string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+                string? symbol = this.safeString(market, "symbol", "");
                 bool? contract = this.safeBool(market, "contract", false);
                 if ((contract == true) && (noSymbols || (((symbolsNormalized != null)) && this.inArray(symbol, symbolsNormalized))))
                 {
@@ -3958,7 +3956,7 @@ public partial class BaseExchange
                 string? marketId = ((string)keys[i]);
                 object item = getValue(response, marketId);
                 Dictionary<string, object> market = this.safeMarket(marketId, null, null, "swap");
-                string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+                string? symbol = this.safeString(market, "symbol", "");
                 bool? contract = this.safeBool(market, "contract", false);
                 if ((contract == true) && (noSymbols || (((symbolsNormalized != null)) && this.inArray(symbol, symbolsNormalized))))
                 {
@@ -5727,18 +5725,6 @@ public partial class BaseExchange
         {
             throw new ArgumentsRequired ((this.id + " createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument")) ;
         }
-        if ((takeProfit != null))
-        {
-            ((IDictionary<string,object>)parameters)["takeProfit"] = new Dictionary<string, object>() {
-                { "triggerPrice", takeProfit },
-            };
-        }
-        if ((stopLoss != null))
-        {
-            ((IDictionary<string,object>)parameters)["stopLoss"] = new Dictionary<string, object>() {
-                { "triggerPrice", stopLoss },
-            };
-        }
         string? takeProfitType = this.safeString(parameters, "takeProfitType");
         string? takeProfitPriceType = this.safeString(parameters, "takeProfitPriceType");
         string? takeProfitLimitPrice = this.safeString(parameters, "takeProfitLimitPrice");
@@ -5747,37 +5733,51 @@ public partial class BaseExchange
         string? stopLossPriceType = this.safeString(parameters, "stopLossPriceType");
         string? stopLossLimitPrice = this.safeString(parameters, "stopLossLimitPrice");
         string? stopLossAmount = this.safeString(parameters, "stopLossAmount");
-        if ((takeProfitType != null))
+        if ((takeProfit != null))
         {
-            ((IDictionary<string,object>)(((IDictionary<string, object>)parameters).ContainsKey("takeProfit") ? ((IDictionary<string, object>)parameters)["takeProfit"] : null))["type"] = takeProfitType;
+            Dictionary<string, object> takeProfitRequest = new Dictionary<string, object>() {
+                { "triggerPrice", takeProfit },
+            };
+            if ((takeProfitType != null))
+            {
+                takeProfitRequest["type"] = takeProfitType;
+            }
+            if ((takeProfitPriceType != null))
+            {
+                takeProfitRequest["priceType"] = takeProfitPriceType;
+            }
+            if ((takeProfitLimitPrice != null))
+            {
+                takeProfitRequest["price"] = this.parseToNumeric(takeProfitLimitPrice);
+            }
+            if ((takeProfitAmount != null))
+            {
+                takeProfitRequest["amount"] = this.parseToNumeric(takeProfitAmount);
+            }
+            ((IDictionary<string,object>)parameters)["takeProfit"] = takeProfitRequest;
         }
-        if ((takeProfitPriceType != null))
+        if ((stopLoss != null))
         {
-            ((IDictionary<string,object>)(((IDictionary<string, object>)parameters).ContainsKey("takeProfit") ? ((IDictionary<string, object>)parameters)["takeProfit"] : null))["priceType"] = takeProfitPriceType;
-        }
-        if ((takeProfitLimitPrice != null))
-        {
-            ((IDictionary<string,object>)(((IDictionary<string, object>)parameters).ContainsKey("takeProfit") ? ((IDictionary<string, object>)parameters)["takeProfit"] : null))["price"] = this.parseToNumeric(takeProfitLimitPrice);
-        }
-        if ((takeProfitAmount != null))
-        {
-            ((IDictionary<string,object>)(((IDictionary<string, object>)parameters).ContainsKey("takeProfit") ? ((IDictionary<string, object>)parameters)["takeProfit"] : null))["amount"] = this.parseToNumeric(takeProfitAmount);
-        }
-        if ((stopLossType != null))
-        {
-            ((IDictionary<string,object>)(((IDictionary<string, object>)parameters).ContainsKey("stopLoss") ? ((IDictionary<string, object>)parameters)["stopLoss"] : null))["type"] = stopLossType;
-        }
-        if ((stopLossPriceType != null))
-        {
-            ((IDictionary<string,object>)(((IDictionary<string, object>)parameters).ContainsKey("stopLoss") ? ((IDictionary<string, object>)parameters)["stopLoss"] : null))["priceType"] = stopLossPriceType;
-        }
-        if ((stopLossLimitPrice != null))
-        {
-            ((IDictionary<string,object>)(((IDictionary<string, object>)parameters).ContainsKey("stopLoss") ? ((IDictionary<string, object>)parameters)["stopLoss"] : null))["price"] = this.parseToNumeric(stopLossLimitPrice);
-        }
-        if ((stopLossAmount != null))
-        {
-            ((IDictionary<string,object>)(((IDictionary<string, object>)parameters).ContainsKey("stopLoss") ? ((IDictionary<string, object>)parameters)["stopLoss"] : null))["amount"] = this.parseToNumeric(stopLossAmount);
+            Dictionary<string, object> stopLossRequest = new Dictionary<string, object>() {
+                { "triggerPrice", stopLoss },
+            };
+            if ((stopLossType != null))
+            {
+                stopLossRequest["type"] = stopLossType;
+            }
+            if ((stopLossPriceType != null))
+            {
+                stopLossRequest["priceType"] = stopLossPriceType;
+            }
+            if ((stopLossLimitPrice != null))
+            {
+                stopLossRequest["price"] = this.parseToNumeric(stopLossLimitPrice);
+            }
+            if ((stopLossAmount != null))
+            {
+                stopLossRequest["amount"] = this.parseToNumeric(stopLossAmount);
+            }
+            ((IDictionary<string,object>)parameters)["stopLoss"] = stopLossRequest;
         }
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount"}));
         return paramsOmitted;
@@ -7255,7 +7255,6 @@ public partial class BaseExchange
         IList<object> removeRepeatedOptionparamsRemoveRepeatedVariable = (IList<object>)this.handleOptionAndParams(paramsPaginationDirection, method, "removeRepeated", removeRepeated);
         bool removeRepeatedOption = (bool)removeRepeatedOptionparamsRemoveRepeatedVariable[0];
         IDictionary<string, object> paramsRemoveRepeated = ((IDictionary<string, object>)removeRepeatedOptionparamsRemoveRepeatedVariable[1]);
-        Int64 calls = 0;
         List<object> result = new List<object>() {};
         Int64 errors = 0;
         Int64? until = this.safeIntegerN(paramsRemoveRepeated, new List<object>() {"until", "untill", "till"}); // do not omit it from params here
@@ -7271,9 +7270,8 @@ public partial class BaseExchange
             paginationTimestamp = since;
         }
         bool shouldBreak = false;
-        while (((calls < maxCallsPaginationCalls)))
+        for (int i = 0; (i < maxCallsPaginationCalls); i++)
         {
-            calls = calls + 1;
             try
             {
                 if ((paginationDirection is "backward"))
@@ -7288,7 +7286,7 @@ public partial class BaseExchange
                     int responseLength = getArrayLength(response);
                     if (this.verbose)
                     {
-                        string backwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + (method)) + " response length ") + ((object)responseLength).ToString());
+                        string backwardMessage = ((((("Dynamic pagination call " + this.numberToString((i + 1L))) + " method ") + (method)) + " response length ") + ((object)responseLength).ToString());
                         if (!(paginationTimestamp == null))
                         {
                             backwardMessage = backwardMessage + (" timestamp " + this.numberToString(paginationTimestamp));
@@ -7321,7 +7319,7 @@ public partial class BaseExchange
                     int responseLength = getArrayLength(response);
                     if (this.verbose)
                     {
-                        string forwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + (method)) + " response length ") + ((object)responseLength).ToString());
+                        string forwardMessage = ((((("Dynamic pagination call " + this.numberToString((i + 1L))) + " method ") + (method)) + " response length ") + ((object)responseLength).ToString());
                         if (!(paginationTimestamp == null))
                         {
                             forwardMessage = forwardMessage + (" timestamp " + this.numberToString(paginationTimestamp));
@@ -7415,6 +7413,7 @@ public partial class BaseExchange
         (Int64?, object) maxCallsPaginationCallsparamsPaginationCallsVariable = this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
         Int64? maxCallsPaginationCalls = maxCallsPaginationCallsparamsPaginationCallsVariable.Item1;
         IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsPaginationCallsparamsPaginationCallsVariable.Item2);
+        Int64? maxCallsLimit = this.parseToInt(maxCallsPaginationCalls);
         IList<object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationCalls);
         var maxEntriesPerRequestOption = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[0];
         IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]);
@@ -7428,7 +7427,7 @@ public partial class BaseExchange
         object maxEntriesPerRequestValue = this.requireValue(maxEntriesPerRequestOption, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
         Int64? step = (time * this.parseToInt(maxEntriesPerRequestValue));
         Int64? until = this.safeInteger2(paramsOmitted, "until", "till"); // do not omit it here
-        object currentSince = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(current, ((maxCallsPaginationCalls * step))), 1);
+        object currentSince = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(current, ((maxCallsLimit * step))), 1);
         if ((since != null))
         {
             if ((until != null))
@@ -7453,12 +7452,12 @@ public partial class BaseExchange
                 throw new ArgumentsRequired ((this.id + " fetchPaginatedCallDeterministic() requires a since argument when until is set")) ;
             }
             double requiredCalls = Math.Ceiling(Convert.ToDouble(divide((((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(until, since)), step)));
-            if (((maxCallsPaginationCalls == null || requiredCalls > maxCallsPaginationCalls)))
+            if (((maxCallsLimit == null || requiredCalls > maxCallsLimit)))
             {
-                throw new BadRequest (((((this.id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ") + ((object)maxCallsPaginationCalls).ToString()) + " required calls is ") + ((object)requiredCalls).ToString())) ;
+                throw new BadRequest (((((this.id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ") + ((object)maxCallsLimit).ToString()) + " required calls is ") + ((object)requiredCalls).ToString())) ;
             }
         }
-        for (int i = 0; (i < maxCallsPaginationCalls); i++)
+        for (int i = 0; (i < maxCallsLimit); i++)
         {
             if (((until != null)) && (isGreaterThanOrEqual(currentSince, until)))
             {
@@ -7500,13 +7499,12 @@ public partial class BaseExchange
         var maxEntriesPerRequestOption = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[0];
         IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]);
         object cursorValue = null;
-        Int64 i = 0;
         Int64 errors = 0;
         List<object> result = new List<object>() {};
         string? timeframe = this.safeString(paramsMaxEntriesPerRequest, "timeframe");
         Dictionary<string, object> paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "timeframe"); // reading the timeframe from the method arguments to avoid changing the signature
         bool shouldBreak = false;
-        while ((i < maxCallsPaginationCalls))
+        for (int i = 0; (i < maxCallsPaginationCalls); i++)
         {
             try
             {
@@ -7549,7 +7547,7 @@ public partial class BaseExchange
                 if (this.verbose)
                 {
                     object cursorString = ((cursorValue == null)) ? "" : cursorValue;
-                    Int64 iteration = ((i + 1));
+                    Int64 iteration = ((i + 1L));
                     string cursorMessage = ((((((("Cursor pagination call " + ((object)iteration).ToString()) + " method ") + method) + " response length ") + ((object)responseLength).ToString()) + " cursor ") + (cursorString));
                     this.log(cursorMessage);
                 }
@@ -7600,7 +7598,6 @@ public partial class BaseExchange
             {
                 break; // go turns a break inside try into a panic that only ends the iteration
             }
-            i = i + 1;
         }
         object sorted = this.sortCursorPaginatedResult(result);
         object key = ((method == "fetchOHLCV")) ? 0 : "timestamp";
@@ -7614,6 +7611,7 @@ public partial class BaseExchange
         (Int64?, object) maxCallsPaginationCallsparamsPaginationCallsVariable = this.handleOptionIntegerAndParams(parameters, method, "paginationCalls", maxCalls);
         Int64? maxCallsPaginationCalls = maxCallsPaginationCallsparamsPaginationCallsVariable.Item1;
         IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsPaginationCallsparamsPaginationCallsVariable.Item2);
+        Int64? maxCallsLimit = this.parseToInt(maxCallsPaginationCalls);
         int maxRetries = 3;
         (Int64?, object) maxRetriesOptionparamsMaxRetriesVariable = this.handleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", maxRetries);
         Int64? maxRetriesOption = maxRetriesOptionparamsMaxRetriesVariable.Item1;
@@ -7621,21 +7619,20 @@ public partial class BaseExchange
         IList<object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries);
         var maxEntriesPerRequestOption = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[0];
         IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable[1]);
-        Int64 i = 0;
         Int64 errors = 0;
         List<object> result = new List<object>() {};
         bool shouldBreak = false;
-        while ((i < maxCallsPaginationCalls))
+        for (int i = 0; (i < maxCallsLimit); i++)
         {
             try
             {
-                paramsMaxEntriesPerRequest[(string)pageKey] = (i + 1);
+                paramsMaxEntriesPerRequest[(string)pageKey] = (i + 1L);
                 object response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest }));
                 errors = 0;
                 int responseLength = getArrayLength(response);
                 if (this.verbose)
                 {
-                    Int64 iteration = ((i + 1));
+                    Int64 iteration = ((i + 1L));
                     string incrementalMessage = ((((("Incremental pagination call " + ((object)iteration).ToString()) + " method ") + method) + " response length ") + ((object)responseLength).ToString());
                     this.log(incrementalMessage);
                 }
@@ -7657,11 +7654,8 @@ public partial class BaseExchange
             {
                 break; // go turns a break inside try into a panic that only ends the iteration
             }
-            i = i + 1;
         }
-        object sorted = this.sortCursorPaginatedResult(result);
-        object key = ((method == "fetchOHLCV")) ? 0 : "timestamp";
-        return this.filterBySinceLimit(sorted, since, limit, key);
+        return this.filterBySinceLimit(this.sortCursorPaginatedResult(result), since, limit, ((method == "fetchOHLCV")) ? 0 : "timestamp");
     }
 
     public virtual object sortCursorPaginatedResult(object result)
