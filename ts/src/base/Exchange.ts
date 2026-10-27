@@ -4848,16 +4848,16 @@ export class BaseExchange {
             }
             if (isArray && (tradesLength > 0)) {
                 // move properties that are defined in trades up into the order
-                if (orderDict['symbol'] === undefined) {
+                if (parseSymbol) {
                     orderDict['symbol'] = trades[0]['symbol'];
                 }
-                if (orderDict['side'] === undefined) {
+                if (parseSide) {
                     orderDict['side'] = trades[0]['side'];
                 }
-                if (orderDict['type'] === undefined) {
+                if (this.safeString (orderDict, 'type') === undefined) {
                     orderDict['type'] = trades[0]['type'];
                 }
-                if (orderDict['id'] === undefined) {
+                if (this.safeString (orderDict, 'id') === undefined) {
                     orderDict['id'] = trades[0]['order'];
                 }
                 if (parseFilled) {
@@ -4882,7 +4882,7 @@ export class BaseExchange {
                     if (parseSide) {
                         side = this.safeString (trade, 'side');
                     }
-                    const tradeTimestamp = this.safeValue (trade, 'timestamp');
+                    const tradeTimestamp = this.safeInteger (trade, 'timestamp');
                     if (parseLastTradeTimeTimestamp && (tradeTimestamp !== undefined)) {
                         if (lastTradeTimeTimestamp === undefined) {
                             lastTradeTimeTimestamp = tradeTimestamp;
@@ -4999,7 +4999,7 @@ export class BaseExchange {
             }
         }
         // support for market orders
-        const orderType = this.safeValue (orderDict, 'type');
+        const orderType = this.safeString (orderDict, 'type');
         const emptyPrice = (price === undefined) || Precise.stringEquals (price, '0');
         if (emptyPrice && (orderType === 'market')) {
             price = average;
