@@ -1096,8 +1096,8 @@ export default class woofipro extends woofiproRest {
             }
         }
         // don't remove the future from the .futures cache
-        if (messageHash in client.futures) {
-            const future = client.futures[messageHash];
+        const future = this.safeValue (client.futures, messageHash);
+        if (future !== undefined) {
             future.resolve (cache);
             client.resolve (cache, 'positions');
         }
