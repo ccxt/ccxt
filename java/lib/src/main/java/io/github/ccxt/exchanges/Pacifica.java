@@ -2287,7 +2287,7 @@ public class Pacifica extends PacificaApi
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
             String id = this.safeString(ids, i);
-            Object request = this.cancelOrderRequest(id, symbol, parameters);
+            Map<String, Object> request = this.cancelOrderRequest(id, symbol, parameters);
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "type", "Cancel" );
                 put( "data", request );
@@ -2302,7 +2302,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> cloidParams = new HashMap<String, Object>() {{
                 put( "clientOrderId", cloid );
             }};
-            Object request = this.cancelOrderRequest(cloid, symbol, this.extend(cloidParams, paramsOmitted));
+            Map<String, Object> request = this.cancelOrderRequest(cloid, symbol, this.extend(cloidParams, paramsOmitted));
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "type", "Cancel" );
                 put( "data", request );
@@ -2333,7 +2333,7 @@ public class Pacifica extends PacificaApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.initializeClient()).join();
-            Object request = this.cancelAllOrdersRequest((String) (symbol), parameters);
+            Map<String, Object> request = this.cancelAllOrdersRequest((String) (symbol), parameters);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("excludeReduceOnly", "expiryWindow")));
             Map<String, Object> response = (this.privatePostOrdersCancelAll(this.extend(request, paramsOmitted))).join();
             //
@@ -2400,7 +2400,7 @@ public class Pacifica extends PacificaApi
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
-            Object request = this.cancelOrderRequest(id, symbol, parameters);
+            Map<String, Object> request = this.cancelOrderRequest(id, symbol, parameters);
             Boolean isStopOrder = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow", "trigger", "stop", "clientOrderId")));
             Map<String, Object> response = null;
