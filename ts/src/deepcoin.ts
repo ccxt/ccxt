@@ -417,7 +417,7 @@ export default class deepcoin extends Exchange {
         const promises: List = [];
         let result: List = [];
         for (let i = 0; i < types.length; i++) {
-            promises.push (this.fetchMarketsByType (types[i], params));
+            promises.push (this.fetchMarketsByType (this.safeString (types, i), params));
         }
         const responses = await Promise.all (promises);
         for (let i = 0; i < responses.length; i++) {
@@ -1794,7 +1794,7 @@ export default class deepcoin extends Exchange {
         const timeInForce = this.handleTimeInForce (paramsPostOnly);
         const paramsOmitted: Dict = this.omit (paramsPostOnly, 'timeInForce');
         let typeValue: Str = typePostOnly;
-        if ((timeInForce !== undefined) && (timeInForce === 'IOC')) {
+        if (timeInForce === 'IOC') {
             typeValue = 'ioc';
         }
         return [ typeValue, paramsOmitted ];
@@ -1975,7 +1975,8 @@ export default class deepcoin extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate) as Order[];
         }
         const trigger = this.safeBool (paramsPaginate, 'trigger', false);
-        const [ methodName, paramsMethodName ] = this.handleParamString (paramsPaginate, 'methodName', 'fetchCanceledAndClosedOrders');
+        const methodName = this.safeString (paramsPaginate, 'methodName', 'fetchCanceledAndClosedOrders');
+        const paramsMethodName: Dict = this.omit (paramsPaginate, 'methodName');
         let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
@@ -3124,8 +3125,9 @@ export default class deepcoin extends Exchange {
                 'DC-ACCESS-PASSPHRASE': this.password,
                 'appid': '200103',
             };
-            const requestBody = (method !== 'GET') ? this.json (params) : undefined;
+            let requestBody: Str = undefined;
             if (method !== 'GET') {
+                requestBody = this.json (params);
                 privateHeaders['Content-Type'] = 'application/json';
                 payload += requestBody;
             }
