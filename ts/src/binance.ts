@@ -6808,7 +6808,16 @@ export default class binance extends Exchange {
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = marketResolved['symbol'];
         const filled = this.safeString2 (order, 'executedQty', 'filledQty', '0');
-        const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime', 'createdAt' ]); // order of the keys matters here
+        let timestamp = this.safeInteger2 (order, 'time', 'createTime'); // order of the keys matters here
+        if (timestamp === undefined) {
+            // spot conditional orders (STOP_LOSS, TAKE_PROFIT, trailing) report workingTime as -1 until they are triggered
+            const workingTime = this.safeInteger (order, 'workingTime');
+            if ((workingTime !== undefined) && (workingTime > 0)) {
+                timestamp = workingTime;
+            } else {
+                timestamp = this.safeIntegerN (order, [ 'transactTime', 'updateTime', 'createdAt' ]);
+            }
+        }
         let lastTradeTimestamp: Int = undefined;
         if (('transactTime' in order) || ('updateTime' in order) || ('updatedAt' in order)) {
             const timestampValue = this.safeIntegerN (order, [ 'updateTime', 'transactTime', 'updatedAt' ]);
