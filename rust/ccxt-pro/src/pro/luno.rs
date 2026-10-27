@@ -499,9 +499,8 @@ impl LunoCore {
         //         "timestamp": 1660598775360
         //     }
         //
-        let mut symbol: Value = subscription.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let symbolValue: String = self.safe_string_k_opt(subscription, "symbol", &[Value::Str("".into())]).unwrap_or_default();
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbolValue).into());
+        let mut symbol: Value = self.safe_string_k(subscription, "symbol", &[Value::Str("".into())]);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.indexed_order_book(&[Value::Map({

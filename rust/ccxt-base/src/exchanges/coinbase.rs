@@ -3655,8 +3655,14 @@ if _try_result.is_err() {
                             m
                         })]);
                     }  else {
-                        { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string_k(account.clone(), "free", &[]), &total.clone().map(Value::from).unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), __be_tmp); } }
-                        { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string_k(account.clone(), "total", &[]), &total.clone().map(Value::from).unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), __be_tmp); } }
+                        let __ws_arg_20 = self.safe_string_k(account.clone(), "free", &[]);
+                        let __ws_arg_21 = self.safe_string_k(account.clone(), "total", &[]);
+                        account = self.extend(account.clone(), &[Value::Map({
+                            let mut m = indexmap::IndexMap::new();
+                                m.insert("free".to_string(), crate::precise::Precise::stringAdd(&__ws_arg_20, &total.clone().map(Value::from).unwrap_or(Value::Null)));
+                                m.insert("total".to_string(), crate::precise::Precise::stringAdd(&__ws_arg_21, &total.clone().map(Value::from).unwrap_or(Value::Null)));
+                            m
+                        })]);
                     }
                     if (code != Value::Null) {
                         result.insert(crate::runtime::stringify_param(&code), account.clone());
@@ -3673,8 +3679,8 @@ if _try_result.is_err() {
                     let mut total: Value = crate::precise::Precise::stringAdd(&used.clone().map(Value::from).unwrap_or(Value::Null), &free.clone().map(Value::from).unwrap_or(Value::Null));
                     let mut account: Value = self.safe_dict(Value::Map(result.clone()), code.clone(), &[]);
                     if (account == Value::Null) {
-                        let __ws_arg_20 = self.account();
-                        account = self.extend(__ws_arg_20, &[Value::Map({
+                        let __ws_arg_22 = self.account();
+                        account = self.extend(__ws_arg_22, &[Value::Map({
                             let mut m = indexmap::IndexMap::new();
                                 m.insert("free".to_string(), free.clone().map(Value::from).unwrap_or(Value::Null));
                                 m.insert("used".to_string(), used.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3682,9 +3688,16 @@ if _try_result.is_err() {
                             m
                         })]);
                     }  else {
-                        { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string_k(account.clone(), "free", &[]), &free.clone().map(Value::from).unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), __be_tmp); } }
-                        { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string_k(account.clone(), "used", &[]), &used.clone().map(Value::from).unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), __be_tmp); } }
-                        { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string_k(account.clone(), "total", &[]), &total); if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), __be_tmp); } }
+                        let __ws_arg_23 = self.safe_string_k(account.clone(), "free", &[]);
+                        let __ws_arg_24 = self.safe_string_k(account.clone(), "used", &[]);
+                        let __ws_arg_25 = self.safe_string_k(account.clone(), "total", &[]);
+                        account = self.extend(account.clone(), &[Value::Map({
+                            let mut m = indexmap::IndexMap::new();
+                                m.insert("free".to_string(), crate::precise::Precise::stringAdd(&__ws_arg_23, &free.clone().map(Value::from).unwrap_or(Value::Null)));
+                                m.insert("used".to_string(), crate::precise::Precise::stringAdd(&__ws_arg_24, &used.clone().map(Value::from).unwrap_or(Value::Null)));
+                                m.insert("total".to_string(), crate::precise::Precise::stringAdd(&__ws_arg_25, &total));
+                            m
+                        })]);
                     }
                     if (code != Value::Null) {
                         result.insert(crate::runtime::stringify_param(&code), account);
@@ -3731,12 +3744,12 @@ if _try_result.is_err() {
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchBalance", &[Value::Str("v3PrivateGetBrokerageAccounts".into())]).as_str().map(str::to_owned);
         if (marketType.as_str() == Some("future")) || (marketType.as_str() == Some("swap")) {
-            let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
-            response = self.v3_private_get_brokerage_cfm_balance_summary(&[__ws_arg_21]).await;
+            let __ws_arg_26 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+            response = self.v3_private_get_brokerage_cfm_balance_summary(&[__ws_arg_26]).await;
         }  else if isV3.as_bool() == Some(true) || (method.as_deref() == Some("v3PrivateGetBrokerageAccounts")) {
             request.insert("limit".into(), Value::Int(250));
-            let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
-            response = self.v3_private_get_brokerage_accounts(&[__ws_arg_22]).await;
+            let __ws_arg_27 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+            response = self.v3_private_get_brokerage_accounts(&[__ws_arg_27]).await;
             // an explicit params.cursor means the caller pages manually
             if (self.safe_string_k(paramsMarketType.clone(), "cursor", &[]) == Value::Null) {
                 let mut accounts: Value = self.safe_list_k(response.clone(), "accounts", &[Value::from(vec![])]);
@@ -3744,8 +3757,8 @@ if _try_result.is_err() {
                 let mut cursor: Value = self.safe_string_k(page.clone(), "cursor", &[]);
                 while matches!(self.safe_bool_k(page.clone(), "has_next", &[Value::Bool(false)]), Value::Bool(true)) && (cursor != Value::Null) && (cursor.as_str() != Some("")) {
                     request.insert("cursor".into(), cursor.clone());
-                    let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
-                    page = self.v3_private_get_brokerage_accounts(&[__ws_arg_23]).await;
+                    let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+                    page = self.v3_private_get_brokerage_accounts(&[__ws_arg_28]).await;
                     accounts = self.array_concat(accounts.clone(), self.safe_list_k(page.clone(), "accounts", &[Value::from(vec![])]));
                     let mut nextCursor: Value = self.safe_string_k(page.clone(), "cursor", &[]);
                     if (nextCursor.as_str() == cursor.as_str()) {
@@ -3753,27 +3766,27 @@ if _try_result.is_err() {
                     }
                     cursor = nextCursor;
                 }
-                let __ws_arg_24 = self.safe_bool_k(page.clone(), "has_next", &[Value::Bool(false)]);
-                let __ws_arg_25 = self.safe_string_k(page, "cursor", &[]);
+                let __ws_arg_29 = self.safe_bool_k(page.clone(), "has_next", &[Value::Bool(false)]);
+                let __ws_arg_30 = self.safe_string_k(page, "cursor", &[]);
                 response = self.extend(response.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("accounts".to_string(), accounts);
-                        m.insert("has_next".to_string(), __ws_arg_24);
-                        m.insert("cursor".to_string(), __ws_arg_25);
+                        m.insert("has_next".to_string(), __ws_arg_29);
+                        m.insert("cursor".to_string(), __ws_arg_30);
                     m
                 })]);
             }
         }  else {
             request.insert("limit".into(), Value::Int(250));
-            let __ws_arg_26 = self.extend(Value::Map(request), &[paramsMarketType.clone()]);
-            response = self.v2_private_get_accounts(&[__ws_arg_26]).await;
+            let __ws_arg_31 = self.extend(Value::Map(request), &[paramsMarketType.clone()]);
+            response = self.v2_private_get_accounts(&[__ws_arg_31]).await;
         }
-        let __ws_arg_27 = self.extend(paramsMarketType, &[Value::Map({
+        let __ws_arg_32 = self.extend(paramsMarketType, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), marketType);
     m
 })]);
-        return self.parse_custom_balance(response, &[__ws_arg_27]);
+        return self.parse_custom_balance(response, &[__ws_arg_32]);
 
     Value::Null
 }
@@ -3817,8 +3830,8 @@ if _try_result.is_err() {
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_http_response -> pagination.next_starting_after
-        let __ws_arg_28 = self.extend(request, &[paramsValue]);
-        let mut response: Value = self.v2_private_get_accounts_account_id_transactions(&[__ws_arg_28]).await;
+        let __ws_arg_33 = self.extend(request, &[paramsValue]);
+        let mut response: Value = self.v2_private_get_accounts_account_id_transactions(&[__ws_arg_33]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         let mut ledger: Value = self.parse_ledger(data, &[currency, since, limit]);
         let mut length: Value = Value::Int(ledger.len() as i64);
@@ -4345,12 +4358,12 @@ if _try_result.is_err() {
         });
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[]);
         if (reduceOnly.as_bool() == Some(true)) {
-            let __ws_arg_29 = self.extend(self.omit(params.clone(), Value::Str("reduceOnly".into()), &[]), &[Value::Map({
+            let __ws_arg_34 = self.extend(self.omit(params.clone(), Value::Str("reduceOnly".into()), &[]), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amount.clone());
     m
 })]);
-            return self.close_position(symbol.clone(), &[side.clone(), __ws_arg_29]).await;
+            return self.close_position(symbol.clone(), &[side.clone(), __ws_arg_34]).await;
         }
         let mut paramsMarketBuy: Value = Value::Null;
         let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("stopPrice".into()), Value::Str("stop_price".into()), Value::Str("triggerPrice".into())]), &[]);
@@ -4543,11 +4556,11 @@ if _try_result.is_err() {
         let mut response: Value = Value::Null;
         if preview.as_bool() == Some(true) {
             request = self.omit(request.clone(), Value::Str("client_order_id".into()), &[]);
-            let __ws_arg_30 = self.extend(request.clone(), &[self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("preview".into()), Value::Str("test".into())]), &[])]);
-            response = self.v3_private_post_brokerage_orders_preview(&[__ws_arg_30]).await;
+            let __ws_arg_35 = self.extend(request.clone(), &[self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("preview".into()), Value::Str("test".into())]), &[])]);
+            response = self.v3_private_post_brokerage_orders_preview(&[__ws_arg_35]).await;
         }  else {
-            let __ws_arg_31 = self.extend(request, &[paramsOmitted]);
-            response = self.v3_private_post_brokerage_orders(&[__ws_arg_31]).await;
+            let __ws_arg_36 = self.extend(request, &[paramsOmitted]);
+            response = self.v3_private_post_brokerage_orders(&[__ws_arg_36]).await;
         }
         //
         // successful order
@@ -4849,8 +4862,8 @@ if _try_result.is_err() {
                 m.insert("order_ids".to_string(), ids);
             m
         });
-        let __ws_arg_32 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_post_brokerage_orders_batch_cancel(&[__ws_arg_32]).await;
+        let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_private_post_brokerage_orders_batch_cancel(&[__ws_arg_37]).await;
         //
         //     {
         //         "results": [
@@ -4918,11 +4931,11 @@ if _try_result.is_err() {
         let mut preview: Value = self.safe_bool2(params.clone(), Value::Str("preview".into()), Value::Str("test".into()), &[Value::Bool(false)]);
         let mut response: Value = Value::Null;
         if preview.as_bool() == Some(true) {
-            let __ws_arg_33 = self.extend(Value::Map(request.clone()), &[self.omit(params.clone(), Value::from(vec![Value::Str("preview".into()), Value::Str("test".into())]), &[])]);
-            response = self.v3_private_post_brokerage_orders_edit_preview(&[__ws_arg_33]).await;
+            let __ws_arg_38 = self.extend(Value::Map(request.clone()), &[self.omit(params.clone(), Value::from(vec![Value::Str("preview".into()), Value::Str("test".into())]), &[])]);
+            response = self.v3_private_post_brokerage_orders_edit_preview(&[__ws_arg_38]).await;
         }  else {
-            let __ws_arg_34 = self.extend(Value::Map(request), &[params]);
-            response = self.v3_private_post_brokerage_orders_edit(&[__ws_arg_34]).await;
+            let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
+            response = self.v3_private_post_brokerage_orders_edit(&[__ws_arg_39]).await;
         }
         return self.parse_order(response, &[market]);
 
@@ -4957,8 +4970,8 @@ if _try_result.is_err() {
                 m.insert("order_id".to_string(), id);
             m
         });
-        let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_get_brokerage_orders_historical_order_id(&[__ws_arg_35]).await;
+        let __ws_arg_40 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_private_get_brokerage_orders_historical_order_id(&[__ws_arg_40]).await;
         //
         //     {
         //         "order": {
@@ -5059,8 +5072,8 @@ if _try_result.is_err() {
             request.insert("end_date".into(), self.iso8601(until.clone()));
         }
         let mut paramsOmitted: Value = (if (until != Value::Null) { self.omit(paramsPaginate.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { paramsPaginate });
-        let __ws_arg_36 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.v3_private_get_brokerage_orders_historical_batch(&[__ws_arg_36]).await;
+        let __ws_arg_41 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut response: Value = self.v3_private_get_brokerage_orders_historical_batch(&[__ws_arg_41]).await;
         //
         //     {
         //         "orders": [
@@ -5106,11 +5119,11 @@ if _try_result.is_err() {
         let mut orders: Value = self.safe_list_k(response.clone(), "orders", &[Value::from(vec![])]);
         let mut cursor: Option<String> = self.safe_string_k_opt(response, "cursor", &[]);
         if (cursor.is_some()) && (cursor.as_deref() != Some("")) {
-            let __ws_arg_37 = self.safe_dict(orders.clone(), Value::Int(0), &[Value::Map({
+            let __ws_arg_42 = self.safe_dict(orders.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            { let __be_tmp = self.extend(__ws_arg_37, &[Value::Map({
+            { let __be_tmp = self.extend(__ws_arg_42, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cursor".to_string(), cursor.map(Value::from).unwrap_or(Value::Null));
     m
@@ -5154,8 +5167,8 @@ if _try_result.is_err() {
             request.insert("end_date".into(), self.iso8601(until.clone()));
         }
         let mut paramsOmitted: Value = (if (until != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { params });
-        let __ws_arg_38 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.v3_private_get_brokerage_orders_historical_batch(&[__ws_arg_38]).await;
+        let __ws_arg_43 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut response: Value = self.v3_private_get_brokerage_orders_historical_batch(&[__ws_arg_43]).await;
         //
         //     {
         //         "orders": [
@@ -5201,11 +5214,11 @@ if _try_result.is_err() {
         let mut orders: Value = self.safe_list_k(response.clone(), "orders", &[Value::from(vec![])]);
         let mut cursor: Option<String> = self.safe_string_k_opt(response, "cursor", &[]);
         if (cursor.is_some()) && (cursor.as_deref() != Some("")) {
-            let __ws_arg_39 = self.safe_dict(orders.clone(), Value::Int(0), &[Value::Map({
+            let __ws_arg_44 = self.safe_dict(orders.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            { let __be_tmp = self.extend(__ws_arg_39, &[Value::Map({
+            { let __be_tmp = self.extend(__ws_arg_44, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cursor".to_string(), cursor.map(Value::from).unwrap_or(Value::Null));
     m
@@ -5378,11 +5391,11 @@ if _try_result.is_err() {
         let mut usePrivate: Value = usePrivateparamsUsePrivateVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUsePrivate: Value = usePrivateparamsUsePrivateVariable.get(1).cloned().unwrap_or(Value::Null);
         if usePrivate.as_bool() == Some(true) {
-            let __ws_arg_40 = self.extend(Value::Map(request.clone()), &[paramsUsePrivate.clone()]);
-            response = self.v3_private_get_brokerage_products_product_id_candles(&[__ws_arg_40]).await;
+            let __ws_arg_45 = self.extend(Value::Map(request.clone()), &[paramsUsePrivate.clone()]);
+            response = self.v3_private_get_brokerage_products_product_id_candles(&[__ws_arg_45]).await;
         }  else {
-            let __ws_arg_41 = self.extend(Value::Map(request), &[paramsUsePrivate]);
-            response = self.v3_public_get_brokerage_market_products_product_id_candles(&[__ws_arg_41]).await;
+            let __ws_arg_46 = self.extend(Value::Map(request), &[paramsUsePrivate]);
+            response = self.v3_public_get_brokerage_market_products_product_id_candles(&[__ws_arg_46]).await;
         }
         //
         //     {
@@ -5459,11 +5472,11 @@ if _try_result.is_err() {
         let mut usePrivate: Value = usePrivateparamsUsePrivateVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUsePrivate: Value = usePrivateparamsUsePrivateVariable.get(1).cloned().unwrap_or(Value::Null);
         if usePrivate.as_bool() == Some(true) {
-            let __ws_arg_42 = self.extend(Value::Map(request.clone()), &[paramsUsePrivate.clone()]);
-            response = self.v3_private_get_brokerage_products_product_id_ticker(&[__ws_arg_42]).await;
+            let __ws_arg_47 = self.extend(Value::Map(request.clone()), &[paramsUsePrivate.clone()]);
+            response = self.v3_private_get_brokerage_products_product_id_ticker(&[__ws_arg_47]).await;
         }  else {
-            let __ws_arg_43 = self.extend(Value::Map(request), &[paramsUsePrivate]);
-            response = self.v3_public_get_brokerage_market_products_product_id_ticker(&[__ws_arg_43]).await;
+            let __ws_arg_48 = self.extend(Value::Map(request), &[paramsUsePrivate]);
+            response = self.v3_public_get_brokerage_market_products_product_id_ticker(&[__ws_arg_48]).await;
         }
         //
         //     {
@@ -5539,8 +5552,8 @@ if _try_result.is_err() {
             request.insert("end_sequence_timestamp".into(), self.iso8601(until.clone()));
         }
         let mut paramsOmitted: Value = (if (until != Value::Null) { self.omit(paramsPaginate.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { paramsPaginate });
-        let __ws_arg_44 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.v3_private_get_brokerage_orders_historical_fills(&[__ws_arg_44]).await;
+        let __ws_arg_49 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut response: Value = self.v3_private_get_brokerage_orders_historical_fills(&[__ws_arg_49]).await;
         //
         //     {
         //         "fills": [
@@ -5567,11 +5580,11 @@ if _try_result.is_err() {
         let mut trades: Value = self.safe_list_k(response.clone(), "fills", &[Value::from(vec![])]);
         let mut cursor: Option<String> = self.safe_string_k_opt(response, "cursor", &[]);
         if (cursor.is_some()) && (cursor.as_deref() != Some("")) {
-            let __ws_arg_45 = self.safe_dict(trades.clone(), Value::Int(0), &[Value::Map({
+            let __ws_arg_50 = self.safe_dict(trades.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            { let __be_tmp = self.extend(__ws_arg_45, &[Value::Map({
+            { let __be_tmp = self.extend(__ws_arg_50, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cursor".to_string(), cursor.map(Value::from).unwrap_or(Value::Null));
     m
@@ -5617,11 +5630,11 @@ if _try_result.is_err() {
         let mut usePrivate: Value = usePrivateparamsUsePrivateVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUsePrivate: Value = usePrivateparamsUsePrivateVariable.get(1).cloned().unwrap_or(Value::Null);
         if usePrivate.as_bool() == Some(true) {
-            let __ws_arg_46 = self.extend(Value::Map(request.clone()), &[paramsUsePrivate.clone()]);
-            response = self.v3_private_get_brokerage_product_book(&[__ws_arg_46]).await;
+            let __ws_arg_51 = self.extend(Value::Map(request.clone()), &[paramsUsePrivate.clone()]);
+            response = self.v3_private_get_brokerage_product_book(&[__ws_arg_51]).await;
         }  else {
-            let __ws_arg_47 = self.extend(Value::Map(request), &[paramsUsePrivate]);
-            response = self.v3_public_get_brokerage_market_product_book(&[__ws_arg_47]).await;
+            let __ws_arg_52 = self.extend(Value::Map(request), &[paramsUsePrivate]);
+            response = self.v3_public_get_brokerage_market_product_book(&[__ws_arg_52]).await;
         }
         //
         //     {
@@ -5680,8 +5693,8 @@ if _try_result.is_err() {
         if (symbolsNormalized != Value::Null) {
             request.insert("product_ids".into(), self.market_ids(&[symbolsNormalized.clone()]));
         }
-        let __ws_arg_48 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_get_brokerage_best_bid_ask(&[__ws_arg_48]).await;
+        let __ws_arg_53 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_private_get_brokerage_best_bid_ask(&[__ws_arg_53]).await;
         //
         //     {
         //         "pricebooks": [
@@ -5762,8 +5775,8 @@ if _try_result.is_err() {
         if (tagWithdrawTag != Value::Null) {
             request.insert("destination_tag".into(), tagWithdrawTag);
         }
-        let __ws_arg_49 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.v2_private_post_accounts_account_id_transactions(&[__ws_arg_49]).await;
+        let __ws_arg_54 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut response: Value = self.v2_private_post_accounts_account_id_transactions(&[__ws_arg_54]).await;
         //
         //     {
         //         "data": {
@@ -5846,8 +5859,8 @@ if _try_result.is_err() {
         let requestparamsValueVariable: Vec<Value> = self.prepare_account_request_with_currency_code(&[self.safe_string_k(currency, "code", &[]), Value::Null, params]).await.as_array().cloned().unwrap_or_default();
         let mut request: Value = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsValue: Value = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_50 = self.extend(request, &[paramsValue]);
-        let mut response: Value = self.v2_private_get_accounts_account_id_addresses(&[__ws_arg_50]).await;
+        let __ws_arg_55 = self.extend(request, &[paramsValue]);
+        let mut response: Value = self.v2_private_get_accounts_account_id_addresses(&[__ws_arg_55]).await;
         //
         //    {
         //        pagination: {
@@ -6035,8 +6048,8 @@ if _try_result.is_err() {
             }
             request.insert("account_id".into(), foundAccountId);
         }
-        let __ws_arg_51 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.v2_private_post_accounts_account_id_deposits(&[__ws_arg_51]).await;
+        let __ws_arg_56 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut response: Value = self.v2_private_post_accounts_account_id_deposits(&[__ws_arg_56]).await;
         //
         //     {
         //         "data": {
@@ -6121,8 +6134,8 @@ if _try_result.is_err() {
             }
             request.insert("account_id".into(), foundAccountId);
         }
-        let __ws_arg_52 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.v2_private_get_accounts_account_id_deposits_deposit_id(&[__ws_arg_52]).await;
+        let __ws_arg_57 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut response: Value = self.v2_private_get_accounts_account_id_deposits_deposit_id(&[__ws_arg_57]).await;
         //
         //     {
         //         "data": {
@@ -6233,8 +6246,8 @@ if _try_result.is_err() {
                 m.insert("payment_method_id".to_string(), id);
             m
         });
-        let __ws_arg_53 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_get_brokerage_payment_methods_payment_method_id(&[__ws_arg_53]).await;
+        let __ws_arg_58 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_private_get_brokerage_payment_methods_payment_method_id(&[__ws_arg_58]).await;
         //
         //     {
         //         "payment_method": {
@@ -6273,8 +6286,8 @@ if _try_result.is_err() {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_544: bool = true;
             while { if !__for_first_544 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_544 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-            let __ws_arg_54 = self.parse_deposit_method_id(ids.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
-            let mut id: Value = self.extend(__ws_arg_54, &[params.clone()]);
+            let __ws_arg_59 = self.parse_deposit_method_id(ids.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
+            let mut id: Value = self.extend(__ws_arg_59, &[params.clone()]);
             result.push(id);
         }
         }
@@ -6327,8 +6340,8 @@ if _try_result.is_err() {
                 m.insert("amount".to_string(), self.number_to_string(amount));
             m
         });
-        let __ws_arg_55 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_post_brokerage_convert_quote(&[__ws_arg_55]).await;
+        let __ws_arg_60 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_private_post_brokerage_convert_quote(&[__ws_arg_60]).await;
         let mut data: Value = self.safe_dict_k(response, "trade", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6366,8 +6379,8 @@ if _try_result.is_err() {
                 m.insert("to_account".to_string(), toCode);
             m
         });
-        let __ws_arg_56 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_post_brokerage_convert_trade_trade_id(&[__ws_arg_56]).await;
+        let __ws_arg_61 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_private_post_brokerage_convert_trade_trade_id(&[__ws_arg_61]).await;
         let mut data: Value = self.safe_dict_k(response, "trade", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6412,8 +6425,8 @@ if _try_result.is_err() {
                 m.insert("to_account".to_string(), toCode.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_57 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.v3_private_get_brokerage_convert_trade_trade_id(&[__ws_arg_57]).await;
+        let __ws_arg_62 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut response: Value = self.v3_private_get_brokerage_convert_trade_trade_id(&[__ws_arg_62]).await;
         let mut data: Value = self.safe_dict_k(response, "trade", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6482,8 +6495,8 @@ if _try_result.is_err() {
                 m.insert("target_portfolio_uuid".to_string(), toAccount);
             m
         });
-        let __ws_arg_58 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_post_brokerage_portfolios_move_funds(&[__ws_arg_58]).await;
+        let __ws_arg_63 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_private_post_brokerage_portfolios_move_funds(&[__ws_arg_63]).await;
         //
         //     {
         //         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
@@ -6557,8 +6570,8 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" closePosition() requires a clientOrderId parameter".into()))));
         }
         request.insert("client_order_id".into(), clientOrderId);
-        let __ws_arg_59 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.v3_private_post_brokerage_orders_close_position(&[__ws_arg_59]).await;
+        let __ws_arg_64 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut response: Value = self.v3_private_post_brokerage_orders_close_position(&[__ws_arg_64]).await;
         let mut order: Value = self.safe_dict_k(response, "success_response", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6635,8 +6648,8 @@ if _try_result.is_err() {
                 m.insert("product_id".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_60 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_get_brokerage_cfm_positions_product_id(&[__ws_arg_60]).await;
+        let __ws_arg_65 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_private_get_brokerage_cfm_positions_product_id(&[__ws_arg_65]).await;
         let mut position: Value = self.safe_dict_k(response, "position", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6751,8 +6764,8 @@ if _try_result.is_err() {
                 m.insert("product_type".to_string(), productType);
             m
         });
-        let __ws_arg_61 = self.extend(Value::Map(request), &[paramsMarketType]);
-        let mut response: Value = self.v3_private_get_brokerage_transaction_summary(&[__ws_arg_61]).await;
+        let __ws_arg_66 = self.extend(Value::Map(request), &[paramsMarketType]);
+        let mut response: Value = self.v3_private_get_brokerage_transaction_summary(&[__ws_arg_66]).await;
         //
         // {
         //     total_volume: '0',
@@ -6832,8 +6845,8 @@ if _try_result.is_err() {
                 m.insert("portfolio_uuid".to_string(), portfolioUuid);
             m
         });
-        let __ws_arg_62 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_get_brokerage_portfolios_portfolio_uuid(&[__ws_arg_62]).await;
+        let __ws_arg_67 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_private_get_brokerage_portfolios_portfolio_uuid(&[__ws_arg_67]).await;
         let mut result: Value = self.parse_portfolio_details(response);
         return result;
 
@@ -7214,8 +7227,8 @@ if _try_result.is_err() {
             self.load_markets(&[]).await;
         }
         let mut request: Value = self.prepare_account_request(&[Value::Null, params.clone()]);
-        let __ws_arg_63 = self.extend(request, &[params]);
-        let mut response: Value = self.v2_private_get_accounts_account_id_addresses(&[__ws_arg_63]).await;
+        let __ws_arg_68 = self.extend(request, &[params]);
+        let mut response: Value = self.v2_private_get_accounts_account_id_addresses(&[__ws_arg_68]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_deposit_addresses(data, &[codes, Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
