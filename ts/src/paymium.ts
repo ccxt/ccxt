@@ -658,7 +658,7 @@ export default class paymium extends Exchange {
                 'Api-Key': this.apiKey,
                 'Api-Nonce': nonce,
             };
-            let signedBody: Str = undefined;
+            let signedBody: string = '';
             if (method === 'POST' && hasQuery) {
                 signedBody = this.json (query);
             }
