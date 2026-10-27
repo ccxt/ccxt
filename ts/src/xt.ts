@@ -15,7 +15,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, Exchange
  * @augments Exchange
  */
 export default class xt extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'xt',
             'name': 'XT',

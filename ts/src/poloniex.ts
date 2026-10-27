@@ -15,7 +15,7 @@ import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, 
  * @augments Exchange
  */
 export default class poloniex extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'poloniex',
             'name': 'Poloniex',

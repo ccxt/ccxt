@@ -18,7 +18,7 @@ import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Fee
  * @augments Exchange
  */
 export default class modetrade extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'modetrade',
             'name': 'Mode Trade',

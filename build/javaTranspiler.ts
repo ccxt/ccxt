@@ -3006,6 +3006,8 @@ class NewTranspiler {
     // out so the Exchange-tier body can be re-derived identically from either the
     // base transpile or a standalone prediction transpile.
     applyExchangeTierJavaFixes(baseClass: string): string {
+        // describe() is a dictionary on every tier (TS `describe (): Dict`); overrides are covariant-safe because every tier retypes it
+        baseClass = baseClass.replace(/(\s+public) Object describe\(\)/g, '$1 java.util.Map<String, Object> describe()');
         // the transpiled base methods live on `BaseExchange` (Exchange is a thin subclass), so
         // the qualified-this used inside anonymous-class initializers must name the enclosing class
         // BaseExchange, not Exchange. (The Exchange-tier trading methods have no such put(...,this.X)
@@ -3292,6 +3294,7 @@ class NewTranspiler {
             // predictionBody ends with the class's closing brace — splice the extras in before it.
             const withoutClose = predictionBody.replace(/\}\s*$/, '');
             let merged = withoutClose.trimEnd() + '\n\n' + extras.trim() + '\n}\n';
+            merged = merged.replace(/(^|\s)public Object describe\(\)/g, '$1public java.util.Map<String, Object> describe()'); // describe(): Dict on the prediction base too (first method: no leading whitespace after trim)
             merged = typeCoreReturns(merged, typedReturnTable('prediction'));
             log.magenta('→', (javaPredictionBase as any).yellow)
             this.spliceTranspiledJavaBody(javaPredictionBase, javaDelimiter, restOfFile, merged, true);
@@ -3578,7 +3581,8 @@ class NewTranspiler {
         content = content.replace(/class\s+\w+\s+extends/, `class ${className} extends`);
         content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
         content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
-        content = content.replace(/(\s+public Object describe\(\))/g, `${constructor}$1`)
+        content = content.replace(/(\s+public) Object describe\(\)/g, '$1 java.util.Map<String, Object> describe()')
+        content = content.replace(/(\s+public java\.util\.Map<String, Object> describe\(\))/g, `${constructor}$1`)
         // `for (var i = <ident>; Helpers.isLessThan(i, end); i++)` — when the loop
         // initializer is a bare identifier (an Object-typed local, e.g. a running
         // index reassigned from this.sum(...)), Java's `var` infers Object and

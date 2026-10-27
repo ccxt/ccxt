@@ -36,7 +36,7 @@ import { ecdsa } from '../base/functions.js';
  * @augments Exchange
  */
 export default class limitless extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'limitless',
             'name': 'Limitless',

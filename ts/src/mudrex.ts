@@ -13,7 +13,7 @@ import type { Balances, Dict, Int, NullableDict, Leverage, MarginModification, M
  * @augments Exchange
  */
 export default class mudrex extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'mudrex',
             'name': 'Mudrex',

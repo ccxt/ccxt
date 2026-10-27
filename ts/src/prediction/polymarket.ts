@@ -22,7 +22,7 @@ import { ArgumentsRequired, BadRequest, AuthenticationError, BadSymbol, InvalidO
  * @augments Exchange
  */
 export default class polymarket extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'polymarket',
             'name': 'Polymarket',

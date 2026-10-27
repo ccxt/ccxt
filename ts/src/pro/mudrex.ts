@@ -10,7 +10,7 @@ import type Client from '../base/ws/Client.js';
 // ---------------------------------------------------------------------------
 
 export default class mudrex extends mudrexRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,

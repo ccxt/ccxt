@@ -18,7 +18,7 @@ import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Ma
  * @augments Exchange
  */
 export default class woofipro extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'woofipro',
             'name': 'WOOFI PRO',

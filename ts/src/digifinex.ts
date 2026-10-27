@@ -15,7 +15,7 @@ import type { Balances, Bool, BorrowInterest, CancellationRequest, CrossBorrowRa
  * @augments Exchange
  */
 export default class digifinex extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'digifinex',
             'name': 'DigiFinex',

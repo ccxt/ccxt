@@ -16,7 +16,7 @@ import type { Balances, Currency, Dict, FeeString, List, Dictionary, Int, Market
  * @augments Exchange
  */
 export default class upbit extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'upbit',
             'name': 'Upbit',

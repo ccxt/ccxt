@@ -277,7 +277,7 @@ type ICoreExchange interface {
 	SafeValue(value any, key any, defaultValue ...any) any
 	SafeBool(value any, key any, defaultValue ...any) *bool
 	SafeString(obj any, key any, defaultValue ...any) *string
-	Describe() any
+	Describe() map[string]any
 	SetSandboxMode(enable any)
 	FeatureValue(symbol any, optionalArgs ...any) any
 	Market(symbol any) map[string]any
@@ -517,5 +517,5 @@ type IDerivedExchange interface {
 }
 
 type Describer interface {
-	Describe() any
+	Describe() map[string]any
 }

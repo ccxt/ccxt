@@ -12,7 +12,7 @@ import type { Balances, Currency, Dict, Int, List, Market, Num, Order, OrderBook
  * @augments Exchange
  */
 export default class blockchaincom extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'blockchaincom',
             'secret': undefined,

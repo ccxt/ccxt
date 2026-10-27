@@ -15,7 +15,7 @@ import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Fun
  * @augments Exchange
  */
 export default class weex extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'weex',
             'name': 'Weex',

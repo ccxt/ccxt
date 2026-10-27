@@ -13,7 +13,7 @@ import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, RateLimitEx
  * @augments Exchange
  */
 export default class apex extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'apex',
             'name': 'Apex',

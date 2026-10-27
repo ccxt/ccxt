@@ -14,7 +14,7 @@ import type { Balances, Bool, Currency, Dict, FundingHistory, FundingRate, Fundi
  * @augments Exchange
  */
 export default class krakenfutures extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'krakenfutures',
             'name': 'Kraken Futures',

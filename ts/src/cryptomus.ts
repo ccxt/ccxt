@@ -15,7 +15,7 @@ import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook
  * @augments Exchange
  */
 export default class cryptomus extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'cryptomus',
             'name': 'Cryptomus',

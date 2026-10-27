@@ -15,7 +15,7 @@ import type { Bool, Currency, CurrencyInterface, Currencies, Dict, Int, Market, 
  * @augments Exchange
  */
 export default class cex extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'cex',
             'name': 'CEX.IO',

@@ -4427,7 +4427,15 @@ function goFunctionLevelReturnExprs (body: string): string[] | undefined {
  * reassigned (that local is typed too); a def with no return must end in panic (base stubs). None of
  * these can return nil. Go interfaces pin one signature, so an unproven def throws instead of staying `any`.
  */
+// describe() is a dictionary on every tier (TS `describe (): Dict`): base, every venue and the ws/prediction
+// tiers return a map literal or `this.DeepExtend(..)`, never nil. The base files bypass formatGoSource, so the
+// two base writes call this directly.
+export function retypeGoDescribe (content: string): string {
+    return retypeGoProvenFamily (content, [ 'Describe' ], 'map[string]any', 'MapTyped', [ 'Extend', 'DeepExtend' ]);
+}
+
 export function retypeGoProvenParseMethods (content: string): string {
+    content = retypeGoDescribe (content);
     const lists = goProvenListMethods ().concat (G05_PROVEN_LIST_METHODS);
     content = retypeGoProvenFamily (content, lists, '[]any', 'this.ToArray', lists.concat ([ 'ArraySlice', 'ToArray', 'SortBy', 'SortBy2', 'ArrayConcat' ]));
     const maps = goProvenParseMapMethods ().concat (goProvenMapCollectionMethods ());
@@ -6969,7 +6977,7 @@ ${constStatements.join('\n')}
             const file = goAnyLocalNativeNilCompares (goPointerLocalNativeNilCompares (goBoxedPointerNilCompares (goParamNativeNilCompares (coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES), 'IsEqual('), 'IsEqual('), 'IsEqual('), 'IsEqual(');
             // repeated base passes (REST / prediction recursion / WS) emit identical bytes —
             // skip the rewrite of this ~390 KB file after the first
-            this.writeGeneratedOnce (goExchangeBase, hx10w10GP24BaseImports (hx4G20BaseNativePasses (file)));
+            this.writeGeneratedOnce (goExchangeBase, hx10w10GP24BaseImports (hx4G20BaseNativePasses (retypeGoDescribe (file))));
         }
     }
 
@@ -8411,7 +8419,7 @@ ${caseStatements.join('\n')}
 func (this *${className}) Init(userConfig map[string]any) {
 \tthis.${baseField} = ${exchangeStructName}{}
 \tthis.${baseField}.DerivedExchange = this
-\tthis.${baseField}.InitParent(userConfig, this.Describe().(map[string]any), this)
+\tthis.${baseField}.InitParent(userConfig, this.Describe(), this)
 }\n`;
         } else {
             initMethod = `

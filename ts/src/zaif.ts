@@ -15,7 +15,7 @@ import type { Balances, Currency, Dict, NullableDict, Int, List, Market, Num, Or
  * @augments Exchange
  */
 export default class zaif extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'zaif',
             'name': 'Zaif',

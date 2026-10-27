@@ -16,7 +16,7 @@ import type { Balances, Dict, Int, Market, Num, Order, OrderBook, OrderSide, Ord
  * @augments Exchange
  */
 export default class btcbox extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'btcbox',
             'name': 'BtcBox',

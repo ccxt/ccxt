@@ -14,7 +14,7 @@ import type { Balances, Currencies, CurrencyInterface, Dict, NullableDict, FeeSt
  * @augments Exchange
  */
 export default class onetrading extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'onetrading',
             'name': 'One Trading',

@@ -15,7 +15,7 @@ import type { ADL, Account, Balances, Bool, Conversion, Currencies, Currency, Cu
  * @augments Exchange
  */
 export default class woo extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'woo',
             'name': 'WOO X',

@@ -17,7 +17,7 @@ import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Mark
  * @augments Exchange
  */
 export default class lbank extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'lbank',
             'name': 'LBank',

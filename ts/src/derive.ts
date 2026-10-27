@@ -17,7 +17,7 @@ import { TICK_SIZE, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js'
  * @augments Exchange
  */
 export default class derive extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'derive',
             'name': 'Derive',

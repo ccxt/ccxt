@@ -12,7 +12,7 @@ import type{ Dict, Fee, Int, List, Market, NullableDict, NullableList, FeeString
  * @augments Exchange
  */
 export default class alpaca extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'alpaca',
             'name': 'Alpaca',

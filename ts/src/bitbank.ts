@@ -14,7 +14,7 @@ import type { Balances, Currency, Dict, Int, Market, Num, NullableDict, FeeStrin
  * @augments Exchange
  */
 export default class bitbank extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'bitbank',
             'name': 'bitbank',

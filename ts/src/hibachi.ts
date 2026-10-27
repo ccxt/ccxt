@@ -18,7 +18,7 @@ import { ArgumentsRequired, BadRequest, ExchangeError, OrderNotFound } from './b
  * @augments Exchange
  */
 export default class hibachi extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'hibachi',
             'name': 'Hibachi',

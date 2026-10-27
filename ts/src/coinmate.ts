@@ -15,7 +15,7 @@ import type { Balances, Currency, Dict, List, Int, Market, NullableDict, FeeStri
  * @augments Exchange
  */
 export default class coinmate extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'coinmate',
             'name': 'CoinMate',

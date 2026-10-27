@@ -15,7 +15,7 @@ import type{ Balances, Currency, Dict, NullableDict, FeeString, List, Int, Marke
  * @augments Exchange
  */
 export default class btcmarkets extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'btcmarkets',
             'name': 'BTC Markets',

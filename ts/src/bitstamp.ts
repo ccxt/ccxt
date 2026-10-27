@@ -17,7 +17,7 @@ import type { Balances, Currencies, Currency, Dict, Int, List, Market, Num, OHLC
  * @augments Exchange
  */
 export default class bitstamp extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'bitstamp',
             'name': 'Bitstamp',

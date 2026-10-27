@@ -17,7 +17,7 @@ import { TICK_SIZE } from './base/functions/number.js';
  * @augments Exchange
  */
 export default class grvt extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         const rlOthers = 40;
         const rlOrders = 20;
         return this.deepExtend (super.describe (), {

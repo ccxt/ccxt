@@ -16,7 +16,7 @@ import type { Bool, Liquidation, OpenInterest } from './base/types.js';
  * @augments Exchange
  */
 export default class bingx extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'bingx',
             'name': 'BingX',

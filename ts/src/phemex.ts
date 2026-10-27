@@ -15,7 +15,7 @@ import type { TransferEntry, Balances, Currency, CurrencyInterface, Fee, FeeStri
  * @augments Exchange
  */
 export default class phemex extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'phemex',
             'name': 'Phemex',

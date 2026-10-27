@@ -16,7 +16,7 @@ import type Client from '../base/ws/Client.js';
  * @augments Exchange
  */
 export default class predictfun extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'predictfun',
             'name': 'predict.fun',

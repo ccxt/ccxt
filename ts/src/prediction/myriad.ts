@@ -21,7 +21,7 @@ import type Client from '../base/ws/Client.js';
  * @augments Exchange
  */
 export default class myriad extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'myriad',
             'name': 'Myriad',

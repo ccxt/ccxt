@@ -2796,7 +2796,7 @@ export class BaseExchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
-    describe (): any {
+    describe (): Dict {
         return {
             'id': this.id,
             'name': this.name,

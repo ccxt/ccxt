@@ -14,7 +14,7 @@ import type { Balances, Currency, Dict, Fee, FeeString, Int, Market, Num, OHLCV,
  * @augments Exchange
  */
 export default class tokocrypto extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'tokocrypto',
             'name': 'Tokocrypto',

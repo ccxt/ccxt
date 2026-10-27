@@ -33,7 +33,7 @@ import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook,
  * signature - pass the PEM exactly as issued.
  */
 export default class coinbase extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'coinbase',
             'name': 'Coinbase Advanced',

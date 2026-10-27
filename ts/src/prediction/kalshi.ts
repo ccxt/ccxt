@@ -12,7 +12,7 @@ import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Strings, Market, P
  * @augments Exchange
  */
 export default class kalshi extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'kalshi',
             'name': 'Kalshi',

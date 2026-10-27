@@ -15,7 +15,7 @@ import type { OrderSide, OrderType, Int, int, Str, Dict, Bool, List, Strings, Nu
  * including market data, requires apiKey/secret credentials
  */
 export default class binance extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'binance',
             'name': 'Binance',

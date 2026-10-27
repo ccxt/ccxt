@@ -16,7 +16,7 @@ import { AccountNotEnabled, AuthenticationError, ArgumentsRequired, BadRequest, 
  * @augments Exchange
  */
 export default class opinion extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'opinion',
             'name': 'Opinion',

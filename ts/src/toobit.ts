@@ -14,7 +14,7 @@ import type { Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAd
  * @augments Exchange
  */
 export default class toobit extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'toobit',
             'name': 'Toobit',

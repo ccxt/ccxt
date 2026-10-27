@@ -15,7 +15,7 @@ import type{ Account, Balances, Bool, BorrowInterest, Conversion, Currency, Curr
  * @augments Exchange
  */
 export default class whitebit extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'whitebit',
             'name': 'WhiteBit',

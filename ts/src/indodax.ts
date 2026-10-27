@@ -15,7 +15,7 @@ import type{ Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook
  * @augments Exchange
  */
 export default class indodax extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'indodax',
             'name': 'INDODAX',

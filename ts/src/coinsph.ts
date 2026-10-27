@@ -10,7 +10,7 @@ import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Fee, Int,
  * @augments Exchange
  */
 export default class coinsph extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'coinsph',
             'name': 'Coins.ph',

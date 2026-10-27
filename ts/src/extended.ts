@@ -14,7 +14,7 @@ import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/function
  * @augments Exchange
  */
 export default class extended extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'extended',
             'name': 'Extended',

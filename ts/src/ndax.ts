@@ -15,7 +15,7 @@ import type { IndexType, Balances, Currency, CurrencyInterface, Int, List, Marke
  * @augments Exchange
  */
 export default class ndax extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'ndax',
             'name': 'NDAX',

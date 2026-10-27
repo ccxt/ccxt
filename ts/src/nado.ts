@@ -16,7 +16,7 @@ import type { Balances, Bool, Currencies, Currency, Dict, Fee, NullableDict, Fun
  * @augments Exchange
  */
 export default class nado extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'nado',
             'name': 'Nado',

@@ -15,7 +15,7 @@ import type { NullableDict, Balances, Bool, Currency, CurrencyInterface, Fee, Fe
  * @augments Exchange
  */
 export default class deribit extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'deribit',
             'name': 'Deribit',

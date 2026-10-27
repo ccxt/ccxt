@@ -3,11 +3,12 @@
 
 import bybit from '../abstract/pro/bybiteu.js';
 import bybiteuRest from '../bybiteu.js';
+import type { Dict } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
 export default class bybiteu extends bybit {
-    override describe (): any {
+    override describe (): Dict {
         // eslint-disable-next-line new-cap
         const restInstance = new bybiteuRest ();
         const restDescribe = restInstance.describe ();

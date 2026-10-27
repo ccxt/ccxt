@@ -15,7 +15,7 @@ import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, FeeS
  * @augments Exchange
  */
 export default class bitrue extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'bitrue',
             'name': 'Bitrue',

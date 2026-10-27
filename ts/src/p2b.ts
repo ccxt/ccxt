@@ -14,7 +14,7 @@ import type { Balances, Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str,
  * @augments Exchange
  */
 export default class p2b extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'p2b',
             'name': 'p2b',

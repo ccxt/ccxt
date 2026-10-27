@@ -13,7 +13,7 @@ import type { WsOrderBook } from '../base/ws/OrderBook.js';
 //  ---------------------------------------------------------------------------
 
 export default class bybit extends bybitRest {
-    override describe (): any {
+    override describe (): Dict {
         const superDescribe = super.describe ();
         return this.deepExtend (superDescribe, this.describeData ());
     }

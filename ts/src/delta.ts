@@ -15,7 +15,7 @@ import type{ Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketI
  * @augments Exchange
  */
 export default class delta extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'delta',
             'name': 'Delta Exchange',

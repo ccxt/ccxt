@@ -2,11 +2,12 @@
 //  ----------------------------------------------------------------------------
 
 import hitbtc from './abstract/fmfwio.js';
+import type { Dict } from './base/types.js';
 
 //  ----------------------------------------------------------------------------
 
 export default class fmfwio extends hitbtc {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'fmfwio',
             'name': 'FMFW.io',

@@ -16,7 +16,7 @@ import type { OpenInterest } from './base/types.js';
  * @augments Exchange
  */
 export default class gemini extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'gemini',
             'name': 'Gemini',

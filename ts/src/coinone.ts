@@ -15,7 +15,7 @@ import type { Balances, Currencies, CurrencyInterface, DepositAddress, Dict, Int
  * @augments Exchange
  */
 export default class coinone extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'coinone',
             'name': 'CoinOne',

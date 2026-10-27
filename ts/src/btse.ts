@@ -15,7 +15,7 @@ import type { NullableDict, Balances, Dict, Endpoint, Fee, FundingRate, FundingR
  * @augments Exchange
  */
 export default class btse extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'btse',
             'name': 'BTSE',

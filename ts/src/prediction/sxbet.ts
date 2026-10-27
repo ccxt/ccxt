@@ -16,7 +16,7 @@ import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, int, Market, 
  * @augments Exchange
  */
 export default class sxbet extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'sxbet',
             'name': 'SX Bet',

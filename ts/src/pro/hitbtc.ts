@@ -13,7 +13,7 @@ import type { WsOrderBook } from '../base/ws/OrderBook.js';
 //  ---------------------------------------------------------------------------
 
 export default class hitbtc extends hitbtcRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), this.describeData ());
     }
 

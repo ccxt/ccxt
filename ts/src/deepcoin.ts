@@ -15,7 +15,7 @@ import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, Invali
  * @augments Exchange
  */
 export default class deepcoin extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'deepcoin',
             'name': 'DeepCoin',

@@ -15,7 +15,7 @@ import type { Balances, Currency, Dict, Fee, FeeString, FundingRate, FundingRate
  * @augments Exchange
  */
 export default class bydfi extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'bydfi',
             'name': 'BYDFi',

@@ -14,7 +14,7 @@ import { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, 
  * @augments Exchange
  */
 export default class bitteam extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'bitteam',
             'name': 'BIT.TEAM',

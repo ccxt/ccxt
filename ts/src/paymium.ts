@@ -15,7 +15,7 @@ import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSi
  * @augments Exchange
  */
 export default class paymium extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'paymium',
             'name': 'Paymium',
