@@ -2401,15 +2401,14 @@ public partial class bybit : Exchange
     {
         // support expired option contracts
         string? quote = null;
-        string? settle = null;
         List<object> optionParts = ((string)symbol).Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         List<object> symbolBase = ((string)symbol).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
         string? expiry = null;
         bool hasSlash = ((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1;
-        object baseName = this.safeString(optionParts, 0);
+        object baseName = this.safeString(optionParts, 0, "");
         if (hasSlash)
         {
-            baseName = this.safeString(symbolBase, 0);
+            baseName = this.safeString(symbolBase, 0, "");
             expiry = this.safeString(optionParts, 1);
             string? symbolQuoteAndSettle = this.safeString(symbolBase, 1);
             if ((symbolQuoteAndSettle == null))
@@ -2419,18 +2418,15 @@ public partial class bybit : Exchange
             List<object> splitQuote = symbolQuoteAndSettle.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
             string? quoteAndSettle = this.safeString(splitQuote, 0);
             quote = quoteAndSettle;
-            settle = quoteAndSettle;
         } else
         {
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
             if (((string)symbol).EndsWith("-USDT"))
             {
                 quote = "USDT";
-                settle = "USDT";
             } else
             {
                 quote = "USDC";
-                settle = "USDC";
             }
         }
         string? strike = this.safeString(optionParts, 2);
@@ -2455,19 +2451,19 @@ public partial class bybit : Exchange
         }
         string? convertedExpireDate = this.convertExpireDateToMarketIdDate(expiry);
         return new Dictionary<string, object>() {
-            { "id", add(add(add(add(add(add(baseName, "-"), convertedExpireDate), "-"), strike), "-"), optionType) },
-            { "symbol", add(add(add(add(add(add(add(add(add(add(baseName, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType) },
+            { "id", ((((((baseName + "-") + convertedExpireDate) + "-") + strike) + "-") + optionType) },
+            { "symbol", ((((((((((baseName + "/") + quote) + ":") + quote) + "-") + expiry) + "-") + strike) + "-") + optionType) },
             { "base", baseName },
             { "quote", quote },
-            { "settle", settle },
+            { "settle", quote },
             { "baseId", baseName },
             { "quoteId", quote },
-            { "settleId", settle },
+            { "settleId", quote },
             { "active", false },
             { "type", "option" },
-            { "subType", (isEqual(baseName, settle)) ? "inverse" : "linear" },
-            { "linear", (!isEqual(baseName, settle)) },
-            { "inverse", (isEqual(baseName, settle)) },
+            { "subType", (isEqual(baseName, quote)) ? "inverse" : "linear" },
+            { "linear", (!isEqual(baseName, quote)) },
+            { "inverse", (isEqual(baseName, quote)) },
             { "spot", false },
             { "swap", false },
             { "future", false },

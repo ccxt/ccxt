@@ -4162,7 +4162,7 @@ public partial class paradex : Exchange
         //     }
         //
         string? errorCode = this.safeString(response, "error");
-        if (((errorCode == null)) && (isEqual(httpCode, 400)))
+        if (((errorCode == null)) && ((httpCode == 400)))
         {
             //
             // a batch where every order was rejected, errors are index-aligned with the request

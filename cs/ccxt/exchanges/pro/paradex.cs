@@ -70,6 +70,26 @@ public partial class paradex : ccxt.paradex
         return requestId;
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name paradex#subscribeRequest
+     * @description builds a json-rpc subscribe request, its id is kept in the subscription passed to watch, so an error reply reaches only the watchers of that request
+     * @param {string} channel the channel to subscribe to
+     * @returns {object} the subscribe request
+     */
+    public virtual object subscribeRequest(object channel)
+    {
+        return new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "id", this.requestId() },
+            { "method", "subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channel", channel },
+            } },
+        };
+    }
+
     public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -81,15 +101,19 @@ public partial class paradex : ccxt.paradex
         if ((authenticated == null))
         {
             string? token = await this.authenticateRest();
+            Int64 requestId = this.requestId();
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "jsonrpc", "2.0" },
-                { "id", this.requestId() },
+                { "id", requestId },
                 { "method", "auth" },
                 { "params", new Dictionary<string, object>() {
                     { "bearer", token },
                 } },
             };
-            this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
+            Dictionary<string, object> subscription = new Dictionary<string, object>() {
+                { "id", requestId },
+            };
+            this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription);
         }
         return await (future as Exchange.Future);
     }
@@ -103,15 +127,42 @@ public partial class paradex : ccxt.paradex
         //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
-        IDictionary<string, object> result = this.safeDict(message, "result");
-        if ((result != null))
+        // the future stays resolved, so later private watches on this connection skip the auth request
+        Future future = ((Future)this.safeValue(client.futures, "authenticated"));
+        if ((future != null))
         {
-            // client.resolve (true, messageHash);
-            Future future = ((Future)this.safeValue(client.futures, "authenticated"));
-            if ((future != null))
-            {
-                (future as Future).resolve(true);
-            }
+            (future as Future).resolve(true);
+        }
+    }
+
+    public virtual void handleRequestReply(WebSocketClient client, object message)
+    {
+        //
+        // auth
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": { "node_id": "73cf456f7cb78d59" }
+        //     }
+        //
+        // subscribe
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 2,
+        //         "result": { "channel": "orders.ALL" }
+        //     }
+        //
+        // only the reply to the auth request resolves the auth, a subscribe ack carries a channel instead of a node id
+        string? requestId = this.safeString(message, "id");
+        IDictionary<string, object> authSubscription = this.safeDict(client.subscriptions, "authenticated");
+        string? authRequestId = this.safeString(authSubscription, "id");
+        IDictionary<string, object> result = this.safeDict(message, "result");
+        bool isAuth = (((requestId != null)) && ((requestId == authRequestId))) || ((this.safeString(result, "node_id") != null));
+        if (isAuth)
+        {
+            this.handleAuthenticationMessage(client, message);
         }
     }
 
@@ -140,14 +191,12 @@ public partial class paradex : ccxt.paradex
             messageHash = ("trades." + ((market.ContainsKey("id") ? market["id"] : null)));
         }
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", messageHash },
-            } },
+        object request = this.subscribeRequest(messageHash);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+            { "messageHashes", new List<object>() {messageHash} },
         };
-        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
@@ -219,14 +268,12 @@ public partial class paradex : ccxt.paradex
         Dictionary<string, object> market = this.market(symbol);
         string? messageHash = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null));
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", messageHash },
-            } },
+        object request = this.subscribeRequest(messageHash);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+            { "messageHashes", new List<object>() {messageHash} },
         };
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
@@ -322,15 +369,13 @@ public partial class paradex : ccxt.paradex
         // option too, thousands of messages a second, all decoded only to be filtered out
         string channel = ("markets_summary." + ((market.ContainsKey("id") ? market["id"] : null)));
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", channel },
-            } },
-        };
         string messageHash = ("markets_summary." + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, this.deepExtend(request, parameters), channel));
+        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+            { "messageHashes", new List<object>() {messageHash} },
+        };
+        return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, this.deepExtend(request, parameters), channel, subscription));
     }
 
     /**
@@ -352,13 +397,6 @@ public partial class paradex : ccxt.paradex
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string channel = "markets_summary";
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", channel },
-            } },
-        };
         List<object> messageHashes = new List<object>() {};
         if ((symbolsNormalized != null) && ((symbolsNormalized is IList<object>) || (symbolsNormalized.GetType().IsGenericType && symbolsNormalized.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
@@ -371,7 +409,11 @@ public partial class paradex : ccxt.paradex
         {
             messageHashes.Add(channel);
         }
-        object newTicker = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
+        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+        };
+        object newTicker = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, subscription);
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -414,14 +456,12 @@ public partial class paradex : ccxt.paradex
             messageHash = ("orders:" + (symbolResolved));
         }
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", channel },
-            } },
+        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+            { "messageHashes", new List<object>() {messageHash} },
         };
-        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.deepExtend(request, parameters), channel));
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.deepExtend(request, parameters), channel, subscription));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
@@ -507,14 +547,12 @@ public partial class paradex : ccxt.paradex
             messageHash = ("myTrades:" + (symbolResolved));
         }
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", channel },
-            } },
+        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+            { "messageHashes", new List<object>() {messageHash} },
         };
-        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.deepExtend(request, parameters), channel));
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.deepExtend(request, parameters), channel, subscription));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
@@ -591,13 +629,6 @@ public partial class paradex : ccxt.paradex
         // one channel carries every market
         string channel = "positions";
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", channel },
-            } },
-        };
         List<object> messageHashes = new List<object>() {};
         int symbolsLength = 0;
         if ((symbolsNormalized != null))
@@ -614,7 +645,12 @@ public partial class paradex : ccxt.paradex
                 messageHashes.Add(((channel + ":") + ((symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null))));
             }
         }
-        object newPositions = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), new List<object>() {channel});
+        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+            { "messageHashes", messageHashes },
+        };
+        object newPositions = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), new List<object>() {channel}, subscription);
         if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
@@ -702,14 +738,13 @@ public partial class paradex : ccxt.paradex
         await this.authenticate();
         string channel = "account";
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", channel },
-            } },
+        string messageHash = "balance";
+        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+            { "messageHashes", new List<object>() {messageHash} },
         };
-        return ccxt.BaseExchange.ToBalances(await this.watch(url, "balance", this.deepExtend(request, parameters), channel));
+        return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, this.deepExtend(request, parameters), channel, subscription));
     }
 
     public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
@@ -848,15 +883,13 @@ public partial class paradex : ccxt.paradex
         string? symbolValue = this.symbol(symbol);
         string channel = "funding_data";
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", channel },
-            } },
-        };
         string messageHash = ((channel + ".") + symbolValue);
-        return ccxt.BaseExchange.ToFundingRate(await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
+        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+            { "messageHashes", new List<object>() {messageHash} },
+        };
+        return ccxt.BaseExchange.ToFundingRate(await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription));
     }
 
     /**
@@ -878,13 +911,6 @@ public partial class paradex : ccxt.paradex
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string channel = "funding_data";
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", channel },
-            } },
-        };
         List<object> messageHashes = new List<object>() {};
         if ((symbolsNormalized != null))
         {
@@ -904,7 +930,11 @@ public partial class paradex : ccxt.paradex
         {
             messageHashes.Add(channel);
         }
-        object newFundingRates = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
+        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+        };
+        object newFundingRates = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, subscription);
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -1684,21 +1714,59 @@ public partial class paradex : ccxt.paradex
         if ((error == null))
         {
             return ((bool?)((object)(true)));
-        } else
+        }
+        try
         {
+            string feedback = ((this.id + " ") + this.json(error));
             string? errorCode = this.safeString(error, "code");
             if ((errorCode != null))
             {
-                string feedback = ((this.id + " ") + this.json(error));
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), "-32600", feedback);
-                string? messageString = this.safeString(error, "message");
-                if ((messageString != null))
+                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+            }
+            string? messageString = this.safeString(error, "message");
+            if ((messageString != null))
+            {
+                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), messageString, feedback);
+            }
+            throw new ExchangeError (feedback) ;
+        } catch(Exception e)
+        {
+            // the subscription of every request sent keeps its id, so the request this error answers is found
+            // by it. A failed subscribe or auth is forgotten, so that the next watch sends it again
+            string? requestId = this.safeString(message, "id");
+            bool handled = false;
+            if ((requestId != null))
+            {
+                List<object> subscribeHashes = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
+                for (int i = 0; i < subscribeHashes.Count; i++)
                 {
-                    this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), messageString, feedback);
+                    string? subscribeHash = ((string)subscribeHashes[i]);
+                    IDictionary<string, object> subscription = this.safeDict(client.subscriptions, subscribeHash);
+                    if ((this.safeString(subscription, "id") == requestId))
+                    {
+                        handled = true;
+                        ((IDictionary<string,object>)client.subscriptions).Remove(subscribeHash);
+                        // watchMultiple subscribes per message hash, so the subscribe hash is what its watcher waits on
+                        List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {subscribeHash});
+                        for (int j = 0; j < messageHashes.Count; j++)
+                        {
+                            client.reject(e, messageHashes[j]);
+                        }
+                    }
                 }
             }
-            return ((bool?)((object)(false)));
+            if (!handled)
+            {
+                // not a reply to a known request, every watcher on the connection gets the error,
+                // and the next private watch authenticates again instead of waiting on a rejected future
+                if ((client.subscriptions != null && client.subscriptions.ContainsKey("authenticated")))
+                {
+                    ((IDictionary<string,object>)client.subscriptions).Remove("authenticated");
+                }
+                client.reject(e);
+            }
         }
+        return ((bool?)((object)(false)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)
@@ -1747,7 +1815,7 @@ public partial class paradex : ccxt.paradex
         IDictionary<string, object> result = this.safeDict(parsedMessage, "result");
         if ((result != null))
         {
-            this.handleAuthenticationMessage(client, parsedMessage);
+            this.handleRequestReply(client, parsedMessage);
             return;
         }
         IDictionary<string, object> data = this.safeDict(parsedMessage, "params");

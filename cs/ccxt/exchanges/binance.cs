@@ -4370,16 +4370,16 @@ public partial class binance : Exchange
                     {
                         settle = this.safeString(market, "quote", "");
                     }
-                    object futuresSymbol = add(add(symbol, ":"), settle);
-                    if (((this.markets != null)) && ((this.markets != null && futuresSymbol is string inOpKey1 && this.markets.ContainsKey(inOpKey1))))
+                    string legacySymbol = ((this.safeString(market, "symbol", "") + ":") + settle);
+                    if (((this.markets != null)) && ((this.markets != null && this.markets.ContainsKey(legacySymbol))))
                     {
-                        return ccxt.BaseExchange.ToDict((this.markets != null && futuresSymbol != null && this.markets.ContainsKey((string)futuresSymbol) ? this.markets[(string)futuresSymbol] : null));
+                        return ccxt.BaseExchange.ToDict((this.markets != null && legacySymbol != null && this.markets.ContainsKey(legacySymbol) ? this.markets[legacySymbol] : null));
                     }
                 } else
                 {
                     return ccxt.BaseExchange.ToDict(market);
                 }
-            } else if (((this.markets_by_id != null)) && ((this.markets_by_id != null && symbol is string inOpKey2 && this.markets_by_id.ContainsKey(inOpKey2))))
+            } else if (((this.markets_by_id != null)) && ((this.markets_by_id != null && symbol is string inOpKey1 && this.markets_by_id.ContainsKey(inOpKey1))))
             {
                 List<object> markets = this.safeList(this.markets_by_id, symbol, new List<object>() {});
                 // begin diff
@@ -4414,7 +4414,7 @@ public partial class binance : Exchange
                         settle = bs;
                     }
                     object futuresSymbol = add(add(symbol, ":"), settle);
-                    if (((this.markets != null)) && ((this.markets != null && futuresSymbol is string inOpKey3 && this.markets.ContainsKey(inOpKey3))))
+                    if (((this.markets != null)) && ((this.markets != null && futuresSymbol is string inOpKey2 && this.markets.ContainsKey(inOpKey2))))
                     {
                         return ccxt.BaseExchange.ToDict((this.markets != null && futuresSymbol != null && this.markets.ContainsKey((string)futuresSymbol) ? this.markets[(string)futuresSymbol] : null));
                     }
@@ -4430,7 +4430,7 @@ public partial class binance : Exchange
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
     {
         bool isOption = ((marketId != null)) && ((((string)marketId).IndexOf("-C", StringComparison.Ordinal) > -1) || (((string)marketId).IndexOf("-P", StringComparison.Ordinal) > -1));
-        if (isOption && (((this.markets_by_id == null)) || !((this.markets_by_id != null && marketId is string inOpKey4 && this.markets_by_id.ContainsKey(inOpKey4)))))
+        if (isOption && (((this.markets_by_id == null)) || !((this.markets_by_id != null && marketId is string inOpKey3 && this.markets_by_id.ContainsKey(inOpKey3)))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -7630,10 +7630,10 @@ public partial class binance : Exchange
         {
             if ((initialUppercaseType != uppercaseType))
             {
-                throw new InvalidOrder ((((((this.id + " triggerPrice parameter is not allowed for ") + symbol) + " ") + (type)) + " orders")) ;
+                throw new InvalidOrder ((((((this.id + " triggerPrice parameter is not allowed for ") + this.safeString(market, "symbol", "")) + " ") + (type)) + " orders")) ;
             } else
             {
-                throw new InvalidOrder ((((((this.id + " ") + (type)) + " is not a valid order type for the ") + symbol) + " market")) ;
+                throw new InvalidOrder ((((((this.id + " ") + (type)) + " is not a valid order type for the ") + this.safeString(market, "symbol", "")) + " market")) ;
             }
         }
         if ((clientOrderId == null))
@@ -9294,7 +9294,7 @@ public partial class binance : Exchange
                     omitKeys.Add("stopLossOrTakeProfit");
                     if ((stopLossOrTakeProfit != "stopLoss") && (stopLossOrTakeProfit != "takeProfit"))
                     {
-                        throw new InvalidOrder (((this.id + (symbol)) + " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit")) ;
+                        throw new InvalidOrder (((this.id + this.safeString(market, "symbol", "")) + " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit")) ;
                     }
                     if (isMarketOrder)
                     {
@@ -9354,7 +9354,7 @@ public partial class binance : Exchange
         {
             if ((type == "market"))
             {
-                throw new InvalidOrder ((((((this.id + " ") + (type)) + " is not a valid order type for the ") + (symbol)) + " market")) ;
+                throw new InvalidOrder ((((((this.id + " ") + (type)) + " is not a valid order type for the ") + this.safeString(market, "symbol", "")) + " market")) ;
             }
         } else
         {
@@ -9367,10 +9367,10 @@ public partial class binance : Exchange
             {
                 if ((initialUppercaseType != uppercaseType))
                 {
-                    throw new InvalidOrder ((((((this.id + " triggerPrice parameter is not allowed for ") + (symbol)) + " ") + (type)) + " orders")) ;
+                    throw new InvalidOrder ((((((this.id + " triggerPrice parameter is not allowed for ") + this.safeString(market, "symbol", "")) + " ") + (type)) + " orders")) ;
                 } else
                 {
-                    throw new InvalidOrder ((((((this.id + " ") + (type)) + " is not a valid order type for the ") + (symbol)) + " market")) ;
+                    throw new InvalidOrder ((((((this.id + " ") + (type)) + " is not a valid order type for the ") + this.safeString(market, "symbol", "")) + " market")) ;
                 }
             }
         }
@@ -11828,7 +11828,7 @@ public partial class binance : Exchange
         object earnedCurrency = (bnb != null && bnb.ContainsKey("code") ? bnb["code"] : null);
         object applicantSymbol = add(add(earnedCurrency, "/"), tradedCurrency);
         bool tradedCurrencyIsQuote = false;
-        if (((this.markets != null)) && ((this.markets != null && applicantSymbol is string inOpKey5 && this.markets.ContainsKey(inOpKey5))))
+        if (((this.markets != null)) && ((this.markets != null && applicantSymbol is string inOpKey4 && this.markets.ContainsKey(inOpKey4))))
         {
             tradedCurrencyIsQuote = true;
         }
@@ -13672,7 +13672,7 @@ public partial class binance : Exchange
             if (filterClosed != true || isPositionOpen)
             {
                 // sometimes not all the codes are correctly returned...
-                if ((code is string inOpKey6 && balances.ContainsKey(inOpKey6)))
+                if ((code is string inOpKey5 && balances.ContainsKey(inOpKey5)))
                 {
                     Dictionary<string, object> parsed = this.parseAccountPosition(this.extend(position, new Dictionary<string, object>() {
                         { "crossMargin", this.safeValue((balances != null && code != null && balances.ContainsKey((string)code) ? balances[(string)code] : null), "crossMargin") },

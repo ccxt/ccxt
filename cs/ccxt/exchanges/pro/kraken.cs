@@ -911,7 +911,7 @@ public partial class kraken : ccxt.kraken
             { "req_id", this.requestId() },
         };
         request["params"] = this.deepExtend(request["params"], parameters);
-        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicV2"));
+        string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("publicV2") ? this.urlsApiSections["ws"]["publicV2"] : null));
         // kraken acknowledges each symbol separately, see handleUnsubscriptionStatus
         return await this.watchMultiple(url, unsubMessageHashes, request, unsubMessageHashes);
     }
@@ -1035,7 +1035,7 @@ public partial class kraken : ccxt.kraken
             { "req_id", this.requestId() },
         };
         Dictionary<string, object> request = this.deepExtend(unsubscribe, parameters);
-        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicV2"));
+        string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("publicV2") ? this.urlsApiSections["ws"]["publicV2"] : null));
         return await this.watch(url, unsubMessageHash, request, unsubMessageHash);
     }
 

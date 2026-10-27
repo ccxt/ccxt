@@ -990,9 +990,9 @@ public partial class mexc : ccxt.mexc
         bool shouldReturn = false;
         if ((nonce == null))
         {
-            int cacheLength = ((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0);
-            object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
-            if (isEqual(cacheLength, snapshotDelay))
+            Int64? cacheLength = this.parseToInt(((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0));
+            Int64? snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", 25));
+            if ((cacheLength == snapshotDelay))
             {
                 this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, limit, new Dictionary<string, object>() {}});
             }

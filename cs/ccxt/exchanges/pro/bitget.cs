@@ -1110,7 +1110,7 @@ public partial class bitget : ccxt.bitget
         }
         string? marketId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("orderbook:" + symbol);
         object data = this.safeValue(message, "data");
         // tokenized stock snapshots arrive as a plain dict instead of a list
@@ -1124,7 +1124,7 @@ public partial class bitget : ccxt.bitget
         if (incrementalBook)
         {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
-            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+            if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
             {
                 // const ob = this.orderBook ({});
                 ccxt.pro.CountedOrderBook ob = this.countedOrderBook(new Dictionary<string, object>() {});
@@ -1188,7 +1188,7 @@ public partial class bitget : ccxt.bitget
             // holds a reference to the old object and would never see updates
             // after this snapshot (every frame of the non-incremental channels
             // is a full snapshot)
-            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+            if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
             }
@@ -2908,7 +2908,7 @@ public partial class bitget : ccxt.bitget
                     object account = this.account();
                     if (((code != null)) && ((this.balance != null && code != null && this.balance.ContainsKey(code))))
                     {
-                        account = (this.balance != null && code != null && this.balance.ContainsKey(code) ? this.balance[code] : null);
+                        account = this.safeDict(this.balance, code, account);
                     }
                     string? borrow = this.safeString(entry, "borrow");
                     string? debts = this.safeString(entry, "debts");
@@ -2931,7 +2931,7 @@ public partial class bitget : ccxt.bitget
                 object account = this.account();
                 if (((code != null)) && ((this.balance != null && code != null && this.balance.ContainsKey(code))))
                 {
-                    account = (this.balance != null && code != null && this.balance.ContainsKey(code) ? this.balance[code] : null);
+                    account = this.safeDict(this.balance, code, account);
                 }
                 string? borrow = this.safeString(rawBalance, "borrow");
                 if ((borrow != null))

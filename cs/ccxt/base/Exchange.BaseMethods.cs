@@ -3938,7 +3938,7 @@ public partial class BaseExchange
         {
             for (int i = 0; i < getArrayLength(response); i++)
             {
-                object item = getValue(response, i);
+                object item = this.safeValue(response, i);
                 string? id = ((marketIdKey == null)) ? null : this.safeString(item, marketIdKey);
                 Dictionary<string, object> market = this.safeMarket(id, null, null, "swap");
                 string? symbol = this.safeString(market, "symbol", "");
@@ -3954,7 +3954,7 @@ public partial class BaseExchange
             for (int i = 0; i < keys.Count; i++)
             {
                 string? marketId = ((string)keys[i]);
-                object item = getValue(response, marketId);
+                object item = this.safeValue(response, marketId);
                 Dictionary<string, object> market = this.safeMarket(marketId, null, null, "swap");
                 string? symbol = this.safeString(market, "symbol", "");
                 bool? contract = this.safeBool(market, "contract", false);
