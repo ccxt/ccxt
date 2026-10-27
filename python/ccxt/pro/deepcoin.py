@@ -686,7 +686,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         # 120 spot markets, 52 of 120 swaps in a live probe); the tick size
         # itself was accepted on 116 and 117 of them, and the handful whose
         # tick was rejected accepted the next coarser level
-        symbol = self.safe_string(market, 'symbol')
+        symbol = self.safe_string(market, 'symbol', '')
         aggregation = None
         paramsAggregation = None
         aggregation, paramsAggregation = self.handle_option_string_and_params(params, methodName, 'aggregation')
@@ -827,7 +827,9 @@ class deepcoin(ccxt.async_support.deepcoin):
         messageHash = 'myTrades'
         if self.markets is None:
             await self.load_markets()
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else None
+        symbolResolved = None
+        if symbol is not None:
+            symbolResolved = self.symbol(symbol)
         if symbolResolved is not None:
             messageHash = 'myTrades' + '::' + symbolResolved
         trades = await self.watch_private(messageHash, params)
@@ -900,7 +902,9 @@ class deepcoin(ccxt.async_support.deepcoin):
         messageHash = 'orders'
         if self.markets is None:
             await self.load_markets()
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else None
+        symbolResolved = None
+        if symbol is not None:
+            symbolResolved = self.symbol(symbol)
         if symbolResolved is not None:
             messageHash = 'orders' + '::' + symbolResolved
         orders = await self.watch_private(messageHash, params)

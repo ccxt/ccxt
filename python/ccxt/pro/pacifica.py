@@ -641,7 +641,7 @@ class pacifica(ccxt.async_support.pacifica):
         symbolResolved = None
         if symbol is not None:
             symbolResolved = self.symbol(symbol)
-            messageHash += ':' + symbolResolved
+            messageHash = 'myTrades:' + symbolResolved
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'api'
         if isTestnet:

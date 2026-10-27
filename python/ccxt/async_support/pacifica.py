@@ -3484,11 +3484,10 @@ class pacifica(Exchange, ImplicitAPI):
         host = self.implode_hostname(baseApiUrl)
         url = host + '/api/' + self.version + '/' + self.implode_params(path, params)
         paramsOmitted = self.omit(params, self.extract_params(path))
-        paramsLen = len(paramsOmitted)
         headersValue = {
             'Content-Type': 'application/json',
         }
-        if (method == 'GET') and (paramsLen > 0):
+        if (method == 'GET') and (len(paramsOmitted) > 0):
             url += '?' + self.urlencode(paramsOmitted)
             headersValue['Accept'] = '*/*'
         if method == 'POST':

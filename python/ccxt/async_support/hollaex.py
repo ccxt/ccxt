@@ -1848,14 +1848,13 @@ class hollaex(Exchange, ImplicitAPI):
         network = self.safe_string(paramsWithdrawTag, 'network')
         if network is None:
             raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter')
-        paramsOmitted = self.omit(paramsWithdrawTag, 'network')
         request = {
             'currency': currency['id'],
             'amount': amount,
             'address': addressWithTag,
             'network': self.network_code_to_id(network, code),
         }
-        response = await self.privatePostUserWithdrawal(self.extend(request, paramsOmitted))
+        response = await self.privatePostUserWithdrawal(self.extend(request, self.omit(paramsWithdrawTag, 'network')))
         #
         #     {
         #         "message": "Withdrawal request is in the queue and will be processed.",
@@ -1909,8 +1908,8 @@ class hollaex(Exchange, ImplicitAPI):
                 'fee': None,
                 'percentage': None,
             },
-            'networks': {},
         }
+        networks = {}
         allowWithdrawal = self.safe_bool(fee, 'allow_withdrawal')
         if allowWithdrawal is True:
             result['withdraw'] = {'fee': self.safe_number(fee, 'withdrawal_fee'), 'percentage': False}
@@ -1928,10 +1927,11 @@ class hollaex(Exchange, ImplicitAPI):
                     raise ArgumentsRequired(self.id + ' requires a networkCode argument')
                 networkCodeUpper = networkCode.upper()  # default to the upper case network code
                 withdrawalFee = self.safe_number(value, 'value')
-                result['networks'][networkCodeUpper] = {
+                networks[networkCodeUpper] = {
                     'deposit': None,
                     'withdraw': withdrawalFee,
                 }
+        result['networks'] = networks
         return result
 
     async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
@@ -2000,7 +2000,7 @@ class hollaex(Exchange, ImplicitAPI):
             timeoutMs = self.parse_to_int(self.timeout)
             defaultExpires = self.safe_integer_2(self.options, 'api-expires', 'expires', self.parse_to_int(timeoutMs / 1000))
             expires = self.sum(self.seconds(), defaultExpires)
-            expiresString = str(expires)
+            expiresString = self.number_to_string(expires)
             auth = method + requestPath + expiresString
             requestHeaders = {
                 'api-key': self.apiKey,

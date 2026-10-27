@@ -800,7 +800,8 @@ class modetrade(Exchange, ImplicitAPI):
         #         "is_maker": "1"
         #     }
         #
-        isFromFetchOrder = ('id' in trade)
+        id = self.safe_string(trade, 'id')
+        isFromFetchOrder = id is not None
         timestamp = self.safe_integer(trade, 'executed_timestamp')
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
@@ -811,7 +812,6 @@ class modetrade(Exchange, ImplicitAPI):
         fee = self.parse_token_and_fee_temp(trade, 'fee_asset', 'fee')
         cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
-        id = self.safe_string(trade, 'id')
         takerOrMaker = None
         if isFromFetchOrder:
             isMaker = self.safe_string(trade, 'is_maker') == '1'

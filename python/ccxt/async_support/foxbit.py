@@ -1979,7 +1979,7 @@ class foxbit(Exchange, ImplicitAPI):
         detailsString = ''
         if details is not None:
             for i in range(0, len(details)):
-                detailsString = detailsString + details[i] + ' '
+                detailsString = detailsString + self.safe_string(details, i, '') + ' '
         if error is not None:
             feedback = self.id + ' ' + message + ' details: ' + detailsString
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)

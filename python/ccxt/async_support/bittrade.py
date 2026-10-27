@@ -873,8 +873,8 @@ class bittrade(Exchange, ImplicitAPI):
         typeRaw = self.safe_string(trade, 'type')
         if typeRaw is not None:
             typeParts = typeRaw.split('-')
-            side = typeParts[0]
-            type = typeParts[1]
+            side = self.safe_string(typeParts, 0)
+            type = self.safe_string(typeParts, 1)
         takerOrMaker = self.safe_string(trade, 'role')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string_2(trade, 'filled-amount', 'amount')
@@ -1396,8 +1396,8 @@ class bittrade(Exchange, ImplicitAPI):
         orderTypeRaw = self.safe_string(order, 'type')
         if orderTypeRaw is not None:
             orderType = orderTypeRaw.split('-')
-            side = orderType[0]
-            type = orderType[1]
+            side = self.safe_string(orderType, 0)
+            type = self.safe_string(orderType, 1)
             status = self.parse_order_status(self.safe_string(order, 'state'))
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)

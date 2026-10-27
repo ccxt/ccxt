@@ -604,7 +604,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         orphanSlugs = []
         for i in range(0, queriesLength):
             request = {
-                'query': queries[i],
+                'query': self.safe_string(queries, i, ''),
                 'limit': limit,
                 'includeResolved': includeResolved,
             }
@@ -1632,7 +1632,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         """
         # read before the flag is overwritten: only an actual switch touches the token, so calling
         # this twice with the same value is a no-op rather than a forced re-authentication
-        wasSandbox = self.safe_bool(self.options, 'sandboxMode', False)
+        wasSandbox = (self.safe_bool(self.options, 'sandboxMode', False) is True)
         super(predictfun, self).set_sandbox_mode(enable)
         # the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         # change with it - and the venue serves the testnet without an api key
@@ -2031,7 +2031,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         wanted = {}
         wantedOutcomes = self.to_array(outcomes)
         for i in range(0, outcomesLength):
-            outcomeObj = self.outcome(wantedOutcomes[i])
+            outcomeObj = self.outcome(self.safe_string(wantedOutcomes, i))
             wantedId = self.safe_string(outcomeObj, 'outcomeId', '')
             wanted[wantedId] = True
         result = []
@@ -2611,12 +2611,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         rHex = self.pad_hex_to_even(rHex)
         sHex = self.pad_hex_to_even(sHex)
         yParity = self.safe_integer(signature, 'v')
-        signedFields = []
-        for i in range(0, len(fields)):
-            signedFields.append(fields[i])
-        signedFields.append(self.rlp_encode_bytes(self.int_to_rlp_hex(yParity)))
-        signedFields.append(self.rlp_encode_bytes(rHex))
-        signedFields.append(self.rlp_encode_bytes(sHex))
+        signedFields = self.array_concat(fields, [self.rlp_encode_bytes(self.int_to_rlp_hex(yParity)), self.rlp_encode_bytes(rHex), self.rlp_encode_bytes(sHex)])
         return '0x02' + self.rlp_encode_list(signedFields)
 
     async def approve(self, outcome: Str = None, params: dict = {}) -> object:
@@ -2853,7 +2848,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             # pinned on one waiter and belongs to the connection as a whole
             raise error
         for i in range(0, messageHashesLength):
-            client.reject(error, messageHashes[i])
+            client.reject(error, self.safe_string(messageHashes, i, ''))
 
     def handle_un_subscription(self, client: Client, subscription: dict):
         """
@@ -3127,9 +3122,9 @@ class predictfun(PredictionExchange, ImplicitAPI):
         :returns dict[]: the outcome objects
         """
         result = []
-        cached = self.outcomes
-        if (marketId is None) or (cached is None):
+        if (marketId is None) or (self.outcomes is None):
             return result
+        cached = self.outcomes
         handles = list(cached.keys())
         handlesLength = len(handles)
         for i in range(0, handlesLength):

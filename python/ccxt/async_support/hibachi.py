@@ -802,10 +802,6 @@ class hibachi(Exchange, ImplicitAPI):
         return result
 
     def order_message(self, market: Market, nonce: float, feeRate: float, type: Str, side: Str, amount: Num, price: Num = None):
-        if type is None:
-            raise ArgumentsRequired(self.id + ' requires a type argument')
-        if side is None:
-            raise ArgumentsRequired(self.id + ' requires a side argument')
         sideInternal = 0
         if side == 'sell':
             sideInternal = 0
@@ -1468,7 +1464,7 @@ class hibachi(Exchange, ImplicitAPI):
         # ]
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+    async def fetch_orders_by_status(self, status: Str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
  @ignore
         fetch orders filtered by terminal status

@@ -685,7 +685,7 @@ class deepcoin(Exchange, ImplicitAPI):
                 # we calculate until (after) for correct pagination
                 duration = self.parse_timeframe(timeframe)
                 numberOfCandles = maxLimit if (limit is None) else limit
-                endTime = since + (duration * numberOfCandles) * 1000
+                endTime = self.parse_to_int(since + (duration * numberOfCandles) * 1000)
                 if until is not None:
                     endTime = min(endTime, until)
                 now = self.milliseconds()

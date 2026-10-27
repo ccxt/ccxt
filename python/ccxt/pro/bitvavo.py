@@ -1127,7 +1127,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         ts = str(self.milliseconds())
         randomNumber = self.rand_number(4)
         randomPart = str(randomNumber)
-        return int(ts + randomPart)
+        return self.parse_to_int(ts + randomPart)
 
     async def watch_request(self, action: str, request: dict):
         messageHash = self.request_id()

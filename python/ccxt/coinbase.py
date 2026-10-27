@@ -1257,7 +1257,8 @@ class coinbase(Exchange, ImplicitAPI):
             if (baseId is not None) and (quoteId is not None):
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+                if (base is not None) and (quote is not None):
+                    symbol = base + '/' + quote
         sizeInQuote = self.safe_bool(trade, 'size_in_quote')
         v3Price = self.safe_string(trade, 'price')
         v3Cost = None
@@ -1351,7 +1352,7 @@ class coinbase(Exchange, ImplicitAPI):
                     quoteCurrency = data[j]
                     quoteId = self.safe_string(quoteCurrency, 'id')
                     quote = self.safe_currency_code(quoteId)
-                    if quote is None:
+                    if (quote is None) or (quoteId is None):
                         continue
                     result.append(self.safe_market_structure({
                         'id': baseId + '-' + quoteId,

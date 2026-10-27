@@ -40,11 +40,8 @@ class upbit(ccxt.async_support.upbit):
     async def watch_public_multiple(self, symbols: Strings, channel: Str, params: dict = {}):
         if self.markets is None:
             await self.load_markets()
-        symbolsRequested = symbols
-        if symbols is None:
-            symbolsRequested = self.symbols
-        symbolsMarket = self.market_symbols(symbolsRequested)
-        symbolsNormalized = [] if (symbolsMarket is None) else symbolsMarket
+        symbolsRequested = self.symbols if (symbols is None) else symbols
+        symbolsNormalized = self.market_symbols(symbolsRequested)
         marketIds = self.market_ids(symbolsNormalized)
         url = self.implode_params(self.safe_string(self.urls['api'], 'ws'), {
             'hostname': self.hostname,

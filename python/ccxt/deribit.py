@@ -3176,7 +3176,7 @@ class deribit(Exchange, ImplicitAPI):
         paramsUntil = self.omit(paramsPaginate, ['until']) if (until is not None) else paramsPaginate
         endTimestamp = until if (until is not None) else time
         request['end_timestamp'] = endTimestamp
-        isPaginationCall = ('isDeribitPaginationCall' in paramsUntil)
+        isPaginationCall = self.safe_bool(paramsUntil, 'isDeribitPaginationCall', False)
         paramsOmitted = paramsUntil
         if isPaginationCall:
             paramsOmitted = self.omit(paramsUntil, 'isDeribitPaginationCall')

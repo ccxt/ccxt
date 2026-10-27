@@ -558,9 +558,7 @@ class p2b(Exchange, ImplicitAPI):
         #    }
         #
         timestamp = self.safe_integer_product(ticker, 'at', 1000)
-        tickerInner = ticker
-        if 'ticker' in ticker:
-            tickerInner = self.safe_dict(ticker, 'ticker')
+        tickerInner = self.safe_dict(ticker, 'ticker', ticker)
         last = self.safe_string(tickerInner, 'last')
         return self.safe_ticker({
             'symbol': self.safe_string(market, 'symbol'),

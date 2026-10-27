@@ -165,7 +165,7 @@ class mudrex(ccxt.async_support.mudrex):
     def handle_error_message(self, client: Client, message: dict):
         error = self.safe_dict(message, 'error', {})
         code = self.safe_string(error, 'code')
-        msg = self.safe_string(error, 'msg')
+        msg = self.safe_string(error, 'msg', '')
         feedback = self.id + ' ' + msg
         if code == '429':
             raise RateLimitExceeded(feedback)

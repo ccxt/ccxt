@@ -5545,7 +5545,7 @@ class xt(Exchange, ImplicitAPI):
         signedBody = None
         if signed:
             self.check_required_credentials()
-            defaultRecvWindow = self.safe_string(self.options, 'recvWindow')
+            defaultRecvWindow = self.safe_string(self.options, 'recvWindow', '5000')
             recvWindow = self.safe_string(query, 'recvWindow', defaultRecvWindow)
             timestamp = self.number_to_string(self.nonce())
             if (payload == '/v4/order') or (payload == '/future/trade/v1/order/create') or (payload == '/future/trade/v1/entrust/create-plan') or (payload == '/future/trade/v1/entrust/create-profit') or (payload == '/future/trade/v1/order/create-batch'):
@@ -5558,7 +5558,7 @@ class xt(Exchange, ImplicitAPI):
             if (method == 'PUT') and (endpoint == 'spot'):
                 isUndefinedBody = False
             signedBody = None if isUndefinedBody else self.json(query)
-            payloadString = None
+            payloadString = ''
             if (endpoint == 'spot') or (endpoint == 'user'):
                 payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp
                 if isUndefinedBody:

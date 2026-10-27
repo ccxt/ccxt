@@ -356,8 +356,8 @@ class opinion(PredictionExchange, ImplicitAPI):
             'expiryDatetime': self.iso8601(expiryTimestamp),
             'strike': None,
             'optionType': None,
-            'taker': self.fees['trading']['taker'],
-            'maker': self.fees['trading']['maker'],
+            'taker': self.safe_number(self.fees['trading'], 'taker'),
+            'maker': self.safe_number(self.fees['trading'], 'maker'),
             'percentage': True,
             'tierBased': False,
             'feeSide': 'get',
@@ -618,7 +618,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         :returns dict: a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
         """
         outcomeObj = await self.load_outcome(outcome)
-        tokenId = outcomeObj['outcomeId']
+        tokenId = self.safe_string(outcomeObj, 'outcomeId')
         promises = [
             self.opinionPublicGetTokenLatestPrice(self.extend({'token_id': tokenId}, params)),
             self.opinionPublicGetTokenOrderbook(self.extend({'token_id': tokenId}, params)),
@@ -703,7 +703,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         promises = []
         for i in range(0, outcomesLength):
             outcomeObj = self.outcome(outcomes[i])
-            tokenId = outcomeObj['outcomeId']
+            tokenId = self.safe_string(outcomeObj, 'outcomeId')
             promises.append(self.opinionPublicGetTokenLatestPrice(self.extend({'token_id': tokenId}, params)))
             promises.append(self.opinionPublicGetTokenOrderbook(self.extend({'token_id': tokenId}, params)))
         responses = await asyncio.gather(*promises)
@@ -732,7 +732,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         :returns dict: a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
         """
         outcomeObj = await self.load_outcome(outcome)
-        tokenId = outcomeObj['outcomeId']
+        tokenId = self.safe_string(outcomeObj, 'outcomeId')
         request = {
             'token_id': tokenId,
         }
@@ -770,12 +770,12 @@ class opinion(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: a list of candles ordered as timestamp, open, high, low, close, volume
         """
-        if not (timeframe in self.timeframes):
+        interval = self.safe_string(self.timeframes, timeframe)
+        if interval is None:
             supportedKeys = list(self.timeframes.keys())
             raise BadRequest(self.id + ' fetchOHLCV() unsupported timeframe ' + timeframe + ', supported timeframes are ' + ', '.join(supportedKeys))
         outcomeObj = await self.load_outcome(outcome)
-        tokenId = outcomeObj['outcomeId']
-        interval = self.safe_string(self.timeframes, timeframe)
+        tokenId = self.safe_string(outcomeObj, 'outcomeId')
         response = await self.opinionPublicGetTokenPriceHistory(self.extend({
             'token_id': tokenId,
             'interval': interval,
@@ -943,7 +943,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         await self.load_api_key()
         self.check_required_credentials()
         outcomeObj = await self.load_outcome(outcome)
-        tokenId = outcomeObj['outcomeId']
+        tokenId = self.safe_string(outcomeObj, 'outcomeId')
         isMarket = (type == 'market')
         sideStr = side.upper()
         if price is None:
@@ -959,9 +959,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         topicId = self.safe_integer(info, 'marketId')
         quoteTokenAddress = self.safe_string(info, 'quoteToken')
         quoteToken = await self.load_quote_token(quoteTokenAddress)
-        exchangeAddress = self.safe_string(quoteToken, 'ctfExchangeAddress', '')
-        decimals = self.safe_integer(quoteToken, 'decimal', 18)
-        amounts = self.opinion_order_raw_amounts(isMarket, sideStr, amount, price, decimals)
+        amounts = self.opinion_order_raw_amounts(isMarket, sideStr, amount, price, self.safe_integer(quoteToken, 'decimal', 18))
         makerAmount = self.safe_string(amounts, 'makerAmount')
         takerAmount = self.safe_string(amounts, 'takerAmount')
         sideInt = 0 if (sideStr == 'BUY') else 1
@@ -989,7 +987,7 @@ class opinion(PredictionExchange, ImplicitAPI):
             'side': sideInt,
             'signatureType': signatureType,
         }
-        signature = self.sign_opinion_order(order, exchangeAddress)
+        signature = self.sign_opinion_order(order, self.safe_string(quoteToken, 'ctfExchangeAddress', ''))
         signatureNo0x = self.remove0x_prefix(signature)
         orderBody = self.extend({
             'salt': salt,
@@ -1402,8 +1400,8 @@ class opinion(PredictionExchange, ImplicitAPI):
     def sign_hash(self, hash: str, privateKey: str) -> dict:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         # assign before padStart so the PHP str_pad regex matches
-        rRaw = signature['r']
-        sRaw = signature['s']
+        rRaw = self.safe_string(signature, 'r', '')
+        sRaw = self.safe_string(signature, 's', '')
         r = rRaw.rjust(64, '0')
         s = sRaw.rjust(64, '0')
         return {
@@ -1552,12 +1550,12 @@ class opinion(PredictionExchange, ImplicitAPI):
         """
         await self.load_api_key()
         url = self.opinion_ws_url()
-        subscriptionKey = channel + ':' + self.number_to_string(marketId)
         subscribeMsg = {
             'action': 'SUBSCRIBE',
             'channel': channel,
             'marketId': marketId,
         }
+        subscriptionKey = channel + ':' + self.safe_string(subscribeMsg, 'marketId', '')
         return await self.watch(url, messageHash, subscribeMsg, subscriptionKey)
 
     def handle_message(self, client: object, message: object):
@@ -1618,15 +1616,15 @@ class opinion(PredictionExchange, ImplicitAPI):
         await self.load_api_key()
         url = self.opinion_ws_url()
         client = self.client(url)
-        subscriptionKey = channel + ':' + self.number_to_string(marketId)
-        isNewSubscription = self.safe_value(client.subscriptions, subscriptionKey) is None
-        if isNewSubscription:
-            await self.seed_order_book(outcome, sym, limit)
         subscribeMsg = {
             'action': 'SUBSCRIBE',
             'channel': channel,
             'marketId': marketId,
         }
+        subscriptionKey = channel + ':' + self.safe_string(subscribeMsg, 'marketId', '')
+        isNewSubscription = self.safe_value(client.subscriptions, subscriptionKey) is None
+        if isNewSubscription:
+            await self.seed_order_book(outcome, sym, limit)
         future = self.watch(url, messageHash, subscribeMsg, subscriptionKey)
         if isNewSubscription:
             # return the freshly-seeded book immediately instead of blocking until the next delta
@@ -2006,10 +2004,9 @@ class opinion(PredictionExchange, ImplicitAPI):
                 if (self.walletAddress is None) or (self.privateKey is None):
                     raise ArgumentsRequired(self.id + ' ' + path + ' requires a walletAddress and privateKey')
                 actionByMethod = {'POST': 'create', 'GET': 'get', 'DELETE': 'delete'}
-                action = self.safe_string(actionByMethod, method, 'get')
                 timestamp = self.number_to_string(self.seconds())
                 headersExtended['OPINION_ADDRESS'] = self.walletAddress
-                headersExtended['OPINION_SIGNATURE'] = self.sign_api_key_auth(self.walletAddress, action, timestamp)
+                headersExtended['OPINION_SIGNATURE'] = self.sign_api_key_auth(self.walletAddress, self.safe_string(actionByMethod, method, 'get'), timestamp)
                 headersExtended['OPINION_TIMESTAMP'] = timestamp
             else:
                 # an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the

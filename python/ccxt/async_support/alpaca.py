@@ -1702,8 +1702,9 @@ class alpaca(Exchange, ImplicitAPI):
             await self.load_markets()
         currency = self.currency(code)
         addressValue = address
-        if (tagWithdrawTag is not None) and (tagWithdrawTag != ''):
-            addressValue = address + ':' + tagWithdrawTag
+        tagSuffix = self.safe_string(params, 'tag', '')
+        if tagSuffix != '':
+            addressValue = address + ':' + tagSuffix
         request = {
             'asset': currency['id'],
             'address': addressValue,

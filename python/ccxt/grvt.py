@@ -1882,18 +1882,19 @@ class grvt(Exchange, ImplicitAPI):
         self.load_markets_and_sign_in()
         defaultFromAccountId = self.safe_string(self.options, 'userMainAccountId')
         currency = self.currency(code)
+        networkCode, query = self.handle_network_code_and_params(params)
+        networkId = self.network_code_to_id(networkCode, code)
+        if networkId is None:
+            raise BadRequest(self.id + ' withdraw() requires a network parameter')
+        withdrawSignature = self.default_signature()
+        withdrawSignature['chain_id'] = networkId
         request = {
             'to_eth_address': address,
             'from_account_id': defaultFromAccountId,
             'currency': currency['id'],
             'num_tokens': self.currency_to_precision(code, amount),
-            'signature': self.default_signature(),
+            'signature': withdrawSignature,
         }
-        networkCode, query = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode, code)
-        if networkId is None:
-            raise BadRequest(self.id + ' withdraw() requires a network parameter')
-        request['signature']['chain_id'] = networkId
         response = self.privateTradingPostFullV1Withdrawal(self.extend(self.create_signed_request(request, 'EIP712_WITHDRAWAL_TYPE', currency), query))
         #
         # {
@@ -3166,9 +3167,7 @@ class grvt(Exchange, ImplicitAPI):
             }
             # an empty params dict must serialize as an empty json object, not an empty json array,
             # php json_encode would produce [] here which the venue rejects with the same 1003 error
-            paramsKeys = list(params.keys())
-            paramsKeysLength = len(paramsKeys)
-            if paramsKeysLength == 0:
+            if len(params) == 0:
                 requestBody = '{}'
             else:
                 requestBody = self.json(params)

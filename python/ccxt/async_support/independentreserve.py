@@ -1096,7 +1096,7 @@ class independentreserve(Exchange, ImplicitAPI):
             keys = list(paramsDict.keys())
             for i in range(0, len(keys)):
                 key = keys[i]
-                value = str(paramsDict[key])
+                value = self.safe_string(paramsDict, key, '')
                 auth.append(key + '=' + value)
             message = ','.join(auth)
             signature = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha256)

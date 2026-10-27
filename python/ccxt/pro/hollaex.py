@@ -9,7 +9,6 @@ import hashlib
 from ccxt.base.types import Balances, Bool, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 
@@ -444,14 +443,11 @@ class hollaex(ccxt.async_support.hollaex):
 
     async def watch_private(self, messageHash: str, params: dict = {}):
         self.check_required_credentials()
-        expires = self.safe_string(self.options, 'ws-expires')
-        if expires is None:
+        expires = self.safe_string(self.options, 'ws-expires', '')
+        if expires == '':
             timeoutMs = self.parse_to_int(self.timeout)
             timeout = self.parse_to_int(timeoutMs / 1000)
-            expires = self.sum(self.seconds(), timeout)
-            if expires is None:
-                raise ArgumentsRequired(self.id + ' watchPrivate() expires is required')
-            expires = str(expires)
+            expires = self.number_to_string(self.parse_to_int(self.sum(self.seconds(), timeout)))
             # we need to memoize these values to avoid generating a new url on each method execution
             # that would trigger a new connection on each received message
             self.options['ws-expires'] = expires

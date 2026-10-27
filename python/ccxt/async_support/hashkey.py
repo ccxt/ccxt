@@ -1957,7 +1957,7 @@ class hashkey(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        until, paramsUntil = self.handle_option_and_params(params, methodName, 'until')
+        until, paramsUntil = self.handle_option_integer_and_params(params, methodName, 'until')
         if until is not None:
             request['endTime'] = until
         response = await self.privateGetApiV1AccountDepositOrders(self.extend(request, paramsUntil))
@@ -2002,7 +2002,7 @@ class hashkey(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        until, paramsUntil = self.handle_option_and_params(params, methodName, 'until')
+        until, paramsUntil = self.handle_option_integer_and_params(params, methodName, 'until')
         if until is not None:
             request['endTime'] = until
         response = await self.privateGetApiV1AccountWithdrawOrders(self.extend(request, paramsUntil))
@@ -2315,7 +2315,7 @@ class hashkey(Exchange, ImplicitAPI):
         methodName = 'fetchLedger'
         if since is None:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a since argument')
-        until, paramsUntil = self.handle_option_and_params(params, methodName, 'until')
+        until, paramsUntil = self.handle_option_integer_and_params(params, methodName, 'until')
         if until is None:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires an until argument')
         if self.markets is None:
@@ -2898,7 +2898,7 @@ class hashkey(Exchange, ImplicitAPI):
             #     }
             #
         elif marketType == 'swap':
-            isTrigger, paramsTrigger = self.handle_trigger_option_and_params(paramsMarketType, methodName, False)
+            isTrigger, paramsTrigger = self.handle_option_bool_and_params_2(paramsMarketType, methodName, 'stop', 'trigger', False)
             if isTrigger is True:
                 request['type'] = 'STOP'
             else:
@@ -3081,7 +3081,7 @@ class hashkey(Exchange, ImplicitAPI):
             #     }
             #
         elif marketType == 'swap':
-            isTrigger, paramsTrigger = self.handle_trigger_option_and_params(paramsMarketType, methodName, False)
+            isTrigger, paramsTrigger = self.handle_option_bool_and_params_2(paramsMarketType, methodName, 'stop', 'trigger', False)
             if isTrigger is True:
                 request['type'] = 'STOP'
             response = await self.privateGetApiV1FuturesOrder(self.extend(request, paramsTrigger))
@@ -3243,7 +3243,7 @@ class hashkey(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         isTrigger = False
-        isTriggerTrigger, paramsTrigger = self.handle_trigger_option_and_params(paramsMethodName, methodNameOption, isTrigger)
+        isTriggerTrigger, paramsTrigger = self.handle_option_bool_and_params_2(paramsMethodName, methodNameOption, 'stop', 'trigger', isTrigger)
         if isTriggerTrigger is True:
             request['type'] = 'STOP'
         else:
@@ -3333,7 +3333,7 @@ class hashkey(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['startTime'] = since
-        until, paramsUntil = self.handle_option_and_params(params, methodName, 'until')
+        until, paramsUntil = self.handle_option_integer_and_params(params, methodName, 'until')
         if until is not None:
             request['endTime'] = until
         accountId, paramsAccountId = self.handle_option_string_and_params(paramsUntil, methodName, 'accountId')
@@ -3381,7 +3381,7 @@ class hashkey(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a symbol argument for swap markets')
             request['symbol'] = self.safe_string(market, 'id')
-            isTrigger, paramsTrigger = self.handle_trigger_option_and_params(paramsMarketType, methodName, False)
+            isTrigger, paramsTrigger = self.handle_option_bool_and_params_2(paramsMarketType, methodName, 'stop', 'trigger', False)
             if isTrigger is True:
                 request['type'] = 'STOP'
             else:

@@ -1005,7 +1005,7 @@ class weex(ccxt.async_support.weex):
         if market is None:
             return
         ticker = self.parse_ws_bid_ask(message, market)
-        symbol = ticker['symbol']
+        symbol = market['symbol']
         if symbol is not None:
             self.bidsasks[symbol] = ticker
         messageHash = 'bidask::' + symbol

@@ -296,7 +296,7 @@ class deribit(ccxt.async_support.deribit):
         channels = []
         for i in range(0, len((symbolsNormalized))):
             market = self.market((symbolsNormalized)[i])
-            channels.append('quote.' + market['id'])
+            channels.append('quote.' + self.safe_string(market, 'id', ''))
         message = {
             'jsonrpc': '2.0',
             'method': 'public/subscribe',
@@ -619,8 +619,7 @@ class deribit(ccxt.async_support.deribit):
             interval = self.safe_string(parts, 4, '')
             descriptor = self.safe_string(parts, 2, '') + '.' + self.safe_string(parts, 3, '') + '.' + interval
         else:
-            interval = self.safe_string(parts, 2, '')
-            descriptor = interval
+            descriptor = self.safe_string(parts, 2, '')
         marketId = self.safe_string(data, 'instrument_name')
         symbol = self.safe_symbol(marketId)
         timestamp = self.safe_integer(data, 'timestamp')
@@ -875,16 +874,15 @@ class deribit(ccxt.async_support.deribit):
         for i in range(0, len(symbolsArray)):
             if symbolsArray is None:
                 raise ArgumentsRequired(self.id + ' watchMultipleWrapper() symbolsArray is required')
-            current = symbolsArray[i]
             market = None
             currentDescriptor = None
             if isOHLCV:
                 currentPair = self.safe_list(symbolsArray, i, [])
-                market = self.market(currentPair[0])
-                unifiedTf = currentPair[1]
+                market = self.market(self.safe_string(currentPair, 0))
+                unifiedTf = self.safe_string(currentPair, 1)
                 currentDescriptor = self.safe_string(self.timeframes, unifiedTf, unifiedTf)
             else:
-                market = self.market(current)
+                market = self.market(self.safe_string(symbolsArray, i))
                 currentDescriptor = channelDescriptor
             message = channelName + '.' + self.safe_string(market, 'id', '') + '.' + currentDescriptor
             rawSubscriptions.append(message)

@@ -1741,7 +1741,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
-            'reduceOnly': self.safe_value(order, 'reduceOnly'),
+            'reduceOnly': self.safe_bool(order, 'reduceOnly'),
             'side': side,
             'price': price,
             'triggerPrice': self.parse_number(self.omit_zero(self.safe_string(order, 'stopPrice'))),
@@ -2643,16 +2643,15 @@ class tokocrypto(Exchange, ImplicitAPI):
         # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': true/false}
         success = self.safe_bool(response, 'success', True)
-        parsedMessage = None
+        responseParsed = response
         if not success:
             messageInner = self.safe_string(response, 'msg')
             if messageInner is not None:
                 try:
-                    parsedMessage = json.loads(messageInner)
+                    responseParsed = json.loads(messageInner)
                 except Exception as e:
                     # do nothing
-                    parsedMessage = None
-        responseParsed = parsedMessage if (parsedMessage is not None) else response
+                    responseParsed = response
         message = self.safe_string(responseParsed, 'msg')
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + message)
@@ -2685,15 +2684,15 @@ class tokocrypto(Exchange, ImplicitAPI):
 
     def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
         paramsDict = self.extend({}, params)
+        byLimit = self.safe_list(config, 'byLimit', [])
         if ('noCoin' in paramsDict) and not ('coin' in paramsDict):
             return self.safe_integer(config, 'noCoin')
         elif ('noSymbol' in paramsDict) and not ('symbol' in paramsDict):
             return self.safe_integer(config, 'noSymbol')
         elif ('noPoolId' in paramsDict) and not ('poolId' in paramsDict):
             return self.safe_integer(config, 'noPoolId')
-        elif ('byLimit' in config) and ('limit' in paramsDict):
+        elif 'limit' in paramsDict:
             limit = self.safe_integer(paramsDict, 'limit')
-            byLimit = self.safe_list(config, 'byLimit', [])
             for i in range(0, len(byLimit)):
                 entry = byLimit[i]
                 entryLimit = self.safe_integer(entry, 0)

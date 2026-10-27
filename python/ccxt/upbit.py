@@ -821,10 +821,9 @@ class upbit(Exchange, ImplicitAPI):
         else:
             ids = self.market_ids(symbolsNormalized)
             promises = []
-            queries = self.ids_query_strings(ids, 4000)  # the url is limited to about 8000 characters once the commas are percent-encoded
+            queries = self.ids_query_strings(ids)  # the url is limited to about 8000 characters once the commas are percent-encoded
             for i in range(0, len(queries)):
-                idsQuery = queries[i]
-                promises.append(self.publicGetTicker(self.extend({'markets': idsQuery}, params)))
+                promises.append(self.publicGetTicker(self.extend({'markets': self.safe_string(queries, i, '')}, params)))
             responses = promises
             tickers = self.arrays_concat(responses)
         #
@@ -857,16 +856,14 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(tickers, symbolsNormalized)
 
-    def ids_query_strings(self, ids: Strings, maxQueryLength: int) -> list[str]:
-        if ids is None:
-            return []
+    def ids_query_strings(self, ids: list[str]) -> list[str]:
         idsString = ''
         queries = []
         for i in range(0, len(ids)):
             if idsString != '':
                 idsString = idsString + ','
             idsString = idsString + self.safe_string(ids, i, '')
-            if len(idsString) >= maxQueryLength:
+            if len(idsString) >= 4000:
                 queries.append(idsString)
                 idsString = ''
         if idsString != '':
@@ -1823,8 +1820,7 @@ class upbit(Exchange, ImplicitAPI):
         feeCost = self.safe_string(order, 'paid_fee')
         marketId = self.safe_string(order, 'market')
         marketResolved = self.safe_market(marketId, market)
-        trades = self.safe_list(order, 'trades', [])
-        trades = self.parse_trades(trades, marketResolved, None, None, {
+        trades = self.parse_trades(self.safe_list(order, 'trades', []), marketResolved, None, None, {
             'order': id,
             'type': type,
         })

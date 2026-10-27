@@ -277,10 +277,6 @@ class alpaca(ccxt.async_support.alpaca):
         bidAsk = self.parse_order_book_bid_ask(delta, 'p', 's')
         bookside.storeArray(bidAsk)
 
-    def handle_deltas(self, bookside: object, deltas: list[object]):
-        for i in range(0, len(deltas)):
-            self.handle_delta(bookside, deltas[i])
-
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made in a market
