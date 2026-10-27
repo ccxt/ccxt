@@ -1046,7 +1046,7 @@ export default class kraken extends krakenRest {
         const type = this.safeString (message, 'type');
         const data = this.safeList (message, 'data', []);
         const first = this.safeDict (data, 0, {});
-        const symbol = this.safeString (first, 'symbol') as string;
+        const symbol = this.safeString (first, 'symbol', '');
         const a = this.safeList (first, 'asks', []);
         const b = this.safeList (first, 'bids', []);
         const c = this.safeInteger (first, 'checksum');
@@ -1072,9 +1072,9 @@ export default class kraken extends krakenRest {
             // size the book from the subscribed depth (10 by default), not from
             // the level count of this snapshot: a thin market's snapshot can
             // carry fewer levels than the subscription and must not cap the book
-            const limit = this.safeInteger (subscription, 'limit', 10);
+            const limit = this.parseToInt (this.safeInteger (subscription, 'limit', 10));
             const asksLength: int = a.length;
-            const depth = (asksLength > limit) ? asksLength : limit;
+            const depth = this.parseToInt ((asksLength > limit) ? asksLength : limit);
             const depths = this.safeDict (this.options, 'wsOrderBookDepths', {}) as Dict;
             const storedDepth = this.safeInteger (depths, symbol);
             if (!(symbol in this.orderbooks) || (storedDepth !== depth)) {
