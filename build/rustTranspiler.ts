@@ -54,11 +54,92 @@ function borrowLiteralBoxes(content: string): string {
     return content.replace(RUST_LITERAL_BOX_ALLOC, 'Value::Str($1.into())');
 }
 
+// Break every emitted line over 400 chars at whitespace that sits between Rust
+// tokens (after `,`/`;` first, any other code space second). Only as a last
+// resort inside a plain string literal: a space followed by `\` + newline,
+// which Rust folds away, so literal contents stay identical. Strings, chars,
+// raw strings and comments are tracked across lines so nothing inside them is
+// split. Runs on the final text only.
+function splitLongRustLines(content: string, max = 400): string {
+    if (!new RegExp(`[^\\n]{${max + 1}}`).test(content)) return content;
+    let mode = 0; // 0 code, 1 string, 2 raw string, 3 block comment
+    let rawHashes = 0;
+    let blockDepth = 0;
+    const outLines: string[] = [];
+    for (const line of content.split('\n')) {
+        const cands: { pos: number; pri: number }[] = [];
+        const n = line.length;
+        let i = 0;
+        while (i < n) {
+            const c = line[i];
+            if (mode === 3) {
+                if (c === '*' && line[i + 1] === '/') { blockDepth--; i += 2; if (blockDepth === 0) mode = 0; continue; }
+                if (c === '/' && line[i + 1] === '*') { blockDepth++; i += 2; continue; }
+                i++; continue;
+            }
+            if (mode === 1) {
+                if (c === '\\') { i += 2; continue; }
+                if (c === '"') { mode = 0; i++; continue; }
+                if (c === ' ' && i > 0 && line[i - 1] !== ' ' && line[i - 1] !== '\\' && i + 1 < n && line[i + 1] !== ' ') cands.push({ pos: i, pri: 3 });
+                i++; continue;
+            }
+            if (mode === 2) {
+                if (c === '"' && line.startsWith('#'.repeat(rawHashes), i + 1)) { mode = 0; i += 1 + rawHashes; continue; }
+                i++; continue;
+            }
+            if (c === '/' && line[i + 1] === '/') break;
+            if (c === '/' && line[i + 1] === '*') { mode = 3; blockDepth = 1; i += 2; continue; }
+            if (c === '"') { mode = 1; i++; continue; }
+            if ((c === 'r' || (c === 'b' && line[i + 1] === 'r')) && !/[A-Za-z0-9_]/.test(line[i - 1] ?? ' ')) {
+                let j = i + (c === 'b' ? 2 : 1);
+                let h = 0;
+                while (line[j] === '#') { h++; j++; }
+                if (line[j] === '"' && (c === 'b' || true)) { mode = 2; rawHashes = h; i = j + 1; continue; }
+            }
+            if (c === '\'') {
+                if (line[i + 1] === '\\') { const e = line.indexOf('\'', i + 3); i = e < 0 ? n : e + 1; continue; }
+                if (line[i + 2] === '\'') { i += 3; continue; }
+                i++; continue; // lifetime
+            }
+            if (c === ' ' && i > 0 && line[i - 1] !== ' ' && i + 1 < n && line[i + 1] !== ' ') {
+                const prev = line[i - 1];
+                cands.push({ pos: i, pri: prev === ',' || prev === ';' ? 1 : 2 });
+            }
+            i++;
+        }
+        if (n <= max || cands.length === 0) { outLines.push(line); continue; }
+        const indent = /^\s*/.exec(line)![0] + '    ';
+        const parts: string[] = [];
+        let start = 0;
+        let prefix = 0;
+        for (;;) {
+            if (prefix + (n - start) <= max) break;
+            const budget = max - 40 - prefix;
+            const within = cands.filter(k => k.pos > start + 20 && k.pos - start <= budget);
+            let pick: { pos: number; pri: number } | undefined;
+            for (const pri of [1, 2, 3]) {
+                const ofPri = within.filter(k => k.pri === pri);
+                if (ofPri.length) { pick = ofPri[ofPri.length - 1]; break; }
+            }
+            const p1 = within.filter(k => k.pri === 1);
+            if (p1.length && pick && pick.pri !== 1 && p1[p1.length - 1].pos - start >= budget * 0.4) pick = p1[p1.length - 1];
+            if (!pick) pick = cands.find(k => k.pos > start + 20);
+            if (!pick) break;
+            parts.push((start === 0 ? '' : indent) + line.slice(start, pick.pri === 3 ? pick.pos + 1 : pick.pos) + (pick.pri === 3 ? '\\' : ''));
+            start = pick.pos + 1;
+            prefix = indent.length;
+        }
+        parts.push((start === 0 ? '' : indent) + line.slice(start));
+        outLines.push(parts.join('\n'));
+    }
+    return outLines.join('\n');
+}
+
 function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
-    content = borrowLiteralBoxes(content);
+    content = splitLongRustLines(borrowLiteralBoxes(content));
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -10188,7 +10269,7 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
-        fs.writeFileSync(outFile, borrowLiteralBoxes(finalFile));
+        fs.writeFileSync(outFile, splitLongRustLines(borrowLiteralBoxes(finalFile)));
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 
