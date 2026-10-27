@@ -368,8 +368,8 @@ export default class opinion extends Exchange {
             'expiryDatetime': this.iso8601 (expiryTimestamp),
             'strike': undefined,
             'optionType': undefined,
-            'taker': this.fees['trading']['taker'],
-            'maker': this.fees['trading']['maker'],
+            'taker': this.safeNumber (this.fees['trading'], 'taker'),
+            'maker': this.safeNumber (this.fees['trading'], 'maker'),
             'percentage': true,
             'tierBased': false,
             'feeSide': 'get',
@@ -649,7 +649,7 @@ export default class opinion extends Exchange {
      */
     override async fetchTicker (outcome: string, params: Dict = {}): Promise<PredictionTicker> {
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'] as string;
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const promises = [
             this.opinionPublicGetTokenLatestPrice (this.extend ({ 'token_id': tokenId }, params)),
             this.opinionPublicGetTokenOrderbook (this.extend ({ 'token_id': tokenId }, params)),
@@ -740,7 +740,7 @@ export default class opinion extends Exchange {
         const promises: any[] = [];
         for (let i = 0; i < outcomesLength; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
-            const tokenId = outcomeObj['outcomeId'] as string;
+            const tokenId = this.safeString (outcomeObj, 'outcomeId');
             promises.push (this.opinionPublicGetTokenLatestPrice (this.extend ({ 'token_id': tokenId }, params)));
             promises.push (this.opinionPublicGetTokenOrderbook (this.extend ({ 'token_id': tokenId }, params)));
         }
@@ -773,7 +773,7 @@ export default class opinion extends Exchange {
      */
     override async fetchOrderBook (outcome: string, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'] as string;
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const request: Dict = {
             'token_id': tokenId,
         };
@@ -812,13 +812,13 @@ export default class opinion extends Exchange {
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (outcome: string, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
-        if (!(timeframe in this.timeframes)) {
+        const interval = this.safeString (this.timeframes, timeframe);
+        if (interval === undefined) {
             const supportedKeys = Object.keys (this.timeframes);
             throw new BadRequest (this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe + ', supported timeframes are ' + supportedKeys.join (', '));
         }
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'] as string;
-        const interval = this.safeString (this.timeframes, timeframe);
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const response = await this.opinionPublicGetTokenPriceHistory (this.extend ({
             'token_id': tokenId,
             'interval': interval,
@@ -1012,7 +1012,7 @@ export default class opinion extends Exchange {
         await this.loadApiKey ();
         this.checkRequiredCredentials ();
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'] as string;
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const isMarket = (type === 'market');
         const sideStr = (side as string).toUpperCase ();
         if (price === undefined) {
@@ -1032,9 +1032,7 @@ export default class opinion extends Exchange {
         const topicId = this.safeInteger (info, 'marketId');
         const quoteTokenAddress = this.safeString (info, 'quoteToken');
         const quoteToken = await this.loadQuoteToken (quoteTokenAddress);
-        const exchangeAddress = this.safeString (quoteToken, 'ctfExchangeAddress', '');
-        const decimals = this.safeInteger (quoteToken, 'decimal', 18);
-        const amounts = this.opinionOrderRawAmounts (isMarket, sideStr, amount, price, decimals);
+        const amounts = this.opinionOrderRawAmounts (isMarket, sideStr, amount, price, this.safeInteger (quoteToken, 'decimal', 18));
         const makerAmount = this.safeString (amounts, 'makerAmount');
         const takerAmount = this.safeString (amounts, 'takerAmount');
         const sideInt = (sideStr === 'BUY') ? 0 : 1;
@@ -1062,7 +1060,7 @@ export default class opinion extends Exchange {
             'side': sideInt,
             'signatureType': signatureType,
         };
-        const signature = this.signOpinionOrder (order, exchangeAddress);
+        const signature = this.signOpinionOrder (order, this.safeString (quoteToken, 'ctfExchangeAddress', ''));
         const signatureNo0x = this.remove0xPrefix (signature);
         const orderBody: Dict = this.extend ({
             'salt': salt,
@@ -1522,8 +1520,8 @@ export default class opinion extends Exchange {
     signHash (hash: string, privateKey: string): Dict {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         // assign before padStart so the PHP str_pad regex matches
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString (signature, 'r', '');
+        const sRaw = this.safeString (signature, 's', '');
         const r = rRaw.padStart (64, '0');
         const s = sRaw.padStart (64, '0');
         return {
@@ -1693,12 +1691,12 @@ export default class opinion extends Exchange {
     async subscribeOpinionChannel (messageHash: string, channel: string, marketId: Int): Promise<any> {
         await this.loadApiKey ();
         const url = this.opinionWsUrl ();
-        const subscriptionKey = channel + ':' + this.numberToString (marketId);
         const subscribeMsg: Dict = {
             'action': 'SUBSCRIBE',
             'channel': channel,
             'marketId': marketId,
         };
+        const subscriptionKey = channel + ':' + this.safeString (subscribeMsg, 'marketId', '');
         return await this.watch (url, messageHash, subscribeMsg, subscriptionKey);
     }
 
@@ -1769,16 +1767,16 @@ export default class opinion extends Exchange {
         await this.loadApiKey ();
         const url = this.opinionWsUrl ();
         const client = this.client (url);
-        const subscriptionKey = channel + ':' + this.numberToString (marketId);
-        const isNewSubscription = this.safeValue (client.subscriptions, subscriptionKey) === undefined;
-        if (isNewSubscription) {
-            await this.seedOrderBook (outcome, sym, limit);
-        }
         const subscribeMsg: Dict = {
             'action': 'SUBSCRIBE',
             'channel': channel,
             'marketId': marketId,
         };
+        const subscriptionKey = channel + ':' + this.safeString (subscribeMsg, 'marketId', '');
+        const isNewSubscription = this.safeValue (client.subscriptions, subscriptionKey) === undefined;
+        if (isNewSubscription) {
+            await this.seedOrderBook (outcome, sym, limit);
+        }
         const future = this.watch (url, messageHash, subscribeMsg, subscriptionKey);
         if (isNewSubscription) {
             // return the freshly-seeded book immediately instead of blocking until the next delta
@@ -2196,10 +2194,9 @@ export default class opinion extends Exchange {
                     throw new ArgumentsRequired (this.id + ' ' + path + ' requires a walletAddress and privateKey');
                 }
                 const actionByMethod: Dict = { 'POST': 'create', 'GET': 'get', 'DELETE': 'delete' };
-                const action = this.safeString (actionByMethod, method, 'get');
                 const timestamp = this.numberToString (this.seconds ());
                 headersExtended['OPINION_ADDRESS'] = this.walletAddress;
-                headersExtended['OPINION_SIGNATURE'] = this.signApiKeyAuth (this.walletAddress, action, timestamp);
+                headersExtended['OPINION_SIGNATURE'] = this.signApiKeyAuth (this.walletAddress, this.safeString (actionByMethod, method, 'get'), timestamp);
                 headersExtended['OPINION_TIMESTAMP'] = timestamp;
             } else {
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
