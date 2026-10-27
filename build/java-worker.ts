@@ -16,6 +16,51 @@ import { installJ17StringReturns } from './java-local-types.js';
 import { installJ03BooleanConditions } from './hx10w2-J03.js'; // hx10 wave-2 J03
 import { installJ06TupleAsyncLocals } from './hx10w3-J06.js'; // hx10 wave-3 J06
 import log from 'ololog'
+import { readFileSync, existsSync } from 'fs';
+import { dirname, resolve as resolvePath } from 'path';
+
+
+// per-thread, per-Transpiler: exchange files already printed once (declaration records are warm), and the
+// outputs of stage files printed early as another file's dependency
+const threadPrints = new WeakMap<object, { printed: Set<string>, kept: Map<string, any> }> ();
+
+const EXCHANGE_IMPORT = /^import\s+(?:[\w$]+|\{[^}]*\})\s+from\s+'(\.{1,2}\/(?!base\/|abstract\/|test\/|ws\/)[\w-]+)\.js';/gm;
+const dependencyCache = new Map<string, string[]> ();
+
+// only the generated venue tiers (ts/src/<id>.ts, ts/src/pro/<id>.ts, ts/src/prediction/<id>.ts) are warmed;
+// test files and the base tier print exactly as before
+const VENUE_FILE = /(^|[\\/])ts[\\/]src[\\/](?:pro[\\/]|prediction[\\/])?[a-z0-9_]+\.ts$/;
+
+// the exchange modules `file` imports (ts/src/<id>.ts from a pro tier, the parent class of a derived
+// venue), transitively, dependencies before dependents
+function javaExchangeDependencies (file: string): string[] {
+    const cached = dependencyCache.get (file);
+    if (cached !== undefined) {
+        return cached;
+    }
+    const ordered: string[] = [];
+    const seen = new Set<string> ([ file ]);
+    const visit = (current: string) => {
+        let text: string;
+        try {
+            text = readFileSync (current, 'utf8');
+        } catch (e) {
+            return;
+        }
+        for (const match of text.matchAll (EXCHANGE_IMPORT)) {
+            const dependency = resolvePath (dirname (current), match[1] + '.ts');
+            if (seen.has (dependency) || !VENUE_FILE.test (dependency) || !existsSync (dependency)) {
+                continue;
+            }
+            seen.add (dependency);
+            visit (dependency);
+            ordered.push (dependency);
+        }
+    };
+    visit (file);
+    dependencyCache.set (file, ordered);
+    return ordered;
+}
 
 // task payload posted by javaTranspiler.ts#webworkerTranspile (structured clone)
 interface JavaWorkerTask {
@@ -129,10 +174,47 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         if (verbose) {
             log.blue ('[worker][java] Transpiling', filePath);
         }
-        const transpiled = batch
-            ? batch.transpileJavaByPath (filePath)
-            : transpiler.transpileJavaByPath (filePath);
-        result.push (transpiled);
+        // hx11 w6 determinism: the printer answers "what type did that callee's local/return print as"
+        // from records made while a file is printed. A venue file therefore printed differently
+        // depending on whether its parent/REST tier had been printed earlier in the same worker thread,
+        // which is piscina scheduling, so identical builds drifted by a few Object locals. Print every
+        // imported venue file (ancestors first) before the file itself, once per thread. A dependency
+        // this stage also prints is kept and handed back when its own task arrives, so no file is ever
+        // printed twice (a second print sees its own records and is not the canonical print).
+        const print = (f: string) => (batch ? batch.transpileJavaByPath (f) : transpiler.transpileJavaByPath (f));
+        if (!VENUE_FILE.test (filePath)) {
+            result.push (print (filePath));
+            continue;
+        }
+        // the printer's records hang off declaration nodes of ONE ts.Program: key the bookkeeping by the
+        // program batch (REST and WS stages build different programs on the same thread, and a REST file
+        // printed in the REST stage left no records for the WS program)
+        const owner: object = (batch as any) ?? transpiler;
+        let state = threadPrints.get (owner);
+        if (state === undefined) {
+            state = { printed: new Set<string> (), kept: new Map<string, any> () };
+            threadPrints.set (owner, state);
+        }
+        const stageFiles = new Set<string> (programRoots.map ((f: string) => resolvePath (f)));
+        for (const dependency of javaExchangeDependencies (filePath)) {
+            if (state.printed.has (dependency)) {
+                continue;
+            }
+            const output = print (dependency);
+            state.printed.add (dependency);
+            if (stageFiles.has (dependency)) {
+                state.kept.set (dependency, output);
+            }
+        }
+        const absolute = resolvePath (filePath);
+        const early = state.kept.get (absolute);
+        if (early !== undefined) {
+            state.kept.delete (absolute);
+            result.push (early);
+        } else {
+            result.push (print (filePath));
+            state.printed.add (absolute);
+        }
     }
     return result;
 }

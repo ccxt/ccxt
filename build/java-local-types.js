@@ -193,7 +193,7 @@ import path from 'node:path';
 import { threadId } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
 import { ts, urlsDescribeStringProducer } from './csharp-local-types.js';
-import { javaVenueCalleeType, installHx10w9JD01 } from './hx10w9-JD01.js';
+import { javaVenueCalleeType, installHx10w9JD01, invalidateHx10w9JD01 } from './hx10w9-JD01.js';
 
 // ===== SS-15 rejection census (env-gated debug; inert unless CCXT_SS15_CENSUS=1) =====
 //
@@ -5921,11 +5921,6 @@ export function installJavaLocalTypes (transpiler) {
     if (!printer || typeof printer.printFunctionType !== 'function' || printer._javaLocalTypesPatched) {
         return;
     }
-    installHx10w9JD01(printer, (declaration) => {
-        // only the family this unit decides: a sync whole-call to a generated venue method
-        const initializer = declaration?.initializer === undefined ? undefined : unwrapParens (declaration.initializer);
-        return initializer === undefined ? undefined : javaVenueCalleeType (printer, initializer)?.type;
-    });
     // (1) string/list method signatures. Wrapped on the printer instance so every
     // declaration — base tier and every venue override — goes through the same table.
     const upstreamFunctionType = printer.printFunctionType.bind (printer);
@@ -10560,6 +10555,14 @@ export function installJavaDeclaredLocalTypes (transpiler) {
     const earlier = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
     printer.javaDeclaredLocalTypeResolver = (declaration) => javaPublishedLocalType (printer, declaration, earlier)
         ?? declaredTypes.get (declaration);
+    // hx11 w6: the fallback must wrap THIS resolver. Installed from installJavaLocalTypes (before any
+    // resolver exists) it was a silent no-op, so a pro file's answer about a REST callee's local
+    // depended on whether that REST file had been printed earlier in the same worker thread.
+    installHx10w9JD01 (printer, (declaration) => {
+        // only the family this unit decides: a sync whole-call to a generated venue method
+        const initializer = declaration?.initializer === undefined ? undefined : unwrapParens (declaration.initializer);
+        return initializer === undefined ? undefined : javaVenueCalleeType (printer, initializer)?.type;
+    });
     // a typed destructuring element passed to a core parameter of its own type needs no conversion
     const upstreamDeclaredAs = printer.javaLocalDeclaredAs?.bind (printer);
     if (upstreamDeclaredAs !== undefined) {
@@ -18695,6 +18698,7 @@ export function installJ17StringReturns (transpiler) {
         for (const member of node.members) {
             printer.javaReturnTypeCache?.delete?.(member);
         }
+        invalidateHx10w9JD01 ();
         const printed = new Map ();
         for (const member of order) {
             printed.set (member, printer.printNode (member, identation + 1));

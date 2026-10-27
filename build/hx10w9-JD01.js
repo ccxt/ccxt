@@ -23,6 +23,12 @@ function hx10w9JD01Normalize(printed) {
 // a nested proof (printFunctionType can reach back here) asks about other nodes: answer each
 // node from its own computation and keep the answer, so nesting order cannot change it
 const hx10w9JD01Results = new WeakMap();
+// an answer is proven against the callee's printed state (javaReturnTypeCache, published locals): when a
+// class body finishes printing that state is re-proven, so every memoised answer from before it is stale
+let hx10w9JD01Generation = 0;
+export function invalidateHx10w9JD01() {
+    hx10w9JD01Generation++;
+}
 const hx10w9JD01InProgress = new WeakSet();
 
 // the emitted Java type of the call, when the callee's own declaration prints it: undefined
@@ -31,8 +37,9 @@ export function javaVenueCalleeType(printer, node) {
     if (node === undefined || node.kind !== ts.SyntaxKind.CallExpression) {
         return undefined;
     }
-    if (hx10w9JD01Results.has(node)) {
-        return hx10w9JD01Results.get(node);
+    const memo = hx10w9JD01Results.get(node);
+    if (memo !== undefined && memo.generation === hx10w9JD01Generation) {
+        return memo.decided;
     }
     if (hx10w9JD01InProgress.has(node)) {
         return undefined;
@@ -40,7 +47,7 @@ export function javaVenueCalleeType(printer, node) {
     hx10w9JD01InProgress.add(node);
     try {
         const decided = javaVenueCalleeTypeUncached(printer, node);
-        hx10w9JD01Results.set(node, decided);
+        hx10w9JD01Results.set(node, { generation: hx10w9JD01Generation, decided });
         return decided;
     } finally {
         hx10w9JD01InProgress.delete(node);
