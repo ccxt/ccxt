@@ -3067,13 +3067,12 @@ function predictionFunnelCallType (csharp, declaration) {
 // walletAddress / privateKey as `public string <name> { get; set; }`, so a read of one of them has
 // the C# static type `string` (null while unset) — a declaration initialised from that read, or
 // from an arm of a conditional that reads it, holds that string or null. Prediction tier only:
-// the same names are read in the crypto tree, where the local families belong to the REST units.
+// every tier: the retype scan re-validates each later read and write of the local.
 const CSHARP_PREDICTION_STRING_MEMBERS = new Set ([ 'apiKey', 'secret', 'password', 'walletAddress', 'privateKey' ]);
 
 function predictionMemberStringRead (declaration) {
-    if (!isPredictionSource (declaration)) {
-        return undefined;
-    }
+    // every tier: `let apiKey = this.apiKey` in the REST/pro trees (woofipro, modetrade) read the same
+    // hand-written `string` property, so the local keeps the string box instead of de-typing to object
     const read = declaration.initializer;
     if (read?.kind !== ts.SyntaxKind.PropertyAccessExpression || read.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
         return undefined;
