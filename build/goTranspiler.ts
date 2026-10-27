@@ -3022,6 +3022,12 @@ function goGuardedReadIsInRange (maskedLines: string[], blocks: any[], depth: nu
     const enclosing = blocks.filter ((b: any) => (b.open < index - 1) && (index <= b.close)).sort ((a: any, b: any) => b.depth - a.depth);
     for (const block of enclosing) {
         if (/\bfunc\b/.test (maskedLines[block.open])) {
+            // hx11 w7: `f(func() any {..}()) + g(func() any {..}())` counts the first literal's block as
+            // still open at the second guard (the `}()) + g(func() any {` roof is brace-neutral). That
+            // block is only the sibling guard closure, ending on this closure's own last line.
+            if (GO_GUARDED_READ_ROOF.test (maskedLines[block.open]) && (block.close === index + 4) && (block.open < index - 1)) {
+                continue;
+            }
             break;
         }
         const header = maskedLines[block.open];
@@ -3104,15 +3110,17 @@ function nativeGuardedListElementReads (content: string): string {
         const isWrapped = (maskedLines[index + 1] === wrapped);
         const readText = (isWrapped && !read.json) ? (deref + '(' + container + '[' + key + '])') : (container + '[' + key + ']');
         if (goGuardedReadIsInRange (maskedLines, blocks, depth, fn, index, container, key) || goGuardedReadInitProvesIndex (read.init, key)) {
-            const roof = maskedLines[index - 1];
-            const roofClose = roof.lastIndexOf ('func() any {');
+            // hx11 w7: an earlier closure of the same expression may already have been merged into
+            // the roof line, so splice into what was emitted, not the original text
+            const roofText = out[out.length - 1];
+            const roofClose = roofText.lastIndexOf ('func() any {');
             let suffix = lines[index + 4].substring (closes.length);
             // the element of a `[]string` is already a string: the `. (string)` the printer
             // adds to an `any` read goes with the closure
             if ((read.type === '[]string') && suffix.startsWith ('.(string)')) {
                 suffix = suffix.substring ('.(string)'.length);
             }
-            const merged = lines[index - 1].substring (0, roofClose) + readText + suffix;
+            const merged = roofText.substring (0, roofClose) + readText + suffix;
             if ((roofClose >= 0) && !suffix.trimStart ().startsWith ('.') && (merged.length <= 400)) {
                 out[out.length - 1] = merged;
                 index += 4;
@@ -3164,6 +3172,11 @@ function nativeGuardedListElementReadsSelfTest (): string[] {
         ok (listed ('1').indexOf ('var m any = DerefScalar(pair[1])') >= 0, 'a slice literal proves its listed indexes');
         ok (listed ('2').indexOf ('func() any {') >= 0, 'a slice literal does not prove an index past its end');
         ok (g ('\tvar pair []any = []any{}\n' + read ('0', 'pair', 'DerefScalar(')).indexOf ('func() any {') >= 0, 'an empty slice literal proves nothing');
+        // hx11 w7: two sibling guard closures in one expression under a `len(row) > 1` statement bound
+        const arm = (idx: string, tail: string) => '\t\t\t\tif ' + idx + ' >= 0 && ' + idx + ' < len(row) {\n\t\t\t\t\treturn row[' + idx + ']\n\t\t\t\t}\n\t\t\t\treturn nil\n\t\t\t}()' + tail + '\n';
+        const sibling = g ('\tvar row []any = SafeListTyped(a, 0)\n\tvar n int = len(row)\n\tvar s string = ""\n\tif n > 1 {\n\t\ts = this.F(func() any {\n' + arm ('0', ') + this.F(func() any {') + arm ('1', ')') + '\t}\n');
+        ok (sibling.indexOf ('func() any {') < 0 && sibling.indexOf ('s = this.F(row[0]) + this.F(row[1])') >= 0, 'sibling guard closures under a len() bound both go native: ' + sibling);
+        ok (g ('\tvar row []any = SafeListTyped(a, 0)\n\tvar s string = ""\n\ts = this.F(func() any {\n' + arm ('0', ') + this.F(func() any {') + arm ('1', ')')).indexOf ('func() any {') >= 0, 'sibling guard closures without a bound keep the literals');
         const once = g (lists + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n');
         ok (nativeGuardedListElementReads (once) === once, 'idempotent');
         const wired = formatGoSource ('selftest.go', 'package ccxt\n\nfunc (this *X) f() any {\n' + lists + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n\treturn nil\n}\n');
