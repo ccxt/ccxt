@@ -371,7 +371,7 @@ class nado extends \ccxt\async\nado {
         $markets = array();
         $messageHashes = array();
         $subscriptionParams = array();
-        for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+        for ($i = 0; $i < $symbolsLength; $i++) {
             $symbolAndTimeframe = $this->safe_list($symbolsAndTimeframes, $i);
             $marketSymbol = $this->safe_string($symbolAndTimeframe, 0);
             $timeframe = $this->safe_string($symbolAndTimeframe, 1, '1m');
@@ -432,7 +432,7 @@ class nado extends \ccxt\async\nado {
         $markets = array();
         $messageHashes = array();
         $subscriptionParams = array();
-        for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+        for ($i = 0; $i < $symbolsLength; $i++) {
             $symbolAndTimeframe = $this->safe_list($symbolsAndTimeframes, $i);
             $marketSymbol = $this->safe_string($symbolAndTimeframe, 0);
             $timeframe = $this->safe_string($symbolAndTimeframe, 1, '1m');
