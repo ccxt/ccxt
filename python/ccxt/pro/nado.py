@@ -303,7 +303,7 @@ class nado(ccxt.async_support.nado):
         markets = []
         messageHashes = []
         subscriptionParams = []
-        for i in range(0, len(symbolsAndTimeframes)):
+        for i in range(0, symbolsLength):
             symbolAndTimeframe = self.safe_list(symbolsAndTimeframes, i)
             marketSymbol = self.safe_string(symbolAndTimeframe, 0)
             timeframe = self.safe_string(symbolAndTimeframe, 1, '1m')
@@ -351,7 +351,7 @@ class nado(ccxt.async_support.nado):
         markets = []
         messageHashes = []
         subscriptionParams = []
-        for i in range(0, len(symbolsAndTimeframes)):
+        for i in range(0, symbolsLength):
             symbolAndTimeframe = self.safe_list(symbolsAndTimeframes, i)
             marketSymbol = self.safe_string(symbolAndTimeframe, 0)
             timeframe = self.safe_string(symbolAndTimeframe, 1, '1m')
