@@ -213,9 +213,8 @@ class luno(ccxt.async_support.luno):
         #         "timestamp": 1660598775360
         #     }
         #
-        symbol = subscription['symbol']
-        symbolValue = self.safe_string(subscription, 'symbol', '')
-        messageHash = 'orderbook:' + symbolValue
+        symbol = self.safe_string(subscription, 'symbol', '')
+        messageHash = 'orderbook:' + symbol
         timestamp = self.safe_integer(message, 'timestamp')
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.indexed_order_book({})

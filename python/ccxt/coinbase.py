@@ -2379,8 +2379,10 @@ class coinbase(Exchange, ImplicitAPI):
                     if account is None:
                         account = self.extend(self.account(), {'free': free, 'total': total})
                     else:
-                        account['free'] = Precise.string_add(self.safe_string(account, 'free'), total)
-                        account['total'] = Precise.string_add(self.safe_string(account, 'total'), total)
+                        account = self.extend(account, {
+                            'free': Precise.string_add(self.safe_string(account, 'free'), total),
+                            'total': Precise.string_add(self.safe_string(account, 'total'), total),
+                        })
                     if code is not None:
                         result[code] = account
             elif self.in_array(type, v3Accounts):
@@ -2396,9 +2398,11 @@ class coinbase(Exchange, ImplicitAPI):
                     if account is None:
                         account = self.extend(self.account(), {'free': free, 'used': used, 'total': total})
                     else:
-                        account['free'] = Precise.string_add(self.safe_string(account, 'free'), free)
-                        account['used'] = Precise.string_add(self.safe_string(account, 'used'), used)
-                        account['total'] = Precise.string_add(self.safe_string(account, 'total'), total)
+                        account = self.extend(account, {
+                            'free': Precise.string_add(self.safe_string(account, 'free'), free),
+                            'used': Precise.string_add(self.safe_string(account, 'used'), used),
+                            'total': Precise.string_add(self.safe_string(account, 'total'), total),
+                        })
                     if code is not None:
                         result[code] = account
         return self.safe_balance(result)
