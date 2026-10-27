@@ -144,6 +144,14 @@ function cp06OrderBookLimitReturnsSelf (): boolean {
  * — an identity in every calling context, so the consumer funnel adds nothing.
  */
 export function cp06FromIsIdentity (helper: string): boolean {
+    if (helper === 'ccxt.BaseExchange.FromInt64') {
+        // M73: `Int64 FromInt64(Int64 value) { return value; }` -- the awaited Task<Int64> is already Int64
+        const int64Def = cp06DefinitionIndex ().get ('FromInt64')
+        return (int64Def !== undefined)
+            && (int64Def.ret === 'Int64')
+            && (int64Def.params.trim () === 'Int64 value')
+            && /^\{\s*return value;\s*\}$/.test (int64Def.body)
+    }
     if (helper !== 'ccxt.BaseExchange.FromDict') {
         return false
     }

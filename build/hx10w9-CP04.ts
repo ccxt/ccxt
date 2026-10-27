@@ -275,6 +275,25 @@ export function cp04NumericArgPassThrough (helper: string, argument: string): bo
     return argument === 'null'
 }
 
+/**
+ * M73: a numeric literal handed to a narrowed numeric core parameter needs no ToInt64Arg /
+ * ToDoubleArg(Required) conversion -- the C# literal suffix spells the parameter's own type
+ * (`1L` -> Int64?, `0d` -> double / double?). Returns '' when the operand is not a plain literal.
+ */
+export function m73NumericLiteralArg (helper: string, argument: string): string {
+    const literal = /^(-?)(\d+)(\.\d+)?$/.exec (argument)
+    if (literal === null) {
+        return ''
+    }
+    if ((helper === 'ToDoubleArg') || (helper === 'ToDoubleArgRequired')) {
+        return argument + 'd'
+    }
+    if (((helper === 'ToInt64Arg') || (helper === 'ToInt64ArgRequired')) && (literal[3] === undefined)) {
+        return argument + 'L'
+    }
+    return ''
+}
+
 // self-test: each proof accepts only its own shape
 export function cp04SnippetChecks (): string[] {
     const pad = '    '
@@ -310,6 +329,11 @@ export function cp04SnippetChecks (): string[] {
         if (got !== expected) {
             problems.push ('[CP04] ' + name + ' expected ' + String (expected) + ' got ' + String (got))
         }
+    }
+    if ((m73NumericLiteralArg ('ToDoubleArgRequired', '-1') !== '-1d') || (m73NumericLiteralArg ('ToInt64Arg', '1') !== '1L')
+        || (m73NumericLiteralArg ('ToDoubleArg', '1') !== '1d') || (m73NumericLiteralArg ('ToInt64Arg', '1.5') !== '')
+        || (m73NumericLiteralArg ('ToInt64Arg', 'since') !== '') || (m73NumericLiteralArg ('ToInt64Arg', 'null') !== '')) {
+        problems.push ('[M73] numeric literal argument expected the suffixed literal')
     }
     if (!cp04NumericArgPassThrough ('ToInt64Arg', 'null') || !cp04NumericArgPassThrough ('ToDoubleArg', 'null')) {
         problems.push ('[CP04] null numeric argument expected pass-through')

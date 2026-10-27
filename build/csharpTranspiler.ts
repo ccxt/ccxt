@@ -32,7 +32,7 @@ import { c04Apply, c04SnippetChecks } from './hx10w3-C04.js' // hx10 wave3 C04
 import { bf01Apply, bf01SnippetChecks } from './hx10w4-BF01.js' // hx10 wave4 BF01
 import { hx10w10Bs04Apply, hx10w10SnippetChecks } from './hx10w10-BS04.js' // hx10 wave10 BS04
 import { c12CoreArgPassThrough, c12SnippetChecks } from './hx10w5-C12.js' // hx10 wave5 C12: ToInt64Arg twins
-import { cp04ReturnIsAlreadyTyped, cp04NumericArgPassThrough, cp04SnippetChecks } from './hx10w9-CP04.js' // hx10 wave9 CP04: ToDict/ToDictList identity
+import { cp04ReturnIsAlreadyTyped, cp04NumericArgPassThrough, m73NumericLiteralArg, cp04SnippetChecks } from './hx10w9-CP04.js' // hx10 wave9 CP04: ToDict/ToDictList identity
 import { cp06FromIsIdentity, cp06NativeCoreReturn, cp06SnippetChecks } from './hx10w10-CP06.js' // hx10 wave10 CP06: ToOrderBookSnapshot/ToInt64Value/FromDict
 import { platform } from 'process'
 import os from 'os'
@@ -5734,6 +5734,13 @@ class NewTranspiler {
                     }
                     // CP04: a null literal converts to `Int64?`/`double?` on its own
                     if (cp04NumericArgPassThrough (helper, trimmed)) {
+                        continue;
+                    }
+                    // M73: a plain numeric literal prints as the suffixed C# literal (`0d`, `1L`)
+                    const m73literal = m73NumericLiteralArg (helper, trimmed);
+                    if (m73literal !== '') {
+                        args[pos] = arg.substring (0, arg.length - arg.trimStart ().length) + m73literal;
+                        changed = true;
                         continue;
                     }
                     args[pos] = 'ccxt.BaseExchange.' + helper + '(' + trimmed + ')';
