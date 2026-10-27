@@ -1240,7 +1240,7 @@ export default class weex extends Exchange {
         }
         const results: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
-            const rawTicker = response[i];
+            const rawTicker = this.safeValue (response, i);
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             const marketId = this.safeString (rawTicker, 'symbol');
             const tickerMarket = this.safeMarket (marketId, undefined, undefined, marketType);
@@ -1630,15 +1630,15 @@ export default class weex extends Exchange {
             let endTime: Int = until;
             const now = this.milliseconds ();
             if ((since === undefined) || (until === undefined)) {
-                const duration = this.parseTimeframe (timeframe) * 1000;
+                const duration = this.parseToInt (this.parseTimeframe (timeframe) * 1000);
                 // the history endpoint returns at most maxHistoricalLimit candles and serves the
                 // newest ones inside the window, so a wider window would silently drop the candles
                 // right after since, keep the window at what one call can return
-                let historyLimit = maxHistoricalLimit;
+                let historyLimit = this.parseToInt (maxHistoricalLimit);
                 if (limit !== undefined && limit !== null && limit !== 0) {
-                    historyLimit = Math.min (limit, maxHistoricalLimit);
+                    historyLimit = this.parseToInt (Math.min (limit, maxHistoricalLimit));
                 }
-                const timeDelta = historyLimit * duration;
+                const timeDelta = this.parseToInt (historyLimit * duration);
                 if ((since === undefined) && (until === undefined)) {
                     endTime = now;
                     startTime = now - timeDelta;
