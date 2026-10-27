@@ -240,7 +240,7 @@ export default class gemini extends geminiRest {
                 this.trades[symbol] = stored;
             }
             for (let i = 0; i < trades.length; i++) {
-                const trade = this.parseWsTrade (trades[i], market);
+                const trade = this.parseWsTrade (this.safeValue (trades, i), market);
                 stored.append (trade);
             }
             const messageHash = 'trades:' + symbol;
@@ -570,7 +570,7 @@ export default class gemini extends geminiRest {
         const messageHashes: string[] = [];
         const marketIds: Str[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
-            const symbol = symbolsNormalized[i];
+            const symbol = this.safeString (symbolsNormalized, i, '');
             const messageHash = itemHashName + ':' + symbol;
             messageHashes.push (messageHash);
             const market = this.market (symbol);
@@ -952,7 +952,7 @@ export default class gemini extends geminiRest {
             const collectedEventsOfTrades: Dict[] = [];
             const eventsLength = events.length;
             for (let i = 0; i < events.length; i++) {
-                const event = events[i];
+                const event = this.safeValue (events, i);
                 const eventType = this.safeString (event, 'type');
                 const side = this.safeString (event, 'side');
                 const isOrderBook = (eventType === 'change') && (side !== undefined) && this.inArray (side, [ 'ask', 'bid' ]);
@@ -963,7 +963,7 @@ export default class gemini extends geminiRest {
                 } else if (isOrderBook) {
                     orderBookItems.push (event);
                 } else if (eventType === 'trade') {
-                    collectedEventsOfTrades.push (events[i]);
+                    collectedEventsOfTrades.push (event);
                 }
             }
             const lengthBa = bidaskItems.length;
