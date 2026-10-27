@@ -2696,8 +2696,8 @@ export default class aster extends Exchange {
             orderSymbols.push(currentMarket['symbol']);
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
@@ -3440,13 +3440,13 @@ export default class aster extends Exchange {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, params);
         if (since !== undefined) {
-            requestUntil['startTime'] = since;
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
-            requestUntil['limit'] = Math.min(limit, 1000); // max 1000
+            request['limit'] = Math.min(limit, 1000); // max 1000
         }
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, params);
         const response = await this.fapiPrivateGetV3Income(this.extend(requestUntil, paramsUntil));
         return this.parseIncomes(response, market, since, limit);
     }

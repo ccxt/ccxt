@@ -1248,8 +1248,10 @@ export default class dydx extends Exchange {
             const signature = this.signOnboardingAction();
             credentials = this.retrieveDydxCredentials(this.hashMessage(this.base16ToBinary(this.safeString(signature, 'r', '') + this.safeString(signature, 's', ''))));
         }
-        credentials['privateKey'] = this.binaryToBase16(credentials['privateKey']);
-        credentials['publicKey'] = this.binaryToBase16(credentials['publicKey']);
+        credentials = {
+            'privateKey': this.binaryToBase16(credentials['privateKey']),
+            'publicKey': this.binaryToBase16(credentials['publicKey']),
+        };
         this.options['dydxCredentials'] = credentials;
         return credentials;
     }

@@ -2721,7 +2721,7 @@ class sxbet extends sxbet$1["default"] {
      */
     sign(path, api = ['sxbet'], method = 'GET', params = {}) {
         const apiGroup = api[0];
-        const accessLevel = this.safeString(api, 1, 'public');
+        const accessLevel = api[1];
         if ((accessLevel === 'private') && (this.apiKey === undefined)) {
             throw new errors.AuthenticationError(this.id + ' ' + path + ' is a private endpoint and requires the apiKey credential (the x-sx-api-key header)');
         }

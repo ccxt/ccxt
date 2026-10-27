@@ -7326,9 +7326,7 @@ export default class bingx extends Exchange {
         url += '/' + version + '/' + pathValue;
         let requestHeaders = undefined;
         let requestBody = undefined;
-        const paramsOmitted = this.omit(params, this.extractParams(pathValue));
-        paramsOmitted['timestamp'] = this.nonce();
-        const paramsSorted = this.keysort(paramsOmitted);
+        const paramsSorted = this.keysort(this.extend(this.omit(params, this.extractParams(pathValue)), { 'timestamp': this.nonce() }));
         if (access === 'public') {
             if (Object.keys(paramsSorted).length > 0) {
                 url += '?' + this.urlencode(paramsSorted);
@@ -7353,7 +7351,7 @@ export default class bingx extends Exchange {
                 'X-SOURCE-KEY': this.safeString(this.options, 'broker', 'CCXT'),
             };
             if (isJsonContentType) {
-                requestHeaders['Content-Type'] = 'application/json';
+                requestHeaders = this.extend(requestHeaders, { 'Content-Type': 'application/json' });
                 paramsSorted['signature'] = signature;
                 requestBody = this.json(paramsSorted);
             }

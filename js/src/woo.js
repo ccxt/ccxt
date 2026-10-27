@@ -3465,7 +3465,7 @@ export default class woo extends Exchange {
         let requestHeaders = undefined;
         let requestBody = undefined;
         const version = section[0];
-        const access = this.safeString(section, 1);
+        const access = section[1];
         const pathWithParams = this.implodeParams(path, params);
         const baseApiUrl = this.safeString(this.urls['api'], access);
         if (baseApiUrl === undefined) {

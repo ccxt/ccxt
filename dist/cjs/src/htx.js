@@ -7841,7 +7841,7 @@ class htx extends htx$1["default"] {
         else {
             // signing implementation for the new endpoints
             // const [ type, access ] = api;
-            const type = this.safeString(api, 0);
+            const type = api[0];
             const access = this.safeString(api, 1);
             const levelOneNestedPath = this.safeString(api, 2);
             const levelTwoNestedPath = this.safeString(api, 3);

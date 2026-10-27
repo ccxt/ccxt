@@ -580,12 +580,12 @@ export default class bitfinex extends Exchange {
         // Anything exceeding this will be rounded to the 8th decimal.
         const symbolValue = this.safeSymbol(symbol);
         const market = this.market(symbolValue);
-        return this.decimalToPrecision(amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES);
+        return this.decimalToPrecision(amount, TRUNCATE, this.safeValue(market['precision'], 'amount'), DECIMAL_PLACES);
     }
     priceToPrecision(symbol, price) {
         const symbolValue = this.safeSymbol(symbol);
         const market = this.market(symbolValue);
-        const priceValue = this.decimalToPrecision(price, ROUND, market['precision']['price'], this.precisionMode);
+        const priceValue = this.decimalToPrecision(price, ROUND, this.safeValue(market['precision'], 'price'), this.precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
@@ -1655,7 +1655,7 @@ export default class bitfinex extends Exchange {
             // '16384': 'OCO', // The one cancels other order option allows you to place a pair of orders stipulating that if one order is executed fully or partially, then the other is automatically canceled.
             // '524288': 'No Var Rates' // Excludes variable rate funding offers from matching against this order, if on margin
         };
-        return this.safeList(flagValues, flags, undefined);
+        return this.safeList(flagValues, flags, []);
     }
     parseTimeInForce(orderType) {
         const orderTypes = {
@@ -1687,11 +1687,9 @@ export default class bitfinex extends Exchange {
         const rawFlags = this.safeString(orderList, 12);
         const flags = this.parseOrderFlags(rawFlags);
         let postOnly = false;
-        if (flags !== undefined) {
-            for (let i = 0; i < flags.length; i++) {
-                if (this.safeString(flags, i) === 'postOnly') {
-                    postOnly = true;
-                }
+        for (let i = 0; i < flags.length; i++) {
+            if (this.safeString(flags, i) === 'postOnly') {
+                postOnly = true;
             }
         }
         let price = this.safeString(orderList, 16);

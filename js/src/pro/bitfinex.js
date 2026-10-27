@@ -742,7 +742,7 @@ export default class bitfinex extends bitfinexRest {
         }
         else {
             const orderbook = this.orderbooks[symbol];
-            const deltas = message[1];
+            const deltas = this.safeValue(message, 1);
             const orderbookItem = this.orderbooks[symbol];
             if (isRaw) {
                 const price = this.safeString(deltas, 1);

@@ -3164,7 +3164,7 @@ export default class limitless extends Exchange {
      */
     sign(path, api = ['limitless'], method = 'GET', params = {}) {
         const apiGroup = api[0];
-        const access = this.safeString(api, 1, 'public');
+        const access = api[1];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['limitless']);
         let url = '/' + this.implodeParams(path, params);

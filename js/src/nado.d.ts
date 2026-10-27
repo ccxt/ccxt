@@ -475,7 +475,7 @@ export default class nado extends Exchange {
     createSubaccount(walletAddress: Str, subaccount?: Str): string;
     queryContracts(params?: Dict): Promise<Dict>;
     orderVerifyingContract(productId: Int): string;
-    padHex(value: string, length: Int, left?: boolean): string;
+    padHex(value: string, length: number, left?: boolean): string;
     signOrder(order: Dict, productId: Int, chainId: Str): string;
     signCancellation(cancellation: Dict, chainId: Str, endpointAddress: Str): string;
     signCancellationProducts(cancellation: Dict, chainId: Str, endpointAddress: Str): string;

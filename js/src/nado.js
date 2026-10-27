@@ -3066,9 +3066,6 @@ export default class nado extends Exchange {
         return '0x' + this.padHex(this.intToBase16(productId), 40);
     }
     padHex(value, length, left = true) {
-        if (length === undefined) {
-            throw new ArgumentsRequired(this.id + ' padHex() requires length');
-        }
         const zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
         if (left) {
             const paddedLeft = zeros + value;
@@ -3096,8 +3093,7 @@ export default class nado extends Exchange {
             ],
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
-        const hash = '0x' + this.hash(encoded, keccak, 'hex');
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, keccak, 'hex'), this.privateKey);
     }
     signCancellation(cancellation, chainId, endpointAddress) {
         const domain = {
@@ -3115,8 +3111,7 @@ export default class nado extends Exchange {
             ],
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
-        const hash = '0x' + this.hash(encoded, keccak, 'hex');
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, keccak, 'hex'), this.privateKey);
     }
     signCancellationProducts(cancellation, chainId, endpointAddress) {
         const domain = {
@@ -3133,8 +3128,7 @@ export default class nado extends Exchange {
             ],
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
-        const hash = '0x' + this.hash(encoded, keccak, 'hex');
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, keccak, 'hex'), this.privateKey);
     }
     signFetchTriggerOrders(tx, chainId, endpointAddress) {
         const domain = {
@@ -3150,14 +3144,13 @@ export default class nado extends Exchange {
             ],
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
-        const hash = '0x' + this.hash(encoded, keccak, 'hex');
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, keccak, 'hex'), this.privateKey);
     }
     signHash(hash, privateKey) {
         if (privateKey === undefined) {
             throw new ArgumentsRequired(this.id + ' signHash() requires privateKey');
         }
-        const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
+        const signature = ecdsa(hash, privateKey.slice(-64), secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
         const v = this.intToBase16(this.sum(27, signature['v'])).toLowerCase();

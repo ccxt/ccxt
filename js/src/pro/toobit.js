@@ -1189,8 +1189,7 @@ export default class toobit extends toobitRest {
                     // retry rather than dial .../ws/undefined for 20 minutes
                     throw new AuthenticationError(this.id + ' authenticate() received an empty listenKey');
                 }
-                this.options['ws']['listenKey'] = listenKey;
-                this.options['ws']['lastAuthenticatedTime'] = time;
+                this.setWsOptions({ 'listenKey': listenKey, 'lastAuthenticatedTime': time });
                 this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
                 // settle the flight: client.resolve () removes the future from
                 // client.futures and wakes every waiter
@@ -1206,6 +1205,9 @@ export default class toobit extends toobitRest {
             await future;
         }
     }
+    setWsOptions(entry) {
+        this.options['ws'] = this.extend(this.safeDict(this.options, 'ws', {}), entry);
+    }
     async keepAliveListenKey(params = {}) {
         const options = this.safeDict(this.options, 'ws', {});
         const listenKey = this.safeString(options, 'listenKey');
@@ -1215,8 +1217,7 @@ export default class toobit extends toobitRest {
         }
         try {
             const response = await this.privatePostApiV1UserDataStream(params);
-            this.options['ws']['listenKey'] = this.safeString(response, 'listenKey');
-            this.options['ws']['lastAuthenticatedTime'] = this.milliseconds();
+            this.setWsOptions({ 'listenKey': this.safeString(response, 'listenKey'), 'lastAuthenticatedTime': this.milliseconds() });
         }
         catch (error) {
             const url = this.getUserStreamUrl();
@@ -1226,8 +1227,7 @@ export default class toobit extends toobitRest {
                 const messageHash = messageHashes[i];
                 client.reject(error, messageHash);
             }
-            this.options['ws']['listenKey'] = undefined;
-            this.options['ws']['lastAuthenticatedTime'] = 0;
+            this.setWsOptions({ 'listenKey': undefined, 'lastAuthenticatedTime': 0 });
             return;
         }
         // whether or not to schedule another listenKey keepAlive request

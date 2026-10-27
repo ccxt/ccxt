@@ -599,10 +599,10 @@ export default class coinbaseinternational extends Exchange {
             type = 'option';
         }
         let symbol = instrumentName;
-        if (!isComboMarket) {
+        if (!isComboMarket && (base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
-            if (!isSpot) {
-                symbol = symbol + ':' + settle;
+            if (!isSpot && (settle !== undefined)) {
+                symbol = base + '/' + quote + ':' + settle;
             }
         }
         const linear = isSpot ? undefined : (settle === quote);
@@ -3200,7 +3200,7 @@ export default class coinbaseinternational extends Exchange {
         const now = this.milliseconds();
         const token = this.getV2AccessToken();
         const tokenExpires = this.safeInteger(this.options, 'v2TokenExpires');
-        if (!forceRefresh && (token !== undefined) && (token !== '') && (tokenExpires !== undefined) && (now < tokenExpires)) {
+        if (!forceRefresh && (token !== undefined) && (tokenExpires !== undefined) && (now < tokenExpires)) {
             return token;
         }
         const response = await this.publicPostAuth(paramsOmitted);
@@ -3243,7 +3243,7 @@ export default class coinbaseinternational extends Exchange {
         if ((token !== undefined) && (token !== '')) {
             return token;
         }
-        if ((this.token === undefined) || (this.token === '')) {
+        if (this.token === '') {
             return undefined;
         }
         return this.token;
@@ -3281,7 +3281,7 @@ export default class coinbaseinternational extends Exchange {
         else if ((access === 'private') && isNativeDeribit) {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
-            const nonce = this.nonce().toString();
+            const nonce = this.numberToString(this.nonce());
             let signedRequest = '/' + 'api/' + this.version + '/' + access + '/' + path;
             if (Object.keys(requestParams).length > 0) {
                 signedRequest += '?' + this.urlencode(requestParams);

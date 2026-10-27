@@ -5252,8 +5252,8 @@ class coinbase extends coinbase$1["default"] {
     sign(path, api = [], method = 'GET', params = {}) {
         let requestBody = undefined;
         let requestHeaders = undefined;
-        const version = this.safeString(api, 0);
-        const signed = this.safeString(api, 1) === 'private';
+        const version = api[0];
+        const signed = api[1] === 'private';
         const isV3 = version === 'v3';
         let pathPart = 'v2';
         if (isV3) {

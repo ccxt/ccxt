@@ -673,7 +673,7 @@ export default class backpack extends Exchange {
         const supportedTypes = ['SPOT', 'PERP', 'RFQ'];
         const marketTypes = [];
         for (let i = 0; i < requestedTypes.length; i++) {
-            const requestedType = requestedTypes[i];
+            const requestedType = this.safeString(requestedTypes, i, '');
             const normalizedType = this.safeString(aliases, requestedType, requestedType);
             if (!this.inArray(normalizedType, supportedTypes)) {
                 throw new BadRequest(this.id + ' fetchMarkets() unsupported marketType ' + requestedType);
@@ -1423,7 +1423,7 @@ export default class backpack extends Exchange {
                 }
             }
         }
-        const stockExplicitlyDisabled = this.safeValue2(params, 'stock', 'defaultStock') === false;
+        const stockExplicitlyDisabled = !this.safeBool2(params, 'stock', 'defaultStock', true);
         const needsExternalRfqTickers = (source === 'Venue') && (this.safeString(query, 'source') === undefined) && hasRfqSymbol && !stockExplicitlyDisabled;
         let requestParams = query;
         if ((source === 'External') && (stockOnly || hasStockSymbol) && !stockExplicitlyDisabled) {
@@ -2626,7 +2626,6 @@ export default class backpack extends Exchange {
             await this.loadMarkets();
         }
         const ordersRequests = [];
-        const stockOption = this.safeValue2(params, 'stock', 'defaultStock');
         const stock = this.safeBool(selection, 0, false);
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict(orders, i);
@@ -2637,7 +2636,7 @@ export default class backpack extends Exchange {
             const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const baseParams = {};
-            if (stock || (stockOption === false)) {
+            if (stock || !this.safeBool2(params, 'stock', 'defaultStock', true)) {
                 baseParams['stock'] = stock;
             }
             const baseQuery = this.extend(baseParams, query);

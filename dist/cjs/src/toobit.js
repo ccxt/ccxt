@@ -978,7 +978,7 @@ class toobit extends toobit$1["default"] {
         const lotSizeFilter = this.safeDict(filtersByType, 'LOT_SIZE', {});
         const minNotionalFilter = this.safeDict(filtersByType, 'MIN_NOTIONAL', {});
         let symbol = base + '/' + quote;
-        const isContract = ('contractMultiplier' in market);
+        const isContract = (this.safeString(market, 'contractMultiplier') !== undefined);
         const inverse = this.safeBool2(market, 'isInverse', 'inverse');
         if (isContract) {
             symbol = base + '/' + quote + ':' + settle;
@@ -1917,7 +1917,7 @@ class toobit extends toobit$1["default"] {
             }
         }
         const paramsOmitted = this.omit(paramsTrigger, ['stopLoss', 'takeProfit']);
-        if (!('newClientOrderId' in paramsOmitted)) {
+        if (this.safeString(paramsOmitted, 'newClientOrderId') === undefined) {
             request['newClientOrderId'] = this.uuid();
         }
         return [request, paramsOmitted];

@@ -181,6 +181,7 @@ export default class toobit extends toobitRest {
     handlePositions(client: Client, message: any): void;
     parseWsPosition(position: Dict, market?: Market): Position;
     authenticate(params?: Dict): Promise<void>;
+    setWsOptions(entry: Dict): void;
     keepAliveListenKey(params?: Dict): Promise<void>;
     getUserStreamUrl(): string;
     handleErrorMessage(client: Client, message: Dict): Bool;

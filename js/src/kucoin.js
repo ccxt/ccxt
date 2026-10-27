@@ -11860,7 +11860,7 @@ export default class kucoin extends Exchange {
         return uta;
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
-        const apiName = this.safeString(api, 0);
+        const apiName = api[0];
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑

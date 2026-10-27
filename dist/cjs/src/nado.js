@@ -3065,9 +3065,6 @@ class nado extends nado$1["default"] {
         return '0x' + this.padHex(this.intToBase16(productId), 40);
     }
     padHex(value, length, left = true) {
-        if (length === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' padHex() requires length');
-        }
         const zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
         if (left) {
             const paddedLeft = zeros + value;
@@ -3095,8 +3092,7 @@ class nado extends nado$1["default"] {
             ],
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
-        const hash = '0x' + this.hash(encoded, sha3_js.keccak_256, 'hex');
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, sha3_js.keccak_256, 'hex'), this.privateKey);
     }
     signCancellation(cancellation, chainId, endpointAddress) {
         const domain = {
@@ -3114,8 +3110,7 @@ class nado extends nado$1["default"] {
             ],
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
-        const hash = '0x' + this.hash(encoded, sha3_js.keccak_256, 'hex');
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, sha3_js.keccak_256, 'hex'), this.privateKey);
     }
     signCancellationProducts(cancellation, chainId, endpointAddress) {
         const domain = {
@@ -3132,8 +3127,7 @@ class nado extends nado$1["default"] {
             ],
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
-        const hash = '0x' + this.hash(encoded, sha3_js.keccak_256, 'hex');
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, sha3_js.keccak_256, 'hex'), this.privateKey);
     }
     signFetchTriggerOrders(tx, chainId, endpointAddress) {
         const domain = {
@@ -3149,14 +3143,13 @@ class nado extends nado$1["default"] {
             ],
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
-        const hash = '0x' + this.hash(encoded, sha3_js.keccak_256, 'hex');
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, sha3_js.keccak_256, 'hex'), this.privateKey);
     }
     signHash(hash, privateKey) {
         if (privateKey === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' signHash() requires privateKey');
         }
-        const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
+        const signature = crypto.ecdsa(hash, privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
         const v = this.intToBase16(this.sum(27, signature['v'])).toLowerCase();

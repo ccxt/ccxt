@@ -4223,7 +4223,7 @@ export default class whitebit extends Exchange {
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         const query = this.omit(params, this.extractParams(path));
-        const version = this.safeString(api, 0, '');
+        const version = api[0];
         const accessibility = this.safeString(api, 1);
         const publicHeaders = {};
         publicHeaders['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;

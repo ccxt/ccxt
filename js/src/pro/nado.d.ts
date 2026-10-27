@@ -363,7 +363,7 @@ export default class nado extends nadoRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrdersWs(symbol?: Str, params?: Dict): Promise<Order[]>;
-    watchExecuteRequest(requestIdString: Str, request: Dict): Promise<any>;
+    watchExecuteRequest(requestIdString: string, request: Dict): Promise<any>;
     watchPublic(streamType: Str, market: any, messageHash: string, params?: Dict): Promise<any>;
     watchPrivate(streamType: Str, stream: Dict, messageHash: string, params?: Dict): Promise<any>;
     unWatchPrivate(stream: Dict, messageHash: string, params?: Dict): Promise<any>;

@@ -148,7 +148,7 @@ class poloniex extends poloniex$1["default"] {
      */
     async subscribe(name, messageHash, isPrivate, symbols = undefined, params = {}) {
         let publicOrPrivate = 'public';
-        if (isPrivate) {
+        if (isPrivate === true) {
             publicOrPrivate = 'private';
         }
         const url = this.safeString(this.urls['api']['ws'], publicOrPrivate);

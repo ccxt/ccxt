@@ -167,7 +167,7 @@ class onetrading extends onetrading$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const subscriptionHash = 'MARKET_TICKER';
         const messageHash = 'ticker.' + symbolValue;
         const request = {
@@ -342,7 +342,7 @@ class onetrading extends onetrading$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'book:' + symbolValue;
         const subscriptionHash = 'ORDER_BOOK';
         let depth = 0;
@@ -1086,8 +1086,8 @@ class onetrading extends onetrading$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
-        const marketId = market['id'];
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const marketId = this.safeString(market, 'id', '');
         const url = this.safeString(this.urls['api'], 'ws');
         const timeframes = this.safeDict(this.options, 'timeframes', {});
         const timeframeId = this.safeDict(timeframes, timeframe);

@@ -1195,7 +1195,7 @@ class woofipro extends woofipro$1["default"] {
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const marketId = this.safeString(row, 'symbol', '');
-            if ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id)) {
+            if (this.safeValue(this.markets_by_id, marketId) === undefined) {
                 continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
             }
             const ticker = this.extend({ 'timestamp': timestamp }, row);
@@ -1305,7 +1305,7 @@ class woofipro extends woofipro$1["default"] {
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const marketId = this.safeString(row, 'symbol', '');
-            if ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id)) {
+            if (this.safeValue(this.markets_by_id, marketId) === undefined) {
                 continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
             }
             const interest = this.extend({ 'timestamp': timestamp }, row);
@@ -3481,7 +3481,7 @@ class woofipro extends woofipro$1["default"] {
             if (this.apiKey.indexOf('ed25519:') < 0) {
                 apiKey = 'ed25519:' + this.apiKey;
             }
-            requestHeaders = {
+            const authHeaders = {
                 'orderly-account-id': this.accountId,
                 'orderly-key': apiKey,
                 'orderly-timestamp': ts,
@@ -3490,14 +3490,14 @@ class woofipro extends woofipro$1["default"] {
             if (method === 'POST' || method === 'PUT') {
                 requestBody = this.json(requestParams);
                 auth += requestBody;
-                requestHeaders['content-type'] = 'application/json';
+                authHeaders['content-type'] = 'application/json';
             }
             else {
                 if (Object.keys(requestParams).length > 0) {
                     url += '?' + this.urlencode(requestParams);
                     auth += '?' + this.rawencode(requestParams);
                 }
-                requestHeaders['content-type'] = 'application/x-www-form-urlencoded';
+                authHeaders['content-type'] = 'application/x-www-form-urlencoded';
                 if (method === 'DELETE') {
                     requestBody = '';
                 }
@@ -3508,11 +3508,10 @@ class woofipro extends woofipro$1["default"] {
                 secret = parts[1];
             }
             const signature = crypto.eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519_js.ed25519);
-            requestHeaders['orderly-signature'] = this.urlencodeBase64(this.base64ToBinary(signature));
+            authHeaders['orderly-signature'] = this.urlencodeBase64(this.base64ToBinary(signature));
+            requestHeaders = authHeaders;
         }
-        const bodyResult = requestBody;
-        const headersResult = requestHeaders;
-        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

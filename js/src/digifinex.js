@@ -4709,8 +4709,8 @@ export default class digifinex extends Exchange {
         return await this.privateSwapPostAccountPositionMode(this.extend(request, params));
     }
     sign(path, api = [], method = 'GET', params = {}) {
-        const signed = this.safeString(api, 0) === 'private';
-        const endpoint = this.safeString(api, 1);
+        const signed = api[0] === 'private';
+        const endpoint = api[1];
         let pathPart = '/swap/v2';
         if (endpoint === 'spot') {
             pathPart = '/v3';

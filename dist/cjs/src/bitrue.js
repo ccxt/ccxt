@@ -3277,9 +3277,9 @@ class bitrue extends bitrue$1["default"] {
     sign(path, api = ['public'], method = 'GET', params = {}) {
         let requestBody = undefined;
         let requestHeaders = undefined;
-        const type = this.safeString(api, 0);
-        const version = this.safeString(api, 1, '');
-        const access = this.safeString(api, 2);
+        const type = api[0];
+        const version = api[1];
+        const access = api[2];
         const apiUrl = this.safeString(this.urls['api'], type);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');

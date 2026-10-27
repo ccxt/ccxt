@@ -1955,7 +1955,7 @@ class zebpay extends zebpay$1["default"] {
         let signature = '';
         const query = this.omit(paramsOmitted, this.extractParams(path));
         const queryLength = Object.keys(query).length;
-        const access = this.safeString(api, 0, 'public');
+        const access = api[0];
         if (access === 'public') {
             if (method === 'GET' || method === 'DELETE') {
                 if (queryLength !== 0) {

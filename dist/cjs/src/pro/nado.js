@@ -982,9 +982,6 @@ class nado extends nado$1["default"] {
         // the v2 gateway dispatches requests concurrently, so responses arrive
         // in completion order, not send order — every execute carries a unique
         // request id and its response is correlated by the echoed id
-        if (requestIdString === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' watchExecuteRequest() requires requestIdString');
-        }
         const url = this.safeString(this.urls['api']['ws'], 'gateway');
         const messageHash = 'execute:' + requestIdString;
         return await this.watch(url, messageHash, request, messageHash);
@@ -1112,8 +1109,7 @@ class nado extends nado$1["default"] {
             ],
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
-        const hash = '0x' + this.hash(encoded, sha3_js.keccak_256, 'hex');
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, sha3_js.keccak_256, 'hex'), this.privateKey);
     }
     createPublicSubscriptionRequest(method, streamType, market = undefined, id = undefined, params = {}) {
         const stream = {

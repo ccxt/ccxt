@@ -1983,15 +1983,7 @@ export default class bitso extends Exchange {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             //
-            let success = this.safeBool(response, 'success', false);
-            if (typeof success === 'string') {
-                if ((success === 'true') || (success === '1')) {
-                    success = true;
-                }
-                else {
-                    success = false;
-                }
-            }
+            const success = this.safeBool(response, 'success', false);
             if (!success) {
                 const feedback = this.id + ' ' + this.json(response);
                 const error = this.safeDict(response, 'error');

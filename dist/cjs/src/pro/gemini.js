@@ -53,7 +53,7 @@ class gemini extends gemini$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const messageHash = 'trades:' + market['symbol'];
+        const messageHash = 'trades:' + this.safeString(market, 'symbol', '');
         const marketId = market['id'];
         if (marketId === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchTrades() marketId is required');
@@ -69,7 +69,7 @@ class gemini extends gemini$1["default"] {
                 },
             ],
         };
-        const subscribeHash = 'l2:' + market['symbol'];
+        const subscribeHash = 'l2:' + this.safeString(market, 'symbol', '');
         const wsUrl = this.safeString(this.urls['api'], 'ws');
         if (wsUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' watchTrades() has no websocket url');
@@ -228,7 +228,7 @@ class gemini extends gemini$1["default"] {
         const market = this.safeMarket(marketId);
         const trades = this.safeList(message, 'trades');
         if (trades !== undefined) {
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
             let stored = this.safeValue(this.trades, symbol);
             if (stored === undefined) {
@@ -250,7 +250,7 @@ class gemini extends gemini$1["default"] {
             const rawTrade = this.safeValue(trades, i);
             const marketId = this.safeString(rawTrade, 'symbol', '').toLowerCase();
             const market = this.safeMarket(marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const trade = this.parseWsTrade(rawTrade, market);
             trade['timestamp'] = timestamp;
             trade['datetime'] = this.iso8601(timestamp);
@@ -299,7 +299,7 @@ class gemini extends gemini$1["default"] {
                 },
             ],
         };
-        const messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId;
+        const messageHash = 'ohlcv:' + this.safeString(market, 'symbol', '') + ':' + timeframeId;
         const wsUrl = this.safeString(this.urls['api'], 'ws');
         if (wsUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' watchOHLCV() has no websocket url');
@@ -385,7 +385,7 @@ class gemini extends gemini$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const messageHash = 'orderbook:' + market['symbol'];
+        const messageHash = 'orderbook:' + this.safeString(market, 'symbol', '');
         const marketId = market['id'];
         if (marketId === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchOrderBook() marketId is required');
@@ -401,7 +401,7 @@ class gemini extends gemini$1["default"] {
                 },
             ],
         };
-        const subscribeHash = 'l2:' + market['symbol'];
+        const subscribeHash = 'l2:' + this.safeString(market, 'symbol', '');
         const wsUrl = this.safeString(this.urls['api'], 'ws');
         if (wsUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' watchOrderBook() has no websocket url');
@@ -415,7 +415,7 @@ class gemini extends gemini$1["default"] {
         const changes = this.safeList(message, 'changes', []);
         const marketId = this.safeStringLower(message, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'orderbook:' + symbol;
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook();
@@ -510,7 +510,7 @@ class gemini extends gemini$1["default"] {
         const firstBidAsk = rawBidAskChanges[0];
         const marketId = this.safeString(firstBidAsk, 'symbol', '').toLowerCase();
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         if (!(symbol in this.bidsasks)) {
             this.bidsasks[symbol] = this.parseTicker({});
             this.bidsasks[symbol]['symbol'] = symbol;
@@ -601,7 +601,7 @@ class gemini extends gemini$1["default"] {
         const firstChange = rawOrderBookChanges[0];
         const marketId = this.safeString(firstChange, 'symbol', '').toLowerCase();
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'orderbook:' + symbol;
         if (!(symbol in this.orderbooks)) {
             const ob = this.orderBook();

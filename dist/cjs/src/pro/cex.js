@@ -252,7 +252,7 @@ class cex extends cex$1["default"] {
         }
         const messageHash = 'trades';
         this.trades[symbol] = stored;
-        client.resolve(this.trades[symbol], messageHash);
+        client.resolve(stored, messageHash);
     }
     /**
      * @method
@@ -1022,7 +1022,7 @@ class cex extends cex$1["default"] {
         const data = this.safeDict(message, 'data', {});
         const pair = this.safeString(data, 'pair');
         const symbol = this.pairToSymbol(pair);
-        if (symbol === undefined) {
+        if (symbol === '') {
             return;
         }
         const messageHash = 'orderbook:' + symbol;
@@ -1034,7 +1034,7 @@ class cex extends cex$1["default"] {
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook({});
         }
-        const orderbook = this.orderbooks[symbol];
+        const orderbook = this.safeValue(this.orderbooks, symbol);
         const snapshot = this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks');
         snapshot['nonce'] = incrementalId;
         orderbook.reset(snapshot);
@@ -1050,7 +1050,7 @@ class cex extends cex$1["default"] {
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         if ((base === undefined) || (quote === undefined)) {
-            return undefined;
+            return '';
         }
         const symbol = base + '/' + quote;
         return symbol;
@@ -1074,7 +1074,7 @@ class cex extends cex$1["default"] {
         const incrementalId = this.safeInteger(data, 'id');
         const pair = this.safeString(data, 'pair', '');
         const symbol = this.pairToSymbol(pair);
-        if (symbol === undefined) {
+        if (symbol === '') {
             return;
         }
         const storedOrderBook = this.safeValue(this.orderbooks, symbol);
@@ -1223,7 +1223,7 @@ class cex extends cex$1["default"] {
         const data = this.safeDict(message, 'data', {});
         const pair = this.safeString(data, 'pair');
         const symbol = this.pairToSymbol(pair);
-        if (symbol === undefined) {
+        if (symbol === '') {
             return;
         }
         const messageHash = 'ohlcv:' + symbol;
@@ -1235,7 +1235,7 @@ class cex extends cex$1["default"] {
             this.safeNumber(data, 'c'),
             this.safeNumber(data, 'v'),
         ];
-        const stored = this.safeValue(this.ohlcvs, symbol);
+        const stored = this.safeValue(this.ohlcvs[symbol], 'unknown');
         stored.append(ohlcv);
         client.resolve(stored, messageHash);
     }
@@ -1252,7 +1252,7 @@ class cex extends cex$1["default"] {
         const data = this.safeList(message, 'data', []);
         const pair = this.safeString(message, 'pair');
         const symbol = this.pairToSymbol(pair);
-        if (symbol === undefined) {
+        if (symbol === '') {
             return;
         }
         const messageHash = 'ohlcv:' + symbol;
