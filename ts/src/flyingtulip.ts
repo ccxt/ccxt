@@ -954,7 +954,7 @@ export default class flyingtulip extends Exchange {
                     break;
                 }
             }
-            if (!this.safeBool (candidate, 'isBorrowable', false) || !this.safeBool (candidate, 'priceAvailable', false)) {
+            if (!this.safeBool (candidate, 'isBorrowable', false) || this.safeBool (candidate, 'isBorrowPaused', false) || !this.safeBool (candidate, 'priceAvailable', false)) {
                 continue;
             }
             if ((this.safeStringLower (candidate, 'symbol', '') === 'ftusd') && (engineVersion !== 2)) {
@@ -1051,7 +1051,7 @@ export default class flyingtulip extends Exchange {
         }
         const debtId = (explicitDebt === undefined) ? market['baseId'] as string : explicitDebt;
         const debt = ((side === 'buy') && (explicitDebt === undefined)) ? this.resolveLongDebt (assets, market['quoteId'] as string, quoteCost as string, this.safeInteger (config, 'engineVersion', 1)) : this.findAsset (assets, debtId);
-        if (!this.safeBool (debt, 'isBorrowable', false) || !this.safeBool (debt, 'priceAvailable', false) || ((this.safeStringLower (debt, 'symbol', '') === 'ftusd') && (this.safeInteger (config, 'engineVersion', 1) !== 2))) {
+        if (!this.safeBool (debt, 'isBorrowable', false) || this.safeBool (debt, 'isBorrowPaused', false) || !this.safeBool (debt, 'priceAvailable', false) || ((this.safeStringLower (debt, 'symbol', '') === 'ftusd') && (this.safeInteger (config, 'engineVersion', 1) !== 2))) {
             throw new InvalidOrder (this.id + ' debt token is not borrowable');
         }
         if ((side === 'sell') && (this.lowerAssetAddress (debt) !== this.safeStringLower (market, 'baseId', ''))) {
@@ -1060,6 +1060,9 @@ export default class flyingtulip extends Exchange {
         const fundingId = this.safeString (params, 'fundingToken', market['quoteId']) as string;
         const boughtId = (side === 'buy') ? market['baseId'] : fundingId;
         const bought = this.findAsset (assets, boughtId as string);
+        if (this.safeBool (bought, 'isDepositPaused', false)) {
+            throw new InvalidOrder (this.id + ' exposure token deposits are paused');
+        }
         const debtPrice = this.safeString2 (debt, 'oracleTokenPrice', 'tokenprice');
         const quoteAsset = this.findAsset (assets, market['quoteId'] as string);
         const quotePrice = this.safeString2 (quoteAsset, 'oracleTokenPrice', 'tokenprice');
@@ -1420,7 +1423,7 @@ export default class flyingtulip extends Exchange {
         const assets = this.safeList (chain, 'assets', []);
         const sold = this.findAsset (assets, sellCode);
         const bought = this.findAsset (assets, buyCode);
-        if (!this.safeBool (sold, 'isCollateral', false) || !this.safeBool (bought, 'isCollateral', false)) {
+        if (!this.safeBool (sold, 'isCollateral', false) || !this.safeBool (bought, 'isCollateral', false) || this.safeBool (bought, 'isDepositPaused', false)) {
             throw new InvalidOrder (this.id + ' conversion assets must be valid collateral');
         }
         const sellToken = this.assetAddress (sold);
@@ -1471,7 +1474,7 @@ export default class flyingtulip extends Exchange {
         const owner = this.accountAddress (params);
         const chain = await this.lendAccount (owner);
         const asset = this.findAsset (this.safeList (chain, 'assets', []), code);
-        if (!this.safeBool (asset, 'isCollateral', false) || !this.safeBool (asset, 'isSuppliable', false)) {
+        if (!this.safeBool (asset, 'isCollateral', false) || !this.safeBool (asset, 'isSuppliable', false) || this.safeBool (asset, 'isDepositPaused', false)) {
             throw new InvalidOrder (this.id + ' asset is not valid deposit collateral');
         }
         const raw = this.rawAmount (this.numberToString (amount) as string, this.assetDecimals (asset));
