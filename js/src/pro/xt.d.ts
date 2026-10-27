@@ -3,7 +3,7 @@ import { Balances, Dict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Posi
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class xt extends xtRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @ignore
      * @method

@@ -2,7 +2,7 @@ import coinoneRest from '../coinone.js';
 import type { Bool, Dict, Int, Market, OrderBook, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coinone extends coinoneRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name coinone#watchOrderBook

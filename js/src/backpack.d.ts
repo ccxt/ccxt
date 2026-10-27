@@ -5,7 +5,7 @@ import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress,
  * @augments Exchange
  */
 export default class backpack extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name backpack#fetchCurrencies

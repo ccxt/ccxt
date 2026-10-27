@@ -657,6 +657,9 @@ export default class bitrue extends bitrueRest {
         const wsInterval = this.safeString(parts, 4);
         const futuresTimeframes = this.safeDict(this.options, 'futuresTimeframes', {});
         const timeframe = this.findTimeframe(wsInterval, futuresTimeframes);
+        if (timeframe === undefined) {
+            return;
+        }
         const tick = this.safeDict(message, 'tick');
         if (tick === undefined) {
             return;

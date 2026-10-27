@@ -1210,7 +1210,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 }
                 for (let i = 0; i < depths.length; i++) {
                     if (limit <= this.parseToInt(depths[i])) {
-                        request['depth'] = this.parseToInt(depths[i]);
+                        request['depth'] = this.safeInteger(depths, i, 0);
                         break;
                     }
                 }

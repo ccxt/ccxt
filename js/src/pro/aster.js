@@ -555,7 +555,7 @@ export default class aster extends asterRest {
         if (symbol !== undefined) {
             this.bidsasks[symbol] = ticker;
         }
-        const messageHash = 'bidask:' + symbol;
+        const messageHash = 'bidask:' + this.safeString(ticker, 'symbol', '');
         client.resolve(ticker, messageHash);
     }
     parseWsBidAsk(message, market) {
@@ -956,13 +956,16 @@ export default class aster extends asterRest {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         };
-        let limitResolved = 20;
-        if (limit === 5 || limit === 10 || limit === 20) {
-            limitResolved = limit;
+        let depthSuffix = '@depth20';
+        if (limit === 5) {
+            depthSuffix = '@depth5';
+        }
+        else if (limit === 10) {
+            depthSuffix = '@depth10';
         }
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market(this.safeString(symbolsNormalized, i, ''));
-            subscriptionArgs.push(this.safeStringLower(market, 'id', '') + '@depth' + this.numberToString(limitResolved));
+            subscriptionArgs.push(this.safeStringLower(market, 'id', '') + depthSuffix);
             messageHashes.push('orderbook:' + this.safeString(market, 'symbol', ''));
         }
         const orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsCallerMethodName, 'callerMethodName')), messageHashes);
@@ -1005,13 +1008,16 @@ export default class aster extends asterRest {
             'params': subscriptionArgs,
         };
         const limit = this.safeNumber(paramsOmitted, 'limit');
-        let limitResolved = 20;
-        if (limit === 5 || limit === 10 || limit === 20) {
-            limitResolved = limit;
+        let depthSuffix = '@depth20';
+        if (limit === 5) {
+            depthSuffix = '@depth5';
+        }
+        else if (limit === 10) {
+            depthSuffix = '@depth10';
         }
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market(this.safeString(symbolsNormalized, i, ''));
-            subscriptionArgs.push(this.safeStringLower(market, 'id', '') + '@depth' + this.numberToString(limitResolved));
+            subscriptionArgs.push(this.safeStringLower(market, 'id', '') + depthSuffix);
             messageHashes.push('unsubscribe:orderbook:' + this.safeString(market, 'symbol', ''));
         }
         return await this.watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsOmitted, 'limit')), messageHashes);
@@ -1950,7 +1956,7 @@ export default class aster extends asterRest {
         }
         const cache = this.orders;
         const parsed = this.parseWsOrder(message, market);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         cache.append(parsed);
         const messageHashes = this.findMessageHashes(client, messageHash);
         if (!this.isEmpty(messageHashes)) {

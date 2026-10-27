@@ -2906,7 +2906,10 @@ class binance extends binance$1["default"] {
                 const market = this.markets[symbol];
                 // begin diff
                 if (isLegacy && (this.safeBool(market, 'spot', false))) {
-                    const settle = isLegacyLinear ? market['quote'] : market['base'];
+                    let settle = this.safeString(market, 'base', '');
+                    if (isLegacyLinear) {
+                        settle = this.safeString(market, 'quote', '');
+                    }
                     const futuresSymbol = symbol + ':' + settle;
                     if ((this.markets !== undefined) && (futuresSymbol in this.markets)) {
                         return this.markets[futuresSymbol];
@@ -5808,7 +5811,7 @@ class binance extends binance$1["default"] {
         }
         const market = this.market(symbol);
         if (market['spot'] !== true) {
-            throw new errors.NotSupported(this.id + ' editSpotOrder() does not support ' + market['type'] + ' orders');
+            throw new errors.NotSupported(this.id + ' editSpotOrder() does not support ' + this.safeString(market, 'type', '') + ' orders');
         }
         const payload = this.editSpotOrderRequest(id, symbol, type, side, amount, price, params);
         const response = await this.privatePostOrderCancelReplace(payload);
@@ -6008,7 +6011,7 @@ class binance extends binance$1["default"] {
         }
         const market = this.market(symbol);
         if (market['contract'] !== true) {
-            throw new errors.NotSupported(this.id + ' editContractOrder() does not support ' + market['type'] + ' orders');
+            throw new errors.NotSupported(this.id + ' editContractOrder() does not support ' + this.safeString(market, 'type', '') + ' orders');
         }
         if (side === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' editContractOrder() requires a side argument');
@@ -6124,7 +6127,7 @@ class binance extends binance$1["default"] {
         }
         const market = this.market(symbol);
         if (market['option'] === true) {
-            throw new errors.NotSupported(this.id + ' editOrder() does not support ' + market['type'] + ' orders');
+            throw new errors.NotSupported(this.id + ' editOrder() does not support ' + this.safeString(market, 'type', '') + ' orders');
         }
         if (market['spot'] === true) {
             return await this.editSpotOrder(id, symbol, type, side, amount, price, params);
@@ -6170,7 +6173,7 @@ class binance extends binance$1["default"] {
         const symbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
         const market = this.market(symbols[0]);
         if ((market['spot'] === true) || (market['option'] === true)) {
-            throw new errors.NotSupported(this.id + ' editOrders() does not support ' + market['type'] + ' orders');
+            throw new errors.NotSupported(this.id + ' editOrders() does not support ' + this.safeString(market, 'type', '') + ' orders');
         }
         let response = undefined;
         let request = {
@@ -6991,7 +6994,7 @@ class binance extends binance$1["default"] {
         const symbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
         const market = this.market(symbols[0]);
         if (market['spot'] === true) {
-            throw new errors.NotSupported(this.id + ' createOrders() does not support ' + market['type'] + ' orders');
+            throw new errors.NotSupported(this.id + ' createOrders() does not support ' + this.safeString(market, 'type', '') + ' orders');
         }
         let response = undefined;
         let request = {
@@ -13710,7 +13713,10 @@ class binance extends binance$1["default"] {
     getExceptionsByUrl(url, exactOrBroad) {
         // the only callers pass handleErrors' url, which is a non-nullable string everywhere
         let marketType = undefined;
-        const hostname = (this.hostname !== undefined) ? this.hostname : 'binance.com';
+        let hostname = 'binance.com';
+        if (this.hostname !== undefined) {
+            hostname = this.hostname;
+        }
         if (url.startsWith('https://api.' + hostname + '/') || url.startsWith('https://demo-api') || url.startsWith('https://testnet.binance.vision')) {
             marketType = 'spot';
         }
@@ -14842,7 +14848,7 @@ class binance extends binance$1["default"] {
             }
         }
         else {
-            throw new errors.NotSupported(this.id + ' fetchMyLiquidations() does not support ' + this.safeString(market, 'type') + ' markets');
+            throw new errors.NotSupported(this.id + ' fetchMyLiquidations() does not support ' + this.safeString(market, 'type', '') + ' markets');
         }
         //
         // margin

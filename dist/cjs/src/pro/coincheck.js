@@ -90,7 +90,7 @@ class coincheck extends coincheck$1["default"] {
         //         }
         //     ]
         //
-        const symbol = this.symbol(this.safeString(message, 0));
+        const symbol = this.safeString(this.market(this.safeString(message, 0)), 'symbol', '');
         const data = this.safeDict(message, 1, {});
         const timestamp = this.safeTimestamp(data, 'last_update_at');
         const snapshot = this.parseOrderBook(data, symbol, timestamp);
@@ -151,7 +151,7 @@ class coincheck extends coincheck$1["default"] {
         //     ]
         //
         const first = this.safeList(message, 0, []);
-        const symbol = this.symbol(this.safeString(first, 2));
+        const symbol = this.safeString(this.market(this.safeString(first, 2)), 'symbol', '');
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);

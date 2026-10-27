@@ -3,7 +3,7 @@ import type { Int, Str, OrderBook, Order, Trade, Dict, NullableDict, Market, Boo
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bitstamp extends bitstampRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bitstamp#watchOrderBook

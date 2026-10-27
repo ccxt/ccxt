@@ -414,7 +414,7 @@ class deepcoin extends deepcoin$1["default"] {
         const promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
-            promises.push(this.fetchMarketsByType(types[i], params));
+            promises.push(this.fetchMarketsByType(this.safeString(types, i), params));
         }
         const responses = await Promise.all(promises);
         for (let i = 0; i < responses.length; i++) {
@@ -1776,7 +1776,7 @@ class deepcoin extends deepcoin$1["default"] {
         const timeInForce = this.handleTimeInForce(paramsPostOnly);
         const paramsOmitted = this.omit(paramsPostOnly, 'timeInForce');
         let typeValue = typePostOnly;
-        if ((timeInForce !== undefined) && (timeInForce === 'IOC')) {
+        if (timeInForce === 'IOC') {
             typeValue = 'ioc';
         }
         return [typeValue, paramsOmitted];
@@ -1951,7 +1951,8 @@ class deepcoin extends deepcoin$1["default"] {
             return await this.fetchPaginatedCallDynamic('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate);
         }
         const trigger = this.safeBool(paramsPaginate, 'trigger', false);
-        const [methodName, paramsMethodName] = this.handleParamString(paramsPaginate, 'methodName', 'fetchCanceledAndClosedOrders');
+        const methodName = this.safeString(paramsPaginate, 'methodName', 'fetchCanceledAndClosedOrders');
+        const paramsMethodName = this.omit(paramsPaginate, 'methodName');
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -3084,8 +3085,9 @@ class deepcoin extends deepcoin$1["default"] {
                 'DC-ACCESS-PASSPHRASE': this.password,
                 'appid': '200103',
             };
-            const requestBody = (method !== 'GET') ? this.json(params) : undefined;
+            let requestBody = undefined;
             if (method !== 'GET') {
+                requestBody = this.json(params);
                 privateHeaders['Content-Type'] = 'application/json';
                 payload += requestBody;
             }

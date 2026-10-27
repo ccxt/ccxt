@@ -544,8 +544,7 @@ export default class PredictionExchange extends BaseExchange {
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        const outcomeValue = (outcome === undefined) ? '' : outcome;
-        const upper = outcomeValue.toUpperCase();
+        const upper = (outcome === undefined) ? '' : outcome.toUpperCase();
         const allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         const chars = this.stringToCharsArray(upper);
         let label = '';
@@ -1283,11 +1282,7 @@ export default class PredictionExchange extends BaseExchange {
         // own-line length reads so the regex transpiler emits count() (array), not strlen()
         const feeListLength = feeList.length;
         if ((fee === undefined) && (feeListLength > 0)) {
-            const reduced = this.reduceFeesByCurrency(feeList);
-            const reducedLength = reduced.length;
-            if (reducedLength > 0) {
-                fee = this.safeDict(reduced, 0);
-            }
+            fee = this.safeDict(this.reduceFeesByCurrency(feeList), 0);
         }
         // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC

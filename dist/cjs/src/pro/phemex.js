@@ -837,7 +837,7 @@ class phemex extends phemex$1["default"] {
             settleRequest = { 'settle': 'USDT' };
         }
         const [type, paramsType] = this.handleMarketTypeAndParams('watchMyTrades', market, this.extend(params, settleRequest));
-        if (symbolResolved === undefined) {
+        if (symbol === undefined) {
             const settle = this.safeString(paramsType, 'settle');
             if (settle === 'USDT') {
                 messageHash = 'trades:perpetual';
@@ -1012,7 +1012,7 @@ class phemex extends phemex$1["default"] {
         }
         const [type, paramsType] = this.handleMarketTypeAndParams('watchOrders', market, this.extend(params, settleRequest));
         const isUSDTSettled = this.safeString(paramsType, 'settle') === 'USDT';
-        if (symbolResolved === undefined) {
+        if (symbol === undefined) {
             if (isUSDTSettled) {
                 messageHash = 'orders:perpetual';
             }

@@ -5,7 +5,7 @@ import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, 
  * @augments Exchange
  */
 export default class extended extends Exchange {
-    describe(): any;
+    describe(): Dict;
     loadMarkets(reload?: boolean, params?: Dict): Promise<import("./base/types.js").Dictionary<Market>>;
     indexByStringifiedNumericId(input: Dict): NullableDict;
     /**

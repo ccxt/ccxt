@@ -5,7 +5,7 @@ import type { Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderT
  * @augments Exchange
  */
 export default class alpaca extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name alpaca#fetchTime

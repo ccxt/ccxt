@@ -5,7 +5,7 @@ import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, 
  * @augments Exchange
  */
 export default class hashkey extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name hashkey#fetchTime

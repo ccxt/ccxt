@@ -268,7 +268,7 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params, true);
-        const url = this.implodeHostname(this.urls['api']['ws']['private']['trade']);
+        const url = this.implodeHostname(this.safeString(this.urls['api']['ws']['private'], 'trade', ''));
         await this.authenticate(url);
         const requestId = this.requestId().toString();
         const request = {
@@ -314,7 +314,7 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, params);
-        const url = this.implodeHostname(this.urls['api']['ws']['private']['trade']);
+        const url = this.implodeHostname(this.safeString(this.urls['api']['ws']['private'], 'trade', ''));
         await this.authenticate(url);
         const requestId = this.requestId().toString();
         const request = {
@@ -351,7 +351,7 @@ class bybit extends bybit$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrderWs() requires a symbol argument');
         }
         const orderRequest = this.cancelOrderRequest(id, symbol, params);
-        const url = this.implodeHostname(this.urls['api']['ws']['private']['trade']);
+        const url = this.implodeHostname(this.safeString(this.urls['api']['ws']['private'], 'trade', ''));
         await this.authenticate(url);
         const requestId = this.requestId().toString();
         if ('orderFilter' in orderRequest) {
@@ -420,7 +420,7 @@ class bybit extends bybit$1["default"] {
         const marketIds = this.marketIds(symbolsValue);
         const topics = [];
         for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
+            const marketId = this.safeString(marketIds, i, '');
             topics.push(topic + '.' + marketId);
             messageHashes.push('ticker:' + this.safeString(symbolsValue, i, ''));
         }
@@ -457,7 +457,7 @@ class bybit extends bybit$1["default"] {
         const marketIds = this.marketIds(symbolsValue);
         const topics = [];
         for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
+            const marketId = this.safeString(marketIds, i, '');
             const symbol = symbolsValue[i];
             topics.push(topic + '.' + marketId);
             subMessageHashes.push('ticker:' + symbol);
@@ -650,7 +650,7 @@ class bybit extends bybit$1["default"] {
         const marketIds = this.marketIds(symbolsValue);
         const topics = [];
         for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
+            const marketId = this.safeString(marketIds, i, '');
             const topic = 'orderbook.1.' + marketId;
             topics.push(topic);
             messageHashes.push('bidask:' + this.safeString(symbolsValue, i, ''));

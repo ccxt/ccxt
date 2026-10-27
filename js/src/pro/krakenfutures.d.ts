@@ -2,7 +2,7 @@ import krakenfuturesRest from '../krakenfutures.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class krakenfutures extends krakenfuturesRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @ignore
      * @method

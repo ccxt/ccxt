@@ -5,7 +5,7 @@ import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHi
  * @augments Exchange
  */
 export default class weex extends Exchange {
-    describe(): any;
+    describe(): Dict;
     nonce(): number;
     /**
      * @method

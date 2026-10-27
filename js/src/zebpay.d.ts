@@ -5,7 +5,7 @@ import type { Balances, Currencies, CurrencyInterface, Dict, Int, int, Leverage,
  * @augments Exchange
  */
 export default class zebpay extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name zebpay#fetchStatus

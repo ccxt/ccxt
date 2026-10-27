@@ -425,6 +425,9 @@ export default class bydfi extends bydfiRest {
         const interval = this.safeString(message, 'i');
         const timeframes = this.safeDict(this.options, 'timeframes', {});
         const timeframe = this.findTimeframe(interval, timeframes);
+        if (timeframe === undefined) {
+            return;
+        }
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};

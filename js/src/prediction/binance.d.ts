@@ -8,7 +8,7 @@ import type { OrderSide, OrderType, Int, int, Str, Dict, Strings, Num, Market, P
  * including market data, requires apiKey/secret credentials
  */
 export default class binance extends Exchange {
-    describe(): any;
+    describe(): Dict;
     nonce(): number;
     /**
      * @method

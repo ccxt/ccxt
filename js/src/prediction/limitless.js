@@ -3024,8 +3024,7 @@ export default class limitless extends Exchange {
         const eventKeys = Object.keys(eventGroups);
         const eventKeysLength = eventKeys.length;
         for (let i = 0; i < eventKeysLength; i++) {
-            const g = this.safeValue(eventGroups, eventKeys[i]);
-            const ev = this.parseEvent(g);
+            const ev = this.parseEvent(this.safeDict(eventGroups, eventKeys[i], {}));
             result.push(ev);
         }
         // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
@@ -3164,7 +3163,6 @@ export default class limitless extends Exchange {
      */
     sign(path, api = ['limitless'], method = 'GET', params = {}) {
         const apiGroup = api[0];
-        const access = api[1];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['limitless']);
         let url = '/' + this.implodeParams(path, params);
@@ -3175,7 +3173,7 @@ export default class limitless extends Exchange {
         }
         let headersValue = undefined;
         let bodyValue = undefined;
-        if (access === 'private') {
+        if (api[1] === 'private') {
             let bodyString = '';
             headersValue = {};
             if (method === 'POST' && (querystring !== '')) {

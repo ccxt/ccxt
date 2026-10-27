@@ -4134,10 +4134,10 @@ class BaseExchange {
         const debtBalance = {};
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
-            let total = this.safeString(balance[code], 'total');
-            let free = this.safeString(balance[code], 'free');
-            let used = this.safeString(balance[code], 'used');
-            const debt = this.safeString(balance[code], 'debt');
+            let total = this.safeString(balances[code], 'total');
+            let free = this.safeString(balances[code], 'free');
+            let used = this.safeString(balances[code], 'used');
+            const debt = this.safeString(balances[code], 'debt');
             if ((total === undefined) && (free !== undefined) && (used !== undefined)) {
                 total = Precise["default"].stringAdd(free, used);
             }
@@ -4217,16 +4217,16 @@ class BaseExchange {
             }
             if (isArray && (tradesLength > 0)) {
                 // move properties that are defined in trades up into the order
-                if (orderDict['symbol'] === undefined) {
+                if (parseSymbol) {
                     orderDict['symbol'] = trades[0]['symbol'];
                 }
-                if (orderDict['side'] === undefined) {
+                if (parseSide) {
                     orderDict['side'] = trades[0]['side'];
                 }
-                if (orderDict['type'] === undefined) {
+                if (this.safeString(orderDict, 'type') === undefined) {
                     orderDict['type'] = trades[0]['type'];
                 }
-                if (orderDict['id'] === undefined) {
+                if (this.safeString(orderDict, 'id') === undefined) {
                     orderDict['id'] = trades[0]['order'];
                 }
                 if (parseFilled) {
@@ -4251,7 +4251,7 @@ class BaseExchange {
                     if (parseSide) {
                         side = this.safeString(trade, 'side');
                     }
-                    const tradeTimestamp = this.safeValue(trade, 'timestamp');
+                    const tradeTimestamp = this.safeInteger(trade, 'timestamp');
                     if (parseLastTradeTimeTimestamp && (tradeTimestamp !== undefined)) {
                         if (lastTradeTimeTimestamp === undefined) {
                             lastTradeTimeTimestamp = tradeTimestamp;
@@ -4376,7 +4376,7 @@ class BaseExchange {
             }
         }
         // support for market orders
-        const orderType = this.safeValue(orderDict, 'type');
+        const orderType = this.safeString(orderDict, 'type');
         const emptyPrice = (price === undefined) || Precise["default"].stringEquals(price, '0');
         if (emptyPrice && (orderType === 'market')) {
             price = average;
@@ -5940,33 +5940,51 @@ class BaseExchange {
     /* eslint-enable no-unused-vars */
     handleParamString(params, paramName, defaultValue = undefined) {
         const value = this.safeString(params, paramName, defaultValue);
-        const paramsOmitted = (value !== undefined) ? this.omit(params, paramName) : params;
+        let paramsOmitted = params;
+        if (value !== undefined) {
+            paramsOmitted = this.omit(params, paramName);
+        }
         return [value, paramsOmitted];
     }
     /* eslint-enable no-unused-vars */
     handleParamString2(params, paramName1, paramName2, defaultValue = undefined) {
         const value = this.safeString2(params, paramName1, paramName2, defaultValue);
-        const paramsOmitted = (value !== undefined) ? this.omit(params, [paramName1, paramName2]) : params;
+        let paramsOmitted = params;
+        if (value !== undefined) {
+            paramsOmitted = this.omit(params, [paramName1, paramName2]);
+        }
         return [value, paramsOmitted];
     }
     handleParamInteger(params, paramName, defaultValue = undefined) {
         const value = this.safeInteger(params, paramName, defaultValue);
-        const paramsOmitted = (value !== undefined) ? this.omit(params, paramName) : params;
+        let paramsOmitted = params;
+        if (value !== undefined) {
+            paramsOmitted = this.omit(params, paramName);
+        }
         return [value, paramsOmitted];
     }
     handleParamInteger2(params, paramName1, paramName2, defaultValue = undefined) {
         const value = this.safeInteger2(params, paramName1, paramName2, defaultValue);
-        const paramsOmitted = (value !== undefined) ? this.omit(params, [paramName1, paramName2]) : params;
+        let paramsOmitted = params;
+        if (value !== undefined) {
+            paramsOmitted = this.omit(params, [paramName1, paramName2]);
+        }
         return [value, paramsOmitted];
     }
     handleParamBool(params, paramName, defaultValue = undefined) {
         const value = this.safeBool(params, paramName, defaultValue);
-        const paramsOmitted = (value !== undefined) ? this.omit(params, paramName) : params;
+        let paramsOmitted = params;
+        if (value !== undefined) {
+            paramsOmitted = this.omit(params, paramName);
+        }
         return [value, paramsOmitted];
     }
     handleParamBool2(params, paramName1, paramName2, defaultValue = undefined) {
         const value = this.safeBool2(params, paramName1, paramName2, defaultValue);
-        const paramsOmitted = (value !== undefined) ? this.omit(params, [paramName1, paramName2]) : params;
+        let paramsOmitted = params;
+        if (value !== undefined) {
+            paramsOmitted = this.omit(params, [paramName1, paramName2]);
+        }
         return [value, paramsOmitted];
     }
     resolvePath(path, params) {
@@ -6466,7 +6484,9 @@ class BaseExchange {
                 value = this.safeValue2(this.options, optionName, defaultOptionName);
             }
             // if it's still undefined, use the default value
-            value = (value !== undefined) ? value : defaultValue;
+            if (value === undefined) {
+                value = defaultValue;
+            }
             return [value, paramsCallerMethodName];
         }
     }

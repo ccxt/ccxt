@@ -2,7 +2,7 @@ import coinbaseexchangeRest from '../coinbaseexchange.js';
 import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict, Bool, Market, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coinbaseexchange extends coinbaseexchangeRest {
-    describe(): any;
+    describe(): Dict;
     authenticate(): Dict;
     subscribe(name: string, symbol?: Str, messageHashStart?: Str, params?: Dict): Promise<any>;
     subscribeMultiple(name: string, symbols?: string[], messageHashStart?: Str, params?: Dict): Promise<any>;

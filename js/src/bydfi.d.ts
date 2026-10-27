@@ -5,7 +5,7 @@ import type { Balances, Currency, Dict, FundingRate, FundingRateHistory, Int, in
  * @augments Exchange
  */
 export default class bydfi extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bydfi#fetchMarkets

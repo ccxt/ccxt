@@ -845,7 +845,7 @@ class okx extends okx$1["default"] {
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseWsLiquidation(rawLiquidation);
-            const symbol = this.safeString(liquidation, 'symbol');
+            const symbol = this.safeString(liquidation, 'symbol', '');
             if (this.liquidations === undefined) {
                 const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
                 this.liquidations = new Cache.ArrayCache(limit);
@@ -949,7 +949,7 @@ class okx extends okx$1["default"] {
                 return;
             }
             const liquidation = this.parseWsMyLiquidation(rawLiquidation);
-            const symbol = this.safeString(liquidation, 'symbol');
+            const symbol = this.safeString(liquidation, 'symbol', '');
             if (this.liquidations === undefined) {
                 const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
                 this.liquidations = new Cache.ArrayCache(limit);
@@ -1423,10 +1423,8 @@ class okx extends okx$1["default"] {
         //
         const asks = this.safeList(message, 'asks', []);
         const bids = this.safeList(message, 'bids', []);
-        const storedAsks = orderbook['asks'];
-        const storedBids = orderbook['bids'];
-        this.handleDeltas(storedAsks, asks);
-        this.handleDeltas(storedBids, bids);
+        this.handleDeltas(orderbook['asks'], asks);
+        this.handleDeltas(orderbook['bids'], bids);
         const marketId = this.safeString(message, 'instId');
         const symbol = this.safeSymbol(marketId, market);
         const seqId = this.safeInteger(message, 'seqId');
@@ -1991,7 +1989,7 @@ class okx extends okx$1["default"] {
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parsePosition(rawPosition);
-            if (position['contracts'] === 0 && this.safeString(rawPosition, 'posSide') === 'net') {
+            if (this.safeNumber(position, 'contracts') === 0 && this.safeString(rawPosition, 'posSide') === 'net') {
                 position['side'] = 'long';
                 const shortPosition = this.clone(position);
                 shortPosition['side'] = 'short';
@@ -2141,7 +2139,7 @@ class okx extends okx$1["default"] {
             for (let i = 0; i < parsed.length; i++) {
                 const order = parsed[i];
                 stored.append(order);
-                const symbol = order['symbol'];
+                const symbol = this.safeString(order, 'symbol', '');
                 const market = this.market(symbol);
                 marketIds.push(market['id']);
             }

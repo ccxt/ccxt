@@ -3,7 +3,7 @@ import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class onetrading extends onetradingRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name onetrading#watchBalance

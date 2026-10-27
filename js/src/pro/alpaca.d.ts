@@ -2,7 +2,7 @@ import alpacaRest from '../alpaca.js';
 import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class alpaca extends alpacaRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name alpaca#watchTicker

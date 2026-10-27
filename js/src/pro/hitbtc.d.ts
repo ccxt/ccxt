@@ -3,7 +3,7 @@ import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict, Lis
 import Client from '../base/ws/Client.js';
 import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 export default class hitbtc extends hitbtcRest {
-    describe(): any;
+    describe(): Dict;
     describeData(): any;
     /**
      * @ignore

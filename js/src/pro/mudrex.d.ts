@@ -2,7 +2,7 @@ import mudrexRest from '../mudrex.js';
 import type { Int, OHLCV, Strings, Ticker, Tickers, Dict } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 export default class mudrex extends mudrexRest {
-    describe(): any;
+    describe(): Dict;
     ping(client: Client): {
         id: number;
         method: string;

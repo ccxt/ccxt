@@ -458,17 +458,17 @@ export default class htx extends htxRest {
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
         const options = this.safeDict(this.options, 'watchOrderBook', {});
-        const limitResolved = (limit === undefined) ? this.safeInteger(options, 'depth', 150) : limit;
+        const limitResolved = this.parseToInt((limit === undefined) ? this.safeInteger(options, 'depth', 150) : limit);
         if (!this.inArray(limitResolved, allowedLimits)) {
             throw new ExchangeError(this.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only');
         }
-        let messageHash = undefined;
+        let messageHash = '';
         const marketId = this.safeString(market, 'id', '');
         if (market['spot'] === true) {
-            messageHash = 'market.' + marketId + '.mbp.' + this.numberToString(limitResolved);
+            messageHash = 'market.' + marketId + '.mbp.' + limitResolved.toString();
         }
         else {
-            messageHash = 'market.' + marketId + '.depth.size_' + this.numberToString(limitResolved) + '.high_freq';
+            messageHash = 'market.' + marketId + '.depth.size_' + limitResolved.toString() + '.high_freq';
         }
         const url = this.getUrlByMarketType(market['type'], market['linear'], false, true);
         let method = this.handleOrderBookSubscription;
@@ -501,14 +501,14 @@ export default class htx extends htxRest {
         const market = this.market(symbol);
         const topic = 'orderbook';
         const options = this.safeDict(this.options, 'watchOrderBook', {});
-        const depth = this.safeInteger(options, 'depth', 150);
+        const depth = this.parseToInt(this.safeInteger(options, 'depth', 150));
         const marketId = this.safeString(market, 'id', '');
-        let subMessageHash = undefined;
+        let subMessageHash = '';
         if (market['spot'] === true) {
-            subMessageHash = 'market.' + marketId + '.mbp.' + this.numberToString(depth);
+            subMessageHash = 'market.' + marketId + '.mbp.' + depth.toString();
         }
         else {
-            subMessageHash = 'market.' + marketId + '.depth.size_' + this.numberToString(depth) + '.high_freq';
+            subMessageHash = 'market.' + marketId + '.depth.size_' + depth.toString() + '.high_freq';
         }
         if (market['spot'] !== true) {
             params['data_type'] = 'incremental';
@@ -581,7 +581,7 @@ export default class htx extends htxRest {
                 }
                 else {
                     // throw upon failing to synchronize in maxAttempts
-                    throw new InvalidNonce(this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString() + ' attempts');
+                    throw new InvalidNonce(this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + this.safeString(subscription, 'symbol', '') + ' in ' + maxAttempts.toString() + ' attempts');
                 }
             }
             else {

@@ -1047,7 +1047,7 @@ export default class nado extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            productIds.push(this.parseToInt(market['id']));
+            productIds.push(this.parseToInt(this.safeString(market, 'id')));
         }
         const [subaccount, paramsSubaccount] = this.handleOptionStringAndParams(params, 'fetchOrders', 'subaccount', 'default');
         const sender = this.createSubaccount(this.walletAddress, subaccount);
@@ -1059,7 +1059,7 @@ export default class nado extends Exchange {
         const [recvWindow, paramsRecvWindow] = this.handleOptionIntegerAndParams(paramsOmitted, 'fetchOrders', 'recvWindow', 5000);
         const tx = {
             'sender': sender,
-            'recvTime': this.numberToString(this.milliseconds() + recvWindow),
+            'recvTime': this.numberToString(this.sum(this.milliseconds(), recvWindow)),
         };
         const request = {
             'tx': tx,
@@ -1218,7 +1218,7 @@ export default class nado extends Exchange {
             ],
         };
         if (market !== undefined) {
-            ordersRequest['product_ids'] = [this.parseToInt(market['id'])];
+            ordersRequest['product_ids'] = [this.parseToInt(this.safeString(market, 'id'))];
         }
         if (limit !== undefined) {
             ordersRequest['limit'] = Math.min(limit, 500);
@@ -1324,7 +1324,7 @@ export default class nado extends Exchange {
             ],
         };
         if (market !== undefined) {
-            matchesRequest['product_ids'] = [this.parseToInt(market['id'])];
+            matchesRequest['product_ids'] = [this.parseToInt(this.safeString(market, 'id'))];
         }
         if (limit !== undefined) {
             matchesRequest['limit'] = Math.min(limit, 500);

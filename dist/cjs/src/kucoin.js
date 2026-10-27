@@ -3664,13 +3664,12 @@ class kucoin extends kucoin$1["default"] {
                 request['chain'] = _netIdTmp.toLowerCase();
             }
         }
-        const getVersions = this.safeDict(this.safeDict(this.safeDict(this.options, 'versions', {}), 'private', {}), 'GET', {});
-        const version = getVersions['deposit-addresses'];
-        this.options['versions']['private']['GET']['deposit-addresses'] = 'v1';
+        const version = this.getDepositAddressesVersion();
+        this.setDepositAddressesVersion('v1');
         const response = await this.privateGetDepositAddresses(this.extend(request, paramsRequest));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
-        this.options['versions']['private']['GET']['deposit-addresses'] = version;
+        this.setDepositAddressesVersion(version);
         const data = this.safeDict(response, 'data');
         if (data === undefined) {
             throw new errors.ExchangeError(this.id + ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again');
@@ -3795,9 +3794,8 @@ class kucoin extends kucoin$1["default"] {
             response = await this.utaPrivateGetAssetDepositAddress(this.extend(request, paramsRequest));
         }
         else {
-            const getVersions = this.safeDict(this.safeDict(this.safeDict(this.options, 'versions', {}), 'private', {}), 'GET', {});
-            const version = getVersions['deposit-addresses'];
-            this.options['versions']['private']['GET']['deposit-addresses'] = 'v2';
+            const version = this.getDepositAddressesVersion();
+            this.setDepositAddressesVersion('v2');
             response = await this.privateGetDepositAddresses(this.extend(request, paramsRequest));
             //
             //     {
@@ -3814,7 +3812,7 @@ class kucoin extends kucoin$1["default"] {
             //         ]
             //     }
             //
-            this.options['versions']['private']['GET']['deposit-addresses'] = version;
+            this.setDepositAddressesVersion(version);
         }
         const chains = this.safeList(response, 'data', []);
         const parsed = this.parseDepositAddresses(chains, [currency['code']], false, {
@@ -11857,6 +11855,13 @@ class kucoin extends kucoin$1["default"] {
         }
         const uta = this.safeBool(this.options, 'uta') === true;
         return uta;
+    }
+    getDepositAddressesVersion() {
+        const getVersions = this.safeDict(this.safeDict(this.safeDict(this.options, 'versions', {}), 'private', {}), 'GET', {});
+        return this.safeString(getVersions, 'deposit-addresses', 'v1');
+    }
+    setDepositAddressesVersion(version) {
+        this.options['versions']['private']['GET']['deposit-addresses'] = version;
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];

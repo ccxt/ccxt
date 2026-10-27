@@ -2,7 +2,7 @@ import blockchaincomRest from '../blockchaincom.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, NullableDict, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class blockchaincom extends blockchaincomRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name blockchaincom#watchBalance

@@ -5,7 +5,7 @@ import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBoo
  * @augments Exchange
  */
 export default class upbit extends Exchange {
-    describe(): any;
+    describe(): Dict;
     fetchCurrency(code: string, params?: Dict): Promise<Dict>;
     fetchCurrencyById(id: string, params?: Dict): Promise<Dict>;
     fetchMarket(symbol: string, params?: Dict): Promise<Market>;
@@ -131,7 +131,7 @@ export default class upbit extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    calcOrderPrice(symbol: string, amount: Num, price?: Num, params?: Dict): Str;
+    calcOrderPrice(symbol: string, amount?: Num, price?: Num, params?: Dict): Str;
     /**
      * @method
      * @name upbit#createOrder

@@ -5,7 +5,7 @@ import type { Balances, Currencies, CurrencyInterface, Dict, Int, Market, Num, O
  * @augments Exchange
  */
 export default class onetrading extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name onetrading#fetchTime

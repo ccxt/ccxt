@@ -403,7 +403,7 @@ class blofin extends blofin$1["default"] {
      */
     async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
         const symbolsLength = symbolsAndTimeframes.length;
-        if (symbolsLength === 0 || !Array.isArray(symbolsAndTimeframes[0])) {
+        if (symbolsLength === 0 || this.safeList(symbolsAndTimeframes, 0) === undefined) {
             throw new errors.ArgumentsRequired(this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
         if (this.markets === undefined) {

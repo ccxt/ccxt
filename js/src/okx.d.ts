@@ -5,7 +5,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fun
  * @augments Exchange
  */
 export default class okx extends Exchange {
-    describe(): any;
+    describe(): Dict;
     handleMarketTypeAndParams(methodName: string, market?: Market, params?: Dict, defaultValue?: Str): [string, Dict];
     convertToInstrumentType(type: Str): Str;
     createExpiredOptionMarket(symbol: string): MarketInterface;

@@ -5,7 +5,7 @@ import type { OrderSide, OrderType, int, Int, Str, Num, Dict, Strings, Market, P
  * @augments Exchange
  */
 export default class limitless extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name limitless#fetchMarkets
@@ -372,7 +372,7 @@ export default class limitless extends Exchange {
      * @param {int} [params.limit] max number of raw markets to collect per category
      * @returns {object[]} raw limitless market objects, deduped by slug
      */
-    fetchRawMarketsByTags(tags: string[], params?: Dict): Promise<any[]>;
+    fetchRawMarketsByTags(tags: string[], params?: Dict): Promise<Dict[]>;
     nonce(): number;
     /**
      * @ignore

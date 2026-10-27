@@ -6,7 +6,7 @@ import type { OrderSide, OrderType, Balances, Dict, Int, int, Market, Num, Predi
  * @augments Exchange
  */
 export default class sxbet extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name sxbet#fetchMarkets
@@ -467,6 +467,7 @@ export default class sxbet extends Exchange {
      * @returns {object} a dict with sorted 'bids' and 'asks' lists
      */
     parseSxbetV3BookSides(snapshot: Dict, isOutcomeOne: boolean): Dict;
+    setWsOption(group: string, key: string, value: Str | Dict): void;
     requestId(url: Str): number;
     /**
      * @ignore

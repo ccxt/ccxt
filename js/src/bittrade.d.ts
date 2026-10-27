@@ -5,7 +5,7 @@ import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, 
  * @augments Exchange
  */
 export default class bittrade extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bittrade#fetchTime

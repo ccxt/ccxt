@@ -5,7 +5,7 @@ import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBoo
  * @augments Exchange
  */
 export default class lighter extends Exchange {
-    describe(): any;
+    describe(): Dict;
     loadAccount(chainId: any, privateKey: Str, apiKeyIndex: string, accountIndex: string, params?: Dict): Promise<any>;
     setAuthEntry(accIdx: string, keyIdx: string, entry: Dict): void;
     initAuthObject(strAccountIndex: string, strApiKeyIndex: string): void;

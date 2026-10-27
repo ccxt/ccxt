@@ -5,7 +5,7 @@ import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market,
  * @augments Exchange
  */
 export default class latoken extends Exchange {
-    describe(): any;
+    describe(): Dict;
     nonce(): number;
     /**
      * @method

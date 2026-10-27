@@ -263,7 +263,7 @@ export default class kucoin extends kucoinRest {
         const now = this.milliseconds();
         const expired = (now - lastUpdate) >= refreshInterval;
         const messageHash = 'utaToken';
-        const url = this.urls['api']['ws']['private'];
+        const url = this.safeString(this.urls['api']['ws'], 'private', '');
         const client = this.client(url);
         if ((utaToken === undefined) || expired) {
             if (messageHash in client.futures) {
@@ -455,7 +455,7 @@ export default class kucoin extends kucoinRest {
                 const symbol = symbolsNormalized[i];
                 messageHashes.push('ticker:' + symbol);
                 const market = this.market(symbol);
-                topics.push(method + ':' + market['id']);
+                topics.push(method + ':' + this.safeString(market, 'id', ''));
             }
         }
         const url = await this.negotiate(false, isFuturesMethod);

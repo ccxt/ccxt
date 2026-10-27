@@ -656,6 +656,9 @@ class bitrue extends bitrue$1["default"] {
         const wsInterval = this.safeString(parts, 4);
         const futuresTimeframes = this.safeDict(this.options, 'futuresTimeframes', {});
         const timeframe = this.findTimeframe(wsInterval, futuresTimeframes);
+        if (timeframe === undefined) {
+            return;
+        }
         const tick = this.safeDict(message, 'tick');
         if (tick === undefined) {
             return;

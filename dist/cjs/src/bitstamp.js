@@ -2767,10 +2767,10 @@ class bitstamp extends bitstamp$1["default"] {
         const isPrivatePost = (apiName !== 'public') && (method === 'POST');
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
-        const emptyPostBody = this.urlencode({ 'foo': 'bar' });
-        let postBody = emptyPostBody;
-        if (Object.keys(query).length > 0) {
-            postBody = this.urlencode(query);
+        const queryString = this.urlencode(query);
+        let postBody = this.urlencode({ 'foo': 'bar' });
+        if (queryString !== '') {
+            postBody = queryString;
         }
         let requestBody = undefined;
         if (isPrivatePost) {
@@ -2778,8 +2778,8 @@ class bitstamp extends bitstamp$1["default"] {
         }
         let privateHeaders = {};
         if (apiName === 'public') {
-            if (Object.keys(query).length > 0) {
-                url += '?' + this.urlencode(query);
+            if (queryString !== '') {
+                url += '?' + queryString;
             }
         }
         else {

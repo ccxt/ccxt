@@ -979,7 +979,7 @@ class polymarket extends polymarket$1["default"] {
      */
     async fetchTicker(outcome, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const promises = [
             this.clobPublicGetMidpoint({ 'token_id': tokenId }),
             this.clobPublicGetBook({ 'token_id': tokenId }),
@@ -1215,7 +1215,7 @@ class polymarket extends polymarket$1["default"] {
      */
     async fetchOrderBook(outcome, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const request = {
             'token_id': tokenId,
         };
@@ -1263,7 +1263,7 @@ class polymarket extends polymarket$1["default"] {
             throw new errors.BadRequest(this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe + ', supported timeframes are ' + supportedKeys.join(', '));
         }
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
         const nowS = this.seconds();
         let startS;
@@ -1490,7 +1490,7 @@ class polymarket extends polymarket$1["default"] {
      */
     async fetchTrades(outcome, since = undefined, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
         const conditionId = this.safeString(outcomeInfo, 'conditionId');
         if (conditionId === undefined) {
@@ -1534,7 +1534,7 @@ class polymarket extends polymarket$1["default"] {
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome(outcome);
-            request['asset_id'] = outcomeObj['outcomeId'];
+            request['asset_id'] = this.safeString(outcomeObj, 'outcomeId');
         }
         const response = await this.clobPrivateGetDataTrades(this.extend(request, params));
         const rawTrades = Array.isArray(response) ? response : this.safeList(response, 'data', []);
@@ -1816,7 +1816,7 @@ class polymarket extends polymarket$1["default"] {
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome(outcome);
-            request['asset_id'] = outcomeObj['outcomeId'];
+            request['asset_id'] = this.safeString(outcomeObj, 'outcomeId');
         }
         const response = await this.clobPrivateGetDataOrders(this.extend(request, params));
         const orders = this.safeList(response, 'data', []);
@@ -2023,7 +2023,7 @@ class polymarket extends polymarket$1["default"] {
         // dict, which throws a TypeError
         // outcome () validates the outcome against the loaded outcomes (built from events or markets)
         const outcomeObj = this.outcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const sideStr = side.toUpperCase();
         const isMarket = (type === 'market');
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
@@ -2305,7 +2305,7 @@ class polymarket extends polymarket$1["default"] {
         };
         const innerEncoded = this.ethEncodeStructuredData(orderDomain, { 'TypedDataSign': typedDataSignStruct, 'Order': orderStruct }, innerValue);
         const innerSigObj = this.signMessage(innerEncoded, this.privateKey);
-        const innerSig = this.remove0xPrefix(innerSigObj['r']) + this.remove0xPrefix(innerSigObj['s']) + this.intToBase16(innerSigObj['v']);
+        const innerSig = this.remove0xPrefix(this.safeString(innerSigObj, 'r')) + this.remove0xPrefix(this.safeString(innerSigObj, 's')) + this.intToBase16(innerSigObj['v']);
         // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
         // orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
         // php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
@@ -2381,7 +2381,7 @@ class polymarket extends polymarket$1["default"] {
         if (outcome !== undefined) {
             // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
             const outcomeObj = await this.loadOutcome(outcome);
-            const request = { 'asset_id': outcomeObj['outcomeId'] };
+            const request = { 'asset_id': this.safeString(outcomeObj, 'outcomeId') };
             response = await this.clobPrivateDeleteCancelMarketOrders(this.extend(request, params));
         }
         else {
@@ -3122,8 +3122,8 @@ class polymarket extends polymarket$1["default"] {
      */
     async watchOrderBook(outcome, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = this.safeString(outcomeObj, 'outcomeId');
-        const outcomeValue = this.safeString(outcomeObj, 'outcome');
+        const tokenId = this.safeString(outcomeObj, 'outcomeId', '');
+        const outcomeValue = this.safeString(outcomeObj, 'outcome', '');
         const messageHash = 'orderbook::' + outcomeValue;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
@@ -3143,8 +3143,8 @@ class polymarket extends polymarket$1["default"] {
      */
     async watchTrades(outcome, since = undefined, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = this.safeString(outcomeObj, 'outcomeId');
-        const outcomeValue = this.safeString(outcomeObj, 'outcome');
+        const tokenId = this.safeString(outcomeObj, 'outcomeId', '');
+        const outcomeValue = this.safeString(outcomeObj, 'outcome', '');
         const messageHash = 'trades::' + outcomeValue;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
@@ -3162,14 +3162,14 @@ class polymarket extends polymarket$1["default"] {
      */
     async watchTicker(outcome, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = this.safeString(outcomeObj, 'outcomeId');
+        const tokenId = this.safeString(outcomeObj, 'outcomeId', '');
         const outcomeValue = this.safeString(outcomeObj, 'outcome');
-        const messageHash = 'ticker::' + outcomeValue;
-        const subscribeHash = 'subscribe::' + tokenId;
-        const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
         if (outcomeValue === undefined) {
             throw new errors.ExchangeError(this.id + ' watchTicker() missing outcome');
         }
+        const messageHash = 'ticker::' + outcomeValue;
+        const subscribeHash = 'subscribe::' + tokenId;
+        const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
         if (!(outcomeValue in this.orderbooks)) {
             const seededBook = this.orderBook({});
             if (outcomeValue !== undefined) {

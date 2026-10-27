@@ -3,7 +3,7 @@ import type { Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, Bool, Order
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bithumb extends bithumbRest {
-    describe(): any;
+    describe(): Dict;
     pong(client: Client, message: any): Promise<void>;
     handlePing(client: Client, message: any): void;
     handlePong(client: Client, message: any): void;

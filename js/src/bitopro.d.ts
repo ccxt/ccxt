@@ -5,7 +5,7 @@ import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, Mark
  * @augments Exchange
  */
 export default class bitopro extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bitopro#fetchCurrencies

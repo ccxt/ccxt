@@ -8338,7 +8338,10 @@ class okx extends okx$1["default"] {
      */
     handleTradingStatisticsWindow(request, period, since = undefined, limit = undefined, params = {}) {
         const maxLimit = 100;
-        const effectiveLimit = ((limit === undefined) || (limit > 100)) ? 100 : limit;
+        let effectiveLimit = this.parseToInt(100);
+        if ((limit !== undefined) && (100 > limit)) {
+            effectiveLimit = limit;
+        }
         if (limit !== undefined) {
             request['limit'] = effectiveLimit;
         }

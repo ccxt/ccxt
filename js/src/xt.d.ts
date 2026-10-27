@@ -5,7 +5,7 @@ import type { Balances, Currencies, Currency, DepositAddress, Dict, FundingHisto
  * @augments Exchange
  */
 export default class xt extends Exchange {
-    describe(): any;
+    describe(): Dict;
     nonce(): number;
     /**
      * @method

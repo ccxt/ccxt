@@ -5,7 +5,7 @@ import type { Balances, Dict, Int, Market, Num, Order, OrderBook, OrderSide, Ord
  * @augments Exchange
  */
 export default class btcbox extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name btcbox#fetchMarkets

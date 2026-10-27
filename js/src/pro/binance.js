@@ -986,7 +986,7 @@ export default class binance extends binanceRest {
         client.resolve(orderbook, messageHash);
     }
     async fetchOrderBookSnapshot(client, message, subscription) {
-        const symbol = this.safeString(subscription, 'symbol');
+        const symbol = this.safeString(subscription, 'symbol', '');
         const messageHash = 'orderbook::' + symbol;
         try {
             const defaultLimit = this.safeInteger(this.options, 'watchOrderBookLimit', 1000);
@@ -4482,7 +4482,7 @@ export default class binance extends binanceRest {
         const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            messageHash += ':' + symbolResolved;
+            messageHash = 'orders:' + this.symbol(symbol);
         }
         const [type, subType, paramsValue] = this.resolveAuthType('watchOrders', market, paramsStock);
         const paramsExtended = this.extend(paramsValue, { 'type': type, 'symbol': symbolResolved, 'subType': subType }); // needed inside authenticate for isolated margin
@@ -5681,8 +5681,7 @@ export default class binance extends binanceRest {
             const myTrades = this.myTrades;
             myTrades.append(trade);
             client.resolve(this.myTrades, messageHash);
-            const messageHashSymbol = messageHash + ':' + symbol;
-            client.resolve(this.myTrades, messageHashSymbol);
+            client.resolve(this.myTrades, 'myTrades:' + symbol);
         }
     }
     handleOrder(client, message) {

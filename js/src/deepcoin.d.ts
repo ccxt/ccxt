@@ -5,7 +5,7 @@ import type { Balances, Currency, DepositAddress, Dict, FundingRate, FundingRate
  * @augments Exchange
  */
 export default class deepcoin extends Exchange {
-    describe(): any;
+    describe(): Dict;
     handleMarketTypeAndParams(methodName: string, market?: Market, params?: Dict, defaultValue?: Str): [string, Dict];
     convertToInstrumentType(type: Str): Str;
     /**

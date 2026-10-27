@@ -5,7 +5,7 @@ import type { Balances, Currencies, CurrencyInterface, DepositAddress, Dict, Int
  * @augments Exchange
  */
 export default class coinone extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name coinone#fetchCurrencies

@@ -2,7 +2,7 @@ import asterRest from '../aster.js';
 import type { Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market, MarketInterface } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class aster extends asterRest {
-    describe(): any;
+    describe(): Dict;
     getAccountTypeFromUrl(url: string): string;
     /**
      * @method

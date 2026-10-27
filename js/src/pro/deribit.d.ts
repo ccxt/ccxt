@@ -2,7 +2,7 @@ import deribitRest from '../deribit.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class deribit extends deribitRest {
-    describe(): any;
+    describe(): Dict;
     requestId(): number;
     /**
      * @method

@@ -5,7 +5,7 @@ import type { Balances, Currency, CurrencyInterface, Dict, Int, Market, Nullable
  * @augments Exchange
  */
 export default class bitso extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bitso#fetchLedger

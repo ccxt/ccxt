@@ -5,7 +5,7 @@ import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBoo
  * @augments Exchange
  */
 export default class indodax extends Exchange {
-    describe(): any;
+    describe(): Dict;
     nonce(): number;
     /**
      * @method

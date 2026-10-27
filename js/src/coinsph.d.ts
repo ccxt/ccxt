@@ -5,7 +5,7 @@ import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Mark
  * @augments Exchange
  */
 export default class coinsph extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name coinsph#fetchCurrencies

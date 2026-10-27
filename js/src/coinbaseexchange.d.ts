@@ -9,7 +9,7 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Tra
  * class instead. For Coinbase International derivatives see coinbaseinternational.
  */
 export default class coinbaseexchange extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name coinbaseexchange#fetchCurrencies

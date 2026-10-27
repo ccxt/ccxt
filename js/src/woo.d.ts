@@ -5,7 +5,7 @@ import type { ADL, Account, Balances, Conversion, Currencies, Currency, Currency
  * @augments Exchange
  */
 export default class woo extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name woo#fetchStatus

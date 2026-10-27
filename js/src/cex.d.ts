@@ -5,7 +5,7 @@ import type { Bool, Currency, CurrencyInterface, Currencies, Dict, Int, Market, 
  * @augments Exchange
  */
 export default class cex extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name cex#fetchCurrencies

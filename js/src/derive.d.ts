@@ -5,7 +5,7 @@ import type { NullableDict, Dict, List, Currencies, Transaction, Currency, Curre
  * @augments Exchange
  */
 export default class derive extends Exchange {
-    describe(): any;
+    describe(): Dict;
     setSandboxMode(enable: boolean): void;
     /**
      * @method

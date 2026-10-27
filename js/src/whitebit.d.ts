@@ -5,7 +5,7 @@ import type { Account, Balances, BorrowInterest, Conversion, Currency, CurrencyI
  * @augments Exchange
  */
 export default class whitebit extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name whitebit#fetchMarkets

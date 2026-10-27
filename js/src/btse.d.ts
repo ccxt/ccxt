@@ -5,7 +5,7 @@ import type { NullableDict, Balances, Dict, FundingRate, FundingRateHistory, Fun
  * @augments Exchange
  */
 export default class btse extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name btse#fetchTime

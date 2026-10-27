@@ -5,7 +5,7 @@ import type { Balances, Currency, Dict, FundingRate, Int, Market, MarketInterfac
  * @augments Exchange
  */
 export default class bitflyer extends Exchange {
-    describe(): any;
+    describe(): Dict;
     parseExpiryDate(expiry: string): Int;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     /**

@@ -2,7 +2,7 @@ import geminiRest from '../gemini.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Dict, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class gemini extends geminiRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name gemini#watchTrades

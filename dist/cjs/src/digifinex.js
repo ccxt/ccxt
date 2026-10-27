@@ -1773,8 +1773,8 @@ class digifinex extends digifinex$1["default"] {
             }
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const marginResult = this.handleMarginModeAndParams('createOrders', orderParams);
             const currentMarginMode = marginResult[0];
@@ -1835,7 +1835,7 @@ class digifinex extends digifinex$1["default"] {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict(orders, i);
             const individualOrder = {};
-            individualOrder['order_id'] = this.safeValue(data, i);
+            individualOrder['order_id'] = this.safeString(data, i);
             individualOrder['instrument_id'] = market['id'];
             individualOrder['amount'] = this.safeNumber(rawOrder, 'amount');
             individualOrder['price'] = this.safeNumber(rawOrder, 'price');
@@ -4485,7 +4485,7 @@ class digifinex extends digifinex$1["default"] {
                 const depositWithdrawInfo = depositWithdrawFee['info'];
                 depositWithdrawInfo.push(entry);
                 const networkId = this.safeString(entry, 'chain');
-                const withdrawFee = this.safeValue(entry, 'min_withdraw_fee');
+                const withdrawFee = this.safeNumber(entry, 'min_withdraw_fee');
                 const withdrawResult = {
                     'fee': withdrawFee,
                     'percentage': (withdrawFee !== undefined) ? false : undefined,

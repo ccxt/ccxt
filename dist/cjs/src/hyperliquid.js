@@ -589,7 +589,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             const dex = this.safeDict(fetchDexes, i, {});
             const secondPart = i * 10000 - 10000;
             const offset = this.sum(110000, secondPart);
-            perpDexesOffset[dex['name']] = offset;
+            perpDexesOffset[this.safeString(dex, 'name', '')] = offset;
         }
         let fetchDexesList = [];
         const options = this.safeDict(this.options, 'fetchMarkets', {});
@@ -4280,10 +4280,9 @@ class hyperliquid extends hyperliquid$1["default"] {
                 throw new errors.NotSupported(this.id + ' transfer() only support spot <> swap transfer');
             }
             let strAmount = this.numberToString(amount);
-            let vaultAddress = this.safeString2(params, 'vaultAddress', 'subAccountAddress');
-            if (vaultAddress !== undefined) {
-                vaultAddress = this.formatVaultAddress(vaultAddress);
-                strAmount = strAmount + ' subaccount:' + vaultAddress;
+            const vaultAddressRaw = this.safeString2(params, 'vaultAddress', 'subAccountAddress');
+            if (vaultAddressRaw !== undefined) {
+                strAmount = strAmount + ' subaccount:' + this.formatVaultAddress(vaultAddressRaw);
             }
             const strAmountFinal = strAmount; // java req
             const toPerp = (toAccount === 'perp') || (toAccount === 'swap');

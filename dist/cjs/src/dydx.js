@@ -1449,10 +1449,10 @@ class dydx extends dydx$1["default"] {
     }
     createOrderIdFromParts(address, subAccountNumber, clientOrderId, orderFlags, clobPairId) {
         const nameSp = this.safeString(this.options, 'namespace', '0f9da948-a6fb-4c45-9edc-4685c3f3317d');
-        const prefixAddress = address + '-' + this.numberToString(subAccountNumber);
-        const prefix = this.uuid5(nameSp, prefixAddress);
-        const orderInfo = prefix + '-' + this.numberToString(clientOrderId) + '-' + this.numberToString(clobPairId) + '-' + this.numberToString(orderFlags);
-        return this.uuid5(nameSp, orderInfo);
+        const clientOrderIdString = this.numberToString(clientOrderId);
+        const clobPairIdString = this.numberToString(clobPairId);
+        const orderFlagsString = this.numberToString(orderFlags);
+        return this.uuid5(nameSp, this.uuid5(nameSp, address + '-' + this.numberToString(subAccountNumber)) + '-' + clientOrderIdString + '-' + clobPairIdString + '-' + orderFlagsString);
     }
     async fetchLatestBlockHeight(params = {}) {
         const response = await this.nodeRpcGetAbciInfo(params);

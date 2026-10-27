@@ -6,7 +6,7 @@ import type { OpenInterest } from './base/types.js';
  * @augments Exchange
  */
 export default class gemini extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name gemini#fetchCurrencies

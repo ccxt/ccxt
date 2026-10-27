@@ -5,7 +5,7 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory
  * @augments Exchange
  */
 export default class cryptocom extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name cryptocom#fetchCurrencies

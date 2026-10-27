@@ -5,7 +5,7 @@ import type { Balances, Currency, Dict, FundingHistory, FundingRate, FundingRate
  * @augments Exchange
  */
 export default class krakenfutures extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name krakenfutures#fetchMarkets

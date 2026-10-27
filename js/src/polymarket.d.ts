@@ -6,7 +6,7 @@ import type { NullableDict, Dict, Int, Str, Strings, Num, Market, Currencies, Cu
  * @augments Exchange
  */
 export default class polymarket extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name polymarket#fetchTime

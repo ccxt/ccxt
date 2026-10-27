@@ -272,10 +272,11 @@ class coincheck extends coincheck$1["default"] {
             const code = codes[i];
             const currency = this.currency(code);
             const currencyId = currency['id'];
-            if (currencyId in response) {
+            const free = this.safeString(response, currencyId);
+            if (free !== undefined) {
                 const account = this.account();
                 const reserved = currencyId + '_reserved';
-                account['free'] = this.safeString(response, currencyId);
+                account['free'] = free;
                 account['used'] = this.safeString(response, reserved);
                 result[code] = account;
             }
@@ -559,11 +560,12 @@ class coincheck extends coincheck$1["default"] {
         let side = undefined;
         let fee = undefined;
         let orderId = undefined;
-        if ('liquidity' in trade) {
-            if (this.safeString(trade, 'liquidity') === 'T') {
+        const liquidity = this.safeString(trade, 'liquidity');
+        if (liquidity !== undefined) {
+            if (liquidity === 'T') {
                 takerOrMaker = 'taker';
             }
-            else if (this.safeString(trade, 'liquidity') === 'M') {
+            else if (liquidity === 'M') {
                 takerOrMaker = 'maker';
             }
             const funds = this.safeDict(trade, 'funds', {});

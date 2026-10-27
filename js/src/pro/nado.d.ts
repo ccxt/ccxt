@@ -2,7 +2,7 @@ import nadoRest from '../nado.js';
 import type { Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class nado extends nadoRest {
-    describe(): any;
+    describe(): Dict;
     requestId(): Int;
     /**
      * @method

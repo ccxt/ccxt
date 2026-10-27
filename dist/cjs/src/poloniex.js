@@ -2154,7 +2154,7 @@ class poloniex extends poloniex$1["default"] {
                 if (!('mgnMode' in merged)) {
                     merged['mgnMode'] = 'CROSS';
                 }
-                if (!('posSide' in merged)) {
+                if (this.safeString(merged, 'posSide') === undefined) {
                     merged['posSide'] = 'BOTH';
                 }
             }
@@ -2218,7 +2218,7 @@ class poloniex extends poloniex$1["default"] {
                 if (marginMode === undefined) {
                     throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a marginMode parameter "cross" or "isolated" for hedged orders');
                 }
-                if (!('posSide' in query)) {
+                if (this.safeString(query, 'posSide') === undefined) {
                     throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a posSide parameter "LONG" or "SHORT" for hedged orders');
                 }
             }
@@ -3733,7 +3733,7 @@ class poloniex extends poloniex$1["default"] {
      */
     async setPositionMode(hedged, symbol = undefined, params = {}) {
         let mode = 'ONE_WAY';
-        if (hedged) {
+        if (hedged === true) {
             mode = 'HEDGE';
         }
         const request = {

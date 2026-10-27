@@ -6,7 +6,7 @@ import type { OrderSide, OrderType, Balances, Dict, Int, Market, NullableDict, N
  * @augments Exchange
  */
 export default class opinion extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name opinion#fetchMarkets

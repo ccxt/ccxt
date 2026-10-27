@@ -5,7 +5,7 @@ import type { NullableDict, Balances, Currency, CurrencyInterface, FundingRateHi
  * @augments Exchange
  */
 export default class deribit extends Exchange {
-    describe(): any;
+    describe(): Dict;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     /**

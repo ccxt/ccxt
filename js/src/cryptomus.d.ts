@@ -5,7 +5,7 @@ import type { Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBoo
  * @augments Exchange
  */
 export default class cryptomus extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name cryptomus#fetchMarkets

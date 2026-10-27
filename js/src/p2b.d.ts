@@ -5,7 +5,7 @@ import type { Balances, Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str,
  * @augments Exchange
  */
 export default class p2b extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name p2b#fetchMarkets

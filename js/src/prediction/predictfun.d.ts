@@ -6,7 +6,7 @@ import type Client from '../base/ws/Client.js';
  * @augments Exchange
  */
 export default class predictfun extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name predictfun#fetchMarkets

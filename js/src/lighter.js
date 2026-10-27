@@ -469,7 +469,7 @@ export default class lighter extends Exchange {
         if (signer !== undefined) {
             return true;
         }
-        signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex);
+        signer = await this.loadAccount(this.safeInteger(this.options, 'chainId'), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex);
         await this.handleBuilderFeeApproval(accountIndex, apiKeyIndex);
         const loaded = (signer !== undefined);
         return loaded;
@@ -546,7 +546,7 @@ export default class lighter extends Exchange {
         };
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
+        const signer = await this.loadAccount(this.safeInteger(this.options, 'chainId'), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         const [txType, txInfo] = this.lighterSignCreateSubAccount(signer, this.extend(signRaw, paramsAccountIndex));
         const request = {
             'tx_type': txType,
@@ -658,7 +658,7 @@ export default class lighter extends Exchange {
     }
     async checkIfStandardTier(accountIndex) {
         const tiersForAccountIndexes = this.safeDict(this.options, 'tiersForAccountIndexes', {});
-        const accountIndexStr = accountIndex.toString();
+        const accountIndexStr = this.numberToString(accountIndex);
         const isStandardTier = this.safeBool(tiersForAccountIndexes, accountIndexStr);
         if (isStandardTier !== undefined) {
             const cachedIsStandard = (isStandardTier === true);
@@ -689,7 +689,7 @@ export default class lighter extends Exchange {
     async approveBuilderFee(builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex, params = {}) {
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
+        const signer = await this.loadAccount(this.safeInteger(this.options, 'chainId'), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
         const nonce = await this.fetchNonce(accountIndex, apiKeyIndex, this.extend(params, { 'skipNonce': false }));
         const expiry = this.milliseconds() + 365 * 864000;
         const signRaw = {
@@ -725,7 +725,7 @@ export default class lighter extends Exchange {
             'account_index': accountIndex,
         };
         // create lighter client
-        const signer = this.lighterCreateClient(signerNotLoad, this.options['chainId'], privateKey, apiKeyIndex, accountIndex);
+        const signer = this.lighterCreateClient(signerNotLoad, this.safeInteger(this.options, 'chainId'), privateKey, apiKeyIndex, accountIndex);
         const [txType, txInfo, messageToSign] = this.lighterSignChangePubkey(signer, this.extend(signRaw, paramsAccountIndex));
         const newTxInfo = this.signL1AndPrepareTxInfo(txInfo, messageToSign, this.privateKey);
         const request = {
@@ -871,9 +871,9 @@ export default class lighter extends Exchange {
         request['avg_execution_price'] = this.parseToInt(Precise.stringMul(priceStr, priceScale));
         request['trigger_price'] = this.parseToInt(Precise.stringMul(triggerPriceStr, priceScale));
         if (this.safeBool(this.options, 'builderFee', true)) {
-            request['integrator_account_index'] = this.options['integratorAccountIndex'];
-            request['integrator_taker_fee'] = this.options['integratorTakerFee'];
-            request['integrator_maker_fee'] = this.options['integratorMakerFee'];
+            request['integrator_account_index'] = this.safeInteger(this.options, 'integratorAccountIndex');
+            request['integrator_taker_fee'] = this.safeInteger(this.options, 'integratorTakerFee');
+            request['integrator_maker_fee'] = this.safeInteger(this.options, 'integratorMakerFee');
         }
         const orders = [];
         const firstOrder = this.extend(request, paramsRequest);
@@ -945,7 +945,7 @@ export default class lighter extends Exchange {
         // before order-req creation, we need to know account status
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
+        const signer = await this.loadAccount(this.safeInteger(this.options, 'chainId'), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
         try {
             const isStandardTier = await this.checkIfStandardTier(accountIndex);
             if (isStandardTier) {
@@ -1059,7 +1059,7 @@ export default class lighter extends Exchange {
         const [accountIndex, paramsAccountIndex] = await this.handleAccountIndex(paramsApiKeyIndex, 'editOrder', 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
+        const signer = await this.loadAccount(this.safeInteger(this.options, 'chainId'), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         const market = this.market(symbol);
         const marketInfo = this.safeDict(market, 'info', {});
         const amountScale = this.pow('10', marketInfo['size_decimals']);
@@ -1088,9 +1088,9 @@ export default class lighter extends Exchange {
             'account_index': accountIndex,
         };
         if (this.safeBool(this.options, 'builderFee', true)) {
-            signRaw['integrator_account_index'] = this.options['integratorAccountIndex'];
-            signRaw['integrator_taker_fee'] = this.options['integratorTakerFee'];
-            signRaw['integrator_maker_fee'] = this.options['integratorMakerFee'];
+            signRaw['integrator_account_index'] = this.safeInteger(this.options, 'integratorAccountIndex');
+            signRaw['integrator_taker_fee'] = this.safeInteger(this.options, 'integratorTakerFee');
+            signRaw['integrator_maker_fee'] = this.safeInteger(this.options, 'integratorMakerFee');
         }
         const [txType, txInfo] = this.lighterSignModifyOrder(signer, this.extend(signRaw, paramsOmitted));
         const request = {
@@ -2195,7 +2195,7 @@ export default class lighter extends Exchange {
         const [apiKeyIndex, paramsApiKeyIndex] = this.handleApiKeyIndex(paramsAccountIndex, 'fetchOpenOrders', 'apiKeyIndex', 'api_key_index');
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
+        await this.loadAccount(this.safeInteger(this.options, 'chainId'), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
         const market = this.market(symbol);
         const request = {
             'market_id': market['id'],
@@ -2270,7 +2270,7 @@ export default class lighter extends Exchange {
         const [apiKeyIndex, paramsApiKeyIndex] = this.handleApiKeyIndex(paramsAccountIndex, 'fetchClosedOrders', 'apiKeyIndex', 'api_key_index');
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
+        await this.loadAccount(this.safeInteger(this.options, 'chainId'), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
         const market = this.market(symbol);
         const request = {
             'market_id': market['id'],
@@ -2523,7 +2523,7 @@ export default class lighter extends Exchange {
         const [toAccountIndex, paramsToAccountIndex] = this.handleOptionAndParams2(paramsAccountIndex, 'transfer', 'toAccountIndex', 'to_account_index', accountIndex);
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsToAccountIndex);
+        const signer = await this.loadAccount(this.safeInteger(this.options, 'chainId'), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsToAccountIndex);
         const currency = this.currency(code);
         const currencyCode = currency['code'];
         if ((currencyCode !== 'USDC') && (currencyCode !== 'ETH')) {
@@ -2584,7 +2584,7 @@ export default class lighter extends Exchange {
         const [apiKeyIndex, paramsApiKeyIndex] = this.handleApiKeyIndex(paramsAccountIndex, 'fetchTransfers', 'apiKeyIndex', 'api_key_index');
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
+        await this.loadAccount(this.safeInteger(this.options, 'chainId'), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -2690,7 +2690,7 @@ export default class lighter extends Exchange {
         const [apiKeyIndex, paramsApiKeyIndex] = this.handleApiKeyIndex(paramsAccountIndex, 'fetchDeposits', 'apiKeyIndex', 'api_key_index');
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
+        await this.loadAccount(this.safeInteger(this.options, 'chainId'), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -2749,7 +2749,7 @@ export default class lighter extends Exchange {
         const [apiKeyIndex, paramsApiKeyIndex] = this.handleApiKeyIndex(paramsAccountIndex, 'fetchWithdrawals', 'apiKeyIndex', 'api_key_index');
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
+        await this.loadAccount(this.safeInteger(this.options, 'chainId'), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -2866,7 +2866,7 @@ export default class lighter extends Exchange {
         const [accountIndex, paramsAccountIndex] = await this.handleAccountIndex(paramsApiKeyIndex, 'withdraw', 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
+        const signer = await this.loadAccount(this.safeInteger(this.options, 'chainId'), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         const currency = this.currency(code);
         const currencyCode = currency['code'];
         if ((currencyCode !== 'USDC') && (currencyCode !== 'ETH')) {
@@ -2967,7 +2967,7 @@ export default class lighter extends Exchange {
         const [apiKeyIndex, paramsApiKeyIndex] = this.handleApiKeyIndex(paramsAccountIndex, 'fetchMyTrades', 'apiKeyIndex', 'api_key_index');
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
+        await this.loadAccount(this.safeInteger(this.options, 'chainId'), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsApiKeyIndex);
         const request = {
             'sort_by': 'timestamp',
             'limit': 100,
@@ -3157,7 +3157,7 @@ export default class lighter extends Exchange {
         const [accountIndex, paramsAccountIndex] = await this.handleAccountIndex(paramsApiKeyIndex, 'modifyLeverageAndMarginMode', 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
+        const signer = await this.loadAccount(this.safeInteger(this.options, 'chainId'), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         const market = this.market(symbol);
         const nonce = await this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         const signRaw = {
@@ -3189,7 +3189,7 @@ export default class lighter extends Exchange {
         const paramsOmitted = this.omit(paramsAccountIndex, ['client_order_index', 'clientOrderId']);
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsOmitted);
+        const signer = await this.loadAccount(this.safeInteger(this.options, 'chainId'), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsOmitted);
         const nonce = await this.fetchNonce(accountIndex, apiKeyIndex, paramsOmitted);
         const signRaw = {
             'market_index': this.parseToInt(market['id']),
@@ -3238,7 +3238,7 @@ export default class lighter extends Exchange {
         const [accountIndex, paramsAccountIndex] = await this.handleAccountIndex(paramsApiKeyIndex, method, 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
+        const signer = await this.loadAccount(this.safeInteger(this.options, 'chainId'), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         const nonce = await this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         const signRaw = {
             'time_in_force': 0, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
@@ -3296,7 +3296,7 @@ export default class lighter extends Exchange {
         const [accountIndex, paramsAccountIndex] = await this.handleAccountIndex(paramsApiKeyIndex, 'cancelAllOrdersAfter', 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
+        const signer = await this.loadAccount(this.safeInteger(this.options, 'chainId'), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         const nonce = await this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         let timeInForce = 2; // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
         let cancelTime = 0;
@@ -3378,7 +3378,7 @@ export default class lighter extends Exchange {
         const [accountIndex, paramsAccountIndex] = await this.handleAccountIndex(paramsApiKeyIndex, 'setMargin', 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString(accountIndex);
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
-        const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
+        const signer = await this.loadAccount(this.safeInteger(this.options, 'chainId'), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         const market = this.market(symbol);
         const nonce = await this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         const signRaw = {

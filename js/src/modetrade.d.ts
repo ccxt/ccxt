@@ -5,7 +5,7 @@ import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHi
  * @augments Exchange
  */
 export default class modetrade extends Exchange {
-    describe(): any;
+    describe(): Dict;
     setSandboxMode(enable: boolean): void;
     /**
      * @method

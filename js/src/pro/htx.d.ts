@@ -3,7 +3,7 @@ import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Positi
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class htx extends htxRest {
-    describe(): any;
+    describe(): Dict;
     requestId(): string;
     /**
      * @method

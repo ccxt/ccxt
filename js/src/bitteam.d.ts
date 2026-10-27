@@ -5,7 +5,7 @@ import { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, 
  * @augments Exchange
  */
 export default class bitteam extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bitteam#fetchMarkets

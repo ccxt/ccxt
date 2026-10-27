@@ -5,7 +5,7 @@ import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market,
  * @augments Exchange
  */
 export default class bigone extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bigone#fetchCurrencies

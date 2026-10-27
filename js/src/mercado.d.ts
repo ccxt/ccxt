@@ -5,7 +5,7 @@ import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBoo
  * @augments Exchange
  */
 export default class mercado extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name mercado#fetchMarkets

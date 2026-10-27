@@ -1687,8 +1687,10 @@ export default class luno extends Exchange {
         //     }
         //
         const result = this.depositWithdrawFee(response);
-        result['withdraw']['fee'] = this.safeNumber(response, 'fee');
-        result['withdraw']['percentage'] = false;
+        result['withdraw'] = {
+            'fee': this.safeNumber(response, 'fee'),
+            'percentage': false,
+        };
         return this.assignDefaultDepositWithdrawFees(result, currency);
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {

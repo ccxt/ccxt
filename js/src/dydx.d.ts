@@ -5,7 +5,7 @@ import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, Ledger
  * @augments Exchange
  */
 export default class dydx extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name dydx#fetchTime

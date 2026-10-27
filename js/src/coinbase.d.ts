@@ -22,7 +22,7 @@ import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook,
  * signature - pass the PEM exactly as issued.
  */
 export default class coinbase extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name coinbase#fetchTime

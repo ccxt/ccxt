@@ -6,7 +6,7 @@ import type { Liquidation, OpenInterest } from './base/types.js';
  * @augments Exchange
  */
 export default class bingx extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bingx#fetchTime

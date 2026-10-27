@@ -5,7 +5,7 @@ import type { Balances, Currency, Dict, Int, Market, Num, NullableDict, OHLCV, O
  * @augments Exchange
  */
 export default class bitbank extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bitbank#fetchMarkets

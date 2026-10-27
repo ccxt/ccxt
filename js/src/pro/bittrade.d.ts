@@ -3,7 +3,7 @@ import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict, Bool } from '../base/t
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bittrade extends bittradeRest {
-    describe(): any;
+    describe(): Dict;
     requestId(): string;
     /**
      * @method

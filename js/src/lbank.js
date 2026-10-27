@@ -2960,8 +2960,8 @@ export default class lbank extends Exchange {
                             result[code] = this.depositWithdrawFee([fee]);
                         }
                         else {
-                            const resultCodeInfo = result[code]['info'];
-                            resultCodeInfo.push(fee);
+                            const infoList = this.arrayConcat(resultValue['info'], [fee]);
+                            result[code] = this.extend(resultValue, { 'info': infoList });
                         }
                         const networkCode = this.networkIdToCode(this.safeString(fee, 'chain'), code);
                         if (networkCode !== undefined) {

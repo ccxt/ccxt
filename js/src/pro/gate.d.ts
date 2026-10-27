@@ -3,7 +3,7 @@ import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class gate extends gateRest {
-    describe(): any;
+    describe(): Dict;
     describeData(): any;
     /**
      * @method

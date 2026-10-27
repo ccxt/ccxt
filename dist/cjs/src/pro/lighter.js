@@ -160,7 +160,7 @@ class lighter extends lighter$1["default"] {
         const data = this.safeDict(message, 'order_book', {});
         const channel = this.safeString(message, 'channel', '');
         const parts = channel.split(':');
-        const marketId = parts[1];
+        const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger(message, 'timestamp');
@@ -567,7 +567,7 @@ class lighter extends lighter$1["default"] {
         const data = this.safeList(message, 'trades', []);
         const channel = this.safeString(message, 'channel', '');
         const parts = channel.split(':');
-        const marketId = parts[1];
+        const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         let stored = this.safeValue(this.trades, symbol);
@@ -757,7 +757,7 @@ class lighter extends lighter$1["default"] {
         //
         const channel = this.safeString(message, 'channel', '');
         const parts = channel.split(':');
-        const accountIndex = parts[1];
+        const accountIndex = this.safeString(parts, 1);
         const data = this.safeDict(message, 'trades', {});
         const marketIds = Object.keys(data);
         const idsLength = marketIds.length;
@@ -942,7 +942,7 @@ class lighter extends lighter$1["default"] {
         const data = this.safeList(message, 'liquidation_trades', []);
         const channel = this.safeString(message, 'channel', '');
         const parts = channel.split(':');
-        const marketId = parts[1];
+        const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         let stored = this.safeValue(this.liquidations, symbol);

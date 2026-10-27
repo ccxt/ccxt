@@ -645,7 +645,10 @@ export default class paradex extends Exchange {
         let makerFee = this.parseNumber('-0.00005');
         if (isOption) {
             const optionTypeSuffix = (optionType === 'CALL') ? 'C' : 'P';
-            const deliveryValue = (expiry === 0) ? '' : this.yymmdd(expiry) + '-';
+            let deliveryValue = '';
+            if (expiry !== 0) {
+                deliveryValue = this.yymmdd(expiry) + '-';
+            }
             symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix;
             makerFee = this.parseNumber('0.0003');
         }

@@ -2517,7 +2517,10 @@ export default class btse extends Exchange {
         let response = undefined;
         if (marketTypeOption === 'spot') {
             // the literal ALL value cancels every open order across all pairs
-            request['symbol'] = (symbol !== undefined) ? this.safeString(market, 'id') : 'ALL';
+            request['symbol'] = 'ALL';
+            if (symbol !== undefined) {
+                request['symbol'] = this.safeString(market, 'id');
+            }
             response = await this.privateDeleteSpotApiV4TradeOrdersAll(this.extend(request, paramsMarketType));
         }
         else {
@@ -3724,8 +3727,7 @@ export default class btse extends Exchange {
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        const baseUrl = apiUrl;
-        let url = baseUrl + '/' + this.implodeParams(path, params);
+        let url = apiUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         // the futures v3 trading api reads DELETE params from a signed json
         // body like its POST and PUT counterparts, while the spot v4 and the
@@ -3770,9 +3772,7 @@ export default class btse extends Exchange {
                 'BROKER-ID': 'ccxt',
             };
         }
-        const bodyResolved = requestBody;
-        const headersResolved = requestHeaders;
-        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     futuresRequestId(market) {
         // the futures v3 trading api identifies contracts by the short trade-currency

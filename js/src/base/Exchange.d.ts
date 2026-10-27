@@ -548,7 +548,7 @@ export declare class BaseExchange {
     lighterSignChangePubkey(signer: any, request: any): any[];
     setLastRestRequestTimestamp(): void;
     setLastRequest(request: any): void;
-    describe(): any;
+    describe(): Dict;
     cleanRestData(): void;
     cleanWsData(): void;
     safeBoolN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue: boolean): boolean;

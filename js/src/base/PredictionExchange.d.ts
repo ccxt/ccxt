@@ -12,7 +12,7 @@ export default class PredictionExchange extends BaseExchange {
     outcomes_by_id: Dictionary<any> | undefined;
     events: Dictionary<any> | undefined;
     events_by_slug: Dictionary<any> | undefined;
-    describe(): any;
+    describe(): Dict;
     isPrediction(): boolean;
     parseSearchQueries(params?: Dict): string[];
     requireEventQuery(params?: Dict): undefined;

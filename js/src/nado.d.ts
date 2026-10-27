@@ -5,7 +5,7 @@ import type { Balances, Currencies, Currency, Dict, NullableDict, FundingHistory
  * @augments Exchange
  */
 export default class nado extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name nado#createOrder

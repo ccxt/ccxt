@@ -5,7 +5,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Fun
  * @augments Exchange
  */
 export default class htx extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name htx#fetchStatus

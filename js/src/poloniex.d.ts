@@ -5,7 +5,7 @@ import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, 
  * @augments Exchange
  */
 export default class poloniex extends Exchange {
-    describe(): any;
+    describe(): Dict;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method

@@ -5,7 +5,7 @@ import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenI
  * @augments Exchange
  */
 export default class gate extends Exchange {
-    describe(): any;
+    describe(): Dict;
     setSandboxMode(enable: boolean): void;
     /**
      * @method

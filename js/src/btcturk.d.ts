@@ -5,7 +5,7 @@ import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, O
  * @augments Exchange
  */
 export default class btcturk extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name btcturk#fetchMarkets

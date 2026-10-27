@@ -214,7 +214,6 @@ class revolutx extends revolutx$1["default"] {
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         let requestHeaders = undefined;
-        let requestBody = undefined;
         const implodedPath = this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const apiName = api[0];
@@ -225,6 +224,7 @@ class revolutx extends revolutx$1["default"] {
         const baseUrl = baseApiUrl;
         let url = baseUrl + '/' + implodedPath;
         let queryString = '';
+        let bodyString = '';
         if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
@@ -241,11 +241,9 @@ class revolutx extends revolutx$1["default"] {
                 }
             }
             else {
-                requestBody = this.json(query);
+                bodyString = this.json(query);
             }
             const requestPath = '/api/' + implodedPath;
-            const bodyValue = requestBody;
-            const bodyString = (bodyValue !== undefined) ? bodyValue : '';
             const message = timestamp + method.toUpperCase() + requestPath + queryString + bodyString;
             const signature = crypto.eddsa(this.encode(message), this.privateKey, ed25519_js.ed25519);
             requestHeaders = {
@@ -265,12 +263,12 @@ class revolutx extends revolutx$1["default"] {
                 }
             }
             else {
-                requestBody = this.json(query);
+                bodyString = this.json(query);
                 requestHeaders = { 'Content-Type': 'application/json' };
             }
         }
         const headersResult = requestHeaders;
-        const bodyResult = requestBody;
+        const bodyResult = (bodyString !== '') ? bodyString : undefined;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     /**

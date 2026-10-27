@@ -5,7 +5,7 @@ import type { Balances, Currency, CurrencyInterface, Currencies, Int, Market, Or
  * @augments Exchange
  */
 export default class luno extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name luno#fetchCurrencies

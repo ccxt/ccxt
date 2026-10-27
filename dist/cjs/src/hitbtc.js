@@ -858,7 +858,7 @@ class hitbtc extends hitbtc$1["default"] {
                 inverse = !linear;
                 symbol = base + '/' + quote + ':' + settle;
                 if (future) {
-                    symbol = base + '/' + quote + ':' + settle + '-' + this.numberToString(expiry);
+                    symbol = base + '/' + quote + ':' + settle + '-' + this.safeString(market, 'expiry', '');
                     type = 'future';
                 }
                 else {

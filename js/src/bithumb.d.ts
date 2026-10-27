@@ -5,7 +5,7 @@ import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV
  * @augments Exchange
  */
 export default class bithumb extends Exchange {
-    describe(): any;
+    describe(): Dict;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     amountToPrecision(symbol: Str, amount: any): Str;
     getGen2MarketId(market: Market): string;

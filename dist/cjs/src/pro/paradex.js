@@ -918,7 +918,7 @@ class paradex extends paradex$1["default"] {
         if (templateId === 1) {
             data = this.parseSbeTrade(frameHex, blockLength, frameLength);
             if (data !== undefined) {
-                channel = 'trades.' + this.safeString(data, 'market');
+                channel = 'trades.' + this.safeString(data, 'market', '');
             }
         }
         else if (templateId === 3) {
@@ -938,13 +938,13 @@ class paradex extends paradex$1["default"] {
         else if (templateId === 20) {
             data = this.parseSbeOrder(frameHex, blockLength, frameLength);
             if (data !== undefined) {
-                channel = 'orders.' + this.safeString(data, 'market');
+                channel = 'orders.' + this.safeString(data, 'market', '');
             }
         }
         else if (templateId === 21) {
             data = this.parseSbeFill(frameHex, blockLength, frameLength);
             if (data !== undefined) {
-                channel = 'fills.' + this.safeString(data, 'market');
+                channel = 'fills.' + this.safeString(data, 'market', '');
             }
         }
         else if (templateId === 22) {
@@ -1367,7 +1367,7 @@ class paradex extends paradex$1["default"] {
             'cost': this.sbeReadDecimal(frameHex, 129),
             'cost_usd': this.sbeReadDecimal(frameHex, 137),
             // the JSON channel's id, one position per account and market
-            'id': account + '-' + this.safeString(strings, 0),
+            'id': account + '-' + this.safeString(strings, 0, ''),
             'last_fill_id': this.safeString(strings, 1),
             'last_updated_at': this.sbeReadTimestamp(frameHex, 81),
             'leverage': this.sbeReadDecimal(frameHex, 73),

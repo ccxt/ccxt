@@ -7,7 +7,7 @@ import type { NullableDict, Str, Num, Dict, Int, Market, OrderType, OrderSide, O
  * @augments Exchange
  */
 export default class paradex extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name paradex#fetchTime

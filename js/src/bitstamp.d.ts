@@ -5,7 +5,7 @@ import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Ord
  * @augments Exchange
  */
 export default class bitstamp extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bitstamp#fetchMarkets

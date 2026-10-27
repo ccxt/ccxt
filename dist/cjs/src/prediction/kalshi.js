@@ -273,7 +273,10 @@ class kalshi extends kalshi$1["default"] {
                 const parsed = this.parseBinaryMarketToOutcomes(raw);
                 const eventTicker = this.safeString(raw, 'event_ticker');
                 const eventTitle = this.safeString(raw, 'title', eventTicker);
-                const eventKey = (eventTitle !== undefined && eventTitle !== '') ? this.shortenSlug(eventTitle) : '';
+                let eventKey = '';
+                if (eventTitle !== undefined && eventTitle !== '') {
+                    eventKey = this.shortenSlug(eventTitle);
+                }
                 for (let j = 0; j < parsed.length; j++) {
                     const m = parsed[j];
                     flatMarkets.push(m);
@@ -2037,7 +2040,7 @@ class kalshi extends kalshi$1["default"] {
         if (filledCount !== undefined) {
             order['filled'] = filledCount;
         }
-        else if ((remainingCount !== undefined) && (amount !== undefined)) {
+        else if (remainingCount !== undefined) {
             order['filled'] = amount - remainingCount;
         }
         if (remainingCount !== undefined) {

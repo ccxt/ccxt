@@ -5,7 +5,7 @@ import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, 
  * @augments Exchange
  */
 export default class binance extends Exchange {
-    describe(): any;
+    describe(): Dict;
     isInverse(type: string, subType?: Str): boolean;
     isLinear(type: string, subType?: Str): boolean;
     setSandboxMode(enable: boolean): void;

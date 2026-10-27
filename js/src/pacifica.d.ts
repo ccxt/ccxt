@@ -5,7 +5,7 @@ import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fundi
  * @augments Exchange
  */
 export default class pacifica extends Exchange {
-    describe(): any;
+    describe(): Dict;
     initializeClient(): Promise<boolean>;
     handleBuilderFeeApproval(): Promise<boolean>;
     /**

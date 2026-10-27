@@ -3,7 +3,7 @@ import type { Int, Trade, OrderBook, IndexType, Dict, Market, Str } from '../bas
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class luno extends lunoRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name luno#watchTrades

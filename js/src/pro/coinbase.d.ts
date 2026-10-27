@@ -3,7 +3,7 @@ import coinbaseRest from '../coinbase.js';
 import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 export default class coinbase extends coinbaseRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @ignore
      * @method

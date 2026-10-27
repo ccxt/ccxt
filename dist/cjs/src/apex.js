@@ -1444,9 +1444,7 @@ class apex extends apex$1["default"] {
         const configResponse = await this.publicGetV3Symbols(params);
         const configData = this.safeDict(configResponse, 'data', {});
         const contractConfig = this.safeDict(configData, 'contractConfig', {});
-        const contractAssets = this.safeList(contractConfig, 'assets', []);
         const spotConfig = this.safeDict(configData, 'spotConfig', {});
-        const spotAssets = this.safeList(spotConfig, 'assets', []);
         const globalConfig = this.safeDict(spotConfig, 'global', {});
         const receiverAddress = this.safeString(globalConfig, 'contractAssetPoolEthAddress', '');
         const receiverZkAccountId = this.safeString(globalConfig, 'contractAssetPoolZkAccountId', '');
@@ -1467,13 +1465,15 @@ class apex extends apex$1["default"] {
         const accountId = this.safeString(accountData, 'id', '');
         let currency = {};
         const isContract = fromAccount.toLowerCase() === 'contract';
-        let assets = spotAssets;
+        let assets = this.safeList(spotConfig, 'assets', []);
         if (isContract) {
-            assets = contractAssets;
+            assets = this.safeList(contractConfig, 'assets', []);
         }
-        for (let i = 0; i < assets.length; i++) {
-            if (this.safeString(this.safeDict(assets, i, {}), 'token', '') === code) {
-                currency = this.safeDict(assets, i, {});
+        const numAssets = assets.length;
+        for (let i = 0; i < numAssets; i++) {
+            const asset = this.safeDict(assets, i, {});
+            if (this.safeString(asset, 'token', '') === code) {
+                currency = asset;
             }
         }
         const tokenId = this.safeString(currency, 'tokenId', '');

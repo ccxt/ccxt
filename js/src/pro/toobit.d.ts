@@ -2,7 +2,7 @@ import toobitRest from '../toobit.js';
 import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Market, Strings, Tickers, Balances, Position, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class toobit extends toobitRest {
-    describe(): any;
+    describe(): Dict;
     ping(client: Client): {
         ping: number;
     };

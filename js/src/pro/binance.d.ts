@@ -3,7 +3,7 @@ import type { Balances, Dict, Int, Liquidation, Market, Num, NullableDict, OHLCV
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class binance extends binanceRest {
-    describe(): any;
+    describe(): Dict;
     describeData(): {
         has: {
             ws: boolean;

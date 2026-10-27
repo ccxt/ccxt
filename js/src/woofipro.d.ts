@@ -5,7 +5,7 @@ import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Ma
  * @augments Exchange
  */
 export default class woofipro extends Exchange {
-    describe(): any;
+    describe(): Dict;
     setSandboxMode(enable: boolean): void;
     /**
      * @method

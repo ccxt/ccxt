@@ -496,10 +496,10 @@ export default class bydfi extends Exchange {
         const settleId = this.safeString(market, 'marginAsset');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        if ((base === undefined) || (quote === undefined)) {
+        const settle = this.safeCurrencyCode(settleId);
+        if ((base === undefined) || (quote === undefined) || (settle === undefined)) {
             return undefined;
         }
-        const settle = this.safeCurrencyCode(settleId);
         const symbol = base + '/' + quote + ':' + settle;
         const inverse = this.safeBool(market, 'reverse');
         const limitMaxQty = this.safeString(market, 'limitMaxQty');

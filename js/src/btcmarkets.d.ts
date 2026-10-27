@@ -5,7 +5,7 @@ import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBoo
  * @augments Exchange
  */
 export default class btcmarkets extends Exchange {
-    describe(): any;
+    describe(): Dict;
     fetchTransactionsWithMethod(method: string, code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method

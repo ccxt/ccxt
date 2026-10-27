@@ -5,7 +5,7 @@ import type { IndexType, Balances, Currency, CurrencyInterface, Int, List, Marke
  * @augments Exchange
  */
 export default class ndax extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name ndax#fetchStatus

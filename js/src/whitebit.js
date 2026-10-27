@@ -694,7 +694,7 @@ export default class whitebit extends Exchange {
         const withdrawLimits = this.safeDict(networkLimits, 'withdraw', {});
         const allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
         for (let j = 0; j < allNetworks.length; j++) {
-            const networkId = allNetworks[j];
+            const networkId = this.safeString(allNetworks, j, '');
             const networkCode = this.networkIdToCode(networkId, code);
             const networkDepositLimits = this.safeDict(depositLimits, networkId, {});
             const networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, {});
@@ -4224,7 +4224,7 @@ export default class whitebit extends Exchange {
     sign(path, api = ['public'], method = 'GET', params = {}) {
         const query = this.omit(params, this.extractParams(path));
         const version = api[0];
-        const accessibility = this.safeString(api, 1);
+        const accessibility = api[1];
         const publicHeaders = {};
         publicHeaders['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         const pathWithParams = '/' + this.implodeParams(path, params);
@@ -4297,10 +4297,9 @@ export default class whitebit extends Exchange {
                     const errorKeys = Object.keys(errorObject);
                     const errorsLength = errorKeys.length;
                     if (errorsLength > 0) {
-                        const errorKey = errorKeys[0];
+                        const errorKey = this.safeString(errorKeys, 0, '');
                         const errorMessageArray = this.safeList(errorObject, errorKey, []);
-                        const errorMessageLength = errorMessageArray.length;
-                        errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
+                        errorInfo = this.safeString(errorMessageArray, 0, body);
                     }
                 }
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorInfo, feedback);
@@ -4315,10 +4314,9 @@ export default class whitebit extends Exchange {
                 const errKeysLength = errKeys.length;
                 let errorInfo = body;
                 if (errKeysLength > 0) {
-                    const errorKey = errKeys[0];
+                    const errorKey = this.safeString(errKeys, 0, '');
                     const errorMessageArray = this.safeList(errMsg, errorKey, []);
-                    const errorMessageLength = errorMessageArray.length;
-                    errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
+                    errorInfo = this.safeString(errorMessageArray, 0, body);
                 }
                 const feedback = this.id + ' ' + body;
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorInfo, feedback);

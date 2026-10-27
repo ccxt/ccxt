@@ -1451,7 +1451,9 @@ class gate extends gate$1["default"] {
             const id = this.safeString(spotMarket, 'id');
             const marginMarket = this.safeDict(marginMarkets, id);
             const market = this.deepExtend(marginMarket, spotMarket);
-            const [baseId, quoteId] = id.split('_');
+            const idParts = id.split('_');
+            const baseId = this.safeString(idParts, 0);
+            const quoteId = this.safeString(idParts, 1);
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
             if ((base === undefined) || (quote === undefined)) {
@@ -1529,7 +1531,7 @@ class gate extends gate$1["default"] {
             swapSettlementCurrencies = ['usdt']; // gate sandbox only has usdt-margined swaps
         }
         for (let c = 0; c < swapSettlementCurrencies.length; c++) {
-            const settleId = swapSettlementCurrencies[c];
+            const settleId = this.safeString(swapSettlementCurrencies, c);
             const request = {
                 'settle': settleId,
             };
@@ -1551,7 +1553,7 @@ class gate extends gate$1["default"] {
         const result = [];
         const futureSettlementCurrencies = this.getSettlementCurrencies('future', 'fetchMarkets');
         for (let c = 0; c < futureSettlementCurrencies.length; c++) {
-            const settleId = futureSettlementCurrencies[c];
+            const settleId = this.safeString(futureSettlementCurrencies, c);
             const request = {
                 'settle': settleId,
             };
@@ -6047,7 +6049,7 @@ class gate extends gate$1["default"] {
         if (isSpot) {
             const ordersRequests = [];
             for (let i = 0; i < ids.length; i++) {
-                const id = ids[i];
+                const id = this.safeString(ids, i, '');
                 const orderItem = {
                     'id': id,
                     'symbol': symbol,
@@ -6061,7 +6063,7 @@ class gate extends gate$1["default"] {
         };
         const finalList = [request]; // hacky but needs to be done here
         for (let i = 0; i < ids.length; i++) {
-            finalList.push(ids[i]);
+            finalList.push(this.safeString(ids, i, ''));
         }
         const response = await this.privateFuturesPostSettleBatchCancelOrders(finalList);
         return this.parseOrders(response);

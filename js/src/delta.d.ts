@@ -5,7 +5,7 @@ import type { Balances, Currency, CurrencyInterface, Greeks, Int, Market, Market
  * @augments Exchange
  */
 export default class delta extends Exchange {
-    describe(): any;
+    describe(): Dict;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     /**

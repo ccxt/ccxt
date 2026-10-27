@@ -2,7 +2,7 @@ import paradexRest from '../paradex.js';
 import type { Int, int, Str, Trade, Order, Dict, NullableDict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates, Position, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class paradex extends paradexRest {
-    describe(): any;
+    describe(): Dict;
     getWsUrl(): string;
     getOrderBookChannel(marketId: Str): string;
     requestId(): number;

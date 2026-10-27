@@ -1027,12 +1027,20 @@ class kraken extends kraken$1["default"] {
                 // const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
                 for (let i = 0; i < 10; i++) {
                     const currentAsk = this.safeList(checkAsks, i, []);
-                    const formattedAsk = this.formatNumber(currentAsk[0]) + this.formatNumber(currentAsk[1]);
+                    const currentAskLength = currentAsk.length;
+                    let formattedAsk = '';
+                    if (currentAskLength > 1) {
+                        formattedAsk = this.formatNumber(currentAsk[0]) + this.formatNumber(currentAsk[1]);
+                    }
                     payloadArray.push(formattedAsk);
                 }
                 for (let i = 0; i < 10; i++) {
                     const currentBid = this.safeList(checkBids, i, []);
-                    const formattedBid = this.formatNumber(currentBid[0]) + this.formatNumber(currentBid[1]);
+                    const currentBidLength = currentBid.length;
+                    let formattedBid = '';
+                    if (currentBidLength > 1) {
+                        formattedBid = this.formatNumber(currentBid[0]) + this.formatNumber(currentBid[1]);
+                    }
                     payloadArray.push(formattedBid);
                 }
             }

@@ -2,7 +2,7 @@ import apexRest from '../apex.js';
 import type { Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class apex extends apexRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name apex#watchTrades

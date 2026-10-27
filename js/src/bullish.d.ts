@@ -5,7 +5,7 @@ import { Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddr
  * @augments Exchange
  */
 export default class bullish extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bullish#fetchTime

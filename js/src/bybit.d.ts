@@ -5,7 +5,7 @@ import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory
  * @augments Exchange
  */
 export default class bybit extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bybit#enableDemoTrading

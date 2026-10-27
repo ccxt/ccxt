@@ -5,7 +5,7 @@ import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Lis
  * @augments Exchange
  */
 export default class grvt extends Exchange {
-    describe(): any;
+    describe(): Dict;
     eipDefinitions(): Dict;
     usesPrivateKey(): boolean;
     /**

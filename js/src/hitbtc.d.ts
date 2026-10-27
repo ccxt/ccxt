@@ -5,7 +5,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLC
  * @augments Exchange
  */
 export default class hitbtc extends Exchange {
-    describe(): any;
+    describe(): Dict;
     nonce(): number;
     /**
      * @method

@@ -5,7 +5,7 @@ import type { Balances, BorrowInterest, CancellationRequest, CrossBorrowRate, Cr
  * @augments Exchange
  */
 export default class digifinex extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name digifinex#fetchCurrencies

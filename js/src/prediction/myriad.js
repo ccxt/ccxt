@@ -595,10 +595,8 @@ export default class myriad extends Exchange {
         const outcomeTitle = this.safeString(position, 'outcomeTitle', '');
         const outcome = this.slugToOutcomeSymbol(marketSlug, marketSlug, outcomeTitle);
         const marketSymbol = this.slugToMarketSymbol(marketSlug, marketSlug);
-        const networkId = this.safeString(position, 'networkId');
-        const marketId = this.safeString(position, 'marketId');
         const outcomeId = this.safeString(position, 'outcomeId');
-        const id = networkId + ':' + marketId + '/' + outcomeId;
+        const id = this.safeString(position, 'networkId', '') + ':' + this.safeString(position, 'marketId', '') + '/' + this.safeString(position, 'outcomeId', '');
         const shares = this.safeNumber(position, 'shares');
         const value = this.safeNumber(position, 'value');
         const profit = this.safeNumber(position, 'profit');
@@ -3366,7 +3364,7 @@ export default class myriad extends Exchange {
     }
     walletAddressOrUndefined() {
         // like walletAddressFromKeys but returns undefined instead of throwing when no wallet is configured
-        if ((this.walletAddress !== undefined) && (this.walletAddress.length > 0)) {
+        if ((this.walletAddress !== undefined) && (this.walletAddress !== '')) {
             return this.walletAddress.toLowerCase();
         }
         if (this.privateKey !== undefined) {
@@ -3785,15 +3783,13 @@ export default class myriad extends Exchange {
         // the orders/positions channels are keyed by the lowercase trader address (Centrifugo channels
         // are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
         // check length too: an unset walletAddress is an empty string (not undefined) in some languages
-        let address = this.walletAddress;
-        const hasWallet = (address !== undefined) && (this.walletAddress.length > 0);
-        if (!hasWallet) {
-            if (this.privateKey === undefined) {
-                throw new ArgumentsRequired(this.id + ' requires a walletAddress or privateKey to watch private channels');
-            }
-            address = this.ethGetAddressFromPrivateKey(this.privateKey);
+        if ((this.walletAddress !== undefined) && (this.walletAddress !== '')) {
+            return this.walletAddress.toLowerCase();
         }
-        return address.toLowerCase();
+        if (this.privateKey === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a walletAddress or privateKey to watch private channels');
+        }
+        return this.ethGetAddressFromPrivateKey(this.privateKey).toLowerCase();
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status

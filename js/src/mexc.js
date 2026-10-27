@@ -4155,9 +4155,7 @@ export default class mexc extends Exchange {
                 const symbols = this.safeList(paramsOmitted2, 'symbols');
                 if (symbols !== undefined) {
                     const symbolIds = this.marketIds(symbols);
-                    if (symbolIds !== undefined) {
-                        parsedSymbols = symbolIds.join(',');
-                    }
+                    parsedSymbols = symbolIds.join(',');
                 }
             }
             else {
@@ -5275,7 +5273,8 @@ export default class mexc extends Exchange {
         let currencyId = undefined;
         const currencyWithNetwork = this.safeString(transaction, 'coin');
         if (currencyWithNetwork !== undefined) {
-            currencyId = currencyWithNetwork.split('-')[0];
+            const currencyParts = currencyWithNetwork.split('-');
+            currencyId = currencyParts[0];
         }
         const code = this.safeCurrencyCode(currencyId, currency);
         let network = undefined;

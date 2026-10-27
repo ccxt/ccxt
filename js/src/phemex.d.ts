@@ -5,7 +5,7 @@ import type { TransferEntry, Balances, Currency, CurrencyInterface, FundingHisto
  * @augments Exchange
  */
 export default class phemex extends Exchange {
-    describe(): any;
+    describe(): Dict;
     parseSafeNumber(value?: Str): Num;
     parseSwapMarket(market: Dict): Market;
     parseSpotMarket(market: Dict): Market;

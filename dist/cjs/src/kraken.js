@@ -3743,7 +3743,7 @@ class kraken extends kraken$1["default"] {
         if (response === undefined) {
             return undefined;
         }
-        if (body[0] === '{') {
+        if (this.safeString(body, 0) === '{') {
             if (typeof response !== 'string') {
                 const message = this.id + ' ' + body;
                 const errors$1 = this.safeList(response, 'error');

@@ -165,10 +165,10 @@ class paymium extends paymium$1["default"] {
             const code = currencies[i];
             const currency = this.currency(code);
             const currencyId = currency['id'];
-            const free = 'balance_' + currencyId;
-            if (free in response) {
+            const freeAmount = this.safeString(response, 'balance_' + currencyId);
+            if (freeAmount !== undefined) {
                 const account = this.account();
-                account['free'] = this.safeString(response, free);
+                account['free'] = freeAmount;
                 account['used'] = this.safeString(response, 'locked_' + currencyId);
                 result[code] = account;
             }

@@ -5,7 +5,7 @@ import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transac
  * @augments Exchange
  */
 export default class coinbaseinternational extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name coinbaseinternational#fetchTime

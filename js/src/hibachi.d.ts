@@ -6,7 +6,7 @@ import type { OpenInterest } from './base/types.js';
  * @augments Exchange
  */
 export default class hibachi extends Exchange {
-    describe(): any;
+    describe(): Dict;
     getAccountId(): number;
     parseMarket(market: Dict): Market;
     /**

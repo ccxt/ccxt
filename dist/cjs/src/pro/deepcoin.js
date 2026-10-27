@@ -870,9 +870,7 @@ class deepcoin extends deepcoin$1["default"] {
         let symbolResolved = undefined;
         if (symbol !== undefined) {
             symbolResolved = this.symbol(symbol);
-        }
-        if (symbolResolved !== undefined) {
-            messageHash = 'myTrades' + '::' + symbolResolved;
+            messageHash = 'myTrades' + '::' + this.safeString(this.market(symbol), 'symbol', '');
         }
         const trades = await this.watchPrivate(messageHash, params);
         let limitResolved = limit;
@@ -951,9 +949,7 @@ class deepcoin extends deepcoin$1["default"] {
         let symbolResolved = undefined;
         if (symbol !== undefined) {
             symbolResolved = this.symbol(symbol);
-        }
-        if (symbolResolved !== undefined) {
-            messageHash = 'orders' + '::' + symbolResolved;
+            messageHash = 'orders' + '::' + this.safeString(this.market(symbol), 'symbol', '');
         }
         const orders = await this.watchPrivate(messageHash, params);
         let limitResolved = limit;

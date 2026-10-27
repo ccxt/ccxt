@@ -1024,10 +1024,10 @@ class grvt extends grvt$1["default"] {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, params, 1000000);
         if (since !== undefined) {
-            requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
+            request['start_time'] = this.numberToString(since * 1000000);
         }
+        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, params, 1000000);
         const response = await this.publicMarketPostFullV1TradeHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -1176,10 +1176,10 @@ class grvt extends grvt$1["default"] {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         if (since !== undefined) {
-            requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
+            request['start_time'] = this.numberToString(since * 1000000);
         }
+        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         const response = await this.publicMarketPostFullV1Kline(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -1258,10 +1258,10 @@ class grvt extends grvt$1["default"] {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         if (since !== undefined) {
-            requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
+            request['start_time'] = this.numberToString(since * 1000000);
         }
+        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         const response = await this.publicMarketPostFullV1Funding(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -1307,7 +1307,7 @@ class grvt extends grvt$1["default"] {
         };
     }
     getSubAccountId(params) {
-        const subAccountId = this.handleOptionAndParams(params, 'getSubAccountId', 'accountId')[0];
+        const subAccountId = this.safeString(this.handleOptionAndParams(params, 'getSubAccountId', 'accountId'), 0);
         if (subAccountId === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page');
         }
@@ -1429,10 +1429,10 @@ class grvt extends grvt$1["default"] {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, params, 1000000);
         if (since !== undefined) {
-            requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
+            request['start_time'] = this.numberToString(since * 1000000);
         }
+        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, params, 1000000);
         const useTransfersEndpoint = this.safeBool(this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
         if (useTransfersEndpoint) {
             const transfers = await this.internalFetchTransfers(this.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit);
@@ -1486,10 +1486,10 @@ class grvt extends grvt$1["default"] {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, params, 1000000);
         if (since !== undefined) {
-            requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
+            request['start_time'] = this.numberToString(since * 1000000);
         }
+        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, params, 1000000);
         const useTransfersEndpoint = this.safeBool(this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
         if (useTransfersEndpoint) {
             const transfers = await this.internalFetchTransfers(this.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit);
@@ -1700,10 +1700,10 @@ class grvt extends grvt$1["default"] {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         if (since !== undefined) {
-            requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
+            request['start_time'] = this.numberToString(since * 1000000);
         }
+        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         const response = await this.privateTradingPostFullV1TransferHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -2279,10 +2279,10 @@ class grvt extends grvt$1["default"] {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         if (since !== undefined) {
-            requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
+            request['start_time'] = this.numberToString(since * 1000000);
         }
+        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         const response = await this.privateTradingPostFullV1FillHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -2334,17 +2334,19 @@ class grvt extends grvt$1["default"] {
         };
         const symbolsNormalized = this.marketSymbols(symbols);
         if (symbolsNormalized !== undefined) {
-            request['base'] = [];
-            request['quote'] = [];
+            const baseIds = [];
+            const quoteIds = [];
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
                 if (market['contract'] !== true) {
                     throw new errors.BadRequest(this.id + ' fetchPositions() supports contract markets only');
                 }
-                request['base'].push(market['baseId']);
-                request['quote'].push(market['quoteId']);
+                baseIds.push(market['baseId']);
+                quoteIds.push(market['quoteId']);
             }
+            request['base'] = baseIds;
+            request['quote'] = quoteIds;
         }
         const response = await this.privateTradingPostFullV1Positions(this.extend(request, params));
         //
@@ -2608,10 +2610,10 @@ class grvt extends grvt$1["default"] {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         if (since !== undefined) {
-            requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
+            request['start_time'] = this.numberToString(since * 1000000);
         }
+        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, paramsPaginate, 1000000);
         const response = await this.privateTradingPostFullV1FundingPaymentHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -2683,10 +2685,10 @@ class grvt extends grvt$1["default"] {
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1000);
         }
-        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, params, 1000000);
         if (since !== undefined) {
-            requestUntilOptionString['start_time'] = this.numberToString(since * 1000000);
+            request['start_time'] = this.numberToString(since * 1000000);
         }
+        const [requestUntilOptionString, paramsUntilOptionString] = this.handleUntilOptionString('end_time', request, params, 1000000);
         const response = await this.privateTradingPostFullV1OrderHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -3221,11 +3223,10 @@ class grvt extends grvt$1["default"] {
         const domainData = this.eipDomainData();
         const definitions = this.eipDefinitions();
         const ethEncodedMessage = this.ethEncodeStructuredData(domainData, definitions[structureType], messageData);
-        const ethEncodedMessageHashed = '0x' + this.hash(ethEncodedMessage, sha3_js.keccak_256, 'hex');
         const usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         const secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         const privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
-        const signature = crypto.ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1_js.secp256k1, undefined);
+        const signature = crypto.ecdsa(this.hash(ethEncodedMessage, sha3_js.keccak_256, 'hex'), privateKeyWithoutZero, secp256k1_js.secp256k1, undefined);
         request['signature'] = {
             'signer': (signerAddress === undefined) ? this.ethGetAddressFromPrivateKey('0x' + privateKeyWithoutZero) : signerAddress,
             'r': this.formatSignatureRS(signature['r']),
@@ -3311,11 +3312,11 @@ class grvt extends grvt$1["default"] {
             if (queryString !== '') {
                 requestPath = path + '?' + queryString;
             }
-            requestHeaders = {
-                'Content-Type': 'application/json',
-            };
             if ((requestPath.endsWith('auth/api_key/login') === true) || (requestPath.endsWith('auth/wallet/login') === true)) {
-                requestHeaders['Cookie'] = 'rm=true;';
+                requestHeaders = {
+                    'Content-Type': 'application/json',
+                    'Cookie': 'rm=true;',
+                };
             }
             else {
                 const accountId = this.safeString(this.options, 'AuthAccountId');
@@ -3323,8 +3324,11 @@ class grvt extends grvt$1["default"] {
                 if (cookieValue === undefined || accountId === undefined) {
                     throw new errors.AuthenticationError(this.id + ' : at first, you need to authenticate with exchange using signIn() method.');
                 }
-                requestHeaders['Cookie'] = cookieValue;
-                requestHeaders['X-Grvt-Account-Id'] = accountId;
+                requestHeaders = {
+                    'Content-Type': 'application/json',
+                    'Cookie': cookieValue,
+                    'X-Grvt-Account-Id': accountId,
+                };
             }
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };

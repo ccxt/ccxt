@@ -5,7 +5,7 @@ import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Strings, Market, P
  * @augments Exchange
  */
 export default class kalshi extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name kalshi#fetchMarkets

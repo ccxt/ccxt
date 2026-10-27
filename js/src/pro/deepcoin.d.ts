@@ -3,7 +3,7 @@ import type { Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class deepcoin extends deepcoinRest {
-    describe(): any;
+    describe(): Dict;
     ping(client: Client): Str;
     handlePong(client: Client, message: string): string;
     requestId(): number;

@@ -2,7 +2,7 @@ import dydxRest from '../dydx.js';
 import type { Int, Trade, Dict, OrderBook, OHLCV, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class dydx extends dydxRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name dydx#watchTrades

@@ -380,18 +380,14 @@ class upbit extends upbit$1["default"] {
         }
         // Build subscription message with all requested private channels
         // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
-        const requests = [];
-        const channelKeys = Object.keys(subscriptions);
-        for (let i = 0; i < channelKeys.length; i++) {
-            requests.push(subscriptions[channelKeys[i]]);
-        }
         const message = [
             {
                 'ticket': this.uuid(),
             },
         ];
-        for (let i = 0; i < requests.length; i++) {
-            message.push(requests[i]);
+        const channelKeys = Object.keys(subscriptions);
+        for (let i = 0; i < channelKeys.length; i++) {
+            message.push(subscriptions[channelKeys[i]]);
         }
         return await this.watch(url, messageHashResolved, message, messageHashResolved);
     }

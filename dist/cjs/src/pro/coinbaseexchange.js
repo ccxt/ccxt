@@ -458,12 +458,11 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             const trade = this.parseWsTrade(message);
             const type = 'myTrades';
             const messageHash = type + ':' + marketId;
-            let tradesArray = this.myTrades;
-            if (tradesArray === undefined) {
+            if (this.myTrades === undefined) {
                 const limit = this.safeInteger(this.options, 'myTradesLimit', 1000);
-                tradesArray = new Cache.ArrayCacheBySymbolById(limit);
-                this.myTrades = tradesArray;
+                this.myTrades = new Cache.ArrayCacheBySymbolById(limit);
             }
+            const tradesArray = this.myTrades;
             tradesArray.append(trade);
             client.resolve(tradesArray, messageHash);
         }
@@ -523,10 +522,11 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         const parsed = super.parseTrade(trade);
         let feeRate = undefined;
         let isMaker = false;
-        if ('maker_fee_rate' in trade) {
+        const makerFeeRate = this.safeString(trade, 'maker_fee_rate');
+        if (makerFeeRate !== undefined) {
             isMaker = true;
             parsed['takerOrMaker'] = 'maker';
-            feeRate = this.safeString(trade, 'maker_fee_rate');
+            feeRate = makerFeeRate;
         }
         else {
             parsed['takerOrMaker'] = 'taker';
@@ -816,7 +816,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             if (symbol !== undefined) {
                 this.tickers[symbol] = ticker;
             }
-            const messageHash = 'ticker:' + symbol;
+            const messageHash = 'ticker:' + this.safeString(ticker, 'symbol', '');
             const idMessageHash = 'ticker:' + marketId;
             client.resolve(ticker, messageHash);
             client.resolve(ticker, idMessageHash);

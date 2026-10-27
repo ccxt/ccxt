@@ -3312,14 +3312,20 @@ class deribit extends deribit$1["default"] {
         const month = 30 * 24 * 60 * 60 * 1000;
         const defaultSince = now - month;
         const sinceResolved = (since === undefined) ? defaultSince : since;
-        const time = (since === undefined) ? now : this.parseToInt(since + month);
+        let time = now;
+        if (since !== undefined) {
+            time = this.parseToInt(since + month);
+        }
         const request = {
             'instrument_name': market['id'],
             'start_timestamp': sinceResolved - 1,
         };
         const until = this.safeInteger2(paramsPaginate, 'until', 'end_timestamp');
         const paramsUntil = (until !== undefined) ? this.omit(paramsPaginate, ['until']) : paramsPaginate;
-        const endTimestamp = (until !== undefined) ? until : time;
+        let endTimestamp = time;
+        if (until !== undefined) {
+            endTimestamp = this.parseToInt(until);
+        }
         request['end_timestamp'] = endTimestamp;
         const isPaginationCall = this.safeBool(paramsUntil, 'isDeribitPaginationCall', false);
         let paramsOmitted = paramsUntil;

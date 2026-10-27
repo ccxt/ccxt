@@ -5,7 +5,7 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory
  * @augments Exchange
  */
 export default class blofin extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name blofin#fetchMarkets
@@ -320,7 +320,7 @@ export default class blofin extends Exchange {
      * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    fetchWithdrawal(id: string, code?: Str, params?: Dict): Promise<Transaction>;
+    fetchWithdrawal(id: Str, code?: Str, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name blofin#withdraw

@@ -151,7 +151,8 @@ class hitbtc extends hitbtc$1["default"] {
         const messageHashes = [];
         if (symbolsNormalized !== undefined && resolvedPerSymbol) {
             for (let i = 0; i < symbolsNormalized.length; i++) {
-                messageHashes.push(messageHashPrefix + '::' + symbolsNormalized[i]);
+                const symbolId = symbolsNormalized[i];
+                messageHashes.push(messageHashPrefix + '::' + symbolId);
             }
         }
         else {

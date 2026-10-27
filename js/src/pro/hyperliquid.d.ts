@@ -2,7 +2,7 @@ import hyperliquidRest from '../hyperliquid.js';
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position, Liquidation } from '../base/types.js';
 export default class hyperliquid extends hyperliquidRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name hyperliquid#createOrdersWs

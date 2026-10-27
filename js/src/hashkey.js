@@ -1035,7 +1035,7 @@ export default class hashkey extends Exchange {
             isSpot = false;
             isSwap = true;
             baseId = this.safeString(market, 'underlying');
-            suffix = ':' + settleId;
+            suffix = ':' + this.safeString(market, 'marginToken', '');
         }
         const base = this.safeCurrencyCode(baseId);
         if ((base === undefined) || (quote === undefined)) {
@@ -4214,7 +4214,8 @@ export default class hashkey extends Exchange {
         if (market['swap'] !== true) {
             throw new BadSymbol(this.id + ' modifyMarginHelper() supports swap markets only');
         }
-        const [sideParam, paramsSide] = this.handleParamString(params, 'side');
+        const sideParam = this.safeString(params, 'side');
+        const paramsSide = this.omit(params, 'side');
         if (sideParam === undefined) {
             throw new ArgumentsRequired(this.id + ' ' + type + 'Margin() requires a params["side"] argument, either "long" or "short"');
         }
