@@ -6060,7 +6060,7 @@ export class BaseExchange {
                 const item = response[i];
                 const id = (marketIdKey === undefined) ? undefined : this.safeString (item, marketIdKey);
                 const market = this.safeMarket (id, undefined, undefined, 'swap');
-                const symbol = market['symbol'];
+                const symbol = this.safeString (market, 'symbol', '');
                 const contract = this.safeBool (market, 'contract', false);
                 if ((contract) && (noSymbols || ((symbolsNormalized !== undefined) && this.inArray (symbol, symbolsNormalized)))) {
                     tiers[symbol] = this.parseMarketLeverageTiers (item, market);
@@ -6072,7 +6072,7 @@ export class BaseExchange {
                 const marketId = keys[i];
                 const item = response[marketId];
                 const market = this.safeMarket (marketId, undefined, undefined, 'swap');
-                const symbol = market['symbol'];
+                const symbol = this.safeString (market, 'symbol', '');
                 const contract = this.safeBool (market, 'contract', false);
                 if ((contract) && (noSymbols || ((symbolsNormalized !== undefined) && this.inArray (symbol, symbolsNormalized)))) {
                     tiers[symbol] = this.parseMarketLeverageTiers (item, market);
