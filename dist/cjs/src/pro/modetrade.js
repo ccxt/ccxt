@@ -711,7 +711,7 @@ class modetrade extends modetrade$1["default"] {
         if (symbol !== undefined) {
             const market = this.market(symbol);
             symbolResolved = this.safeString(market, 'symbol');
-            messageHash = topic + ':' + symbolResolved;
+            messageHash = topic + ':' + this.safeString(market, 'symbol', '');
         }
         const request = {
             'event': 'subscribe',
@@ -753,7 +753,7 @@ class modetrade extends modetrade$1["default"] {
         if (symbol !== undefined) {
             const market = this.market(symbol);
             symbolResolved = this.safeString(market, 'symbol');
-            messageHash = 'myTrades' + ':' + symbolResolved;
+            messageHash = 'myTrades' + ':' + this.safeString(market, 'symbol', '');
         }
         const request = {
             'event': 'subscribe',

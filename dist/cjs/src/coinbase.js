@@ -1297,7 +1297,9 @@ class coinbase extends coinbase$1["default"] {
             if ((baseId !== undefined) && (quoteId !== undefined)) {
                 const base = this.safeCurrencyCode(baseId);
                 const quote = this.safeCurrencyCode(quoteId);
-                symbol = base + '/' + quote;
+                if ((base !== undefined) && (quote !== undefined)) {
+                    symbol = base + '/' + quote;
+                }
             }
         }
         const sizeInQuote = this.safeBool(trade, 'size_in_quote');
@@ -1404,7 +1406,7 @@ class coinbase extends coinbase$1["default"] {
                     const quoteCurrency = data[j];
                     const quoteId = this.safeString(quoteCurrency, 'id');
                     const quote = this.safeCurrencyCode(quoteId);
-                    if (quote === undefined) {
+                    if ((quote === undefined) || (quoteId === undefined)) {
                         continue;
                     }
                     result.push(this.safeMarketStructure({

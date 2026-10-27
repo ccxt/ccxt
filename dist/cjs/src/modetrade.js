@@ -804,7 +804,8 @@ class modetrade extends modetrade$1["default"] {
         //         "is_maker": "1"
         //     }
         //
-        const isFromFetchOrder = ('id' in trade);
+        const id = this.safeString(trade, 'id');
+        const isFromFetchOrder = id !== undefined;
         const timestamp = this.safeInteger(trade, 'executed_timestamp');
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
@@ -815,7 +816,6 @@ class modetrade extends modetrade$1["default"] {
         const fee = this.parseTokenAndFeeTemp(trade, 'fee_asset', 'fee');
         const cost = Precise["default"].stringMul(price, amount);
         const side = this.safeStringLower(trade, 'side');
-        const id = this.safeString(trade, 'id');
         let takerOrMaker = undefined;
         if (isFromFetchOrder) {
             const isMaker = this.safeString(trade, 'is_maker') === '1';

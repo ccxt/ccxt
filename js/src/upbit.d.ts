@@ -71,7 +71,7 @@ export default class upbit extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    idsQueryStrings(ids: Strings, maxQueryLength: int): string[];
+    idsQueryStrings(ids: string[]): string[];
     /**
      * @method
      * @name upbit#fetchTicker

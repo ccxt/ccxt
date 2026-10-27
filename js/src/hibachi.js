@@ -822,12 +822,6 @@ export default class hibachi extends Exchange {
         return result;
     }
     orderMessage(market, nonce, feeRate, type, side, amount, price = undefined) {
-        if (type === undefined) {
-            throw new ArgumentsRequired(this.id + ' requires a type argument');
-        }
-        if (side === undefined) {
-            throw new ArgumentsRequired(this.id + ' requires a side argument');
-        }
         let sideInternal = 0;
         if (side === 'sell') {
             sideInternal = 0;

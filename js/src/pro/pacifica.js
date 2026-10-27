@@ -686,7 +686,7 @@ export default class pacifica extends pacificaRest {
         let symbolResolved = undefined;
         if (symbol !== undefined) {
             symbolResolved = this.symbol(symbol);
-            messageHash += ':' + symbolResolved;
+            messageHash = 'myTrades:' + symbolResolved;
         }
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey = 'api';

@@ -1776,7 +1776,7 @@ export default class tokocrypto extends Exchange {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
-            'reduceOnly': this.safeValue(order, 'reduceOnly'),
+            'reduceOnly': this.safeBool(order, 'reduceOnly'),
             'side': side,
             'price': price,
             'triggerPrice': this.parseNumber(this.omitZero(this.safeString(order, 'stopPrice'))),
@@ -2772,20 +2772,19 @@ export default class tokocrypto extends Exchange {
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool(response, 'success', true);
-        let parsedMessage = undefined;
+        let responseParsed = response;
         if (!success) {
             const messageInner = this.safeString(response, 'msg');
             if (messageInner !== undefined) {
                 try {
-                    parsedMessage = JSON.parse(messageInner);
+                    responseParsed = JSON.parse(messageInner);
                 }
                 catch (e) {
                     // do nothing
-                    parsedMessage = undefined;
+                    responseParsed = response;
                 }
             }
         }
-        const responseParsed = (parsedMessage !== undefined) ? parsedMessage : response;
         const message = this.safeString(responseParsed, 'msg');
         if (message !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, this.id + ' ' + message);
@@ -2824,6 +2823,7 @@ export default class tokocrypto extends Exchange {
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
         const paramsDict = this.extend({}, params);
+        const byLimit = this.safeList(config, 'byLimit', []);
         if (('noCoin' in paramsDict) && !('coin' in paramsDict)) {
             return this.safeInteger(config, 'noCoin');
         }
@@ -2833,9 +2833,8 @@ export default class tokocrypto extends Exchange {
         else if (('noPoolId' in paramsDict) && !('poolId' in paramsDict)) {
             return this.safeInteger(config, 'noPoolId');
         }
-        else if (('byLimit' in config) && ('limit' in paramsDict)) {
+        else if ('limit' in paramsDict) {
             const limit = this.safeInteger(paramsDict, 'limit');
-            const byLimit = this.safeList(config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 const entryLimit = this.safeInteger(entry, 0);

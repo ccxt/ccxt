@@ -1164,7 +1164,7 @@ class independentreserve extends independentreserve$1["default"] {
             const keys = Object.keys(paramsDict);
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
-                const value = paramsDict[key].toString();
+                const value = this.safeString(paramsDict, key, '');
                 auth.push(key + '=' + value);
             }
             const message = auth.join(',');

@@ -2082,7 +2082,7 @@ export default class foxbit extends Exchange {
         let detailsString = '';
         if (details !== undefined) {
             for (let i = 0; i < details.length; i++) {
-                detailsString = detailsString + details[i] + ' ';
+                detailsString = detailsString + this.safeString(details, i, '') + ' ';
             }
         }
         if (error !== undefined) {

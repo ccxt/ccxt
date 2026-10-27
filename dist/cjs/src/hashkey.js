@@ -1994,7 +1994,7 @@ class hashkey extends hashkey$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [until, paramsUntil] = this.handleOptionAndParams(params, methodName, 'until');
+        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -2044,7 +2044,7 @@ class hashkey extends hashkey$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [until, paramsUntil] = this.handleOptionAndParams(params, methodName, 'until');
+        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -2372,7 +2372,7 @@ class hashkey extends hashkey$1["default"] {
         if (since === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() requires a since argument');
         }
-        const [until, paramsUntil] = this.handleOptionAndParams(params, methodName, 'until');
+        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, methodName, 'until');
         if (until === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() requires an until argument');
         }
@@ -3010,7 +3010,7 @@ class hashkey extends hashkey$1["default"] {
             //
         }
         else if (marketType === 'swap') {
-            const [isTrigger, paramsTrigger] = this.handleTriggerOptionAndParams(paramsMarketType, methodName, false);
+            const [isTrigger, paramsTrigger] = this.handleOptionBoolAndParams2(paramsMarketType, methodName, 'stop', 'trigger', false);
             if (isTrigger === true) {
                 request['type'] = 'STOP';
             }
@@ -3214,7 +3214,7 @@ class hashkey extends hashkey$1["default"] {
             //
         }
         else if (marketType === 'swap') {
-            const [isTrigger, paramsTrigger] = this.handleTriggerOptionAndParams(paramsMarketType, methodName, false);
+            const [isTrigger, paramsTrigger] = this.handleOptionBoolAndParams2(paramsMarketType, methodName, 'stop', 'trigger', false);
             if (isTrigger === true) {
                 request['type'] = 'STOP';
             }
@@ -3390,7 +3390,7 @@ class hashkey extends hashkey$1["default"] {
             'symbol': market['id'],
         };
         const isTrigger = false;
-        const [isTriggerTrigger, paramsTrigger] = this.handleTriggerOptionAndParams(paramsMethodName, methodNameOption, isTrigger);
+        const [isTriggerTrigger, paramsTrigger] = this.handleOptionBoolAndParams2(paramsMethodName, methodNameOption, 'stop', 'trigger', isTrigger);
         if (isTriggerTrigger === true) {
             request['type'] = 'STOP';
         }
@@ -3488,7 +3488,7 @@ class hashkey extends hashkey$1["default"] {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const [until, paramsUntil] = this.handleOptionAndParams(params, methodName, 'until');
+        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -3542,7 +3542,7 @@ class hashkey extends hashkey$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() requires a symbol argument for swap markets');
             }
             request['symbol'] = this.safeString(market, 'id');
-            const [isTrigger, paramsTrigger] = this.handleTriggerOptionAndParams(paramsMarketType, methodName, false);
+            const [isTrigger, paramsTrigger] = this.handleOptionBoolAndParams2(paramsMarketType, methodName, 'stop', 'trigger', false);
             if (isTrigger === true) {
                 request['type'] = 'STOP';
             }

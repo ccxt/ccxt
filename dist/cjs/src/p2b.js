@@ -554,10 +554,7 @@ class p2b extends p2b$1["default"] {
         //    }
         //
         const timestamp = this.safeIntegerProduct(ticker, 'at', 1000);
-        let tickerInner = ticker;
-        if ('ticker' in ticker) {
-            tickerInner = this.safeDict(ticker, 'ticker');
-        }
+        const tickerInner = this.safeDict(ticker, 'ticker', ticker);
         const last = this.safeString(tickerInner, 'last');
         return this.safeTicker({
             'symbol': this.safeString(market, 'symbol'),

@@ -3321,7 +3321,7 @@ class deribit extends deribit$1["default"] {
         const paramsUntil = (until !== undefined) ? this.omit(paramsPaginate, ['until']) : paramsPaginate;
         const endTimestamp = (until !== undefined) ? until : time;
         request['end_timestamp'] = endTimestamp;
-        const isPaginationCall = ('isDeribitPaginationCall' in paramsUntil);
+        const isPaginationCall = this.safeBool(paramsUntil, 'isDeribitPaginationCall', false);
         let paramsOmitted = paramsUntil;
         if (isPaginationCall) {
             paramsOmitted = this.omit(paramsUntil, 'isDeribitPaginationCall');

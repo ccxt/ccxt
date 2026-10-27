@@ -281,11 +281,6 @@ export default class alpaca extends alpacaRest {
         const bidAsk = this.parseOrderBookBidAsk(delta, 'p', 's');
         bookside.storeArray(bidAsk);
     }
-    handleDeltas(bookside, deltas) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta(bookside, deltas[i]);
-        }
-    }
     /**
      * @method
      * @name alpaca#watchTrades

@@ -1256,22 +1256,28 @@ class bitvavo extends bitvavo$1["default"] {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        let subaccountId = this.safeString(params, 'subaccountId');
-        const paramsOmitted = this.omit(params, 'subaccountId');
+        const subaccountParam = this.safeString(params, 'subaccountId');
         let direction = undefined;
+        let subaccountId = undefined;
         if ((fromAccount === 'master') && (toAccount === 'master')) {
             throw new errors.ArgumentsRequired(this.id + ' transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)');
         }
         else if (fromAccount === 'master') {
             direction = 'masterToSub';
-            if (subaccountId === undefined) {
+            if (subaccountParam === undefined) {
                 subaccountId = toAccount;
+            }
+            else {
+                subaccountId = subaccountParam;
             }
         }
         else if (toAccount === 'master') {
             direction = 'subToMaster';
-            if (subaccountId === undefined) {
+            if (subaccountParam === undefined) {
                 subaccountId = fromAccount;
+            }
+            else {
+                subaccountId = subaccountParam;
             }
         }
         else {
@@ -1286,7 +1292,7 @@ class bitvavo extends bitvavo$1["default"] {
             'symbol': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
         };
-        const response = await this.privatePostSubaccountsTransfers(this.extend(request, paramsOmitted));
+        const response = await this.privatePostSubaccountsTransfers(this.extend(request, this.omit(params, 'subaccountId')));
         //
         //     {
         //         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",

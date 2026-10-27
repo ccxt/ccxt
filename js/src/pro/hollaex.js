@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import { sha256 } from '@noble/hashes/sha2.js';
 import hollaexRest from '../hollaex.js';
-import { ArgumentsRequired, AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
+import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class hollaex extends hollaexRest {
@@ -473,15 +473,11 @@ export default class hollaex extends hollaexRest {
     }
     async watchPrivate(messageHash, params = {}) {
         this.checkRequiredCredentials();
-        let expires = this.safeString(this.options, 'ws-expires');
-        if (expires === undefined) {
+        let expires = this.safeString(this.options, 'ws-expires', '');
+        if (expires === '') {
             const timeoutMs = this.parseToInt(this.timeout);
             const timeout = this.parseToInt(timeoutMs / 1000);
-            expires = this.sum(this.seconds(), timeout);
-            if (expires === undefined) {
-                throw new ArgumentsRequired(this.id + ' watchPrivate() expires is required');
-            }
-            expires = expires.toString();
+            expires = this.numberToString(this.parseToInt(this.sum(this.seconds(), timeout)));
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message
             this.options['ws-expires'] = expires;

@@ -821,12 +821,6 @@ class hibachi extends hibachi$1["default"] {
         return result;
     }
     orderMessage(market, nonce, feeRate, type, side, amount, price = undefined) {
-        if (type === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
-        }
-        if (side === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
-        }
         let sideInternal = 0;
         if (side === 'sell') {
             sideInternal = 0;

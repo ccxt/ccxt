@@ -419,11 +419,6 @@ export default class bittrade extends bittradeRest {
         const amount = this.safeFloat(delta, 1);
         bookside.store(price, amount);
     }
-    handleDeltas(bookside, deltas) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta(bookside, deltas[i]);
-        }
-    }
     handleOrderBookMessage(client, message, orderbook) {
         //
         //     {

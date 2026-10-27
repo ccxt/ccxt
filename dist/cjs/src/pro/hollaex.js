@@ -472,15 +472,11 @@ class hollaex extends hollaex$1["default"] {
     }
     async watchPrivate(messageHash, params = {}) {
         this.checkRequiredCredentials();
-        let expires = this.safeString(this.options, 'ws-expires');
-        if (expires === undefined) {
+        let expires = this.safeString(this.options, 'ws-expires', '');
+        if (expires === '') {
             const timeoutMs = this.parseToInt(this.timeout);
             const timeout = this.parseToInt(timeoutMs / 1000);
-            expires = this.sum(this.seconds(), timeout);
-            if (expires === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' watchPrivate() expires is required');
-            }
-            expires = expires.toString();
+            expires = this.numberToString(this.parseToInt(this.sum(this.seconds(), timeout)));
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message
             this.options['ws-expires'] = expires;

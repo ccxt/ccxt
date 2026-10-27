@@ -1298,7 +1298,9 @@ export default class coinbase extends Exchange {
             if ((baseId !== undefined) && (quoteId !== undefined)) {
                 const base = this.safeCurrencyCode(baseId);
                 const quote = this.safeCurrencyCode(quoteId);
-                symbol = base + '/' + quote;
+                if ((base !== undefined) && (quote !== undefined)) {
+                    symbol = base + '/' + quote;
+                }
             }
         }
         const sizeInQuote = this.safeBool(trade, 'size_in_quote');
@@ -1405,7 +1407,7 @@ export default class coinbase extends Exchange {
                     const quoteCurrency = data[j];
                     const quoteId = this.safeString(quoteCurrency, 'id');
                     const quote = this.safeCurrencyCode(quoteId);
-                    if (quote === undefined) {
+                    if ((quote === undefined) || (quoteId === undefined)) {
                         continue;
                     }
                     result.push(this.safeMarketStructure({

@@ -712,7 +712,7 @@ export default class deepcoin extends deepcoinRest {
         // 120 spot markets, 52 of 120 swaps in a live probe); the tick size
         // itself was accepted on 116 and 117 of them, and the handful whose
         // tick was rejected accepted the next coarser level
-        const symbol = this.safeString(market, 'symbol');
+        const symbol = this.safeString(market, 'symbol', '');
         let aggregation = undefined;
         let paramsAggregation = undefined;
         [aggregation, paramsAggregation] = this.handleOptionStringAndParams(params, methodName, 'aggregation');
@@ -868,7 +868,10 @@ export default class deepcoin extends deepcoinRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : undefined;
+        let symbolResolved = undefined;
+        if (symbol !== undefined) {
+            symbolResolved = this.symbol(symbol);
+        }
         if (symbolResolved !== undefined) {
             messageHash = 'myTrades' + '::' + symbolResolved;
         }
@@ -946,7 +949,10 @@ export default class deepcoin extends deepcoinRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : undefined;
+        let symbolResolved = undefined;
+        if (symbol !== undefined) {
+            symbolResolved = this.symbol(symbol);
+        }
         if (symbolResolved !== undefined) {
             messageHash = 'orders' + '::' + symbolResolved;
         }

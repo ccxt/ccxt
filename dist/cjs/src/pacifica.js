@@ -3653,11 +3653,10 @@ class pacifica extends pacifica$1["default"] {
         const host = this.implodeHostname(baseApiUrl);
         let url = host + '/api/' + this.version + '/' + this.implodeParams(path, params);
         const paramsOmitted = this.omit(params, this.extractParams(path));
-        const paramsLen = Object.keys(paramsOmitted).length;
         const headersValue = {
             'Content-Type': 'application/json',
         };
-        if ((method === 'GET') && (paramsLen > 0)) {
+        if ((method === 'GET') && (Object.keys(paramsOmitted).length > 0)) {
             url += '?' + this.urlencode(paramsOmitted);
             headersValue['Accept'] = '*/*';
         }

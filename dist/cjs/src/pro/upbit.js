@@ -40,12 +40,8 @@ class upbit extends upbit$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let symbolsRequested = symbols;
-        if (symbols === undefined) {
-            symbolsRequested = this.symbols;
-        }
-        const symbolsMarket = this.marketSymbols(symbolsRequested);
-        const symbolsNormalized = (symbolsMarket === undefined) ? [] : symbolsMarket;
+        const symbolsRequested = (symbols === undefined) ? this.symbols : symbols;
+        const symbolsNormalized = this.marketSymbols(symbolsRequested);
         const marketIds = this.marketIds(symbolsNormalized);
         const url = this.implodeParams(this.safeString(this.urls['api'], 'ws'), {
             'hostname': this.hostname,

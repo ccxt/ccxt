@@ -1204,7 +1204,7 @@ class bitvavo extends bitvavo$1["default"] {
         const ts = this.milliseconds().toString();
         const randomNumber = this.randNumber(4);
         const randomPart = randomNumber.toString();
-        return parseInt(ts + randomPart);
+        return this.parseToInt(ts + randomPart);
     }
     async watchRequest(action, request) {
         const messageHash = this.requestId();
