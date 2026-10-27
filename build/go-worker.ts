@@ -1,11 +1,5 @@
-import { Transpiler } from 'ast-transpiler';
+import { Transpiler, installCcxtGoLocalTypes, installCcxtGoIndexableTypes, installCcxtGoParamTypes, installCcxtGoDictParams, installCcxtGoGb05ParamTypes, installCcxtGoGb11HandleErrorsCode, installCcxtGoSignTyping } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes } from './go-local-types.js';
-import { installCcxtGoParamTypes } from './hx10w3-G08.js';
-import { installCcxtGoDictParams } from './hx10w8-GB01.js';
-import { installCcxtGoGb05ParamTypes } from './hx10w8-GB05.js';
-import { installCcxtGoGb11HandleErrorsCode } from './hx10w9-GB11.js';
-import { installCcxtGoSignTyping } from './hx11-sign-typing.js';
 import log from 'ololog'
 
 // task payload posted by goTranspiler.ts#webworkerTranspile (structured clone)

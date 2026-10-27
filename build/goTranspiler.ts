@@ -1,4 +1,4 @@
-import Transpiler, { alignGoTrailingComments } from "ast-transpiler";
+import Transpiler, { alignGoTrailingComments, installCcxtGoLocalTypes, installCcxtGoIndexableTypes, installCcxtGoParamTypes, installCcxtGoDictParams, installCcxtGoGb05ParamTypes, installCcxtGoGb11HandleErrorsCode, installCcxtGoSignTyping, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES, CCXT_GO_STRING_PTR_METHOD_NAMES, hx10G06Check, g08w3Check, hx10w8GB01Check, hx10w8GB05Check, hx10w9GB11Check } from "ast-transpiler"; // go printer hooks live in ast-transpiler src/go (hx11 ast-move)
 import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename, resolve } from 'path';
@@ -18,7 +18,6 @@ import { goErrValuePass, goErrSelfTest } from './go-err.js';
 import { goChan3Pass, goChan3SelfTest } from './go-chan3.js';
 import { goTickerCachePass, goTickerCacheSelfTest } from './go-ticker-cache.js';
 import { g06MapReads, g06MapReadsSelfTest } from './hx10w2-G06.js';
-import { hx10G06Check } from './hx10w3-G06.js';
 import { g09Pass, g09Check } from './hx10w2-G09.js';
 import { g09w3Pass, g09w3Check } from './hx10w3-G09.js';
 import { hx10G10Pass, hx10G10SelfTest } from './hx10w2-G10.js';
@@ -49,17 +48,11 @@ import { hx10OG02Pass, hx10OG02Check } from './hx10w4-OG02.js';  // hx10 wave-4 
 import { hx10OG05Pass, og05Check } from './hx10w7-OG05.js';  // hx10 w7 OG05: base/quote currencies + transactions published
 import { hx10w2G05, hx10w2G05Check } from './hx10w2-G05.js';  // hx10w2 G05
 import { G05_PROVEN_LIST_METHODS, g05Check, g05Locals } from './hx10w3-G05.js';  // hx10w3 G05: generated base return types
-import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES, CCXT_GO_STRING_PTR_METHOD_NAMES } from './go-local-types.js';
 import { g02pass, g02check } from './hx10w2-G02.js';  // hx10 G02
 import { emitHx10w2G07Native, hx10w2G07SelfCheck } from './hx10w2-G07.js';
 import { hx10w3G07Pass, hx10w3G07Check } from './hx10w3-G07.js';
 import { hx10G08TupleReads, hx10G08Check } from './hx10w2-G08.js';
 import { g01SubsHandOff, g01SubsCheck } from './hx10w3-G01.js';  // hx10w3 G01
-import { installCcxtGoParamTypes, g08w3Check } from './hx10w3-G08.js';
-import { installCcxtGoDictParams, hx10w8GB01Check } from './hx10w8-GB01.js';
-import { installCcxtGoGb05ParamTypes, hx10w8GB05Check } from './hx10w8-GB05.js';  // hx10 w8 GB05: parse-family frame parameters
-import { installCcxtGoGb11HandleErrorsCode, hx10w9GB11Check } from './hx10w9-GB11.js';  // hx10 w9 GB11: handleErrors status code
-import { installCcxtGoSignTyping } from './hx11-sign-typing.js';
 import { hx10w10GP24BaseImports, hx10w10GP24PruneImports, installHx10w10GP24BaseImportSeam, hx10w10GP24Check, hx10w10GP24Wired } from './hx10w10-GP24.js';  // hx10 w10 GP24: base-file stdlib import seam
 import { hx10w3G10, g10SelfCheck } from './hx10w3-G10.js';  // hx10w3 G10
 import { hx10w6G01BalanceOwner, hx10w6G01BalanceCheck, g01BalanceWired } from './hx10w6-G01.js';  // hx10 wave6 G01: typed balance account
