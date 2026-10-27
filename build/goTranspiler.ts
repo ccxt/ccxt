@@ -1286,6 +1286,10 @@ function goSliceIndexSelfTest (): string[] {
     ];
     keep.forEach ((c, index) => ok (f (c[0], c[1]).indexOf ('GetValue(s, ') >= 0, 'unproven read must keep GetValue #' + index));
     ok (f (sd, '\t\tr = GetValue(s, i)\n', 'len(t)').indexOf ('GetValue(s, i)') >= 0, 'other bound keeps GetValue');
+    const twice = sd + '\tif true {\n\t}\n\tvar s []string = ObjectKeys(p)\n';
+    ok (f (twice, '\t\tvar a string = GetValue(s, i).(string)\n').indexOf ('var a string = s[i]\n') >= 0, 'repeated []string declarations go native');
+    ok (f (sd + '\tvar s []any = nil\n', '\t\tr = GetValue(s, i)\n').indexOf ('GetValue(s, i)') >= 0, 'mixed declaration types keep GetValue');
+    ok (f (twice + '\ts = nil\n', '\t\tr = GetValue(s, i)\n').indexOf ('GetValue(s, i)') >= 0, 'written repeated slice keeps GetValue');
     return problems;
 }
 
@@ -1826,6 +1830,26 @@ function goAccessSingleDeclaration (maskedFunc: string, signature: string, name:
         return { 'type': vars[0][1].trim (), 'index': vars[0].index, 'line': line };
     }
     return undefined;
+}
+
+// hx11 w8: the same `var name []string = ...` repeated in sibling branches of one func (each branch
+// re-lists `symbols := ObjectKeys(markets)`) is still one element type: every declaration is a
+// plain `var` of exactly `[]string`, and no param, `:=`, range or func literal rebinds the name.
+function goAccessRepeatedStringSliceDeclaration (maskedFunc: string, signature: string, name: string): any {
+    const n = goAccessEscape (name);
+    const vars = [ ...maskedFunc.matchAll (new RegExp ('\\bvar\\s+' + n + '\\s+([^=\\n]+?)\\s*(?:=|\\n)', 'g')) ];
+    if ((vars.length < 2) || vars.some ((m) => m[1].trim () !== '[]string')) {
+        return undefined;
+    }
+    const shortDecls = maskedFunc.match (new RegExp ('(?:^|[^\\w.])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=', 'gm')) ?? [];
+    const literalParams = [ ...maskedFunc.matchAll (/\bfunc\s*\(([^()]*)\)/g) ].filter ((m) => new RegExp ('\\b' + n + '\\b').test (m[1]));
+    const rangeDecls = maskedFunc.match (new RegExp ('\\bfor\\b[^\\n{]*\\b' + n + '\\b[^\\n{]*:=\\s*range\\b')) ?? [];
+    const sigParam = new RegExp ('[(,]\\s*' + n + '\\s+([^,()]+?)\\s*[,)]').exec (signature.substring (signature.indexOf ('(', signature.startsWith ('func (') ? signature.indexOf (')') + 1 : 0)));
+    if ((shortDecls.length > 0) || (literalParams.length > 0) || (rangeDecls.length > 0) || sigParam) {
+        return undefined;
+    }
+    const line = maskedFunc.substring (vars[0].index).split ('\n')[0];
+    return { 'type': '[]string', 'index': vars[0].index, 'line': line };
 }
 
 // line k sits directly in the body of an `if name != nil {` block (no else-if chain above it)
@@ -2789,7 +2813,7 @@ function nativeLoopBoundedSliceReads (content: string): string {
                 return match;
             }
             const maskedFunc = maskedLines.slice (fn.open + 1, fn.close + 1).join ('\n');
-            const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], slice);
+            const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], slice) ?? goAccessRepeatedStringSliceDeclaration (maskedFunc, maskedLines[fn.open], slice);
             // hx11 w7: a `[]any` unboxed from a SafeList accessor holds plain JSON values (no *T box
             // for GetValue to deref), so its in-range element is the slice element itself
             const jsonList = (decl !== undefined) && (decl.type === '[]any') && (decl.line !== undefined) && GO_GUARDED_READ_SAFE_LIST.test (decl.line);
