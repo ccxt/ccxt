@@ -1892,6 +1892,1883 @@
                     }
                 ]
             }
+        ],
+        "prepareCollateralDeposit": [
+            {
+                "description": "Complete exact-amount ERC20 reset/approval and collateral-deposit wallet calls",
+                "method": "prepareCollateralDeposit",
+                "input": [
+                    "USDC",
+                    "20",
+                    {
+                        "address": "0x0000000000000000000000000000000000000011"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "stale": false,
+                        "chains": [
+                            {
+                                "chainId": 146,
+                                "assets": [
+                                    {
+                                        "symbol": "USDC",
+                                        "address": "0x0000000000000000000000000000000000000012",
+                                        "decimals": 6,
+                                        "isCollateral": true,
+                                        "isSuppliable": true,
+                                        "isDepositPaused": false,
+                                        "userMetrics": {
+                                            "walletBalanceRaw": "25000000"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "chainId": 146,
+                    "collateral": "0x0000000000000000000000000000000000000012",
+                    "amount": "20000000",
+                    "transactions": [
+                        {
+                            "from": "0x0000000000000000000000000000000000000011",
+                            "to": "0x0000000000000000000000000000000000000012",
+                            "value": "0",
+                            "data": "0x095ea7b3000000000000000000000000be4050a73a7fb384c65e885a15c33461a4b200550000000000000000000000000000000000000000000000000000000000000000"
+                        },
+                        {
+                            "from": "0x0000000000000000000000000000000000000011",
+                            "to": "0x0000000000000000000000000000000000000012",
+                            "value": "0",
+                            "data": "0x095ea7b3000000000000000000000000be4050a73a7fb384c65e885a15c33461a4b200550000000000000000000000000000000000000000000000000000000001312d00"
+                        },
+                        {
+                            "from": "0x0000000000000000000000000000000000000011",
+                            "to": "0xbe4050a73a7Fb384c65E885a15C33461A4B20055",
+                            "value": "0",
+                            "data": "0x47e7ef2400000000000000000000000000000000000000000000000000000000000000120000000000000000000000000000000000000000000000000000000001312d00"
+                        }
+                    ]
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Owner signing and exact borrow approval preserve numeric-only token and engine addresses",
+                "method": "createOrder",
+                "input": [
+                    "WETH/FTUSD",
+                    "market",
+                    "buy",
+                    null,
+                    null,
+                    {
+                        "collateral": "USDC",
+                        "debtToken": "USDC",
+                        "cost": "1",
+                        "validTo": 1900003600
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "/mm/leverage/config": {
+                        "chainId": 146,
+                        "signingChainId": 146,
+                        "engineVersion": 2,
+                        "leverageRfqEngine": "0x0000000000000000000000000000000000000020",
+                        "sessionManager": "0x0000000000000000000000000000000000000040",
+                        "executorAddress": "0x0000000000000000000000000000000000000030",
+                        "sessionManagerDomainName": "FT SessionManager",
+                        "marginHfSafeBps": 15000
+                    },
+                    "/mm/lend": {
+                        "success": true,
+                        "data": {
+                            "stale": false,
+                            "chains": [
+                                {
+                                    "chainId": 146,
+                                    "minEquityRequirementUsd": "10",
+                                    "userMetrics": {
+                                        "equityUsd": "101"
+                                    },
+                                    "assets": [
+                                        {
+                                            "symbol": "USDC",
+                                            "address": "0x0000000000000000000000000000000000000012",
+                                            "decimals": 6,
+                                            "oracleTokenPrice": "1",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 150,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "100000000",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "100000000",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        },
+                                        {
+                                            "symbol": "WETH",
+                                            "address": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+                                            "decimals": 18,
+                                            "oracleTokenPrice": "2000",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 1900,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "500000000000000",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "500000000000000",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        },
+                                        {
+                                            "symbol": "FTUSD",
+                                            "address": "0xF7D85EC4E7710f71992752eac2111312e73E9C9C",
+                                            "decimals": 6,
+                                            "oracleTokenPrice": "1",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 150,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "0",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "0",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "/mm/leverage/fee-estimate": {
+                        "success": true,
+                        "feeAmount": "1"
+                    },
+                    "/mm/leverage/orders": {
+                        "success": true,
+                        "orderId": "order_fixture",
+                        "status": "pending"
+                    },
+                    "/mm/leverage/quote": {
+                        "success": true,
+                        "buyAmount": "500000000000000",
+                        "engineVersion": 2
+                    }
+                },
+                "parsedResponse": {
+                    "id": "order_fixture",
+                    "symbol": "WETH/FTUSD",
+                    "timestamp": null,
+                    "datetime": null,
+                    "status": "open",
+                    "type": "market",
+                    "side": "buy",
+                    "amount": 0.0005,
+                    "price": null,
+                    "info": {
+                        "order": {
+                            "action": 0,
+                            "user": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+                            "sellToken": "0x0000000000000000000000000000000000000012",
+                            "buyToken": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+                            "sellAmount": "1000000",
+                            "buyAmount": "500000000000000",
+                            "validTo": 1900003600,
+                            "feeAmount": "500",
+                            "partiallyFillable": false
+                        },
+                        "user": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+                        "isOpen": true,
+                        "orderType": "open",
+                        "marketSymbol": "WETH-ftUSD",
+                        "direction": "buy",
+                        "size": "0.0005",
+                        "clientOrderType": "market",
+                        "limitPrice": null,
+                        "collateral": "USDC",
+                        "source": "trs",
+                        "leverageBps": "10000",
+                        "engineVersion": 2,
+                        "currentSlippageBps": 100,
+                        "success": true,
+                        "orderId": "order_fixture",
+                        "status": "pending"
+                    },
+                    "fees": [],
+                    "clientOrderId": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": "IOC",
+                    "postOnly": false,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            },
+            {
+                "description": "Session signing submits the complete bound SessionCall payload",
+                "method": "createOrder",
+                "input": [
+                    "WETH/FTUSD",
+                    "market",
+                    "buy",
+                    null,
+                    null,
+                    {
+                        "collateral": "USDC",
+                        "debtToken": "USDC",
+                        "cost": "1",
+                        "validTo": 1900003600,
+                        "session": {
+                            "sessionId": "0x1111111111111111111111111111111111111111111111111111111111111111",
+                            "nonce": "9007199254740993",
+                            "validUntil": 1900004000,
+                            "maxFeeBps": 100,
+                            "delegate": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
+                        }
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "/mm/leverage/config": {
+                        "chainId": 146,
+                        "signingChainId": 146,
+                        "engineVersion": 2,
+                        "leverageRfqEngine": "0x0000000000000000000000000000000000000020",
+                        "sessionManager": "0x0000000000000000000000000000000000000040",
+                        "executorAddress": "0x0000000000000000000000000000000000000030",
+                        "sessionManagerDomainName": "FT SessionManager",
+                        "marginHfSafeBps": 15000
+                    },
+                    "/mm/lend": {
+                        "success": true,
+                        "data": {
+                            "stale": false,
+                            "chains": [
+                                {
+                                    "chainId": 146,
+                                    "minEquityRequirementUsd": "10",
+                                    "userMetrics": {
+                                        "equityUsd": "101"
+                                    },
+                                    "assets": [
+                                        {
+                                            "symbol": "USDC",
+                                            "address": "0x0000000000000000000000000000000000000012",
+                                            "decimals": 6,
+                                            "oracleTokenPrice": "1",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 150,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "100000000",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "100000000",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        },
+                                        {
+                                            "symbol": "WETH",
+                                            "address": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+                                            "decimals": 18,
+                                            "oracleTokenPrice": "2000",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 1900,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "500000000000000",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "500000000000000",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        },
+                                        {
+                                            "symbol": "FTUSD",
+                                            "address": "0xF7D85EC4E7710f71992752eac2111312e73E9C9C",
+                                            "decimals": 6,
+                                            "oracleTokenPrice": "1",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 150,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "0",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "0",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "/mm/leverage/fee-estimate": {
+                        "success": true,
+                        "feeAmount": "1"
+                    },
+                    "/mm/leverage/orders": {
+                        "success": true,
+                        "orderId": "order_fixture",
+                        "status": "pending"
+                    },
+                    "/mm/leverage/quote": {
+                        "success": true,
+                        "buyAmount": "500000000000000",
+                        "engineVersion": 2
+                    }
+                },
+                "parsedResponse": {
+                    "id": "order_fixture",
+                    "symbol": "WETH/FTUSD",
+                    "timestamp": null,
+                    "datetime": null,
+                    "status": "open",
+                    "type": "market",
+                    "side": "buy",
+                    "amount": 0.0005,
+                    "price": null,
+                    "info": {
+                        "order": {
+                            "action": 0,
+                            "user": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+                            "sellToken": "0x0000000000000000000000000000000000000012",
+                            "buyToken": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+                            "sellAmount": "1000000",
+                            "buyAmount": "500000000000000",
+                            "validTo": 1900003600,
+                            "feeAmount": "500",
+                            "partiallyFillable": false
+                        },
+                        "user": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+                        "isOpen": true,
+                        "orderType": "open",
+                        "marketSymbol": "WETH-ftUSD",
+                        "direction": "buy",
+                        "size": "0.0005",
+                        "clientOrderType": "market",
+                        "limitPrice": null,
+                        "collateral": "USDC",
+                        "source": "trs",
+                        "leverageBps": "10000",
+                        "engineVersion": 2,
+                        "currentSlippageBps": 100,
+                        "session": {
+                            "sessionId": "0x1111111111111111111111111111111111111111111111111111111111111111",
+                            "target": "0x0000000000000000000000000000000000000020",
+                            "dataHash": "0x134b88d8aca2d77473d4c9ade82f4ea1e8e1305af55f2a3dd8b9afc9afdbe89b",
+                            "nonce": "9007199254740993",
+                            "deadline": "1900003600",
+                            "executor": "0x0000000000000000000000000000000000000030",
+                            "feeAmount": "1"
+                        },
+                        "sigType": "session",
+                        "success": true,
+                        "orderId": "order_fixture",
+                        "status": "pending"
+                    },
+                    "fees": [],
+                    "clientOrderId": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": "IOC",
+                    "postOnly": false,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            }
+        ],
+        "prepareLeverageOrder": [
+            {
+                "description": "Session order binds exact numeric-address order hash without new wallet approvals",
+                "method": "prepareLeverageOrder",
+                "input": [
+                    "WETH/FTUSD",
+                    "market",
+                    "buy",
+                    null,
+                    null,
+                    {
+                        "collateral": "USDC",
+                        "debtToken": "USDC",
+                        "cost": "1",
+                        "validTo": 1900003600,
+                        "session": {
+                            "sessionId": "0x1111111111111111111111111111111111111111111111111111111111111111",
+                            "nonce": "9007199254740993",
+                            "validUntil": 1900004000,
+                            "maxFeeBps": 100,
+                            "delegate": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
+                        }
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "/mm/leverage/config": {
+                        "chainId": 146,
+                        "signingChainId": 146,
+                        "engineVersion": 2,
+                        "leverageRfqEngine": "0x0000000000000000000000000000000000000020",
+                        "sessionManager": "0x0000000000000000000000000000000000000040",
+                        "executorAddress": "0x0000000000000000000000000000000000000030",
+                        "sessionManagerDomainName": "FT SessionManager",
+                        "marginHfSafeBps": 15000
+                    },
+                    "/mm/lend": {
+                        "success": true,
+                        "data": {
+                            "stale": false,
+                            "chains": [
+                                {
+                                    "chainId": 146,
+                                    "minEquityRequirementUsd": "10",
+                                    "userMetrics": {
+                                        "equityUsd": "101"
+                                    },
+                                    "assets": [
+                                        {
+                                            "symbol": "USDC",
+                                            "address": "0x0000000000000000000000000000000000000012",
+                                            "decimals": 6,
+                                            "oracleTokenPrice": "1",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 150,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "100000000",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "100000000",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        },
+                                        {
+                                            "symbol": "WETH",
+                                            "address": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+                                            "decimals": 18,
+                                            "oracleTokenPrice": "2000",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 1900,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "500000000000000",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "500000000000000",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        },
+                                        {
+                                            "symbol": "FTUSD",
+                                            "address": "0xF7D85EC4E7710f71992752eac2111312e73E9C9C",
+                                            "decimals": 6,
+                                            "oracleTokenPrice": "1",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 150,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "0",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "0",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "/mm/leverage/fee-estimate": {
+                        "success": true,
+                        "feeAmount": "1"
+                    },
+                    "/mm/leverage/orders": {
+                        "success": true,
+                        "orderId": "order_fixture",
+                        "status": "pending"
+                    },
+                    "/mm/leverage/quote": {
+                        "success": true,
+                        "buyAmount": "500000000000000",
+                        "engineVersion": 2
+                    }
+                },
+                "parsedResponse": {
+                    "request": {
+                        "order": {
+                            "action": 0,
+                            "user": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+                            "sellToken": "0x0000000000000000000000000000000000000012",
+                            "buyToken": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+                            "sellAmount": "1000000",
+                            "buyAmount": "500000000000000",
+                            "validTo": 1900003600,
+                            "feeAmount": "500",
+                            "partiallyFillable": false
+                        },
+                        "user": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+                        "isOpen": true,
+                        "orderType": "open",
+                        "marketSymbol": "WETH-ftUSD",
+                        "direction": "buy",
+                        "size": "0.0005",
+                        "clientOrderType": "market",
+                        "limitPrice": null,
+                        "collateral": "USDC",
+                        "source": "trs",
+                        "leverageBps": "10000",
+                        "engineVersion": 2,
+                        "currentSlippageBps": 100,
+                        "session": {
+                            "sessionId": "0x1111111111111111111111111111111111111111111111111111111111111111",
+                            "target": "0x0000000000000000000000000000000000000020",
+                            "dataHash": "0x134b88d8aca2d77473d4c9ade82f4ea1e8e1305af55f2a3dd8b9afc9afdbe89b",
+                            "nonce": "9007199254740993",
+                            "deadline": "1900003600",
+                            "executor": "0x0000000000000000000000000000000000000030",
+                            "feeAmount": "1"
+                        },
+                        "sigType": "session"
+                    },
+                    "typedData": {
+                        "domain": {
+                            "name": "FT SessionManager",
+                            "version": "1",
+                            "chainId": 146,
+                            "verifyingContract": "0x0000000000000000000000000000000000000040"
+                        },
+                        "types": {
+                            "SessionCall": [
+                                {
+                                    "name": "sessionId",
+                                    "type": "bytes32"
+                                },
+                                {
+                                    "name": "target",
+                                    "type": "address"
+                                },
+                                {
+                                    "name": "dataHash",
+                                    "type": "bytes32"
+                                },
+                                {
+                                    "name": "nonce",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "name": "deadline",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "name": "executor",
+                                    "type": "address"
+                                },
+                                {
+                                    "name": "feeAmount",
+                                    "type": "uint256"
+                                }
+                            ]
+                        },
+                        "primaryType": "SessionCall",
+                        "message": {
+                            "sessionId": "0x1111111111111111111111111111111111111111111111111111111111111111",
+                            "target": "0x0000000000000000000000000000000000000020",
+                            "dataHash": "0x134b88d8aca2d77473d4c9ade82f4ea1e8e1305af55f2a3dd8b9afc9afdbe89b",
+                            "nonce": "9007199254740993",
+                            "deadline": "1900003600",
+                            "executor": "0x0000000000000000000000000000000000000030",
+                            "feeAmount": "1"
+                        }
+                    },
+                    "quote": {
+                        "success": true,
+                        "buyAmount": "500000000000000",
+                        "engineVersion": 2
+                    },
+                    "leverage": "1",
+                    "approvals": []
+                }
+            }
+        ],
+        "prepareCollateralConversion": [
+            {
+                "description": "Conversion includes exact engine debit approval for sell amount plus fee",
+                "method": "prepareCollateralConversion",
+                "input": [
+                    "USDC",
+                    "WETH",
+                    "1",
+                    {
+                        "validTo": 1900003600
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "/mm/leverage/config": {
+                        "chainId": 146,
+                        "signingChainId": 146,
+                        "engineVersion": 2,
+                        "leverageRfqEngine": "0x0000000000000000000000000000000000000020",
+                        "sessionManager": "0x0000000000000000000000000000000000000040",
+                        "executorAddress": "0x0000000000000000000000000000000000000030",
+                        "sessionManagerDomainName": "FT SessionManager",
+                        "marginHfSafeBps": 15000
+                    },
+                    "/mm/lend": {
+                        "success": true,
+                        "data": {
+                            "stale": false,
+                            "chains": [
+                                {
+                                    "chainId": 146,
+                                    "minEquityRequirementUsd": "10",
+                                    "userMetrics": {
+                                        "equityUsd": "101"
+                                    },
+                                    "assets": [
+                                        {
+                                            "symbol": "USDC",
+                                            "address": "0x0000000000000000000000000000000000000012",
+                                            "decimals": 6,
+                                            "oracleTokenPrice": "1",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 150,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "100000000",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "100000000",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        },
+                                        {
+                                            "symbol": "WETH",
+                                            "address": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+                                            "decimals": 18,
+                                            "oracleTokenPrice": "2000",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 1900,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "500000000000000",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "500000000000000",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        },
+                                        {
+                                            "symbol": "FTUSD",
+                                            "address": "0xF7D85EC4E7710f71992752eac2111312e73E9C9C",
+                                            "decimals": 6,
+                                            "oracleTokenPrice": "1",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 150,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "0",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "0",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "/mm/leverage/fee-estimate": {
+                        "success": true,
+                        "feeAmount": "1"
+                    },
+                    "/mm/leverage/orders": {
+                        "success": true,
+                        "orderId": "order_fixture",
+                        "status": "pending"
+                    },
+                    "/mm/leverage/quote": {
+                        "success": true,
+                        "buyAmount": "500000000000000",
+                        "engineVersion": 2
+                    }
+                },
+                "parsedResponse": {
+                    "request": {
+                        "order": {
+                            "action": 2,
+                            "user": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+                            "sellToken": "0x0000000000000000000000000000000000000012",
+                            "buyToken": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+                            "sellAmount": "1000000",
+                            "buyAmount": "500000000000000",
+                            "feeAmount": "500",
+                            "validTo": 1900003600,
+                            "partiallyFillable": false
+                        },
+                        "user": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+                        "isOpen": false,
+                        "orderType": "swap",
+                        "source": "trs",
+                        "engineVersion": 2,
+                        "currentSlippageBps": 100
+                    },
+                    "typedData": {
+                        "domain": {
+                            "name": "LeverageRfqEngine",
+                            "version": "1",
+                            "chainId": 146,
+                            "verifyingContract": "0x0000000000000000000000000000000000000020"
+                        },
+                        "types": {
+                            "LeveragedOrder": [
+                                {
+                                    "name": "action",
+                                    "type": "uint8"
+                                },
+                                {
+                                    "name": "user",
+                                    "type": "address"
+                                },
+                                {
+                                    "name": "sellToken",
+                                    "type": "address"
+                                },
+                                {
+                                    "name": "buyToken",
+                                    "type": "address"
+                                },
+                                {
+                                    "name": "sellAmount",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "name": "buyAmount",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "name": "validTo",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "name": "feeAmount",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "name": "partiallyFillable",
+                                    "type": "bool"
+                                }
+                            ]
+                        },
+                        "primaryType": "LeveragedOrder",
+                        "message": {
+                            "action": 2,
+                            "user": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+                            "sellToken": "0x0000000000000000000000000000000000000012",
+                            "buyToken": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+                            "sellAmount": "1000000",
+                            "buyAmount": "500000000000000",
+                            "feeAmount": "500",
+                            "validTo": 1900003600,
+                            "partiallyFillable": false
+                        }
+                    },
+                    "quote": {
+                        "success": true,
+                        "buyAmount": "500000000000000",
+                        "engineVersion": 2
+                    },
+                    "approvals": [
+                        {
+                            "chainId": 146,
+                            "from": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+                            "to": "0xbe4050a73a7Fb384c65E885a15C33461A4B20055",
+                            "value": "0",
+                            "data": "0x9beefaf00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000f4434"
+                        }
+                    ]
+                }
+            },
+            {
+                "description": "Session conversion retains caller-local SessionCall fields",
+                "method": "prepareCollateralConversion",
+                "input": [
+                    "USDC",
+                    "WETH",
+                    "1",
+                    {
+                        "validTo": 1900003600,
+                        "session": {
+                            "sessionId": "0x1111111111111111111111111111111111111111111111111111111111111111",
+                            "nonce": "9007199254740993",
+                            "validUntil": 1900004000,
+                            "maxFeeBps": 100,
+                            "delegate": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
+                        }
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "/mm/leverage/config": {
+                        "chainId": 146,
+                        "signingChainId": 146,
+                        "engineVersion": 2,
+                        "leverageRfqEngine": "0x0000000000000000000000000000000000000020",
+                        "sessionManager": "0x0000000000000000000000000000000000000040",
+                        "executorAddress": "0x0000000000000000000000000000000000000030",
+                        "sessionManagerDomainName": "FT SessionManager",
+                        "marginHfSafeBps": 15000
+                    },
+                    "/mm/lend": {
+                        "success": true,
+                        "data": {
+                            "stale": false,
+                            "chains": [
+                                {
+                                    "chainId": 146,
+                                    "minEquityRequirementUsd": "10",
+                                    "userMetrics": {
+                                        "equityUsd": "101"
+                                    },
+                                    "assets": [
+                                        {
+                                            "symbol": "USDC",
+                                            "address": "0x0000000000000000000000000000000000000012",
+                                            "decimals": 6,
+                                            "oracleTokenPrice": "1",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 150,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "100000000",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "100000000",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        },
+                                        {
+                                            "symbol": "WETH",
+                                            "address": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+                                            "decimals": 18,
+                                            "oracleTokenPrice": "2000",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 1900,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "500000000000000",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "500000000000000",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        },
+                                        {
+                                            "symbol": "FTUSD",
+                                            "address": "0xF7D85EC4E7710f71992752eac2111312e73E9C9C",
+                                            "decimals": 6,
+                                            "oracleTokenPrice": "1",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 150,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "0",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "0",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "/mm/leverage/fee-estimate": {
+                        "success": true,
+                        "feeAmount": "1"
+                    },
+                    "/mm/leverage/orders": {
+                        "success": true,
+                        "orderId": "order_fixture",
+                        "status": "pending"
+                    },
+                    "/mm/leverage/quote": {
+                        "success": true,
+                        "buyAmount": "500000000000000",
+                        "engineVersion": 2
+                    }
+                },
+                "parsedResponse": {
+                    "request": {
+                        "order": {
+                            "action": 2,
+                            "user": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+                            "sellToken": "0x0000000000000000000000000000000000000012",
+                            "buyToken": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+                            "sellAmount": "1000000",
+                            "buyAmount": "500000000000000",
+                            "feeAmount": "500",
+                            "validTo": 1900003600,
+                            "partiallyFillable": false
+                        },
+                        "user": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+                        "isOpen": false,
+                        "orderType": "swap",
+                        "source": "trs",
+                        "engineVersion": 2,
+                        "currentSlippageBps": 100,
+                        "session": {
+                            "sessionId": "0x1111111111111111111111111111111111111111111111111111111111111111",
+                            "target": "0x0000000000000000000000000000000000000020",
+                            "dataHash": "0xab0cceeccf12e0d67dab09f1926b21f6ccd0c569d997b3acd034f5d8afbe2188",
+                            "nonce": "9007199254740993",
+                            "deadline": "1900003600",
+                            "executor": "0x0000000000000000000000000000000000000030",
+                            "feeAmount": "1"
+                        },
+                        "sigType": "session"
+                    },
+                    "typedData": {
+                        "domain": {
+                            "name": "FT SessionManager",
+                            "version": "1",
+                            "chainId": 146,
+                            "verifyingContract": "0x0000000000000000000000000000000000000040"
+                        },
+                        "types": {
+                            "SessionCall": [
+                                {
+                                    "name": "sessionId",
+                                    "type": "bytes32"
+                                },
+                                {
+                                    "name": "target",
+                                    "type": "address"
+                                },
+                                {
+                                    "name": "dataHash",
+                                    "type": "bytes32"
+                                },
+                                {
+                                    "name": "nonce",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "name": "deadline",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "name": "executor",
+                                    "type": "address"
+                                },
+                                {
+                                    "name": "feeAmount",
+                                    "type": "uint256"
+                                }
+                            ]
+                        },
+                        "primaryType": "SessionCall",
+                        "message": {
+                            "sessionId": "0x1111111111111111111111111111111111111111111111111111111111111111",
+                            "target": "0x0000000000000000000000000000000000000020",
+                            "dataHash": "0xab0cceeccf12e0d67dab09f1926b21f6ccd0c569d997b3acd034f5d8afbe2188",
+                            "nonce": "9007199254740993",
+                            "deadline": "1900003600",
+                            "executor": "0x0000000000000000000000000000000000000030",
+                            "feeAmount": "1"
+                        }
+                    },
+                    "quote": {
+                        "success": true,
+                        "buyAmount": "500000000000000",
+                        "engineVersion": 2
+                    },
+                    "approvals": []
+                }
+            }
+        ],
+        "prepareClosePosition": [
+            {
+                "description": "Debt-aware close includes exact engine debit approval",
+                "method": "prepareClosePosition",
+                "input": [
+                    "WETH/FTUSD",
+                    "sell",
+                    {
+                        "validTo": 1900003600
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "/mm/leverage/config": {
+                        "chainId": 146,
+                        "signingChainId": 146,
+                        "engineVersion": 2,
+                        "leverageRfqEngine": "0x0000000000000000000000000000000000000020",
+                        "sessionManager": "0x0000000000000000000000000000000000000040",
+                        "executorAddress": "0x0000000000000000000000000000000000000030",
+                        "sessionManagerDomainName": "FT SessionManager",
+                        "marginHfSafeBps": 15000
+                    },
+                    "/mm/lend": {
+                        "success": true,
+                        "data": {
+                            "stale": false,
+                            "chains": [
+                                {
+                                    "chainId": 146,
+                                    "minEquityRequirementUsd": "10",
+                                    "userMetrics": {
+                                        "equityUsd": "101"
+                                    },
+                                    "assets": [
+                                        {
+                                            "symbol": "USDC",
+                                            "address": "0x0000000000000000000000000000000000000012",
+                                            "decimals": 6,
+                                            "oracleTokenPrice": "1",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 150,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "100000000",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "100000000",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        },
+                                        {
+                                            "symbol": "WETH",
+                                            "address": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+                                            "decimals": 18,
+                                            "oracleTokenPrice": "2000",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 1900,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "500000000000000",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "500000000000000",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        },
+                                        {
+                                            "symbol": "FTUSD",
+                                            "address": "0xF7D85EC4E7710f71992752eac2111312e73E9C9C",
+                                            "decimals": 6,
+                                            "oracleTokenPrice": "1",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 150,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "0",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "0",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "/mm/leverage/fee-estimate": {
+                        "success": true,
+                        "feeAmount": "1"
+                    },
+                    "/mm/leverage/orders": {
+                        "success": true,
+                        "orderId": "order_fixture",
+                        "status": "pending"
+                    },
+                    "/mm/spot/account/positions": [
+                        {
+                            "positionId": "position_fixture",
+                            "symbol": "WETH-ftUSD",
+                            "side": "long",
+                            "size": "0.0005",
+                            "maxCloseAmount": "500000000000000",
+                            "closeFeeBps": 5,
+                            "debtCandidates": [
+                                {
+                                    "token": "0x0000000000000000000000000000000000000012",
+                                    "grossDebtRaw": "1000000"
+                                }
+                            ]
+                        }
+                    ],
+                    "/mm/leverage/quote": {
+                        "success": true,
+                        "buyAmount": "1000000",
+                        "engineVersion": 2
+                    }
+                },
+                "parsedResponse": {
+                    "request": {
+                        "engineVersion": 2,
+                        "currentSlippageBps": 100,
+                        "order": {
+                            "action": 1,
+                            "user": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+                            "sellToken": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+                            "buyToken": "0x0000000000000000000000000000000000000012",
+                            "sellAmount": "500000000000000",
+                            "buyAmount": "1000000",
+                            "validTo": 1900003600,
+                            "feeAmount": "250000000000",
+                            "partiallyFillable": false
+                        },
+                        "user": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+                        "isOpen": false,
+                        "orderType": "close",
+                        "marketSymbol": "WETH-ftUSD",
+                        "direction": "sell",
+                        "clientOrderType": "market",
+                        "positionId": "position_fixture",
+                        "source": "trs"
+                    },
+                    "typedData": {
+                        "domain": {
+                            "name": "LeverageRfqEngine",
+                            "version": "1",
+                            "chainId": 146,
+                            "verifyingContract": "0x0000000000000000000000000000000000000020"
+                        },
+                        "types": {
+                            "LeveragedOrder": [
+                                {
+                                    "name": "action",
+                                    "type": "uint8"
+                                },
+                                {
+                                    "name": "user",
+                                    "type": "address"
+                                },
+                                {
+                                    "name": "sellToken",
+                                    "type": "address"
+                                },
+                                {
+                                    "name": "buyToken",
+                                    "type": "address"
+                                },
+                                {
+                                    "name": "sellAmount",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "name": "buyAmount",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "name": "validTo",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "name": "feeAmount",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "name": "partiallyFillable",
+                                    "type": "bool"
+                                }
+                            ]
+                        },
+                        "primaryType": "LeveragedOrder",
+                        "message": {
+                            "action": 1,
+                            "user": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+                            "sellToken": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+                            "buyToken": "0x0000000000000000000000000000000000000012",
+                            "sellAmount": "500000000000000",
+                            "buyAmount": "1000000",
+                            "validTo": 1900003600,
+                            "feeAmount": "250000000000",
+                            "partiallyFillable": false
+                        }
+                    },
+                    "quote": {
+                        "success": true,
+                        "buyAmount": "1000000",
+                        "engineVersion": 2
+                    },
+                    "approvals": [
+                        {
+                            "chainId": 146,
+                            "from": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+                            "to": "0xbe4050a73a7Fb384c65E885a15C33461A4B20055",
+                            "value": "0",
+                            "data": "0x9beefaf0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000050c42deacd8fc9773493ed674b675be577f2634b0000000000000000000000000000000000000000000000000001c6f9878c8400"
+                        }
+                    ]
+                }
+            },
+            {
+                "description": "Session close retains caller-local SessionCall fields",
+                "method": "prepareClosePosition",
+                "input": [
+                    "WETH/FTUSD",
+                    "sell",
+                    {
+                        "validTo": 1900003600,
+                        "session": {
+                            "sessionId": "0x1111111111111111111111111111111111111111111111111111111111111111",
+                            "nonce": "9007199254740993",
+                            "validUntil": 1900004000,
+                            "maxFeeBps": 100,
+                            "delegate": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
+                        }
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "/mm/leverage/config": {
+                        "chainId": 146,
+                        "signingChainId": 146,
+                        "engineVersion": 2,
+                        "leverageRfqEngine": "0x0000000000000000000000000000000000000020",
+                        "sessionManager": "0x0000000000000000000000000000000000000040",
+                        "executorAddress": "0x0000000000000000000000000000000000000030",
+                        "sessionManagerDomainName": "FT SessionManager",
+                        "marginHfSafeBps": 15000
+                    },
+                    "/mm/lend": {
+                        "success": true,
+                        "data": {
+                            "stale": false,
+                            "chains": [
+                                {
+                                    "chainId": 146,
+                                    "minEquityRequirementUsd": "10",
+                                    "userMetrics": {
+                                        "equityUsd": "101"
+                                    },
+                                    "assets": [
+                                        {
+                                            "symbol": "USDC",
+                                            "address": "0x0000000000000000000000000000000000000012",
+                                            "decimals": 6,
+                                            "oracleTokenPrice": "1",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 150,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "100000000",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "100000000",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        },
+                                        {
+                                            "symbol": "WETH",
+                                            "address": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+                                            "decimals": 18,
+                                            "oracleTokenPrice": "2000",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 1900,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "500000000000000",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "500000000000000",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        },
+                                        {
+                                            "symbol": "FTUSD",
+                                            "address": "0xF7D85EC4E7710f71992752eac2111312e73E9C9C",
+                                            "decimals": 6,
+                                            "oracleTokenPrice": "1",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 150,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "0",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "0",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "/mm/leverage/fee-estimate": {
+                        "success": true,
+                        "feeAmount": "1"
+                    },
+                    "/mm/leverage/orders": {
+                        "success": true,
+                        "orderId": "order_fixture",
+                        "status": "pending"
+                    },
+                    "/mm/spot/account/positions": [
+                        {
+                            "positionId": "position_fixture",
+                            "symbol": "WETH-ftUSD",
+                            "side": "long",
+                            "size": "0.0005",
+                            "maxCloseAmount": "500000000000000",
+                            "closeFeeBps": 5,
+                            "debtCandidates": [
+                                {
+                                    "token": "0x0000000000000000000000000000000000000012",
+                                    "grossDebtRaw": "1000000"
+                                }
+                            ]
+                        }
+                    ],
+                    "/mm/leverage/quote": {
+                        "success": true,
+                        "buyAmount": "1000000",
+                        "engineVersion": 2
+                    }
+                },
+                "parsedResponse": {
+                    "request": {
+                        "engineVersion": 2,
+                        "currentSlippageBps": 100,
+                        "order": {
+                            "action": 1,
+                            "user": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+                            "sellToken": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+                            "buyToken": "0x0000000000000000000000000000000000000012",
+                            "sellAmount": "499999999999999",
+                            "buyAmount": "1000000",
+                            "validTo": 1900003600,
+                            "feeAmount": "249999999999",
+                            "partiallyFillable": false
+                        },
+                        "user": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+                        "isOpen": false,
+                        "orderType": "close",
+                        "marketSymbol": "WETH-ftUSD",
+                        "direction": "sell",
+                        "clientOrderType": "market",
+                        "positionId": "position_fixture",
+                        "source": "trs",
+                        "session": {
+                            "sessionId": "0x1111111111111111111111111111111111111111111111111111111111111111",
+                            "target": "0x0000000000000000000000000000000000000020",
+                            "dataHash": "0x1758eab9b85dd3a58dc8fe295de25b9beddad93af5b9324f784a9244039de3c8",
+                            "nonce": "9007199254740993",
+                            "deadline": "1900003600",
+                            "executor": "0x0000000000000000000000000000000000000030",
+                            "feeAmount": "1"
+                        },
+                        "sigType": "session"
+                    },
+                    "typedData": {
+                        "domain": {
+                            "name": "FT SessionManager",
+                            "version": "1",
+                            "chainId": 146,
+                            "verifyingContract": "0x0000000000000000000000000000000000000040"
+                        },
+                        "types": {
+                            "SessionCall": [
+                                {
+                                    "name": "sessionId",
+                                    "type": "bytes32"
+                                },
+                                {
+                                    "name": "target",
+                                    "type": "address"
+                                },
+                                {
+                                    "name": "dataHash",
+                                    "type": "bytes32"
+                                },
+                                {
+                                    "name": "nonce",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "name": "deadline",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "name": "executor",
+                                    "type": "address"
+                                },
+                                {
+                                    "name": "feeAmount",
+                                    "type": "uint256"
+                                }
+                            ]
+                        },
+                        "primaryType": "SessionCall",
+                        "message": {
+                            "sessionId": "0x1111111111111111111111111111111111111111111111111111111111111111",
+                            "target": "0x0000000000000000000000000000000000000020",
+                            "dataHash": "0x1758eab9b85dd3a58dc8fe295de25b9beddad93af5b9324f784a9244039de3c8",
+                            "nonce": "9007199254740993",
+                            "deadline": "1900003600",
+                            "executor": "0x0000000000000000000000000000000000000030",
+                            "feeAmount": "1"
+                        }
+                    },
+                    "quote": {
+                        "success": true,
+                        "buyAmount": "1000000",
+                        "engineVersion": 2
+                    },
+                    "approvals": []
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Executor processing cancellation response retains its actual lifecycle state",
+                "method": "cancelOrder",
+                "input": [
+                    "cancel_fixture",
+                    "WETH/FTUSD"
+                ],
+                "httpResponseByUrl": {
+                    "/mm/leverage/config": {
+                        "chainId": 146,
+                        "signingChainId": 146,
+                        "engineVersion": 2,
+                        "leverageRfqEngine": "0x0000000000000000000000000000000000000020",
+                        "sessionManager": "0x0000000000000000000000000000000000000040",
+                        "executorAddress": "0x0000000000000000000000000000000000000030",
+                        "sessionManagerDomainName": "FT SessionManager",
+                        "marginHfSafeBps": 15000
+                    },
+                    "/mm/lend": {
+                        "success": true,
+                        "data": {
+                            "stale": false,
+                            "chains": [
+                                {
+                                    "chainId": 146,
+                                    "minEquityRequirementUsd": "10",
+                                    "userMetrics": {
+                                        "equityUsd": "101"
+                                    },
+                                    "assets": [
+                                        {
+                                            "symbol": "USDC",
+                                            "address": "0x0000000000000000000000000000000000000012",
+                                            "decimals": 6,
+                                            "oracleTokenPrice": "1",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 150,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "100000000",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "100000000",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        },
+                                        {
+                                            "symbol": "WETH",
+                                            "address": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+                                            "decimals": 18,
+                                            "oracleTokenPrice": "2000",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 1900,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "500000000000000",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "500000000000000",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        },
+                                        {
+                                            "symbol": "FTUSD",
+                                            "address": "0xF7D85EC4E7710f71992752eac2111312e73E9C9C",
+                                            "decimals": 6,
+                                            "oracleTokenPrice": "1",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 150,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "0",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "0",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "/mm/leverage/fee-estimate": {
+                        "success": true,
+                        "feeAmount": "1"
+                    },
+                    "/mm/leverage/orders": {
+                        "success": true,
+                        "orderId": "cancel_fixture",
+                        "status": "processing"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "cancel_fixture",
+                    "symbol": "WETH/FTUSD",
+                    "timestamp": null,
+                    "datetime": null,
+                    "status": "open",
+                    "type": null,
+                    "side": null,
+                    "amount": null,
+                    "price": null,
+                    "info": {
+                        "success": true,
+                        "orderId": "cancel_fixture",
+                        "status": "processing",
+                        "id": "cancel_fixture"
+                    },
+                    "fees": [],
+                    "clientOrderId": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            },
+            {
+                "description": "Executor cancelled cancellation response retains its actual lifecycle state",
+                "method": "cancelOrder",
+                "input": [
+                    "cancel_fixture",
+                    "WETH/FTUSD"
+                ],
+                "httpResponseByUrl": {
+                    "/mm/leverage/config": {
+                        "chainId": 146,
+                        "signingChainId": 146,
+                        "engineVersion": 2,
+                        "leverageRfqEngine": "0x0000000000000000000000000000000000000020",
+                        "sessionManager": "0x0000000000000000000000000000000000000040",
+                        "executorAddress": "0x0000000000000000000000000000000000000030",
+                        "sessionManagerDomainName": "FT SessionManager",
+                        "marginHfSafeBps": 15000
+                    },
+                    "/mm/lend": {
+                        "success": true,
+                        "data": {
+                            "stale": false,
+                            "chains": [
+                                {
+                                    "chainId": 146,
+                                    "minEquityRequirementUsd": "10",
+                                    "userMetrics": {
+                                        "equityUsd": "101"
+                                    },
+                                    "assets": [
+                                        {
+                                            "symbol": "USDC",
+                                            "address": "0x0000000000000000000000000000000000000012",
+                                            "decimals": 6,
+                                            "oracleTokenPrice": "1",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 150,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "100000000",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "100000000",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        },
+                                        {
+                                            "symbol": "WETH",
+                                            "address": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+                                            "decimals": 18,
+                                            "oracleTokenPrice": "2000",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 1900,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "500000000000000",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "500000000000000",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        },
+                                        {
+                                            "symbol": "FTUSD",
+                                            "address": "0xF7D85EC4E7710f71992752eac2111312e73E9C9C",
+                                            "decimals": 6,
+                                            "oracleTokenPrice": "1",
+                                            "isCollateral": true,
+                                            "isBorrowable": true,
+                                            "isSuppliable": true,
+                                            "isDepositPaused": false,
+                                            "isBorrowPaused": false,
+                                            "priceAvailable": true,
+                                            "mmBps": 150,
+                                            "userMetrics": {
+                                                "totalCollateralRaw": "0",
+                                                "totalDebtRaw": "0",
+                                                "totalWithdrawableRaw": "0",
+                                                "walletBalanceRaw": "25000000"
+                                            },
+                                            "globalMetrics": {
+                                                "availableToBorrow": "1000000"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    "/mm/leverage/fee-estimate": {
+                        "success": true,
+                        "feeAmount": "1"
+                    },
+                    "/mm/leverage/orders": {
+                        "success": true,
+                        "orderId": "cancel_fixture",
+                        "status": "cancelled"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "cancel_fixture",
+                    "symbol": "WETH/FTUSD",
+                    "timestamp": null,
+                    "datetime": null,
+                    "status": "canceled",
+                    "type": null,
+                    "side": null,
+                    "amount": null,
+                    "price": null,
+                    "info": {
+                        "success": true,
+                        "orderId": "cancel_fixture",
+                        "status": "cancelled",
+                        "id": "cancel_fixture"
+                    },
+                    "fees": [],
+                    "clientOrderId": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            }
         ]
-    }
+    },
+    "privateKey": "0x0000000000000000000000000000000000000000000000000000000000000001",
+    "walletAddress": "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf"
 }

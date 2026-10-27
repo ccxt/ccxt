@@ -285,7 +285,7 @@ export default class flyingtulip extends Exchange {
 
     ceilRaw (raw: string): string {
         const floor = this.decimalToPrecision (raw, TRUNCATE, 0);
-        return Precise.stringEq (raw, floor) ? floor : Precise.stringAdd (floor, '1') as string;
+        return (Precise.stringEq (raw, floor)) ? floor : Precise.stringAdd (floor, '1') as string;
     }
 
     humanAmount (raw: string, decimals: int): string {
@@ -439,6 +439,8 @@ export default class flyingtulip extends Exchange {
         const result = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
+            // The API labels financed ERC-20 exposure as perps; there is no
+            // perpetual futures contract or periodic funding settlement.
             if ((this.safeString (row, 'marketType') !== 'perps') || (this.safeInteger (row, 'chainId') !== this.chainId ())) {
                 continue;
             }
@@ -677,7 +679,8 @@ export default class flyingtulip extends Exchange {
         if (this.safeInteger (row, 'chainId', this.chainId ()) !== this.chainId ()) {
             throw new BadRequest (this.id + ' order belongs to another chain; use a matching instance');
         }
-        return this.parseOrder (row, (symbol === undefined) ? undefined : this.market (symbol));
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        return this.parseOrder (row, market);
     }
 
     /**
@@ -694,10 +697,12 @@ export default class flyingtulip extends Exchange {
      */
     override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const request = { 'chainId': this.chainId (params), 'user': this.accountAddress (params), 'limit': (limit === undefined) ? 100 : Math.min (limit, 500), 'offset': this.safeInteger (params, 'offset', 0), 'status': this.safeString (params, 'status') };
+        const requestLimit = (limit === undefined) ? 100 : Math.min (limit, 500);
+        const request = { 'chainId': this.chainId (params), 'user': this.accountAddress (params), 'limit': requestLimit, 'offset': this.safeInteger (params, 'offset', 0), 'status': this.safeString (params, 'status') };
         const response = await this.publicGetMmLeverageOrders (request);
         const rows = this.safeList (response, 'orders', []);
-        return this.parseOrders (rows, (symbol === undefined) ? undefined : this.market (symbol), since, limit);
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        return this.parseOrders (rows, market, since, limit);
     }
 
     /**
@@ -825,20 +830,58 @@ export default class flyingtulip extends Exchange {
 
     orderDataHash (config: Dict, order: Dict): string {
         const typed = this.orderTypedData (config, order);
-        const fields = typed['types']['LeveragedOrder'];
+        return this.hashTypedStruct ('LeveragedOrder', typed['types']['LeveragedOrder'], order);
+    }
+
+    /**
+     * @ignore
+     * @description hashes the flat EIP-712 structures used by this adapter with their original field types
+     */
+    hashTypedStruct (primaryType: string, fields: Dict[], message: Dict): string {
         const names = [];
         const types = [ 'bytes32' ];
         const values = [];
         for (let i = 0; i < fields.length; i++) {
             names.push (fields[i]['type'] + ' ' + fields[i]['name']);
-            types.push (fields[i]['type']);
         }
-        const typeHash = '0x' + this.hash (this.encode ('LeveragedOrder(' + names.join (',') + ')'), keccak, 'hex');
+        const typeHash = '0x' + this.hash (this.encode (primaryType + '(' + names.join (',') + ')'), keccak, 'hex');
         values.push (typeHash);
         for (let i = 0; i < fields.length; i++) {
-            values.push (order[fields[i]['name']]);
+            const fieldType = fields[i]['type'];
+            const value = message[fields[i]['name']];
+            if (fieldType === 'string') {
+                types.push ('bytes32');
+                values.push ('0x' + this.hash (this.encode (value), keccak, 'hex'));
+            } else {
+                if (!this.inArray (fieldType, [ 'address', 'bytes32', 'bool', 'uint8', 'uint32', 'uint256' ])) {
+                    throw new NotSupported (this.id + ' unsupported signing field type ' + fieldType);
+                }
+                types.push (fieldType);
+                values.push (value);
+            }
         }
-        return '0x' + this.hash (this.ethAbiEncode (types, this.abiArguments (types, values)), keccak, 'hex');
+        return '0x' + this.hash (this.base16ToBinary (this.encodeAbi (types, values)), keccak, 'hex');
+    }
+
+    /**
+     * @ignore
+     * @description hashes prepared order, session or cancel typed data without ambiguous address conversion
+     */
+    typedDataHash (typed: Dict): string {
+        const domain = this.safeDict (typed, 'domain', {});
+        const domainFields = [
+            { 'name': 'name', 'type': 'string' }, { 'name': 'version', 'type': 'string' },
+            { 'name': 'chainId', 'type': 'uint256' }, { 'name': 'verifyingContract', 'type': 'address' },
+        ];
+        if (Object.keys (domain).length !== 4) {
+            throw new NotSupported (this.id + ' signing requires name, version, chainId and verifyingContract');
+        }
+        const domainHash = this.hashTypedStruct ('EIP712Domain', domainFields, domain);
+        const primaryType = this.safeString (typed, 'primaryType', '');
+        const types = this.safeDict (typed, 'types', {});
+        const fields = this.safeList (types, primaryType, []);
+        const messageHash = this.hashTypedStruct (primaryType, fields, this.safeDict (typed, 'message', {}));
+        return this.hash (this.base16ToBinary ('1901' + domainHash.slice (2) + messageHash.slice (2)), keccak, 'hex');
     }
 
     sessionTypedData (config: Dict, order: Dict, session: Dict): Dict {
@@ -887,8 +930,6 @@ export default class flyingtulip extends Exchange {
             'dataHash': this.orderDataHash (config, order), 'nonce': nonce,
             'deadline': this.safeString (order, 'validTo'), 'executor': this.safeString (config, 'executorAddress'), 'feeAmount': postingFee,
         };
-        request['session'] = session;
-        request['sigType'] = 'session';
         return this.sessionTypedData (config, order, session);
     }
 
@@ -911,8 +952,7 @@ export default class flyingtulip extends Exchange {
         if (this.privateKey === undefined) {
             throw new AuthenticationError (this.id + ' requires privateKey or a signature over the prepared order');
         }
-        const encoded = this.ethEncodeStructuredData (typed['domain'], typed['types'], typed['message']);
-        const digest = this.hash (encoded, keccak, 'hex');
+        const digest = this.typedDataHash (typed);
         const signature = ecdsa (digest, this.privateKey.slice (-64), secp256k1, null);
         return '0x' + signature['r'] + signature['s'] + this.intToBase16 (this.sum (signature['v'], 27));
     }
@@ -931,6 +971,9 @@ export default class flyingtulip extends Exchange {
             }
         }
         const marginMode = this.safeString (params, 'marginMode', 'cross');
+        if ((this.safeString (params, 'cost') !== undefined) && ((type !== 'market') || (side !== 'buy'))) {
+            throw new NotSupported (this.id + ' params.cost is supported only for market buys');
+        }
         if (marginMode !== 'cross') {
             throw new NotSupported (this.id + ' supports cross margin only');
         }
@@ -982,7 +1025,7 @@ export default class flyingtulip extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {string} type market or limit
      * @param {string} side buy or sell; a close must oppose the position side
-     * @param {float|string} amount base amount, or collateral token amount for a deposit
+     * @param {float|string} amount base-token amount; omit for a market buy with params.cost
      * @param {float|string} [price] limit price in market quote units
      * @param {object} [params] extra exchange-specific parameters
      * @param {int} [params.chainId] must match options.chainId; use one instance per chain
@@ -995,6 +1038,24 @@ export default class flyingtulip extends Exchange {
      * @param {int} [params.validTo] absolute expiry in seconds
      * @param {object} [params.session] verified sessionId, nonce, validUntil, delegate and maxFeeBps
      * @returns {object} unsigned prepared terms for caller review and signing
+     * @example
+     * import ccxt from 'ccxt';
+     * import { BrowserProvider } from 'ethers';
+     * // EOA wallet execution with ethers v6; every call awaits confirmation.
+     * const signer = await new BrowserProvider(window.ethereum).getSigner();
+     * if ((await signer.provider.getNetwork()).chainId !== 146n) throw new Error('select Sonic');
+     * const owner = await signer.getAddress();
+     * const exchange = new ccxt.flyingtulip({ walletAddress: owner, options: { chainId: 146 } });
+     * const execute = async (calls) => {
+     *     for (const call of calls) await (await signer.sendTransaction(call)).wait();
+     * };
+     * const deposit = await exchange.prepareCollateralDeposit('USDC', '20');
+     * await execute(deposit.transactions); // reset approval, exact approval, deposit
+     * // Preparation reads fresh account state after the deposit confirms.
+     * const plan = await exchange.prepareLeverageOrder('WETH/FTUSD', 'market', 'buy', undefined, undefined, { collateral: 'USDC', cost: '1' });
+     * await execute(plan.approvals); // exact approveBorrow permission, including signed fees
+     * const signature = await signer.signTypedData(plan.typedData.domain, plan.typedData.types, plan.typedData.message);
+     * const order = await exchange.submitLeverageOrder(plan, signature, 'eip712');
      */
     async prepareLeverageOrder (symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): Promise<Dict> {
         this.checkOrderOptions (type, side, params);
@@ -1084,7 +1145,7 @@ export default class flyingtulip extends Exchange {
             const debtCost = Precise.stringDiv (Precise.stringMul (quoteCost, quotePrice), debtPrice, this.assetDecimals (debt));
             sellHuman = debtCost as string;
         }
-        let sellRaw = exactOut ? '0' : this.rawAmount (sellHuman, this.assetDecimals (debt));
+        let sellRaw = (exactOut) ? '0' : this.rawAmount (sellHuman, this.assetDecimals (debt));
         const sellToken = this.assetAddress (debt);
         const buyToken = this.assetAddress (bought);
         if (sellToken.toLowerCase () === buyToken.toLowerCase ()) {
@@ -1155,6 +1216,10 @@ export default class flyingtulip extends Exchange {
             request['triggerAsset'] = market['baseId'];
         }
         const typedData = (sessionInput === undefined) ? this.orderTypedData (config, order) : this.attachSession (request, config, sessionInput, postingFee);
+        if (sessionInput !== undefined) {
+            request['session'] = typedData['message'];
+            request['sigType'] = 'session';
+        }
         return { 'request': request, 'typedData': typedData, 'quote': quote, 'leverage': leverage, 'approvals': (sessionInput === undefined) ? this.engineApprovals (order, config) : [] };
     }
 
@@ -1165,7 +1230,7 @@ export default class flyingtulip extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {string} type market or limit
      * @param {string} side buy or sell; a close must oppose the position side
-     * @param {float|string} amount base amount, or collateral token amount for a deposit
+     * @param {float|string} amount base-token amount; omit for a market buy with params.cost
      * @param {float|string} [price] limit price in market quote units
      * @param {object} [params] extra exchange-specific parameters
      * @param {int} [params.chainId] must match options.chainId; use one instance per chain
@@ -1292,7 +1357,7 @@ export default class flyingtulip extends Exchange {
             throw new InvalidOrder (this.id + ' cancel typed data or configuration changed');
         }
         const response = await this.publicDeleteMmLeverageOrdersId (this.extend (request, { 'cancelSignature': signature }));
-        return this.parseOrder (this.extend (response, { 'id': this.safeString (request, 'id'), 'status': 'cancelled' }), (symbol === undefined) ? undefined : this.market (symbol));
+        return this.parseOrder (this.extend (response, { 'id': this.safeString (request, 'id') }), (symbol === undefined) ? undefined : this.market (symbol));
     }
 
     /**
@@ -1368,6 +1433,15 @@ export default class flyingtulip extends Exchange {
             const value = values[i];
             if (type.slice (0, 4) === 'uint') {
                 result.push (this.convertToBigInt (this.numberToString (value) as string));
+            } else if (type === 'address') {
+                if (!this.isAddress (value)) {
+                    throw new BadRequest (this.id + ' invalid ABI address');
+                }
+                // A left-padded bytes32 word is identical to an ABI address.
+                // Avoid vendor address formatters interpreting digit-only hex as decimal.
+                const address = this.remove0xPrefix (value);
+                const padded = address.padStart (64, '0');
+                result.push (this.base16ToBinary (padded));
             } else if (type === 'bytes32') {
                 result.push (this.base16ToBinary (this.remove0xPrefix (value)));
             } else {
@@ -1379,7 +1453,19 @@ export default class flyingtulip extends Exchange {
 
     callData (signature: string, types: string[], values: any[]): string {
         const selector = this.hash (this.encode (signature), keccak, 'hex');
-        return '0x' + selector.slice (0, 8) + this.binaryToBase16 (this.ethAbiEncode (types, this.abiArguments (types, values)));
+        return '0x' + selector.slice (0, 8) + this.encodeAbi (types, values);
+    }
+
+    /**
+     * @ignore
+     * @description encodes static ABI arguments using equivalent bytes32 words for addresses
+     */
+    encodeAbi (types: string[], values: any[]): string {
+        const encodedTypes = [];
+        for (let i = 0; i < types.length; i++) {
+            encodedTypes.push ((types[i] === 'address') ? 'bytes32' : types[i]);
+        }
+        return this.binaryToBase16 (this.ethAbiEncode (encodedTypes, this.abiArguments (types, values)));
     }
 
     positionManager (): string {
@@ -1391,6 +1477,11 @@ export default class flyingtulip extends Exchange {
         return address;
     }
 
+    /**
+     * @ignore
+     * @description prepares exact PositionsManager borrow permission for opens or debit permission for closes and conversions
+     * the account wallet executes these calls before submitting the signed order; verified session plans use existing session authority instead
+     */
     engineApprovals (order: Dict, config: Dict): Dict[] {
         const action = this.safeInteger (order, 'action');
         const functionName = (action === 0) ? 'approveBorrow' : 'approveEngine';
@@ -1457,6 +1548,10 @@ export default class flyingtulip extends Exchange {
         }
         const request: Dict = { 'order': order, 'user': owner, 'isOpen': false, 'orderType': 'swap', 'source': 'trs', 'engineVersion': this.safeInteger (config, 'engineVersion', 1), 'currentSlippageBps': slippage };
         const typedData = (sessionInput === undefined) ? this.orderTypedData (config, order) : this.attachSession (request, config, sessionInput, postingFee);
+        if (sessionInput !== undefined) {
+            request['session'] = typedData['message'];
+            request['sigType'] = 'session';
+        }
         return { 'request': request, 'typedData': typedData, 'quote': quote, 'approvals': (sessionInput === undefined) ? this.engineApprovals (order, config) : [] };
     }
 
@@ -1464,8 +1559,9 @@ export default class flyingtulip extends Exchange {
      * @method
      * @name flyingtulip#prepareCollateralDeposit
      * @description prepares unsigned exact-amount ERC-20 approvals and a collateral deposit
+     * execute transactions in their returned order through the account wallet and wait for each receipt before preparing an exposure order
      * @param {string} code collateral symbol or token address
-     * @param {float|string} amount base amount, or collateral token amount for a deposit
+     * @param {float|string} amount collateral-token amount to deposit
      * @param {object} [params] extra exchange-specific parameters
      * @param {int} [params.chainId] must match options.chainId; use one instance per chain
      * @returns {object} unsigned prepared terms for caller review and signing
@@ -1538,7 +1634,7 @@ export default class flyingtulip extends Exchange {
             throw new ExchangeError (this.id + ' position debt is not verified yet');
         }
         const isLong = this.safeString (selected, 'side') === 'long';
-        const closeSide = isLong ? 'sell' : 'buy';
+        const closeSide = (isLong) ? 'sell' : 'buy';
         if ((side !== undefined) && (side !== closeSide)) {
             throw new InvalidOrder (this.id + ' close side must oppose position side');
         }
@@ -1641,6 +1737,10 @@ export default class flyingtulip extends Exchange {
         }
         const request: Dict = { 'engineVersion': this.safeInteger (config, 'engineVersion', 1), 'currentSlippageBps': slippage, 'order': order, 'user': order['user'], 'isOpen': false, 'orderType': 'close', 'marketSymbol': market['id'], 'direction': closeSide, 'clientOrderType': 'market', 'positionId': this.safeString (selected, 'positionId'), 'source': 'trs' };
         const typedData = (sessionInput === undefined) ? this.orderTypedData (config, order) : this.attachSession (request, config, sessionInput, postingFee);
+        if (sessionInput !== undefined) {
+            request['session'] = typedData['message'];
+            request['sigType'] = 'session';
+        }
         return { 'request': request, 'typedData': typedData, 'quote': quote, 'approvals': (sessionInput === undefined) ? this.engineApprovals (order, config) : [] };
     }
 
