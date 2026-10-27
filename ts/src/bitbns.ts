@@ -1293,7 +1293,8 @@ export default class bitbns extends Exchange {
 
     override sign (path: string, api: string[] = [ 'www' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
-        if (!(apiName in this.urls['api'])) {
+        const baseApiUrl = this.safeString (this.urls['api'], apiName);
+        if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
         if (apiName !== 'www') {
@@ -1302,10 +1303,6 @@ export default class bitbns extends Exchange {
         const requestHeaders: Dict = {};
         if (apiName !== 'www') {
             requestHeaders['X-BITBNS-APIKEY'] = this.apiKey;
-        }
-        const baseApiUrl = this.safeString (this.urls['api'], apiName);
-        if (baseApiUrl === undefined) {
-            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         const baseUrl = this.implodeHostname (baseApiUrl);
         let url = baseUrl + '/' + this.implodeParams (path, params);
