@@ -6134,8 +6134,12 @@ public partial class bitget : Exchange
         if ((paginate == true))
         {
             // the recursive calls read 'stock' and 'uta' themselves, so only peek at the flag here
-            bool? stockForPagination = this.handleOptionBoolAndParams(paramsPaginate, "fetchTrades", "stock", stockDefault).Item1;
-            if ((stockForPagination == true))
+            bool? stockForPagination = null;
+            object paramsPeek = null;
+            (bool?, object) stockForPaginationparamsPeekVariable = this.handleOptionBoolAndParams(paramsPaginate, "fetchTrades", "stock", stockDefault);
+            stockForPagination = stockForPaginationparamsPeekVariable.Item1;
+            paramsPeek = stockForPaginationparamsPeekVariable.Item2;
+            if ((stockForPagination == true) && (paramsPeek != null))
             {
                 throw new BadRequest ((this.id + " fetchTrades() does not support paginate for tokenized stock markets")) ;
             }
@@ -9472,10 +9476,11 @@ public partial class bitget : Exchange
             market = this.market(symbol);
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             string? defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
-            object marketType = defaultType;
-            if (market.ContainsKey("type"))
+            string? marketType = defaultType;
+            string? marketTypeValue = this.safeString(market, "type");
+            if ((marketTypeValue != null))
             {
-                marketType = (market.ContainsKey("type") ? market["type"] : null);
+                marketType = marketTypeValue;
             }
             type = this.safeString(paramsMarginMode, "type", marketType);
         } else
@@ -12691,7 +12696,7 @@ public partial class bitget : Exchange
             await this.loadMarkets();
         }
         string posMode = "one_way_mode";
-        if (hedged)
+        if ((hedged == true))
         {
             posMode = "hedge_mode";
         }

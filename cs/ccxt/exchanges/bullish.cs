@@ -1629,8 +1629,7 @@ public partial class bullish : Exchange
         //         }, ...
         //     ]
         //
-        IList<object> ohlcvs = this.toArray(response);
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -1709,8 +1708,7 @@ public partial class bullish : Exchange
                 { "datetime", datetime },
             });
         }
-        List<object> sorted = this.sortBy(rates, "timestamp");
-        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
+        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(this.sortBy(rates, "timestamp"), this.safeString(market, "symbol"), since, limit));
     }
 
     /**
@@ -2925,8 +2923,7 @@ public partial class bullish : Exchange
         //         }
         //     ]
         //
-        IList<object> results = this.parsePositions(response, symbols);
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(results, "symbol", symbols));
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(this.parsePositions(response, symbols), "symbol", symbols));
     }
 
     public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
@@ -3401,8 +3398,7 @@ public partial class bullish : Exchange
             {
                 requestBody = this.json(parameters);
                 string payload = (((((timestamp + nonce) + method) + "/trading-api/") + path) + requestBody);
-                string digest = ((string)this.hash(this.encode(payload), sha256, "hex"));
-                string signature = this.hmac(this.encode(digest), this.encode(this.secret), sha256, "hex");
+                string signature = this.hmac(this.encode(this.hash(this.encode(payload), sha256, "hex")), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "BX-TIMESTAMP", timestamp },
                     { "BX-NONCE", nonce },
@@ -3465,8 +3461,7 @@ public partial class bullish : Exchange
         //     }
         //
         string? token = this.safeString(response, "token");
-        string? authorizer = this.safeString(response, "authorizer");
-        this.options["authorizer"] = authorizer;
+        this.options["authorizer"] = this.safeString(response, "authorizer");
         this.token = token;
         this.options["tokenExpires"] = this.sum(this.milliseconds(), (((1000L * 60L) * 60) * 24)); // token expires in 24 hours
         return token;

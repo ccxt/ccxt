@@ -1982,18 +1982,11 @@ public partial class BaseExchange
                 }
                 // limits
                 IDictionary<string, object> limits = this.safeDict(network, "limits");
-                IDictionary<string, object> limitsMain = this.safeDict(currency, "limits");
-                if ((limitsMain == null))
-                {
-                    currency["limits"] = new Dictionary<string, object>() {};
-                }
+                IDictionary<string, object> limitsMain = this.safeDict(currency, "limits", new Dictionary<string, object>() {});
                 // deposits
                 IDictionary<string, object> limitsDeposit = this.safeDict(limits, "deposit");
-                IDictionary<string, object> limitsDepositMain = this.safeDict(limitsMain, "deposit");
-                if ((limitsDepositMain == null))
-                {
-                    ((IDictionary<string,object>)(currency != null && currency.ContainsKey("limits") ? currency["limits"] : null))["deposit"] = new Dictionary<string, object>() {};
-                }
+                IDictionary<string, object> limitsDepositMain = this.safeDict(limitsMain, "deposit", new Dictionary<string, object>() {});
+                Dictionary<string, object> limitsDepositNew = new Dictionary<string, object>() {};
                 string? limitsDepositMin = this.safeString(limitsDeposit, "min");
                 string? limitsDepositMax = this.safeString(limitsDeposit, "max");
                 string? limitsDepositMinMain = this.safeString(limitsDepositMain, "min");
@@ -2001,20 +1994,17 @@ public partial class BaseExchange
                 // find min
                 if ((limitsDepositMinMain == null) || Precise.stringLt(limitsDepositMin, limitsDepositMinMain))
                 {
-                    ((IDictionary<string,object>)getValue((currency != null && currency.ContainsKey("limits") ? currency["limits"] : null), "deposit"))["min"] = this.parseNumber(limitsDepositMin);
+                    limitsDepositNew["min"] = this.parseNumber(limitsDepositMin);
                 }
                 // find max
                 if ((limitsDepositMaxMain == null) || Precise.stringGt(limitsDepositMax, limitsDepositMaxMain))
                 {
-                    ((IDictionary<string,object>)getValue((currency != null && currency.ContainsKey("limits") ? currency["limits"] : null), "deposit"))["max"] = this.parseNumber(limitsDepositMax);
+                    limitsDepositNew["max"] = this.parseNumber(limitsDepositMax);
                 }
                 // withdrawals
                 IDictionary<string, object> limitsWithdraw = this.safeDict(limits, "withdraw");
-                IDictionary<string, object> limitsWithdrawMain = this.safeDict(limitsMain, "withdraw");
-                if ((limitsWithdrawMain == null))
-                {
-                    ((IDictionary<string,object>)(currency != null && currency.ContainsKey("limits") ? currency["limits"] : null))["withdraw"] = new Dictionary<string, object>() {};
-                }
+                IDictionary<string, object> limitsWithdrawMain = this.safeDict(limitsMain, "withdraw", new Dictionary<string, object>() {});
+                Dictionary<string, object> limitsWithdrawNew = new Dictionary<string, object>() {};
                 string? limitsWithdrawMin = this.safeString(limitsWithdraw, "min");
                 string? limitsWithdrawMax = this.safeString(limitsWithdraw, "max");
                 string? limitsWithdrawMinMain = this.safeString(limitsWithdrawMain, "min");
@@ -2022,13 +2012,17 @@ public partial class BaseExchange
                 // find min
                 if ((limitsWithdrawMinMain == null) || Precise.stringLt(limitsWithdrawMin, limitsWithdrawMinMain))
                 {
-                    ((IDictionary<string,object>)getValue((currency != null && currency.ContainsKey("limits") ? currency["limits"] : null), "withdraw"))["min"] = this.parseNumber(limitsWithdrawMin);
+                    limitsWithdrawNew["min"] = this.parseNumber(limitsWithdrawMin);
                 }
                 // find max
                 if ((limitsWithdrawMaxMain == null) || Precise.stringGt(limitsWithdrawMax, limitsWithdrawMaxMain))
                 {
-                    ((IDictionary<string,object>)getValue((currency != null && currency.ContainsKey("limits") ? currency["limits"] : null), "withdraw"))["max"] = this.parseNumber(limitsWithdrawMax);
+                    limitsWithdrawNew["max"] = this.parseNumber(limitsWithdrawMax);
                 }
+                currency["limits"] = this.extend(limitsMain, new Dictionary<string, object>() {
+                    { "deposit", this.extend(limitsDepositMain, limitsDepositNew) },
+                    { "withdraw", this.extend(limitsWithdrawMain, limitsWithdrawNew) },
+                });
             }
         }
         return this.extend(new Dictionary<string, object>() {
@@ -2342,9 +2336,9 @@ public partial class BaseExchange
     {
         object balances = this.omit(balance, new List<object>() {"info", "timestamp", "datetime", "free", "used", "total"});
         List<object> codes = new List<object>(((IDictionary<string,object>)balances).Keys);
-        ((IDictionary<string,object>)balance)["free"] = new Dictionary<string, object>() {};
-        ((IDictionary<string,object>)balance)["used"] = new Dictionary<string, object>() {};
-        ((IDictionary<string,object>)balance)["total"] = new Dictionary<string, object>() {};
+        Dictionary<string, object> freeBalance = new Dictionary<string, object>() {};
+        Dictionary<string, object> usedBalance = new Dictionary<string, object>() {};
+        Dictionary<string, object> totalBalance = new Dictionary<string, object>() {};
         Dictionary<string, object> debtBalance = new Dictionary<string, object>() {};
         for (int i = 0; i < codes.Count; i++)
         {
@@ -2368,15 +2362,18 @@ public partial class BaseExchange
             ((IDictionary<string,object>)getValue(balance, code))["free"] = this.parseNumber(free);
             ((IDictionary<string,object>)getValue(balance, code))["used"] = this.parseNumber(used);
             ((IDictionary<string,object>)getValue(balance, code))["total"] = this.parseNumber(total);
-            ((IDictionary<string,object>)getValue(balance, "free"))[(string)code] = getValue(getValue(balance, code), "free");
-            ((IDictionary<string,object>)getValue(balance, "used"))[(string)code] = getValue(getValue(balance, code), "used");
-            ((IDictionary<string,object>)getValue(balance, "total"))[(string)code] = getValue(getValue(balance, code), "total");
+            freeBalance[(string)code] = getValue(getValue(balance, code), "free");
+            usedBalance[(string)code] = getValue(getValue(balance, code), "used");
+            totalBalance[(string)code] = getValue(getValue(balance, code), "total");
             if ((debt != null))
             {
                 ((IDictionary<string,object>)getValue(balance, code))["debt"] = this.parseNumber(debt);
                 debtBalance[(string)code] = getValue(getValue(balance, code), "debt");
             }
         }
+        ((IDictionary<string,object>)balance)["free"] = freeBalance;
+        ((IDictionary<string,object>)balance)["used"] = usedBalance;
+        ((IDictionary<string,object>)balance)["total"] = totalBalance;
         List<object> debtBalanceArray = new List<object>(debtBalance.Keys);
         int length = debtBalanceArray.Count;
         if ((length != 0))
@@ -3133,14 +3130,15 @@ public partial class BaseExchange
                     ((IDictionary<string,object>)getValue((reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null), rateKey))["cost"] = Precise.stringAdd(getValue(getValue((reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null), rateKey), "cost"), cost);
                 } else
                 {
-                    ((IDictionary<string,object>)(reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null))[(string)rateKey] = new Dictionary<string, object>() {
+                    Dictionary<string, object> newRateFee = new Dictionary<string, object>() {
                         { "currency", code },
                         { "cost", cost },
                     };
                     if ((rate != null))
                     {
-                        ((IDictionary<string,object>)getValue((reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null), rateKey))["rate"] = rate;
+                        newRateFee["rate"] = rate;
                     }
+                    ((IDictionary<string,object>)(reduced.ContainsKey(feeCurrencyCode) ? reduced[feeCurrencyCode] : null))[(string)rateKey] = newRateFee;
                 }
             }
         }
@@ -8226,7 +8224,7 @@ public partial class BaseExchange
                 {
                     throw new ArgumentsRequired ((this.id + " cleanCache() requires a timeframe argument")) ;
                 }
-                if (((this.ohlcvs != null)) && (((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))))
+                if (((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol)))
                 {
                     if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe))
                     {
@@ -8281,7 +8279,7 @@ public partial class BaseExchange
                 {
                     object client = clients[i];
                     object futures = (client as WebSocketClient).futures;
-                    if (((futures != null)) && (inOp(futures, "fetchPositionsSnapshot")))
+                    if (inOp(futures, "fetchPositionsSnapshot"))
                     {
                         ((IDictionary<string,object>)futures).Remove("fetchPositionsSnapshot");
                     }

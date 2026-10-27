@@ -748,7 +748,7 @@ public partial class paymium : Exchange
                 { "Api-Key", this.apiKey },
                 { "Api-Nonce", nonce },
             };
-            string? signedBody = null;
+            string signedBody = "";
             if ((method == "POST") && hasQuery)
             {
                 signedBody = this.json(query);

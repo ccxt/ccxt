@@ -1249,8 +1249,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            List<object> orderRequestResult = this.orderRequest(symbol, type, amount, request, price, query);
-            response = await this.privateSpotPostV2ExOrders(this.extend((orderRequestResult != null && 0 < orderRequestResult.Count ? orderRequestResult[0] : null), (orderRequestResult != null && 1 < orderRequestResult.Count ? orderRequestResult[1] : null)));
+            response = await this.privateSpotPostV2ExOrders(this.spotOrderBody(symbol, type, amount, request, price, query));
         } else
         {
             string? marginAsset = this.safeString(query, "marginAsset", "INR");
@@ -1296,10 +1295,10 @@ public partial class zebpay : Exchange
         return this.parseOrder(data, market);
     }
 
-    public virtual List<object> orderRequest(string? symbol, string? type, object amount, IDictionary<string, object> request, object price = null, IDictionary<string, object>? parameters = null)
+    public virtual object spotOrderBody(object symbol, object type, object amount, IDictionary<string, object> request, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string upperCaseType = type.ToUpper();
+        string upperCaseType = ((string)type).ToUpper();
         string? triggerPrice = this.safeString(parameters, "stopLossPrice");
         string? quoteOrderQty = this.safeString2(parameters, "quoteOrderQty", "cost", null);
         string? timeInForce = this.safeString(parameters, "timeInForce", "GTC");
@@ -1324,7 +1323,7 @@ public partial class zebpay : Exchange
             request["amount"] = this.amountToPrecision(symbol, amount);
             request["price"] = this.priceToPrecision(symbol, price);
         }
-        return new List<object>() {request, paramsOmitted};
+        return this.extend(request, paramsOmitted);
     }
 
     /**
@@ -2237,13 +2236,12 @@ public partial class zebpay : Exchange
         string timestamp = this.milliseconds().ToString();
         string signature = "";
         object query = this.omit(paramsOmitted, this.extractParams(path));
-        int queryLength = (new List<object>(((IDictionary<string,object>)query).Keys)).Count;
         string? access = ((string)(api != null && 0 < api.Count ? api[0] : null));
         if (access == "public")
         {
             if ((method == "GET") || (method == "DELETE"))
             {
-                if ((queryLength != 0))
+                if (((new List<object>(((IDictionary<string,object>)query).Keys)).Count != 0))
                 {
                     suffix = ("?" + this.urlencode(query));
                 }
@@ -2267,17 +2265,19 @@ public partial class zebpay : Exchange
         {
             this.checkRequiredCredentials();
             bool isSpot = marketType == "spot";
-            ((IDictionary<string,object>)paramsOmitted)["timestamp"] = timestamp;
+            Dictionary<string, object> paramsSigned = this.extend(paramsOmitted, new Dictionary<string, object>() {
+                { "timestamp", timestamp },
+            });
             if ((method == "GET") || ((method == "DELETE") && isSpot))
             {
                 // For GET/DELETE: Append params to URL and sign the query string
-                string queryString = this.urlencode(paramsOmitted);
+                string queryString = this.urlencode(paramsSigned);
                 signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha256, "hex");
                 suffix = ("?" + queryString);
             } else
             {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
-                bodySigned = this.json(paramsOmitted);
+                bodySigned = this.json(paramsSigned);
                 signature = this.hmac(this.encode(bodySigned), this.encode(this.secret), sha256, "hex");
             }
             headersSigned = new Dictionary<string, object>() {

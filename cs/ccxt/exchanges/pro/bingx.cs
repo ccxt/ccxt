@@ -1118,7 +1118,8 @@ public partial class bingx : ccxt.bingx
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
-        string? subType = ((string)getValue(this.handleSubTypeAndParams("watchOrders", market, paramsMarketType, "linear"), 0));
+        IList<object> subTypeVariable = (IList<object>)this.handleSubTypeAndParams("watchOrders", market, paramsMarketType, "linear");
+        string? subType = (string)subTypeVariable[0];
         bool isSpot = ((type == "spot"));
         string spotHash = "spot:private";
         string swapHash = "swap:private";
@@ -1149,7 +1150,7 @@ public partial class bingx : ccxt.bingx
         Dictionary<string, object> request = null;
         if ((type == "swap"))
         {
-            if (subType == "inverse")
+            if ((subType == "inverse"))
             {
                 throw new NotSupported ((this.id + " watchOrders is not supported for inverse swap markets yet")) ;
             }
@@ -1212,7 +1213,8 @@ public partial class bingx : ccxt.bingx
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
-        string? subType = ((string)getValue(this.handleSubTypeAndParams("watchMyTrades", market, paramsMarketType, "linear"), 0));
+        IList<object> subTypeVariable = (IList<object>)this.handleSubTypeAndParams("watchMyTrades", market, paramsMarketType, "linear");
+        string? subType = (string)subTypeVariable[0];
         bool isSpot = ((type == "spot"));
         string spotHash = "spot:private";
         string swapHash = "swap:private";
@@ -1243,7 +1245,7 @@ public partial class bingx : ccxt.bingx
         Dictionary<string, object> request = null;
         if ((type == "swap"))
         {
-            if (subType == "inverse")
+            if ((subType == "inverse"))
             {
                 throw new NotSupported ((this.id + " watchMyTrades is not supported for inverse swap markets yet")) ;
             }
@@ -1346,7 +1348,8 @@ public partial class bingx : ccxt.bingx
         (bool?, object) fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = this.handleOptionBoolAndParams(paramsSubType, "watchBalance", "fetchBalanceSnapshot", true);
         bool? fetchBalanceSnapshot = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.Item1;
         IDictionary<string, object> paramsFetchBalanceSnapshot = ((IDictionary<string, object>)fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.Item2);
-        bool? awaitBalanceSnapshot = this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", false).Item1;
+        (bool?, object) awaitBalanceSnapshotVariable = this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", false);
+        bool? awaitBalanceSnapshot = awaitBalanceSnapshotVariable.Item1;
         if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
             await client.future((type + ":fetchBalanceSnapshot"));
@@ -1364,7 +1367,8 @@ public partial class bingx : ccxt.bingx
         {
             return;
         }
-        bool? fetchBalanceSnapshot = this.handleOptionBoolAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true).Item1;
+        (bool?, object) fetchBalanceSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
+        bool? fetchBalanceSnapshot = fetchBalanceSnapshotVariable.Item1;
         if ((fetchBalanceSnapshot == true))
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");
@@ -1447,7 +1451,8 @@ public partial class bingx : ccxt.bingx
         (bool?, object) fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable = this.handleOptionBoolAndParams(paramsSubType, "watchPositions", "fetchPositionsSnapshot", true);
         bool? fetchPositionsSnapshot = fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.Item1;
         IDictionary<string, object> paramsFetchPositionsSnapshot = ((IDictionary<string, object>)fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.Item2);
-        bool? awaitPositionsSnapshot = this.handleOptionBoolAndParams(paramsFetchPositionsSnapshot, "watchPositions", "awaitPositionsSnapshot", false).Item1;
+        (bool?, object) awaitPositionsSnapshotVariable = this.handleOptionBoolAndParams(paramsFetchPositionsSnapshot, "watchPositions", "awaitPositionsSnapshot", false);
+        bool? awaitPositionsSnapshot = awaitPositionsSnapshotVariable.Item1;
         string uuid = this.uuid();
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "unsubscribe", false },

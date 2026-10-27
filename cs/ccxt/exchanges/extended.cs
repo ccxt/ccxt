@@ -2199,8 +2199,7 @@ public partial class extended : Exchange
         Dictionary<string, object> currency = this.currency(code);
         object account = await this.FetchExtendedAccount();
         string? currentAccountId = this.safeString(account, "accountId", "");
-        object fromAccountResolved = ((fromAccount == null)) ? currentAccountId : fromAccount;
-        if (!isEqual(fromAccountResolved, currentAccountId))
+        if (((fromAccount != null)) && ((fromAccount != currentAccountId)))
         {
             throw new BadRequest ((this.id + " transfer() can only transfer from the authenticated account")) ;
         }
@@ -2213,7 +2212,7 @@ public partial class extended : Exchange
         string? amountString = this.currencyToPrecision(code, amount);
         Dictionary<string, object> settlement = this.createTransferSettlementData(amountString, currency, account, toVault, toL2Key, parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "fromAccount", fromAccountResolved },
+            { "fromAccount", currentAccountId },
             { "toAccount", toAccount },
             { "amount", amountString },
             { "transferredAsset", (currency.ContainsKey("id") ? currency["id"] : null) },
@@ -2238,7 +2237,7 @@ public partial class extended : Exchange
         {
             status = validSignature == true ? "ok" : "failed";
         }
-        return ccxt.BaseExchange.ToTransferEntry(new Dictionary<string, object>() {             { "info", response },             { "id", this.safeString(data, "id") },             { "timestamp", now },             { "datetime", this.iso8601(now) },             { "currency", (currency.ContainsKey("code") ? currency["code"] : null) },             { "amount", this.parseNumber(amountString) },             { "fromAccount", fromAccountResolved },             { "toAccount", toAccount },             { "status", status },         });
+        return ccxt.BaseExchange.ToTransferEntry(new Dictionary<string, object>() {             { "info", response },             { "id", this.safeString(data, "id") },             { "timestamp", now },             { "datetime", this.iso8601(now) },             { "currency", (currency.ContainsKey("code") ? currency["code"] : null) },             { "amount", this.parseNumber(amountString) },             { "fromAccount", currentAccountId },             { "toAccount", toAccount },             { "status", status },         });
     }
 
     public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
