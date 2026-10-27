@@ -775,7 +775,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             $client->resolve($orderbook, $messageHash);
         } else {
             $orderbook = $this->orderbooks[$symbol];
-            $deltas = $message[1];
+            $deltas = $this->safe_value($message, 1);
             $orderbookItem = $this->orderbooks[$symbol];
             if ($isRaw) {
                 $price = $this->safe_string($deltas, 1);

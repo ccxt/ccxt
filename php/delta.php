@@ -1652,24 +1652,17 @@ class delta extends Exchange {
             $windowSeconds = $limit * $duration;
         }
         $until = $this->safe_integer_product($params, 'until', 0.001);
-        $untilIsDefined = $until !== null;
-        if ($untilIsDefined) {
-            $until = $this->parse_to_int($until);
-        }
         if ($since === null) {
             $end = $this->seconds();
-            if ($untilIsDefined) {
+            if ($until !== null) {
                 $end = $this->parse_to_int($until);
             }
             $request['end'] = $end;
-            if ($end === null) {
-                throw new ExchangeError($this->id . ' fetchOHLCV() missing end');
-            }
             $request['start'] = $end - $windowSeconds;
         } else {
             $start = $this->parse_to_int($since / 1000);
             $request['start'] = $start;
-            $request['end'] = $untilIsDefined ? $until : $this->sum($start, $windowSeconds);
+            $request['end'] = ($until !== null) ? $until : $this->sum($start, $windowSeconds);
         }
         $price = $this->safe_string($params, 'price');
         $marketId = $this->safe_string($market, 'id', '');
@@ -2361,7 +2354,7 @@ class delta extends Exchange {
             $request['product_ids'] = $market['numericId']; // accepts a comma-separated list of ids
         }
         if ($since !== null) {
-            $request['start_time'] = (string) $since . '000';
+            $request['start_time'] = $this->number_to_string($since * 1000);
         }
         if ($limit !== null) {
             $request['page_size'] = $limit;
@@ -2427,7 +2420,7 @@ class delta extends Exchange {
             $request['product_ids'] = $market['numericId']; // accepts a comma-separated list of ids
         }
         if ($since !== null) {
-            $request['start_time'] = (string) $since . '000';
+            $request['start_time'] = $this->number_to_string($since * 1000);
         }
         if ($limit !== null) {
             $request['page_size'] = $limit;
@@ -4185,7 +4178,7 @@ class delta extends Exchange {
         } elseif ($apiName === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->seconds();
-            $requestHeaders = array(
+            $privateHeaders = array(
                 'api-key' => $this->apiKey,
                 'timestamp' => $timestamp,
             );
@@ -4199,10 +4192,11 @@ class delta extends Exchange {
             } else {
                 $requestBody = $this->json($query);
                 $auth .= $requestBody;
-                $requestHeaders['Content-Type'] = 'application/json';
+                $privateHeaders['Content-Type'] = 'application/json';
             }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $requestHeaders['signature'] = $signature;
+            $privateHeaders['signature'] = $signature;
+            $requestHeaders = $privateHeaders;
         }
         $bodyResult = $requestBody;
         $headersResult = $requestHeaders;

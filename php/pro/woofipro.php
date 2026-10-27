@@ -760,7 +760,7 @@ class woofipro extends \ccxt\async\woofipro {
         }
         $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : null;
         if ($symbol !== null) {
-            $messageHash .= ':' . $symbolResolved;
+            $messageHash .= ':' . $this->safe_string($this->market($symbol), 'symbol', '');
         }
         $request = array(
             'event' => 'subscribe',
@@ -809,7 +809,7 @@ class woofipro extends \ccxt\async\woofipro {
         }
         $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : null;
         if ($symbol !== null) {
-            $messageHash .= ':' . $symbolResolved;
+            $messageHash .= ':' . $this->safe_string($this->market($symbol), 'symbol', '');
         }
         $request = array(
             'event' => 'subscribe',

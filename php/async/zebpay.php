@@ -2089,7 +2089,7 @@ class zebpay extends Exchange {
         $signature = '';
         $query = $this->omit($paramsOmitted, $this->extract_params($path));
         $queryLength = count($query);
-        $access = $this->safe_string($api, 0, 'public');
+        $access = $api[0];
         if ($access === 'public') {
             if ($method === 'GET' || $method === 'DELETE') {
                 if ($queryLength !== 0) {

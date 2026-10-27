@@ -4894,8 +4894,8 @@ class digifinex extends Exchange {
     }
 
     public function sign(string $path, array $api = array(), string $method = 'GET', $params = array()): array {
-        $signed = $this->safe_string($api, 0) === 'private';
-        $endpoint = $this->safe_string($api, 1);
+        $signed = $api[0] === 'private';
+        $endpoint = $api[1];
         $pathPart = '/swap/v2';
         if ($endpoint === 'spot') {
             $pathPart = '/v3';

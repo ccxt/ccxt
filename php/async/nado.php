@@ -3237,10 +3237,7 @@ class nado extends Exchange {
         return '0x' . $this->pad_hex($this->int_to_base16($productId), 40);
     }
 
-    public function pad_hex(string $value, ?int $length, bool $left = true): string {
-        if ($length === null) {
-            throw new ArgumentsRequired($this->id . ' padHex() requires length');
-        }
+    public function pad_hex(string $value, float $length, bool $left = true): string {
         $zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
         if ($left) {
             $paddedLeft = $zeros . $value;
@@ -3269,8 +3266,7 @@ class nado extends Exchange {
             ),
         );
         $encoded = $this->eth_encode_structured_data($domain, $messageTypes, $order);
-        $hash = '0x' . $this->hash($encoded, 'keccak', 'hex');
-        return $this->sign_hash($hash, $this->privateKey);
+        return $this->sign_hash($this->hash($encoded, 'keccak', 'hex'), $this->privateKey);
     }
 
     public function sign_cancellation(array $cancellation, ?string $chainId, ?string $endpointAddress): string {
@@ -3289,8 +3285,7 @@ class nado extends Exchange {
             ),
         );
         $encoded = $this->eth_encode_structured_data($domain, $messageTypes, $cancellation);
-        $hash = '0x' . $this->hash($encoded, 'keccak', 'hex');
-        return $this->sign_hash($hash, $this->privateKey);
+        return $this->sign_hash($this->hash($encoded, 'keccak', 'hex'), $this->privateKey);
     }
 
     public function sign_cancellation_products(array $cancellation, ?string $chainId, ?string $endpointAddress): string {
@@ -3308,8 +3303,7 @@ class nado extends Exchange {
             ),
         );
         $encoded = $this->eth_encode_structured_data($domain, $messageTypes, $cancellation);
-        $hash = '0x' . $this->hash($encoded, 'keccak', 'hex');
-        return $this->sign_hash($hash, $this->privateKey);
+        return $this->sign_hash($this->hash($encoded, 'keccak', 'hex'), $this->privateKey);
     }
 
     public function sign_fetch_trigger_orders(array $tx, ?string $chainId, ?string $endpointAddress): string {
@@ -3326,15 +3320,14 @@ class nado extends Exchange {
             ),
         );
         $encoded = $this->eth_encode_structured_data($domain, $messageTypes, $tx);
-        $hash = '0x' . $this->hash($encoded, 'keccak', 'hex');
-        return $this->sign_hash($hash, $this->privateKey);
+        return $this->sign_hash($this->hash($encoded, 'keccak', 'hex'), $this->privateKey);
     }
 
     public function sign_hash(string $hash, ?string $privateKey): string {
         if ($privateKey === null) {
             throw new ArgumentsRequired($this->id . ' signHash() requires privateKey');
         }
-        $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
+        $signature = $this->ecdsa($hash, mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $s = $signature['s'];
         $v = strtolower($this->int_to_base16($this->sum(27, $signature['v'])));

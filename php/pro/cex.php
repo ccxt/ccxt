@@ -277,7 +277,7 @@ class cex extends \ccxt\async\cex {
         }
         $messageHash = 'trades';
         $this->trades[$symbol] = $stored;
-        $client->resolve($this->trades[$symbol], $messageHash);
+        $client->resolve($stored, $messageHash);
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -1092,7 +1092,7 @@ class cex extends \ccxt\async\cex {
         $data = $this->safe_dict($message, 'data', array());
         $pair = $this->safe_string($data, 'pair');
         $symbol = $this->pair_to_symbol($pair);
-        if ($symbol === null) {
+        if ($symbol === '') {
             return;
         }
         $messageHash = 'orderbook:' . $symbol;
@@ -1104,7 +1104,7 @@ class cex extends \ccxt\async\cex {
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book(array());
         }
-        $orderbook = $this->orderbooks[$symbol];
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
         $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks');
         $snapshot['nonce'] = $incrementalId;
         $orderbook->reset($snapshot);
@@ -1114,14 +1114,14 @@ class cex extends \ccxt\async\cex {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function pair_to_symbol(mixed $pair): ?string {
+    public function pair_to_symbol(mixed $pair): string {
         $parts = explode(':', $pair);
         $baseId = $this->safe_string($parts, 0);
         $quoteId = $this->safe_string($parts, 1);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         if (($base === null) || ($quote === null)) {
-            return null;
+            return '';
         }
         $symbol = $base . '/' . $quote;
         return $symbol;
@@ -1146,7 +1146,7 @@ class cex extends \ccxt\async\cex {
         $incrementalId = $this->safe_integer($data, 'id');
         $pair = $this->safe_string($data, 'pair', '');
         $symbol = $this->pair_to_symbol($pair);
-        if ($symbol === null) {
+        if ($symbol === '') {
             return;
         }
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
@@ -1305,7 +1305,7 @@ class cex extends \ccxt\async\cex {
         $data = $this->safe_dict($message, 'data', array());
         $pair = $this->safe_string($data, 'pair');
         $symbol = $this->pair_to_symbol($pair);
-        if ($symbol === null) {
+        if ($symbol === '') {
             return;
         }
         $messageHash = 'ohlcv:' . $symbol;
@@ -1317,7 +1317,7 @@ class cex extends \ccxt\async\cex {
             $this->safe_number($data, 'c'),
             $this->safe_number($data, 'v'),
         );
-        $stored = $this->safe_value($this->ohlcvs, $symbol);
+        $stored = $this->safe_value($this->ohlcvs[$symbol], 'unknown');
         $stored->append($ohlcv);
         $client->resolve($stored, $messageHash);
     }
@@ -1335,7 +1335,7 @@ class cex extends \ccxt\async\cex {
         $data = $this->safe_list($message, 'data', array());
         $pair = $this->safe_string($message, 'pair');
         $symbol = $this->pair_to_symbol($pair);
-        if ($symbol === null) {
+        if ($symbol === '') {
             return;
         }
         $messageHash = 'ohlcv:' . $symbol;

@@ -592,10 +592,10 @@ class coinbaseinternational extends Exchange {
             $type = 'option';
         }
         $symbol = $instrumentName;
-        if (!$isComboMarket) {
+        if (!$isComboMarket && ($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
-            if (!$isSpot) {
-                $symbol = $symbol . ':' . $settle;
+            if (!$isSpot && ($settle !== null)) {
+                $symbol = $base . '/' . $quote . ':' . $settle;
             }
         }
         $linear = $isSpot ? null : ($settle === $quote);
@@ -3221,7 +3221,7 @@ class coinbaseinternational extends Exchange {
         $now = $this->milliseconds();
         $token = $this->get_v2_access_token();
         $tokenExpires = $this->safe_integer($this->options, 'v2TokenExpires');
-        if (!$forceRefresh && ($token !== null) && ($token !== '') && ($tokenExpires !== null) && ($now < $tokenExpires)) {
+        if (!$forceRefresh && ($token !== null) && ($tokenExpires !== null) && ($now < $tokenExpires)) {
             return $token;
         }
         $response = $this->publicPostAuth($paramsOmitted);
@@ -3264,7 +3264,7 @@ class coinbaseinternational extends Exchange {
         if (($token !== null) && ($token !== '')) {
             return $token;
         }
-        if (($this->token === null) || ($this->token === '')) {
+        if ($this->token === '') {
             return null;
         }
         return $this->token;
@@ -3301,7 +3301,7 @@ class coinbaseinternational extends Exchange {
         } elseif (($access === 'private') && $isNativeDeribit) {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
-            $nonce = (string) $this->nonce();
+            $nonce = $this->number_to_string($this->nonce());
             $signedRequest = '/' . 'api/' . $this->version . '/' . $access . '/' . $path;
             if (count($requestParams) > 0) {
                 $signedRequest .= '?' . $this->urlencode($requestParams);

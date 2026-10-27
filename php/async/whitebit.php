@@ -4464,7 +4464,7 @@ class whitebit extends Exchange {
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $query = $this->omit($params, $this->extract_params($path));
-        $version = $this->safe_string($api, 0, '');
+        $version = $api[0];
         $accessibility = $this->safe_string($api, 1);
         $publicHeaders = array();
         $publicHeaders['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;

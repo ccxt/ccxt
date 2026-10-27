@@ -688,7 +688,7 @@ class backpack extends Exchange {
         $supportedTypes = array( 'SPOT', 'PERP', 'RFQ' );
         $marketTypes = array();
         for ($i = 0; $i < count($requestedTypes); $i++) {
-            $requestedType = $requestedTypes[$i];
+            $requestedType = $this->safe_string($requestedTypes, $i, '');
             $normalizedType = $this->safe_string($aliases, $requestedType, $requestedType);
             if (!$this->in_array($normalizedType, $supportedTypes)) {
                 throw new BadRequest($this->id . ' fetchMarkets() unsupported marketType ' . $requestedType);
@@ -1454,7 +1454,7 @@ class backpack extends Exchange {
                 }
             }
         }
-        $stockExplicitlyDisabled = $this->safe_value_2($params, 'stock', 'defaultStock') === false;
+        $stockExplicitlyDisabled = !$this->safe_bool_2($params, 'stock', 'defaultStock', true);
         $needsExternalRfqTickers = ($source === 'Venue') && ($this->safe_string($query, 'source') === null) && $hasRfqSymbol && !$stockExplicitlyDisabled;
         $requestParams = $query;
         if (($source === 'External') && ($stockOnly || $hasStockSymbol) && !$stockExplicitlyDisabled) {
@@ -2757,7 +2757,6 @@ class backpack extends Exchange {
             Async\await($this->load_markets());
         }
         $ordersRequests = array();
-        $stockOption = $this->safe_value_2($params, 'stock', 'defaultStock');
         $stock = $this->safe_bool($selection, 0, false);
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
@@ -2768,7 +2767,7 @@ class backpack extends Exchange {
             $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $baseParams = array();
-            if ($stock || ($stockOption === false)) {
+            if ($stock || !$this->safe_bool_2($params, 'stock', 'defaultStock', true)) {
                 $baseParams['stock'] = $stock;
             }
             $baseQuery = $this->extend($baseParams, $query);

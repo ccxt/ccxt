@@ -967,7 +967,7 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta($bookside, $deltas[$i]);
+            $this->handle_delta($bookside, $this->safe_value($deltas, $i));
         }
     }
 
@@ -977,7 +977,7 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function handle_book_deltas(mixed $orderbook, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_book_delta($orderbook, $deltas[$i]);
+            $this->handle_book_delta($orderbook, $this->safe_value($deltas, $i));
         }
     }
 
@@ -987,7 +987,7 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function handle_deltas_with_keys(mixed $bookSide, array $deltas, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
         for ($i = 0; $i < count($deltas); $i++) {
-            $bidAsk = $this->parse_order_book_bid_ask($deltas[$i], $priceKey, $amountKey, $countOrIdKey);
+            $bidAsk = $this->parse_order_book_bid_ask($this->safe_value($deltas, $i), $priceKey, $amountKey, $countOrIdKey);
             $bookSide->storeArray($bidAsk);
         }
     }
@@ -1971,7 +1971,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' orderbookChecksumMessage() requires a symbol argument');
         }
-        return $symbol . ' : ' . 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
+        return $symbol . ' : orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
     }
 
     public function get_default_options() {
@@ -2196,7 +2196,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         if ($market !== null) {
             $result = $this->extend($cleanStructure, $market);
             // set undefined swap/future/etc
-            if ($result['spot'] === true) {
+            if ($this->safe_bool($result, 'spot') === true) {
                 if ($result['contract'] === null) {
                     $result['contract'] = false;
                 }
@@ -2249,9 +2249,9 @@ class BaseExchange extends \ccxt\BaseExchange {
                 'precision' => $this->precision,
                 'limits' => $this->limits,
             ), $this->fees['trading'], $valueDefined);
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear') === true) {
                 $market['subType'] = 'linear';
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse') === true) {
                 $market['subType'] = 'inverse';
             } else {
                 $market['subType'] = null;
@@ -3404,7 +3404,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 throw new BadRequest($this->id . ' symbols must be of the same type ' . $type . '. If the type is incorrect you can change it in options or the params of the request');
             }
             $marketType = $this->safe_string($market, 'type');
-            if ($market['spot'] !== true) {
+            if ($this->safe_bool($market, 'spot') !== true) {
                 $isLinearSubType = $this->safe_bool($market, 'linear');
             }
             $symbol = $this->safe_string($market, 'symbol', $symbols[$i]);
@@ -4558,7 +4558,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                     $marketTypeResolved = ($marketType === null) ? $this->safe_string($market, 'type', '') : $marketType;
                     for ($i = 0; $i < count($markets); $i++) {
                         $currentMarket = $markets[$i];
-                        if ($currentMarket[$marketTypeResolved] === true) {
+                        if ($this->safe_bool($currentMarket, $marketTypeResolved) === true) {
                             return $currentMarket;
                         }
                     }
@@ -4911,9 +4911,9 @@ class BaseExchange extends \ccxt\BaseExchange {
         } else {
             // at first, check from market object
             if ($market !== null) {
-                if ($market['linear'] === true) {
+                if ($this->safe_bool($market, 'linear') === true) {
                     $subType = 'linear';
-                } elseif ($market['inverse'] === true) {
+                } elseif ($this->safe_bool($market, 'inverse') === true) {
                     $subType = 'inverse';
                 }
             }
@@ -5305,7 +5305,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             $defaultType = $this->safe_string_2($this->options, 'defaultType', 'defaultSubType', 'spot');
             for ($i = 0; $i < count($marketsList); $i++) {
                 $market = $marketsList[$i];
-                if ($market[$defaultType] === true) {
+                if ($this->safe_bool($market, $defaultType) === true) {
                     return $market;
                 }
             }
@@ -6214,7 +6214,7 @@ class BaseExchange extends \ccxt\BaseExchange {
     public function parse_ws_ohlcvs(mixed $ohlcvs, ?array $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
         $results = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
-            $results[] = $this->parse_ws_ohlcv($ohlcvs[$i], $market);
+            $results[] = $this->parse_ws_ohlcv($this->safe_value($ohlcvs, $i), $market);
         }
         return $results;
     }
@@ -6314,7 +6314,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                     $response = Async\await($this->$method($symbol, null, $maxEntriesPerRequestOption, $paramsMaxEntriesPerRequest));
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $backwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' method ' . $method . ' response length ' . $this->number_to_string($responseLength);
+                        $backwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' method ' . $method . ' response length ' . (string) $responseLength;
                         if ($paginationTimestamp !== null) {
                             $backwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
                         }
@@ -6341,7 +6341,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                     $response = Async\await($this->$method($symbol, $paginationTimestamp, $maxEntriesPerRequestOption, $paramsMaxEntriesPerRequest));
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $forwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' method ' . $method . ' response length ' . $this->number_to_string($responseLength);
+                        $forwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' method ' . $method . ' response length ' . (string) $responseLength;
                         if ($paginationTimestamp !== null) {
                             $forwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
                         }
@@ -7064,28 +7064,30 @@ class BaseExchange extends \ccxt\BaseExchange {
         if (($unsubHash !== null) && (is_array($client->subscriptions) && array_key_exists($unsubHash ?? '', $client->subscriptions))) {
             unset($client->subscriptions[$unsubHash]);
         }
-        if (!$subHashIsPrefix) {
-            if (($subHash !== null) && (is_array($client->subscriptions) && array_key_exists($subHash ?? '', $client->subscriptions))) {
-                unset($client->subscriptions[$subHash]);
-            }
-            if (($subHash !== null) && (is_array($client->futures) && array_key_exists($subHash ?? '', $client->futures))) {
-                $error = new UnsubscribeError($this->id . ' ' . $subHash);
-                $client->reject($error, $subHash);
-            }
-        } else {
-            $clientSubscriptions = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
-            for ($i = 0; $i < count($clientSubscriptions); $i++) {
-                $sub = $clientSubscriptions[$i];
-                if (($sub !== null) && ($subHash !== null) && str_starts_with($sub, $subHash)) {
-                    unset($client->subscriptions[$sub]);
+        if ($subHash !== null) {
+            if (!$subHashIsPrefix) {
+                if (is_array($client->subscriptions) && array_key_exists($subHash ?? '', $client->subscriptions)) {
+                    unset($client->subscriptions[$subHash]);
                 }
-            }
-            $clientFutures = is_array($client->futures) ? array_keys($client->futures) : array();
-            for ($i = 0; $i < count($clientFutures); $i++) {
-                $future = $clientFutures[$i];
-                if (($future !== null) && ($subHash !== null) && str_starts_with($future, $subHash)) {
-                    $error = new UnsubscribeError($this->id . ' ' . $future);
-                    $client->reject($error, $future);
+                if (is_array($client->futures) && array_key_exists($subHash ?? '', $client->futures)) {
+                    $error = new UnsubscribeError($this->id . ' ' . $subHash);
+                    $client->reject($error, $subHash);
+                }
+            } else {
+                $clientSubscriptions = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+                for ($i = 0; $i < count($clientSubscriptions); $i++) {
+                    $sub = $clientSubscriptions[$i];
+                    if (str_starts_with($sub, $subHash)) {
+                        unset($client->subscriptions[$sub]);
+                    }
+                }
+                $clientFutures = is_array($client->futures) ? array_keys($client->futures) : array();
+                for ($i = 0; $i < count($clientFutures); $i++) {
+                    $future = $clientFutures[$i];
+                    if (str_starts_with($future, $subHash)) {
+                        $error = new UnsubscribeError($this->id . ' ' . $future);
+                        $client->reject($error, $future);
+                    }
                 }
             }
         }
@@ -7116,7 +7118,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             }
         } elseif ($symbolsLength > 0) {
             for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
+                $symbol = $this->safe_string($symbols, $i, '');
                 if ($topic === 'trades') {
                     if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
                         unset($this->trades[$symbol]);
@@ -7136,9 +7138,9 @@ class BaseExchange extends \ccxt\BaseExchange {
                 }
             }
         } else {
-            if ($topic === 'myTrades' && ($this->myTrades !== null)) {
+            if ($topic === 'myTrades') {
                 $this->myTrades = null;
-            } elseif ($topic === 'orders' && ($this->orders !== null)) {
+            } elseif ($topic === 'orders') {
                 $this->orders = null;
             } elseif ($topic === 'positions' && ($this->positions !== null)) {
                 $this->positions = null;

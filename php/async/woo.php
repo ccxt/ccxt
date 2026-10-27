@@ -3654,7 +3654,7 @@ class woo extends Exchange {
         $requestHeaders = null;
         $requestBody = null;
         $version = $section[0];
-        $access = $this->safe_string($section, 1);
+        $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
         $baseApiUrl = $this->safe_string($this->urls['api'], $access);
         if ($baseApiUrl === null) {

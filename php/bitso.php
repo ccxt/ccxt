@@ -1999,13 +1999,6 @@ class bitso extends Exchange {
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             //
             $success = $this->safe_bool($response, 'success', false);
-            if (gettype($success) === 'string') {
-                if (($success === 'true') || ($success === '1')) {
-                    $success = true;
-                } else {
-                    $success = false;
-                }
-            }
             if (!$success) {
                 $feedback = $this->id . ' ' . $this->json($response);
                 $error = $this->safe_dict($response, 'error');

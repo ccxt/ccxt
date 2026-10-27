@@ -3256,9 +3256,9 @@ class bitrue extends Exchange {
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $requestBody = null;
         $requestHeaders = null;
-        $type = $this->safe_string($api, 0);
-        $version = $this->safe_string($api, 1, '');
-        $access = $this->safe_string($api, 2);
+        $type = $api[0];
+        $version = $api[1];
+        $access = $api[2];
         $apiUrl = $this->safe_string($this->urls['api'], $type);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');

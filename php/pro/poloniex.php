@@ -166,7 +166,7 @@ class poloniex extends \ccxt\async\poloniex {
          * @return {array} data from the websocket stream
          */
         $publicOrPrivate = 'public';
-        if ($isPrivate) {
+        if ($isPrivate === true) {
             $publicOrPrivate = 'private';
         }
         $url = $this->safe_string($this->urls['api']['ws'], $publicOrPrivate);

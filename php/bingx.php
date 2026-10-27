@@ -7270,9 +7270,7 @@ class bingx extends Exchange {
         $url .= '/' . $version . '/' . $pathValue;
         $requestHeaders = null;
         $requestBody = null;
-        $paramsOmitted = $this->omit($params, $this->extract_params($pathValue));
-        $paramsOmitted['timestamp'] = $this->nonce();
-        $paramsSorted = $this->keysort($paramsOmitted);
+        $paramsSorted = $this->keysort($this->extend($this->omit($params, $this->extract_params($pathValue)), array( 'timestamp' => $this->nonce() )));
         if ($access === 'public') {
             if (count($paramsSorted) > 0) {
                 $url .= '?' . $this->urlencode($paramsSorted);
@@ -7295,7 +7293,7 @@ class bingx extends Exchange {
                 'X-SOURCE-KEY' => $this->safe_string($this->options, 'broker', 'CCXT'),
             );
             if ($isJsonContentType) {
-                $requestHeaders['Content-Type'] = 'application/json';
+                $requestHeaders = $this->extend($requestHeaders, array( 'Content-Type' => 'application/json' ));
                 $paramsSorted['signature'] = $signature;
                 $requestBody = $this->json($paramsSorted);
             } else {

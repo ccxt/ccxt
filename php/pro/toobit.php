@@ -1283,8 +1283,7 @@ class toobit extends \ccxt\async\toobit {
                     // retry rather than dial .../ws/undefined for 20 minutes
                     throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
                 }
-                $this->options['ws']['listenKey'] = $listenKey;
-                $this->options['ws']['lastAuthenticatedTime'] = $time;
+                $this->set_ws_options(array( 'listenKey' => $listenKey, 'lastAuthenticatedTime' => $time ));
                 $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
                 // settle the flight: client.resolve () removes the future from
                 // client.futures and wakes every waiter
@@ -1300,6 +1299,10 @@ class toobit extends \ccxt\async\toobit {
         }
     }
 
+    public function set_ws_options(array $entry) {
+        $this->options['ws'] = $this->extend($this->safe_dict($this->options, 'ws', array()), $entry);
+    }
+
     public function keep_alive_listen_key($params = array()) {
         return Async\async(self::do_keep_alive_listen_key(...))($params);
     }
@@ -1313,8 +1316,7 @@ class toobit extends \ccxt\async\toobit {
         }
         try {
             $response = Async\await($this->privatePostApiV1UserDataStream($params));
-            $this->options['ws']['listenKey'] = $this->safe_string($response, 'listenKey');
-            $this->options['ws']['lastAuthenticatedTime'] = $this->milliseconds();
+            $this->set_ws_options(array( 'listenKey' => $this->safe_string($response, 'listenKey'), 'lastAuthenticatedTime' => $this->milliseconds() ));
         } catch (Exception $error) {
             $url = $this->get_user_stream_url();
             $client = $this->client($url);
@@ -1323,8 +1325,7 @@ class toobit extends \ccxt\async\toobit {
                 $messageHash = $messageHashes[$i];
                 $client->reject($error, $messageHash);
             }
-            $this->options['ws']['listenKey'] = null;
-            $this->options['ws']['lastAuthenticatedTime'] = 0;
+            $this->set_ws_options(array( 'listenKey' => null, 'lastAuthenticatedTime' => 0 ));
             return;
         }
         // whether or not to schedule another listenKey keepAlive request

@@ -7887,7 +7887,7 @@ class htx extends Exchange {
         } else {
             // signing implementation for the new endpoints
             // const [ type, access ] = api;
-            $type = $this->safe_string($api, 0);
+            $type = $api[0];
             $access = $this->safe_string($api, 1);
             $levelOneNestedPath = $this->safe_string($api, 2);
             $levelTwoNestedPath = $this->safe_string($api, 3);

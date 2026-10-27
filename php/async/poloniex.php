@@ -895,7 +895,7 @@ class poloniex extends Exchange {
     }
 
     public function parse_market(array $market): array {
-        if (is_array($market) && array_key_exists('ctType' ?? '', $market)) {
+        if ($this->safe_string($market, 'ctType') !== null) {
             return $this->parse_swap_market($market);
         } else {
             return $this->parse_spot_market($market);
@@ -3713,7 +3713,7 @@ class poloniex extends Exchange {
         $status = $this->parse_transaction_status($status);
         $txid = $this->safe_string($transactionValue, 'txid');
         $type = 'deposit';
-        if (is_array($transactionValue) && array_key_exists('withdrawalRequestsId' ?? '', $transactionValue)) {
+        if ($this->safe_string($transactionValue, 'withdrawalRequestsId') !== null) {
             $type = 'withdrawal';
         }
         $id = $this->safe_string_2($transactionValue, 'withdrawalRequestsId', 'depositNumber');
@@ -3779,7 +3779,7 @@ class poloniex extends Exchange {
         }
         list($hedged, $paramsHedged) = $this->handle_param_bool($paramsMarginMode, 'hedged', false);
         if ($hedged === true) {
-            if (!(is_array($paramsHedged) && array_key_exists('posSide' ?? '', $paramsHedged))) {
+            if ($this->safe_string($paramsHedged, 'posSide') === null) {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires a posSide parameter for hedged mode => "LONG" or "SHORT"');
             }
         }
@@ -4184,30 +4184,28 @@ class poloniex extends Exchange {
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
-        $url = $this->urls['api']['spot'];
-        if ($this->in_array($apiName, array( 'swapPublic', 'swapPrivate' ))) {
-            $url = $this->urls['api']['swap'];
-        }
         if ($method === 'GET' && (is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             $params['symbol'] = $this->encode_uri_component($params['symbol']); // handle symbols like 索拉拉/USDT'
         }
         $query = $this->omit($params, $this->extract_params($path));
         $implodedPath = $this->implode_params($path, $params);
+        $url = $this->safe_string($this->urls['api'], 'spot', '') . '/' . $implodedPath;
+        if ($this->in_array($apiName, array( 'swapPublic', 'swapPrivate' ))) {
+            $url = $this->safe_string($this->urls['api'], 'swap', '') . '/' . $implodedPath;
+        }
         // keep `Object.keys (query).length` inline and evaluated lazily: PHP only rewrites that exact
         // shape into count(x) (a hoisted key list becomes strlen() on an array) and the C#/Java key-list
         // cast throws on a bare-list params (the batch endpoints pass one), so `isArray ||` guards it.
         $bodyJson = null;
         $signedHeaders = null;
         if ($apiName === 'public' || $apiName === 'swapPublic') {
-            $url .= '/' . $implodedPath;
             if (count($query) > 0) {
-                $url .= '?' . $this->urlencode($query);
+                $url = $url . '?' . $this->urlencode($query);
             }
         } else {
             $this->check_required_credentials();
             $timestamp = $this->number_to_string($this->nonce());
             $auth = $method . "\n"; // eslint-disable-line quotes
-            $url .= '/' . $implodedPath;
             $auth .= '/' . $implodedPath;
             if (($method === 'POST') || ($method === 'PUT') || ($method === 'DELETE')) {
                 $auth .= "\n"; // eslint-disable-line quotes
@@ -4221,7 +4219,7 @@ class poloniex extends Exchange {
                 $sortedQuery = $this->keysort($sortedQuery);
                 $auth .= "\n" . $this->urlencode($sortedQuery); // eslint-disable-line quotes
                 if (count($query) > 0) {
-                    $url .= '?' . $this->urlencode($query);
+                    $url = $url . '?' . $this->urlencode($query);
                 }
             }
             $signedHeaders = array(

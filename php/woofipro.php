@@ -1203,7 +1203,7 @@ class woofipro extends Exchange {
         for ($i = 0; $i < count($rows); $i++) {
             $row = $rows[$i];
             $marketId = $this->safe_string($row, 'symbol', '');
-            if (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
+            if ($this->safe_value($this->markets_by_id, $marketId) === null) {
                 continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
             }
             $ticker = $this->extend(array( 'timestamp' => $timestamp ), $row);
@@ -1316,7 +1316,7 @@ class woofipro extends Exchange {
         for ($i = 0; $i < count($rows); $i++) {
             $row = $rows[$i];
             $marketId = $this->safe_string($row, 'symbol', '');
-            if (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
+            if ($this->safe_value($this->markets_by_id, $marketId) === null) {
                 continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
             }
             $interest = $this->extend(array( 'timestamp' => $timestamp ), $row);
@@ -3522,7 +3522,7 @@ class woofipro extends Exchange {
             if (mb_strpos($this->apiKey, 'ed25519:') === false) {
                 $apiKey = 'ed25519:' . $this->apiKey;
             }
-            $requestHeaders = array(
+            $authHeaders = array(
                 'orderly-account-id' => $this->accountId,
                 'orderly-key' => $apiKey,
                 'orderly-timestamp' => $ts,
@@ -3531,13 +3531,13 @@ class woofipro extends Exchange {
             if ($method === 'POST' || $method === 'PUT') {
                 $requestBody = $this->json($requestParams);
                 $auth .= $requestBody;
-                $requestHeaders['content-type'] = 'application/json';
+                $authHeaders['content-type'] = 'application/json';
             } else {
                 if (count($requestParams) > 0) {
                     $url .= '?' . $this->urlencode($requestParams);
                     $auth .= '?' . $this->rawencode($requestParams);
                 }
-                $requestHeaders['content-type'] = 'application/x-www-form-urlencoded';
+                $authHeaders['content-type'] = 'application/x-www-form-urlencoded';
                 if ($method === 'DELETE') {
                     $requestBody = '';
                 }
@@ -3548,11 +3548,10 @@ class woofipro extends Exchange {
                 $secret = $parts[1];
             }
             $signature = $this->eddsa($this->encode($auth), $this->base58_to_binary($secret), 'ed25519');
-            $requestHeaders['orderly-signature'] = $this->urlencode_base64(base64_decode($signature));
+            $authHeaders['orderly-signature'] = $this->urlencode_base64(base64_decode($signature));
+            $requestHeaders = $authHeaders;
         }
-        $bodyResult = $requestBody;
-        $headersResult = $requestHeaders;
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

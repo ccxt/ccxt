@@ -1263,8 +1263,10 @@ class dydx extends Exchange {
             $signature = $this->sign_onboarding_action();
             $credentials = $this->retrieve_dydx_credentials($this->hash_message($this->base16_to_binary($this->safe_string($signature, 'r', '') . $this->safe_string($signature, 's', ''))));
         }
-        $credentials['privateKey'] = bin2hex($credentials['privateKey']);
-        $credentials['publicKey'] = bin2hex($credentials['publicKey']);
+        $credentials = array(
+            'privateKey' => bin2hex($credentials['privateKey']),
+            'publicKey' => bin2hex($credentials['publicKey']),
+        );
         $this->options['dydxCredentials'] = $credentials;
         return $credentials;
     }

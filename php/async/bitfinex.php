@@ -590,13 +590,13 @@ class bitfinex extends Exchange {
         // Anything exceeding this will be rounded to the 8th decimal.
         $symbolValue = $this->safe_symbol($symbol);
         $market = $this->market($symbolValue);
-        return $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], DECIMAL_PLACES);
+        return $this->decimal_to_precision($amount, TRUNCATE, $this->safe_value($market['precision'], 'amount'), DECIMAL_PLACES);
     }
 
     public function price_to_precision(?string $symbol, mixed $price): string {
         $symbolValue = $this->safe_symbol($symbol);
         $market = $this->market($symbolValue);
-        $priceValue = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode);
+        $priceValue = $this->decimal_to_precision($price, ROUND, $this->safe_value($market['precision'], 'price'), $this->precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
@@ -1707,7 +1707,7 @@ class bitfinex extends Exchange {
         return $this->safe_string($statuses, $state, $status);
     }
 
-    public function parse_order_flags(?string $flags): ?array {
+    public function parse_order_flags(?string $flags): array {
         // flags can be added to each other...
         $flagValues = array(
             '1024' => array( 'reduceOnly' ),
@@ -1718,7 +1718,7 @@ class bitfinex extends Exchange {
             // '16384': 'OCO', // The one cancels other order option allows you to place a pair of orders stipulating that if one order is executed fully or partially, then the other is automatically canceled.
             // '524288': 'No Var Rates' // Excludes variable rate funding offers from matching against this order, if on margin
         );
-        return $this->safe_list($flagValues, $flags, null);
+        return $this->safe_list($flagValues, $flags, array());
     }
 
     public function parse_time_in_force(?string $orderType): string {
@@ -1752,11 +1752,9 @@ class bitfinex extends Exchange {
         $rawFlags = $this->safe_string($orderList, 12);
         $flags = $this->parse_order_flags($rawFlags);
         $postOnly = false;
-        if ($flags !== null) {
-            for ($i = 0; $i < count($flags); $i++) {
-                if ($this->safe_string($flags, $i) === 'postOnly') {
-                    $postOnly = true;
-                }
+        for ($i = 0; $i < count($flags); $i++) {
+            if ($this->safe_string($flags, $i) === 'postOnly') {
+                $postOnly = true;
             }
         }
         $price = $this->safe_string($orderList, 16);

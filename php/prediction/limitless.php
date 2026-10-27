@@ -3242,7 +3242,7 @@ class limitless extends Exchange {
          * @return {array} a dictionary with $url, $method, body and headers
          */
         $apiGroup = $api[0];
-        $access = $this->safe_string($api, 1, 'public');
+        $access = $api[1];
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['limitless']);
         $url = '/' . $this->implode_params($path, $params);

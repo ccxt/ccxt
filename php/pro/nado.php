@@ -1133,17 +1133,14 @@ class nado extends \ccxt\async\nado {
         return $result;
     }
 
-    public function watch_execute_request(?string $requestIdString, array $request) {
+    public function watch_execute_request(string $requestIdString, array $request) {
         return Async\async(self::do_watch_execute_request(...))($requestIdString, $request);
     }
 
-    private function do_watch_execute_request(?string $requestIdString, array $request) {
+    private function do_watch_execute_request(string $requestIdString, array $request) {
         // the v2 gateway dispatches requests concurrently, so responses arrive
         // in completion order, not send order — every execute carries a unique
         // request id and its response is correlated by the echoed id
-        if ($requestIdString === null) {
-            throw new ArgumentsRequired($this->id . ' watchExecuteRequest() requires requestIdString');
-        }
         $url = $this->safe_string($this->urls['api']['ws'], 'gateway');
         $messageHash = 'execute:' . $requestIdString;
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
@@ -1292,8 +1289,7 @@ class nado extends \ccxt\async\nado {
             ),
         );
         $encoded = $this->eth_encode_structured_data($domain, $messageTypes, $tx);
-        $hash = '0x' . $this->hash($encoded, 'keccak', 'hex');
-        return $this->signHash($hash, $this->privateKey);
+        return $this->signHash($this->hash($encoded, 'keccak', 'hex'), $this->privateKey);
     }
 
     public function create_public_subscription_request(string $method, ?string $streamType, ?array $market = null, ?int $id = null, $params = array()): array {

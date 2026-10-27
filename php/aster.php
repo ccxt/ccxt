@@ -2691,8 +2691,8 @@ class aster extends Exchange {
             $orderSymbols[] = $currentMarket['symbol'];
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
             $ordersRequests[] = $orderRequest;
@@ -3424,13 +3424,13 @@ class aster extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
         if ($since !== null) {
-            $requestUntil['startTime'] = $since;
+            $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $requestUntil['limit'] = min($limit, 1000); // max 1000
+            $request['limit'] = min($limit, 1000); // max 1000
         }
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
         $response = $this->fapiPrivateGetV3Income($this->extend($requestUntil, $paramsUntil));
         return $this->parse_incomes($response, $market, $since, $limit);
     }

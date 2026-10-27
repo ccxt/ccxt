@@ -1231,7 +1231,7 @@ class phemex extends Exchange {
             throw new ArgumentsRequired($this->id . ' customParseBidAsk() requires a market argument');
         }
         $amount = $this->safe_string($bidask, $amountKey);
-        if ($this->safe_bool($market, 'spot') === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $amount = $this->from_ev($amount, $market);
         }
         return array(
@@ -1286,7 +1286,7 @@ class phemex extends Exchange {
         );
         $marketSettle = $this->safe_string($market, 'settle');
         $isStableSettled = ($marketSettle === 'USDT') || ($marketSettle === 'USDC');
-        if (($market['linear'] === true) && $isStableSettled) {
+        if (($this->safe_bool($market, 'linear', false)) && $isStableSettled) {
             $response = Async\await($this->v2GetMdV2Orderbook($this->extend($request, $params)));
         } else {
             if (($limit !== null) && ($limit <= 30)) {
@@ -1354,7 +1354,7 @@ class phemex extends Exchange {
         return $this->to_en($price, $this->safe_integer($market, 'priceScale'));
     }
 
-    public function from_en(mixed $en, mixed $scale): ?string {
+    public function from_en(?string $en, ?int $scale): ?string {
         if ($en === null || $scale === null) {
             return null;
         }
@@ -1400,7 +1400,7 @@ class phemex extends Exchange {
         //     ]
         //
         $baseVolume = null;
-        if (($market !== null) && ($this->safe_bool($market, 'spot') === true)) {
+        if (($market !== null) && ($this->safe_bool($market, 'spot', false))) {
             $baseVolume = $this->parse_number($this->from_ev($this->safe_string($ohlcv, 7), $market));
         } else {
             $baseVolume = $this->safe_number($ohlcv, 7);
@@ -1447,7 +1447,7 @@ class phemex extends Exchange {
         $paramsOmitted = $this->omit($params, array( 'until' ));
         $marketSettle = $this->safe_string($market, 'settle');
         $isStableSettled = ($marketSettle === 'USDT') || ($marketSettle === 'USDC');
-        $usesSpecialFromToEndpoint = ((($market['linear'] === true) || $isStableSettled)) && (($since !== null) || ($until !== null));
+        $usesSpecialFromToEndpoint = ((($this->safe_bool($market, 'linear', false)) || $isStableSettled)) && (($since !== null) || ($until !== null));
         $maxLimit = 1000;
         if ($usesSpecialFromToEndpoint) {
             $maxLimit = 2000;
@@ -1455,7 +1455,7 @@ class phemex extends Exchange {
         $limitResolved = ($limit === null) ? $maxLimit : min($limit, $maxLimit);
         $request['limit'] = $limitResolved;
         $sinceSeconds = null;
-        if (($market['linear'] === true) || $isStableSettled) {
+        if (($this->safe_bool($market, 'linear', false)) || $isStableSettled) {
             if (($until !== null) || ($since !== null)) {
                 $candleDuration = $this->parse_timeframe($timeframe);
                 if ($since !== null) {
@@ -1619,8 +1619,8 @@ class phemex extends Exchange {
             'symbol' => $market['id'],
             // 'id': 123456789, // optional request id
         );
-        if ($market['swap'] === true) {
-            if (($market['inverse'] === true) || $market['settle'] === 'USD') {
+        if ($this->safe_bool($market, 'swap', false)) {
+            if (($this->safe_bool($market, 'inverse', false)) || $market['settle'] === 'USD') {
                 $response = Async\await($this->v1GetMdTicker24hr($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->v2GetMdV2Ticker24hr($this->extend($request, $params)));
@@ -1740,7 +1740,7 @@ class phemex extends Exchange {
         );
         $marketSettle = $this->safe_string($market, 'settle');
         $isStableSettled = ($marketSettle === 'USDT') || ($marketSettle === 'USDC');
-        if (($market['linear'] === true) && $isStableSettled) {
+        if (($this->safe_bool($market, 'linear', false)) && $isStableSettled) {
             $response = Async\await($this->v2GetMdV2Trade($this->extend($request, $params)));
         } else {
             $response = Async\await($this->v1GetMdTrade($this->extend($request, $params)));
@@ -2024,7 +2024,7 @@ class phemex extends Exchange {
                 $feeCostString = $this->from_er($this->omit_zero($this->safe_string($trade, 'execFeeEv')), $marketResolved);
                 if ($feeCostString !== null) {
                     $feeRateString = $this->from_er($this->safe_string($trade, 'feeRateEr'), $marketResolved);
-                    if ($marketResolved['spot'] === true) {
+                    if ($this->safe_bool($marketResolved, 'spot', false)) {
                         $feeCurrencyCode = $this->safe_currency_code($this->safe_string($trade, 'feeCurrency'));
                     } else {
                         $info = $this->safe_dict($marketResolved, 'info');
@@ -2794,7 +2794,7 @@ class phemex extends Exchange {
             }
         }
         $orderParams = $this->omit($paramsOmitted, array( 'stopPx', 'stopPrice', 'stopLoss', 'takeProfit', 'triggerPrice' ));
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $qtyType = $this->safe_string($orderParams, 'qtyType', 'ByBase');
             if (($typeValue === 'Market') || ($typeValue === 'Stop') || ($typeValue === 'MarketIfTouched')) {
                 if ($price !== null) {
@@ -2830,7 +2830,7 @@ class phemex extends Exchange {
                 $amountString = $this->amount_to_precision($symbol, $amount);
                 $request['baseQtyEv'] = $this->to_ev($amountString, $market);
             }
-        } elseif ($market['swap'] === true) {
+        } elseif ($this->safe_bool($market, 'swap', false)) {
             $hedged = $this->safe_bool($orderParams, 'hedged', false);
             $orderParams = $this->omit($orderParams, 'hedged');
             $posSide = $this->safe_string_lower($orderParams, 'posSide');
@@ -2951,7 +2951,7 @@ class phemex extends Exchange {
         }
         if ($isStableSettled) {
             $response = Async\await($this->privatePostGOrders($this->extend($request, $orderParams)));
-        } elseif ($market['contract'] === true) {
+        } elseif ($this->safe_bool($market, 'contract', false)) {
             $response = Async\await($this->privatePostOrders($this->extend($request, $orderParams)));
         } else {
             $response = Async\await($this->privatePostSpotOrders($this->extend($request, $orderParams)));
@@ -3106,7 +3106,7 @@ class phemex extends Exchange {
                 $request['posSide'] = 'Merged';
             }
             $response = Async\await($this->privatePutGOrdersReplace($this->extend($request, $paramsOmitted3)));
-        } elseif ($market['swap'] === true) {
+        } elseif ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->privatePutOrdersReplace($this->extend($request, $paramsOmitted3)));
         } else {
             $response = Async\await($this->privatePutSpotOrders($this->extend($request, $paramsOmitted3)));
@@ -3155,7 +3155,7 @@ class phemex extends Exchange {
                 $request['posSide'] = 'Merged';
             }
             $response = Async\await($this->privateDeleteGOrdersCancel($this->extend($request, $paramsOmitted)));
-        } elseif ($market['swap'] === true) {
+        } elseif ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->privateDeleteOrdersCancel($this->extend($request, $paramsOmitted)));
         } else {
             $response = Async\await($this->privateDeleteSpotOrders($this->extend($request, $paramsOmitted)));
@@ -3205,7 +3205,7 @@ class phemex extends Exchange {
             //        data: '1'
             //    }
             //
-        } elseif ($market['swap'] === true) {
+        } elseif ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->privateDeleteOrdersAll($this->extend($request, $paramsOmitted)));
             //
             //    {
@@ -3268,7 +3268,7 @@ class phemex extends Exchange {
         $marketSettle = $this->safe_string($market, 'settle');
         if ($marketSettle === 'USDT' || $marketSettle === 'USDC') {
             $response = Async\await($this->privateGetApiDataGFuturesOrdersByOrderId($this->extend($request, $paramsOmitted)));
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $response = Async\await($this->privateGetApiDataSpotsOrdersByOrderId($this->extend($request, $paramsOmitted)));
         } else {
             $response = Async\await($this->privateGetExchangeOrder($this->extend($request, $paramsOmitted)));
@@ -3285,7 +3285,7 @@ class phemex extends Exchange {
                 }
             }
             $order = $this->safe_dict($data, 0, array());
-        } elseif ($market['spot'] === true) {
+        } elseif ($this->safe_bool($market, 'spot', false)) {
             $rows = $this->safe_list($data, 'rows', array());
             $numRows = count($rows);
             if ($numRows < 1) {
@@ -3336,7 +3336,7 @@ class phemex extends Exchange {
         if ($marketSettle === 'USDT' || $marketSettle === 'USDC') {
             $request['currency'] = $marketSettle;
             $response = Async\await($this->privateGetExchangeOrderV2OrderList($this->extend($request, $params)));
-        } elseif ($market['swap'] === true) {
+        } elseif ($this->safe_bool($market, 'swap', false)) {
             $response = Async\await($this->privateGetExchangeOrderList($this->extend($request, $params)));
         } else {
             $response = Async\await($this->privateGetApiDataSpotsOrders($this->extend($request, $params)));
@@ -3381,7 +3381,7 @@ class phemex extends Exchange {
         try {
             if ($marketSettle === 'USDT' || $marketSettle === 'USDC') {
                 $response = Async\await($this->privateGetGOrdersActiveList($this->extend($request, $params)));
-            } elseif ($market['swap'] === true) {
+            } elseif ($this->safe_bool($market, 'swap', false)) {
                 $response = Async\await($this->privateGetOrdersActiveList($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->privateGetSpotOrders($this->extend($request, $params)));
@@ -3442,7 +3442,7 @@ class phemex extends Exchange {
         if (($symbol === null) || ($this->safe_string($market, 'settle') === 'USDT')) {
             $request['currency'] = $this->safe_string($params, 'settle', 'USDT');
             $response = Async\await($this->privateGetExchangeOrderV2OrderList($this->extend($request, $params)));
-        } elseif ($market !== null && ($market['swap'] === true)) {
+        } elseif ($market !== null && ($this->safe_bool($market, 'swap', false))) {
             $response = Async\await($this->privateGetExchangeOrderList($this->extend($request, $params)));
         } else {
             $response = Async\await($this->privateGetExchangeSpotOrder($this->extend($request, $params)));
@@ -4274,7 +4274,7 @@ class phemex extends Exchange {
         // Linear long contract:  unRealizedPnl = (posSize * contractSize) * markPrice - (posSize * contractSize) * avgEntryPrice
         // Linear short contract:  unRealizedPnl = (posSize * contractSize) * avgEntryPrice - (posSize * contractSize) * markPrice
         $priceDiff = null;
-        if ($marketResolved['linear'] === true) {
+        if ($this->safe_bool($marketResolved, 'linear', false)) {
             if ($side === 'long') {
                 $priceDiff = Precise::string_sub($markPriceString, $entryPriceString);
             } else {
@@ -4443,14 +4443,14 @@ class phemex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $request = array(
             'symbol' => $market['id'],
         );
         $response = array();
-        if ($market['linear'] !== true) {
+        if (!$this->safe_bool($market, 'linear', false)) {
             $response = Async\await($this->v1GetMdTicker24hr($this->extend($request, $params)));
         } else {
             $response = Async\await($this->v2GetMdV2Ticker24hr($this->extend($request, $params)));
@@ -4639,7 +4639,7 @@ class phemex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
         }
         $marginModeValue = strtolower($marginMode);
@@ -4695,7 +4695,7 @@ class phemex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($hedged) {
+        if ($hedged === true) {
             $request['targetPosMode'] = 'Hedged';
         } else {
             $request['targetPosMode'] = 'OneWay';
@@ -5199,7 +5199,7 @@ class phemex extends Exchange {
         $market = $this->market($symbol);
         $marketSettle = $this->safe_string($market, 'settle');
         $isUsdtSettled = $marketSettle === 'USDT' || $marketSettle === 'USDC';
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new BadRequest($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
@@ -5357,7 +5357,7 @@ class phemex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['contract'] !== true) {
+        if (!$this->safe_bool($market, 'contract', false)) {
             throw new BadRequest($this->id . ' fetchOpenInterest is only supported for contract markets.');
         }
         $request = array(

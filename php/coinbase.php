@@ -5261,8 +5261,8 @@ class coinbase extends Exchange {
     public function sign(string $path, array $api = array(), string $method = 'GET', $params = array()): array {
         $requestBody = null;
         $requestHeaders = null;
-        $version = $this->safe_string($api, 0);
-        $signed = $this->safe_string($api, 1) === 'private';
+        $version = $api[0];
+        $signed = $api[1] === 'private';
         $isV3 = $version === 'v3';
         $pathPart = 'v2';
         if ($isV3) {

@@ -2813,7 +2813,7 @@ class polymarket extends Exchange {
          * @return {array} a dict with $url, $method, body and headers
          */
         $apiGroup = $api[0];
-        $access = $this->safe_string($api, 1, 'public');
+        $access = $api[1];
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['gamma']);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);

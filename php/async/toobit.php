@@ -1004,7 +1004,7 @@ class toobit extends Exchange {
         $lotSizeFilter = $this->safe_dict($filtersByType, 'LOT_SIZE', array());
         $minNotionalFilter = $this->safe_dict($filtersByType, 'MIN_NOTIONAL', array());
         $symbol = $base . '/' . $quote;
-        $isContract = (is_array($market) && array_key_exists('contractMultiplier' ?? '', $market));
+        $isContract = ($this->safe_string($market, 'contractMultiplier') !== null);
         $inverse = $this->safe_bool_2($market, 'isInverse', 'inverse');
         if ($isContract) {
             $symbol = $base . '/' . $quote . ':' . $settle;
@@ -1988,7 +1988,7 @@ class toobit extends Exchange {
             }
         }
         $paramsOmitted = $this->omit($paramsTrigger, array( 'stopLoss', 'takeProfit' ));
-        if (!(is_array($paramsOmitted) && array_key_exists('newClientOrderId' ?? '', $paramsOmitted))) {
+        if ($this->safe_string($paramsOmitted, 'newClientOrderId') === null) {
             $request['newClientOrderId'] = $this->uuid();
         }
         return array( $request, $paramsOmitted );

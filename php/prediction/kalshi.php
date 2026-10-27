@@ -578,15 +578,14 @@ class kalshi extends Exchange {
         $liquidity = $this->safe_number_2($raw, 'liquidity_dollars', 'liquidity');
         $openInt = $this->safe_number_2($raw, 'open_interest_fp', 'open_interest');
         // Derive series ticker: drop last hyphen-segment from event_ticker
-        $eventParts = array();
+        $seriesTicker = $eventTicker;
         if (($eventTicker !== null) && ($eventTicker !== '')) {
             $eventParts = explode('-', $eventTicker);
-        }
-        $seriesTicker = $eventTicker;
-        $eventPartsLength = count($eventParts);
-        if ($eventPartsLength > 1) {
-            $seriesParts = $this->array_slice($eventParts, 0, $eventPartsLength - 1);
-            $seriesTicker = implode('-', $seriesParts);
+            $eventPartsLength = count($eventParts);
+            if ($eventPartsLength > 1) {
+                $seriesParts = $this->array_slice($eventParts, 0, $eventPartsLength - 1);
+                $seriesTicker = implode('-', $seriesParts);
+            }
         }
         // market symbol (no outcome suffix)
         $subtitleOrTicker = $ticker;
@@ -2729,7 +2728,7 @@ class kalshi extends Exchange {
          * @return {array} a dictionary with $url, $method, body and headers
          */
         $apiGroup = $api[0];
-        $access = $this->safe_string($api, 1, 'public');
+        $access = $api[1];
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['kalshi']);
         $implodedPath = $this->implode_params($path, $params);

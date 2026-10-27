@@ -186,7 +186,7 @@ class onetrading extends \ccxt\async\onetrading {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $subscriptionHash = 'MARKET_TICKER';
         $messageHash = 'ticker.' . $symbolValue;
         $request = array(
@@ -378,7 +378,7 @@ class onetrading extends \ccxt\async\onetrading {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'book:' . $symbolValue;
         $subscriptionHash = 'ORDER_BOOK';
         $depth = 0;
@@ -1137,8 +1137,8 @@ class onetrading extends \ccxt\async\onetrading {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $marketId = $market['id'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
+        $marketId = $this->safe_string($market, 'id', '');
         $url = $this->safe_string($this->urls['api'], 'ws');
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $timeframeId = $this->safe_dict($timeframes, $timeframe);

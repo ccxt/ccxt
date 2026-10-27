@@ -11769,7 +11769,7 @@ class kucoin extends Exchange {
     }
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
-        $apiName = $this->safe_string($api, 0);
+        $apiName = $api[0];
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑

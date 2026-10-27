@@ -177,7 +177,8 @@ class backpack extends \ccxt\async\backpack {
                     $quoteChannel = ($source === 'External') ? 'stockPrice' : 'stockIndicativeQuote';
                     $topic = $quoteChannel . '.' . $ticker;
                 } else {
-                    $topic = 'bookTicker.' . $this->ws_venue_market_id($methodName, $market, $query);
+                    $this->ws_venue_market_id($methodName, $market, $query);
+                    $topic = 'bookTicker.' . $this->safe_string($market, 'id', '');
                 }
             } elseif ($source === 'External') {
                 $externalBaseId = $this->safe_string($market, 'baseId', '');
@@ -782,7 +783,8 @@ class backpack extends \ccxt\async\backpack {
             $market = $this->market($marketId);
             $tf = $this->safe_string($symbolAndTimeframe, 1);
             $interval = $this->safe_string($this->timeframes, $tf, $tf);
-            $topics[] = 'kline.' . $interval . '.' . $this->ws_venue_market_id('watchOHLCVForSymbols', $market, $query);
+            $this->ws_venue_market_id('watchOHLCVForSymbols', $market, $query);
+            $topics[] = 'kline.' . $interval . '.' . $this->safe_string($market, 'id', '');
             $messageHashes[] = 'candles:' . $market['symbol'] . ':' . $interval;
         }
         list($symbol, $timeframe, $candles) = Async\await($this->watch_public($topics, $messageHashes, $this->omit($query, array( 'stock', 'source' ))));
@@ -826,7 +828,8 @@ class backpack extends \ccxt\async\backpack {
             $market = $this->market($marketId);
             $tf = $this->safe_string($symbolAndTimeframe, 1);
             $interval = $this->safe_string($this->timeframes, $tf, $tf);
-            $topics[] = 'kline.' . $interval . '.' . $this->ws_venue_market_id('watchOHLCVForSymbols', $market, $query);
+            $this->ws_venue_market_id('watchOHLCVForSymbols', $market, $query);
+            $topics[] = 'kline.' . $interval . '.' . $this->safe_string($market, 'id', '');
             $messageHashes[] = 'unsubscribe:candles:' . $market['symbol'] . ':' . $interval;
         }
         return Async\await($this->watch_public($topics, $messageHashes, $this->omit($query, array( 'stock', 'source' )), true));
@@ -1361,7 +1364,7 @@ class backpack extends \ccxt\async\backpack {
             if ($this->safe_string($market, 'executionModel') === 'rfq') {
                 $topic = 'account.rfqUpdate.' . $this->safe_string($market, 'id', '');
             }
-            $messageHash = 'orders:' . $symbolResolved;
+            $messageHash = 'orders:' . $this->safe_string($market, 'symbol', '');
         }
         $topics = array( $topic );
         if ($market === null) {
@@ -1921,7 +1924,7 @@ class backpack extends \ccxt\async\backpack {
         $code = $this->safe_integer($error, 'code');
         try {
             if ($code !== null) {
-                $msg = $this->safe_string($error, 'message');
+                $msg = $this->safe_string($error, 'message', '');
                 throw new ExchangeError($this->id . ' ' . $msg);
             }
             return true;

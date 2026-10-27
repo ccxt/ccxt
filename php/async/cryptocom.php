@@ -3773,8 +3773,8 @@ class cryptocom extends Exchange {
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $requestHeaders = null;
         $requestBody = null;
-        $type = $this->safe_string($api, 0);
-        $access = $this->safe_string($api, 1);
+        $type = $api[0];
+        $access = $api[1];
         $apiUrl = $this->safe_string($this->urls['api'], $type);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');

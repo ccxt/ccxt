@@ -3302,8 +3302,7 @@ class myriad extends Exchange {
         // connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
         // clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
         $client = $this->client($url);
-        $connectSent = $this->safe_value($client->subscriptions, 'connect');
-        if ($connectSent === null) {
+        if (!(is_array($client->subscriptions) && array_key_exists('connect' ?? '', $client->subscriptions))) {
             $this->options['wsConnected'] = false;
             $requestId = $this->request_id($url);
             // give the anonymous connect a name so the params object is non-empty (PHP serialises an
@@ -3424,7 +3423,7 @@ class myriad extends Exchange {
         // finish the connect handshake first so the client exists and the subscribe follows the connect reply
         Async\await($this->connect_centrifugo($url));
         $client = $this->client($url);
-        $isNewSubscription = $this->safe_value($client->subscriptions, $channel) === null;
+        $isNewSubscription = !(is_array($client->subscriptions) && array_key_exists($channel ?? '', $client->subscriptions));
         if ($isNewSubscription) {
             // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
             // fresh subscription (first call or after a reconnect that cleared client.subscriptions)
@@ -3911,7 +3910,7 @@ class myriad extends Exchange {
         $url = $this->safe_string($this->urls['api'], 'ws');
         Async\await($this->connect_centrifugo($url));
         $client = $this->client($url);
-        $isNewSubscription = $this->safe_value($client->subscriptions, $channel) === null;
+        $isNewSubscription = !(is_array($client->subscriptions) && array_key_exists($channel ?? '', $client->subscriptions));
         if ($isNewSubscription) {
             // the channel pushes only signed deltas; seed absolute share balances from REST so
             // handlePosition can maintain a running contracts figure
@@ -4058,9 +4057,7 @@ class myriad extends Exchange {
         // included — the previous logic only sent a body for authenticated requests)
         $bodyValue = null;
         if ($method !== 'GET') {
-            $queryKeys = is_array($query) ? array_keys($query) : array();
-            $queryKeysLength = count($queryKeys);
-            if ($queryKeysLength > 0) {
+            if (count($query) > 0) {
                 $bodyValue = $this->json($query);
             }
         }
