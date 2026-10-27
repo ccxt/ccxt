@@ -1591,7 +1591,7 @@ export default class bybit extends Exchange {
         const symbolBase = symbol.split ('/');
         let expiry: Str = undefined;
         const hasSlash = symbol.indexOf ('/') > -1;
-        let baseName: Str = undefined;
+        let baseName = this.safeString (optionParts, 0);
         if (hasSlash) {
             baseName = this.safeString (symbolBase, 0);
             expiry = this.safeString (optionParts, 1);
@@ -1604,7 +1604,6 @@ export default class bybit extends Exchange {
             quote = quoteAndSettle;
             settle = quoteAndSettle;
         } else {
-            baseName = this.safeString (optionParts, 0);
             expiry = this.convertMarketIdExpireDate (this.safeString (optionParts, 1));
             if (symbol.endsWith ('-USDT')) {
                 quote = 'USDT';
@@ -10124,14 +10123,14 @@ export default class bybit extends Exchange {
                     'Content-Type': 'application/json',
                     'X-BAPI-API-KEY': this.apiKey,
                     'X-BAPI-TIMESTAMP': timestamp,
-                    'X-BAPI-RECV-WINDOW': this.numberToString (this.options['recvWindow']),
+                    'X-BAPI-RECV-WINDOW': this.safeString (this.options, 'recvWindow', ''),
                 };
                 if (isV3UnifiedMargin || isV3Contract) {
                     requestHeaders['X-BAPI-SIGN-TYPE'] = '2';
                 }
                 const query = this.extend ({}, params);
                 const queryEncoded = this.rawencode (query);
-                const auth_base = timestamp.toString () + this.apiKey + this.options['recvWindow'].toString ();
+                const auth_base = timestamp + this.apiKey + this.safeString (this.options, 'recvWindow', '');
                 let authFull: Str = undefined;
                 if (method === 'POST') {
                     requestBody = this.json (query);
@@ -10226,11 +10225,9 @@ export default class bybit extends Exchange {
                 // {"ret_code":30084,"ret_msg":"Isolated not modified","ext_code":"","ext_info":"","result":null,"time_now":"1642005219.937988","rate_limit_status":73,"rate_limit_reset_ms":1642005219894,"rate_limit":75}
                 return undefined;
             }
-            let feedback: Str = undefined;
+            let feedback: string = this.id + ' ' + body;
             if (errorCode === '10005' && url.indexOf ('order') < 0) {
                 feedback = this.id + ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: "Account Transfer", "Subaccount Transfer", "Withdrawal" ' + body;
-            } else {
-                feedback = this.id + ' ' + body;
             }
             if (body.indexOf ('Withdraw address chain or destination tag are not equal') > -1) {
                 feedback = feedback + '; You might also need to ensure the address is whitelisted';
