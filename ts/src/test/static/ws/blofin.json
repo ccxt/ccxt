@@ -183,6 +183,165 @@
                     }
                 }
             }
+        ],
+        "unWatchTrades": [
+            {
+                "description": "swap trades unsubscribe acknowledged for the symbol; frame shape from a live public channel unsubscribe",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://openapi.blofin.com/ws/public",
+                "messages": [
+                    {
+                        "event": "unsubscribe",
+                        "arg": {
+                            "channel": "trades",
+                            "instId": "BTC-USDT"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "unsubscribe",
+                        "args": [
+                            {
+                                "channel": "trades",
+                                "instId": "BTC-USDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTradesForSymbols": [
+            {
+                "description": "swap trades unsubscribe for two symbols in one request, blofin acknowledges each topic separately",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "url": "wss://openapi.blofin.com/ws/public",
+                "messages": [
+                    {
+                        "event": "unsubscribe",
+                        "arg": {
+                            "channel": "trades",
+                            "instId": "BTC-USDT"
+                        }
+                    },
+                    {
+                        "event": "unsubscribe",
+                        "arg": {
+                            "channel": "trades",
+                            "instId": "ETH-USDT"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "unsubscribe",
+                        "args": [
+                            {
+                                "channel": "trades",
+                                "instId": "BTC-USDT"
+                            },
+                            {
+                                "channel": "trades",
+                                "instId": "ETH-USDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCV": [
+            {
+                "description": "swap ohlcv 1h unsubscribe, the channel carries blofin's interval name (candle1H)",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h"
+                ],
+                "url": "wss://openapi.blofin.com/ws/public",
+                "messages": [
+                    {
+                        "event": "unsubscribe",
+                        "arg": {
+                            "channel": "candle1H",
+                            "instId": "BTC-USDT"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "unsubscribe",
+                        "args": [
+                            {
+                                "channel": "candle1H",
+                                "instId": "BTC-USDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCVForSymbols": [
+            {
+                "description": "swap ohlcv unsubscribe for two symbol/timeframe pairs in one request, acknowledged per topic",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    [
+                        [
+                            "BTC/USDT:USDT",
+                            "1m"
+                        ],
+                        [
+                            "ETH/USDT:USDT",
+                            "5m"
+                        ]
+                    ]
+                ],
+                "url": "wss://openapi.blofin.com/ws/public",
+                "messages": [
+                    {
+                        "event": "unsubscribe",
+                        "arg": {
+                            "channel": "candle1m",
+                            "instId": "BTC-USDT"
+                        }
+                    },
+                    {
+                        "event": "unsubscribe",
+                        "arg": {
+                            "channel": "candle5m",
+                            "instId": "ETH-USDT"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "unsubscribe",
+                        "args": [
+                            {
+                                "channel": "candle1m",
+                                "instId": "BTC-USDT"
+                            },
+                            {
+                                "channel": "candle5m",
+                                "instId": "ETH-USDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
         ]
     }
 }
