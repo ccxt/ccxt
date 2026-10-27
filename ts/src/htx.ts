@@ -7135,6 +7135,7 @@ export default class htx extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch funding rate history for
      * @param {int} [limit] the maximum number of structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate, linear swaps only
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
@@ -7142,14 +7143,17 @@ export default class htx extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
-        if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'current_page', 'page_index', 1, 50) as FundingRateHistory[];
-        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
+        if (paginate) {
+            if (market['linear'] === true) {
+                return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 100) as FundingRateHistory[];
+            }
+            return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'current_page', 'page_index', 1, 50) as FundingRateHistory[];
+        }
         const request: Dict = {
             'contract_code': market['id'],
         };
@@ -7193,7 +7197,8 @@ export default class htx extends Exchange {
             //     }
             //
         } else if (market['linear'] === true) {
-            response = await this.contractPublicGetV5MarketFundingRateHistory (this.extend (request, paramsPaginate));
+            const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_time', request, paramsPaginate);
+            response = await this.contractPublicGetV5MarketFundingRateHistory (this.extend (requestUntil, paramsUntil));
             //
             //     {
             //         "code": 200,
