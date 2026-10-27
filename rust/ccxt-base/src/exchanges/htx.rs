@@ -10634,13 +10634,13 @@ impl HtxCore {
 })]);
                     let mut id: Value = self.safe_string_k(options, "id", &[Value::Str("AA03022abc".into())]);
                     if !isArrayParams {
-                        if (Value::Int(pathString.as_str().and_then(|__s| __s.find("cancel")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) && (pathString.as_str().is_some_and(|__s| __s.ends_with("order"))) {
+                        if (Value::Int(pathString.as_str().and_then(|__s| __s.find("cancel")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) && (pathString.as_str().unwrap_or("").ends_with("order")) {
                             // swap order placement
                             let mut channelCode: Option<String> = self.safe_string_k(params.clone(), "channel_code", &[]).as_str().map(str::to_owned);
                             if (channelCode.is_none()) {
                                 if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("channel_code".into(), id.clone()); }
                             }
-                        }  else if (pathString.as_str().is_some_and(|__s| __s.ends_with("orders/place"))) {
+                        }  else if (pathString.as_str().unwrap_or("").ends_with("orders/place")) {
                             // spot order placement
                             let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "client-order-id", &[]).as_str().map(str::to_owned);
                             if (clientOrderId.is_none()) {

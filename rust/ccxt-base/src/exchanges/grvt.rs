@@ -4557,7 +4557,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 
     pub fn format_signature_rs(&self, mut value: Value) -> Value {
         let mut padded: Value = value.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
-        if (padded.as_str().is_some_and(|__s| __s.starts_with("0x"))) {
+        if (padded.as_str().unwrap_or("").starts_with("0x")) {
             return padded;
         }  else {
             return Value::Str(format!("{}{}", Value::Str("0x".into()), padded).into());
@@ -4653,13 +4653,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 requestBody = json_stringify(&params);
             }
         }
-        let mut isPrivate: bool = apiName.as_str().is_some_and(|__s| __s.starts_with("private"));
+        let mut isPrivate: bool = apiName.as_str().unwrap_or("").starts_with("private");
         if isPrivate {
             self.check_required_credentials(&[]);
             if (queryString.as_str() != Some("")) {
                 requestPath = Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, Value::Str("?".into())).into()), queryString).into());
             }
-            if (Value::Bool(requestPath.as_str().is_some_and(|__s| __s.ends_with("auth/api_key/login"))).as_bool() == Some(true)) || (Value::Bool(requestPath.as_str().is_some_and(|__s| __s.ends_with("auth/wallet/login"))).as_bool() == Some(true)) {
+            if (Value::Bool(requestPath.as_str().unwrap_or("").ends_with("auth/api_key/login")).as_bool() == Some(true)) || (Value::Bool(requestPath.as_str().unwrap_or("").ends_with("auth/wallet/login")).as_bool() == Some(true)) {
                 requestHeaders = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
@@ -4694,7 +4694,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }
 
     pub fn handle_errors(&mut self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
-        if (url.as_str().is_some_and(|__s| __s.ends_with("auth/api_key/login"))) || (url.as_str().is_some_and(|__s| __s.ends_with("auth/wallet/login"))) {
+        if (url.as_str().unwrap_or("").ends_with("auth/api_key/login")) || (url.as_str().unwrap_or("").ends_with("auth/wallet/login")) {
             let mut accountId: Value = self.safe_string2(headers.clone(), Value::Str("X-Grvt-Account-Id".into()), Value::Str("x-grvt-account-id".into()), &[]);
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("AuthAccountId".into(), accountId); }
             let mut cookie: Value = self.safe_string2(headers, Value::Str("Set-Cookie".into()), Value::Str("set-cookie".into()), &[]);

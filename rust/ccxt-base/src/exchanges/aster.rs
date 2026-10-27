@@ -5055,7 +5055,7 @@ impl AsterCore {
             if (truncatedLiquidationPrice == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing truncatedLiquidationPrice".into()))));
             }
-            if (truncatedLiquidationPrice.as_str().is_some_and(|__s| __s.starts_with("-"))) {
+            if (truncatedLiquidationPrice.as_str().unwrap_or("").starts_with("-")) {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
                 truncatedLiquidationPrice = Value::Null;

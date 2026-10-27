@@ -1421,7 +1421,7 @@ impl HitbtcCore {
             let mut __for_first_740: bool = true;
             while { if !__for_first_740 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_740 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
             let mut id: Value = ids.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            if (id.as_str().is_some_and(|__s| __s.ends_with("_BQX"))) {
+            if (id.as_str().unwrap_or("").ends_with("_BQX")) {
                 continue;
             }
             let mut market: Value = self.safe_dict(response.clone(), id.clone(), &[]);

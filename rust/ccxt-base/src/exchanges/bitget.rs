@@ -8380,8 +8380,10 @@ if _try_result.is_err() {
         let mut stockDefault: Value = self.safe_bool_k(market.clone(), "stock", &[Value::Bool(false)]);
         if paginate.as_bool() == Some(true) {
             // the recursive calls read 'stock' and 'uta' themselves, so only peek at the flag here
-            let mut stockForPagination: Value = self.handle_option_bool_and_params(paramsPaginate.clone(), Value::Str("fetchTrades".into()), Value::Str("stock".into()), &[stockDefault.clone()]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-            if (stockForPagination.as_bool() == Some(true)) {
+            let mut stockForPagination: Value = Value::Null;
+            let mut paramsPeek: Value = Value::Null;
+            { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsPaginate.clone(), Value::Str("fetchTrades".into()), Value::Str("stock".into()), &[stockDefault.clone()]).as_array().cloned().unwrap_or_default(); stockForPagination = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsPeek = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            if (stockForPagination.as_bool() == Some(true)) && (paramsPeek != Value::Null) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades() does not support paginate for tokenized stock markets".into()))));
             }
             return self.fetch_paginated_call_cursor(Value::Str("fetchTrades".into()), &[symbol, since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("idLessThan".into()), Value::Str("idLessThan".into())]).await;
@@ -11518,8 +11520,9 @@ if _try_result.is_err() {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchOpenOrders".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]);
             let mut marketType: Value = defaultType.clone();
-            if (matches!(&market, Value::Dict(__d) if __d.contains_key("type"))) {
-                marketType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            let mut marketTypeValue: Option<String> = self.safe_string_k_opt(market.clone(), "type", &[]);
+            if (marketTypeValue.is_some()) {
+                marketType = marketTypeValue.map(Value::from).unwrap_or(Value::Null);
             }
             type_var = self.safe_string_k(paramsMarginMode.clone(), "type", &[marketType]);
         }  else {
@@ -14713,7 +14716,7 @@ if _try_result.is_err() {
             self.load_markets(&[]).await;
         }
         let mut posMode: Value = Value::Str("one_way_mode".into());
-        if hedged.as_bool() == Some(true) {
+        if (hedged.as_bool() == Some(true)) {
             posMode = Value::Str("hedge_mode".into());
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

@@ -13483,7 +13483,7 @@ if _try_result.is_err() {
             let mut entry: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
-            let mut isFundingIndex: bool = (marketId != Value::Null) && (marketId.as_str().is_some_and(|__s| __s.starts_with(".")));
+            let mut isFundingIndex: bool = (marketId != Value::Null) && (marketId.as_str().unwrap_or("").starts_with("."));
             if !isFundingIndex {
                 rates.push(entry);
             }

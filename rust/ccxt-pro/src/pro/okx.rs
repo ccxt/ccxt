@@ -3649,7 +3649,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (id == Value::Null) {
                 // try to parse it from the stringified json inside msg
                 let mut msg: Value = (match __pro_message.get("msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-                if (msg != Value::Null) && (msg.as_str().is_some_and(|__s| __s.starts_with("Illegal request: {"))) {
+                if (msg != Value::Null) && (msg.as_str().unwrap_or("").starts_with("Illegal request: {")) {
                     let mut stringifiedJson: Value = msg.as_str().map(|__s| Value::Str(__s.replace("Illegal request: ", "").into())).unwrap_or_else(|| msg.clone());
                     let mut parsedJson: Value = self.parse_json_value(stringifiedJson);
                     id = self.safe_string_k(parsedJson, "id", &[]);
@@ -3854,11 +3854,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if (channel.as_str() == Some("trades")) || (channel.as_str() == Some("trades-all")) {
             self.handle_un_subscription_trades(client.clone(), symbol.clone(), channel.clone());
-        }  else if (channel.as_str().is_some_and(|__s| __s.starts_with("bbo"))) || (channel.as_str().is_some_and(|__s| __s.starts_with("book"))) {
+        }  else if (channel.as_str().unwrap_or("").starts_with("bbo")) || (channel.as_str().unwrap_or("").starts_with("book")) {
             self.handle_unsubscription_order_book(client.clone(), symbol.clone(), channel.clone());
         }  else if Value::Int(channel.as_str().and_then(|__s| __s.find("tickers")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
             self.handle_unsubscription_ticker(client.clone(), symbol.clone(), channel.clone());
-        }  else if (channel.as_str().is_some_and(|__s| __s.starts_with("candle"))) {
+        }  else if (channel.as_str().unwrap_or("").starts_with("candle")) {
             self.handle_unsubscription_ohlcv(client, symbol, channel);
         }
 }

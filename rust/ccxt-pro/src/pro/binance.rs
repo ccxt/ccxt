@@ -714,7 +714,7 @@ impl BinanceCore {
             }
             // only rewrite when the URL ends with exactly "/ws"
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
-            if (Value::Bool(baseUrl.as_str().is_some_and(|__s| __s.ends_with("/ws"))).as_bool() == Some(true)) {
+            if (Value::Bool(baseUrl.as_str().unwrap_or("").ends_with("/ws")).as_bool() == Some(true)) {
                 let mut prefix: Value = (match (&(baseUrl), (match &(Value::Int(0)) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &((match (&(Value::Int(baseUrl.len() as i64)),
                     &(Value::Int(3))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) { Value::Int(__n) => Some(*__n),
                     Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
@@ -6221,7 +6221,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (event.as_deref() == Some("orderReport")) {
             let mut baseAssetCode: Option<String> = self.safe_string_k_opt(order.clone(), "b", &[]);
             let mut stockBaseSymbol: Value = baseAssetCode.map(Value::from).unwrap_or(Value::Null);
-            if (stockBaseSymbol != Value::Null) && (stockBaseSymbol.as_str().is_some_and(|__s| __s.starts_with("EQ_"))) {
+            if (stockBaseSymbol != Value::Null) && (stockBaseSymbol.as_str().unwrap_or("").starts_with("EQ_")) {
                 stockBaseSymbol = stockBaseSymbol.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(3); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
             }
             if (stockBaseSymbol == Value::Null) {

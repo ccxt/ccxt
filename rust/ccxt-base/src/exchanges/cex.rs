@@ -2659,7 +2659,7 @@ impl CexCore {
         if (response == Value::Null) {
             if (body == Value::Null) {
                 panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" returned empty response".into()))));
-            }  else if (body.as_str().is_some_and(|__s| __s.starts_with("{"))) {
+            }  else if (body.as_str().unwrap_or("").starts_with("{")) {
                 let mut fixed: Value = self.fix_stringified_json_members(body.clone());
                 responseFixed = self.parse_json_value(fixed);
             }  else {

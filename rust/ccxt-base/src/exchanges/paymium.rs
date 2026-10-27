@@ -972,7 +972,7 @@ impl PaymiumCore {
                     m.insert("Api-Nonce".to_string(), nonce.clone());
                 m
             });
-            let mut signedBody: Value = Value::Null;
+            let mut signedBody: Value = Value::Str("".into());
             if (method.as_str() == Some("POST")) && hasQuery {
                 signedBody = json_stringify(&query);
             }

@@ -857,7 +857,7 @@ impl KalshiCore {
         // never satisfies `< 0` and id-form inputs take the wrong branch
         if Value::Int(outcomeSymbol.as_str().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
             // endsWith + negative slice: no .length arithmetic (php count() / python slice traps)
-            let mut isNo: bool = outcomeSymbol.as_str().is_some_and(|__s| __s.ends_with("-NO"));
+            let mut isNo: bool = outcomeSymbol.as_str().unwrap_or("").ends_with("-NO");
             let mut baseTicker: Value = outcomeSymbol.clone();
             if isNo {
                 baseTicker = outcomeSymbol.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 3).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
@@ -953,7 +953,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 continue;
             }
             let mut baseTicker: Value = outcomeSymbol.clone();
-            if (outcomeSymbol.as_str().is_some_and(|__s| __s.ends_with("-NO"))) {
+            if (outcomeSymbol.as_str().unwrap_or("").ends_with("-NO")) {
                 baseTicker = outcomeSymbol.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 3).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
             }
             if !(matches!((&seen, &baseTicker), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {

@@ -6794,7 +6794,7 @@ if _try_result.is_err() {
         let mut type_var: Value = Value::Null;
         let mut amountString: Value = self.safe_string_k(transaction.clone(), "amount", &[]);
         if (id != Value::Null) {
-            if (id.as_str().is_some_and(|__s| __s.starts_with("b"))) {
+            if (id.as_str().unwrap_or("").starts_with("b")) {
                 // GateCode handling
                 type_var = (if crate::precise::Precise::stringGt(&amountString, &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("deposit".into()) } else { Value::Str("withdrawal".into()) });
                 amountString = crate::precise::Precise::stringAbs(&amountString);
@@ -7194,7 +7194,7 @@ if _try_result.is_err() {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder () clientOrderId or text param must be up to 28 characters".into()))));
                 }
                 query = self.omit(query.clone(), Value::Str("textIsRequired".into()), &[]);
-                if !(clientOrderIdRaw.as_str().is_some_and(|__s| __s.starts_with("t"))) {
+                if !(clientOrderIdRaw.as_str().unwrap_or("").starts_with("t")) {
                     clientOrderId = Value::Str(format!("{}{}", Value::Str("t-".into()), clientOrderIdRaw).into());
                 }
                 request.insert("text".into(), clientOrderId.clone());
@@ -7874,7 +7874,7 @@ if _try_result.is_err() {
         let mut clientOrderIdRaw: Value = self.safe_string2(paramsOmitted.clone(), Value::Str("text".into()), Value::Str("clientOrderId".into()), &[]);
         let mut orderId: Value = id;
         if (clientOrderIdRaw != Value::Null) {
-            if !(clientOrderIdRaw.as_str().is_some_and(|__s| __s.starts_with("t"))) {
+            if !(clientOrderIdRaw.as_str().unwrap_or("").starts_with("t")) {
                 orderId = Value::Str(format!("{}{}", Value::Str("t-".into()), clientOrderIdRaw).into());
             }  else {
                 orderId = clientOrderIdRaw.clone();
@@ -9742,7 +9742,7 @@ if _try_result.is_err() {
         let mut bodyJson: Value = Value::Null;
         let mut signedHeaders: Value = Value::Null;
         let mut containsSettle: bool = Value::Int(path.as_str().and_then(|__s| __s.find("settle")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
-        if containsSettle && (path.as_str().is_some_and(|__s| __s.ends_with("batch_cancel_orders"))) {
+        if containsSettle && (path.as_str().unwrap_or("").ends_with("batch_cancel_orders")) {
             // special case where we need to extract the settle from the path
             // but the body is an array of strings
             let mut settle: Value = self.safe_dict(params.clone(), Value::Int(0), &[]);

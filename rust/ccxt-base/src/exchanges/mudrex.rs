@@ -897,7 +897,7 @@ impl MudrexCore {
     pub fn parse_market(&self, mut asset: Value) -> Value {
         let mut ms: Value = self.safe_string_k(asset.clone(), "symbol", &[]);
         let mut base: Value = ms.clone();
-        if (ms != Value::Null) && (ms.as_str().is_some_and(|__s| __s.ends_with("USDT"))) {
+        if (ms != Value::Null) && (ms.as_str().unwrap_or("").ends_with("USDT")) {
             base = ms.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 4).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
         }
         let mut quote: Value = Value::Str("USDT".into());

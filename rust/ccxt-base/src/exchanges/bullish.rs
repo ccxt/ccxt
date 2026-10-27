@@ -1989,22 +1989,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         request.insert("createdAtDatetime[lte]".into(), self.iso8601(until));
         let __ws_arg_5 = self.extend(Value::Map(request), &[paramsUntil]);
         let mut response: Value = self.public_get_v1_markets_symbol_candle(&[__ws_arg_5]).await;
-        //
-        //     [
-        //         {
-        //             "open": "100846.7490",
-        //             "high": "100972.4001",
-        //             "low": "100840.8129",
-        //             "close": "100972.2602",
-        //             "volume": "30.56064890",
-        //             "createdAtTimestamp": "1746720540000",
-        //             "createdAtDatetime": "2025-05-08T16:09:00.000Z",
-        //             "publishedAtTimestamp": "1746720636007"
-        //         }, ...
-        //     ]
-        //
-        let mut ohlcvs: Value = self.to_array(response);
-        return self.parse_ohlc_vs(ohlcvs, &[market, timeframe, since, limit]);
+        return self.parse_ohlc_vs(self.to_array(response), &[market, timeframe, since, limit]);
 
     Value::Null
 }
@@ -2095,8 +2080,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[self.safe_string_k(market, "symbol", &[]), since, limit]);
+        return self.filter_by_symbol_since_limit(self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]), &[self.safe_string_k(market, "symbol", &[]), since, limit]);
 
     Value::Null
 }
@@ -3310,29 +3294,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_get_v1_derivatives_positions(&[__ws_arg_23]).await;
-        //
-        //     [
-        //         {
-        //             "tradingAccountId": "111000000000001",
-        //             "symbol": "BTC-USDC-PERP",
-        //             "side": "BUY",
-        //             "quantity": "1.00000000",
-        //             "notional": "1.0000",
-        //             "entryNotional": "1.0000",
-        //             "mtmPnl": "1.0000",
-        //             "reportedMtmPnl": "1.0000",
-        //             "reportedFundingPnl": "1.0000",
-        //             "realizedPnl": "1.0000",
-        //             "settlementAssetSymbol": "USDC",
-        //             "createdAtDatetime": "2021-05-20T01:01:01.000Z",
-        //             "createdAtTimestamp": "1621490985000",
-        //             "updatedAtDatetime": "2021-05-20T01:01:01.000Z",
-        //             "updatedAtTimestamp": "1621490985000"
-        //         }
-        //     ]
-        //
-        let mut results: Value = self.parse_positions(response, &[symbols.clone()]);
-        return self.filter_by_array_positions(results, Value::Str("symbol".into()), &[symbols]);
+        return self.filter_by_array_positions(self.parse_positions(response, &[symbols.clone()]), Value::Str("symbol".into()), &[symbols]);
 
     Value::Null
 }
@@ -3801,8 +3763,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }  else if (method.as_str() == Some("POST")) {
                 requestBody = json_stringify(&params);
                 let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, nonce).into()), method).into()), Value::Str("/trading-api/".into())).into()), path).into()), requestBody).into());
-                let mut digest: Value = self.hash(self.encode(payload), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
-                let mut signature: Value = self.hmac(self.encode(digest), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
+                let mut signature: Value = self.hmac(self.encode(self.hash(self.encode(payload), Value::Str("sha256".into()), &[Value::Str("hex".into())])), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("BX-TIMESTAMP".to_string(), timestamp);
@@ -3867,8 +3828,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     }
         //
         let mut token: Value = self.safe_string_k(response.clone(), "token", &[]);
-        let mut authorizer: Option<String> = self.safe_string_k_opt(response, "authorizer", &[]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("authorizer".into(), authorizer.map(Value::from).unwrap_or(Value::Null)); }
+        { let __be_tmp = self.safe_string_k(response, "authorizer", &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("authorizer".into(), __be_tmp); } }
         self.token = token.clone();
         { let __be_tmp = self.sum(&[self.milliseconds(), (match (&((match (&((match (&(Value::Int(1000)), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),

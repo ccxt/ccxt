@@ -886,7 +886,7 @@ impl HyperliquidCore {
         // add in wrapped map
         let mut fullName: Value = self.safe_string_k(rawCurrency, "fullName", &[]);
         if (fullName != Value::Null) && (name != Value::Null) {
-            let mut isWrapped: bool = (fullName.as_str().is_some_and(|__s| __s.starts_with("Unit "))) && (name.as_str().is_some_and(|__s| __s.starts_with("U")));
+            let mut isWrapped: bool = (fullName.as_str().unwrap_or("").starts_with("Unit ")) && (name.as_str().unwrap_or("").starts_with("U"));
             if isWrapped {
                 let mut parts: Vec<Value> = Value::Array(name.as_str().map(|__s| __s.split("U").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 let mut nameWithoutU: Value = Value::Str("".into());
@@ -4888,10 +4888,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("marginCanceled".to_string(), Value::Str("canceled".into()));
             m
         });
-        if (status.as_str().is_some_and(|__s| __s.ends_with("Rejected"))) {
+        if (status.as_str().unwrap_or("").ends_with("Rejected")) {
             return Value::Str("rejected".into()).as_str().map(str::to_owned);
         }
-        if (status.as_str().is_some_and(|__s| __s.ends_with("Canceled"))) {
+        if (status.as_str().unwrap_or("").ends_with("Canceled")) {
             return Value::Str("canceled".into()).as_str().map(str::to_owned);
         }
         return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
@@ -5490,7 +5490,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(params2.clone(), Value::Str("setMarginMode".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().cloned().unwrap_or_default(); vaultAddress = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if (vaultAddress != Value::Null) {
-            if (vaultAddress.as_str().is_some_and(|__s| __s.starts_with("0x"))) {
+            if (vaultAddress.as_str().unwrap_or("").starts_with("0x")) {
                 vaultAddress = vaultAddress.as_str().map(|__s| Value::Str(__s.replace("0x", "").into())).unwrap_or_else(|| vaultAddress.clone());
             }
         }
@@ -6796,7 +6796,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (address == Value::Null) {
             return None;
         }
-        if (address.as_str().is_some_and(|__s| __s.starts_with("0x"))) {
+        if (address.as_str().unwrap_or("").starts_with("0x")) {
             return address.as_str().map(|__s| Value::Str(__s.replace("0x", "").into())).unwrap_or_else(|| address.clone()).as_str().map(str::to_owned);
         }
         return address.as_str().map(str::to_owned);

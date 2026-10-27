@@ -1575,7 +1575,7 @@ impl BitvavoCore {
             if !(matches!((&__ch.subscriptions.clone(), &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
             }
-            if !(key.as_str().is_some_and(|__s| __s.starts_with("unsubscribe:"))) {
+            if !(key.as_str().unwrap_or("").starts_with("unsubscribe:")) {
                 continue;
             }
             let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), key.clone(), &[]);

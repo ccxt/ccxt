@@ -1747,7 +1747,7 @@ impl BitfinexCore {
             let mut __for_first_337: bool = true;
             while { if !__for_first_337 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_337 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
             let mut id: Value = self.safe_string(ids.clone(), i.clone(), &[Value::Str("".into())]);
-            if (id.as_str().is_some_and(|__s| __s.ends_with("F0"))) {
+            if (id.as_str().unwrap_or("").ends_with("F0")) {
                 continue;
             }
             allowedIds.push(id);
@@ -1924,7 +1924,7 @@ impl BitfinexCore {
             }
             let mut type_var: Value = self.safe_string(balance.clone(), Value::Int(0), &[]);
             let mut currencyId: Value = self.safe_string_lower(balance.clone(), Value::Int(1), &[Value::Str("".into())]);
-            let mut isDerivativeCode: bool = (currencyId != Value::Null) && (Value::Bool(currencyId.as_str().is_some_and(|__s| __s.ends_with("f0"))).as_bool() == Some(true));
+            let mut isDerivativeCode: bool = (currencyId != Value::Null) && (Value::Bool(currencyId.as_str().unwrap_or("").ends_with("f0")).as_bool() == Some(true));
             // this will only filter the derivative codes if the requestedType is 'derivatives'
             let mut derivativeCondition: bool = !isDerivative || isDerivativeCode;
             if (accountType.as_str() == type_var.as_str()) && derivativeCondition {
@@ -2107,7 +2107,7 @@ impl BitfinexCore {
         let mut currencyId: Value = Value::Null;
         if (type_var.as_str() == Some("derivatives")) {
             currencyId = self.safe_string(underlying.clone(), Value::Int(0), &[transferId.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut isDerivativeCode: bool = currencyId.as_str().is_some_and(|__s| __s.ends_with("F0"));
+            let mut isDerivativeCode: bool = currencyId.as_str().unwrap_or("").ends_with("F0");
             if !isDerivativeCode {
                 currencyId = Value::Str(format!("{}{}", currencyId, Value::Str("F0".into())).into());
             }
@@ -2234,7 +2234,7 @@ impl BitfinexCore {
         // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
         // look like a number and the whole array would be read off by one.
         let mut firstValue: Value = self.safe_string(ticker.clone(), Value::Int(0), &[]);
-        let mut hasMarketId: bool = (firstValue != Value::Null) && ((firstValue.as_str().is_some_and(|__s| __s.starts_with("t"))) || (firstValue.as_str().is_some_and(|__s| __s.starts_with("f"))));
+        let mut hasMarketId: bool = (firstValue != Value::Null) && ((firstValue.as_str().unwrap_or("").starts_with("t")) || (firstValue.as_str().unwrap_or("").starts_with("f")));
         let mut isFetchTicker: bool = !hasMarketId;
         let mut symbol: Value = Value::Null;
         let mut minusIndex: Value = Value::Int(0);
@@ -2414,7 +2414,7 @@ impl BitfinexCore {
         let mut amountString: Value = self.safe_string(tradeList.clone(), amountIndex, &[]);
         let mut priceIndex: Value = (if isPrivate { Value::Int(5) } else { Value::Int(3) });
         let mut priceString: Option<String> = self.safe_string_opt(tradeList.clone(), priceIndex, &[]);
-        if (amountString.as_str().is_some_and(|__s| __s.starts_with("-"))) {
+        if (amountString.as_str().unwrap_or("").starts_with("-")) {
             side = Value::Str("sell".into());
             amountString = crate::precise::Precise::stringAbs(&amountString);
         }  else {

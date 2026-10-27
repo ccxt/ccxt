@@ -2099,7 +2099,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             // channel might be user.trade.BTC_USDT
             self.handle_trades(client.clone(), result.clone());
         }
-        if (channel != Value::Null) && (channel.as_str().is_some_and(|__s| __s.starts_with("user.order"))) {
+        if (channel != Value::Null) && (channel.as_str().unwrap_or("").starts_with("user.order")) {
             // channel might be user.order.BTC_USDT
             self.handle_orders(client.clone(), result.clone(), &[]);
         }
@@ -2231,7 +2231,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if !(matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
             }
-            if (messageHash.as_str().is_some_and(|__s| __s.starts_with("unsubscribe"))) {
+            if (messageHash.as_str().unwrap_or("").starts_with("unsubscribe")) {
                 let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), messageHash, &[]);
                 let mut subId: Value = self.safe_string_k(subscription.clone(), "id", &[]);
                 if (id != subId) {

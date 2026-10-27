@@ -420,7 +420,7 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut isLimitOrder: bool = type_var.as_str().is_some_and(|__s| __s.ends_with("limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        let mut isLimitOrder: bool = type_var.as_str().unwrap_or("").ends_with("limit"); // supporting limit, stop-loss-limit, take-profit-limit, etc
         if isLimitOrder {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" limit orders require a price argument".into()))));
@@ -1628,7 +1628,7 @@ impl KrakenCore {
         let integer: String = self.safe_string_opt(parts.clone(), Value::Int(0), &[Value::Str("".into())]).unwrap_or_default();
         let decimals: String = self.safe_string_opt(parts, Value::Int(1), &[Value::Str("".into())]).unwrap_or_default();
         let mut joinedResult: Value = Value::Str(format!("{}{}", integer, decimals).into());
-        while (joinedResult.as_str().is_some_and(|__s| __s.starts_with("0"))) {
+        while (joinedResult.as_str().unwrap_or("").starts_with("0")) {
             joinedResult = joinedResult.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(1); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
         }
         return joinedResult.as_str().map(str::to_owned);

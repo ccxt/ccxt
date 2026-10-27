@@ -6995,7 +6995,7 @@ impl BingxCore {
         // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
         let mut address: Value = rawAddress.clone();
         if (rawAddress != Value::Null) {
-            let mut isPrefixed: bool = (rawAddress.as_str().is_some_and(|__s| __s.starts_with("0x"))) || (rawAddress.as_str().is_some_and(|__s| __s.starts_with("0X")));
+            let mut isPrefixed: bool = (rawAddress.as_str().unwrap_or("").starts_with("0x")) || (rawAddress.as_str().unwrap_or("").starts_with("0X"));
             let mut evmNetworks: Value = Value::from(vec![Value::Str("BEP20".into()), Value::Str("ERC20".into()), Value::Str("HECO".into()), Value::Str("MATIC".into()), Value::Str("POLYGON".into()), Value::Str("ARBITRUM".into()), Value::Str("OPTIMISM".into()), Value::Str("AVAXC".into()), Value::Str("BASE".into()), Value::Str("FTM".into()),
                 Value::Str("LINEA".into()), Value::Str("ZKSYNC".into()), Value::Str("OPBNB".into())]);
             if !isPrefixed && self.in_array(networkCode.clone(), evmNetworks).as_bool() == Some(true) {

@@ -2889,8 +2889,7 @@ impl ExtendedCore {
         let mut currency: Value = self.currency(code.clone());
         let mut account: Value = self.fetch_extended_account(&[]).await;
         let mut currentAccountId: Value = self.safe_string_k(account.clone(), "accountId", &[Value::Str("".into())]);
-        let mut fromAccountResolved: Value = (if (fromAccount == Value::Null) { currentAccountId.clone() } else { fromAccount });
-        if (fromAccountResolved.as_str() != currentAccountId.as_str()) {
+        if (fromAccount != Value::Null) && (fromAccount.as_str() != currentAccountId.as_str()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" transfer() can only transfer from the authenticated account".into()))));
         }
         let mut toVault: Value = self.safe_string2(params.clone(), Value::Str("toVault".into()), Value::Str("receiverPositionId".into()), &[]);
@@ -2902,7 +2901,7 @@ impl ExtendedCore {
         let mut settlement: indexmap::IndexMap<String, Value> = self.create_transfer_settlement_data(amountString.clone(), currency.clone(), account, toVault, toL2Key, &[params.clone()]).as_map().cloned().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("fromAccount".to_string(), fromAccountResolved.clone());
+                m.insert("fromAccount".to_string(), currentAccountId.clone());
                 m.insert("toAccount".to_string(), toAccount.clone());
                 m.insert("amount".to_string(), amountString.clone());
                 m.insert("transferredAsset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -2940,7 +2939,7 @@ impl ExtendedCore {
         m.insert("datetime".to_string(), self.iso8601(now));
         m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amountString, &[]));
-        m.insert("fromAccount".to_string(), fromAccountResolved);
+        m.insert("fromAccount".to_string(), currentAccountId);
         m.insert("toAccount".to_string(), toAccount);
         m.insert("status".to_string(), status);
     m

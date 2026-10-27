@@ -4609,7 +4609,7 @@ impl CoinbaseinternationalCore {
             return Value::Bool(false);
         }
         let mut useV2CloudApiKey: Value = self.safe_bool_k(self.options.clone(), "v2CloudAPiKey", &[Value::Bool(false)]);
-        return Value::Bool((Value::Int(self.secret.len() as i64).as_f64() == Some(88.0)) || useV2CloudApiKey.as_bool() == Some(true) || (self.secret.as_str().is_some_and(|__s| __s.ends_with("="))));
+        return Value::Bool((Value::Int(self.secret.len() as i64).as_f64() == Some(88.0)) || useV2CloudApiKey.as_bool() == Some(true) || (self.secret.as_str().unwrap_or("").ends_with("=")));
 
     Value::Null
 }

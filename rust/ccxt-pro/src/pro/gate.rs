@@ -2949,7 +2949,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !(matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
             }
-            if (messageHash.as_str().is_some_and(|__s| __s.starts_with("unsubscribe"))) {
+            if (messageHash.as_str().unwrap_or("").starts_with("unsubscribe")) {
                 let mut subscription: Value = get_value(&__ch.subscriptions.clone(), &messageHash);
                 let mut subId: Value = self.safe_string_k(subscription.clone(), "id", &[]);
                 if (id != subId) {

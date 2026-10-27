@@ -1215,7 +1215,7 @@ impl BackpackCore {
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         let mut currencyId: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_string_k(rawCurrency.clone(), "symbol", &[Value::Str("".into())]);
-        let mut stock: bool = (symbol.as_str().is_some_and(|__s| __s.ends_with(".US"))) || (symbol.as_str().is_some_and(|__s| __s.ends_with(".HK")));
+        let mut stock: bool = (symbol.as_str().unwrap_or("").ends_with(".US")) || (symbol.as_str().unwrap_or("").ends_with(".HK"));
         let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut networks: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "tokens", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut parsedNetworks: indexmap::IndexMap<String, Value> = ({
@@ -1592,7 +1592,7 @@ impl BackpackCore {
         let mut rfq: Value = Value::Bool(rawType.as_deref() == Some("RFQ"));
         let mut security: Value = self.safe_dict_k(market.clone(), "security", &[]);
         let mut baseSymbol: Value = self.safe_string_k(market.clone(), "baseSymbol", &[Value::Str("".into())]);
-        let mut stock: Value = Value::Bool((self.safe_string_k(market.clone(), "rwaMarketType", &[]).as_str() == Some("STOCK")) || (security != Value::Null) || (baseSymbol.as_str().is_some_and(|__s| __s.ends_with(".US"))) || (baseSymbol.as_str().is_some_and(|__s| __s.ends_with(".HK"))));
+        let mut stock: Value = Value::Bool((self.safe_string_k(market.clone(), "rwaMarketType", &[]).as_str() == Some("STOCK")) || (security != Value::Null) || (baseSymbol.as_str().unwrap_or("").ends_with(".US")) || (baseSymbol.as_str().unwrap_or("").ends_with(".HK")));
         let mut typeOfMarket: Option<String> = self.parse_market_type(rawType.clone().map(Value::from).unwrap_or(Value::Null));
         let mut linear: Value = Value::Null;
         let mut inverse: Value = Value::Null;
@@ -1823,8 +1823,8 @@ impl BackpackCore {
  * @returns {object} resolved stock RFQ market
  */
     pub fn rfq_conversion_market(&self, mut fromCode: Value, mut toCode: Value) -> Value {
-        let mut fromIsStock: Value = Value::Bool((fromCode.as_str().is_some_and(|__s| __s.ends_with(".US"))) || (fromCode.as_str().is_some_and(|__s| __s.ends_with(".HK"))));
-        let mut toIsStock: Value = Value::Bool((toCode.as_str().is_some_and(|__s| __s.ends_with(".US"))) || (toCode.as_str().is_some_and(|__s| __s.ends_with(".HK"))));
+        let mut fromIsStock: Value = Value::Bool((fromCode.as_str().unwrap_or("").ends_with(".US")) || (fromCode.as_str().unwrap_or("").ends_with(".HK")));
+        let mut toIsStock: Value = Value::Bool((toCode.as_str().unwrap_or("").ends_with(".US")) || (toCode.as_str().unwrap_or("").ends_with(".HK")));
         if (fromIsStock.as_bool() == toIsStock.as_bool()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" conversion requires exactly one stock currency".into()))));
         }

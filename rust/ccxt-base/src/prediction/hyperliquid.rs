@@ -1683,10 +1683,10 @@ impl HyperliquidCore {
             }
         }
         let mut lower: Value = outcomeInput.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-        if (lower.as_str().is_some_and(|__s| __s.ends_with("-yes"))) {
+        if (lower.as_str().unwrap_or("").ends_with("-yes")) {
             return Value::Str("YES".into()).as_str().map(str::to_owned);
         }
-        if (lower.as_str().is_some_and(|__s| __s.ends_with("-no"))) {
+        if (lower.as_str().unwrap_or("").ends_with("-no")) {
             return Value::Str("NO".into()).as_str().map(str::to_owned);
         }
         return None;
@@ -1701,7 +1701,7 @@ impl HyperliquidCore {
         }
         let mut sideHint: Value = self.parse_outcome_input_side_hint(outcomeInput.clone()).map(Value::from).unwrap_or(Value::Null);
         let mut candidates: Vec<Value> = vec![outcomeInput.clone()];
-        if (outcomeInput.as_str().is_some_and(|__s| __s.starts_with("+"))) {
+        if (outcomeInput.as_str().unwrap_or("").starts_with("+")) {
             candidates.push(Value::Str(format!("{}{}", Value::Str("#".into()), outcomeInput.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(1); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).into()));
         }
         let mut digitChars: Value = Value::Str("0123456789".into());
@@ -2415,10 +2415,10 @@ impl HyperliquidCore {
         if (status == Value::Null) {
             return None;
         }
-        if (status.as_str().is_some_and(|__s| __s.ends_with("Rejected"))) {
+        if (status.as_str().unwrap_or("").ends_with("Rejected")) {
             return Value::Str("rejected".into()).as_str().map(str::to_owned);
         }
-        if (status.as_str().is_some_and(|__s| __s.ends_with("Canceled"))) {
+        if (status.as_str().unwrap_or("").ends_with("Canceled")) {
             return Value::Str("canceled".into()).as_str().map(str::to_owned);
         }
         return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
@@ -3145,7 +3145,7 @@ if _try_result.is_err() {
             return None;
         }
         let mut normalized: Value = address;
-        if (normalized.as_str().is_some_and(|__s| __s.starts_with("0x"))) || (normalized.as_str().is_some_and(|__s| __s.starts_with("0X"))) {
+        if (normalized.as_str().unwrap_or("").starts_with("0x")) || (normalized.as_str().unwrap_or("").starts_with("0X")) {
             normalized = normalized.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
         }
         return normalized.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str().map(str::to_owned);

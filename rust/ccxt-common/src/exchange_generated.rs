@@ -2495,55 +2495,60 @@ pub trait ExchangeBase:
                 }
                 // limits
                 let mut limits: Value = self.safe_dict_k(network, "limits", &[]);
-                let mut limitsMain: Value = self.safe_dict_k(currency.clone(), "limits", &[]);
-                if (limitsMain == Value::Null) {
-                    if let Value::Dict(__d) = &mut currency { std::sync::Arc::make_mut(__d).insert("limits".into(), Value::Map({
+                let mut limitsMain: Value = self.safe_dict_k(currency.clone(), "limits", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})); }
-                }
+})]);
                 // deposits
                 let mut limitsDeposit: Value = self.safe_dict_k(limits.clone(), "deposit", &[]);
-                let mut limitsDepositMain: Value = self.safe_dict_k(limitsMain.clone(), "deposit", &[]);
-                if (limitsDepositMain == Value::Null) {
-                    if let Value::Dict(__h0) = &mut currency { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut("limits") { std::sync::Arc::make_mut(__h1).insert("deposit".to_string(), Value::Map({
+                let mut limitsDepositMain: Value = self.safe_dict_k(limitsMain.clone(), "deposit", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})); } }
-                }
+})]);
+                let mut limitsDepositNew: indexmap::IndexMap<String, Value> = ({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                });
                 let mut limitsDepositMin: Option<String> = self.safe_string_k_opt(limitsDeposit.clone(), "min", &[]);
                 let mut limitsDepositMax: Option<String> = self.safe_string_k_opt(limitsDeposit, "max", &[]);
                 let mut limitsDepositMinMain: Option<String> = self.safe_string_k_opt(limitsDepositMain.clone(), "min", &[]);
-                let mut limitsDepositMaxMain: Option<String> = self.safe_string_k_opt(limitsDepositMain, "max", &[]);
+                let mut limitsDepositMaxMain: Option<String> = self.safe_string_k_opt(limitsDepositMain.clone(), "max", &[]);
                 // find min
                 if (limitsDepositMinMain.is_none()) || crate::precise::Precise::stringLt(&limitsDepositMin.clone().map(Value::from).unwrap_or(Value::Null), &limitsDepositMinMain.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
-                    if let Value::Dict(__h0) = &mut currency { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut("limits") { if let Some(Value::Dict(__h2)) = std::sync::Arc::make_mut(__h1).get_mut("deposit") { std::sync::Arc::make_mut(__h2).insert("min".to_string(), self.parse_number(limitsDepositMin.map(Value::from).unwrap_or(Value::Null), &[])); } } }
+                    limitsDepositNew.insert("min".into(), self.parse_number(limitsDepositMin.map(Value::from).unwrap_or(Value::Null), &[]));
                 }
                 // find max
                 if (limitsDepositMaxMain.is_none()) || crate::precise::Precise::stringGt(&limitsDepositMax.clone().map(Value::from).unwrap_or(Value::Null), &limitsDepositMaxMain.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
-                    if let Value::Dict(__h0) = &mut currency { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut("limits") { if let Some(Value::Dict(__h2)) = std::sync::Arc::make_mut(__h1).get_mut("deposit") { std::sync::Arc::make_mut(__h2).insert("max".to_string(), self.parse_number(limitsDepositMax.map(Value::from).unwrap_or(Value::Null), &[])); } } }
+                    limitsDepositNew.insert("max".into(), self.parse_number(limitsDepositMax.map(Value::from).unwrap_or(Value::Null), &[]));
                 }
                 // withdrawals
                 let mut limitsWithdraw: Value = self.safe_dict_k(limits, "withdraw", &[]);
-                let mut limitsWithdrawMain: Value = self.safe_dict_k(limitsMain, "withdraw", &[]);
-                if (limitsWithdrawMain == Value::Null) {
-                    if let Value::Dict(__h0) = &mut currency { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut("limits") { std::sync::Arc::make_mut(__h1).insert("withdraw".to_string(), Value::Map({
+                let mut limitsWithdrawMain: Value = self.safe_dict_k(limitsMain.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})); } }
-                }
+})]);
+                let mut limitsWithdrawNew: indexmap::IndexMap<String, Value> = ({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                });
                 let mut limitsWithdrawMin: Option<String> = self.safe_string_k_opt(limitsWithdraw.clone(), "min", &[]);
                 let mut limitsWithdrawMax: Option<String> = self.safe_string_k_opt(limitsWithdraw, "max", &[]);
                 let mut limitsWithdrawMinMain: Option<String> = self.safe_string_k_opt(limitsWithdrawMain.clone(), "min", &[]);
-                let mut limitsWithdrawMaxMain: Option<String> = self.safe_string_k_opt(limitsWithdrawMain, "max", &[]);
+                let mut limitsWithdrawMaxMain: Option<String> = self.safe_string_k_opt(limitsWithdrawMain.clone(), "max", &[]);
                 // find min
                 if (limitsWithdrawMinMain.is_none()) || crate::precise::Precise::stringLt(&limitsWithdrawMin.clone().map(Value::from).unwrap_or(Value::Null), &limitsWithdrawMinMain.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
-                    if let Value::Dict(__h0) = &mut currency { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut("limits") { if let Some(Value::Dict(__h2)) = std::sync::Arc::make_mut(__h1).get_mut("withdraw") { std::sync::Arc::make_mut(__h2).insert("min".to_string(), self.parse_number(limitsWithdrawMin.map(Value::from).unwrap_or(Value::Null), &[])); } } }
+                    limitsWithdrawNew.insert("min".into(), self.parse_number(limitsWithdrawMin.map(Value::from).unwrap_or(Value::Null), &[]));
                 }
                 // find max
                 if (limitsWithdrawMaxMain.is_none()) || crate::precise::Precise::stringGt(&limitsWithdrawMax.clone().map(Value::from).unwrap_or(Value::Null), &limitsWithdrawMaxMain.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
-                    if let Value::Dict(__h0) = &mut currency { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut("limits") { if let Some(Value::Dict(__h2)) = std::sync::Arc::make_mut(__h1).get_mut("withdraw") { std::sync::Arc::make_mut(__h2).insert("max".to_string(), self.parse_number(limitsWithdrawMax.map(Value::from).unwrap_or(Value::Null), &[])); } } }
+                    limitsWithdrawNew.insert("max".into(), self.parse_number(limitsWithdrawMax.map(Value::from).unwrap_or(Value::Null), &[]));
                 }
+                if let Value::Dict(__d) = &mut currency { std::sync::Arc::make_mut(__d).insert("limits".into(), self.extend(limitsMain, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("deposit".to_string(), self.extend(limitsDepositMain, &[Value::Map(limitsDepositNew)]));
+        m.insert("withdraw".to_string(), self.extend(limitsWithdrawMain, &[Value::Map(limitsWithdrawNew)]));
+    m
+})])); }
             }
             }
         }
@@ -2906,18 +2911,18 @@ pub trait ExchangeBase:
     fn safe_balance(&self, mut balance: Value) -> Value {
         let mut balances: Value = self.omit(balance.clone(), Value::from(vec![Value::Str("info".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]), &[]);
         let mut codes: Vec<Value> = object_keys(&balances).as_array().cloned().unwrap_or_default();
-        if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("free".into(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})); }
-        if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("used".into(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})); }
-        if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("total".into(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})); }
+        let mut freeBalance: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let mut usedBalance: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let mut totalBalance: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         let mut debtBalance: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2943,15 +2948,18 @@ pub trait ExchangeBase:
             if let Value::Dict(__h0) = &mut balance { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut(&crate::runtime::stringify_param(&code)) { std::sync::Arc::make_mut(__h1).insert("free".to_string(), self.parse_number(free, &[])); } }
             if let Value::Dict(__h0) = &mut balance { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut(&crate::runtime::stringify_param(&code)) { std::sync::Arc::make_mut(__h1).insert("used".to_string(), self.parse_number(used, &[])); } }
             if let Value::Dict(__h0) = &mut balance { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut(&crate::runtime::stringify_param(&code)) { std::sync::Arc::make_mut(__h1).insert("total".to_string(), self.parse_number(total, &[])); } }
-            { let __rdt = crate::value::get_value_k(&get_value(&balance, &code), "free"); if let Value::Dict(__h0) = &mut balance { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut("free") { std::sync::Arc::make_mut(__h1).insert(crate::runtime::stringify_param(&code), __rdt); } } }
-            { let __rdt = crate::value::get_value_k(&get_value(&balance, &code), "used"); if let Value::Dict(__h0) = &mut balance { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut("used") { std::sync::Arc::make_mut(__h1).insert(crate::runtime::stringify_param(&code), __rdt); } } }
-            { let __rdt = crate::value::get_value_k(&get_value(&balance, &code), "total"); if let Value::Dict(__h0) = &mut balance { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut("total") { std::sync::Arc::make_mut(__h1).insert(crate::runtime::stringify_param(&code), __rdt); } } }
+            freeBalance.insert(crate::runtime::stringify_param(&code), crate::value::get_value_k(&balance.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "free"));
+            usedBalance.insert(crate::runtime::stringify_param(&code), crate::value::get_value_k(&balance.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "used"));
+            totalBalance.insert(crate::runtime::stringify_param(&code), crate::value::get_value_k(&balance.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "total"));
             if (debt.is_some()) {
                 if let Value::Dict(__h0) = &mut balance { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut(&crate::runtime::stringify_param(&code)) { std::sync::Arc::make_mut(__h1).insert("debt".to_string(), self.parse_number(debt.map(Value::from).unwrap_or(Value::Null), &[])); } }
                 debtBalance.insert(crate::runtime::stringify_param(&code), crate::value::get_value_k(&balance.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "debt"));
             }
         }
         }
+        if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("free".into(), Value::Map(freeBalance)); }
+        if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("used".into(), Value::Map(usedBalance)); }
+        if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("total".into(), Value::Map(totalBalance)); }
         let mut debtBalanceArray: Vec<Value> = Value::Array(debtBalance.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         let mut length: f64 = ((debtBalanceArray.len() as i64) as f64);
         if (length != 0.0) {
@@ -3714,15 +3722,16 @@ pub trait ExchangeBase:
                 if (in_op(&reduced.as_map().and_then(|__m| feeCurrencyCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &rateKey)) {
                     { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&get_value(&reduced.as_map().and_then(|__m| feeCurrencyCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &rateKey), "cost"), &cost); add_element_to_object(get_value_mut(get_value_mut(&mut reduced, &feeCurrencyCode), &rateKey), &Value::Str("cost".into()), __be_tmp); };
                 }  else {
-                    add_element_to_object(get_value_mut(&mut reduced, &feeCurrencyCode), &rateKey, Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code);
-        m.insert("cost".to_string(), cost);
-    m
-}));
+                    let mut newRateFee: indexmap::IndexMap<String, Value> = ({
+                        let mut m = indexmap::IndexMap::new();
+                            m.insert("currency".to_string(), code);
+                            m.insert("cost".to_string(), cost);
+                        m
+                    });
                     if (rate != Value::Null) {
-                        add_element_to_object(get_value_mut(get_value_mut(&mut reduced, &feeCurrencyCode), &rateKey), &Value::Str("rate".into()), rate);
+                        newRateFee.insert("rate".into(), rate);
                     }
+                    add_element_to_object(get_value_mut(&mut reduced, &feeCurrencyCode), &rateKey, Value::Map(newRateFee));
                 }
             }
         }
@@ -4532,7 +4541,7 @@ pub trait ExchangeBase:
                 if (networkIdOrCode == Value::Null) {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" - ".into())).into()), networkCode).into()), Value::Str(" network was not found for ".into())).into()), currencyCode)));
                 }
-                if (in_op(&indexedNetworkEntries, &networkIdOrCode)) {
+                if (matches!((&indexedNetworkEntries, &networkIdOrCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     chosenNetworkId = networkIdOrCode.clone();
                 }  else {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" - ".into())).into()), networkIdOrCode).into()), Value::Str(" network was not found for ".into())).into()),
@@ -4552,7 +4561,7 @@ pub trait ExchangeBase:
                 if (defaultNetworkId == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" selectNetworkKeyFromNetworks() missing defaultNetworkId".into()))));
                 }
-                if (in_op(&indexedNetworkEntries, &defaultNetworkId)) {
+                if (matches!((&indexedNetworkEntries, &defaultNetworkId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     return defaultNetworkId;
                 }
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" - can not determine the default network, please pass param[\"network\"] one from : ".into())).into()),
@@ -7186,7 +7195,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             }
             return get_value(&marketsList, &Value::Int(0));
-        }  else if (symbol.as_str().is_some_and(|__s| __s.ends_with("-C"))) || (symbol.as_str().is_some_and(|__s| __s.ends_with("-P"))) || (symbol.as_str().is_some_and(|__s| __s.starts_with("C-"))) || (symbol.as_str().is_some_and(|__s| __s.starts_with("P-"))) {
+        }  else if (symbol.as_str().unwrap_or("").ends_with("-C")) || (symbol.as_str().unwrap_or("").ends_with("-P")) || (symbol.as_str().unwrap_or("").starts_with("C-")) || (symbol.as_str().unwrap_or("").starts_with("P-")) {
             return <Self as crate::exchange_generated::ExchangeBase>::create_expired_option_market(self, symbol.clone());
         }
         panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have market symbol ".into())).into()), symbol)));
@@ -9705,7 +9714,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if (timeframe == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cleanCache() requires a timeframe argument".into()))));
                 }
-                if (self.ohlcvs.clone() != Value::Null) && (matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if (matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if (self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().is_some_and(|__m| timeframe.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
                         remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
                     }
@@ -9751,7 +9760,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     while { if !__for_first_179 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_179 = false; i.as_f64().unwrap_or(f64::NAN) < ((clients.len() as i64) as f64) } {
                     let mut client: Value = clients.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                     let mut futures: Value = get_value(&client, &Value::Str("futures".into()));
-                    if (futures != Value::Null) && (matches!(&futures, Value::Dict(__d) if __d.contains_key("fetchPositionsSnapshot"))) {
+                    if (matches!(&futures, Value::Dict(__d) if __d.contains_key("fetchPositionsSnapshot"))) {
                         remove(&mut futures, &Value::Str("fetchPositionsSnapshot".into()));
                     }
                 }

@@ -376,9 +376,8 @@ impl BullishCore {
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchPublic() has no public websocket url".into()))));
         }
-        let mut fullUrl: Value = Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), url).into());
         let __ws_arg_0 = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(fullUrl, messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
+        return self.watch(Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), url).into()), messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
 
     Value::Null
 }
@@ -603,12 +602,11 @@ impl BullishCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut rawTicker: Value = self.safe_dict_k(ticker, "info", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
-            let mut merged: Value = self.extend(rawTicker, &[data]);
-            parsed = self.parse_ticker(merged, &[market]).as_map().cloned().unwrap_or_default();
+            let __ws_arg_3 = self.extend(self.safe_dict_k(ticker, "info", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]), &[data]);
+            parsed = self.parse_ticker(__ws_arg_3, &[market]).as_map().cloned().unwrap_or_default();
         }
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(parsed)); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker::".into()), symbol).into());
@@ -850,8 +848,7 @@ impl BullishCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_177: bool = true;
                 while { if !__for_first_177 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_177 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrders.len() as i64) as f64) } {
-                let mut rawOrder: Value = rawOrders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                let mut parsedOrder: Value = self.parse_order(rawOrder, &[]);
+                let mut parsedOrder: Value = self.parse_order(rawOrders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
                 orders.append(parsedOrder.clone());
                 let mut symbol: Option<String> = self.safe_string_k_opt(parsedOrder, "symbol", &[]);
                 if (symbol.is_some()) {
@@ -990,8 +987,7 @@ impl BullishCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_179: bool = true;
                 while { if !__for_first_179 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_179 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
-                let mut rawTrade: Value = rawTrades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                let mut parsedTrade: Value = self.parse_trade(rawTrade, &[]);
+                let mut parsedTrade: Value = self.parse_trade(rawTrades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
                 trades.append(parsedTrade.clone());
                 let mut symbol: Option<String> = self.safe_string_k_opt(parsedTrade, "symbol", &[]);
                 if (symbol.is_some()) {
@@ -1210,8 +1206,7 @@ impl BullishCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_182: bool = true;
             while { if !__for_first_182 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_182 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawPositions.len() as i64) as f64) } {
-            let mut rawPosition: Value = rawPositions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut position: Value = self.parse_position(rawPosition, &[]);
+            let mut position: Value = self.parse_position(rawPositions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             positions.append(position.clone());
             if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position); }
         }

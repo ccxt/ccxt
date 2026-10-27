@@ -3865,7 +3865,7 @@ impl OkxCore {
             // misclassifying ordinary ids that merely contain "-C"/"-P" (such as a SPOT id like
             // "PERFTESTA-PERFTESTB") as expired options, which would crash createExpiredOptionMarket
             // on the missing expiry.
-            isOption = (partsLength > ((3i64) as f64)) && ((marketId.as_str().is_some_and(|__s| __s.ends_with("-C"))) || (marketId.as_str().is_some_and(|__s| __s.ends_with("-P"))));
+            isOption = (partsLength > ((3i64) as f64)) && ((marketId.as_str().unwrap_or("").ends_with("-C")) || (marketId.as_str().unwrap_or("").ends_with("-P")));
         }
         if isOption && (marketId != Value::Null) && ((self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
             return self.create_expired_option_market(marketId.clone());
@@ -4405,7 +4405,7 @@ impl OkxCore {
             }
             if self.isSandboxModeEnabled.as_bool() == Some(true) {
                 let mut instFamily: Value = self.safe_string_k(data.clone(), "instFamily", &[Value::Str("".into())]);
-                if (instFamily.as_str().is_some_and(|__s| __s.starts_with("TEST"))) {
+                if (instFamily.as_str().unwrap_or("").starts_with("TEST")) {
                     continue;
                 }
             }
@@ -11538,7 +11538,7 @@ impl OkxCore {
         if (since != Value::Null) {
             // end the window after limit periods, so that the earliest entries from since on come back
             // okx periods are 5m, 1H, 2D, 1W, 1M, 3M and so on, optionally with a utc suffix that only moves the opening time
-            let mut unitPeriod: Value = (if (period.as_str().is_some_and(|__s| __s.ends_with("utc"))) { period.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 3).max(0);
+            let mut unitPeriod: Value = (if (period.as_str().unwrap_or("").ends_with("utc")) { period.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 3).max(0);
                 if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null) } else { period });
             let mut unit: Value = unitPeriod.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 1).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
             let mut windowDuration: Value = Value::Null;

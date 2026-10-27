@@ -2794,7 +2794,7 @@ if _try_result.is_err() {
         // US perpetual-style futures are listed as EXPIRING with a placeholder expiry, a funding interval, and a PERP display name
         let mut fundingInterval: Option<String> = self.safe_string_k(futureProductDetails.clone(), "funding_interval", &[]).as_str().map(str::to_owned);
         let mut displayName: Value = self.safe_string_k(market.clone(), "display_name", &[]);
-        let mut isPerpetualDisplayName: bool = (displayName != Value::Null) && (displayName.as_str().is_some_and(|__s| __s.ends_with("PERP")));
+        let mut isPerpetualDisplayName: bool = (displayName != Value::Null) && (displayName.as_str().unwrap_or("").ends_with("PERP"));
         let mut isSwap: Value = Value::Bool((contractExpiryType.as_deref() == Some("PERPETUAL")) || (fundingInterval.is_some()) || isPerpetualDisplayName);
         let mut baseId: Option<String> = self.safe_string_k_opt(futureProductDetails, "contract_root_unit", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quote_currency_id", &[]);
@@ -7061,11 +7061,11 @@ if _try_result.is_err() {
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 // v2: 'GET' require payload in the signature
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
-                let mut isCloudAPiKey: bool = (Value::Int(self.apiKey.as_str().and_then(|__s| __s.find("organizations/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (self.secret.as_str().is_some_and(|__s| __s.starts_with("-----BEGIN")));
+                let mut isCloudAPiKey: bool = (Value::Int(self.apiKey.as_str().and_then(|__s| __s.find("organizations/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (self.secret.as_str().unwrap_or("").starts_with("-----BEGIN"));
                 // using the size might be fragile, so we add an option to force v2 cloud api key if needed
-                let mut isV2CloudAPiKey: bool = (Value::Int(self.secret.len() as i64).as_f64() == Some(88.0)) || self.safe_bool_k(self.options.clone(), "v2CloudAPiKey", &[Value::Bool(false)]).as_bool() == Some(true) || (self.secret.as_str().is_some_and(|__s| __s.ends_with("=")));
+                let mut isV2CloudAPiKey: bool = (Value::Int(self.secret.len() as i64).as_f64() == Some(88.0)) || self.safe_bool_k(self.options.clone(), "v2CloudAPiKey", &[Value::Bool(false)]).as_bool() == Some(true) || (self.secret.as_str().unwrap_or("").ends_with("="));
                 if isCloudAPiKey || isV2CloudAPiKey {
-                    if isCloudAPiKey && (self.apiKey.as_str().is_some_and(|__s| __s.starts_with("-----BEGIN"))) {
+                    if isCloudAPiKey && (self.apiKey.as_str().unwrap_or("").starts_with("-----BEGIN")) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".into()))));
                     }
                     // // it may not work for v2
