@@ -3,6 +3,724 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchBidsAsks": [
+            {
+                "description": "crypto spot multiple",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "ETH/USD"
+                    ]
+                ],
+                "url": "wss://api.ibkr.com/v1/api/ws?oauth_token=84270d7070618c28432c",
+                "messages": [
+                    {
+                        "topic": "system",
+                        "success": "todua1991",
+                        "isFT": false,
+                        "isPaper": false
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "liteUnderPro": false,
+                                    "noFXConv": false,
+                                    "isProp": false,
+                                    "supportsFractions": true,
+                                    "allowCustomerTime": false,
+                                    "autoFx": false
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ12001",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae02512.00000477",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "connected": true,
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "message": "",
+                            "fail": "",
+                            "serverName": "JifZ12001",
+                            "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM",
+                            "username": "todua1991"
+                        }
+                    },
+                    {
+                        "55": "BTC",
+                        "6119": "q6",
+                        "7635": "80579.80",
+                        "conidEx": "479624278",
+                        "topic": "smd+479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123316597,
+                        "server_id": "q6"
+                    },
+                    {
+                        "55": "BTC",
+                        "6119": "q6",
+                        "7635": "80579.80",
+                        "server_id": "q6",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123316597,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "55": "ETH",
+                        "6119": "q7",
+                        "7635": "2348.384",
+                        "conidEx": "495759171",
+                        "topic": "smd+495759171",
+                        "conid": 495759171,
+                        "_updated": 1793123316637,
+                        "server_id": "q7"
+                    },
+                    {
+                        "55": "ETH",
+                        "6119": "q7",
+                        "7635": "2348.384",
+                        "server_id": "q7",
+                        "conidEx": "495759171",
+                        "conid": 495759171,
+                        "_updated": 1793123316637,
+                        "topic": "smd+495759171"
+                    },
+                    {
+                        "31": "80546.25",
+                        "70": "80726.75",
+                        "71": "79326.50",
+                        "82": "+658.00",
+                        "83": 0.82,
+                        "84": "80548.50",
+                        "85": "0.60325287",
+                        "86": "80554.75",
+                        "88": "0.09931902",
+                        "6119": "q6",
+                        "6509": "R",
+                        "7059": "0.00000233",
+                        "7635": "80546.20",
+                        "7741": "79888.25",
+                        "7762": "703",
+                        "server_id": "q6",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123317098,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "31": "2348.40",
+                        "70": "2355.00",
+                        "71": "2291.85",
+                        "82": "+34.15",
+                        "83": 1.48,
+                        "84": "2348.35",
+                        "85": "0.18261800",
+                        "86": "2348.40",
+                        "88": "43.59824215",
+                        "6119": "q7",
+                        "6509": "R",
+                        "7059": "0.00000744",
+                        "7635": "2348.40",
+                        "7741": "2314.25",
+                        "7762": "15711",
+                        "server_id": "q7",
+                        "conidEx": "495759171",
+                        "conid": 495759171,
+                        "_updated": 1793123317098,
+                        "topic": "smd+495759171"
+                    },
+                    {
+                        "31": "80556.00",
+                        "82": "+667.75",
+                        "83": 0.84,
+                        "84": "80550.75",
+                        "88": "0.02482902",
+                        "6119": "q6",
+                        "7059": "0.00032434",
+                        "7635": "80555.88",
+                        "server_id": "q6",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123317598,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "84": "2348.40",
+                        "85": "1.32457520",
+                        "86": "2348.60",
+                        "88": "0.18261800",
+                        "6119": "q7",
+                        "server_id": "q7",
+                        "conidEx": "495759171",
+                        "conid": 495759171,
+                        "_updated": 1793123317598,
+                        "topic": "smd+495759171"
+                    },
+                    {
+                        "88": "0.02482899",
+                        "6119": "q6",
+                        "server_id": "q6",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123318098,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "84": "2348.35",
+                        "86": "2348.50",
+                        "88": "43.59823135",
+                        "6119": "q7",
+                        "server_id": "q7",
+                        "conidEx": "495759171",
+                        "conid": 495759171,
+                        "_updated": 1793123318098,
+                        "topic": "smd+495759171"
+                    },
+                    {
+                        "31": "80546.25",
+                        "82": "+658.00",
+                        "83": 0.82,
+                        "6119": "q6",
+                        "7059": "0.00052033",
+                        "7635": "80546.20",
+                        "server_id": "q6",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123318599,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "88": "0.02482906",
+                        "6119": "q6",
+                        "server_id": "q6",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793123319099,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "86": "2348.60",
+                        "88": "43.59823162",
+                        "6119": "q7",
+                        "server_id": "q7",
+                        "conidEx": "495759171",
+                        "conid": 495759171,
+                        "_updated": 1793123319099,
+                        "topic": "smd+495759171"
+                    }
+                ],
+                "httpResponse": {
+                    "session": "0e6dc29c550041f76448e320a48c5c5b",
+                    "hmds": {
+                        "error": "no bridge"
+                    },
+                    "iserver": {
+                        "authStatus": {
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "connected": true,
+                            "message": "",
+                            "MAC": "06:61:A2:5D:8E:CE",
+                            "serverInfo": {
+                                "serverName": "JifZ12001",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "hardware_info": "d6d1cd6f|06:61:A2:5D:8E:CE"
+                        }
+                    }
+                },
+                "sentMessages": [
+                    "smd+479624278+{\"fields\":[\"31\",\"55\",\"70\",\"71\",\"82\",\"83\",\"84\",\"85\",\"86\",\"88\",\"7059\",\"7295\",\"7635\",\"7741\",\"7762\"]}",
+                    "smd+495759171+{\"fields\":[\"31\",\"55\",\"70\",\"71\",\"82\",\"83\",\"84\",\"85\",\"86\",\"88\",\"7059\",\"7295\",\"7635\",\"7741\",\"7762\"]}"
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793123317098,
+                            "datetime": "2026-10-27T17:48:37.098Z",
+                            "bid": 80548.5,
+                            "bidVolume": 0.09931902,
+                            "ask": 80554.75,
+                            "askVolume": 0.60325287,
+                            "info": {
+                                "31": "80546.25",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+658.00",
+                                "83": 0.82,
+                                "84": "80548.50",
+                                "85": "0.60325287",
+                                "86": "80554.75",
+                                "88": "0.09931902",
+                                "6119": "q6",
+                                "6509": "R",
+                                "7059": "0.00000233",
+                                "7635": "80546.20",
+                                "7741": "79888.25",
+                                "7762": "703",
+                                "conidEx": "479624278",
+                                "topic": "smd+479624278",
+                                "conid": 479624278,
+                                "_updated": 1793123317098,
+                                "server_id": "q6"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "ETH/USD": {
+                            "symbol": "ETH/USD",
+                            "timestamp": 1793123317098,
+                            "datetime": "2026-10-27T17:48:37.098Z",
+                            "bid": 2348.35,
+                            "bidVolume": 43.59824215,
+                            "ask": 2348.4,
+                            "askVolume": 0.182618,
+                            "info": {
+                                "31": "2348.40",
+                                "55": "ETH",
+                                "70": "2355.00",
+                                "71": "2291.85",
+                                "82": "+34.15",
+                                "83": 1.48,
+                                "84": "2348.35",
+                                "85": "0.18261800",
+                                "86": "2348.40",
+                                "88": "43.59824215",
+                                "6119": "q7",
+                                "6509": "R",
+                                "7059": "0.00000744",
+                                "7635": "2348.40",
+                                "7741": "2314.25",
+                                "7762": "15711",
+                                "conidEx": "495759171",
+                                "topic": "smd+495759171",
+                                "conid": 495759171,
+                                "_updated": 1793123317098,
+                                "server_id": "q7"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793123317598,
+                            "datetime": "2026-10-27T17:48:37.598Z",
+                            "bid": 80550.75,
+                            "bidVolume": 0.02482902,
+                            "ask": 80554.75,
+                            "askVolume": 0.60325287,
+                            "info": {
+                                "31": "80556.00",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+667.75",
+                                "83": 0.84,
+                                "84": "80550.75",
+                                "85": "0.60325287",
+                                "86": "80554.75",
+                                "88": "0.02482902",
+                                "6119": "q6",
+                                "6509": "R",
+                                "7059": "0.00032434",
+                                "7635": "80555.88",
+                                "7741": "79888.25",
+                                "7762": "703",
+                                "conidEx": "479624278",
+                                "topic": "smd+479624278",
+                                "conid": 479624278,
+                                "_updated": 1793123317598,
+                                "server_id": "q6"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "ETH/USD": {
+                            "symbol": "ETH/USD",
+                            "timestamp": 1793123317598,
+                            "datetime": "2026-10-27T17:48:37.598Z",
+                            "bid": 2348.4,
+                            "bidVolume": 0.182618,
+                            "ask": 2348.6,
+                            "askVolume": 1.3245752,
+                            "info": {
+                                "31": "2348.40",
+                                "55": "ETH",
+                                "70": "2355.00",
+                                "71": "2291.85",
+                                "82": "+34.15",
+                                "83": 1.48,
+                                "84": "2348.40",
+                                "85": "1.32457520",
+                                "86": "2348.60",
+                                "88": "0.18261800",
+                                "6119": "q7",
+                                "6509": "R",
+                                "7059": "0.00000744",
+                                "7635": "2348.40",
+                                "7741": "2314.25",
+                                "7762": "15711",
+                                "conidEx": "495759171",
+                                "topic": "smd+495759171",
+                                "conid": 495759171,
+                                "_updated": 1793123317598,
+                                "server_id": "q7"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793123318098,
+                            "datetime": "2026-10-27T17:48:38.098Z",
+                            "bid": 80550.75,
+                            "bidVolume": 0.02482899,
+                            "ask": 80554.75,
+                            "askVolume": 0.60325287,
+                            "info": {
+                                "31": "80556.00",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+667.75",
+                                "83": 0.84,
+                                "84": "80550.75",
+                                "85": "0.60325287",
+                                "86": "80554.75",
+                                "88": "0.02482899",
+                                "6119": "q6",
+                                "6509": "R",
+                                "7059": "0.00032434",
+                                "7635": "80555.88",
+                                "7741": "79888.25",
+                                "7762": "703",
+                                "conidEx": "479624278",
+                                "topic": "smd+479624278",
+                                "conid": 479624278,
+                                "_updated": 1793123318098,
+                                "server_id": "q6"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "ETH/USD": {
+                            "symbol": "ETH/USD",
+                            "timestamp": 1793123318098,
+                            "datetime": "2026-10-27T17:48:38.098Z",
+                            "bid": 2348.35,
+                            "bidVolume": 43.59823135,
+                            "ask": 2348.5,
+                            "askVolume": 1.3245752,
+                            "info": {
+                                "31": "2348.40",
+                                "55": "ETH",
+                                "70": "2355.00",
+                                "71": "2291.85",
+                                "82": "+34.15",
+                                "83": 1.48,
+                                "84": "2348.35",
+                                "85": "1.32457520",
+                                "86": "2348.50",
+                                "88": "43.59823135",
+                                "6119": "q7",
+                                "6509": "R",
+                                "7059": "0.00000744",
+                                "7635": "2348.40",
+                                "7741": "2314.25",
+                                "7762": "15711",
+                                "conidEx": "495759171",
+                                "topic": "smd+495759171",
+                                "conid": 495759171,
+                                "_updated": 1793123318098,
+                                "server_id": "q7"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793123319099,
+                            "datetime": "2026-10-27T17:48:39.099Z",
+                            "bid": 80550.75,
+                            "bidVolume": 0.02482906,
+                            "ask": 80554.75,
+                            "askVolume": 0.60325287,
+                            "info": {
+                                "31": "80546.25",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+658.00",
+                                "83": 0.82,
+                                "84": "80550.75",
+                                "85": "0.60325287",
+                                "86": "80554.75",
+                                "88": "0.02482906",
+                                "6119": "q6",
+                                "6509": "R",
+                                "7059": "0.00052033",
+                                "7635": "80546.20",
+                                "7741": "79888.25",
+                                "7762": "703",
+                                "conidEx": "479624278",
+                                "topic": "smd+479624278",
+                                "conid": 479624278,
+                                "_updated": 1793123319099,
+                                "server_id": "q6"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "ETH/USD": {
+                            "symbol": "ETH/USD",
+                            "timestamp": 1793123319099,
+                            "datetime": "2026-10-27T17:48:39.099Z",
+                            "bid": 2348.35,
+                            "bidVolume": 43.59823162,
+                            "ask": 2348.6,
+                            "askVolume": 1.3245752,
+                            "info": {
+                                "31": "2348.40",
+                                "55": "ETH",
+                                "70": "2355.00",
+                                "71": "2291.85",
+                                "82": "+34.15",
+                                "83": 1.48,
+                                "84": "2348.35",
+                                "85": "1.32457520",
+                                "86": "2348.60",
+                                "88": "43.59823162",
+                                "6119": "q7",
+                                "6509": "R",
+                                "7059": "0.00000744",
+                                "7635": "2348.40",
+                                "7741": "2314.25",
+                                "7762": "15711",
+                                "conidEx": "495759171",
+                                "topic": "smd+495759171",
+                                "conid": 495759171,
+                                "_updated": 1793123319099,
+                                "server_id": "q7"
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            }
+        ],
         "watchBalance": [
             {
                 "description": "default",

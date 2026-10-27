@@ -431,8 +431,12 @@ export default class interactivebrokers extends interactivebrokersRest {
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        // the updates are deltas, they are merged into the previous raw ticker
-        const previous = this.safeDict (this.tickers, symbol, {});
+        // the updates are deltas (only the changed fields are sent), they are merged into the previous raw ticker,
+        // the bidsasks cache is the fallback in case the tickers cache was cleaned by unWatchTickers
+        let previous = this.safeDict (this.tickers, symbol);
+        if (previous === undefined) {
+            previous = this.safeDict (this.bidsasks, symbol, {});
+        }
         const previousInfo = this.safeDict (previous, 'info', {});
         const merged = this.extend (previousInfo, message);
         if (this.safeInteger (message, '_updated') === undefined) {
@@ -441,8 +445,11 @@ export default class interactivebrokers extends interactivebrokersRest {
         const ticker = this.parseTicker (merged, market);
         this.tickers[symbol] = ticker;
         client.resolve (ticker, 'ticker::' + symbol);
+        // a delta without bid/ask fields (e.g. only the mark price 7635) does not change the best bid and ask,
+        // and nothing is emitted to watchBidsAsks until a bid or an ask has been received
         const hasBidAsk = ('84' in message) || ('85' in message) || ('86' in message) || ('88' in message);
-        if (hasBidAsk || !(symbol in this.bidsasks)) {
+        const hasQuote = (ticker['bid'] !== undefined) || (ticker['ask'] !== undefined);
+        if (hasBidAsk && hasQuote) {
             const bidAsk = this.safeTicker ({
                 'symbol': symbol,
                 'timestamp': ticker['timestamp'],
