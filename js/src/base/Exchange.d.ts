@@ -1012,7 +1012,7 @@ export declare class BaseExchange {
     fetchPaginatedCallIncremental(method: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict, pageKey?: Str, maxEntriesPerRequest?: Int): Promise<any[]>;
     sortCursorPaginatedResult(result: any): any;
     removeRepeatedElementsFromArray(input: any, fallbackToTimestamp?: boolean): any;
-    removeRepeatedTradesFromArray(input: any): any;
+    removeRepeatedTradesFromArray(input: Dict[]): any;
     removeKeysFromDict(dict: Dict, removeKeys: string[]): Dict;
     handleUntilOption(key: string, request: Dict, params: Dict, multiplier?: number): [Dict, Dict];
     safeOpenInterest(interest: Dict, market?: Market): OpenInterest;
