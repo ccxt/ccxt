@@ -1622,7 +1622,8 @@ public partial class coinsph : Exchange
             { "side", orderSide },
         };
         IDictionary<string, object> options = this.safeDict(this.options, "createOrder", new Dictionary<string, object>() {});
-        object newOrderRespType = this.safeValue(options, "newOrderRespType", new Dictionary<string, object>() {});
+        object newOrderRespTypes = this.safeValue(options, "newOrderRespType", new Dictionary<string, object>() {});
+        string? newOrderRespType = "FULL";
         // if limit order
         if (orderType == "LIMIT" || orderType == "STOP_LOSS_LIMIT" || orderType == "TAKE_PROFIT_LIMIT" || orderType == "LIMIT_MAKER")
         {
@@ -1630,7 +1631,7 @@ public partial class coinsph : Exchange
             {
                 throw new ArgumentsRequired ((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
             }
-            newOrderRespType = this.safeString(newOrderRespType, "limit", "FULL");
+            newOrderRespType = this.safeString(newOrderRespTypes, "limit", "FULL");
             request["price"] = this.priceToPrecision(symbol, price);
             request["quantity"] = this.amountToPrecision(symbol, amount);
             if (orderType != "LIMIT_MAKER")
@@ -1639,7 +1640,7 @@ public partial class coinsph : Exchange
             }
         } else if (orderType == "MARKET" || orderType == "STOP_LOSS" || orderType == "TAKE_PROFIT")
         {
-            newOrderRespType = this.safeString(newOrderRespType, "market", "FULL");
+            newOrderRespType = this.safeString(newOrderRespTypes, "market", "FULL");
             if (orderSide == "SELL")
             {
                 request["quantity"] = this.amountToPrecision(symbol, amount);
@@ -2540,22 +2541,22 @@ public partial class coinsph : Exchange
         };
     }
 
-    public virtual string? urlEncodeQuery(object query = null)
+    public virtual string? urlEncodeQuery(IDictionary<string, object>? query = null)
     {
         query ??= new Dictionary<string, object>();
         string encodedArrayParams = "";
         object remainingQuery = query;
-        List<object> keys = new List<object>(((IDictionary<string,object>)query).Keys);
+        List<object> keys = new List<object>(query.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if ((((key != null && ((IDictionary<string, object>)query).ContainsKey(key) ? ((IDictionary<string, object>)query)[key] : null) is IList<object>) || ((key != null && ((IDictionary<string, object>)query).ContainsKey(key) ? ((IDictionary<string, object>)query)[key] : null).GetType().IsGenericType && (key != null && ((IDictionary<string, object>)query).ContainsKey(key) ? ((IDictionary<string, object>)query)[key] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null) is IList<object>) || ((query != null && key != null && query.ContainsKey(key) ? query[key] : null).GetType().IsGenericType && (query != null && key != null && query.ContainsKey(key) ? query[key] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 if ((i != 0))
                 {
                     encodedArrayParams = encodedArrayParams + "&";
                 }
-                object innerArray = (key != null && ((IDictionary<string, object>)query).ContainsKey(key) ? ((IDictionary<string, object>)query)[key] : null);
+                object innerArray = (query != null && key != null && query.ContainsKey(key) ? query[key] : null);
                 remainingQuery = this.omit(remainingQuery, key);
                 string? encodedArrayParam = this.parseArrayParam(innerArray, key);
                 encodedArrayParams = encodedArrayParams + encodedArrayParam;
@@ -2591,20 +2592,20 @@ public partial class coinsph : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object query = this.omit(parameters, this.extractParams(path));
+        Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, this.omit(parameters, this.extractParams(path)));
         string? endpoint = this.implodeParams(path, parameters);
         string url = ((apiUrl + "/") + endpoint);
         if (apiName == "private")
         {
             this.checkRequiredCredentials();
-            ((IDictionary<string,object>)query)["timestamp"] = this.milliseconds();
+            query["timestamp"] = this.milliseconds();
             Int64? recvWindow = this.safeInteger(query, "recvWindow");
             if ((recvWindow == null))
             {
                 Int64? defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
                 if ((defaultRecvWindow != null))
                 {
-                    ((IDictionary<string,object>)query)["recvWindow"] = defaultRecvWindow;
+                    query["recvWindow"] = defaultRecvWindow;
                 }
             }
             string? signedQuery = this.urlEncodeQuery(query);

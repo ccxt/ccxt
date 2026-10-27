@@ -389,8 +389,8 @@ public partial class cryptomus : Exchange
             throw new ExchangeError ((this.id + " parseMarket() missing marketId")) ;
         }
         List<object> parts = marketId.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
-        string? baseId = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
-        string? quoteId = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
+        string? baseId = this.safeString(parts, 0);
+        string? quoteId = this.safeString(parts, 1);
         string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
@@ -1001,8 +1001,7 @@ public partial class cryptomus : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; i < result.Count; i++)
         {
-            IDictionary<string, object> order = ((IDictionary<string, object>)result[i]);
-            orders.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(order, market)));
+            orders.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(result[i], market)));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
     }

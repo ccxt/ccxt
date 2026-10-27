@@ -556,7 +556,7 @@ public partial class bit2c : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? optionValue = this.safeString(this.options, "fetchTradesMethod"); // kept here for backward compatibility #29154
-        object method = this.handleOption("fetchTrades", "method", optionValue); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
+        string? method = this.safeString(this.handleOptionAndParams(new Dictionary<string, object>() {}, "fetchTrades", "method", optionValue), 0); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
@@ -569,7 +569,7 @@ public partial class bit2c : Exchange
             request["limit"] = limit; // max 100000
         }
         IList<object> responseList = new List<object>() {};
-        if (((method is "publicGetExchangesPairTrades")) || ((method is "public_get_exchanges_pair_trades")))
+        if ((method == "publicGetExchangesPairTrades") || (method == "public_get_exchanges_pair_trades"))
         {
             object response = await this.publicGetExchangesPairTrades(this.extend(request, parameters));
             //
@@ -825,9 +825,10 @@ public partial class bit2c : Exchange
         //
         object orderUnified = null;
         bool isNewOrder = false;
-        if ((order != null && ((IDictionary<string, object>)order).ContainsKey("NewOrder")))
+        object newOrder = this.safeValue(order, "NewOrder");
+        if ((newOrder != null))
         {
-            orderUnified = ((IDictionary<string,object>)order)["NewOrder"];
+            orderUnified = newOrder;
             isNewOrder = true;
         } else
         {

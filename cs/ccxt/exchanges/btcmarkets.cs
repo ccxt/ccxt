@@ -643,8 +643,8 @@ public partial class btcmarkets : Exchange
             { "contract", false },
             { "linear", null },
             { "inverse", null },
-            { "taker", (fees != null && fees.ContainsKey("taker") ? fees["taker"] : null) },
-            { "maker", (fees != null && fees.ContainsKey("maker") ? fees["maker"] : null) },
+            { "taker", this.safeNumber(fees, "taker") },
+            { "maker", this.safeNumber(fees, "maker") },
             { "contractSize", null },
             { "expiry", null },
             { "expiryDatetime", null },
@@ -1267,10 +1267,7 @@ public partial class btcmarkets : Exchange
         if ((((market.ContainsKey("quote") ? market["quote"] : null) as string) == "AUD"))
         {
             currency = this.safeString(market, "quote");
-            string? amountString = this.numberToString(amount);
-            string? priceString = this.numberToString(price);
-            string? otherUnitsAmount = Precise.stringMul(amountString, priceString);
-            cost = this.costToPrecision(symbol, otherUnitsAmount);
+            cost = this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price)));
         } else
         {
             currency = this.safeString(market, "base");
@@ -1553,9 +1550,8 @@ public partial class btcmarkets : Exchange
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
-        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
-        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
+        string? tagWithdrawTag = this.safeString(parameters, "tag");
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)this.omit(parameters, "tag"));
         if ((this.markets == null))
         {
             await this.loadMarkets();

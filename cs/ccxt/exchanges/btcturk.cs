@@ -1259,15 +1259,15 @@ public partial class btcturk : Exchange
     {
         string? errorCode = this.safeString(response, "code", "0");
         string? message = this.safeString(response, "message");
-        object output = message;
-        if ((message == null))
+        string feedback = ((this.id + " ") + (body));
+        if ((message != null))
         {
-            output = body;
+            feedback = ((this.id + " ") + message);
         }
-        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, ((this.id + " ") + (output)));
+        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
         if ((errorCode != "0") && (errorCode != "SUCCESS"))
         {
-            throw new ExchangeError ((string)((this.id + " ") + (output))) ;
+            throw new ExchangeError (feedback) ;
         }
         return null;
     }

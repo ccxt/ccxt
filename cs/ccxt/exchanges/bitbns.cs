@@ -1434,7 +1434,8 @@ public partial class bitbns : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
-        if (!((this.urlsApi != null && apiName != null && this.urlsApi.ContainsKey(apiName))))
+        string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
+        if ((baseApiUrl == null))
         {
             throw new ExchangeError ((((this.id + " does not have a testnet/sandbox URL for ") + apiName) + " endpoints")) ;
         }
@@ -1446,11 +1447,6 @@ public partial class bitbns : Exchange
         if (apiName != "www")
         {
             requestHeaders["X-BITBNS-APIKEY"] = this.apiKey;
-        }
-        string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
-        if ((baseApiUrl == null))
-        {
-            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string baseUrl = this.implodeHostname(baseApiUrl);
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));

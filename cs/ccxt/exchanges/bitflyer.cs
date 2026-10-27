@@ -293,7 +293,7 @@ public partial class bitflyer : Exchange
     {
         string? day = ((expiry == null) ? null : expiry.Substring(0, Math.Min(2, expiry.Length)));
         string? monthName = ((expiry == null) ? null : expiry.Substring(Math.Min(2, expiry.Length), Math.Min(5, expiry.Length) - Math.Min(2, expiry.Length)));
-        object year = ((expiry == null) ? null : expiry.Substring(Math.Min(5, expiry.Length), Math.Min(9, expiry.Length) - Math.Min(5, expiry.Length)));
+        object expiryYear = ((expiry == null) ? null : expiry.Substring(Math.Min(5, expiry.Length), Math.Min(9, expiry.Length) - Math.Min(5, expiry.Length)));
         Dictionary<string, object> months = new Dictionary<string, object>() {
             { "JAN", "01" },
             { "FEB", "02" },
@@ -313,7 +313,7 @@ public partial class bitflyer : Exchange
         {
             return ((Int64?)((object)(null)));
         }
-        return this.parse8601(add(add(add(add(add(year, "-"), month), "-"), day), "T00:00:00Z"));
+        return this.parse8601(add(add(add(add(add(expiryYear, "-"), month), "-"), day), "T00:00:00Z"));
     }
 
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
@@ -1419,9 +1419,10 @@ public partial class bitflyer : Exchange
         request = request + path;
         if ((method == "GET"))
         {
-            if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
+            string query = this.urlencode(parameters);
+            if (query != "")
             {
-                request = request + ("?" + this.urlencode(parameters));
+                request = request + ("?" + query);
             }
         }
         string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
@@ -1429,8 +1430,7 @@ public partial class bitflyer : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object baseUrl = this.implodeHostname(apiUrl);
-        string? url = ((string)add(baseUrl, request));
+        string url = (this.implodeHostname(apiUrl) + request);
         if (apiName == "private")
         {
             this.checkRequiredCredentials();

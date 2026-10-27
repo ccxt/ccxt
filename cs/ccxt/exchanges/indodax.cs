@@ -897,11 +897,11 @@ public partial class indodax : Exchange
             symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
             string? quoteId = this.safeString(marketResolved, "quoteId", "");
             string? baseId = this.safeString(marketResolved, "baseId", "");
-            if (((((marketResolved != null && marketResolved.ContainsKey("quoteId") ? marketResolved["quoteId"] : null) as string) == "idr")) && ((order != null && ((IDictionary<string, object>)order).ContainsKey("order_rp"))))
+            if (((((marketResolved != null && marketResolved.ContainsKey("quoteId") ? marketResolved["quoteId"] : null) as string) == "idr")) && ((this.safeString(order, "order_rp") != null)))
             {
                 quoteId = "rp";
             }
-            if (((((marketResolved != null && marketResolved.ContainsKey("baseId") ? marketResolved["baseId"] : null) as string) == "idr")) && ((order != null && ((IDictionary<string, object>)order).ContainsKey("remain_rp"))))
+            if (((((marketResolved != null && marketResolved.ContainsKey("baseId") ? marketResolved["baseId"] : null) as string) == "idr")) && ((this.safeString(order, "remain_rp") != null)))
             {
                 baseId = "rp";
             }
@@ -1729,11 +1729,11 @@ public partial class indodax : Exchange
             return null;  // public endpoints may return []-arrays
         }
         string? error = this.safeString(response, "error", "");
-        if (!(inOp(response, "success")) && error == "")
+        string? status = this.safeString(response, "success");
+        if (((status == null)) && (error == ""))
         {
             return null;  // no 'success' property on public responses
         }
-        string? status = this.safeString(response, "success");
         if (status == "approved")
         {
             return null;

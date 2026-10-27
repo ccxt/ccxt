@@ -672,7 +672,7 @@ public partial class bigone : Exchange
         List<object> promises = new List<object> {this.publicGetAssetPairs(parameters), this.contractPublicGetSymbols(parameters)};
         List<object> promisesResult = await promiseAll(promises);
         IDictionary<string, object> response = this.safeDict(promisesResult, 0);
-        object contractResponse = (promisesResult != null && 1 < promisesResult.Count ? promisesResult[1] : null);
+        object contractResponse = this.safeValue(promisesResult, 1);
         //
         //     {
         //         "code":0,
@@ -908,7 +908,7 @@ public partial class bigone : Exchange
         //    }
         //
         string marketType = "swap";
-        if ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("asset_pair_name")))
+        if ((this.safeString(ticker, "asset_pair_name") != null))
         {
             marketType = "spot";
         }
@@ -2337,7 +2337,7 @@ public partial class bigone : Exchange
         string? address = this.safeString(transaction, "target_address");
         string? tag = this.safeString(transaction, "memo");
         string type = "deposit";
-        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("customer_id")))
+        if ((this.safeString(transaction, "customer_id") != null))
         {
             type = "withdrawal";
         }

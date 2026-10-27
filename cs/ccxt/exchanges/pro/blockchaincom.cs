@@ -114,10 +114,6 @@ public partial class blockchaincom : ccxt.blockchaincom
         // nobody is awaiting, so a replaced object would make updates landing
         // in that window invisible to the consumer forever (same class as
         // issue #26773)
-        if ((this.balance == null))
-        {
-            this.balance = new Dictionary<string, object>() {};
-        }
         this.balance["info"] = message;
         List<object> balances = this.safeList(message, "balances", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
@@ -204,8 +200,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         string? eventVar = this.safeString(message, "event");
         if (eventVar == "rejected")
         {
-            string jsonMessage = this.json(message);
-            throw new ExchangeError (((this.id + " ") + jsonMessage)) ;
+            throw new ExchangeError (((this.id + " ") + this.json(message))) ;
         } else if (eventVar == "updated")
         {
             string? marketId = this.safeString(message, "symbol");
@@ -776,7 +771,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         string messageHash = ((("orderbook:" + symbol) + ":") + type);
         string? datetime = this.safeString(message, "timestamp");
         Int64? timestamp = this.parse8601(datetime);
-        if ((this.safeOrderBook(this.orderbooks, symbol) == null))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook();
         }
@@ -817,23 +812,31 @@ public partial class blockchaincom : ccxt.blockchaincom
     public override void handleMessage(WebSocketClient client, object message)
     {
         string? channel = this.safeString(message, "channel");
-        Dictionary<string, object> handlers = new Dictionary<string, object>() {
-            { "ticker", this.handleTicker },
-            { "trades", this.handleTrades },
-            { "prices", this.handleOHLCV },
-            { "l2", this.handleOrderBook },
-            { "l3", this.handleOrderBook },
-            { "auth", this.handleAuthenticationMessage },
-            { "balances", this.handleBalance },
-            { "trading", this.handleOrders },
-        };
-        Delegate handler = ((Delegate)this.safeValue(handlers, channel));
-        if ((handler != null))
+        if (channel == "ticker")
         {
-            DynamicInvoker.InvokeMethod(handler, new object[] { client, message});
-            return;
+            this.handleTicker(client, (Dictionary<string, object>)message);
+        } else if (channel == "trades")
+        {
+            this.handleTrades(client, (Dictionary<string, object>)message);
+        } else if (channel == "prices")
+        {
+            this.handleOHLCV(client, (Dictionary<string, object>)message);
+        } else if (channel == "l2" || channel == "l3")
+        {
+            this.handleOrderBook(client, (Dictionary<string, object>)message);
+        } else if (channel == "auth")
+        {
+            this.handleAuthenticationMessage(client, (Dictionary<string, object>)message);
+        } else if (channel == "balances")
+        {
+            this.handleBalance(client, (Dictionary<string, object>)message);
+        } else if (channel == "trading")
+        {
+            this.handleOrders(client, (Dictionary<string, object>)message);
+        } else
+        {
+            throw new NotSupported (((this.id + " received an unsupported message: ") + this.json(message))) ;
         }
-        throw new NotSupported (((this.id + " received an unsupported message: ") + this.json(message))) ;
     }
 
     public virtual void handleAuthenticationMessage(WebSocketClient client, Dictionary<string, object> message)
