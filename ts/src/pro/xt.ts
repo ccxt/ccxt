@@ -412,6 +412,7 @@ export default class xt extends xtRest {
             const messageHash = 'unsubscribe::' + name;
             return await this.unSubscribe (messageHash, name, 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
         }
+        return undefined;
     }
 
     /**
