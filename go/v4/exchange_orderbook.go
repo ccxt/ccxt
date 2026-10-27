@@ -23,6 +23,10 @@ type OrderBookInterface interface {
 	GetValue(key string, defaultValue any) any
 	ToMap() map[string]any
 	Copy() OrderBookInterface
+	SetTimestamp(timestamp *int64)
+	SetDatetime(datetime *string)
+	SetNonce(nonce *int64)
+	SetSymbol(symbol *string)
 }
 
 type WsOrderBook struct {
@@ -519,6 +523,32 @@ func (this *WsOrderBook) Copy() OrderBookInterface {
 	ob.Timestamp = this.Timestamp
 	ob.Datetime = this.Datetime
 	return copy
+}
+
+// field setters: a nil pointer is a no-op, like AddElementToObject on a typed-nil Safe* result
+func (this *WsOrderBook) SetTimestamp(timestamp *int64) {
+	if timestamp != nil {
+		ts := *timestamp
+		this.Timestamp = &ts
+	}
+}
+
+func (this *WsOrderBook) SetDatetime(datetime *string) {
+	if datetime != nil {
+		this.Datetime = *datetime
+	}
+}
+
+func (this *WsOrderBook) SetNonce(nonce *int64) {
+	if nonce != nil {
+		this.Nonce = *nonce
+	}
+}
+
+func (this *WsOrderBook) SetSymbol(symbol *string) {
+	if symbol != nil {
+		this.Symbol = *symbol
+	}
 }
 
 func (this *WsOrderBook) GetNonce() any {
