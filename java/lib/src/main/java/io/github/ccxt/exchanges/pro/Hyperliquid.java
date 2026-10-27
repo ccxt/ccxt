@@ -1498,7 +1498,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         {
             this.parseWsBalance((Map<String, Object>) ((rawBalances == null || i < 0 || i >= rawBalances.size() ? null : rawBalances.get(i))), account);
         }
-        if (java.util.Objects.equals(this.safeValue(this.balance, account), null))
+        if (!(((Map<?, ?>)this.balance).containsKey(account)))
         {
             this.balance.put(account, new HashMap<String, Object>() {{}});
         }
@@ -1760,7 +1760,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                messageHash = ("order:" + market.get("symbol"));
+                messageHash = ("order:" + this.safeString(market, "symbol", ""));
             }
             String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");

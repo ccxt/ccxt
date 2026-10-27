@@ -2467,7 +2467,7 @@ public class Bybit extends BybitApi
         List<Object> symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
         Object expiry = null;
         Boolean hasSlash = ((String)symbol).indexOf("/") > -1;
-        String baseName = null;
+        String baseName = this.safeString(optionParts, 0);
         if (Boolean.TRUE.equals(hasSlash))
         {
             baseName = this.safeString(symbolBase, 0);
@@ -2483,7 +2483,6 @@ public class Bybit extends BybitApi
             settle = quoteAndSettle;
         } else
         {
-            baseName = this.safeString(optionParts, 0);
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
             if (((String)symbol).endsWith("-USDT"))
             {
@@ -12235,7 +12234,7 @@ public class Bybit extends BybitApi
                     hx4NewMap4.put("Content-Type", "application/json");
                     hx4NewMap4.put("X-BAPI-API-KEY", this.apiKey);
                     hx4NewMap4.put("X-BAPI-TIMESTAMP", timestamp);
-                    hx4NewMap4.put("X-BAPI-RECV-WINDOW", this.numberToString(this.options.get("recvWindow")));
+                    hx4NewMap4.put("X-BAPI-RECV-WINDOW", this.safeString(this.options, "recvWindow", ""));
                     requestHeaders = hx4NewMap4;
                 }
                 if (Boolean.TRUE.equals(isV3UnifiedMargin) || Boolean.TRUE.equals(isV3Contract))
@@ -12244,7 +12243,7 @@ public class Bybit extends BybitApi
                 }
                 Map<String, Object> query = this.extend(new HashMap<String, Object>() {{}}, parameters);
                 String queryEncoded = this.rawencode(query);
-                String auth_base = ((String.valueOf(timestamp) + this.apiKey) + String.valueOf(this.options.get("recvWindow")));
+                String auth_base = ((timestamp + this.apiKey) + this.safeString(this.options, "recvWindow", ""));
                 String authFull = null;
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
                 {
@@ -12362,13 +12361,10 @@ public class Bybit extends BybitApi
                 // {"ret_code":30084,"ret_msg":"Isolated not modified","ext_code":"","ext_info":"","result":null,"time_now":"1642005219.937988","rate_limit_status":73,"rate_limit_reset_ms":1642005219894,"rate_limit":75}
                 return null;
             }
-            Object feedback = null;
+            String feedback = ((this.id + " ") + body);
             if (java.util.Objects.equals(errorCode, "10005") && ((String)url).indexOf("order") < 0)
             {
                 feedback = ((this.id + " private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: \"Account Transfer\", \"Subaccount Transfer\", \"Withdrawal\" ") + body);
-            } else
-            {
-                feedback = ((this.id + " ") + body);
             }
             if (((String)body).indexOf("Withdraw address chain or destination tag are not equal") > -1)
             {
@@ -12376,7 +12372,7 @@ public class Bybit extends BybitApi
             }
             this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
             this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

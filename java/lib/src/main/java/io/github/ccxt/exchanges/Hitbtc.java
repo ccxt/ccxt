@@ -2187,13 +2187,13 @@ public class Hitbtc extends HitbtcApi
             {
                 request.put("from", this.iso8601(since));
             }
+            if (!java.util.Objects.equals(limit, null))
+            {
+                request.put("limit", Math.min(limit, 1000));
+            }
             Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
-            if (!java.util.Objects.equals(limit, null))
-            {
-                ((Map<String, Object>)requestUntil).put("limit", Math.min(limit, 1000));
-            }
             String price = this.safeString(paramsUntil, "price");
             Map<String, Object> paramsOmitted = this.omit(paramsUntil, "price");
             List<Object> response = new ArrayList<Object>(Arrays.asList());
@@ -4561,27 +4561,16 @@ public class Hitbtc extends HitbtcApi
             }
         }
         String url = (baseUrl + getRequest);
-        String bodyResolved = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? null : this.json(parameters);
+        String bodyString = "";
+        if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
+        {
+            bodyString = this.json(parameters);
+        }
         if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String timestamp = this.numberToString(this.nonce());
-            Object payload = new ArrayList<Object>(Arrays.asList(java.util.Objects.requireNonNullElse(method, "GET"), ("/api/3/" + implodedPath)));
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
-            {
-                if (!java.util.Objects.equals(getRequest, ""))
-                {
-                    ((List<Object>)payload).add(getRequest);
-                }
-            } else
-            {
-                if (!java.util.Objects.equals(bodyResolved, null))
-                {
-                    ((List<Object>)payload).add(bodyResolved);
-                }
-            }
-            ((List<Object>)payload).add(timestamp);
-            String payloadString = String.join("", (List<String>)payload);
+            String payloadString = (((((java.util.Objects.requireNonNullElse(method, "GET") + "/api/3/") + implodedPath) + getRequest) + bodyString) + timestamp);
             String signature = (String) this.hmac(this.encode(payloadString), this.encode(this.secret), sha256(), "hex");
             String secondPayload = ((((this.apiKey + ":") + signature) + ":") + timestamp);
             headersValue.put("Authorization", ("HS256 " + this.stringToBase64(secondPayload)));
@@ -4590,7 +4579,7 @@ public class Hitbtc extends HitbtcApi
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("url", url);
             h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap0.put("body", bodyResolved);
+            h2kMap0.put("body", (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? null : bodyString);
             h2kMap0.put("headers", headersValue);
             return h2kMap0;
         }

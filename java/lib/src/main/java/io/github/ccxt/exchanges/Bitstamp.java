@@ -1458,15 +1458,15 @@ public class Bitstamp extends BitstampApi
                 throw new ExchangeError((this.id + " parseCurrencies() missing description")) ;
             }
             List<Object> descriptionParts = new ArrayList<Object>(Arrays.asList(((String)description).split(java.util.regex.Pattern.quote(" / "))));
-            String baseDescription = (String) (descriptionParts == null || 0 >= descriptionParts.size() ? null : descriptionParts.get(0));
-            String quoteDescription = (String) (descriptionParts == null || 1 >= descriptionParts.size() ? null : descriptionParts.get(1));
+            String baseDescription = this.safeString(descriptionParts, 0);
+            String quoteDescription = this.safeString(descriptionParts, 1);
             String minimumOrder = this.safeString(market, "minimum_order_value");
             if (java.util.Objects.equals(minimumOrder, null))
             {
                 throw new ExchangeError((this.id + " parseCurrencies() missing minimumOrder")) ;
             }
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)minimumOrder).split(java.util.regex.Pattern.quote(" "))));
-            String cost = (String) (parts == null || 0 >= parts.size() ? null : parts.get(0));
+            String cost = this.safeString(parts, 0);
             if ((!java.util.Objects.equals(base, null)) && !(result.containsKey(base)))
             {
                 Long baseDecimals = this.safeInteger(market, "base_decimals");
@@ -1862,11 +1862,11 @@ public class Bitstamp extends BitstampApi
             }
         } else
         {
-            side = this.safeString(trade, "type");
-            if (java.util.Objects.equals(side, "1"))
+            String sideRaw = this.safeString(trade, "type");
+            if (java.util.Objects.equals(sideRaw, "1"))
             {
                 side = "sell";
-            } else if (java.util.Objects.equals(side, "0"))
+            } else if (java.util.Objects.equals(sideRaw, "0"))
             {
                 side = "buy";
             } else
@@ -3019,17 +3019,17 @@ public class Bitstamp extends BitstampApi
             // from fetchWithdrawals
             type = "withdrawal";
         }
-        Object tag = null;
-        Object address = null;
+        String tag = null;
+        String address = null;
         String addressRaw = this.safeString(transaction, "address");
         if (!java.util.Objects.equals(addressRaw, null))
         {
             // dt (destination tag) is embedded into the address field
             List<Object> addressParts = new ArrayList<Object>(Arrays.asList(((String)addressRaw).split(java.util.regex.Pattern.quote("?dt="))));
-            address = (addressParts == null || 0 >= addressParts.size() ? null : addressParts.get(0));
+            address = this.safeString(addressParts, 0);
             if (((List<?>)addressParts).size() > 1)
             {
-                tag = (addressParts == null || 1 >= addressParts.size() ? null : addressParts.get(1));
+                tag = this.safeString(addressParts, 1);
             }
         }
         Map<String, Object> fee = new HashMap<String, Object>() {{
@@ -3804,7 +3804,7 @@ public class Bitstamp extends BitstampApi
             String feedback = ((this.id + " ") + body);
             for (var i = 0; i < ((List<?>)errors).size(); i++)
             {
-                Object value = (errors == null || i < 0 || i >= errors.size() ? null : errors.get(i));
+                String value = this.safeString(errors, i);
                 this.throwExactlyMatchedException(this.exceptions.get("exact"), value, feedback);
                 this.throwBroadlyMatchedException(this.exceptions.get("broad"), value, feedback);
             }

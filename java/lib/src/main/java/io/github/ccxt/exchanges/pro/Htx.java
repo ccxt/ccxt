@@ -1064,13 +1064,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Boolean isV5Linear = (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future)));
             if (java.util.Objects.equals(type, "spot"))
             {
-                String mode = null;
-                if (java.util.Objects.equals(mode, null))
-                {
-                    mode = this.safeString2(this.options, "watchMyTrades", "mode", "0");
-                    mode = this.safeString(paramsRequest, "mode", mode);
-                    paramsRequest = this.omit(paramsRequest, "mode");
-                }
+                String mode = this.safeString(paramsRequest, "mode", this.safeString2(this.options, "watchMyTrades", "mode", "0"));
+                paramsRequest = this.omit(paramsRequest, "mode");
                 messageHash = (((("trade.clearing" + "#") + marketId) + "#") + mode);
                 channel = messageHash;
             } else if (Boolean.TRUE.equals(isV5Linear))

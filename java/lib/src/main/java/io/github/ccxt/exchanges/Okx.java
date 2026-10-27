@@ -2456,13 +2456,10 @@ public class Okx extends OkxApi
         String quote = "USD";
         List<Object> optionParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
         List<Object> symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
-        String base = null;
+        String base = this.safeString(optionParts, 0, "");
         if (((String)symbol).indexOf("/") > -1)
         {
             base = this.safeString(symbolBase, 0, "");
-        } else
-        {
-            base = this.safeString(optionParts, 0, "");
         }
         String expiry = this.safeString(optionParts, 2, "");
         String strike = this.safeString(optionParts, 3, "");
@@ -2852,28 +2849,30 @@ public class Okx extends OkxApi
         {
             return null;
         }
-        String symbol = ((base + "/") + quote);
+        String baseSymbol = ((base + "/") + quote);
         // handle preopen empty markets
         if (java.util.Objects.equals(base, "") || java.util.Objects.equals(quote, ""))
         {
-            symbol = id;
+            baseSymbol = (id + "");
         }
+        String symbol = baseSymbol;
         Long expiry = null;
         String strikePrice = null;
         String optionType = null;
         if (Boolean.TRUE.equals(contract))
         {
+            String settledSymbol = baseSymbol;
             if (!java.util.Objects.equals(settle, null))
             {
-                symbol = ((symbol + ":") + settle);
+                settledSymbol = ((baseSymbol + ":") + settle);
             }
+            symbol = settledSymbol;
             if (Boolean.TRUE.equals(future))
             {
                 expiry = this.safeInteger(market, "expTime");
                 if (!java.util.Objects.equals(expiry, null))
                 {
-                    String ymd = this.yymmdd(expiry);
-                    symbol = ((symbol + "-") + ymd);
+                    symbol = ((settledSymbol + "-") + this.yymmdd(expiry));
                 }
             } else if (Boolean.TRUE.equals(option))
             {
@@ -2882,8 +2881,7 @@ public class Okx extends OkxApi
                 optionType = this.safeString(market, "optType");
                 if (!java.util.Objects.equals(expiry, null))
                 {
-                    String ymd = this.yymmdd(expiry);
-                    symbol = ((((((symbol + "-") + ymd) + "-") + strikePrice) + "-") + optionType);
+                    symbol = ((((((settledSymbol + "-") + this.yymmdd(expiry)) + "-") + strikePrice) + "-") + optionType);
                     optionType = (((java.util.Objects.equals(optionType, "P")))) ? "put" : "call";
                 }
             }

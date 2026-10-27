@@ -8900,7 +8900,7 @@ public class Gate extends GateApi
         String authentication = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)); // public, private
         String type = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)); // spot, margin, future, delivery
         Object query = this.omit(parameters, this.extractParams(path));
-        Object pathImploded = null;
+        Object pathImploded = "";
         String bodyJson = null;
         Map<String, Object> signedHeaders = null;
         Boolean containsSettle = ((String)path).indexOf("settle") > -1;

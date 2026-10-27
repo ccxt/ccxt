@@ -4732,7 +4732,7 @@ public class Bitget extends BitgetApi
         Object minNotional = 0;
         for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v11 -> j39v11.size(); case String j39v12 -> j39v12.length(); case Object j39v13 -> j39v13.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v13) : 0; }); i++)
         {
-            Object item = Helpers.GetValue(info, i);
+            Object item = this.safeValue(info, i);
             Double minimumNotional = this.safeNumber2(item, "startUnit", "minTierValue", (Object) null);
             if (!java.util.Objects.equals(minimumNotional, null))
             {
@@ -6194,7 +6194,7 @@ public class Bitget extends BitgetApi
         String posMode = this.safeString(trade, "posMode");
         String category = this.safeString(trade, "category");
         Boolean isFeeStructure = (!java.util.Objects.equals(posMode, null)) || (!java.util.Objects.equals(category, null));
-        Object feeStructure = ((Boolean.TRUE.equals(isFeeStructure))) ? Helpers.GetValue(feeDetail, 0) : feeDetail;
+        Object feeStructure = ((Boolean.TRUE.equals(isFeeStructure))) ? this.safeValue(feeDetail, 0) : feeDetail;
         if (!java.util.Objects.equals(feeStructure, null))
         {
             String currencyCode = this.safeCurrencyCode(this.safeString(feeStructure, "feeCoin"), (Map<String, Object>) null);
@@ -15022,9 +15022,7 @@ public class Bitget extends BitgetApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (!Boolean.TRUE.equals(signed) && (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))
         {
-            List<Object> keys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v17 -> { synchronized (j39v17) { yield new ArrayList<Object>(j39v17.keySet()); } } case null, default -> new ArrayList<Object>(); });
-            Integer keysLength = ((List<?>)keys).size();
-            if ((keysLength != null && keysLength > 0))
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v17 -> { synchronized (j39v17) { yield new ArrayList<Object>(j39v17.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = ((url + "?") + this.urlencode(query));
             }

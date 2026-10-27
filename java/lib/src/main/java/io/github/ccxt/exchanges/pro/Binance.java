@@ -291,9 +291,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             // eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
-            return (String) ((wsUrls == null || !(type instanceof String) ? null : wsUrls.get(type)));
+            return (String) (this.safeString(wsUrls, type, ""));
         }
-        Object baseUrl = (wsUrls == null || type == null ? null : wsUrls.get(type));
+        String baseUrl = this.safeString(wsUrls, type, "");
         if (java.util.Objects.equals(type, "linear"))
         {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
@@ -309,9 +309,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             // only rewrite when the URL ends with exactly "/ws"
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
-            if (((String)baseUrl).endsWith("/ws"))
+            if (java.util.Objects.equals(baseUrl.endsWith(((String)"/ws")), true))
             {
-                String prefix = (baseUrl == null ? null : ((String)baseUrl).substring(0, (int) Math.min(((((long) ((String)baseUrl).length()) - 3L)) < 0 ? ((String)baseUrl).length() + ((((long) ((String)baseUrl).length()) - 3L)) : ((((long) ((String)baseUrl).length()) - 3L)), ((String)baseUrl).length())));
+                String prefix = (baseUrl == null ? null : baseUrl.substring(0, (int) Math.min(((((long) baseUrl.length()) - 3L)) < 0 ? baseUrl.length() + ((((long) baseUrl.length()) - 3L)) : ((((long) baseUrl.length()) - 3L)), baseUrl.length())));
                 return (String) ((((prefix + "/") + category) + "/ws"));
             }
             return (String) (baseUrl);
@@ -4805,7 +4805,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 payload = (Map<String, Object>) this.editSpotOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             } else
             {
-                payload = this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+                payload = (Map<String, Object>) this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             }
             Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "editOrderWs", "returnRateLimits", false);
             Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();

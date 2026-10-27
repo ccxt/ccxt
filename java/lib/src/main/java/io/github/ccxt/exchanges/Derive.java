@@ -1172,7 +1172,10 @@ public class Derive extends DeriveApi
             margin = false;
             settleId = "USDC";
             settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
-            symbol = ((((base + "/") + quote) + ":") + settle);
+            if (!java.util.Objects.equals(settle, null))
+            {
+                symbol = ((((base + "/") + quote) + ":") + settle);
+            }
             swap = true;
             linear = true;
             inverse = false;
@@ -1200,7 +1203,6 @@ public class Derive extends DeriveApi
             inverse = false;
         }
         Integer contractSize = ((Boolean.TRUE.equals(spot))) ? null : 1;
-        Boolean isContract = (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(option));
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", marketId);
         mapLiteral1.put("symbol", symbol);
@@ -1217,7 +1219,7 @@ public class Derive extends DeriveApi
         mapLiteral1.put("future", false);
         mapLiteral1.put("option", option);
         mapLiteral1.put("active", this.safeBool(market, "is_active", (Object) null));
-        mapLiteral1.put("contract", isContract);
+        mapLiteral1.put("contract", (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(option)));
         mapLiteral1.put("linear", linear);
         mapLiteral1.put("inverse", inverse);
         mapLiteral1.put("contractSize", contractSize);
@@ -1377,13 +1379,12 @@ public class Derive extends DeriveApi
         Long timestamp = this.safeInteger(interest, "t");
         Map<String, Object> stats = (Map<String, Object>) this.safeDict(interest, "stats", new HashMap<String, Object>() {{}});
         String amount = this.safeString(stats, "oi");
-        String markPrice = this.safeString(interest, "M");
         String value = null;
         Boolean isOption = (Boolean) this.safeBool(market, "option", false);
         // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
         if ((!java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(isOption, true)))
         {
-            value = Precise.stringMul(amount, markPrice);
+            value = Precise.stringMul(amount, this.safeString(interest, "M"));
         }
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("symbol", this.safeSymbol(null, market, (String) null, (String) null));
@@ -1825,8 +1826,9 @@ public class Derive extends DeriveApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
-                request.put("instrument_name", market.get("id"));
+                Map<String, Object> symbolMarket = this.market(symbol);
+                market = symbolMarket;
+                request.put("instrument_name", symbolMarket.get("id"));
             }
             Long limitResolved = limit;
             if (!java.util.Objects.equals(limit, null) && (limit > 1000))
@@ -2340,7 +2342,7 @@ public class Derive extends DeriveApi
     public String signOrder(Object order, String privateKey)
     {
         Object hashOrder = this.hashOrderMessage(order);
-        return this.signHash((String) ((hashOrder == null ? null : ((String)hashOrder).substring(Math.max(((String)hashOrder).length() - 64, 0)))), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
+        return this.signHash((String) (hashOrder), (String) (privateKey));
     }
 
     /**
@@ -2384,7 +2386,7 @@ public class Derive extends DeriveApi
 
     public String signMessage(String message, String privateKey)
     {
-        return this.signHash((String) (this.hashMessage((String) (message))), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
+        return this.signHash((String) (this.hashMessage((String) (message))), (String) (privateKey));
     }
 
     public String parseUnits(String num, Object dec)
@@ -3409,8 +3411,9 @@ public class Derive extends DeriveApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
-                request.put("instrument_name", market.get("id"));
+                Map<String, Object> symbolMarket = this.market(symbol);
+                market = symbolMarket;
+                request.put("instrument_name", symbolMarket.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -3505,8 +3508,9 @@ public class Derive extends DeriveApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
-                request.put("instrument_name", market.get("id"));
+                Map<String, Object> symbolMarket = this.market(symbol);
+                market = symbolMarket;
+                request.put("instrument_name", symbolMarket.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -3791,8 +3795,9 @@ public class Derive extends DeriveApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                market = this.market(symbol);
-                request.put("instrument_name", market.get("id"));
+                Map<String, Object> symbolMarket = this.market(symbol);
+                market = symbolMarket;
+                request.put("instrument_name", symbolMarket.get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -4182,12 +4187,11 @@ public class Derive extends DeriveApi
         }};
         // margin requirements come as negative subaccount-level contributions in usd terms (initial_margin = collaterals_initial_margin + positions_initial_margin, verified on live data), so they are attributed to the usdc settlement currency and clamped by the usdc cash below; other collaterals stay total-only because the shared margin pool cannot be split per currency
         String usedUsd = "0";
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; }); i++)
+        List<Object> subaccounts = this.toArray(response);
+        for (var i = 0; i < ((List<?>)subaccounts).size(); i++)
         {
-            Map<String, Object> subaccount = (Map<String, Object>) this.safeDict(response, i, (Object) null);
-            String positionsMargin = this.safeString(subaccount, "positions_initial_margin", "0");
-            String ordersMargin = this.safeString(subaccount, "open_orders_margin", "0");
-            usedUsd = Precise.stringSub(usedUsd, Precise.stringAdd(positionsMargin, ordersMargin));
+            Map<String, Object> subaccount = (Map<String, Object>) this.safeDict(subaccounts, i, (Object) null);
+            usedUsd = Precise.stringSub(usedUsd, Precise.stringAdd(this.safeString(subaccount, "positions_initial_margin", "0"), this.safeString(subaccount, "open_orders_margin", "0")));
             List<Object> collaterals = (List<Object>) this.safeList(subaccount, "collaterals", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < ((List<?>)collaterals).size(); j++)
             {
@@ -4200,9 +4204,7 @@ public class Derive extends DeriveApi
                     account.put("total", this.safeString(balance, "amount"));
                 } else
                 {
-                    String amount = this.safeString(balance, "amount");
-                    String previousTotal = this.safeString(account, "total");
-                    account.put("total", Precise.stringAdd(previousTotal, amount));
+                    account.put("total", Precise.stringAdd(this.safeString(account, "total"), this.safeString(balance, "amount")));
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
@@ -4919,13 +4921,13 @@ public class Derive extends DeriveApi
                 // remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
                 this.options.put("subaccount_id", subaccountIdInt);
             }
-            return new ArrayList<Object>(Arrays.asList(subaccountIdInt, paramsSubaccountId));
+            return new ArrayList<Object>(Arrays.asList(subaccountIdInt, this.extend(paramsSubaccountId)));
         }
         Long optionsWallet = this.safeInteger(this.options, "subaccount_id");
         if (!java.util.Objects.equals(optionsWallet, null))
         {
             // parsed, not returned raw: every arm of this tuple has to hand back a plain value so the statically typed ports read the slot natively instead of through a runtime helper
-            return new ArrayList<Object>(Arrays.asList(this.parseToInt(optionsWallet), paramsSubaccountId));
+            return new ArrayList<Object>(Arrays.asList(this.parseToInt(optionsWallet), this.extend(paramsSubaccountId)));
         }
         throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")) ;
     }
@@ -4938,17 +4940,17 @@ public class Derive extends DeriveApi
         if ((!java.util.Objects.equals(deriveWalletAddress, null)) && (!java.util.Objects.equals(deriveWalletAddress, "")))
         {
             this.options.put("deriveWalletAddress", deriveWalletAddress);
-            return new ArrayList<Object>(Arrays.asList(deriveWalletAddress, paramsDeriveWalletAddress));
+            return new ArrayList<Object>(Arrays.asList(deriveWalletAddress, this.extend(paramsDeriveWalletAddress)));
         }
         String optionsWallet = this.safeString(this.options, "deriveWalletAddress");
         if ((!java.util.Objects.equals(optionsWallet, null)) && (!java.util.Objects.equals(optionsWallet, "")))
         {
-            return new ArrayList<Object>(Arrays.asList(optionsWallet, paramsDeriveWalletAddress));
+            return new ArrayList<Object>(Arrays.asList(optionsWallet, this.extend(paramsDeriveWalletAddress)));
         }
         // v3 abolished the separate derive wallet: the owner wallet is the user's own EOA, so the walletAddress credential is the default; set deriveWalletAddress explicitly only when signing with a session key registered to another owner wallet
         if ((!java.util.Objects.equals(this.walletAddress, null)) && (!java.util.Objects.equals(this.walletAddress, "")))
         {
-            return new ArrayList<Object>(Arrays.asList(this.walletAddress, paramsDeriveWalletAddress));
+            return new ArrayList<Object>(Arrays.asList(this.walletAddress, this.extend(paramsDeriveWalletAddress)));
         }
         throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires the walletAddress credential, a deriveWalletAddress parameter inside 'params', or exchange.options['deriveWalletAddress'] = ADDRESS.")) ;
     }

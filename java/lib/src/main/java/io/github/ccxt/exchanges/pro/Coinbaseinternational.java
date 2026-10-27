@@ -208,7 +208,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("subscribe", parameters);
-            Object url = this.getWsUrl(false);
+            String url = this.getWsUrl(false);
             String method = "public/subscribe";
             if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isPrivate, false)))
             {
@@ -257,7 +257,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("unSubscribe", parameters);
-            Object url = this.getWsUrl(false);
+            String url = this.getWsUrl(false);
             String method = "public/unsubscribe";
             if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isPrivate, false)))
             {

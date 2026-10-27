@@ -107,7 +107,9 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
         Long newValue = (Long) this.sum(previousValue, 1);
-        Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
+        Map<String, Object> entry = new HashMap<String, Object>() {{}};
+        entry.put(url, newValue);
+        this.options.put("requestId", this.extend(this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}}), entry));
         return newValue;
     }
 
@@ -780,7 +782,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             ticker.put("ts", timestamp);
             Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (ticker), (Map<String, Object>) null);
-            String symbol = (String) parsedTicker.get("symbol");
+            String symbol = this.safeString(parsedTicker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 this.bidsasks.put(symbol, parsedTicker);
@@ -1233,9 +1235,10 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             String messageHash = topic;
-            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : null;
-            if (!java.util.Objects.equals(symbolResolved, null))
+            String symbolResolved = null;
+            if (!java.util.Objects.equals(symbol, null))
             {
+                symbolResolved = this.symbol(symbol);
                 messageHash = ((topic + ":") + symbolResolved);
             }
             Map<String, Object> request = new HashMap<String, Object>();
@@ -1283,9 +1286,10 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             String messageHash = "myTrades";
-            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : null;
-            if (!java.util.Objects.equals(symbolResolved, null))
+            String symbolResolved = null;
+            if (!java.util.Objects.equals(symbol, null))
             {
+                symbolResolved = this.symbol(symbol);
                 messageHash = (("myTrades" + ":") + symbolResolved);
             }
             Map<String, Object> request = new HashMap<String, Object>();
@@ -1801,19 +1805,15 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> value = (Map<String, Object>) this.safeDict(balances, key, (Object) null);
             String code = this.safeCurrencyCode(key, (Map<String, Object>) null);
-            Object account = this.account();
-            if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
-            {
-                account = (this.balance == null ? null : ((Map<?, ?>)this.balance).get(code));
-            }
+            Map<String, Object> account = this.account();
             String total = this.safeString(value, "holding");
             String used = this.safeString(value, "frozen");
-            Helpers.addElementToObject(account, "total", total);
-            Helpers.addElementToObject(account, "used", used);
-            Helpers.addElementToObject(account, "free", Precise.stringSub(total, used));
+            account.put("total", total);
+            account.put("used", used);
+            account.put("free", Precise.stringSub(total, used));
             if (!java.util.Objects.equals(code, null))
             {
-                this.balance.put(code, account);
+                this.balance.put(code, this.extend(this.safeDict(this.balance, code, new HashMap<String, Object>() {{}}), account));
             }
         }
         this.balance = this.safeBalance(this.balance);

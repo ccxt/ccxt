@@ -1078,7 +1078,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Map<String, Object> market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             List<String> marketIds = this.marketIds(symbolsNormalized);
-            Pair<String, Map<String, Object>> channelNameparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsCallerMethodName), callerMethodNameOption, "method", (String) null);
+            Pair<String, Map<String, Object>> channelNameparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsCallerMethodName), callerMethodNameOption, "method", "");
             String channelName = channelNameparamsMethodVariable.first();
             Map<String, Object> paramsMethod = channelNameparamsMethodVariable.second();
             String url = this.getUrlByMarket(market);
@@ -2770,10 +2770,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             return null;
         }
-        if (java.util.Objects.equals(market.get("spot"), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             return "spot";
-        } else if (java.util.Objects.equals(market.get("option"), true))
+        } else if (Boolean.TRUE.equals(this.safeBool(market, "option", false)))
         {
             return "options";
         } else

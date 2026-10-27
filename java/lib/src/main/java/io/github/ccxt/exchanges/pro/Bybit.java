@@ -460,7 +460,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 throw new BadRequest((this.id + " watchTicker() only supports name tickers for contract markets")) ;
             }
-            List<Object> topics = new ArrayList<Object>(Arrays.asList(((topic + ".") + market.get("id"))));
+            List<Object> topics = new ArrayList<Object>(Arrays.asList(((topic + ".") + this.safeString(market, "id", ""))));
             return (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, paramsValue)).join();
         }).thenApply(Ticker::new);
 
@@ -497,7 +497,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 ((List<Object>)topics).add(((topic + ".") + marketId));
-                messageHashes.add(("ticker:" + (symbolsValue == null || i < 0 || i >= symbolsValue.size() ? null : symbolsValue.get(i))));
+                messageHashes.add(("ticker:" + this.safeString(symbolsValue, i, "")));
             }
             Object ticker = (this.watchTopics(url, messageHashes, topics, paramsValue)).join();
             if (this.newUpdates)
@@ -760,7 +760,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 String topic = ("orderbook.1." + marketId);
                 ((List<Object>)topics).add(topic);
-                messageHashes.add(("bidask:" + (symbolsValue == null || i < 0 || i >= symbolsValue.size() ? null : symbolsValue.get(i))));
+                messageHashes.add(("bidask:" + this.safeString(symbolsValue, i, "")));
             }
             Object ticker = (this.watchTopics(url, messageHashes, topics, paramsValue)).join();
             if (this.newUpdates)
@@ -1087,7 +1087,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 List<Object> selectedLimits = (List<Object>) this.safeList2(limits, market.get("type"), "default", new ArrayList<Object>(Arrays.asList()));
                 if (!this.inArray(limit, selectedLimits))
                 {
-                    throw new BadRequest(((((this.id + " watchOrderBookForSymbols(): for ") + market.get("type")) + " markets limit can be one of: ") + this.json(selectedLimits))) ;
+                    throw new BadRequest(((((this.id + " watchOrderBookForSymbols(): for ") + this.safeString(market, "type", "")) + " markets limit can be one of: ") + this.json(selectedLimits))) ;
                 }
             }
             List<Object> topics = new ArrayList<Object>(Arrays.asList());

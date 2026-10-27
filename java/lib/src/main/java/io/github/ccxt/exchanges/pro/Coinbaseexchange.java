@@ -869,11 +869,9 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
 }});
                         }
                         Map<String, Object> previousOrderFee = (Map<String, Object>) this.safeDict(previousOrder, "fee", new HashMap<String, Object>() {{}});
-                        if ((!java.util.Objects.equals(previousOrderFee.get("cost"), null)) && (!java.util.Objects.equals(this.safeNumber(trade.get("fee"), "cost", (Object) null), null)))
+                        if ((!java.util.Objects.equals(this.safeNumber(previousOrderFee, "cost", (Object) null), null)) && (!java.util.Objects.equals(this.safeNumber(trade.get("fee"), "cost", (Object) null), null)))
                         {
-                            Helpers.addElementToObject(previousOrder.get("fee"), "cost", this.sum(previousOrderFee.get("cost"), this.safeNumber(trade.get("fee"), "cost", (Object) null)));
-                            Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict(trade, "fee", (Object) null);
-                            Helpers.addElementToObject(previousOrder.get("fee"), "cost", this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(tradeFee, "cost"))));
+                            Helpers.addElementToObject(previousOrder.get("fee"), "cost", this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(trade.get("fee"), "cost"))));
                         }
                         // update the newUpdates count
                         orders.append(previousOrder);

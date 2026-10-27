@@ -9290,11 +9290,8 @@ public class Htx extends HtxApi
         Object pathString = path;
         Object url = "/";
         Boolean isArrayParams = (parameters instanceof List);
-        Object query = null;
-        if (Boolean.TRUE.equals(isArrayParams))
-        {
-            query = new HashMap<String, Object>() {{}};
-        } else
+        Object query = new HashMap<String, Object>() {{}};
+        if (!Boolean.TRUE.equals(isArrayParams))
         {
             query = this.omit(parameters, this.extractParams(path));
         }
@@ -9357,7 +9354,7 @@ public class Htx extends HtxApi
                 }
             } else
             {
-                if ((!java.util.Objects.equals(query, null)) && (((Map<String, Object>)query).size() > 0))
+                if (((Map<String, Object>)query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }
@@ -9392,7 +9389,7 @@ public class Htx extends HtxApi
             url = ((java.util.function.BinaryOperator<Object>) (hx4J40v1A, hx4J40v1B) -> { Object hx4J40v1P = hx4J40v1A instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1A; Object hx4J40v1Q = hx4J40v1B instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1B; if (hx4J40v1P instanceof Long hx4J40v1l && hx4J40v1Q instanceof Long hx4J40v1r) { return hx4J40v1l + hx4J40v1r; } if (hx4J40v1P instanceof Double || hx4J40v1Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; return hx4J40v1D.applyAsDouble(hx4J40v1P) + hx4J40v1D.applyAsDouble(hx4J40v1Q); } if (hx4J40v1P instanceof String || hx4J40v1Q instanceof String) { return String.valueOf(hx4J40v1P) + String.valueOf(hx4J40v1Q); } return null; }).apply(url, this.implodeParams(path, parameters));
             if (java.util.Objects.equals(access, "public"))
             {
-                if ((!java.util.Objects.equals(query, null)) && (((Map<String, Object>)query).size() > 0))
+                if (((Map<String, Object>)query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }

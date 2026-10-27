@@ -5602,16 +5602,14 @@ public class Mexc extends MexcApi
         while (Precise.stringLt(floor, maxVol))
         {
             String cap = Precise.stringAdd(floor, riskIncrVol);
-            Double minNotional = this.parseNumber(floor);
-            Double mainMarginRate = this.parseNumber(maintenanceMarginRate);
             Double maxLev = this.parseNumber(Precise.stringDiv("1", initialMarginRate));
             ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
                 j39v3.put("tier", this.parseNumber(Precise.stringDiv(cap, riskIncrVol)));
                 j39v3.put("symbol", this.safeSymbol(marketId, market, (String) null, "contract"));
                 j39v3.put("currency", this.safeCurrencyCode(quoteId, (Map<String, Object>) null));
-                j39v3.put("minNotional", minNotional);
+                j39v3.put("minNotional", this.parseNumber(floor));
                 j39v3.put("maxNotional", this.parseNumber(cap));
-                j39v3.put("maintenanceMarginRate", mainMarginRate);
+                j39v3.put("maintenanceMarginRate", this.parseNumber(maintenanceMarginRate));
                 j39v3.put("maxLeverage", maxLev);
                 j39v3.put("info", info);
                 yield j39v3; } }));
@@ -6724,9 +6722,8 @@ public class Mexc extends MexcApi
                 return this.parseTransaction((Map<String, Object>) (responseForInternal), currency);
             }
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-            Object network = this.safeString2(paramsWithdrawTag, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
-            network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
-            network = this.networkCodeToId((String) (network), this.safeString(currency, "code"));
+            String networkRaw = this.safeString2(paramsWithdrawTag, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
+            Object network = this.networkCodeToId(this.safeString(networks, networkRaw, networkRaw), this.safeString(currency, "code")); // handle ETH > ERC-20 alias
             this.checkAddress(address, code, tagResolved);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", currency.get("id") );
@@ -7304,7 +7301,7 @@ public class Mexc extends MexcApi
         String access = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         String pathValue = (String) this.implodeParams(path, parameters);
         Object paramsValue = this.omit(parameters, this.extractParams(path));
-        String url = null;
+        String url = "";
         if (java.util.Objects.equals(section, "spot") || java.util.Objects.equals(section, "broker"))
         {
             if (java.util.Objects.equals(section, "broker"))
@@ -7344,13 +7341,13 @@ public class Mexc extends MexcApi
             if (urlParams.size() > 0)
             {
                 paramsEncoded = this.urlencode(urlParams);
-                url = (url + ("?" + paramsEncoded));
+                url = ((url + "?") + paramsEncoded);
             }
             if (java.util.Objects.equals(access, "private"))
             {
                 this.checkRequiredCredentials(true);
                 String signature = (String) this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256());
-                url = (url + (("&" + "signature=") + signature));
+                url = ((url + "&signature=") + signature);
                 requestHeaders = new HashMap<String, Object>() {{
                     put( "X-MEXC-APIKEY", Mexc.this.apiKey );
                     put( "source", Mexc.this.safeString(Mexc.this.options, "broker", "CCXT") );

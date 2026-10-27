@@ -127,10 +127,6 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public String getUrl(String channel, Object access)
     {
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
-        if (java.util.Objects.equals(channel, null))
-        {
-            throw new ArgumentsRequired((this.id + " getUrl() requires a channel argument")) ;
-        }
         Object isSandbox = this.options.get("sandboxMode");
         String sandboxSuffix = "";
         if (java.util.Objects.equals(isSandbox, true))
@@ -3295,11 +3291,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
         // watchOHLCV subscribes through subscribe () under channel:marketId
-        if (!java.util.Objects.equals(symbol, null))
-        {
-            this.cleanUnsubscription(client, (String) (((channel + ":") + this.marketId((String) (symbol)))), (String) (null), false);
-        }
-        if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(timeframe, null)) && (((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe)))
+        this.cleanUnsubscription(client, (String) (((channel + ":") + this.marketId((String) (symbol)))), (String) (null), false);
+        if (((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe))
         {
             ((Map<String,Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).remove((String)timeframe);
         }
@@ -3329,9 +3322,17 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         // }
         // arg might be an array or list
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
-        String channel = this.safeString(arg, "channel", "");
+        String channel = this.safeString(arg, "channel");
+        if (java.util.Objects.equals(channel, null))
+        {
+            return;
+        }
         String marketId = this.safeString(arg, "instId");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        if (java.util.Objects.equals(symbol, null))
+        {
+            return;
+        }
         if (java.util.Objects.equals(channel, "trades") || java.util.Objects.equals(channel, "trades-all"))
         {
             this.handleUnSubscriptionTrades(client, symbol, channel);

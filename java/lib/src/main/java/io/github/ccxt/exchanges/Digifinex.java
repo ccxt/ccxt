@@ -1155,9 +1155,9 @@ public class Digifinex extends DigifinexApi
             String marginMode = marginModequeryVariable.first();
             Map<String, Object> query = marginModequeryVariable.second();
             Map<String, Object> response = null;
-            if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
+            Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
+            if (Boolean.TRUE.equals(isMargin))
             {
-                marketType = "margin";
                 response = (this.privateSpotGetMarginAssets(query)).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -1206,7 +1206,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             String balanceRequest = "list";
-            if (java.util.Objects.equals(marketType, "swap"))
+            if (!Boolean.TRUE.equals(isMargin) && java.util.Objects.equals(marketType, "swap"))
             {
                 balanceRequest = "data";
             }
@@ -1495,19 +1495,12 @@ public class Digifinex extends DigifinexApi
             List<Object> tickers = (List<Object>) this.safeList(response, "ticker", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> firstTicker = (Map<String, Object>) this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
-            Map<String, Object> result = null;
-            if (java.util.Objects.equals(market.get("swap"), true))
-            {
-                result = data;
-            } else
+            Map<String, Object> result = data;
+            if (!java.util.Objects.equals(market.get("swap"), true))
             {
                 result = this.extend(new HashMap<String, Object>() {{
                     put( "date", date );
                 }}, firstTicker);
-            }
-            if (java.util.Objects.equals(result, null))
-            {
-                throw new NullResponse((this.id + " fetchTicker() returned empty response")) ;
             }
             return this.parseTicker(result, market);
         }).thenApply(Ticker::new);
@@ -2471,9 +2464,9 @@ public class Digifinex extends DigifinexApi
             String marginMode = marginModequeryVariable.first();
             Map<String, Object> query = marginModequeryVariable.second();
             Map<String, Object> response = null;
-            if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
+            Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
+            if (Boolean.TRUE.equals(isMargin))
             {
-                marketType = "margin";
                 response = (this.privateSpotPostMarginOrderCancel(this.extend(request, query))).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -2506,7 +2499,7 @@ public class Digifinex extends DigifinexApi
             //         "data": "1590923061186531328"
             //     }
             //
-            if ((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin")))
+            if (Boolean.TRUE.equals(isMargin) || (java.util.Objects.equals(marketType, "spot")))
             {
                 List<Object> canceledOrders = (List<Object>) this.safeList(response, "success", new ArrayList<Object>(Arrays.asList()));
                 Integer numCanceledOrders = ((List<?>)canceledOrders).size();
@@ -2980,9 +2973,9 @@ public class Digifinex extends DigifinexApi
                 request.put(marketIdRequest, market.get("id"));
             }
             Map<String, Object> response = null;
-            if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
+            Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
+            if (Boolean.TRUE.equals(isMargin))
             {
-                marketType = "margin";
                 response = (this.privateSpotGetMarginOrderCurrent(this.extend(request, query))).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3114,9 +3107,9 @@ public class Digifinex extends DigifinexApi
                 request.put("limit", limit);
             }
             Map<String, Object> response = null;
-            if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
+            Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
+            if (Boolean.TRUE.equals(isMargin))
             {
-                marketType = "margin";
                 response = (this.privateSpotGetMarginOrderHistory(this.extend(request, query))).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3233,9 +3226,9 @@ public class Digifinex extends DigifinexApi
                 request.put("market", marketType);
             }
             Map<String, Object> response = null;
-            if ((!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin")))
+            Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
+            if (Boolean.TRUE.equals(isMargin))
             {
-                marketType = "margin";
                 response = (this.privateSpotGetMarginOrder(this.extend(request, query))).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3296,7 +3289,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             Object data = this.safeValue(response, "data");
-            Object order = (((java.util.Objects.equals(marketType, "swap")))) ? data : this.safeValue(data, 0);
+            Object order = (((!Boolean.TRUE.equals(isMargin) && (java.util.Objects.equals(marketType, "swap"))))) ? data : this.safeValue(data, 0);
             if (java.util.Objects.equals(order, null))
             {
                 throw new OrderNotFound((((this.id + " fetchOrder() order ") + idValue) + " not found")) ;
@@ -3369,9 +3362,9 @@ public class Digifinex extends DigifinexApi
                 request.put("limit", limit);
             }
             Map<String, Object> response = null;
-            if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
+            Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
+            if (Boolean.TRUE.equals(isMargin))
             {
-                marketType = "margin";
                 response = (this.privateSpotGetMarginMytrades(this.extend(request, query))).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3429,7 +3422,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             String responseRequest = "list";
-            if (java.util.Objects.equals(marketType, "swap"))
+            if (!Boolean.TRUE.equals(isMargin) && (java.util.Objects.equals(marketType, "swap")))
             {
                 responseRequest = "data";
             }
@@ -3557,9 +3550,9 @@ public class Digifinex extends DigifinexApi
                 request.put("limit", limit);
             }
             Map<String, Object> response = null;
-            if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
+            Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
+            if (Boolean.TRUE.equals(isMargin))
             {
-                marketType = "margin";
                 response = (this.privateSpotGetMarginFinancelog(this.extend(request, query))).join();
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3605,7 +3598,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> ledger = null;
-            if (java.util.Objects.equals(marketType, "swap"))
+            if (!Boolean.TRUE.equals(isMargin) && (java.util.Objects.equals(marketType, "swap")))
             {
                 ledger = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             } else
@@ -5646,7 +5639,7 @@ public class Digifinex extends DigifinexApi
                 }
             } else
             {
-                nonce = String.valueOf(this.nonce());
+                nonce = String.valueOf(this.seconds());
                 auth = urlencoded;
             }
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());

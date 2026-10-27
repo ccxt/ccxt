@@ -2935,7 +2935,7 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String positionType = "ONEWAY";
-            if (Boolean.TRUE.equals(hedged))
+            if (java.util.Objects.equals(hedged, true))
             {
                 positionType = "HEDGE";
             }

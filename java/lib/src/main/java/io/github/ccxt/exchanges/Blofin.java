@@ -3365,7 +3365,7 @@ public class Blofin extends BlofinApi
                     for (var i = 0; i < ((List<?>)tpslIds).size(); i++)
                     {
                         ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-                            j39v5.put("tpslId", (tpslIds == null || i < 0 || i >= ((List<?>)tpslIds).size() ? null : ((List<?>)tpslIds).get(i)));
+                            j39v5.put("tpslId", this.safeString(tpslIds, i));
                             j39v5.put("instId", market.get("id"));
                             yield j39v5; } }));
                     }
@@ -3375,13 +3375,13 @@ public class Blofin extends BlofinApi
                     if (java.util.Objects.equals(trigger, true))
                     {
                         ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                            j39v4.put("tpslId", (orderIds == null || i < 0 || i >= ((List<?>)orderIds).size() ? null : ((List<?>)orderIds).get(i)));
+                            j39v4.put("tpslId", this.safeString(orderIds, i));
                             j39v4.put("instId", market.get("id"));
                             yield j39v4; } }));
                     } else
                     {
                         ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                            j39v3.put("orderId", (orderIds == null || i < 0 || i >= ((List<?>)orderIds).size() ? null : ((List<?>)orderIds).get(i)));
+                            j39v3.put("orderId", this.safeString(orderIds, i));
                             j39v3.put("instId", market.get("id"));
                             yield j39v3; } }));
                     }
@@ -3392,7 +3392,7 @@ public class Blofin extends BlofinApi
                 {
                     ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
                         j39v2.put("instId", market.get("id"));
-                        j39v2.put("clientOrderId", (clientOrderIds == null || i < 0 || i >= ((List<?>)clientOrderIds).size() ? null : ((List<?>)clientOrderIds).get(i)));
+                        j39v2.put("clientOrderId", this.safeString(clientOrderIds, i));
                         yield j39v2; } }));
                 }
             }
@@ -4207,9 +4207,8 @@ public class Blofin extends BlofinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "positionMode", ((Boolean.TRUE.equals(hedged))) ? "long_short_mode" : "net_mode" );
-            }};
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("positionMode", (((java.util.Objects.equals(hedged, true)))) ? "long_short_mode" : "net_mode");
             //
             //     {
             //         "code": "0",

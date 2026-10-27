@@ -5868,15 +5868,14 @@ public class Binance extends BinanceApi
                     Object symbols = "";
                     if ((paramSymbols instanceof List))
                     {
-                        String mid = this.marketId((String) (this.safeValue(paramSymbols, 0)));
+                        String mid = this.marketId(this.safeString(paramSymbols, 0));
                         if (!java.util.Objects.equals(mid, null))
                         {
                             symbols = mid;
                         }
                         for (var i = 1; i < ((List<?>)paramSymbols).size(); i++)
                         {
-                            Object symbol = this.safeValue(paramSymbols, i);
-                            String id = this.marketId((String) (symbol));
+                            String id = this.marketId(this.safeString(paramSymbols, i));
                             if (!java.util.Objects.equals(id, null))
                             {
                                 symbols = (symbols + ("," + id));
@@ -16281,7 +16280,7 @@ public class Binance extends BinanceApi
                     extendedParams = this.omit(extendedParams, new ArrayList<Object>(Arrays.asList("orderidlist", "origclientorderidlist", "origClientOrderIdList")));
                     if (extendedParams.containsKey("symbol"))
                     {
-                        extendedParams.put("symbol", this.encodeURIComponent(extendedParams.get("symbol")));
+                        extendedParams.put("symbol", this.encodeURIComponent(this.safeString(extendedParams, "symbol", "")));
                     }
                     query = this.rawencode(extendedParams);
                     Integer orderidlistLength = ((List<?>)orderidlist).size();
@@ -16296,7 +16295,7 @@ public class Binance extends BinanceApi
                         List<String> newClientOrderIds = new ArrayList<String>(Arrays.asList());
                         for (var i = 0; (origclientorderidlistLength != null && i < origclientorderidlistLength); i++)
                         {
-                            newClientOrderIds.add((("%22" + (origclientorderidlist == null || i < 0 || i >= origclientorderidlist.size() ? null : origclientorderidlist.get(i))) + "%22"));
+                            newClientOrderIds.add((("%22" + this.safeString(origclientorderidlist, i, "")) + "%22"));
                         }
                         query = ((((query + "&") + "origclientorderidlist=%5B") + String.join("%2C", (List<String>)newClientOrderIds)) + "%5D");
                     }

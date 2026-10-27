@@ -6083,9 +6083,9 @@ public class Hyperliquid extends HyperliquidApi
             return null;
         }
         Map<String, Object> hi3TokensByname = (Map<String, Object>) this.safeDict(this.options, "hip3TokensByName", new HashMap<String, Object>() {{}});
-        if (!java.util.Objects.equals(this.safeDict(hi3TokensByname, coin, (Object) null), null))
+        Map<String, Object> hip3Dict = (Map<String, Object>) this.safeDict(hi3TokensByname, coin, (Object) null);
+        if (!java.util.Objects.equals(hip3Dict, null))
         {
-            Map<String, Object> hip3Dict = (Map<String, Object>) this.safeDict(hi3TokensByname, coin, (Object) null);
             String quote = this.safeString(hip3Dict, "quote", "USDC");
             String code = this.safeString(hip3Dict, "code", coin);
             return ((((code + "/") + quote) + ":") + quote);

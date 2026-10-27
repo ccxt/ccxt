@@ -683,8 +683,8 @@ public class Lbank extends LbankApi
 
             List<Object> marketsPromises = new ArrayList<Object>(Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
             Object resolvedMarkets = (((List<?>)(marketsPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            Object spotMarkets = (resolvedMarkets == null || 0 >= ((List<?>)resolvedMarkets).size() ? null : ((List<?>)resolvedMarkets).get(0));
-            Object swapMarkets = (resolvedMarkets == null || 1 >= ((List<?>)resolvedMarkets).size() ? null : ((List<?>)resolvedMarkets).get(1));
+            Object spotMarkets = this.safeValue(resolvedMarkets, 0);
+            Object swapMarkets = this.safeValue(resolvedMarkets, 1);
             return this.arrayConcat(spotMarkets, swapMarkets);
         });
 
@@ -3636,8 +3636,7 @@ public class Lbank extends LbankApi
                 put( "timestamp", timestamp );
             }}, signedQuery)));
             Object encoded = this.encode(auth);
-            Object hash = this.hash(encoded, md5());
-            String uppercaseHash = ((String)hash).toUpperCase();
+            String uppercaseHash = ((String)this.hash(encoded, md5())).toUpperCase();
             Object sign = null;
             if (java.util.Objects.equals(signatureMethod, "RSA"))
             {
@@ -3691,7 +3690,7 @@ public class Lbank extends LbankApi
 
     public String convertSecretToPem(Object secret)
     {
-        Long secretLength = (((switch ((Object)(secret)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; })) - 0L);
+        Integer secretLength = (switch ((Object)(secret)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; });
         Long fullLines = this.parseToInt((((double) secretLength) / ((double) 64)));
         String pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (var i = 0; ((fullLines != null && i <= fullLines)); i++)

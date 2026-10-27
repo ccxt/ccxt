@@ -328,7 +328,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Map<String, Object> market = this.market(symbol);
             String symbolValue = this.safeString(market, "symbol", "");
             Tickers result = (this.watchTickers(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
-            return (result == null || symbolValue == null ? null : result.get(symbolValue));
+            return this.safeValue(result, symbolValue);
         }).thenApply(Ticker::new);
 
     }
@@ -651,10 +651,6 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         // landing in that window invisible to the consumer forever (same class
         // as issue #26773); the free/used/total aggregates are rebuilt from
         // the merged currencies by safeBalance
-        if (java.util.Objects.equals(this.balance, null))
-        {
-            this.balance = new HashMap<String, Object>() {{}};
-        }
         this.balance.put(marketType, this.safeDict(this.balance, marketType, new HashMap<String, Object>() {{}}));
         Map<String, Object> parsed = this.parseWsBalance((Map<String, Object>) (message));
         List<String> reserved = new ArrayList<String>(Arrays.asList("free", "used", "total"));
@@ -964,7 +960,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                     topic.put("channel", channel);
                     topic.put("instId", market.get("id"));
                     ((List<Object>)rawSubscriptions).add(topic);
-                    ((List<Object>)messageHashes).add(((channel + ":") + market.get("symbol")));
+                    ((List<Object>)messageHashes).add(((channel + ":") + this.safeString(market, "symbol", "")));
                 }
             } else
             {
@@ -982,7 +978,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             }
             Map<String, Object> request = this.getSubscriptionRequest(rawSubscriptions);
             String privateOrPublic = "private";
-            if (Boolean.TRUE.equals(isPublic))
+            if (java.util.Objects.equals(isPublic, true))
             {
                 privateOrPublic = "public";
             }
