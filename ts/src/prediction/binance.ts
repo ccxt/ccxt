@@ -979,11 +979,7 @@ export default class binance extends Exchange {
             const marketId = this.safeString (order, 'marketId');
             const outcome = this.safeStringUpper (order, 'outcome');
             const market = this.safeMarket (marketId);
-            let outcomeName = this.safeString (market, 'market');
-            if (outcomeName === undefined) {
-                outcomeName = marketId;
-            }
-            outcomeName += ':' + outcome;
+            const outcomeName = this.safeString (market, 'market', marketId) + ':' + outcome;
             outcomeObjResolved = this.safeOutcome (outcomeName);
         }
         const side = this.safeStringLower (order, 'side');
@@ -1077,7 +1073,7 @@ export default class binance extends Exchange {
             request['limit'] = limit;
         }
         const wallet = await this.fetchWallet ('fetchOpenOrders', paramsMaxEntriesPerRequest);
-        request['walletAddress'] = wallet['walletAddress'];
+        request['walletAddress'] = this.safeString (wallet, 'walletAddress');
         const response = await this.sapiPrivateGetOrderList (this.extend (request, paramsMaxEntriesPerRequest));
         //
         // {
@@ -1166,7 +1162,7 @@ export default class binance extends Exchange {
             request['endDate'] = this.yyyymmdd (until);
         }
         const wallet = await this.fetchWallet ('fetchOrders', paramsOmitted);
-        request['walletAddress'] = wallet['walletAddress'];
+        request['walletAddress'] = this.safeString (wallet, 'walletAddress');
         const response = await this.sapiPrivateGetOrderHistory (this.extend (request, paramsOmitted));
         //
         // {
@@ -1231,7 +1227,7 @@ export default class binance extends Exchange {
         }
         const wallet = await this.fetchWallet ('fetchPositions', params);
         const request = {
-            'walletAddress': wallet['walletAddress'],
+            'walletAddress': this.safeString (wallet, 'walletAddress'),
         };
         const response = await this.sapiPrivateGetPositionList (this.extend (request, params));
         //
@@ -1319,7 +1315,7 @@ export default class binance extends Exchange {
             request['marketTopicId'] = market['info']['marketTopicId'];
         }
         const wallet = await this.fetchWallet ('fetchOrders', params);
-        request['walletAddress'] = wallet['walletAddress'];
+        request['walletAddress'] = this.safeString (wallet, 'walletAddress');
         const response = await this.sapiPrivateGetPositionFilter (this.extend (request, params));
         //
         //
@@ -1344,11 +1340,7 @@ export default class binance extends Exchange {
             const marketId = this.safeString (position, 'marketId');
             const outcome = this.safeStringUpper (position, 'outcomeName');
             const market = this.safeMarket (marketId);
-            let outcomeName = this.safeString (market, 'market');
-            if (outcomeName === undefined) {
-                outcomeName = marketId;
-            }
-            outcomeName += ':' + outcome;
+            const outcomeName = this.safeString (market, 'market', marketId) + ':' + outcome;
             outcomeObjResolved = this.safeOutcome (outcomeName);
         }
         const timestamp = this.safeInteger (position, 'createdTime');
@@ -1434,7 +1426,7 @@ export default class binance extends Exchange {
             request['endDate'] = this.yyyymmdd (until);
         }
         const wallet = await this.fetchWallet ('fetchMyTrades', paramsOmitted);
-        request['walletAddress'] = wallet['walletAddress'];
+        request['walletAddress'] = this.safeString (wallet, 'walletAddress');
         const response = await this.sapiPrivateGetOrderHistory (this.extend (request, paramsOmitted));
         //
         // {
@@ -1518,11 +1510,7 @@ export default class binance extends Exchange {
             const marketId = this.safeString (trade, 'marketId');
             const outcome = this.safeStringUpper (trade, 'outcome');
             const market = this.safeMarket (marketId);
-            let outcomeName = this.safeString (market, 'market');
-            if (outcomeName === undefined) {
-                outcomeName = marketId;
-            }
-            outcomeName += ':' + outcome;
+            const outcomeName = this.safeString (market, 'market', marketId) + ':' + outcome;
             outcomeObjResolved = this.safeOutcome (outcomeName);
         }
         const timestamp = this.safeInteger (trade, 'createTime');
@@ -1705,7 +1693,7 @@ export default class binance extends Exchange {
         const cost = this.safeString (params, 'cost');
         const slippageBps = this.parseToInt (Precise.stringMul (slippage, '10000'));
         const commonRequest: Dict = {
-            'walletAddress': wallet['walletAddress'],
+            'walletAddress': this.safeString (wallet, 'walletAddress'),
             'orderType': typeUpper,
             'slippageBps': slippageBps,
         };
@@ -1833,7 +1821,7 @@ export default class binance extends Exchange {
         }
         const wallet = await this.fetchWallet ('cancelOrders', params);
         const request: Dict = {
-            'walletAddress': wallet['walletAddress'],
+            'walletAddress': this.safeString (wallet, 'walletAddress'),
             'walletId': wallet['walletId'],
         };
         // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
