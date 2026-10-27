@@ -343,14 +343,6 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
     }
 
-    public void handleDeltas(Object bookside, Object deltas)
-    {
-        for (var i = 0; i < ((List<?>)deltas).size(); i++)
-        {
-            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
-        }
-    }
-
     /**
      * @method
      * @name alpaca#watchTrades

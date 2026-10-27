@@ -709,7 +709,7 @@ public class Predictfun extends PredictfunApi
             for (var i = 0; (queriesLength != null && i < queriesLength); i++)
             {
                 Map<String, Object> request = new HashMap<String, Object>();
-                request.put("query", (queries == null || i < 0 || i >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(i)));
+                request.put("query", this.safeString(queries, i, ""));
                 request.put("limit", limit);
                 request.put("includeResolved", includeResolved);
                 Map<String, Object> response = (this.predictfunGetV1Search(this.extend(request, rest))).join();
@@ -1900,7 +1900,7 @@ public class Predictfun extends PredictfunApi
     {
         // read before the flag is overwritten: only an actual switch touches the token, so calling
         // this twice with the same value is a no-op rather than a forced re-authentication
-        Boolean wasSandbox = (Boolean) this.safeBool(this.options, "sandboxMode", false);
+        Boolean wasSandbox = (java.util.Objects.equals(this.safeBool(this.options, "sandboxMode", false), true));
         super.setSandboxMode(enable);
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
@@ -2404,7 +2404,7 @@ public class Predictfun extends PredictfunApi
             List<Object> wantedOutcomes = this.toArray(outcomes);
             for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
             {
-                Map<String, Object> outcomeObj = this.outcome((String) ((wantedOutcomes == null || i < 0 || i >= wantedOutcomes.size() ? null : wantedOutcomes.get(i))));
+                Map<String, Object> outcomeObj = this.outcome(this.safeString(wantedOutcomes, i));
                 String wantedId = this.safeString(outcomeObj, "outcomeId", "");
                 wanted.put(wantedId, true);
             }
@@ -3116,14 +3116,7 @@ public class Predictfun extends PredictfunApi
         rHex = this.padHexToEven((String) (rHex));
         sHex = this.padHexToEven((String) (sHex));
         Long yParity = this.safeInteger(signature, "v");
-        List<Object> signedFields = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)fields).size(); i++)
-        {
-            ((List<Object>)signedFields).add((fields == null || i < 0 || i >= fields.size() ? null : fields.get(i)));
-        }
-        ((List<Object>)signedFields).add(this.rlpEncodeBytes((String) (this.intToRlpHex(yParity))));
-        ((List<Object>)signedFields).add(this.rlpEncodeBytes((String) (rHex)));
-        ((List<Object>)signedFields).add(this.rlpEncodeBytes((String) (sHex)));
+        List<Object> signedFields = (List<Object>) this.arrayConcat(fields, new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex(yParity))), this.rlpEncodeBytes((String) (rHex)), this.rlpEncodeBytes((String) (sHex)))));
         return ("0x02" + this.rlpEncodeList(signedFields));
     }
 
@@ -3435,7 +3428,7 @@ public class Predictfun extends PredictfunApi
         }
         for (var i = 0; (messageHashesLength != null && i < messageHashesLength); i++)
         {
-            client.reject(error, (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i)));
+            client.reject(error, this.safeString(messageHashes, i, ""));
         }
     }
 
@@ -3811,11 +3804,11 @@ public class Predictfun extends PredictfunApi
     public List<Object> outcomesByMarketId(String marketId)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        Object cached = this.outcomes;
-        if ((java.util.Objects.equals(marketId, null)) || (java.util.Objects.equals(cached, null)))
+        if ((java.util.Objects.equals(marketId, null)) || (java.util.Objects.equals(this.outcomes, null)))
         {
             return result;
         }
+        Object cached = this.outcomes;
         List<String> handles = new ArrayList<String>(((Map<String, Object>)cached).keySet());
         Integer handlesLength = ((List<?>)handles).size();
         for (var i = 0; (handlesLength != null && i < handlesLength); i++)

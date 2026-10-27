@@ -864,7 +864,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 Map<String, Object> market = this.market(symbol);
                 symbolResolved = this.safeString(market, "symbol");
-                messageHash = ((topic + ":") + symbolResolved);
+                messageHash = ((topic + ":") + this.safeString(market, "symbol", ""));
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("event", "subscribe");
@@ -916,7 +916,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 Map<String, Object> market = this.market(symbol);
                 symbolResolved = this.safeString(market, "symbol");
-                messageHash = (("myTrades" + ":") + symbolResolved);
+                messageHash = (("myTrades" + ":") + this.safeString(market, "symbol", ""));
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("event", "subscribe");

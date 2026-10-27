@@ -68,13 +68,8 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolsRequested = symbols;
-            if (java.util.Objects.equals(symbols, null))
-            {
-                symbolsRequested = this.symbols;
-            }
-            List<String> symbolsMarket = this.marketSymbols(symbolsRequested, (Object) null, true, false, false);
-            List<String> symbolsNormalized = (((java.util.Objects.equals(symbolsMarket, null)))) ? new ArrayList<String>(Arrays.asList()) : symbolsMarket;
+            Object symbolsRequested = (((java.util.Objects.equals(symbols, null)))) ? this.symbols : symbols;
+            List<String> symbolsNormalized = this.marketSymbols(symbolsRequested, (Object) null, true, false, false);
             List<String> marketIds = this.marketIds(symbolsNormalized);
             String url = (String) this.implodeParams(this.safeString(this.urls.get("api"), "ws"), new HashMap<String, Object>() {{
                 put( "hostname", Upbit.this.hostname );

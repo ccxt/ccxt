@@ -978,14 +978,6 @@ public class Hibachi extends HibachiApi
 
     public Object orderMessage(Map<String, Object> market, Object nonce, Object feeRate, String type, String side, Object amount, Object price)
     {
-        if (java.util.Objects.equals(type, null))
-        {
-            throw new ArgumentsRequired((this.id + " requires a type argument")) ;
-        }
-        if (java.util.Objects.equals(side, null))
-        {
-            throw new ArgumentsRequired((this.id + " requires a side argument")) ;
-        }
         Integer sideInternal = 0;
         if (java.util.Objects.equals(side, "sell"))
         {
@@ -1813,7 +1805,7 @@ public class Hibachi extends HibachiApi
      * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOrdersByStatus(Object status, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchOrdersByStatus(String status, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1922,7 +1914,7 @@ public class Hibachi extends HibachiApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object orders = (this.fetchOrdersByStatus(null, symbol, since, limit, parameters)).join();
+            Object orders = (this.fetchOrdersByStatus((String) (null), symbol, since, limit, parameters)).join();
             List<Object> filtered = this.filterBy(orders, "status", "canceled");
             return this.filterBySinceLimit(filtered, since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

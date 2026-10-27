@@ -2436,13 +2436,6 @@ public class Grvt extends GrvtApi
             (this.loadMarketsAndSignIn()).join();
             String defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "to_eth_address", address );
-                put( "from_account_id", defaultFromAccountId );
-                put( "currency", currency.get("id") );
-                put( "num_tokens", Grvt.this.currencyToPrecision((String) (code), amount, (String) null) );
-                put( "signature", Grvt.this.defaultSignature() );
-            }};
             List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
             String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
@@ -2451,7 +2444,15 @@ public class Grvt extends GrvtApi
             {
                 throw new BadRequest((this.id + " withdraw() requires a network parameter")) ;
             }
-            Helpers.addElementToObject(request.get("signature"), "chain_id", networkId);
+            Map<String, Object> withdrawSignature = this.defaultSignature();
+            withdrawSignature.put("chain_id", networkId);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "to_eth_address", address );
+                put( "from_account_id", defaultFromAccountId );
+                put( "currency", currency.get("id") );
+                put( "num_tokens", Grvt.this.currencyToPrecision((String) (code), amount, (String) null) );
+                put( "signature", withdrawSignature );
+            }};
             Map<String, Object> response = (this.privateTradingPostFullV1Withdrawal(this.extend(this.createSignedRequest((Map<String, Object>) (request), "EIP712_WITHDRAWAL_TYPE", currency, (String) null), query))).join();
             //
             // {
@@ -3978,9 +3979,7 @@ public class Grvt extends GrvtApi
             }};
             // an empty params dict must serialize as an empty json object, not an empty json array,
             // php json_encode would produce [] here which the venue rejects with the same 1003 error
-            List<String> paramsKeys = new ArrayList<String>(((Map<String, Object>)parameters).keySet());
-            Integer paramsKeysLength = ((List<?>)paramsKeys).size();
-            if (java.util.Objects.equals(paramsKeysLength, 0))
+            if ((((Map<String, Object>)parameters).size() == 0))
             {
                 requestBody = "{}";
             } else

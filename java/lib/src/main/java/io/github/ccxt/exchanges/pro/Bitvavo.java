@@ -1494,7 +1494,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         String ts = String.valueOf(this.milliseconds());
         Object randomNumber = this.randNumber(4);
         String randomPart = String.valueOf(randomNumber);
-        return Helpers.parseInt((ts + randomPart));
+        return this.parseToInt((ts + randomPart));
     }
 
     public CompletableFuture<Object> watchRequest(String action, Map<String, Object> request)

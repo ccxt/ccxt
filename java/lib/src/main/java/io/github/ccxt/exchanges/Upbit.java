@@ -1067,13 +1067,12 @@ public class Upbit extends UpbitApi
             {
                 List<String> ids = this.marketIds(symbolsNormalized);
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
-                List<Object> queries = (List<Object>) this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
+                List<Object> queries = (List<Object>) this.idsQueryStrings(ids); // the url is limited to about 8000 characters once the commas are percent-encoded
                 for (var i = 0; i < ((List<?>)queries).size(); i++)
                 {
-                    Object idsQuery = (queries == null || i < 0 || i >= queries.size() ? null : queries.get(i));
-                    ((List<Object>)promises).add(this.publicGetTicker(this.extend(new HashMap<String, Object>() {{
-                        put( "markets", idsQuery );
-                    }}, parameters)));
+                    HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+                    mapLiteral5.put("markets", this.safeString(queries, i, ""));
+                    ((List<Object>)promises).add(this.publicGetTicker(this.extend(mapLiteral5, parameters)));
                 }
                 Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
                 tickers = this.arraysConcat(responses);
@@ -1111,12 +1110,8 @@ public class Upbit extends UpbitApi
 
     }
 
-    public Object idsQueryStrings(Object ids, Object maxQueryLength)
+    public Object idsQueryStrings(Object ids)
     {
-        if (java.util.Objects.equals(ids, null))
-        {
-            return new ArrayList<Object>(Arrays.asList());
-        }
         String idsString = "";
         List<Object> queries = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
@@ -1126,7 +1121,7 @@ public class Upbit extends UpbitApi
                 idsString = (idsString + ",");
             }
             idsString = (idsString + this.safeString(ids, i, ""));
-            if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return j38g || j38e; }).test(((String)idsString).length(), maxQueryLength))
+            if (((String)idsString).length() >= 4000)
             {
                 ((List<Object>)queries).add(idsString);
                 idsString = "";
@@ -1223,21 +1218,21 @@ public class Upbit extends UpbitApi
                 fee = hx4NewMap0;
             }
         }
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("id", id);
-        mapLiteral5.put("info", trade);
-        mapLiteral5.put("order", orderId);
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("symbol", marketResolved.get("symbol"));
-        mapLiteral5.put("type", null);
-        mapLiteral5.put("side", side);
-        mapLiteral5.put("takerOrMaker", null);
-        mapLiteral5.put("price", price);
-        mapLiteral5.put("amount", amount);
-        mapLiteral5.put("cost", cost);
-        mapLiteral5.put("fee", fee);
-        return this.safeTrade(mapLiteral5, marketResolved);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("id", id);
+        mapLiteral6.put("info", trade);
+        mapLiteral6.put("order", orderId);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("symbol", marketResolved.get("symbol"));
+        mapLiteral6.put("type", null);
+        mapLiteral6.put("side", side);
+        mapLiteral6.put("takerOrMaker", null);
+        mapLiteral6.put("price", price);
+        mapLiteral6.put("amount", amount);
+        mapLiteral6.put("cost", cost);
+        mapLiteral6.put("fee", fee);
+        return this.safeTrade(mapLiteral6, marketResolved);
     }
 
     /**
@@ -2321,11 +2316,10 @@ public class Upbit extends UpbitApi
         String feeCost = this.safeString(order, "paid_fee");
         String marketId = this.safeString(order, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        List<Object> trades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("order", id);
-        mapLiteral6.put("type", type);
-        trades = this.parseTrades(trades, marketResolved, (Long) null, (Long) null, mapLiteral6);
+        List<Object> trades = this.parseTrades(this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList())), marketResolved, (Long) null, (Long) null, (switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+            j39v4.put("order", id);
+            j39v4.put("type", type);
+            yield j39v4; } }));
         Integer numTrades = ((List<?>)trades).size();
         if ((numTrades != null && numTrades > 0))
         {
@@ -2761,10 +2755,10 @@ public class Upbit extends UpbitApi
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress requires params[\"network\"]")) ;
             }
-            Map<String, Object> response = (this.privateGetDepositsCoinAddress(this.extend((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                j39v4.put("currency", currency.get("id"));
-                j39v4.put("net_type", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
-                yield j39v4; } }), paramsNetworkCode))).join();
+            Map<String, Object> response = (this.privateGetDepositsCoinAddress(this.extend((switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+                j39v5.put("currency", currency.get("id"));
+                j39v5.put("net_type", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
+                yield j39v5; } }), paramsNetworkCode))).join();
             //
             //    {
             //        currency: 'XRP',
@@ -2917,7 +2911,7 @@ public class Upbit extends UpbitApi
         }});
         url = (url + ((("/" + this.version) + "/") + this.implodeParams(path, parameters)));
         Object query = this.omit(parameters, this.extractParams(path));
-        Integer numQueryKeys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size();
+        Integer numQueryKeys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); }).size();
         if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
         {
             if ((numQueryKeys != null && numQueryKeys > 0))

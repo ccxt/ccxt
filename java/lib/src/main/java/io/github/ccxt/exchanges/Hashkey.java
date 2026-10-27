@@ -2261,8 +2261,8 @@ public class Hashkey extends HashkeyApi
             {
                 request.put("limit", limit);
             }
-            List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "until", (Object) null);
-            var until = ((List<Object>) untilparamsUntilVariable).get(0);
+            List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, methodName, "until", (Long) null);
+            Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
@@ -2327,8 +2327,8 @@ public class Hashkey extends HashkeyApi
             {
                 request.put("limit", limit);
             }
-            List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "until", (Object) null);
-            var until = ((List<Object>) untilparamsUntilVariable).get(0);
+            List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, methodName, "until", (Long) null);
+            Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
@@ -2724,8 +2724,8 @@ public class Hashkey extends HashkeyApi
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a since argument")) ;
             }
-            List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "until", (Object) null);
-            var until = ((List<Object>) untilparamsUntilVariable).get(0);
+            List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, methodName, "until", (Long) null);
+            Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
             if (java.util.Objects.equals(until, null))
             {
@@ -3319,9 +3319,9 @@ public class Hashkey extends HashkeyApi
                 response = (this.privateDeleteApiV1SpotOrder(this.extend(request, paramsMarketType))).join();
             } else if (java.util.Objects.equals(marketType, "swap"))
             {
-                List<Object> isTriggerparamsTriggerVariable = (List<Object>) this.handleTriggerOptionAndParams(paramsMarketType, methodName, false);
-                var isTrigger = ((List<Object>) isTriggerparamsTriggerVariable).get(0);
-                var paramsTrigger = ((List<Object>) isTriggerparamsTriggerVariable).get(1);
+                Pair<Boolean, Map<String, Object>> isTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsMarketType), methodName, "stop", "trigger", false);
+                Boolean isTrigger = isTriggerparamsTriggerVariable.first();
+                Map<String, Object> paramsTrigger = isTriggerparamsTriggerVariable.second();
                 if (java.util.Objects.equals(isTrigger, true))
                 {
                     request.put("type", "STOP");
@@ -3501,9 +3501,9 @@ public class Hashkey extends HashkeyApi
                 response = (this.privateGetApiV1SpotOrder(this.extend(request, paramsMarketType))).join();
             } else if (java.util.Objects.equals(marketType, "swap"))
             {
-                List<Object> isTriggerparamsTriggerVariable = (List<Object>) this.handleTriggerOptionAndParams(paramsMarketType, methodName, false);
-                var isTrigger = ((List<Object>) isTriggerparamsTriggerVariable).get(0);
-                var paramsTrigger = ((List<Object>) isTriggerparamsTriggerVariable).get(1);
+                Pair<Boolean, Map<String, Object>> isTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsMarketType), methodName, "stop", "trigger", false);
+                Boolean isTrigger = isTriggerparamsTriggerVariable.first();
+                Map<String, Object> paramsTrigger = isTriggerparamsTriggerVariable.second();
                 if (java.util.Objects.equals(isTrigger, true))
                 {
                     request.put("type", "STOP");
@@ -3668,9 +3668,9 @@ public class Hashkey extends HashkeyApi
                 put( "symbol", market.get("id") );
             }};
             Boolean isTrigger = false;
-            List<Object> isTriggerTriggerparamsTriggerVariable = (List<Object>) this.handleTriggerOptionAndParams(paramsMethodName, methodNameOption, isTrigger);
-            var isTriggerTrigger = ((List<Object>) isTriggerTriggerparamsTriggerVariable).get(0);
-            var paramsTrigger = ((List<Object>) isTriggerTriggerparamsTriggerVariable).get(1);
+            Pair<Boolean, Map<String, Object>> isTriggerTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsMethodName), methodNameOption, "stop", "trigger", isTrigger);
+            Boolean isTriggerTrigger = isTriggerTriggerparamsTriggerVariable.first();
+            Map<String, Object> paramsTrigger = isTriggerTriggerparamsTriggerVariable.second();
             if (java.util.Objects.equals(isTriggerTrigger, true))
             {
                 request.put("type", "STOP");
@@ -3740,8 +3740,8 @@ public class Hashkey extends HashkeyApi
             {
                 request.put("startTime", since);
             }
-            List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "until", (Object) null);
-            var until = ((List<Object>) untilparamsUntilVariable).get(0);
+            List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, methodName, "until", (Long) null);
+            Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
@@ -3777,9 +3777,9 @@ public class Hashkey extends HashkeyApi
                     throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a symbol argument for swap markets")) ;
                 }
                 request.put("symbol", this.safeString(market, "id"));
-                List<Object> isTriggerparamsTriggerVariable = (List<Object>) this.handleTriggerOptionAndParams(paramsMarketType, methodName, false);
-                var isTrigger = ((List<Object>) isTriggerparamsTriggerVariable).get(0);
-                var paramsTrigger = ((List<Object>) isTriggerparamsTriggerVariable).get(1);
+                Pair<Boolean, Map<String, Object>> isTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsMarketType), methodName, "stop", "trigger", false);
+                Boolean isTrigger = isTriggerparamsTriggerVariable.first();
+                Map<String, Object> paramsTrigger = isTriggerparamsTriggerVariable.second();
                 if (java.util.Objects.equals(isTrigger, true))
                 {
                     request.put("type", "STOP");

@@ -243,7 +243,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
     {
         Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", new HashMap<String, Object>() {{}});
         String code = this.safeString(error, "code");
-        String msg = this.safeString(error, "msg");
+        String msg = this.safeString(error, "msg", "");
         String feedback = ((this.id + " ") + msg);
         if (java.util.Objects.equals(code, "429"))
         {

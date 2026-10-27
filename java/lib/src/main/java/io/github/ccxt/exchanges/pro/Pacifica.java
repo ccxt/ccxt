@@ -863,7 +863,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             if (!java.util.Objects.equals(symbol, null))
             {
                 symbolResolved = this.symbol(symbol);
-                messageHash = (messageHash + (":" + symbolResolved));
+                messageHash = ("myTrades:" + symbolResolved);
             }
             Boolean isTestnet = this.isSandboxModeEnabled;
             String urlKey = "api";

@@ -368,7 +368,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             for (var i = 0; i < ((List<?>)(List<String>)(symbolsNormalized)).size(); i++)
             {
                 Map<String, Object> market = this.market(Helpers.GetValue((List<String>)(symbolsNormalized), i));
-                channels.add(("quote." + market.get("id")));
+                channels.add(("quote." + this.safeString(market, "id", "")));
             }
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -766,7 +766,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
-        Object descriptor = "";
+        String descriptor = "";
         Integer partsLength = ((List<?>)parts).size();
         Boolean isDetailed = java.util.Objects.equals(partsLength, 5);
         if (Boolean.TRUE.equals(isDetailed))
@@ -775,8 +775,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             descriptor = ((((this.safeString(parts, 2, "") + ".") + this.safeString(parts, 3, "")) + ".") + interval);
         } else
         {
-            String interval = this.safeString(parts, 2, "");
-            descriptor = interval;
+            descriptor = this.safeString(parts, 2, "");
         }
         String marketId = this.safeString(data, "instrument_name");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -1103,18 +1102,17 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 {
                     throw new ArgumentsRequired((this.id + " watchMultipleWrapper() symbolsArray is required")) ;
                 }
-                Object current = Helpers.GetValue(symbolsArray, i);
                 Map<String, Object> market = null;
                 String currentDescriptor = null;
                 if (Boolean.TRUE.equals(isOHLCV))
                 {
                     List<Object> currentPair = (List<Object>) this.safeList(symbolsArray, i, new ArrayList<Object>(Arrays.asList()));
-                    market = this.market((currentPair == null || 0 >= ((List<?>)currentPair).size() ? null : ((List<?>)currentPair).get(0)));
-                    Object unifiedTf = (currentPair == null || 1 >= ((List<?>)currentPair).size() ? null : ((List<?>)currentPair).get(1));
+                    market = this.market(this.safeString(currentPair, 0));
+                    String unifiedTf = this.safeString(currentPair, 1);
                     currentDescriptor = this.safeString(this.timeframes, unifiedTf, unifiedTf);
                 } else
                 {
-                    market = this.market(current);
+                    market = this.market(this.safeString(symbolsArray, i));
                     currentDescriptor = channelDescriptor;
                 }
                 String message = ((((channelName + ".") + this.safeString(market, "id", "")) + ".") + currentDescriptor);

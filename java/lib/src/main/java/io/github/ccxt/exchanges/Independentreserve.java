@@ -1439,7 +1439,7 @@ public class Independentreserve extends IndependentreserveApi
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                String value = String.valueOf((paramsDict == null || key == null ? null : paramsDict.get(key)));
+                String value = this.safeString(paramsDict, key, "");
                 ((List<Object>)auth).add(((key + "=") + value));
             }
             String message = String.join(",", (List<String>)auth);

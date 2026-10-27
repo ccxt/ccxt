@@ -1304,7 +1304,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             return;
         }
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (message), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
-        String symbol = (String) ticker.get("symbol");
+        String symbol = (String) ((Map<String, Object>)market).get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
             this.bidsasks.put(symbol, ticker);

@@ -4478,11 +4478,10 @@ public class Pacifica extends PacificaApi
         String host = (String) this.implodeHostname(baseApiUrl);
         String url = ((((host + "/api/") + this.version) + "/") + this.implodeParams(path, parameters));
         Object paramsOmitted = this.omit(parameters, this.extractParams(path));
-        Integer paramsLen = ((Map<String, Object>)paramsOmitted).size();
         Map<String, Object> headersValue = new HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
         }};
-        if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && ((paramsLen != null && paramsLen > 0)))
+        if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && (((Map<String, Object>)paramsOmitted).size() > 0))
         {
             url = (url + ("?" + this.urlencode(paramsOmitted)));
             headersValue.put("Accept", "*/*");

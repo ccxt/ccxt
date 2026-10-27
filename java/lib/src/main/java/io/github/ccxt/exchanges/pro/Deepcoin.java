@@ -852,7 +852,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         // 120 spot markets, 52 of 120 swaps in a live probe); the tick size
         // itself was accepted on 116 and 117 of them, and the handful whose
         // tick was rejected accepted the next coarser level
-        String symbol = this.safeString(market, "symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String aggregation = null;
         Map<String, Object> paramsAggregation = null;
         Pair<String, Map<String, Object>> aggregationparamsAggregationVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "aggregation", (String) null);
@@ -1034,7 +1034,11 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : null;
+            String symbolResolved = null;
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                symbolResolved = this.symbol(symbol);
+            }
             if (!java.util.Objects.equals(symbolResolved, null))
             {
                 messageHash = (("myTrades" + "::") + symbolResolved);
@@ -1126,7 +1130,11 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : null;
+            String symbolResolved = null;
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                symbolResolved = this.symbol(symbol);
+            }
             if (!java.util.Objects.equals(symbolResolved, null))
             {
                 messageHash = (("orders" + "::") + symbolResolved);

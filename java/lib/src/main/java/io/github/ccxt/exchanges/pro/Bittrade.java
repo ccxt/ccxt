@@ -511,14 +511,6 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
     }
 
-    public void handleDeltas(Object bookside, Object deltas)
-    {
-        for (var i = 0; i < ((List<?>)deltas).size(); i++)
-        {
-            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
-        }
-    }
-
     public Object handleOrderBookMessage(Client client, Map<String, Object> message, Object orderbook)
     {
         //

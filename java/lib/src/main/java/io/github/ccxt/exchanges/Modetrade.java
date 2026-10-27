@@ -1161,7 +1161,8 @@ public class Modetrade extends ModetradeApi
         //         "is_maker": "1"
         //     }
         //
-        Boolean isFromFetchOrder = (((Map<?, ?>)trade).containsKey("id"));
+        String id = this.safeString(trade, "id");
+        Boolean isFromFetchOrder = !java.util.Objects.equals(id, null);
         Long timestamp = this.safeInteger(trade, "executed_timestamp");
         String marketId = this.safeString(trade, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -1172,7 +1173,6 @@ public class Modetrade extends ModetradeApi
         Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (trade), "fee_asset", "fee");
         String cost = Precise.stringMul(price, amount);
         String side = this.safeStringLower(trade, "side");
-        String id = this.safeString(trade, "id");
         String takerOrMaker = null;
         if (Boolean.TRUE.equals(isFromFetchOrder))
         {

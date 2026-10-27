@@ -578,17 +578,12 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials(true);
-            Object expires = this.safeString(this.options, "ws-expires");
-            if (java.util.Objects.equals(expires, null))
+            String expires = this.safeString(this.options, "ws-expires", "");
+            if (java.util.Objects.equals(expires, ""))
             {
                 Long timeoutMs = this.parseToInt(this.timeout);
                 Long timeout = this.parseToInt((((double) timeoutMs) / ((double) 1000)));
-                expires = this.sum(this.seconds(), timeout);
-                if (java.util.Objects.equals(expires, null))
-                {
-                    throw new ArgumentsRequired((this.id + " watchPrivate() expires is required")) ;
-                }
-                expires = String.valueOf(expires);
+                expires = this.numberToString(this.parseToInt(this.sum(this.seconds(), timeout)));
                 // we need to memoize these values to avoid generating a new url on each method execution
                 // that would trigger a new connection on each received message
                 this.options.put("ws-expires", expires);

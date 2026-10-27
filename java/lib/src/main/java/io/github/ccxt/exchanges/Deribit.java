@@ -4031,7 +4031,7 @@ public class Deribit extends DeribitApi
             Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
             Long endTimestamp = (((!java.util.Objects.equals(until, null)))) ? until : time;
             request.put("end_timestamp", endTimestamp);
-            Boolean isPaginationCall = (paramsUntil.containsKey("isDeribitPaginationCall"));
+            Boolean isPaginationCall = (Boolean) this.safeBool(paramsUntil, "isDeribitPaginationCall", false);
             Map<String, Object> paramsOmitted = paramsUntil;
             if (Boolean.TRUE.equals(isPaginationCall))
             {

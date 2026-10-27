@@ -195,7 +195,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 mapLiteral2.put("stock", marketStock);
                 mapLiteral2.put("source", source);
                 Map<String, Object> requestParams = this.extend(marketParams, mapLiteral2);
-                Object request = this.stockDataRequest(methodName, (Map<String, Object>) (requestParams), market);
+                Map<String, Object> request = this.stockDataRequest(methodName, (Map<String, Object>) (requestParams), market);
                 String tickerSymbol = this.safeString(request, "symbol", "");
                 String topic = ("ticker." + tickerSymbol);
                 if (!java.util.Objects.equals(channel, null))

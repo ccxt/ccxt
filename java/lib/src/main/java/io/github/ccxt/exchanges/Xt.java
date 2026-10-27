@@ -7048,7 +7048,7 @@ public class Xt extends XtApi
         if (Boolean.TRUE.equals(signed))
         {
             this.checkRequiredCredentials(true);
-            String defaultRecvWindow = this.safeString(this.options, "recvWindow");
+            String defaultRecvWindow = this.safeString(this.options, "recvWindow", "5000");
             String recvWindow = this.safeString(query, "recvWindow", defaultRecvWindow);
             String timestamp = this.numberToString(this.nonce());
             if ((java.util.Objects.equals(payload, "/v4/order")) || (java.util.Objects.equals(payload, "/future/trade/v1/order/create")) || (java.util.Objects.equals(payload, "/future/trade/v1/entrust/create-plan")) || (java.util.Objects.equals(payload, "/future/trade/v1/entrust/create-profit")) || (java.util.Objects.equals(payload, "/future/trade/v1/order/create-batch")))
@@ -7068,7 +7068,7 @@ public class Xt extends XtApi
                 isUndefinedBody = false;
             }
             signedBody = ((Boolean.TRUE.equals(isUndefinedBody))) ? null : this.json(query);
-            String payloadString = null;
+            String payloadString = "";
             if ((java.util.Objects.equals(endpoint, "spot")) || (java.util.Objects.equals(endpoint, "user")))
             {
                 payloadString = (((((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);

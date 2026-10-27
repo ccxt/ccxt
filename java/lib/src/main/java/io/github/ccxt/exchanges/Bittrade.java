@@ -1194,13 +1194,13 @@ public class Bittrade extends BittradeApi
         Long timestamp = (Long) this.safeInteger2(trade, "ts", "created-at");
         String order = this.safeString(trade, "order-id");
         String side = this.safeString(trade, "direction");
-        Object type = null;
+        String type = null;
         String typeRaw = this.safeString(trade, "type");
         if (!java.util.Objects.equals(typeRaw, null))
         {
             List<Object> typeParts = new ArrayList<Object>(Arrays.asList(((String)typeRaw).split(java.util.regex.Pattern.quote("-"))));
-            side = (String) (typeParts == null || 0 >= typeParts.size() ? null : typeParts.get(0));
-            type = (typeParts == null || 1 >= typeParts.size() ? null : typeParts.get(1));
+            side = this.safeString(typeParts, 0);
+            type = this.safeString(typeParts, 1);
         }
         String takerOrMaker = this.safeString(trade, "role");
         String price = this.safeString(trade, "price");
@@ -1910,15 +1910,15 @@ public class Bittrade extends BittradeApi
         //             "canceled-at":  0                      }
         //
         String id = this.safeString(order, "id");
-        Object side = null;
-        Object type = null;
+        String side = null;
+        String type = null;
         String status = null;
         String orderTypeRaw = this.safeString(order, "type");
         if (!java.util.Objects.equals(orderTypeRaw, null))
         {
             List<Object> orderType = new ArrayList<Object>(Arrays.asList(((String)orderTypeRaw).split(java.util.regex.Pattern.quote("-"))));
-            side = (orderType == null || 0 >= orderType.size() ? null : orderType.get(0));
-            type = (orderType == null || 1 >= orderType.size() ? null : orderType.get(1));
+            side = this.safeString(orderType, 0);
+            type = this.safeString(orderType, 1);
             status = this.parseOrderStatus(this.safeString(order, "state"));
         }
         String marketId = this.safeString(order, "symbol");

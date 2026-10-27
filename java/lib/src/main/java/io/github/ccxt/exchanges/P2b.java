@@ -614,34 +614,30 @@ public class P2b extends P2bApi
         //    }
         //
         Long timestamp = this.safeIntegerProduct(ticker, "at", 1000);
-        Object tickerInner = ticker;
-        if ((switch ((Object)(ticker)) { case List<?> j39v2 -> j39v2.contains("ticker"); case Map<?, ?> j39v1 -> j39v1.containsKey("ticker"); case null, default -> false; }))
-        {
-            tickerInner = this.safeDict(ticker, "ticker", (Object) null);
-        }
+        Object tickerInner = this.safeDict(ticker, "ticker", ticker);
         String last = this.safeString(tickerInner, "last");
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("symbol", this.safeString(market, "symbol"));
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("high", this.safeString(tickerInner, "high"));
-        mapLiteral2.put("low", this.safeString(tickerInner, "low"));
-        mapLiteral2.put("bid", this.safeString(tickerInner, "bid"));
-        mapLiteral2.put("bidVolume", null);
-        mapLiteral2.put("ask", this.safeString(tickerInner, "ask"));
-        mapLiteral2.put("askVolume", null);
-        mapLiteral2.put("vwap", null);
-        mapLiteral2.put("open", this.safeString(tickerInner, "open"));
-        mapLiteral2.put("close", last);
-        mapLiteral2.put("last", last);
-        mapLiteral2.put("previousClose", null);
-        mapLiteral2.put("change", null);
-        mapLiteral2.put("percentage", this.safeString(tickerInner, "change"));
-        mapLiteral2.put("average", null);
-        mapLiteral2.put("baseVolume", this.safeString2(tickerInner, "vol", "volume"));
-        mapLiteral2.put("quoteVolume", this.safeString(tickerInner, "deal"));
-        mapLiteral2.put("info", tickerInner);
-        return this.safeTicker(mapLiteral2, market);
+        return this.safeTicker(new HashMap<String, Object>() {{
+            put( "symbol", P2b.this.safeString(market, "symbol") );
+            put( "timestamp", timestamp );
+            put( "datetime", P2b.this.iso8601(timestamp) );
+            put( "high", P2b.this.safeString(tickerInner, "high") );
+            put( "low", P2b.this.safeString(tickerInner, "low") );
+            put( "bid", P2b.this.safeString(tickerInner, "bid") );
+            put( "bidVolume", null );
+            put( "ask", P2b.this.safeString(tickerInner, "ask") );
+            put( "askVolume", null );
+            put( "vwap", null );
+            put( "open", P2b.this.safeString(tickerInner, "open") );
+            put( "close", last );
+            put( "last", last );
+            put( "previousClose", null );
+            put( "change", null );
+            put( "percentage", P2b.this.safeString(tickerInner, "change") );
+            put( "average", null );
+            put( "baseVolume", P2b.this.safeString2(tickerInner, "vol", "volume") );
+            put( "quoteVolume", P2b.this.safeString(tickerInner, "deal") );
+            put( "info", tickerInner );
+        }}, market);
     }
 
     /**
@@ -818,24 +814,24 @@ public class P2b extends P2bApi
         {
             takerOrMaker = "taker";
         }
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("info", trade);
-        mapLiteral3.put("id", this.safeString2(trade, "id", "deal_id"));
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("symbol", this.safeString(market, "symbol"));
-        mapLiteral3.put("order", this.safeString2(trade, "dealOrderId", "deal_order_id"));
-        mapLiteral3.put("type", null);
-        mapLiteral3.put("side", this.safeString2(trade, "type", "side"));
-        mapLiteral3.put("takerOrMaker", takerOrMaker);
-        mapLiteral3.put("price", this.safeString(trade, "price"));
-        mapLiteral3.put("amount", this.safeString(trade, "amount"));
-        mapLiteral3.put("cost", this.safeString(trade, "deal"));
-        mapLiteral3.put("fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("id", this.safeString2(trade, "id", "deal_id"));
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", this.safeString(market, "symbol"));
+        mapLiteral2.put("order", this.safeString2(trade, "dealOrderId", "deal_order_id"));
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("side", this.safeString2(trade, "type", "side"));
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("price", this.safeString(trade, "price"));
+        mapLiteral2.put("amount", this.safeString(trade, "amount"));
+        mapLiteral2.put("cost", this.safeString(trade, "deal"));
+        mapLiteral2.put("fee", new HashMap<String, Object>() {{
                 put( "currency", P2b.this.safeString(market, "quote") );
                 put( "cost", P2b.this.safeString2(trade, "fee", "deal_fee") );
             }});
-        return this.safeTrade(mapLiteral3, market);
+        return this.safeTrade(mapLiteral2, market);
     }
 
     /**
@@ -973,7 +969,7 @@ public class P2b extends P2bApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> keys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));

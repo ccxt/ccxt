@@ -1579,7 +1579,10 @@ public class Coinbase extends CoinbaseApi
             {
                 String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
                 String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
-                symbol = ((base + "/") + quote);
+                if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
+                {
+                    symbol = ((base + "/") + quote);
+                }
             }
         }
         Boolean sizeInQuote = (Boolean) this.safeBool(trade, "size_in_quote", (Object) null);
@@ -1710,7 +1713,7 @@ public class Coinbase extends CoinbaseApi
                         Object quoteCurrency = (data == null || j < 0 || j >= data.size() ? null : data.get(j));
                         String quoteId = this.safeString(quoteCurrency, "id");
                         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
-                        if (java.util.Objects.equals(quote, null))
+                        if ((java.util.Objects.equals(quote, null)) || (java.util.Objects.equals(quoteId, null)))
                         {
                             continue;
                         }

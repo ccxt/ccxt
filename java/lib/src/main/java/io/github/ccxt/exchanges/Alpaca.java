@@ -2180,9 +2180,10 @@ public class Alpaca extends AlpacaApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             String addressValue = address;
-            if ((!java.util.Objects.equals(tagWithdrawTag, null)) && (!java.util.Objects.equals(tagWithdrawTag, "")))
+            String tagSuffix = this.safeString(parameters, "tag", "");
+            if (!java.util.Objects.equals(tagSuffix, ""))
             {
-                addressValue = ((address + ":") + tagWithdrawTag);
+                addressValue = ((address + ":") + tagSuffix);
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("asset", currency.get("id"));

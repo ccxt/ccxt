@@ -1976,7 +1976,7 @@ public class Tokocrypto extends TokocryptoApi
         mapLiteral4.put("type", type);
         mapLiteral4.put("timeInForce", timeInForce);
         mapLiteral4.put("postOnly", postOnly);
-        mapLiteral4.put("reduceOnly", this.safeValue(order, "reduceOnly"));
+        mapLiteral4.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
         mapLiteral4.put("side", side);
         mapLiteral4.put("price", price);
         mapLiteral4.put("triggerPrice", this.parseNumber(this.omitZero(this.safeString(order, "stopPrice"))));
@@ -3159,7 +3159,7 @@ public class Tokocrypto extends TokocryptoApi
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         Boolean success = (Boolean) this.safeBool(response, "success", true);
-        Object parsedMessage = null;
+        Object responseParsed = response;
         if (!Boolean.TRUE.equals(success))
         {
             String messageInner = this.safeString(response, "msg");
@@ -3167,15 +3167,14 @@ public class Tokocrypto extends TokocryptoApi
             {
                 try
                 {
-                    parsedMessage = Helpers.parseJson(messageInner);
+                    responseParsed = Helpers.parseJson(messageInner);
                 } catch(Exception e)
                 {
                     // do nothing
-                    parsedMessage = null;
+                    responseParsed = response;
                 }
             }
         }
-        Object responseParsed = (((!java.util.Objects.equals(parsedMessage, null)))) ? parsedMessage : response;
         String message = this.safeString(responseParsed, "msg");
         if (!java.util.Objects.equals(message, null))
         {
@@ -3217,6 +3216,7 @@ public class Tokocrypto extends TokocryptoApi
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
         Map<String, Object> paramsDict = this.extend(new HashMap<String, Object>() {{}}, parameters);
+        List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
         if ((paramsDict.containsKey("noCoin")) && !(paramsDict.containsKey("coin")))
         {
             return this.safeInteger(config, "noCoin");
@@ -3226,10 +3226,9 @@ public class Tokocrypto extends TokocryptoApi
         } else if ((paramsDict.containsKey("noPoolId")) && !(paramsDict.containsKey("poolId")))
         {
             return this.safeInteger(config, "noPoolId");
-        } else if ((config.containsKey("byLimit")) && (paramsDict.containsKey("limit")))
+        } else if (paramsDict.containsKey("limit"))
         {
             Long limit = this.safeInteger(paramsDict, "limit");
-            List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {
                 Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));

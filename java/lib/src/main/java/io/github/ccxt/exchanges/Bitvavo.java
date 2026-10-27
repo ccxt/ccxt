@@ -1479,25 +1479,31 @@ public class Bitvavo extends BitvavoApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Object subaccountId = this.safeString(parameters, "subaccountId");
-            Map<String, Object> paramsOmitted = this.omit(parameters, "subaccountId");
+            String subaccountParam = this.safeString(parameters, "subaccountId");
             String direction = null;
+            Object subaccountId = null;
             if ((java.util.Objects.equals(fromAccount, "master")) && (java.util.Objects.equals(toAccount, "master")))
             {
                 throw new ArgumentsRequired((this.id + " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)")) ;
             } else if (java.util.Objects.equals(fromAccount, "master"))
             {
                 direction = "masterToSub";
-                if (java.util.Objects.equals(subaccountId, null))
+                if (java.util.Objects.equals(subaccountParam, null))
                 {
                     subaccountId = toAccount;
+                } else
+                {
+                    subaccountId = subaccountParam;
                 }
             } else if (java.util.Objects.equals(toAccount, "master"))
             {
                 direction = "subToMaster";
-                if (java.util.Objects.equals(subaccountId, null))
+                if (java.util.Objects.equals(subaccountParam, null))
                 {
                     subaccountId = fromAccount;
+                } else
+                {
+                    subaccountId = subaccountParam;
                 }
             } else
             {
@@ -1512,7 +1518,7 @@ public class Bitvavo extends BitvavoApi
             request.put("direction", direction);
             request.put("symbol", currency.get("id"));
             request.put("amount", this.currencyToPrecision((String) (code), amount, (String) null));
-            Map<String, Object> response = (this.privatePostSubaccountsTransfers(this.extend(request, paramsOmitted))).join();
+            Map<String, Object> response = (this.privatePostSubaccountsTransfers(this.extend(request, this.omit(parameters, "subaccountId")))).join();
             //
             //     {
             //         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",

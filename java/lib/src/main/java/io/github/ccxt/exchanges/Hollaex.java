@@ -2200,13 +2200,12 @@ public class Hollaex extends HollaexApi
             {
                 throw new ArgumentsRequired((this.id + " withdraw() requires a network parameter")) ;
             }
-            Map<String, Object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("currency", currency.get("id"));
             request.put("amount", amount);
             request.put("address", addressWithTag);
             request.put("network", this.networkCodeToId(network, code));
-            Map<String, Object> response = (this.privatePostUserWithdrawal(this.extend(request, paramsOmitted))).join();
+            Map<String, Object> response = (this.privatePostUserWithdrawal(this.extend(request, this.omit(paramsWithdrawTag, "network")))).join();
             //
             //     {
             //         "message": "Withdrawal request is in the queue and will be processed.",
@@ -2264,8 +2263,8 @@ public class Hollaex extends HollaexApi
                 put( "fee", null );
                 put( "percentage", null );
             }} );
-            put( "networks", new HashMap<String, Object>() {{}} );
         }};
+        Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Boolean allowWithdrawal = (Boolean) this.safeBool(fee, "allow_withdrawal", (Object) null);
         if (java.util.Objects.equals(allowWithdrawal, true))
         {
@@ -2292,12 +2291,13 @@ public class Hollaex extends HollaexApi
                 }
                 String networkCodeUpper = networkCode.toUpperCase(); // default to the upper case network code
                 Double withdrawalFee = this.safeNumber(value, "value", (Object) null);
-                Helpers.addElementToObject(result.get("networks"), networkCodeUpper, new HashMap<String, Object>() {{
+                networks.put(networkCodeUpper, new HashMap<String, Object>() {{
     put( "deposit", null );
     put( "withdraw", withdrawalFee );
 }});
             }
         }
+        result.put("networks", networks);
         return result;
     }
 
@@ -2382,7 +2382,7 @@ public class Hollaex extends HollaexApi
             Long timeoutMs = this.parseToInt(this.timeout);
             Long defaultExpires = (Long) this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt((((double) timeoutMs) / ((double) 1000))));
             Object expires = this.sum(this.seconds(), defaultExpires);
-            String expiresString = String.valueOf(expires);
+            String expiresString = this.numberToString(expires);
             String auth = ((java.util.Objects.requireNonNullElse(method, "GET") + requestPath) + expiresString);
             requestHeaders = new HashMap<String, Object>() {{
                 put( "api-key", Hollaex.this.apiKey );
