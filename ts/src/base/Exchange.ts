@@ -4759,9 +4759,9 @@ export class BaseExchange {
     safeBalance (balance: Dict): Balances {
         const balances: Dict = this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]);
         const codes = Object.keys (balances);
-        balance['free'] = {};
-        balance['used'] = {};
-        balance['total'] = {};
+        const freeBalance: Dict = {};
+        const usedBalance: Dict = {};
+        const totalBalance: Dict = {};
         const debtBalance: Dict = {};
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -4781,14 +4781,17 @@ export class BaseExchange {
             balance[code]['free'] = this.parseNumber (free);
             balance[code]['used'] = this.parseNumber (used);
             balance[code]['total'] = this.parseNumber (total);
-            balance['free'][code] = balance[code]['free'];
-            balance['used'][code] = balance[code]['used'];
-            balance['total'][code] = balance[code]['total'];
+            freeBalance[code] = balance[code]['free'];
+            usedBalance[code] = balance[code]['used'];
+            totalBalance[code] = balance[code]['total'];
             if (debt !== undefined) {
                 balance[code]['debt'] = this.parseNumber (debt);
                 debtBalance[code] = balance[code]['debt'];
             }
         }
+        balance['free'] = freeBalance;
+        balance['used'] = usedBalance;
+        balance['total'] = totalBalance;
         const debtBalanceArray = Object.keys (debtBalance);
         const length = debtBalanceArray.length;
         if (length !== 0) {
@@ -5416,13 +5419,14 @@ export class BaseExchange {
                 if (rateKey in reduced[feeCurrencyCode]) {
                     reduced[feeCurrencyCode][rateKey]['cost'] = Precise.stringAdd (reduced[feeCurrencyCode][rateKey]['cost'], cost);
                 } else {
-                    reduced[feeCurrencyCode][rateKey] = {
+                    const newRateFee: Dict = {
                         'currency': code,
                         'cost': cost,
                     };
                     if (rate !== undefined) {
-                        reduced[feeCurrencyCode][rateKey]['rate'] = rate;
+                        newRateFee['rate'] = rate;
                     }
+                    reduced[feeCurrencyCode][rateKey] = newRateFee;
                 }
             }
         }
