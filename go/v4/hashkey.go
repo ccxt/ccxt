@@ -2408,11 +2408,14 @@ func (this *Hashkey) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionAndParams(params, methodName, "until")
-	until := GetValue(untilparamsUntilVariable, 0)
-	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, methodName, "until")
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok {
+		until = p
+	}
+	paramsUntil := untilparamsUntilVariable[1]
 	if until != nil {
-		request["endTime"] = until
+		request["endTime"] = *until
 	}
 
 	listEp2317 := <-this.PrivateGetApiV1AccountDepositOrders(this.Extend(request, paramsUntil))
@@ -2489,11 +2492,14 @@ func (this *Hashkey) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionAndParams(params, methodName, "until")
-	until := GetValue(untilparamsUntilVariable, 0)
-	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, methodName, "until")
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok {
+		until = p
+	}
+	paramsUntil := untilparamsUntilVariable[1]
 	if until != nil {
-		request["endTime"] = until
+		request["endTime"] = *until
 	}
 
 	listEp2391 := <-this.PrivateGetApiV1AccountWithdrawOrders(this.Extend(request, paramsUntil))
@@ -2910,9 +2916,12 @@ func (this *Hashkey) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	if since == nil {
 		panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a since argument"))
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionAndParams(params, methodName, "until")
-	until := GetValue(untilparamsUntilVariable, 0)
-	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, methodName, "until")
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok {
+		until = p
+	}
+	paramsUntil := untilparamsUntilVariable[1]
 	if until == nil {
 		panic(ArgumentsRequired(this.Id + " " + methodName + "() requires an until argument"))
 	}
@@ -2929,7 +2938,7 @@ func (this *Hashkey) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	if limit != nil {
 		request["limit"] = limit
 	}
-	request["endTime"] = until
+	request["endTime"] = *until
 	flowType, paramsFlowType := this.HandleOptionStringAndParams(paramsUntil, methodName, "flowType")
 	if flowType != nil {
 		request["flowType"] = this.EncodeFlowType(flowType)
@@ -3594,9 +3603,7 @@ func (this *Hashkey) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
 		}
 		response = r1.Value
 	} else if marketType != nil && *marketType == "swap" {
-		isTriggerparamsTriggerVariable := this.HandleTriggerOptionAndParams(paramsMarketType, methodName, false)
-		isTrigger := isTriggerparamsTriggerVariable[0]
-		paramsTrigger := GetValue(isTriggerparamsTriggerVariable, 1)
+		isTrigger, paramsTrigger := this.HandleOptionBoolAndParams2(paramsMarketType, methodName, "stop", "trigger", false)
 		if isTrigger == true {
 			request["type"] = "STOP"
 		} else {
@@ -3813,9 +3820,7 @@ func (this *Hashkey) fetchOrderBody(ch chan AsyncResult[Order], id any, optional
 		}
 		response = r1.Value
 	} else if marketType != nil && *marketType == "swap" {
-		isTriggerparamsTriggerVariable := this.HandleTriggerOptionAndParams(paramsMarketType, methodName, false)
-		isTrigger := isTriggerparamsTriggerVariable[0]
-		paramsTrigger := GetValue(isTriggerparamsTriggerVariable, 1)
+		isTrigger, paramsTrigger := this.HandleOptionBoolAndParams2(paramsMarketType, methodName, "stop", "trigger", false)
 		if isTrigger == true {
 			request["type"] = "STOP"
 		}
@@ -3974,11 +3979,11 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan AsyncResult[[]Order], optio
 	if accountId != nil {
 		request["subAccountId"] = accountId
 
-		listEp3733 := <-this.PrivateGetApiV1SpotSubAccountOpenOrders(this.Extend(request, paramsAccountId))
-		if listEp3733.Err != nil {
-			panic(listEp3733.Err)
+		listEp3729 := <-this.PrivateGetApiV1SpotSubAccountOpenOrders(this.Extend(request, paramsAccountId))
+		if listEp3729.Err != nil {
+			panic(listEp3729.Err)
 		}
-		response = listEp3733.Value
+		response = listEp3729.Value
 	} else {
 		if symbol != nil {
 			market = this.Market(symbol)
@@ -3988,11 +3993,11 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan AsyncResult[[]Order], optio
 			request["limit"] = limit
 		}
 
-		listEp3743 := <-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, paramsAccountId))
-		if listEp3743.Err != nil {
-			panic(listEp3743.Err)
+		listEp3739 := <-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, paramsAccountId))
+		if listEp3739.Err != nil {
+			panic(listEp3739.Err)
 		}
-		response = listEp3743.Value
+		response = listEp3739.Value
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
@@ -4049,10 +4054,13 @@ func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan AsyncResult[[]Order], optio
 		"symbol": market["id"],
 	}
 	var isTrigger bool = false
-	isTriggerTriggerparamsTriggerVariable := this.HandleTriggerOptionAndParams(paramsMethodName, methodNameOption, isTrigger)
-	isTriggerTrigger := isTriggerTriggerparamsTriggerVariable[0]
-	paramsTrigger := GetValue(isTriggerTriggerparamsTriggerVariable, 1)
-	if isTriggerTrigger == true {
+	var isTriggerTriggerparamsTriggerVariable []any = this.HandleOptionBoolAndParams2Nullable(paramsMethodName, methodNameOption, "stop", "trigger", isTrigger)
+	var isTriggerTrigger *bool = nil
+	if p, ok := isTriggerTriggerparamsTriggerVariable[0].(*bool); ok {
+		isTriggerTrigger = p
+	}
+	var paramsTrigger map[string]any = MapTyped(isTriggerTriggerparamsTriggerVariable[1])
+	if isTriggerTrigger != nil && *isTriggerTrigger == true {
 		request["type"] = "STOP"
 	} else {
 		request["type"] = "LIMIT"
@@ -4065,18 +4073,18 @@ func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan AsyncResult[[]Order], optio
 	if accountId != nil {
 		request["subAccountId"] = accountId
 
-		listEp3811 := <-this.PrivateGetApiV1FuturesSubAccountOpenOrders(this.Extend(request, paramsAccountId))
-		if listEp3811.Err != nil {
-			panic(listEp3811.Err)
+		listEp3807 := <-this.PrivateGetApiV1FuturesSubAccountOpenOrders(this.Extend(request, paramsAccountId))
+		if listEp3807.Err != nil {
+			panic(listEp3807.Err)
 		}
-		response = listEp3811.Value
+		response = listEp3807.Value
 	} else {
 
-		listEp3814 := <-this.PrivateGetApiV1FuturesOpenOrders(this.Extend(request, paramsAccountId))
-		if listEp3814.Err != nil {
-			panic(listEp3814.Err)
+		listEp3810 := <-this.PrivateGetApiV1FuturesOpenOrders(this.Extend(request, paramsAccountId))
+		if listEp3810.Err != nil {
+			panic(listEp3810.Err)
 		}
-		response = listEp3814.Value
+		response = listEp3810.Value
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
@@ -4136,11 +4144,14 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Orde
 	if since != nil {
 		request["startTime"] = since
 	}
-	var untilparamsUntilVariable []any = this.HandleOptionAndParams(params, methodName, "until")
-	until := GetValue(untilparamsUntilVariable, 0)
-	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
+	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, methodName, "until")
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok {
+		until = p
+	}
+	paramsUntil := untilparamsUntilVariable[1]
 	if until != nil {
-		request["endTime"] = until
+		request["endTime"] = *until
 	}
 	accountId, paramsAccountId := this.HandleOptionStringAndParams(paramsUntil, methodName, "accountId")
 	var market map[string]any = nil
@@ -4157,19 +4168,17 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Orde
 			request["accountId"] = accountId
 		}
 
-		listEp3892 := <-this.PrivateGetApiV1SpotTradeOrders(this.Extend(request, paramsMarketType))
-		if listEp3892.Err != nil {
-			panic(listEp3892.Err)
+		listEp3888 := <-this.PrivateGetApiV1SpotTradeOrders(this.Extend(request, paramsMarketType))
+		if listEp3888.Err != nil {
+			panic(listEp3888.Err)
 		}
-		response = listEp3892.Value
+		response = listEp3888.Value
 	} else if marketType != nil && *marketType == "swap" {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a symbol argument for swap markets"))
 		}
 		request["symbol"] = this.SafeString(market, "id")
-		isTriggerparamsTriggerVariable := this.HandleTriggerOptionAndParams(paramsMarketType, methodName, false)
-		isTrigger := isTriggerparamsTriggerVariable[0]
-		paramsTrigger := GetValue(isTriggerparamsTriggerVariable, 1)
+		isTrigger, paramsTrigger := this.HandleOptionBoolAndParams2(paramsMarketType, methodName, "stop", "trigger", false)
 		if isTrigger == true {
 			request["type"] = "STOP"
 		} else {
@@ -4178,18 +4187,18 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Orde
 		if accountId != nil {
 			request["subAccountId"] = accountId
 
-			listEp3909 := <-this.PrivateGetApiV1FuturesSubAccountHistoryOrders(this.Extend(request, paramsTrigger))
-			if listEp3909.Err != nil {
-				panic(listEp3909.Err)
+			listEp3903 := <-this.PrivateGetApiV1FuturesSubAccountHistoryOrders(this.Extend(request, paramsTrigger))
+			if listEp3903.Err != nil {
+				panic(listEp3903.Err)
 			}
-			response = listEp3909.Value
+			response = listEp3903.Value
 		} else {
 
-			listEp3912 := <-this.PrivateGetApiV1FuturesHistoryOrders(this.Extend(request, paramsTrigger))
-			if listEp3912.Err != nil {
-				panic(listEp3912.Err)
+			listEp3906 := <-this.PrivateGetApiV1FuturesHistoryOrders(this.Extend(request, paramsTrigger))
+			if listEp3906.Err != nil {
+				panic(listEp3906.Err)
 			}
-			response = listEp3912.Value
+			response = listEp3906.Value
 		}
 	} else {
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketType + " type of markets"))
@@ -4488,11 +4497,11 @@ func (this *Hashkey) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symb
 		"timestamp": this.Milliseconds(),
 	}
 
-	listEp4200 := <-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params))
-	if listEp4200.Err != nil {
-		panic(listEp4200.Err)
+	listEp4194 := <-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params))
+	if listEp4194.Err != nil {
+		panic(listEp4194.Err)
 	}
-	var response []any = listEp4200.Value
+	var response []any = listEp4194.Value
 	//
 	//     [
 	//         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
@@ -4537,11 +4546,11 @@ func (this *Hashkey) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundin
 		"timestamp": this.Milliseconds(),
 	}
 
-	listEp4242 := <-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params))
-	if listEp4242.Err != nil {
-		panic(listEp4242.Err)
+	listEp4236 := <-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params))
+	if listEp4236.Err != nil {
+		panic(listEp4236.Err)
 	}
-	var response []any = listEp4242.Value
+	var response []any = listEp4236.Value
 
 	//
 	//     [
@@ -4635,11 +4644,11 @@ func (this *Hashkey) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		request["limit"] = limit
 	}
 
-	listEp4333 := <-this.PublicGetApiV1FuturesHistoryFundingRate(this.Extend(request, params))
-	if listEp4333.Err != nil {
-		panic(listEp4333.Err)
+	listEp4327 := <-this.PublicGetApiV1FuturesHistoryFundingRate(this.Extend(request, params))
+	if listEp4327.Err != nil {
+		panic(listEp4327.Err)
 	}
-	var response []any = listEp4333.Value
+	var response []any = listEp4327.Value
 	//
 	//     [
 	//         {
@@ -4768,11 +4777,11 @@ func (this *Hashkey) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position]
 		"symbol": market["id"],
 	}
 
-	listEp4459 := <-this.PrivateGetApiV1FuturesPositions(this.Extend(request, paramsMethodName))
-	if listEp4459.Err != nil {
-		panic(listEp4459.Err)
+	listEp4453 := <-this.PrivateGetApiV1FuturesPositions(this.Extend(request, paramsMethodName))
+	if listEp4453.Err != nil {
+		panic(listEp4453.Err)
 	}
-	var response []any = listEp4459.Value
+	var response []any = listEp4453.Value
 
 	//
 	//     [
@@ -4867,11 +4876,11 @@ func (this *Hashkey) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any
 		"symbol": market["id"],
 	}
 
-	listEp4551 := <-this.PrivateGetApiV1FuturesLeverage(this.Extend(request, params))
-	if listEp4551.Err != nil {
-		panic(listEp4551.Err)
+	listEp4545 := <-this.PrivateGetApiV1FuturesLeverage(this.Extend(request, params))
+	if listEp4545.Err != nil {
+		panic(listEp4545.Err)
 	}
-	var response []any = listEp4551.Value
+	var response []any = listEp4545.Value
 	//
 	//     [
 	//         {

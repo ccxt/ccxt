@@ -387,11 +387,6 @@ func (this *Alpaca) HandleDelta(bookside any, delta any) {
 	var bidAsk []any = this.ParseOrderBookBidAsk(delta, "p", "s")
 	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
-func (this *Alpaca) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
-		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
-	}
-}
 
 /**
  * @method

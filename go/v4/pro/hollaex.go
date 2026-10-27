@@ -657,21 +657,17 @@ func (this *Hollaex) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var expires any = ccxt.DerefScalar(this.SafeString(this.Options, "ws-expires"))
-	if expires == nil {
+	var expires *string = this.SafeString(this.Options, "ws-expires", "")
+	if expires != nil && *expires == "" {
 		var timeoutMs int64 = this.ParseToInt(this.Timeout)
 		var timeout int64 = this.ParseToInt(float64(timeoutMs) / 1000)
-		expires = this.Sum(this.Seconds(), timeout)
-		if expires == nil {
-			panic(ccxt.ArgumentsRequired(this.Id + " watchPrivate() expires is required"))
-		}
-		expires = ccxt.ToString(expires)
+		expires = this.NumberToString(this.ParseToInt(this.Sum(this.Seconds(), timeout)))
 		// we need to memoize these values to avoid generating a new url on each method execution
 		// that would trigger a new connection on each received message
-		this.Options["ws-expires"] = expires
+		this.Options["ws-expires"] = ccxt.DerefScalar(expires)
 	}
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
-	var auth *string = ccxt.SafeStringPtr(ccxt.Add("CONNECT"+"/stream", expires))
+	var auth string = "CONNECT" + "/stream" + *expires
 	var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
 	var authParams map[string]any = map[string]any{
 		"api-key":       this.ApiKey,

@@ -2813,14 +2813,14 @@ func (this *Foxbit) HandleErrors(httpCode int64, reason any, url string, method 
 	var code *string = this.SafeString(error, "code")
 	var details []any = SafeListTyped(error, "details")
 	var message *string = this.SafeString(error, "message", "")
-	var detailsString any = ""
+	var detailsString string = ""
 	if details != nil {
 		for i := 0; i < len(details); i++ {
-			detailsString = Add(Add(detailsString, details[i]), " ")
+			detailsString = detailsString + *this.SafeString(details, i, "") + " "
 		}
 	}
 	if error != nil {
-		var feedback *string = SafeStringPtr(Add(this.Id+" "+*message+" details: ", detailsString))
+		var feedback string = this.Id + " " + *message + " details: " + detailsString
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], detailsString, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)

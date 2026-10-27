@@ -4521,12 +4521,12 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		return time
 	}()
 	request["end_timestamp"] = endTimestamp
-	var isPaginationCall bool = (InOp(paramsUntil, "isDeribitPaginationCall"))
+	var isPaginationCall *bool = this.SafeBool(paramsUntil, "isDeribitPaginationCall", false)
 	var paramsOmitted any = paramsUntil
-	if isPaginationCall {
+	if isPaginationCall != nil && *isPaginationCall {
 		paramsOmitted = this.Omit(paramsUntil, "isDeribitPaginationCall")
 	}
-	if isPaginationCall {
+	if isPaginationCall != nil && *isPaginationCall {
 		if limit == nil {
 			panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a limit argument"))
 		}

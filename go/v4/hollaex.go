@@ -2532,7 +2532,6 @@ func (this *Hollaex) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " withdraw() requires a network parameter"))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsWithdrawTag, "network"))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"amount":   amount,
@@ -2540,7 +2539,7 @@ func (this *Hollaex) withdrawBody(ch chan AsyncResult[Transaction], code string,
 		"network":  this.NetworkCodeToId(network, code),
 	}
 
-	r1 := <-this.PrivatePostUserWithdrawal(this.Extend(request, paramsOmitted))
+	r1 := <-this.PrivatePostUserWithdrawal(this.Extend(request, this.Omit(paramsWithdrawTag, "network")))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -2602,8 +2601,8 @@ func (this *Hollaex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[s
 			"fee":        nil,
 			"percentage": nil,
 		},
-		"networks": map[string]any{},
 	}
+	var networks map[string]any = map[string]any{}
 	var allowWithdrawal *bool = this.SafeBool(fee, "allow_withdrawal")
 	if allowWithdrawal != nil && *allowWithdrawal == true {
 		result["withdraw"] = map[string]any{
@@ -2632,12 +2631,13 @@ func (this *Hollaex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[s
 			}
 			var networkCodeUpper string = strings.ToUpper(*networkCode) // default to the upper case network code
 			var withdrawalFee *float64 = this.SafeNumber(value, "value")
-			AddElementToObject(result["networks"], networkCodeUpper, map[string]any{
+			networks[networkCodeUpper] = map[string]any{
 				"deposit":  nil,
 				"withdraw": withdrawalFee,
-			})
+			}
 		}
 	}
+	result["networks"] = networks
 	return result
 }
 
@@ -2734,8 +2734,8 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
 		var timeoutMs int64 = this.ParseToInt(this.Timeout)
 		var defaultExpires *int64 = this.SafeInteger2(this.Options, "api-expires", "expires", this.ParseToInt(float64(timeoutMs)/1000))
 		var expires any = this.Sum(this.Seconds(), defaultExpires)
-		var expiresString string = ToString(expires)
-		var auth any = method + requestPath + expiresString
+		var expiresString *string = this.NumberToString(expires)
+		var auth any = method + requestPath + *expiresString
 		requestHeaders = map[string]any{
 			"api-key":     this.ApiKey,
 			"api-expires": expiresString,

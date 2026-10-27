@@ -1261,21 +1261,13 @@ func (this *Bittrade) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var timestamp *int64 = this.SafeInteger2(trade, "ts", "created-at")
 	var order *string = this.SafeString(trade, "order-id")
-	var side any
-	if derefPtr := this.SafeString(trade, "direction"); derefPtr != nil {
-		side = *derefPtr
-	}
-	var typeVar any = nil
+	var side *string = this.SafeString(trade, "direction")
+	var typeVar *string = nil
 	var typeRaw *string = this.SafeString(trade, "type")
 	if typeRaw != nil {
 		var typeParts []string = strings.Split(*typeRaw, "-")
-		side = typeParts[0]
-		typeVar = func() any {
-			if 1 >= 0 && 1 < len(typeParts) {
-				return typeParts[1]
-			}
-			return nil
-		}()
+		side = this.SafeString(typeParts, 0)
+		typeVar = this.SafeString(typeParts, 1)
 	}
 	var takerOrMaker *string = this.SafeString(trade, "role")
 	var price *string = this.SafeString(trade, "price")
@@ -2005,8 +1997,8 @@ func (this *Bittrade) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv1911, _ := OrdersToList(r1.Value), r1.Value != nil
-	var retRes137215 []any = listRecv1911
+	listRecv1901, _ := OrdersToList(r1.Value), r1.Value != nil
+	var retRes137215 []any = listRecv1901
 	if retRes137215 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
@@ -2215,19 +2207,14 @@ func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "id")
-	var side any = nil
-	var typeVar any = nil
+	var side *string = nil
+	var typeVar *string = nil
 	var status *string = nil
 	var orderTypeRaw *string = this.SafeString(order, "type")
 	if orderTypeRaw != nil {
 		var orderType []string = strings.Split(*orderTypeRaw, "-")
-		side = orderType[0]
-		typeVar = func() any {
-			if 1 >= 0 && 1 < len(orderType) {
-				return orderType[1]
-			}
-			return nil
-		}()
+		side = this.SafeString(orderType, 0)
+		typeVar = this.SafeString(orderType, 1)
 		status = this.ParseOrderStatus(this.SafeString(order, "state"))
 	}
 	var marketId *string = this.SafeString(order, "symbol")
@@ -2242,7 +2229,7 @@ func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) Order {
 	var fee map[string]any = nil
 	if feeCost != nil {
 		var feeCurrency any = nil
-		if side == "sell" {
+		if side != nil && *side == "sell" {
 			feeCurrency = marketResolved["quote"]
 		} else {
 			feeCurrency = marketResolved["base"]

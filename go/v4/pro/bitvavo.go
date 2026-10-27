@@ -1907,7 +1907,7 @@ func (this *Bitvavo) RequestId() int64 {
 	var ts string = strconv.FormatInt(this.Milliseconds(), 10)
 	var randomNumber int64 = this.RandNumber(4)
 	var randomPart string = strconv.FormatInt(randomNumber, 10)
-	return ccxt.ParseInt(ts + randomPart)
+	return this.ParseToInt(ts + randomPart)
 }
 func (this *Bitvavo) WatchRequestAsync(action string, request any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)

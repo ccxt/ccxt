@@ -2752,19 +2752,20 @@ func (this *Grvt) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	}
 	var defaultFromAccountId *string = this.SafeString(this.Options, "userMainAccountId")
 	var currency map[string]any = this.Currency(code)
-	var request map[string]any = map[string]any{
-		"to_eth_address":  address,
-		"from_account_id": defaultFromAccountId,
-		"currency":        currency["id"],
-		"num_tokens":      this.CurrencyToPrecision(code, amount),
-		"signature":       this.DefaultSignature(),
-	}
 	networkCode, query := this.HandleNetworkCodeAndParams(params)
 	var networkId any = this.NetworkCodeToId(networkCode, code)
 	if networkId == nil {
 		panic(BadRequest(this.Id + " withdraw() requires a network parameter"))
 	}
-	AddElementToObject(request["signature"], "chain_id", networkId)
+	var withdrawSignature map[string]any = this.DefaultSignature()
+	withdrawSignature["chain_id"] = networkId
+	var request map[string]any = map[string]any{
+		"to_eth_address":  address,
+		"from_account_id": defaultFromAccountId,
+		"currency":        currency["id"],
+		"num_tokens":      this.CurrencyToPrecision(code, amount),
+		"signature":       withdrawSignature,
+	}
 
 	r1 := <-this.PrivateTradingPostFullV1Withdrawal(this.Extend(this.CreateSignedRequest(request, "EIP712_WITHDRAWAL_TYPE", currency), query))
 	if r1.Err != nil {
@@ -3138,11 +3139,11 @@ func (this *Grvt) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes228219 []any = r1.Value
-		if retRes228219 == nil {
+		var retRes228319 []any = r1.Value
+		if retRes228319 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes228219)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes228319)}
 		}
 		return nil
 	}
@@ -3251,12 +3252,12 @@ func (this *Grvt) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 			if market["contract"] != true {
 				panic(BadRequest(this.Id + " fetchPositions() supports contract markets only"))
 			}
-			retRes236016 := request["base"]
-			AppendToArray(&retRes236016, market["baseId"])
-			AddElementToObject(request, "base", retRes236016)
-			retRes236116 := request["quote"]
-			AppendToArray(&retRes236116, market["quoteId"])
-			AddElementToObject(request, "quote", retRes236116)
+			retRes236116 := request["base"]
+			AppendToArray(&retRes236116, market["baseId"])
+			AddElementToObject(request, "base", retRes236116)
+			retRes236216 := request["quote"]
+			AppendToArray(&retRes236216, market["quoteId"])
+			AddElementToObject(request, "quote", retRes236216)
 		}
 	}
 
@@ -3614,11 +3615,11 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes261919 []any = r1.Value
-		if retRes261919 == nil {
+		var retRes262019 []any = r1.Value
+		if retRes262019 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes261919)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes262019)}
 		}
 		return nil
 	}
@@ -4522,9 +4523,7 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) any {
 		}
 		// an empty params dict must serialize as an empty json object, not an empty json array,
 		// php json_encode would produce [] here which the venue rejects with the same 1003 error
-		var paramsKeys []string = ObjectKeys(params)
-		var paramsKeysLength int = len(paramsKeys)
-		if paramsKeysLength == 0 {
+		if len(ObjectKeys(params)) == 0 {
 			requestBody = SafeStringPtr("{}")
 		} else {
 			requestBody = SafeStringPtr(this.Json(params))

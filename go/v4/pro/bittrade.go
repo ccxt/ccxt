@@ -581,11 +581,6 @@ func (this *Bittrade) HandleDelta(bookside any, delta any) {
 	var amount *float64 = this.SafeFloat(delta, 1)
 	bookside.(ccxt.IOrderBookSide).Store(price, amount)
 }
-func (this *Bittrade) HandleDeltas(bookside any, deltas any) {
-	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
-		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
-	}
-}
 func (this *Bittrade) HandleOrderBookMessage(client any, message any, orderbook any) any {
 	//
 	//     {

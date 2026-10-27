@@ -257,8 +257,8 @@ func (this *Mudrex) HandleMessage(client any, message any) {
 func (this *Mudrex) HandleErrorMessage(client any, message any) {
 	var error map[string]any = ccxt.SafeMapTyped(message, "error")
 	var code *string = this.SafeString(error, "code")
-	var msg *string = this.SafeString(error, "msg")
-	var feedback *string = ccxt.SafeStringPtr(ccxt.Add(this.Id+" ", msg))
+	var msg *string = this.SafeString(error, "msg", "")
+	var feedback string = this.Id + " " + *msg
 	if code != nil && *code == "429" {
 		panic(ccxt.RateLimitExceeded(feedback))
 	}

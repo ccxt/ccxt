@@ -961,7 +961,7 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 				}
 				return *limit
 			}()
-			var endTime any = Add(since, ((duration * numberOfCandles) * 1000))
+			var endTime any = this.ParseToInt(Add(since, ((duration * numberOfCandles) * 1000)))
 			if until != nil {
 				endTime = mathMin(endTime, until)
 			}

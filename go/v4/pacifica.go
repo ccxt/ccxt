@@ -5202,11 +5202,10 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) any {
 	var host string = this.ImplodeHostname(baseApiUrl)
 	var url string = host + "/api/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
-	var paramsLen int = len(ObjectKeys(paramsOmitted))
 	var headersValue map[string]any = map[string]any{
 		"Content-Type": "application/json",
 	}
-	if (method == "GET") && (paramsLen > 0) {
+	if (method == "GET") && (len(ObjectKeys(paramsOmitted)) > 0) {
 		url += "?" + this.Urlencode(paramsOmitted)
 		headersValue["Accept"] = "*/*"
 	}

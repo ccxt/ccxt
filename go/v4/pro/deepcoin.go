@@ -1036,7 +1036,7 @@ func (this *Deepcoin) OrderBookSuffix(market map[string]any, methodName string, 
 	// tick was rejected accepted the next coarser level
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var symbol *string = this.SafeString(market, "symbol")
+	var symbol *string = this.SafeString(market, "symbol", "")
 	var aggregation *string = nil
 	var paramsAggregation any = nil
 	aggregation, paramsAggregation = this.HandleOptionStringAndParams(params, methodName, "aggregation")
@@ -1044,7 +1044,7 @@ func (this *Deepcoin) OrderBookSuffix(market map[string]any, methodName string, 
 		var precision map[string]any = ccxt.SafeMapTyped(market, "precision")
 		var tickSize *float64 = this.SafeNumber(precision, "price")
 		if tickSize == nil {
-			panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id+" "+methodName+"() requires a params[\"aggregation\"] price level for ", symbol), " because the market has no price precision")))
+			panic(ccxt.BadRequest(this.Id + " " + methodName + "() requires a params[\"aggregation\"] price level for " + *symbol + " because the market has no price precision"))
 		}
 		aggregation = this.NumberToString(tickSize)
 	}
@@ -1216,12 +1216,10 @@ func (this *Deepcoin) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 			panic(r.Err)
 		}
 	}
-	var symbolResolved any = func() any {
-		if symbol != nil {
-			return this.Symbol(symbol)
-		}
-		return nil
-	}()
+	var symbolResolved any = nil
+	if symbol != nil {
+		symbolResolved = this.Symbol(symbol)
+	}
 	if symbolResolved != nil {
 		messageHash = ccxt.Add("myTrades"+"::", symbolResolved)
 	}
@@ -1330,12 +1328,10 @@ func (this *Deepcoin) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 			panic(r.Err)
 		}
 	}
-	var symbolResolved any = func() any {
-		if symbol != nil {
-			return this.Symbol(symbol)
-		}
-		return nil
-	}()
+	var symbolResolved any = nil
+	if symbol != nil {
+		symbolResolved = this.Symbol(symbol)
+	}
 	if symbolResolved != nil {
 		messageHash = ccxt.Add("orders"+"::", symbolResolved)
 	}

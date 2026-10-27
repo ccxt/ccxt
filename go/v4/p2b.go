@@ -630,10 +630,7 @@ func (this *P2b) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeIntegerProduct(ticker, "at", 1000)
-	var tickerInner any = ticker
-	if InOp(ticker, "ticker") {
-		tickerInner = this.SafeDict(ticker, "ticker")
-	}
+	var tickerInner any = this.SafeDict(ticker, "ticker", ticker)
 	var last *string = this.SafeString(tickerInner, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        this.SafeString(market, "symbol"),

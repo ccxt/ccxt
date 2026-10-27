@@ -453,8 +453,8 @@ func (this *Opinion) ParseOpinionMarket(raw any, optionalArgs ...any) any {
 		"expiryDatetime":  this.Iso8601(expiryTimestamp),
 		"strike":          nil,
 		"optionType":      nil,
-		"taker":           ccxt.GetValue(this.Fees["trading"], "taker"),
-		"maker":           ccxt.GetValue(this.Fees["trading"], "maker"),
+		"taker":           this.SafeNumber(this.Fees["trading"], "taker"),
+		"maker":           this.SafeNumber(this.Fees["trading"], "maker"),
 		"percentage":      true,
 		"tierBased":       false,
 		"feeSide":         "get",
@@ -825,7 +825,7 @@ func (this *Opinion) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTic
 	if !ccxt.StructAbsent(r.Value) {
 		outcomeObj = ccxt.StructBox(r.Value, ccxt.PredictionOutcomeToMap)
 	}
-	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
+	var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 	var promises []any = []any{this.OpinionPublicGetTokenLatestPrice(this.Extend(map[string]any{
 		"token_id": tokenId,
 	}, params)), this.OpinionPublicGetTokenOrderbook(this.Extend(map[string]any{
@@ -945,7 +945,7 @@ func (this *Opinion) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 	var promises []any = []any{}
 	for i := 0; i < outcomesLength; i++ {
 		var outcomeObj map[string]any = this.Outcome(outcomes[i])
-		var tokenId *string = ccxt.SafeStringPtr(outcomeObj["outcomeId"])
+		var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 		promises = append(promises, this.OpinionPublicGetTokenLatestPrice(this.Extend(map[string]any{
 			"token_id": tokenId,
 		}, params)))
@@ -1011,7 +1011,7 @@ func (this *Opinion) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	if !ccxt.StructAbsent(r.Value) {
 		outcomeObj = ccxt.StructBox(r.Value, ccxt.PredictionOutcomeToMap)
 	}
-	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
+	var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 	var request map[string]any = map[string]any{
 		"token_id": tokenId,
 	}
@@ -1072,7 +1072,8 @@ func (this *Opinion) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outc
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if _, ok := this.Timeframes[timeframe]; !ok {
+	var interval *string = this.SafeString(this.Timeframes, timeframe)
+	if interval == nil {
 		var supportedKeys []string = ccxt.ObjectKeys(this.Timeframes)
 		panic(ccxt.BadRequest(this.Id + " fetchOHLCV() unsupported timeframe " + timeframe + ", supported timeframes are " + strings.Join(supportedKeys, ", ")))
 	}
@@ -1082,8 +1083,7 @@ func (this *Opinion) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outc
 		panic(r.Err)
 	}
 	var outcomeObj map[string]any = ccxt.StructResultMap(r.Value, ccxt.PredictionOutcomeToMap)
-	var tokenId *string = ccxt.SafeStringPtr(outcomeObj["outcomeId"])
-	var interval *string = this.SafeString(this.Timeframes, timeframe)
+	var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 
 	r1 := <-this.OpinionPublicGetTokenPriceHistory(this.Extend(map[string]any{
 		"token_id": tokenId,
@@ -1230,7 +1230,7 @@ func (this *Opinion) loadMultiSignAddressBody(ch chan ccxt.AsyncResult[*string])
 	ch <- ccxt.AsyncResult[*string]{Value: multiSignAddress}
 	return nil
 }
-func (this *Opinion) SignOpinionOrder(order map[string]any, exchangeAddress *string) string {
+func (this *Opinion) SignOpinionOrder(order map[string]any, exchangeAddress string) string {
 	var domain map[string]any = map[string]any{
 		"name":              "OPINION CTF Exchange",
 		"version":           "1",
@@ -1368,7 +1368,7 @@ func (this *Opinion) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrd
 	if !ccxt.StructAbsent(r1.Value) {
 		outcomeObj = ccxt.StructBox(r1.Value, ccxt.PredictionOutcomeToMap)
 	}
-	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
+	var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 	var isMarket bool = (typeVar == "market")
 	var sideStr string = strings.ToUpper(side)
 	if price == nil {
@@ -1396,9 +1396,7 @@ func (this *Opinion) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrd
 		panic(r2.Err)
 	}
 	var quoteToken map[string]any = r2.Value
-	var exchangeAddress *string = this.SafeString(quoteToken, "ctfExchangeAddress", "")
-	var decimals *int64 = this.SafeInteger(quoteToken, "decimal", 18)
-	var amounts map[string]any = this.OpinionOrderRawAmounts(isMarket, sideStr, amount, price, decimals)
+	var amounts map[string]any = this.OpinionOrderRawAmounts(isMarket, sideStr, amount, price, this.SafeInteger(quoteToken, "decimal", 18))
 	var makerAmount *string = this.SafeString(amounts, "makerAmount")
 	var takerAmount *string = this.SafeString(amounts, "takerAmount")
 	var sideInt int = func() int {
@@ -1441,7 +1439,7 @@ func (this *Opinion) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrd
 		"side":          sideInt,
 		"signatureType": signatureType,
 	}
-	var signature string = this.SignOpinionOrder(order, exchangeAddress)
+	var signature string = this.SignOpinionOrder(order, *this.SafeString(quoteToken, "ctfExchangeAddress", ""))
 	var signatureNo0x string = this.Remove0xPrefix(signature)
 	var orderBody map[string]any = this.Extend(map[string]any{
 		"salt":            salt,
@@ -1780,11 +1778,11 @@ func (this *Opinion) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes126315 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes126315 == nil {
+	var retRes126115 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes126115 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes126315)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes126115)}
 	}
 	return nil
 }
@@ -1825,11 +1823,11 @@ func (this *Opinion) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes128015 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes128015 == nil {
+	var retRes127815 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes127815 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes128015)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes127815)}
 	}
 	return nil
 }
@@ -2210,10 +2208,10 @@ func (this *Opinion) HashMessage(message any) any {
 func (this *Opinion) SignHash(hash any, privateKey string) map[string]any {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
 	// assign before padStart so the PHP str_pad regex matches
-	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
-	var sRaw *string = ccxt.SafeStringPtr(signature["s"])
-	var r string = ccxt.PadStart(rRaw, 64, "0")
-	var s string = ccxt.PadStart(sRaw, 64, "0")
+	var rRaw *string = this.SafeString(signature, "r", "")
+	var sRaw *string = this.SafeString(signature, "s", "")
+	var r string = (strings.Repeat("0", max(64-len(*rRaw), 0)) + *rRaw)[max(len(*rRaw)-64, 0):]
+	var s string = (strings.Repeat("0", max(64-len(*sRaw), 0)) + *sRaw)[max(len(*sRaw)-64, 0):]
 	return map[string]any{
 		"r": "0x" + r,
 		"s": "0x" + s,
@@ -2223,7 +2221,7 @@ func (this *Opinion) SignHash(hash any, privateKey string) map[string]any {
 func (this *Opinion) SignMessage(message any, privateKey any) any {
 	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, int64(-64), nil))
 }
-func (this *Opinion) SignApiKeyAuth(walletAddress any, action *string, timestamp *string) string {
+func (this *Opinion) SignApiKeyAuth(walletAddress any, action string, timestamp *string) string {
 	// EIP-712 signature used to create/get/delete an API key (wallet-authenticated key management)
 	var domain map[string]any = map[string]any{
 		"name":    "Opinion OpenAPI",
@@ -2504,12 +2502,12 @@ func (this *Opinion) subscribeOpinionChannelBody(ch chan ccxt.AsyncResult[any], 
 		panic(r.Err)
 	}
 	var url any = this.OpinionWsUrl()
-	var subscriptionKey *string = ccxt.SafeStringPtr(ccxt.Add(channel+":", this.NumberToString(marketId)))
 	var subscribeMsg map[string]any = map[string]any{
 		"action":   "SUBSCRIBE",
 		"channel":  channel,
 		"marketId": marketId,
 	}
+	var subscriptionKey string = channel + ":" + *this.SafeString(subscribeMsg, "marketId", "")
 
 	r1 := <-this.Watch(url, messageHash, subscribeMsg, subscriptionKey)
 	if r1.Err != nil {
@@ -2616,7 +2614,12 @@ func (this *Opinion) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	}
 	var url any = this.OpinionWsUrl()
 	var client any = this.Client(url)
-	var subscriptionKey *string = ccxt.SafeStringPtr(ccxt.Add(channel+":", this.NumberToString(marketId)))
+	var subscribeMsg map[string]any = map[string]any{
+		"action":   "SUBSCRIBE",
+		"channel":  channel,
+		"marketId": marketId,
+	}
+	var subscriptionKey string = channel + ":" + *this.SafeString(subscribeMsg, "marketId", "")
 	var isNewSubscription bool = ccxt.IsEqual(this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionKey), nil)
 	if isNewSubscription {
 
@@ -2624,11 +2627,6 @@ func (this *Opinion) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-	}
-	var subscribeMsg map[string]any = map[string]any{
-		"action":   "SUBSCRIBE",
-		"channel":  channel,
-		"marketId": marketId,
 	}
 	var future any = this.Watch(url, messageHash, subscribeMsg, subscriptionKey)
 	if isNewSubscription {
@@ -3199,10 +3197,9 @@ func (this *Opinion) Sign(path string, optionalArgs ...any) any {
 				"GET":    "get",
 				"DELETE": "delete",
 			}
-			var action *string = this.SafeString(actionByMethod, method, "get")
 			var timestamp *string = this.NumberToString(this.Seconds())
 			headersExtended["OPINION_ADDRESS"] = this.WalletAddress
-			headersExtended["OPINION_SIGNATURE"] = this.SignApiKeyAuth(this.WalletAddress, action, timestamp)
+			headersExtended["OPINION_SIGNATURE"] = this.SignApiKeyAuth(this.WalletAddress, *this.SafeString(actionByMethod, method, "get"), timestamp)
 			headersExtended["OPINION_TIMESTAMP"] = timestamp
 		} else {
 			// an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the

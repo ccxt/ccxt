@@ -2462,8 +2462,9 @@ func (this *Alpaca) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	}
 	var currency map[string]any = this.Currency(code)
 	var addressValue any = address
-	if (tagWithdrawTag != nil) && (*tagWithdrawTag != "") {
-		addressValue = Add(Add(address, ":"), tagWithdrawTag)
+	var tagSuffix *string = this.SafeString(params, "tag", "")
+	if tagSuffix == nil || *tagSuffix != "" {
+		addressValue = Add(Add(address, ":"), tagSuffix)
 	}
 	var request map[string]any = map[string]any{
 		"asset":   currency["id"],

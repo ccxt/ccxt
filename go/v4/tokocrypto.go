@@ -2092,7 +2092,7 @@ func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) Order {
 		"type":               typeVar,
 		"timeInForce":        timeInForce,
 		"postOnly":           postOnly,
-		"reduceOnly":         this.SafeValue(order, "reduceOnly"),
+		"reduceOnly":         this.SafeBool(order, "reduceOnly"),
 		"side":               side,
 		"price":              price,
 		"triggerPrice":       this.ParseNumber(this.OmitZero(this.SafeString(order, "stopPrice"))),
@@ -3384,7 +3384,7 @@ func (this *Tokocrypto) HandleErrors(code int64, reason any, url string, method 
 	// check success value for wapi endpoints
 	// response in format {'msg': 'The coin does not exist.', 'success': true/false}
 	var success *bool = this.SafeBool(response, "success", true)
-	var parsedMessage any = nil
+	var responseParsed any = response
 	if !(success != nil && *success) {
 		var messageInner *string = this.SafeString(response, "msg")
 		if messageInner != nil {
@@ -3399,25 +3399,19 @@ func (this *Tokocrypto) HandleErrors(code int64, reason any, url string, method 
 							ret_ = func(this *Tokocrypto) any {
 								// catch block:
 								// do nothing
-								parsedMessage = nil
+								responseParsed = response
 								return nil
 							}(this)
 						}
 					}()
 					// try block:
-					parsedMessage = JsonParse(messageInner)
+					responseParsed = JsonParse(messageInner)
 					return nil
 				}(this)
 
 			}
 		}
 	}
-	var responseParsed any = func() any {
-		if !IsEqual(parsedMessage, nil) {
-			return parsedMessage
-		}
-		return response
-	}()
 	var message *string = this.SafeString(responseParsed, "msg")
 	if message != nil {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, this.Id+" "+*message)
@@ -3453,15 +3447,15 @@ func (this *Tokocrypto) CalculateRateLimiterCost(api any, method string, path st
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
 	var paramsDict map[string]any = this.Extend(map[string]any{}, params)
+	var byLimit []any = SafeListTyped(config, "byLimit")
 	if (func() bool { _, ok := paramsDict["noCoin"]; return ok }()) && !(func() bool { _, ok := paramsDict["coin"]; return ok }()) {
 		return this.SafeInteger(config, "noCoin")
 	} else if (func() bool { _, ok := paramsDict["noSymbol"]; return ok }()) && !(func() bool { _, ok := paramsDict["symbol"]; return ok }()) {
 		return this.SafeInteger(config, "noSymbol")
 	} else if (func() bool { _, ok := paramsDict["noPoolId"]; return ok }()) && !(func() bool { _, ok := paramsDict["poolId"]; return ok }()) {
 		return this.SafeInteger(config, "noPoolId")
-	} else if (InOp(config, "byLimit")) && (func() bool { _, ok := paramsDict["limit"]; return ok }()) {
+	} else if _, ok := paramsDict["limit"]; ok {
 		var limit *int64 = this.SafeInteger(paramsDict, "limit")
-		var byLimit []any = SafeListTyped(config, "byLimit")
 		for i := 0; i < len(byLimit); i++ {
 			var entry any = byLimit[i]
 			var entryLimit *int64 = this.SafeInteger(entry, 0)

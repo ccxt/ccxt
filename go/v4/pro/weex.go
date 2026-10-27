@@ -1581,11 +1581,11 @@ func (this *Weex) HandleBidAsk(client any, message map[string]any) {
 		return
 	}
 	var ticker any = this.ParseWsBidAsk(message, market)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if symbol != nil {
 		this.Bidsasks.Store(symbol, ticker)
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("bidask::", symbol))
+	var messageHash string = "bidask::" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *Weex) ParseWsBidAsk(message map[string]any, optionalArgs ...any) any {

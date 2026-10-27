@@ -7890,7 +7890,7 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 	var signedBody any = nil
 	if signed {
 		this.CheckRequiredCredentials()
-		var defaultRecvWindow *string = this.SafeString(this.Options, "recvWindow")
+		var defaultRecvWindow *string = this.SafeString(this.Options, "recvWindow", "5000")
 		var recvWindow *string = this.SafeString(query, "recvWindow", defaultRecvWindow)
 		var timestamp *string = this.NumberToString(this.Nonce())
 		if (payload == "/v4/order") || (payload == "/future/trade/v1/order/create") || (payload == "/future/trade/v1/entrust/create-plan") || (payload == "/future/trade/v1/entrust/create-profit") || (payload == "/future/trade/v1/order/create-batch") {
@@ -7911,9 +7911,9 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 			}
 			return this.Json(query)
 		}()
-		var payloadString any = nil
+		var payloadString any = ""
 		if (endpoint == "spot") || (endpoint == "user") {
-			payloadString = Add(Add(Add(Add("xt-validate-algorithms=HmacSHA256&xt-validate-appkey="+this.ApiKey+"&xt-validate-recvwindow=", recvWindow), "&xt-validate-t"), "imestamp="), timestamp)
+			payloadString = "xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.ApiKey + "&xt-validate-recvwindow=" + *recvWindow + "&xt-validate-t" + "imestamp=" + *timestamp
 			if isUndefinedBody {
 				if urlencoded != "" {
 					url = *apiUrl + payload + "?" + urlencoded

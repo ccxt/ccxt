@@ -1007,12 +1007,6 @@ func (this *Hibachi) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 func (this *Hibachi) OrderMessage(market map[string]any, nonce any, feeRate any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	if IsEqual(typeVar, nil) {
-		panic(ArgumentsRequired(this.Id + " requires a type argument"))
-	}
-	if IsEqual(side, nil) {
-		panic(ArgumentsRequired(this.Id + " requires a side argument"))
-	}
 	var sideInternal int = 0
 	if IsEqual(side, "sell") {
 		sideInternal = 0
@@ -1953,11 +1947,11 @@ func (this *Hibachi) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		"accountId": this.GetAccountId(),
 	}
 
-	listEp1861 := <-this.PrivateGetTradeOrders(this.Extend(request, params))
-	if listEp1861.Err != nil {
-		panic(listEp1861.Err)
+	listEp1855 := <-this.PrivateGetTradeOrders(this.Extend(request, params))
+	if listEp1855.Err != nil {
+		panic(listEp1855.Err)
 	}
-	var response []any = listEp1861.Value
+	var response []any = listEp1855.Value
 
 	// [
 	//     {
@@ -3695,7 +3689,7 @@ func (this *Hibachi) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
  * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hibachi) FetchOrdersByStatus(status any, options ...FetchOrdersByStatusOptions) ([]Order, error) {
+func (this *Hibachi) FetchOrdersByStatus(status string, options ...FetchOrdersByStatusOptions) ([]Order, error) {
 
 	opts := FetchOrdersByStatusOptionsStruct{}
 

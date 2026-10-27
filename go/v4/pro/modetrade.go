@@ -877,12 +877,12 @@ func (this *Modetrade) authenticateBody(ch chan ccxt.AsyncResult[*string], optio
 	ch <- ccxt.AsyncResult[*string]{Value: resolved}
 	return nil
 }
-func (this *Modetrade) WatchPrivateAsync(messageHash any, message map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Modetrade) WatchPrivateAsync(messageHash string, message map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPrivateBody(ch, messageHash, message, optionalArgs...)
 	return ch
 }
-func (this *Modetrade) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash any, message map[string]any, optionalArgs ...any) any {
+func (this *Modetrade) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash string, message map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -990,7 +990,7 @@ func (this *Modetrade) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], o
 		topic = "algoexecutionreport"
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
-	var messageHash any = topic
+	var messageHash string = topic
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
@@ -999,7 +999,7 @@ func (this *Modetrade) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], o
 		} else {
 			symbolResolved = nil
 		}
-		messageHash = ccxt.Add(topic+":", symbolResolved)
+		messageHash = topic + ":" + *this.SafeString(market, "symbol", "")
 	}
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
@@ -1063,7 +1063,7 @@ func (this *Modetrade) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade],
 		topic = "algoexecutionreport"
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "stop")
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
@@ -1072,7 +1072,7 @@ func (this *Modetrade) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade],
 		} else {
 			symbolResolved = nil
 		}
-		messageHash = ccxt.Add("myTrades"+":", symbolResolved)
+		messageHash = "myTrades" + ":" + *this.SafeString(market, "symbol", "")
 	}
 	var request map[string]any = map[string]any{
 		"event": "subscribe",

@@ -1158,7 +1158,8 @@ func (this *Modetrade) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var isFromFetchOrder bool = (InOp(trade, "id"))
+	var id *string = this.SafeString(trade, "id")
+	var isFromFetchOrder bool = (id != nil)
 	var timestamp *int64 = this.SafeInteger(trade, "executed_timestamp")
 	var marketId *string = this.SafeString(trade, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
@@ -1169,7 +1170,6 @@ func (this *Modetrade) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var fee any = this.ParseTokenAndFeeTemp(trade, "fee_asset", "fee")
 	var cost *string = Precise.StringMul(price, amount)
 	var side *string = this.SafeStringLower(trade, "side")
-	var id *string = this.SafeString(trade, "id")
 	var takerOrMaker *string = nil
 	if isFromFetchOrder {
 		var isMaker bool = (this.SafeString(trade, "is_maker") != nil && *this.SafeString(trade, "is_maker") == "1")

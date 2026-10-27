@@ -724,7 +724,7 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]m
 	var orphanSlugs []any = []any{}
 	for i := 0; i < queriesLength; i++ {
 		var request map[string]any = map[string]any{
-			"query":           ccxt.GetValue(queries, i),
+			"query":           this.SafeString(queries, i, ""),
 			"limit":           limit,
 			"includeResolved": includeResolved,
 		}
@@ -1989,7 +1989,7 @@ func (this *Predictfun) ParsePredictionTrade(trade any, optionalArgs ...any) any
 func (this *Predictfun) SetSandboxMode(enable any) {
 	// read before the flag is overwritten: only an actual switch touches the token, so calling
 	// this twice with the same value is a no-op rather than a forced re-authentication
-	var wasSandbox *bool = this.SafeBool(this.Options, "sandboxMode", false)
+	var wasSandbox bool = (this.SafeBool(this.Options, "sandboxMode", false) != nil && *this.SafeBool(this.Options, "sandboxMode", false) == true)
 	this.BaseExchange.SetSandboxMode(enable)
 	// the testnet is a different chain, so the EIP-712 chainId and every verifying contract
 	// change with it - and the venue serves the testnet without an api key
@@ -2001,7 +2001,7 @@ func (this *Predictfun) SetSandboxMode(enable any) {
 		return 56
 	}()
 	this.RequiredCredentials["apiKey"] = !ccxt.EvalTruthy(enable)
-	if !ccxt.IsEqual(wasSandbox, enable) {
+	if wasSandbox != enable {
 		// a token minted for one host is not valid on the other, so the live one is set aside
 		// on the way in and taken back on the way out - a round trip through the sandbox then
 		// costs no re-authentication. the sandbox token is not kept: it dies with the switch
@@ -2545,12 +2545,7 @@ func (this *Predictfun) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 	var wanted map[string]any = map[string]any{}
 	var wantedOutcomes []any = this.ToArray(outcomes)
 	for i := 0; i < outcomesLength; i++ {
-		var outcomeObj map[string]any = this.Outcome(func() any {
-			if i >= 0 && i < len(wantedOutcomes) {
-				return ccxt.DerefScalar(wantedOutcomes[i])
-			}
-			return nil
-		}())
+		var outcomeObj map[string]any = this.Outcome(this.SafeString(wantedOutcomes, i))
 		var wantedId *string = this.SafeString(outcomeObj, "outcomeId", "")
 		if wantedId != nil {
 			wanted[*wantedId] = true
@@ -3380,13 +3375,7 @@ func (this *Predictfun) SignEvmTransaction(tx any, privateKey any) any {
 	rHex = this.PadHexToEven(rHex)
 	sHex = this.PadHexToEven(sHex)
 	var yParity *int64 = this.SafeInteger(signature, "v")
-	var signedFields []any = []any{}
-	for i := 0; i < len(fields); i++ {
-		signedFields = append(signedFields, ccxt.DerefScalar(fields[i]))
-	}
-	signedFields = append(signedFields, this.RlpEncodeBytes(this.IntToRlpHex(yParity)))
-	signedFields = append(signedFields, this.RlpEncodeBytes(rHex))
-	signedFields = append(signedFields, this.RlpEncodeBytes(sHex))
+	var signedFields []any = this.ArrayConcat(fields, []any{this.RlpEncodeBytes(this.IntToRlpHex(yParity)), this.RlpEncodeBytes(rHex), this.RlpEncodeBytes(sHex)})
 	return ccxt.Add("0x02", this.RlpEncodeList(signedFields))
 }
 
@@ -3751,7 +3740,7 @@ func (this *Predictfun) HandleSubscriptionError(client any, message map[string]a
 		panic(error)
 	}
 	for i := 0; i < messageHashesLength; i++ {
-		client.(ccxt.ClientInterface).Reject(error, ccxt.GetValue(messageHashes, i))
+		client.(ccxt.ClientInterface).Reject(error, this.SafeString(messageHashes, i, ""))
 	}
 }
 
@@ -4241,10 +4230,10 @@ func (this *Predictfun) OutcomeForToken(tokenId *string, optionalArgs ...any) an
  */
 func (this *Predictfun) OutcomesByMarketId(marketId *string) []any {
 	var result []any = []any{}
-	var cached any = this.Outcomes
-	if (marketId == nil) || (ccxt.IsEqual(cached, nil)) {
+	if (marketId == nil) || (this.Outcomes == nil) {
 		return result
 	}
+	var cached any = this.Outcomes
 	var handles []string = ccxt.ObjectKeys(cached)
 	var handlesLength int = len(handles)
 	for i := 0; i < handlesLength; i++ {

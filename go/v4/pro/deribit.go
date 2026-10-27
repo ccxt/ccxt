@@ -406,7 +406,7 @@ func (this *Deribit) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
-		channels = append(channels, ccxt.Add("quote.", market["id"]))
+		channels = append(channels, "quote."+*this.SafeString(market, "id", ""))
 	}
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
@@ -884,8 +884,7 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 		var interval *string = this.SafeString(parts, 4, "")
 		descriptor = *this.SafeString(parts, 2, "") + "." + *this.SafeString(parts, 3, "") + "." + *interval
 	} else {
-		var interval *string = this.SafeString(parts, 2, "")
-		descriptor = interval
+		descriptor = this.SafeString(parts, 2, "")
 	}
 	var marketId *string = this.SafeString(data, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId)
@@ -1307,26 +1306,15 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], cha
 		if symbolsArray == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchMultipleWrapper() symbolsArray is required"))
 		}
-		var current any = ccxt.GetValue(symbolsArray, i)
 		var market map[string]any = nil
 		var currentDescriptor any = nil
 		if isOHLCV {
 			var currentPair []any = ccxt.SafeListTyped(symbolsArray, i)
-			market = this.Market(func() any {
-				if 0 >= 0 && 0 < len(currentPair) {
-					return currentPair[0]
-				}
-				return nil
-			}())
-			var unifiedTf any = func() any {
-				if 1 >= 0 && 1 < len(currentPair) {
-					return currentPair[1]
-				}
-				return nil
-			}()
+			market = this.Market(this.SafeString(currentPair, 0))
+			var unifiedTf *string = this.SafeString(currentPair, 1)
 			currentDescriptor = this.SafeString(this.Timeframes, unifiedTf, unifiedTf)
 		} else {
-			market = this.Market(current)
+			market = this.Market(this.SafeString(symbolsArray, i))
 			currentDescriptor = channelDescriptor
 		}
 		var message *string = ccxt.SafeStringPtr(ccxt.Add(channelName+"."+*this.SafeString(market, "id", "")+".", currentDescriptor))

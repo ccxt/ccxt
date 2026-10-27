@@ -59,17 +59,13 @@ func (this *Upbit) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], symbol
 			panic(r.Err)
 		}
 	}
-	var symbolsRequested any = symbols
-	if ccxt.IsEqual(symbols, nil) {
-		symbolsRequested = this.Symbols
-	}
-	var symbolsMarket []string = this.MarketSymbols(symbolsRequested)
-	var symbolsNormalized any = func() any {
-		if symbolsMarket == nil {
-			return []any{}
+	var symbolsRequested any = func() any {
+		if ccxt.IsEqual(symbols, nil) {
+			return this.Symbols
 		}
-		return symbolsMarket
+		return symbols
 	}()
+	var symbolsNormalized []string = this.MarketSymbols(symbolsRequested)
 	var marketIds any = this.MarketIds(symbolsNormalized)
 	var url string = this.ImplodeParams(this.SafeString(this.Urls["api"], "ws"), map[string]any{
 		"hostname": this.Hostname,
@@ -81,7 +77,7 @@ func (this *Upbit) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], symbol
 	}
 	var subscriptions any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionsKey, map[string]any{})
 	var messageHashes []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsNormalized); i++ {
+	for i := 0; i < len(symbolsNormalized); i++ {
 		var marketId *string = this.SafeString(marketIds, i, "")
 		var symbol *string = this.SafeString(symbolsNormalized, i, "")
 		var messageHash string = channel + ":" + *symbol
