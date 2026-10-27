@@ -183,8 +183,8 @@ class p2b extends \ccxt\async\p2b {
         list($nameOption, $paramsName) = $this->handle_option_string_and_params($params, 'watchTickers', 'name', $name);
         $messageHashes = array();
         $args = array();
-        for ($i = 0; $i < count(($symbolsNormalized)); $i++) {
-            $market = $this->market(($symbolsNormalized)[$i]);
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $market = $this->market($symbolsNormalized[$i]);
             $messageHashes[] = $nameOption . '::' . $this->safe_string($market, 'symbol', '');
             $args[] = $market['id'];
         }

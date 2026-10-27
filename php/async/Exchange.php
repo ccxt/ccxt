@@ -2225,7 +2225,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         for ($i = 0; $i < count($marketValues); $i++) {
             $value = $this->safe_dict($marketValues, $i, array());
             if (is_array($marketsById) && array_key_exists($value['id'] ?? '', $marketsById)) {
-                $marketsByIdArray = ($marketsById[$value['id']]);
+                $marketsByIdArray = $marketsById[$value['id']];
                 $marketsByIdArray[] = $value;
                 $marketsById[$value['id']] = $marketsByIdArray;
             } else {
@@ -2299,8 +2299,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             $quoteCurrencies = $this->sort_by($quoteCurrencies, 'code', false, '');
             $this->baseCurrencies = $this->map_to_safe_map($this->index_by($baseCurrencies, 'code'));
             $this->quoteCurrencies = $this->map_to_safe_map($this->index_by($quoteCurrencies, 'code'));
-            $allCurrencies = $this->array_concat($baseCurrencies, $quoteCurrencies);
-            $groupedCurrencies = $this->group_by($allCurrencies, 'code');
+            $groupedCurrencies = $this->group_by($this->array_concat($baseCurrencies, $quoteCurrencies), 'code');
             $codes = is_array($groupedCurrencies) ? array_keys($groupedCurrencies) : array();
             $resultingCurrencies = array();
             for ($i = 0; $i < count($codes); $i++) {
@@ -2324,8 +2323,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 }
                 $resultingCurrencies[] = $highestPrecisionCurrency;
             }
-            $sortedCurrencies = $this->sort_by($resultingCurrencies, 'code');
-            $this->currencies = $this->map_to_safe_map($this->deep_extend($this->currencies, $this->index_by($sortedCurrencies, 'code')));
+            $this->currencies = $this->map_to_safe_map($this->deep_extend($this->currencies, $this->index_by($this->sort_by($resultingCurrencies, 'code'), 'code')));
         }
         $this->currencies_by_id = $this->index_by_safe($this->currencies, 'id');
         $currenciesSortedByCode = $this->keysort($this->currencies);
@@ -2394,15 +2392,15 @@ class BaseExchange extends \ccxt\BaseExchange {
             if (($used === null) && ($total !== null) && ($free !== null)) {
                 $used = Precise::string_sub($total, $free);
             }
-            $balance[$code]['free'] = $this->parse_number($free);
-            $balance[$code]['used'] = $this->parse_number($used);
-            $balance[$code]['total'] = $this->parse_number($total);
-            $freeBalance[$code] = $balance[$code]['free'];
-            $usedBalance[$code] = $balance[$code]['used'];
-            $totalBalance[$code] = $balance[$code]['total'];
+            $freeBalance[$code] = $this->parse_number($free);
+            $usedBalance[$code] = $this->parse_number($used);
+            $totalBalance[$code] = $this->parse_number($total);
+            $balance[$code]['free'] = $freeBalance[$code];
+            $balance[$code]['used'] = $usedBalance[$code];
+            $balance[$code]['total'] = $totalBalance[$code];
             if ($debt !== null) {
-                $balance[$code]['debt'] = $this->parse_number($debt);
-                $debtBalance[$code] = $balance[$code]['debt'];
+                $debtBalance[$code] = $this->parse_number($debt);
+                $balance[$code]['debt'] = $debtBalance[$code];
             }
         }
         $balance['free'] = $freeBalance;
@@ -3670,7 +3668,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 $item = $response[$i];
                 $id = ($marketIdKey === null) ? null : $this->safe_string($item, $marketIdKey);
                 $market = $this->safe_market($id, null, null, 'swap');
-                $symbol = $market['symbol'];
+                $symbol = $this->safe_string($market, 'symbol', '');
                 $contract = $this->safe_bool($market, 'contract', false);
                 if (($contract) && ($noSymbols || (($symbolsNormalized !== null) && $this->in_array($symbol, $symbolsNormalized)))) {
                     $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
@@ -3682,7 +3680,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 $marketId = $keys[$i];
                 $item = $response[$marketId];
                 $market = $this->safe_market($marketId, null, null, 'swap');
-                $symbol = $market['symbol'];
+                $symbol = $this->safe_string($market, 'symbol', '');
                 $contract = $this->safe_bool($market, 'contract', false);
                 if (($contract) && ($noSymbols || (($symbolsNormalized !== null) && $this->in_array($symbol, $symbolsNormalized)))) {
                     $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
@@ -5068,16 +5066,6 @@ class BaseExchange extends \ccxt\BaseExchange {
         if (($takeProfit === null) && ($stopLoss === null)) {
             throw new ArgumentsRequired($this->id . ' createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument');
         }
-        if ($takeProfit !== null) {
-            $params['takeProfit'] = array(
-                'triggerPrice' => $takeProfit,
-            );
-        }
-        if ($stopLoss !== null) {
-            $params['stopLoss'] = array(
-                'triggerPrice' => $stopLoss,
-            );
-        }
         $takeProfitType = $this->safe_string($params, 'takeProfitType');
         $takeProfitPriceType = $this->safe_string($params, 'takeProfitPriceType');
         $takeProfitLimitPrice = $this->safe_string($params, 'takeProfitLimitPrice');
@@ -5086,29 +5074,41 @@ class BaseExchange extends \ccxt\BaseExchange {
         $stopLossPriceType = $this->safe_string($params, 'stopLossPriceType');
         $stopLossLimitPrice = $this->safe_string($params, 'stopLossLimitPrice');
         $stopLossAmount = $this->safe_string($params, 'stopLossAmount');
-        if ($takeProfitType !== null) {
-            $params['takeProfit']['type'] = $takeProfitType;
+        if ($takeProfit !== null) {
+            $takeProfitRequest = array(
+                'triggerPrice' => $takeProfit,
+            );
+            if ($takeProfitType !== null) {
+                $takeProfitRequest['type'] = $takeProfitType;
+            }
+            if ($takeProfitPriceType !== null) {
+                $takeProfitRequest['priceType'] = $takeProfitPriceType;
+            }
+            if ($takeProfitLimitPrice !== null) {
+                $takeProfitRequest['price'] = $this->parse_to_numeric($takeProfitLimitPrice);
+            }
+            if ($takeProfitAmount !== null) {
+                $takeProfitRequest['amount'] = $this->parse_to_numeric($takeProfitAmount);
+            }
+            $params['takeProfit'] = $takeProfitRequest;
         }
-        if ($takeProfitPriceType !== null) {
-            $params['takeProfit']['priceType'] = $takeProfitPriceType;
-        }
-        if ($takeProfitLimitPrice !== null) {
-            $params['takeProfit']['price'] = $this->parse_to_numeric($takeProfitLimitPrice);
-        }
-        if ($takeProfitAmount !== null) {
-            $params['takeProfit']['amount'] = $this->parse_to_numeric($takeProfitAmount);
-        }
-        if ($stopLossType !== null) {
-            $params['stopLoss']['type'] = $stopLossType;
-        }
-        if ($stopLossPriceType !== null) {
-            $params['stopLoss']['priceType'] = $stopLossPriceType;
-        }
-        if ($stopLossLimitPrice !== null) {
-            $params['stopLoss']['price'] = $this->parse_to_numeric($stopLossLimitPrice);
-        }
-        if ($stopLossAmount !== null) {
-            $params['stopLoss']['amount'] = $this->parse_to_numeric($stopLossAmount);
+        if ($stopLoss !== null) {
+            $stopLossRequest = array(
+                'triggerPrice' => $stopLoss,
+            );
+            if ($stopLossType !== null) {
+                $stopLossRequest['type'] = $stopLossType;
+            }
+            if ($stopLossPriceType !== null) {
+                $stopLossRequest['priceType'] = $stopLossPriceType;
+            }
+            if ($stopLossLimitPrice !== null) {
+                $stopLossRequest['price'] = $this->parse_to_numeric($stopLossLimitPrice);
+            }
+            if ($stopLossAmount !== null) {
+                $stopLossRequest['amount'] = $this->parse_to_numeric($stopLossAmount);
+            }
+            $params['stopLoss'] = $stopLossRequest;
         }
         $paramsOmitted = $this->omit($params, array( 'takeProfitType', 'takeProfitPriceType', 'takeProfitLimitPrice', 'takeProfitAmount', 'stopLossType', 'stopLossPriceType', 'stopLossLimitPrice', 'stopLossAmount' ));
         return $paramsOmitted;
@@ -6302,7 +6302,6 @@ class BaseExchange extends \ccxt\BaseExchange {
         list($paginationDirection, $paramsPaginationDirection) = $this->handle_option_and_params($paramsMaxRetries, $method, 'paginationDirection', 'backward');
         $paginationTimestamp = null;
         list($removeRepeatedOption, $paramsRemoveRepeated) = $this->handle_option_and_params($paramsPaginationDirection, $method, 'removeRepeated', $removeRepeated);
-        $calls = 0;
         $result = array();
         $errors = 0;
         $until = $this->safe_integer_n($paramsRemoveRepeated, array( 'until', 'untill', 'till' )); // do not omit it from params here
@@ -6314,8 +6313,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             $paginationTimestamp = $since;
         }
         $shouldBreak = false;
-        while (($calls < $maxCallsPaginationCalls)) {
-            $calls += 1;
+        for ($i = 0; $i < $maxCallsPaginationCalls; $i++) {
             try {
                 if ($paginationDirection === 'backward') {
                     // do it backwards, starting from the last
@@ -6326,7 +6324,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                     $response = Async\await($this->$method($symbol, null, $maxEntriesPerRequestOption, $paramsMaxEntriesPerRequest));
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $backwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' method ' . $method . ' response length ' . (string) $responseLength;
+                        $backwardMessage = 'Dynamic pagination call ' . $this->number_to_string($i + 1) . ' method ' . $method . ' response length ' . (string) $responseLength;
                         if ($paginationTimestamp !== null) {
                             $backwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
                         }
@@ -6353,7 +6351,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                     $response = Async\await($this->$method($symbol, $paginationTimestamp, $maxEntriesPerRequestOption, $paramsMaxEntriesPerRequest));
                     $responseLength = count($response);
                     if ($this->verbose) {
-                        $forwardMessage = 'Dynamic pagination call ' . $this->number_to_string($calls) . ' method ' . $method . ' response length ' . (string) $responseLength;
+                        $forwardMessage = 'Dynamic pagination call ' . $this->number_to_string($i + 1) . ' method ' . $method . ' response length ' . (string) $responseLength;
                         if ($paginationTimestamp !== null) {
                             $forwardMessage .= ' timestamp ' . $this->number_to_string($paginationTimestamp);
                         }
@@ -6432,6 +6430,7 @@ class BaseExchange extends \ccxt\BaseExchange {
     private function do_fetch_paginated_call_deterministic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array(), ?int $maxEntriesPerRequest = null) {
         $maxCalls = 10;
         list($maxCallsPaginationCalls, $paramsPaginationCalls) = $this->handle_option_integer_and_params($params, $method, 'paginationCalls', $maxCalls);
+        $maxCallsLimit = $this->parse_to_int($maxCallsPaginationCalls);
         list($maxEntriesPerRequestOption, $paramsMaxEntriesPerRequest) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $paramsPaginationCalls);
         // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
         // pagination always walks forward internally, so strip it here to avoid leaking an
@@ -6443,7 +6442,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $maxEntriesPerRequestValue = $this->require_value($maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required');
         $step = $time * $this->parse_to_int($maxEntriesPerRequestValue);
         $until = $this->safe_integer_2($paramsOmitted, 'until', 'till'); // do not omit it here
-        $currentSince = $current - ($maxCallsPaginationCalls * $step) - 1;
+        $currentSince = $current - ($maxCallsLimit * $step) - 1;
         if ($since !== null) {
             if ($until !== null) {
                 // the recent-window floor below would jump past a fully-historical [ since, until ]
@@ -6462,11 +6461,11 @@ class BaseExchange extends \ccxt\BaseExchange {
                 throw new ArgumentsRequired($this->id . ' fetchPaginatedCallDeterministic() requires a since argument when until is set');
             }
             $requiredCalls = (int) ceil(($until - $since) / $step);
-            if ($requiredCalls > $maxCallsPaginationCalls) {
-                throw new BadRequest($this->id . ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' . (string) $maxCallsPaginationCalls . ' required calls is ' . (string) $requiredCalls);
+            if ($requiredCalls > $maxCallsLimit) {
+                throw new BadRequest($this->id . ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' . (string) $maxCallsLimit . ' required calls is ' . (string) $requiredCalls);
             }
         }
-        for ($i = 0; $i < $maxCallsPaginationCalls; $i++) {
+        for ($i = 0; $i < $maxCallsLimit; $i++) {
             if (($until !== null) && ($currentSince >= $until)) {
                 break;
             }
@@ -6498,13 +6497,12 @@ class BaseExchange extends \ccxt\BaseExchange {
         list($maxRetriesOption, $paramsMaxRetries) = $this->handle_option_integer_and_params($paramsPaginationCalls, $method, 'maxRetries', $maxRetries);
         list($maxEntriesPerRequestOption, $paramsMaxEntriesPerRequest) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $paramsMaxRetries);
         $cursorValue = null;
-        $i = 0;
         $errors = 0;
         $result = array();
         $timeframe = $this->safe_string($paramsMaxEntriesPerRequest, 'timeframe');
         $paramsOmitted = $this->omit($paramsMaxEntriesPerRequest, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
         $shouldBreak = false;
-        while ($i < $maxCallsPaginationCalls) {
+        for ($i = 0; $i < $maxCallsPaginationCalls; $i++) {
             try {
                 if ($cursorValue !== null) {
                     if ($cursorIncrement !== null) {
@@ -6578,7 +6576,6 @@ class BaseExchange extends \ccxt\BaseExchange {
             if ($shouldBreak) {
                 break; // go turns a break inside try into a panic that only ends the iteration
             }
-            $i += 1;
         }
         $sorted = $this->sort_cursor_paginated_result($result);
         $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
@@ -6592,14 +6589,14 @@ class BaseExchange extends \ccxt\BaseExchange {
     private function do_fetch_paginated_call_incremental(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array(), ?string $pageKey = null, ?int $maxEntriesPerRequest = null) {
         $maxCalls = 10;
         list($maxCallsPaginationCalls, $paramsPaginationCalls) = $this->handle_option_integer_and_params($params, $method, 'paginationCalls', $maxCalls);
+        $maxCallsLimit = $this->parse_to_int($maxCallsPaginationCalls);
         $maxRetries = 3;
         list($maxRetriesOption, $paramsMaxRetries) = $this->handle_option_integer_and_params($paramsPaginationCalls, $method, 'maxRetries', $maxRetries);
         list($maxEntriesPerRequestOption, $paramsMaxEntriesPerRequest) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $paramsMaxRetries);
-        $i = 0;
         $errors = 0;
         $result = array();
         $shouldBreak = false;
-        while ($i < $maxCallsPaginationCalls) {
+        for ($i = 0; $i < $maxCallsLimit; $i++) {
             try {
                 $paramsMaxEntriesPerRequest[$pageKey] = $i + 1;
                 $response = Async\await($this->$method($symbol, $since, $maxEntriesPerRequestOption, $paramsMaxEntriesPerRequest));
@@ -6624,11 +6621,8 @@ class BaseExchange extends \ccxt\BaseExchange {
             if ($shouldBreak) {
                 break; // go turns a break inside try into a panic that only ends the iteration
             }
-            $i += 1;
         }
-        $sorted = $this->sort_cursor_paginated_result($result);
-        $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
-        return $this->filter_by_since_limit($sorted, $since, $limit, $key);
+        return $this->filter_by_since_limit($this->sort_cursor_paginated_result($result), $since, $limit, ($method === 'fetchOHLCV') ? 0 : 'timestamp');
     }
 
     public function sort_cursor_paginated_result(mixed $result) {
@@ -6662,7 +6656,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $input;
     }
 
-    public function remove_repeated_trades_from_array(mixed $input) {
+    public function remove_repeated_trades_from_array(array $input) {
         $uniqueResult = array();
         for ($i = 0; $i < count($input); $i++) {
             $entry = $input[$i];
