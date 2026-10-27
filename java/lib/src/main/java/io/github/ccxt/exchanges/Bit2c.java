@@ -597,7 +597,7 @@ public class Bit2c extends Bit2cApi
             }
             Map<String, Object> market = this.market(symbol);
             String optionValue = this.safeString(this.options, "fetchTradesMethod"); // kept here for backward compatibility #29154
-            Object method = this.handleOption("fetchTrades", "method", optionValue); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
+            String method = this.safeString(this.handleOptionAndParams(new HashMap<String, Object>() {{}}, "fetchTrades", "method", optionValue), 0); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "pair", market.get("id") );
             }};
@@ -888,9 +888,10 @@ public class Bit2c extends Bit2cApi
         //
         Object orderUnified = null;
         Boolean isNewOrder = false;
-        if (((Map<?, ?>)order).containsKey("NewOrder"))
+        Object newOrder = this.safeValue(order, "NewOrder");
+        if (!java.util.Objects.equals(newOrder, null))
         {
-            orderUnified = ((Map<String, Object>)order).get("NewOrder");
+            orderUnified = newOrder;
             isNewOrder = true;
         } else
         {

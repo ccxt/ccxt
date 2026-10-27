@@ -852,7 +852,7 @@ public class Mercado extends MercadoApi
         String id = this.safeString(order, "order_id");
         String order_type = this.safeString(order, "order_type");
         String side = null;
-        if (((Map<?, ?>)order).containsKey("order_type"))
+        if (!java.util.Objects.equals(order_type, null))
         {
             side = (((java.util.Objects.equals(order_type, "1")))) ? "buy" : "sell";
         }

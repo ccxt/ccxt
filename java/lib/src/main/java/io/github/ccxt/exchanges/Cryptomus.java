@@ -421,8 +421,8 @@ public class Cryptomus extends CryptomusApi
             throw new ExchangeError((this.id + " parseMarket() missing marketId")) ;
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("_"))));
-        String baseId = (String) (parts == null || 0 >= parts.size() ? null : parts.get(0));
-        String quoteId = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
+        String baseId = this.safeString(parts, 0);
+        String quoteId = this.safeString(parts, 1);
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
@@ -1064,8 +1064,7 @@ public class Cryptomus extends CryptomusApi
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object order = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
-                ((List<Object>)orders).add(this.parseOrder(order, market));
+                ((List<Object>)orders).add(this.parseOrder((result == null || i < 0 || i >= result.size() ? null : result.get(i)), market));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

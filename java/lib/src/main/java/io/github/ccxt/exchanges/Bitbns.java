@@ -1535,7 +1535,8 @@ public class Bitbns extends BitbnsApi
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        if (!(((Map<?, ?>)this.urls.get("api")).containsKey(apiName)))
+        String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
+        if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((((this.id + " does not have a testnet/sandbox URL for ") + apiName) + " endpoints")) ;
         }
@@ -1547,11 +1548,6 @@ public class Bitbns extends BitbnsApi
         if (!java.util.Objects.equals(apiName, "www"))
         {
             requestHeaders.put("X-BITBNS-APIKEY", this.apiKey);
-        }
-        String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
-        if (java.util.Objects.equals(baseApiUrl, null))
-        {
-            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String baseUrl = (String) this.implodeHostname(baseApiUrl);
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));

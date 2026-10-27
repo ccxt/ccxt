@@ -709,7 +709,7 @@ public class Bigone extends BigoneApi
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.publicGetAssetPairs(parameters), this.contractPublicGetSymbols(parameters)));
             Object promisesResult = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> response = (Map<String, Object>) this.safeDict(promisesResult, 0, (Object) null);
-            Object contractResponse = (promisesResult == null || 1 >= ((List<?>)promisesResult).size() ? null : ((List<?>)promisesResult).get(1));
+            Object contractResponse = this.safeValue(promisesResult, 1);
             //
             //     {
             //         "code":0,
@@ -947,7 +947,7 @@ public class Bigone extends BigoneApi
         //    }
         //
         String marketType = "swap";
-        if (((Map<?, ?>)ticker).containsKey("asset_pair_name"))
+        if (!java.util.Objects.equals(this.safeString(ticker, "asset_pair_name"), null))
         {
             marketType = "spot";
         }
@@ -2444,7 +2444,7 @@ public class Bigone extends BigoneApi
         String address = this.safeString(transaction, "target_address");
         String tag = this.safeString(transaction, "memo");
         String type = "deposit";
-        if (transaction.containsKey("customer_id"))
+        if (!java.util.Objects.equals(this.safeString(transaction, "customer_id"), null))
         {
             type = "withdrawal";
         }

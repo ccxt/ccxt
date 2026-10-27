@@ -693,8 +693,8 @@ public class Btcmarkets extends BtcmarketsApi
         mapLiteral2.put("contract", false);
         mapLiteral2.put("linear", null);
         mapLiteral2.put("inverse", null);
-        mapLiteral2.put("taker", ((Map<String, Object>)fees).get("taker"));
-        mapLiteral2.put("maker", ((Map<String, Object>)fees).get("maker"));
+        mapLiteral2.put("taker", this.safeNumber(fees, "taker", (Object) null));
+        mapLiteral2.put("maker", this.safeNumber(fees, "maker", (Object) null));
         mapLiteral2.put("contractSize", null);
         mapLiteral2.put("expiry", null);
         mapLiteral2.put("expiryDatetime", null);
@@ -1354,10 +1354,7 @@ public class Btcmarkets extends BtcmarketsApi
         if (java.util.Objects.equals(market.get("quote"), "AUD"))
         {
             currency = this.safeString(market, "quote");
-            String amountString = this.numberToString(amount);
-            String priceString = this.numberToString(price);
-            String otherUnitsAmount = Precise.stringMul(amountString, priceString);
-            cost = this.costToPrecision(symbol, otherUnitsAmount);
+            cost = this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price)));
         } else
         {
             currency = this.safeString(market, "base");
@@ -1664,9 +1661,8 @@ public class Btcmarkets extends BtcmarketsApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
-            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
-            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
+            String tagWithdrawTag = this.safeString(parameters, "tag");
+            Map<String, Object> paramsWithdrawTag = this.omit(parameters, "tag");
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();

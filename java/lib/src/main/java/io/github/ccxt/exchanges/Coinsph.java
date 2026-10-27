@@ -1709,7 +1709,8 @@ public class Coinsph extends CoinsphApi
             request.put("type", orderType);
             request.put("side", orderSide);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
-            Object newOrderRespType = this.safeValue(options, "newOrderRespType", new HashMap<String, Object>() {{}});
+            Object newOrderRespTypes = this.safeValue(options, "newOrderRespType", new HashMap<String, Object>() {{}});
+            String newOrderRespType = "FULL";
             // if limit order
             if (java.util.Objects.equals(orderType, "LIMIT") || java.util.Objects.equals(orderType, "STOP_LOSS_LIMIT") || java.util.Objects.equals(orderType, "TAKE_PROFIT_LIMIT") || java.util.Objects.equals(orderType, "LIMIT_MAKER"))
             {
@@ -1717,7 +1718,7 @@ public class Coinsph extends CoinsphApi
                 {
                     throw new ArgumentsRequired((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
                 }
-                newOrderRespType = this.safeString(newOrderRespType, "limit", "FULL");
+                newOrderRespType = this.safeString(newOrderRespTypes, "limit", "FULL");
                 request.put("price", this.priceToPrecision(symbol, price));
                 request.put("quantity", this.amountToPrecision(symbol, amount));
                 if (!java.util.Objects.equals(orderType, "LIMIT_MAKER"))
@@ -1726,7 +1727,7 @@ public class Coinsph extends CoinsphApi
                 }
             } else if (java.util.Objects.equals(orderType, "MARKET") || java.util.Objects.equals(orderType, "STOP_LOSS") || java.util.Objects.equals(orderType, "TAKE_PROFIT"))
             {
-                newOrderRespType = this.safeString(newOrderRespType, "market", "FULL");
+                newOrderRespType = this.safeString(newOrderRespTypes, "market", "FULL");
                 if (java.util.Objects.equals(orderSide, "SELL"))
                 {
                     request.put("quantity", this.amountToPrecision(symbol, amount));
@@ -2722,23 +2723,23 @@ public class Coinsph extends CoinsphApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object query = this.omit(parameters, this.extractParams(path));
+        Map<String, Object> query = this.extend(new HashMap<String, Object>() {{}}, this.omit(parameters, this.extractParams(path)));
         String endpoint = (String) this.implodeParams(path, parameters);
         String url = ((apiUrl + "/") + endpoint);
         if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
-            ((Map<String, Object>)query).put("timestamp", this.milliseconds());
+            query.put("timestamp", this.milliseconds());
             Long recvWindow = this.safeInteger(query, "recvWindow");
             if (java.util.Objects.equals(recvWindow, null))
             {
                 Long defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
                 if (!java.util.Objects.equals(defaultRecvWindow, null))
                 {
-                    ((Map<String, Object>)query).put("recvWindow", defaultRecvWindow);
+                    query.put("recvWindow", defaultRecvWindow);
                 }
             }
-            Object signedQuery = this.urlEncodeQuery(((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+            Object signedQuery = this.urlEncodeQuery(query);
             String signature = (String) this.hmac(this.encode(signedQuery), this.encode(this.secret), sha256());
             url = ((((((apiUrl + "/") + endpoint) + "?") + signedQuery) + "&signature=") + signature);
             Map<String, Object> signedHeaders = new HashMap<String, Object>() {{
@@ -2753,7 +2754,7 @@ public class Coinsph extends CoinsphApi
                 return h2kMap1;
             }
         }
-        String encodedQuery = this.urlEncodeQuery(((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+        String encodedQuery = this.urlEncodeQuery(query);
         if ((encodedQuery.length() != 0))
         {
             url = ((((apiUrl + "/") + endpoint) + "?") + encodedQuery);

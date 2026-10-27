@@ -4805,7 +4805,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 payload = (Map<String, Object>) this.editSpotOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             } else
             {
-                payload = this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+                payload = (Map<String, Object>) this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             }
             Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "editOrderWs", "returnRateLimits", false);
             Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();

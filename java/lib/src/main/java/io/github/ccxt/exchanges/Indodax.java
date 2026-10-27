@@ -957,11 +957,11 @@ public class Indodax extends IndodaxApi
             symbol = marketResolved.get("symbol");
             String quoteId = this.safeString(marketResolved, "quoteId", "");
             String baseId = this.safeString(marketResolved, "baseId", "");
-            if ((java.util.Objects.equals(marketResolved.get("quoteId"), "idr")) && (((Map<?, ?>)order).containsKey("order_rp")))
+            if ((java.util.Objects.equals(marketResolved.get("quoteId"), "idr")) && (!java.util.Objects.equals(this.safeString(order, "order_rp"), null)))
             {
                 quoteId = "rp";
             }
-            if ((java.util.Objects.equals(marketResolved.get("baseId"), "idr")) && (((Map<?, ?>)order).containsKey("remain_rp")))
+            if ((java.util.Objects.equals(marketResolved.get("baseId"), "idr")) && (!java.util.Objects.equals(this.safeString(order, "remain_rp"), null)))
             {
                 baseId = "rp";
             }
@@ -1835,11 +1835,11 @@ public class Indodax extends IndodaxApi
             return null;  // public endpoints may return []-arrays
         }
         String error = this.safeString(response, "error", "");
-        if (!((switch ((Object)(response)) { case List<?> j39v6 -> j39v6.contains("success"); case Map<?, ?> j39v5 -> j39v5.containsKey("success"); case null, default -> false; })) && java.util.Objects.equals(error, ""))
+        String status = this.safeString(response, "success");
+        if ((java.util.Objects.equals(status, null)) && (java.util.Objects.equals(error, "")))
         {
             return null;  // no 'success' property on public responses
         }
-        String status = this.safeString(response, "success");
         if (java.util.Objects.equals(status, "approved"))
         {
             return null;

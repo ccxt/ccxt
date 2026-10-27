@@ -143,10 +143,6 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         // nobody is awaiting, so a replaced object would make updates landing
         // in that window invisible to the consumer forever (same class as
         // issue #26773)
-        if (java.util.Objects.equals(this.balance, null))
-        {
-            this.balance = new HashMap<String, Object>() {{}};
-        }
         this.balance.put("info", message);
         List<Object> balances = (List<Object>) this.safeList(message, "balances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
@@ -235,8 +231,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         String eventVar = this.safeString(message, "event");
         if (java.util.Objects.equals(eventVar, "rejected"))
         {
-            String jsonMessage = this.json(message);
-            throw new ExchangeError(((this.id + " ") + jsonMessage)) ;
+            throw new ExchangeError(((this.id + " ") + this.json(message))) ;
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
             String marketId = this.safeString(message, "symbol");
@@ -823,7 +818,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         String messageHash = ((("orderbook:" + symbol) + ":") + type);
         String datetime = this.safeString(message, "timestamp");
         Long timestamp = this.parse8601(datetime);
-        if (java.util.Objects.equals(this.safeValue(this.orderbooks, symbol), null))
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.countedOrderBook());
         }
@@ -864,23 +859,31 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
     public void handleMessage(Client client, Object message)
     {
         String channel = this.safeString(message, "channel");
-        Map<String, Object> handlers = new HashMap<String, Object>() {{
-            put( "ticker", "handleTicker");
-            put( "trades", "handleTrades");
-            put( "prices", "handleOHLCV");
-            put( "l2", "handleOrderBook");
-            put( "l3", "handleOrderBook");
-            put( "auth", "handleAuthenticationMessage");
-            put( "balances", "handleBalance");
-            put( "trading", "handleOrders");
-        }};
-        Object handler = this.safeValue(handlers, channel);
-        if (!java.util.Objects.equals(handler, null))
+        if (java.util.Objects.equals(channel, "ticker"))
         {
-            Helpers.callDynamically(this, handler, new Object[] {client, message});
-            return;
+            this.handleTicker(client, (Map<String, Object>) (message));
+        } else if (java.util.Objects.equals(channel, "trades"))
+        {
+            this.handleTrades(client, (Map<String, Object>) (message));
+        } else if (java.util.Objects.equals(channel, "prices"))
+        {
+            this.handleOHLCV(client, (Map<String, Object>) (message));
+        } else if (java.util.Objects.equals(channel, "l2") || java.util.Objects.equals(channel, "l3"))
+        {
+            this.handleOrderBook(client, (Map<String, Object>) (message));
+        } else if (java.util.Objects.equals(channel, "auth"))
+        {
+            this.handleAuthenticationMessage(client, (Map<String, Object>) (message));
+        } else if (java.util.Objects.equals(channel, "balances"))
+        {
+            this.handleBalance(client, (Map<String, Object>) (message));
+        } else if (java.util.Objects.equals(channel, "trading"))
+        {
+            this.handleOrders(client, (Map<String, Object>) (message));
+        } else
+        {
+            throw new NotSupported(((this.id + " received an unsupported message: ") + this.json(message))) ;
         }
-        throw new NotSupported(((this.id + " received an unsupported message: ") + this.json(message))) ;
     }
 
     public void handleAuthenticationMessage(Client client, Map<String, Object> message)

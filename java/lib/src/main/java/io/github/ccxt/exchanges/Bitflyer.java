@@ -322,7 +322,7 @@ public class Bitflyer extends BitflyerApi
     {
         String day = (expiry == null ? null : ((String)expiry).substring(0, Math.min(2, ((String)expiry).length())));
         String monthName = (expiry == null ? null : ((String)expiry).substring(Math.min(2, ((String)expiry).length()), Math.min(5, ((String)expiry).length())));
-        String year = (expiry == null ? null : ((String)expiry).substring(Math.min(5, ((String)expiry).length()), Math.min(9, ((String)expiry).length())));
+        String expiryYear = (expiry == null ? null : ((String)expiry).substring(Math.min(5, ((String)expiry).length()), Math.min(9, ((String)expiry).length())));
         Map<String, Object> months = new HashMap<String, Object>() {{
             put( "JAN", "01" );
             put( "FEB", "02" );
@@ -342,7 +342,7 @@ public class Bitflyer extends BitflyerApi
         {
             return null;
         }
-        return this.parse8601((((((year + "-") + month) + "-") + day) + "T00:00:00Z"));
+        return this.parse8601((((((expiryYear + "-") + month) + "-") + day) + "T00:00:00Z"));
     }
 
     public Map<String, Object> safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
@@ -1525,9 +1525,10 @@ public class Bitflyer extends BitflyerApi
         request = (request + path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((Map<String, Object>)parameters).size() > 0)
+            String query = this.urlencode(parameters);
+            if (!java.util.Objects.equals(query, ""))
             {
-                request = (request + ("?" + this.urlencode(parameters)));
+                request = (request + ("?" + query));
             }
         }
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
@@ -1535,8 +1536,7 @@ public class Bitflyer extends BitflyerApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String baseUrl = (String) this.implodeHostname(apiUrl);
-        String url = (baseUrl + request);
+        String url = (this.implodeHostname(apiUrl) + request);
         if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
