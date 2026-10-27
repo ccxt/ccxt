@@ -2229,6 +2229,8 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         valueOut = value; // every return of the producer is a fresh non-nil map
     } else if (!nilKeyGuardable && goMapWriteMapResultCall (lines, valueMasked) && (goMapWriteGroupEnd (valueMasked, valueMasked.indexOf ('(')) === valueMasked.length)) {
         valueOut = value;
+    } else if ((valueType === 'any') && goMapWriteDerefedAnyLocal (maskedFunc, declOf (value), value)) {
+        valueOut = value; // every write is already deref'd (derefScalar is idempotent), so the helper's deref is a no-op
     }
     if ((valueOut === undefined) && !nilKeyGuardable && (lastLine === k)) {
         valueOut = hx4G39PointerValue (lines, value, valueMasked, typeAt (value, k))?.replace (/\n/g, '\n' + head[1]);  // hx4 G39
@@ -2384,6 +2386,28 @@ function goMapWriteMapResultCall (lines: string[], text: string, depth: number =
         }
     }
     return returns > 0;
+}
+
+// producers whose `any` result already went through derefScalar (GetValue, DerefScalar, SafeValue and its
+// SafeDict/SafeList wrappers, GetArg defaults), or a never-pointer map: AddElementToObject's own deref of the
+// stored value is then the identity
+const GO_MAPWRITE_DEREFED_ANY_PRODUCER = /^(?:(?:ccxt\.)?(?:DerefScalar|GetValue)\(|this\.(?:SafeDict|SafeList|SafeValue|Extend|Account)\(|nil$)/;
+
+// a single-declaration `any` local whose declaration and every later write is a deref'd producer,
+// and whose address is never taken (AppendToArray(&x, ..) rewrites it)
+function goMapWriteDerefedAnyLocal (maskedFunc: string, decl: any, name: string): boolean {
+    if ((decl === undefined) || (decl.index === undefined) || (decl.type !== 'any')) {
+        return false;
+    }
+    const n = goAccessEscape (name);
+    if (goG14MapLocalRebound (maskedFunc, n)) {
+        return false;
+    }
+    const writes = [ decl.line.replace (/^\s*var\s+\w+\s+\S+\s*=\s*/, '').trim () ];
+    for (const w of maskedFunc.matchAll (new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)\\s*([^\\n]*)', 'gm'))) {
+        writes.push (w[1].trim ());
+    }
+    return writes.every ((init: string) => GO_MAPWRITE_DEREFED_ANY_PRODUCER.test (init));
 }
 
 // a single-declaration `any` local initialised by a map producer call
@@ -13253,6 +13277,13 @@ function hx4G14MapWriteSelfTest (): string[] {
     ok (run ('\tif since != nil {\n\t\tf := func() {\n\t\t\tAddElementToObject(request, "s", since)\n\t\t}\n\t\tf()\n\t}\n').includes ('request["s"] = *since') === false, 'a func literal stops the guard walk');
     ok (run ('\tif since != nil {\n\t}\n\tAddElementToObject(request, "s", since)\n').includes ('request["s"] = *since') === false, 'a closed guard block does not dominate');
     ok (run ('\tif (since != nil) || true {\n\t\tAddElementToObject(request, "s", since)\n\t}\n').includes ('request["s"] = *since') === false, 'a || guard prints no bare deref');
+    // any-typed value locals fed only by deref'd producers (printer-go-addelem-map-local-any-key-value)
+    const anyRun = (body: string) => nativeTypedContainerAccess ('func (this *X) f(p any) any {\n\tvar result map[string]any = map[string]any{}\n' + body + '\treturn result\n}');
+    ok (anyRun ('\tvar item any = this.SafeDict(p, "k", map[string]any{})\n\tvar id *string = this.SafeString(item, "id")\n\tAddElementToObject(result, id, item)\n').includes ('if id != nil {\n\t\tresult[*id] = item\n\t}'), 'SafeDict any local under a *string key');
+    ok (anyRun ('\tvar item any = GetValue(p, "k")\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item'), 'GetValue any local under a literal key');
+    ok (anyRun ('\tvar item any = this.SafeDict(p, "k")\n\titem = this.Foo(p)\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item') === false, 'a non-deref\'d rewrite keeps the helper');
+    ok (anyRun ('\tvar item any = this.SafeList(p, "k", []any{})\n\tAppendToArray(&item, 1)\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item') === false, 'an address-taken local keeps the helper');
+    ok (anyRun ('\tvar item any = this.Foo(p)\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item') === false, 'an unknown producer keeps the helper');
     const src = 'type List = any[];\nclass Test {\n'
         + '    safeList (d: any, k: any, v: any = undefined): any { return v; }\n'
         + '    f (r: any) { const data = this.safeList (r, \'data\', []); const n = (data as List).length; for (let i = 0; i < n; i++) { const e = data[i]; } return n; }\n'
