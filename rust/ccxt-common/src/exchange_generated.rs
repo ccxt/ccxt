@@ -2927,10 +2927,10 @@ pub trait ExchangeBase:
             let mut __for_first_92: bool = true;
             while { if !__for_first_92 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_92 = false; i.as_f64().unwrap_or(f64::NAN) < ((codes.len() as i64) as f64) } {
             let mut code: Value = codes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut total: Value = self.safe_string(balance.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("total".into()), &[]);
-            let mut free: Value = self.safe_string(balance.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]);
-            let mut used: Value = self.safe_string(balance.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("used".into()), &[]);
-            let mut debt: Option<String> = self.safe_string_opt(balance.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("debt".into()), &[]);
+            let mut total: Value = self.safe_string(balances.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("total".into()), &[]);
+            let mut free: Value = self.safe_string(balances.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]);
+            let mut used: Value = self.safe_string(balances.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("used".into()), &[]);
+            let mut debt: Option<String> = self.safe_string_opt(balances.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str("debt".into()), &[]);
             if (total == Value::Null) && (free != Value::Null) && (used != Value::Null) {
                 total = crate::precise::Precise::stringAdd(&free, &used);
             }
@@ -3017,16 +3017,16 @@ pub trait ExchangeBase:
             }
             if isArray && ((tradesLength as f64) > ((0i64) as f64)) {
                 // move properties that are defined in trades up into the order
-                if (orderDict.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) == Value::Null) {
+                if parseSymbol {
                     add_element_to_object(&mut orderDict, &Value::Str("symbol".into()), crate::value::get_value_k(&trades.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), "symbol"));
                 }
-                if (orderDict.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null) == Value::Null) {
+                if parseSide {
                     add_element_to_object(&mut orderDict, &Value::Str("side".into()), crate::value::get_value_k(&trades.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), "side"));
                 }
-                if (orderDict.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null) == Value::Null) {
+                if (self.safe_string_k(orderDict.clone(), "type", &[]) == Value::Null) {
                     add_element_to_object(&mut orderDict, &Value::Str("type".into()), crate::value::get_value_k(&trades.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), "type"));
                 }
-                if (orderDict.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) == Value::Null) {
+                if (self.safe_string_k(orderDict.clone(), "id", &[]) == Value::Null) {
                     add_element_to_object(&mut orderDict, &Value::Str("id".into()), crate::value::get_value_k(&trades.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), "order"));
                 }
                 if parseFilled {
@@ -3054,7 +3054,7 @@ pub trait ExchangeBase:
                     if parseSide {
                         side = self.safe_string_k(trade.clone(), "side", &[]);
                     }
-                    let mut tradeTimestamp: Value = self.safe_value_k(trade.clone(), "timestamp", &[]);
+                    let mut tradeTimestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
                     if parseLastTradeTimeTimestamp && (tradeTimestamp != Value::Null) {
                         if (lastTradeTimeTimestamp == Value::Null) {
                             lastTradeTimeTimestamp = tradeTimestamp.clone();
@@ -3186,9 +3186,9 @@ pub trait ExchangeBase:
             }
         }
         // support for market orders
-        let mut orderType: Value = self.safe_value_k(orderDict.clone(), "type", &[]);
+        let mut orderType: Option<String> = self.safe_string_k(orderDict.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut emptyPrice: bool = (price == Value::Null) || crate::precise::Precise::stringEquals(&price, &Value::Str("0".into())).as_bool() == Some(true);
-        if emptyPrice && (orderType.as_str() == Some("market")) {
+        if emptyPrice && (orderType.as_deref() == Some("market")) {
             price = average.clone();
         }
         {
