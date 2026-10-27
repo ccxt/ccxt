@@ -9007,7 +9007,7 @@ export class BaseExchange {
         return result;
     }
 
-    removeRepeatedElementsFromArray (input: Dict[], fallbackToTimestamp: boolean = true) {
+    removeRepeatedElementsFromArray (input: any, fallbackToTimestamp: boolean = true) {
         const uniqueDic: Dict = {};
         const uniqueResult: Dict[] = [];
         for (let i = 0; i < input.length; i++) {
@@ -9040,7 +9040,8 @@ export class BaseExchange {
                     throw new ExchangeError (this.id + ' removeRepeatedTradesFromArray() missing timestamp');
                 }
                 // optional parts are empty when absent, separators keep positions distinct
-                id = 't_' + timestamp + '_' + side + '_' + price + '_' + amount;
+                id = 't_' + timestamp.toString () + '_' + side + '_';
+                id = id + (price + '_' + amount);
             }
             if (id !== undefined && !(id in uniqueResult)) {
                 uniqueResult[id] = entry;
