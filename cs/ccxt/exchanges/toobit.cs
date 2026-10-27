@@ -3508,7 +3508,7 @@ public partial class toobit : Exchange
             extraQuery["timestamp"] = timestamp.ToString();
             Dictionary<string, object> queryExtended = this.extend(query, extraQuery);
             string queryString = "";
-            object privateBody = "";
+            string privateBody = "";
             if (isPost || isDelete)
             {
                 // everything else except Batch-Orders
@@ -3524,10 +3524,10 @@ public partial class toobit : Exchange
             {
                 queryString = this.urlencode(queryExtended);
             }
-            object payload = queryString;
+            string payload = queryString;
             if (isPost || isDelete)
             {
-                payload = add(privateBody, queryString);
+                payload = (privateBody + queryString);
             }
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
             if (queryString != "")
@@ -3536,7 +3536,7 @@ public partial class toobit : Exchange
                 url = url + ("?" + queryString);
             } else
             {
-                privateBody = add(privateBody, ("&signature=" + signature));
+                privateBody = privateBody + ("&signature=" + signature);
             }
             Dictionary<string, object> privateHeaders = new Dictionary<string, object>() {
                 { "Referrer", "CCXT" },
@@ -3544,7 +3544,7 @@ public partial class toobit : Exchange
                 { "X-BB-API-PLATFORM", this.safeString(this.options, "brokerId", "177321641268789") },
                 { "Content-Type", "application/x-www-form-urlencoded" },
             };
-            object requestBody = null;
+            string? requestBody = null;
             if (isPost || isDelete)
             {
                 requestBody = privateBody;

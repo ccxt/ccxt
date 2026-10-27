@@ -239,11 +239,10 @@ public partial class luno : ccxt.luno
         //         "timestamp": 1660598775360
         //     }
         //
-        object symbol = getValue(subscription, "symbol");
-        string? symbolValue = this.safeString(subscription, "symbol", "");
-        string messageHash = ("orderbook:" + symbolValue);
+        string? symbol = this.safeString(subscription, "symbol", "");
+        string messageHash = ("orderbook:" + symbol);
         Int64? timestamp = this.safeInteger(message, "timestamp");
-        if (!((this.orderbooks != null && symbol is string inOpKey0 && this.orderbooks.ContainsKey(inOpKey0))))
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook(new Dictionary<string, object>() {});
         }

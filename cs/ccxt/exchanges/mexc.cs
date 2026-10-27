@@ -6973,7 +6973,7 @@ public partial class mexc : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> requestHeaders = null;
-        object requestBody = null;
+        string? requestBody = null;
         string? section = ((string)(api != null && 0 < api.Count ? api[0] : null));
         string? access = ((string)(api != null && 1 < api.Count ? api[1] : null));
         string? pathValue = this.implodeParams(path, parameters);
@@ -7057,7 +7057,7 @@ public partial class mexc : Exchange
             {
                 this.checkRequiredCredentials();
                 string timestamp = this.nonce().ToString();
-                object auth = "";
+                string auth = "";
                 requestHeaders = new Dictionary<string, object>() {
                     { "ApiKey", this.apiKey },
                     { "Request-Time", timestamp },
@@ -7073,11 +7073,11 @@ public partial class mexc : Exchange
                     Dictionary<string, object> paramsSorted = this.keysort(paramsOmitted);
                     if ((new List<object>(paramsSorted.Keys)).Count > 0)
                     {
-                        auth = add(auth, this.urlencode(paramsSorted));
-                        url = (url + ("?" + (auth)));
+                        auth = auth + this.urlencode(paramsSorted);
+                        url = (url + ("?" + auth));
                     }
                 }
-                auth = ((this.apiKey + timestamp) + (auth));
+                auth = ((this.apiKey + timestamp) + auth);
                 string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 requestHeaders["Signature"] = signature;
             }

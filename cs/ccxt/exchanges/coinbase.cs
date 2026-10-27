@@ -2781,8 +2781,10 @@ public partial class coinbase : Exchange
                         });
                     } else
                     {
-                        account["free"] = Precise.stringAdd(this.safeString(account, "free"), total);
-                        account["total"] = Precise.stringAdd(this.safeString(account, "total"), total);
+                        account = this.extend(account, new Dictionary<string, object>() {
+                            { "free", Precise.stringAdd(this.safeString(account, "free"), total) },
+                            { "total", Precise.stringAdd(this.safeString(account, "total"), total) },
+                        });
                     }
                     if ((code != null))
                     {
@@ -2810,9 +2812,11 @@ public partial class coinbase : Exchange
                         });
                     } else
                     {
-                        account["free"] = Precise.stringAdd(this.safeString(account, "free"), free);
-                        account["used"] = Precise.stringAdd(this.safeString(account, "used"), used);
-                        account["total"] = Precise.stringAdd(this.safeString(account, "total"), total);
+                        account = this.extend(account, new Dictionary<string, object>() {
+                            { "free", Precise.stringAdd(this.safeString(account, "free"), free) },
+                            { "used", Precise.stringAdd(this.safeString(account, "used"), used) },
+                            { "total", Precise.stringAdd(this.safeString(account, "total"), total) },
+                        });
                     }
                     if ((code != null))
                     {
