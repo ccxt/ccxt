@@ -1286,6 +1286,10 @@ function goSliceIndexSelfTest (): string[] {
     const sd = '\tvar s []string = ObjectKeys(p)\n';
     ok (f (sd, '\t\tvar a string = GetValue(s, i).(string)\n').indexOf ('var a string = s[i]\n') >= 0, 'asserted read goes native');
     ok (f (sd, '\t\tr = Add(r, GetValue(s, i))\n').indexOf ('Add(r, s[i])') >= 0, 'bare read goes native');
+    const pl = '\tvar s []any = ListTyped(r1.Value)\n';
+    ok (f (pl, '\t\tr = this.ArrayConcat(r, GetValue(s, i))\n').indexOf ('this.ArrayConcat(r, s[i])') >= 0, 'promiseAll list as ArrayConcat operand goes native');
+    ok (f (pl, '\t\tr = Add(r, GetValue(s, i))\n').indexOf ('GetValue(s, i)') >= 0, 'promiseAll list elsewhere keeps GetValue');
+    ok (f (pl, '\t\tvar a any = GetValue(s, i)\n').indexOf ('GetValue(s, i)') >= 0, 'promiseAll list plain local keeps GetValue');
     ok (f ('\tvar s []string = ObjectKeys(p)\n\tvar n int = len(s)\n', '\t\tr = Add(r, GetValue(s, i))\n', 'n').indexOf ('s[i]') >= 0, 'unwritten len local bound');
     const keep: string[][] = [
         [ sd, '\t\ts = append(s, \"x\")\n\t\tr = GetValue(s, i)\n' ],
@@ -2997,6 +3001,9 @@ function goTextLoopBoundIsLen (maskedLines: string[], blocks: any[], depth: numb
     return true;
 }
 
+// hx11 w8: a promiseAll result list; its elements may be scalar boxes, so only an ArrayConcat operand (which derefs) reads natively
+const GO_PROMISE_LIST = /^[ \t]*(?:var )?[A-Za-z_]\w* \[\]any = (?:ccxt\.)?ListTyped\(r\d*\.Value\)$/;
+
 // `[ccxt.]GetValue(s, i)[.(string)]` -> `s[i]` anywhere in the body of `for i := 0; i < len(s); i++ {`
 // when `s` is declared once in the func as `[]string` and never written, `i` is not written in
 // the body and no func literal opens between the loop and the read (derefScalar of a string is itself).
@@ -3052,10 +3059,12 @@ function nativeLoopBoundedSliceReads (content: string): string {
             // hx11 w7: a `[]any` unboxed from a SafeList accessor holds plain JSON values (no *T box
             // for GetValue to deref), so its in-range element is the slice element itself
             const jsonList = (decl !== undefined) && (decl.type === '[]any') && (decl.line !== undefined) && GO_GUARDED_READ_SAFE_LIST.test (decl.line);
-            if ((decl === undefined) || ((decl.type !== '[]string') && !jsonList)) {
+            const taskList = (decl !== undefined) && (decl.type === '[]any') && (decl.line !== undefined) && GO_PROMISE_LIST.test (decl.line)
+                && (assertion === undefined) && /\bthis\.ArrayConcat\([A-Za-z_]\w*, $/.test (before) && after.startsWith (')');
+            if ((decl === undefined) || ((decl.type !== '[]string') && !jsonList && !taskList)) {
                 return match;
             }
-            const declRx = new RegExp ('^[ \\t]*var ' + slice + (jsonList ? ' \\[\\]any\\b' : ' \\[\\]string\\b'));
+            const declRx = new RegExp ('^[ \\t]*var ' + slice + ((jsonList || taskList) ? ' \\[\\]any\\b' : ' \\[\\]string\\b'));
             for (let k = fn.open + 1; k < fn.close; k++) {
                 const line = (decl.line !== undefined) ? maskedLines[k].replace (declRx, '') : maskedLines[k];
                 if (goTextWritesName (line, slice)) {
