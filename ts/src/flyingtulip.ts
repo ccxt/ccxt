@@ -43,6 +43,7 @@ export default class flyingtulip extends Exchange {
             'name': 'Flying Tulip',
             'countries': [],
             'rateLimit': 200,
+            'userAgent': 'ccxt',
             'dex': true,
             'version': 'v2',
             'has': {
@@ -1675,7 +1676,7 @@ export default class flyingtulip extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): any {
-        let headers = undefined;
+        const headers: Dict = { 'User-Agent': 'ccxt' };
         let body = undefined;
         let url = this.urls['api'][api[0]] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -1684,7 +1685,7 @@ export default class flyingtulip extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         } else {
-            headers = { 'Content-Type': 'application/json' };
+            headers['Content-Type'] = 'application/json';
             body = this.json (query);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

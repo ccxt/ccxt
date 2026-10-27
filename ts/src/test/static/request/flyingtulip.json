@@ -16,7 +16,10 @@
                     "open",
                     100
                 ],
-                "output": "{\"chainId\":146,\"sellToken\":\"0x29219dd400f2Bf60E5a23d13Be72B486D4038894\",\"buyToken\":\"0x50c42dEAcD8Fc9773493ED674b675bE577f2634b\",\"sellAmount\":\"1000000\",\"feeAmount\":\"500\",\"action\":\"open\",\"slippageBps\":100,\"priceQuality\":\"optimal\"}"
+                "output": "{\"chainId\":146,\"sellToken\":\"0x29219dd400f2Bf60E5a23d13Be72B486D4038894\",\"buyToken\":\"0x50c42dEAcD8Fc9773493ED674b675bE577f2634b\",\"sellAmount\":\"1000000\",\"feeAmount\":\"500\",\"action\":\"open\",\"slippageBps\":100,\"priceQuality\":\"optimal\"}",
+                "headers": {
+                    "User-Agent": "ccxt"
+                }
             }
         ],
         "quoteExactOut": [
@@ -31,7 +34,10 @@
                     "open",
                     100
                 ],
-                "output": "{\"chainId\":146,\"mode\":\"exactOut\",\"sellToken\":\"0x29219dd400f2Bf60E5a23d13Be72B486D4038894\",\"buyToken\":\"0x50c42dEAcD8Fc9773493ED674b675bE577f2634b\",\"buyAmount\":\"10000000000000001\",\"action\":\"open\",\"slippageBps\":100,\"priceQuality\":\"optimal\"}"
+                "output": "{\"chainId\":146,\"mode\":\"exactOut\",\"sellToken\":\"0x29219dd400f2Bf60E5a23d13Be72B486D4038894\",\"buyToken\":\"0x50c42dEAcD8Fc9773493ED674b675bE577f2634b\",\"buyAmount\":\"10000000000000001\",\"action\":\"open\",\"slippageBps\":100,\"priceQuality\":\"optimal\"}",
+                "headers": {
+                    "User-Agent": "ccxt"
+                }
             }
         ],
         "fetchPositions": [
@@ -45,7 +51,10 @@
                         "address": "0x0000000000000000000000000000000000000001"
                     }
                 ],
-                "output": null
+                "output": null,
+                "headers": {
+                    "User-Agent": "ccxt"
+                }
             }
         ],
         "fetchCurrencies": [
@@ -54,7 +63,10 @@
                 "method": "fetchCurrencies",
                 "url": "https://api.flyingtulip.com/spot/leverage/assets?chainId=146",
                 "input": [],
-                "output": null
+                "output": null,
+                "headers": {
+                    "User-Agent": "ccxt"
+                }
             }
         ],
         "fetchTicker": [
@@ -65,7 +77,10 @@
                 "input": [
                     "FT/FTUSD"
                 ],
-                "output": null
+                "output": null,
+                "headers": {
+                    "User-Agent": "ccxt"
+                }
             }
         ],
         "fetchTrades": [
@@ -81,7 +96,10 @@
                         "before": "eyJibG9ja19udW1iZXIiOjc4MjEyMjQwLCJsb2dfaW5kZXgiOjEwMDAwMCwidHhfaGFzaCI6IjB4ZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZiJ9"
                     }
                 ],
-                "output": null
+                "output": null,
+                "headers": {
+                    "User-Agent": "ccxt"
+                }
             }
         ]
     },
