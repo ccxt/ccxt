@@ -115,7 +115,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
-            Map<String, Object> ordersRequest = this.createOrdersRequest(orders, parameters);
+            Map<String, Object> ordersRequest = (Map<String, Object>) this.createOrdersRequest(orders, parameters);
             Map<String, Object> wrapped = this.wrapAsPostAction((Map<String, Object>) (ordersRequest));
             Map<String, Object> request = (Map<String, Object>) this.safeDict(wrapped, "request", new HashMap<String, Object>() {{}});
             String requestId = this.safeString(wrapped, "requestId");
@@ -207,7 +207,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             var orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             var order = ((List<Object>) orderglobalParamsVariable).get(0);
             Map<String, Object> globalParams = (Map<String, Object>) ((List<Object>) orderglobalParamsVariable).get(1);
-            Map<String, Object> postRequest = this.editOrdersRequest(new ArrayList<Object>(Arrays.asList(order)), globalParams);
+            Map<String, Object> postRequest = (Map<String, Object>) this.editOrdersRequest(new ArrayList<Object>(Arrays.asList(order)), globalParams);
             Map<String, Object> wrapped = this.wrapAsPostAction((Map<String, Object>) (postRequest));
             Map<String, Object> request = (Map<String, Object>) this.safeDict(wrapped, "request", new HashMap<String, Object>() {{}});
             String requestId = this.safeString(wrapped, "requestId");
@@ -245,7 +245,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> request = this.cancelOrdersRequest(ids, symbol, parameters);
+            Map<String, Object> request = (Map<String, Object>) this.cancelOrdersRequest(ids, symbol, parameters);
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
             Map<String, Object> wrapped = this.wrapAsPostAction((Map<String, Object>) (request));
             Map<String, Object> wsRequest = (Map<String, Object>) this.safeDict(wrapped, "request", new HashMap<String, Object>() {{}});

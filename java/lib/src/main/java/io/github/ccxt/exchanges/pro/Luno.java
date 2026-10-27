@@ -268,19 +268,18 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //         "timestamp": 1660598775360
         //     }
         //
-        Object symbol = subscription.get("symbol");
-        String symbolValue = this.safeString(subscription, "symbol", "");
-        String messageHash = ("orderbook:" + symbolValue);
+        String symbol = this.safeString(subscription, "symbol", "");
+        String messageHash = ("orderbook:" + symbol);
         Long timestamp = this.safeInteger(message, "timestamp");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(new HashMap<String, Object>() {{}}));
+            this.orderbooks.put(symbol, this.indexedOrderBook(new HashMap<String, Object>() {{}}));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         List<Object> asks = (List<Object>) this.safeList(message, "asks", (Object) null);
         if (java.util.Objects.equals(asks, null))
         {
-            Boolean inSequence = this.isOrderBookDeltaInSequence(client, (Map<String, Object>) (message), (String) (symbol));
+            Boolean inSequence = this.isOrderBookDeltaInSequence(client, (Map<String, Object>) (message), symbol);
             if (!Boolean.TRUE.equals(inSequence))
             {
                 return;
