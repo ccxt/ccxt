@@ -4895,16 +4895,14 @@ export default class mexc extends Exchange {
         }
         while (Precise.stringLt (floor, maxVol)) {
             const cap = Precise.stringAdd (floor, riskIncrVol);
-            const minNotional = this.parseNumber (floor);
-            const mainMarginRate = this.parseNumber (maintenanceMarginRate);
             const maxLev = this.parseNumber (Precise.stringDiv ('1', initialMarginRate));
             tiers.push ({
                 'tier': this.parseNumber (Precise.stringDiv (cap, riskIncrVol)),
                 'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
                 'currency': this.safeCurrencyCode (quoteId),
-                'minNotional': minNotional,
+                'minNotional': this.parseNumber (floor),
                 'maxNotional': this.parseNumber (cap),
-                'maintenanceMarginRate': mainMarginRate,
+                'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
                 'maxLeverage': maxLev,
                 'info': info,
             });
@@ -5898,9 +5896,8 @@ export default class mexc extends Exchange {
             return this.parseTransaction (responseForInternal, currency);
         }
         const networks = this.safeDict (this.options, 'networks', {});
-        let network = this.safeString2 (paramsWithdrawTag, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
-        network = this.networkCodeToId (network, this.safeString (currency, 'code'));
+        const networkRaw = this.safeString2 (paramsWithdrawTag, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
+        const network = this.networkCodeToId (this.safeString (networks, networkRaw, networkRaw), this.safeString (currency, 'code')); // handle ETH > ERC-20 alias
         this.checkAddress (address, code, tagResolved);
         const request: Dict = {
             'coin': currency['id'],
@@ -6398,7 +6395,7 @@ export default class mexc extends Exchange {
         const access = api[1];
         const pathValue = this.implodeParams (path, params);
         const paramsValue = this.omit (params, this.extractParams (path));
-        let url: Str = undefined;
+        let url = '';
         if (section === 'spot' || section === 'broker') {
             if (section === 'broker') {
                 const apiUrl = this.safeString (this.urls['api'][section], access);
@@ -6429,12 +6426,12 @@ export default class mexc extends Exchange {
             let paramsEncoded = '';
             if (Object.keys (urlParams).length > 0) {
                 paramsEncoded = this.urlencode (urlParams);
-                url += '?' + paramsEncoded;
+                url = url + '?' + paramsEncoded;
             }
             if (access === 'private') {
                 this.checkRequiredCredentials ();
                 const signature = this.hmac (this.encode (paramsEncoded), this.encode (this.secret), sha256);
-                url += '&' + 'signature=' + signature;
+                url = url + '&signature=' + signature;
                 requestHeaders = {
                     'X-MEXC-APIKEY': this.apiKey,
                     'source': this.safeString (this.options, 'broker', 'CCXT'),
